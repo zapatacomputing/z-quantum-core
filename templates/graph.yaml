@@ -15,7 +15,7 @@ spec:
         path: /app/main_script.py
         raw:
           data: |
-            from orquestra.core.graph import generate_random_graph_erdos_renyi, save_graph
+            from zquantum.core.graph import generate_random_graph_erdos_renyi, save_graph
             graph = generate_random_graph_erdos_renyi({{inputs.parameters.n-nodes}},
                                                       {{inputs.parameters.edge-probability}},
                                                       bool("{{inputs.parameters.random-weights}}"))

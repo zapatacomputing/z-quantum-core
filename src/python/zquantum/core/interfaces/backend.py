@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
-from orquestra.core.bitstring_distribution import BitstringDistribution, create_bitstring_distribution_from_probability_distribution, create_bitstring_distribution_from_measurements
-from orquestra.core.circuit import Circuit
-from orquestra.core.measurement import ExpectationValues
+from ..bitstring_distribution import BitstringDistribution, create_bitstring_distribution_from_probability_distribution, create_bitstring_distribution_from_measurements
+from ..circuit import Circuit
+from ..measurement import ExpectationValues
 from typing import Optional, List, Tuple
 from openfermion import QubitOperator
 from pyquil.wavefunction import Wavefunction

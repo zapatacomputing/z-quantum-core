@@ -20,18 +20,18 @@ spec:
             # Setup env vars/other stuff
             export LC_ALL=C.UTF-8
             export LANG=C.UTF-8
-            export FLASK_APP=/root/open-pack-core/python/orquestra/core/optimizer/proxy/rest.py
+            export FLASK_APP=/root/open-pack-core/python/zquantum/core/optimizer/proxy/rest.py
             # run python file
             python3 /app/start_proxy.py
       - name: start-proxy
         path: /app/start_proxy.py
         raw:
           data: |
-            from orquestra.core.optimizer.optimize import optimize_variational_circuit_with_proxy
-            from orquestra.core.optimizer.proxy import Client
-            from orquestra.core.circuit import load_circuit_template_params
-            from orquestra.optimizers import save_optimization_results
-            from orquestra.core.utils import create_object
+            from zquantum.core.optimizer.optimize import optimize_variational_circuit_with_proxy
+            from zquantum.core.optimizer.proxy import Client
+            from zquantum.core.circuit import load_circuit_template_params
+            from zquantum.optimizers import save_optimization_results
+            from zquantum.core.utils import create_object
             
             # Load initial params
             params = load_circuit_template_params('/app/initial_parameters.json')

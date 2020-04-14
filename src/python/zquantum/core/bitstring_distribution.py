@@ -159,7 +159,7 @@ def create_bitstring_distribution_from_measurements(measurements):
     Args:
         measurements (list): List of bitstrings (tuples of integers) representing the outcomes of measurements.
     Returns:
-        orquestra.core.bistring_distribution.BitstringDistribution : The BitstringDistribution object corresponding to the input measurements.
+        zquantum.core.bistring_distribution.BitstringDistribution : The BitstringDistribution object corresponding to the input measurements.
     """
     bitstring = convert_tuples_to_bitstrings(measurements)
     bitstring_distribution=dict(Counter(bitstring))

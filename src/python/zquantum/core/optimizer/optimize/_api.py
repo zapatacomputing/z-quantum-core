@@ -13,7 +13,7 @@ def optimize_variational_circuit_with_proxy(initial_params, optimizer, client, *
     Arguments:
         initial_params (numpy.ndarray): initial guess for the ansatz parameters.
         method (string): scipy method for optimization
-        client (orquestra.core.optimizer.proxy.Client): a client for interacting with
+        client (zquantum.core.optimizer.proxy.Client): a client for interacting with
             the proxy
 
         *** OPTIONAL ***
@@ -22,7 +22,7 @@ def optimize_variational_circuit_with_proxy(initial_params, optimizer, client, *
         layers_to_optimize (str): which layers of the ansatz to optimize. Options
             are 'all' and 'last'.
         options (dict): options for scipy optimizer
-        **kwargs: keyword arguments passed to orquestra.core.optimization.minimize
+        **kwargs: keyword arguments passed to zquantum.core.optimization.minimize
 
     Returns:
         tuple: two-element tuple containing

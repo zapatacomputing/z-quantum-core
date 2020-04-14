@@ -60,7 +60,7 @@ class Gate(object):
         return str(self.to_cirq())
 
     def __repr__(self):
-        return f'orquestra.core.circuit.Gate(name={self.name}, qubits={self.qubits}, params={self.params})'
+        return f'zquantum.core.circuit.Gate(name={self.name}, qubits={self.qubits}, params={self.params})'
 
     def get_param_string(self):
         r"""Get a string containing the parameters, e.g.

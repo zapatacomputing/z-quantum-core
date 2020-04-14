@@ -24,14 +24,14 @@ spec:
             # Setup env vars/other stuff
             export LC_ALL=C.UTF-8
             export LANG=C.UTF-8
-            export FLASK_APP=/app/resources/open-pack-core/src/python/orquestra/core/optimizer/proxy/rest.py
+            export FLASK_APP=/app/resources/open-pack-core/src/python/zquantum/core/optimizer/proxy/rest.py
             # run python file
             python3 /app/start_proxy.py
       - name: start-proxy
         path: /app/start_proxy.py
         raw:
           data: |
-            from orquestra.core.optimizer.proxy import start_proxy
+            from zquantum.core.optimizer.proxy import start_proxy
 
             start_proxy(8080)
 
@@ -49,7 +49,7 @@ spec:
         path: /app/get_argument_values.py
         raw:
           data: |
-            from orquestra.core.optimizer.proxy import Client
+            from zquantum.core.optimizer.proxy import Client
             client = Client("{{inputs.parameters.ip}}", "8080")
             import time
 
@@ -75,7 +75,7 @@ spec:
         path: /app/get_argument_values.py
         raw:
           data: |
-            from orquestra.core.optimizer.proxy import Client
+            from zquantum.core.optimizer.proxy import Client
             import json
 
             client = Client("{{inputs.parameters.ip}}", "8080")
@@ -111,7 +111,7 @@ spec:
         path: /app/send_evaluation_result.py
         raw:
           data: |
-            from orquestra.core.optimizer.proxy import Client
+            from zquantum.core.optimizer.proxy import Client
             import time
             import http.client
             import json

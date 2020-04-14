@@ -219,7 +219,7 @@ def save_parities(parities: Parities, filename: str) -> None:
     """Save parities to a file.
 
     Args:
-        parities (orquestra.core.measurement.Parities): the parities
+        parities (zquantum.core.measurement.Parities): the parities
         file (str or file-like object): the name of the file, or a file-like object
     """
     data = parities.to_dict()
@@ -236,7 +236,7 @@ def load_parities(file: TextIO) -> Parities:
         file (str or file-like object): the name of the file, or a file-like object.
 
     Returns:
-        orquestra.core.measurement.Parities: the parities
+        zquantum.core.measurement.Parities: the parities
     """
 
     if isinstance(file, str):
@@ -259,7 +259,7 @@ def get_expectation_values_from_measurements(measurements: List[Tuple[int]],
                                 Ignoring them might be beneficial if we have multiple operators which differ only by the coefficients.
 
     Returns:
-        orquestra.core.measurement.ExpectationValues: the expectation values of each term in the operator
+        zquantum.core.measurement.ExpectationValues: the expectation values of each term in the operator
     """
     # We require operator to be IsingOperator because measurements are always performed in the Z basis, 
     # so we need the operator to be Ising (containing only Z terms). 
@@ -292,10 +292,10 @@ def get_expectation_values_from_parities(parities: Parities) -> ExpectationValue
     """Get the expectation values of a set of operators (with precisions) from a set of samples (with even/odd parities) for them.
 
     Args:
-        parities (orquestra.core.measurement.Parities): Contains the number of samples with even and odd parities for each operator.
+        parities (zquantum.core.measurement.Parities): Contains the number of samples with even and odd parities for each operator.
 
     Returns:
-        A orquestra.core.measurement.ExpectationValues object: Contains the expectation values of the operators and the associated precisions.
+        A zquantum.core.measurement.ExpectationValues object: Contains the expectation values of the operators and the associated precisions.
     """
     values = []
     covariances = []
@@ -333,7 +333,7 @@ def get_parities_from_measurements(measurements: List[Tuple[int]],
         ising_operator (openfermion.ops.IsingOperator): the operator
 
     Returns:
-        orquestra.core.measurement.Parities: the parities of each term in the operator
+        zquantum.core.measurement.Parities: the parities of each term in the operator
     """
 
     # check input format
@@ -376,9 +376,9 @@ def expectation_values_to_real(expectation_values: ExpectationValues) -> Expecta
     """Remove the imaginary parts of the expectation values
 
     Args:
-        expectation_values (orquestra.core.measurement.ExpectationValues object)
+        expectation_values (zquantum.core.measurement.ExpectationValues object)
     Returns:
-        expectation_values (orquestra.core.measurement.ExpectationValues object)
+        expectation_values (zquantum.core.measurement.ExpectationValues object)
     """
     expectation_values.values = expectation_values.values.real
     if(expectation_values.correlations):

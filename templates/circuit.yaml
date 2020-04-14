@@ -25,7 +25,7 @@ spec:
         path: /app/main_script.py
         raw:
           data: |
-            from orquestra.core.circuit import generate_random_ansatz_params, load_circuit_template, save_circuit_template_params
+            from zquantum.core.circuit import generate_random_ansatz_params, load_circuit_template, save_circuit_template_params
             ansatz = load_circuit_template('ansatz.json')
             params = generate_random_ansatz_params(ansatz,
                                                    min_val={{inputs.parameters.min-val}},
@@ -55,7 +55,7 @@ spec:
         path: /app/main_script.py
         raw:
           data: |
-            from orquestra.core.circuit import combine_ansatz_params, load_circuit_template_params, save_circuit_template_params
+            from zquantum.core.circuit import combine_ansatz_params, load_circuit_template_params, save_circuit_template_params
             params1 = load_circuit_template_params('params1.json')
             params2 = load_circuit_template_params('params2.json')
             combined_params = combine_ansatz_params(params1, params2)
@@ -81,7 +81,7 @@ spec:
         path: /app/main_script.py
         raw:
           data: |
-            from orquestra.core.circuit import (build_ansatz_circuit,
+            from zquantum.core.circuit import (build_ansatz_circuit,
                                                load_circuit_template,
                                                load_circuit_template_params,
                                                save_circuit)
@@ -113,7 +113,7 @@ spec:
         path: /app/main_script.py
         raw:
           data: |
-            from orquestra.core.circuit import (save_parameter_grid,
+            from zquantum.core.circuit import (save_parameter_grid,
                                                load_circuit_template,
                                                build_uniform_param_grid)
             ansatz = load_circuit_template('ansatz.json')

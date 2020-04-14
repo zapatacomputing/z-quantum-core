@@ -29,7 +29,7 @@ class Qubit(object):
         return f'qubit {self.index}'
 
     def __repr__(self):
-        return f'orquestra.core.circuit.Qubit(index={self.index})'
+        return f'zquantum.core.circuit.Qubit(index={self.index})'
 
     def to_dict(self):
         return {

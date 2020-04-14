@@ -16,7 +16,7 @@ class TestCircuitTemplate(unittest.TestCase):
         # Given
         filename = "circuit_template.json"
         template = {'ansatz_type': 'singlet UCCSD', 
-                    'ansatz_module': 'orquestra.vqe.ansatzes.ucc', 
+                    'ansatz_module': 'zquantum.vqe.ansatzes.ucc', 
                     'ansatz_func': 'build_singlet_uccsd_circuit', 
                     'ansatz_kwargs': 
                         {'n_mo': 2, 'n_electrons': 2, 'transformation': 'Jordan-Wigner'}, 

@@ -19,7 +19,6 @@ import importlib
 
 SCHEMA_VERSION = 'zapata-v1'
 RNDSEED = 12345
-# TODO: typing
 
 def convert_dict_to_array(dictionary: dict) -> np.ndarray:
     """Convert a dictionary to a numpy array.

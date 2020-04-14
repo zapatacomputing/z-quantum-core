@@ -35,7 +35,6 @@ class TestOptimizationServer(unittest.TestCase):
         opt_results = optimize_variational_circuit_with_proxy(params,
                         optimizer, client)
         # Then
-        # TODO: this test doesn't test creating history right now.
         self.assertGreater(opt_results['opt_value'], 0)
         self.assertEqual(len(opt_results['opt_params']), 1)
         self.assertEqual(opt_results['history'], [{'optimization-evaluation-ids': ['MOCKED-ID']}])

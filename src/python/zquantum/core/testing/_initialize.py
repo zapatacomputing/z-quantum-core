@@ -184,9 +184,6 @@ def create_random_isingop(nqubits, nterms, seed=None):
 
 
 def create_random_wavefunction(nqubits, seed=None):
-    """
-    TODO
-    """
     if seed:
         np.random.seed(seed)
         

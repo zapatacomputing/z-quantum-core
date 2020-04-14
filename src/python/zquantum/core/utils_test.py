@@ -54,19 +54,15 @@ class TestUtils(unittest.TestCase):
         self.assertFalse(compare_unitary(U1,U2))
 
     def test_sample_from_probability_distribution(self):
-        # TODO
         pass
 
     def test_convert_bitstrings_to_tuples(self):
-        # TODO
         pass
 
     def test_convert_tuples_to_bitstrings(self):
-        # TODO
         pass
 
     def test_value_estimate_dict_conversion(self):
-        # TODO
         pass
 
     def test_value_estimate_io(self):
@@ -102,14 +98,3 @@ class TestUtils(unittest.TestCase):
         self.assertListEqual(l, loaded_l)
         os.remove('list.json')
     
-    # def test_create_object(self):
-        # TODO: not sure how to test this
-        # # Given
-        # specs = {}
-        # specs['module_name'] = '.interfaces.mock_objects'
-        # specs['function_name'] = 'MockOptimizer'
-
-        # # When
-        # mock_optimizer = create_object(specs)
-        
-        # # Then

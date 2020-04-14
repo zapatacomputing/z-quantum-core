@@ -47,10 +47,6 @@ class TestCircuitTemplate(unittest.TestCase):
         os.remove(filename)
 
         
-    # def test_build_ansatz_circuit(self):
-    #     # TODO: requires mocking some constructor for ansatz
-    #     pass
-
     def test_generate_random_ansatz_params(self):
         # Given
         ansatz = {'n_params': [560], 'ansatz_kwargs': {'dummy_kwarg': None}}

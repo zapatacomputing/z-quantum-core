@@ -120,8 +120,6 @@ def generate_random_ansatz_params(ansatz: dict,
     n_params = 0
     for i in range(n_layers):
         n_params += ansatz['n_params'][(i + layer_index) % len(ansatz['n_params'])]
-        # TODO: do we need that if?
-        # IBM HEA v2 ansatze also have one layer of Z rotations before each 0th layer
         if 'ansatz_type' in ansatz.keys():
             if 'IBM' in ansatz['ansatz_type'] and 'HEA v2' in ansatz['ansatz_type']:
                 if (i + layer_index) % len(ansatz['n_params']) == 0:

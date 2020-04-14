@@ -115,7 +115,7 @@ def generate_random_ansatz_params(ansatz: dict,
         layer_index (int): for ansatz with sublayers, the index of the sublayer where
                         to start the guess
     Returns:
-        numpy.array: the generated parameters
+        numpy.ndarray: the generated parameters
     """
     n_params = 0
     for i in range(n_layers):

@@ -1,5 +1,4 @@
 from . import optimize_variational_circuit_with_proxy
-from ...circuit import generate_random_ansatz_params
 from ...interfaces.mock_objects import MockOptimizer
 from .client_mock import MockedClient
 

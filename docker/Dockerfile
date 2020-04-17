@@ -42,7 +42,7 @@ RUN curl -O https://beta.quicklisp.org/quicklisp.lisp && \
 RUN git clone https://github.com/rigetti/quilc.git && \
                 cd quilc && \
                 git fetch && \
-                git checkout v1.16.2 && \
+                git checkout v1.18.0 && \
                 git submodule init && \
                 git submodule update --init && \
                 make && \
@@ -50,7 +50,7 @@ RUN git clone https://github.com/rigetti/quilc.git && \
 RUN git clone https://github.com/rigetti/qvm.git && \
                 cd qvm && \
                 git fetch && \
-                git checkout v1.15.3 && \
+                git checkout v1.17.0 && \
                 make QVM_WORKSPACE=10240 qvm && \
                 mv qvm /usr/local/bin
 

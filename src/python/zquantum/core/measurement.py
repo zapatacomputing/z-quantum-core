@@ -248,15 +248,12 @@ def load_parities(file: TextIO) -> Parities:
     return Parities.from_dict(data)
 
 def get_expectation_values_from_measurements(measurements: List[Tuple[int]], 
-                                            ising_operator: IsingOperator, 
-                                            use_coefficients: bool=True) -> ExpectationValues:
+                                            ising_operator: IsingOperator) -> ExpectationValues:
     """Get expectation values from bitstrings.
 
     Args:
         measurements (list): the measured bitstrings
         ising_operator (openfermion.ops.IsingOperator): the operator
-        use_coefficients (bool): indicates whether we should use or ignore coefficients for given operator.
-                                Ignoring them might be beneficial if we have multiple operators which differ only by the coefficients.
 
     Returns:
         zquantum.core.measurement.ExpectationValues: the expectation values of each term in the operator
@@ -281,11 +278,8 @@ def get_expectation_values_from_measurements(measurements: List[Tuple[int]],
                 value = float(count)/len(measurements)
             else:
                 value = -float(count)/len(measurements)
-            if use_coefficients:
-                expectation += np.real(coefficient) * value
-            else:
-                expectation += value
-        expectation_values.append(expectation)
+            expectation += np.real(coefficient) * value
+        expectation_values.append(np.real(expectation))
     return ExpectationValues(np.array(expectation_values))
 
 def get_expectation_values_from_parities(parities: Parities) -> ExpectationValues:

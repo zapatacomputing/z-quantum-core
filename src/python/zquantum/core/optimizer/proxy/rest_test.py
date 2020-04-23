@@ -25,7 +25,7 @@ class TestOptimizationServer(unittest.TestCase):
         self.ipaddress = str(s.getsockname()[0])
         s.close()
 
-        time.sleep(1)
+        time.sleep(2)
 
     def test_ping_204(self):
         connection = http.client.HTTPConnection(self.ipaddress+":"+str(self.listening_port), timeout=2)

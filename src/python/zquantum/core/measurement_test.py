@@ -104,18 +104,6 @@ class TestMeasurement(unittest.TestCase):
         # Then
         np.testing.assert_array_equal(expectation_values.values, target_expectation_values)
 
-        # Given
-        measurements = [(0,1,0), (0,1,0), (0,0,0), (0,0,0), (1,1,1)]
-        ising_operator = IsingOperator('10[] + [Z0 Z1] - 10[Z1 Z2]')
-        target_expectation_values = np.array([1, 0.2, 0.2])
-        use_coefficients = False
-        
-        # When
-        expectation_values = get_expectation_values_from_measurements(measurements, ising_operator, use_coefficients)
-        
-        # Then
-        np.testing.assert_array_equal(expectation_values.values, target_expectation_values)
-
 
     def test_get_expectation_values_from_parities(self):
         parities = Parities(values=np.array([[18, 50], [120, 113], [75, 26]]))

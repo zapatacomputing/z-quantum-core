@@ -54,7 +54,7 @@ RUN git clone https://github.com/rigetti/qvm.git && \
                 make QVM_WORKSPACE=10240 qvm && \
                 mv qvm /usr/local/bin
 
-RUN pip3 install rpcq==3.0.0 \
+RUN python3 -m pip install rpcq==3.0.0 \
                     pytest==5.3.5 \
                     networkx==2.3 \
                     pyquil==2.17.0 \
@@ -62,6 +62,7 @@ RUN pip3 install rpcq==3.0.0 \
                     openfermion==0.10.0 \
                     openfermioncirq==0.3.0 \
                     qiskit==0.15.0 \
+                    cffi>=1.14.0 \
                     scipy==1.4.1 \
                     lea==3.2.0 \
                     numpy==1.18.1 \

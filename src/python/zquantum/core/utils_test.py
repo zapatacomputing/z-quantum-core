@@ -11,6 +11,7 @@ from .utils import (convert_array_to_dict, convert_dict_to_array,
                     is_identity, is_unitary, compare_unitary, RNDSEED,
                     ValueEstimate, save_value_estimate, load_value_estimate, 
                     save_list, load_list, create_object)
+from .interfaces.mock_objects import MockQuantumSimulator
 
 class TestUtils(unittest.TestCase):
 
@@ -97,4 +98,17 @@ class TestUtils(unittest.TestCase):
         loaded_l = load_list('list.json')
         self.assertListEqual(l, loaded_l)
         os.remove('list.json')
+
+    def test_create_object(self):
+        # Given
+        n_samples = 100
+        function_name = 'MockQuantumSimulator'
+        specs = {'module_name': 'zquantum.core.interfaces.mock_objects', 'function_name': function_name, 'n_samples': n_samples}
+        
+        # When
+        mock_simulator = create_object(specs)
+
+        # Then
+        self.assertEqual(type(mock_simulator).__name__, function_name)
+        self.assertEqual(mock_simulator.n_samples, n_samples)
     

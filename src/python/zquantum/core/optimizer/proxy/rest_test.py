@@ -15,7 +15,6 @@ class TestOptimizationServer(unittest.TestCase):
 
     def setUp(self):
         self.listening_port = 8080
-        self.not_listening_port = 8888
 
         self.proxy_process = Process(target=start_proxy, args=[self.listening_port])
         self.proxy_process.start()
@@ -33,10 +32,6 @@ class TestOptimizationServer(unittest.TestCase):
         connection.request('GET', '/')
         response = connection.getresponse()
         self.assertEqual(response.getcode(), 204)
-
-    def test_ping_000(self):
-        connection = http.client.HTTPConnection(self.ipaddress+":"+str(self.not_listening_port), timeout=2)
-        self.assertRaises(ConnectionRefusedError, lambda:connection.request('GET', '/'))
 
     def test_get_starting_status(self):
         connection = http.client.HTTPConnection(self.ipaddress+":"+str(self.listening_port), timeout=2)
@@ -232,7 +227,6 @@ class TestOptimizationServer(unittest.TestCase):
 
         # remove id from response and verify it is correct
         response_string = response.read().decode("utf-8")
-        print(response_string)
         response_json = json.loads(response_string)
         response_id = response_json.pop("optimization-evaluation-id")
         self.assertEqual(id_from_argument_value_post, response_id)
@@ -538,17 +532,14 @@ class TestOptimizationServer(unittest.TestCase):
         print(response.read().decode("utf-8"))
         self.proxy_process.terminate()
 
-        def is_port_in_use(port):
-            import socket
-            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                return s.connect_ex((self.ipaddress, port)) == 0
-
-        while(is_port_in_use(self.listening_port)):
-            time.sleep(1)
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            while(s.connect_ex((self.ipaddress, self.listening_port)) == 0):
+                time.sleep(1)
  
     @classmethod
     def tearDownClass(self):
         subprocess.call(["rm", 'proxy_test_current_argument_values_artifact.json',
                          'proxy_test_current_argument_values_artifact_from_proxy.json',
                          'proxy_test_results_artifact.json',
-                         'proxy_test_results_artifact_from_proxy.json'])
+                         'proxy_test_results_artifact_from_proxy.json',
+                         'client_mock_evaluation_result.json'])

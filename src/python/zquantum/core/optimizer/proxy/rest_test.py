@@ -537,7 +537,7 @@ class TestOptimizationServer(unittest.TestCase):
                 time.sleep(1)
  
     @classmethod
-    def tearDownClass(self):
+    def tearDownClass(cls):
         subprocess.call(["rm", 'proxy_test_current_argument_values_artifact.json',
                          'proxy_test_current_argument_values_artifact_from_proxy.json',
                          'proxy_test_results_artifact.json',

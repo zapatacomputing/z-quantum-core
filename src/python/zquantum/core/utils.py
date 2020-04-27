@@ -337,6 +337,19 @@ def save_list(array, filename):
     with open(filename, 'w') as f:
         f.write(json.dumps(dictionary, indent=2))
 
+def save_generic_dict(dictionary, filename):
+    """Save dictionary as json
+
+    Args:
+        dictionary (dict): the dict containing the data
+    """
+    dictionary_stored = {}
+    dictionary_stored['schema'] = SCHEMA_VERSION + '-dict'
+    dictionary_stored['dict'] = dictionary
+    
+    with open(filename, 'w') as f:
+        f.write(json.dumps(dictionary_stored, indent=2))
+
 
 def create_object(specs, **kwargs):
     """

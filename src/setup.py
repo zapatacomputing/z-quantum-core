@@ -24,8 +24,6 @@ setuptools.setup(
         'pyquil>=2.17.0',
         'cirq>=0.7.0',
         'qiskit>=0.15.0',
-        'Werkzeug==1.0.0',
-        'quantum-grove>=1.0.0',
-        'flask>=1.1.2'
+        'quantum-grove>=1.0.0'
     ]
 )

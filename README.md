@@ -66,6 +66,3 @@ This can be done by running `pip install .` from the `src/` directory.
 ### Running tests
 
 Unit tests for this project can be run using `pytest .` from the main directory.
-
-In order for the tests related to the proxy optimizer to work you need to first specify FLASK_APP environmental variable:
-`export FLASK_APP=/path/to/z-quantum-core/src/python/orquestra/core/optimizer/proxy/rest.py`.

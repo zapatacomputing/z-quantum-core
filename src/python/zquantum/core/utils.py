@@ -272,7 +272,7 @@ class ValueEstimate:
 
 
 def load_value_estimate(file):
-    """Load an array from a file.
+    """Loads value estimate from a faile.
 
     Args:
         file (str or file-like object): the name of the file, or a file-like object.
@@ -291,7 +291,7 @@ def load_value_estimate(file):
 
 
 def save_value_estimate(value_estimate, filename):
-    """Save an array to a file.
+    """Saves value estimate to a file.
 
     Args:
         value_estimate (core.utils.ValueEstimate): the value estimate

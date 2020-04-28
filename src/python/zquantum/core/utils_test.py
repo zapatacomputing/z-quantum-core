@@ -93,10 +93,13 @@ class TestUtils(unittest.TestCase):
         os.remove('value_estimate.json')
 
     def test_list_io(self):
-        l = [0.1, 0.3, -0.3]
-        save_list(l, 'list.json')
-        loaded_l = load_list('list.json')
-        self.assertListEqual(l, loaded_l)
+        # Given
+        initial_list = [0.1, 0.3, -0.3]
+        # When
+        save_list(initial_list, 'list.json')
+        loaded_list = load_list('list.json')
+        # Then
+        self.assertListEqual(initial_list, loaded_list)
         os.remove('list.json')
 
     def test_create_object(self):

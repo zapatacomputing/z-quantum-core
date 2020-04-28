@@ -181,7 +181,12 @@ class TestCircuitLayers(unittest.TestCase):
         os.remove('layers.json')
 
     def test_circuit_ordering_io(self):
+        # Given
         ordering = [0, 1, 3, 2]
+
+        # When
         save_circuit_ordering(ordering, 'ordering.json')
         loaded_ordering = load_circuit_ordering('ordering.json')
+        
+        # Then
         self.assertEqual(loaded_ordering, ordering)

@@ -5,7 +5,8 @@ from ._circuit_template import (save_circuit_template, load_circuit_template,
     save_circuit_template_params, load_circuit_template_params,
     combine_ansatz_params, generate_random_ansatz_params,
     build_uniform_param_grid, save_parameter_grid, load_parameter_grid,
-    CircuitLayers, save_circuit_layers, load_circuit_layers, ParameterGrid
+    CircuitLayers, save_circuit_layers, load_circuit_layers, ParameterGrid, save_circuit_ordering,
+    load_circuit_ordering
 )
 from ..utils import SCHEMA_VERSION
 from scipy.optimize import OptimizeResult
@@ -178,3 +179,9 @@ class TestCircuitLayers(unittest.TestCase):
         for layer, loaded_layer in zip(layers.layers, loaded_layers.layers):
             self.assertEqual(layer, loaded_layer)
         os.remove('layers.json')
+
+    def test_circuit_ordering_io(self):
+        ordering = [0, 1, 3, 2]
+        save_circuit_ordering(ordering, 'ordering.json')
+        loaded_ordering = load_circuit_ordering('ordering.json')
+        self.assertEqual(loaded_ordering, ordering)

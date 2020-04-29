@@ -343,6 +343,12 @@ class Gate(object):
             return [qiskit.extensions.standard.CnotGate(), [qiskit_qubits[0], qiskit_qubits[1]], []]
         if self.name == 'CZ':
             return [qiskit.extensions.standard.CzGate(),   [qiskit_qubits[0], qiskit_qubits[1]], []]
+        if self.name == 'CRX':
+            return [qiskit.extensions.standard.CRXGate(params[0]), [qiskit_qubits[0], qiskit_qubit[1]], []]
+        if self.name == 'CRY':
+            return [qiskit.extensions.standard.CRYGate(params[0]), [qiskit_qubits[0], qiskit_qubit[1]], []]
+        if self.name == 'CRZ':
+            return [qiskit.extensions.standard.CRZGate(params[0]), [qiskit_qubits[0], qiskit_qubit[1]], []]
         if self.name == 'CPHASE':
             return [qiskit.extensions.standard.RXGate(pi/2),             [qiskit_qubits[1]],                   [],
                     qiskit.extensions.standard.RYGate(pi-params[0]/2), [qiskit_qubits[1]],                   [],
@@ -568,6 +574,8 @@ class Gate(object):
         elif qiskit_gate.name in {'cz', 'swap'}:
             output.name = qiskit_gate.name.upper()
         elif qiskit_gate.name in {'measure', 'barrier'}:
+            output.name = qiskit_gate.name.upper()
+        elif qiskit_gate.name in {'crx', 'cry', 'crz'}:
             output.name = qiskit_gate.name.upper()
         else:
             raise NotImplementedError("The gate {} is currently not supported.".format(qiskit_gate.name))

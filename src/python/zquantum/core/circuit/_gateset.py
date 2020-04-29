@@ -18,7 +18,7 @@ Gate.params: [float]
 # All gates supported in Orquestra
 COMMON_GATES = ['X', 'Y', 'Z', 'H', 'S', 'T', 'PHASE', 'Rx', 'Ry', 'Rz', 
                 'CNOT', 'CZ', 'CPHASE', 'SWAP']
-UNIQUE_GATES = ['ZXZ', 'RH', 'XX', 'YY', 'ZZ', 'U1ex', 'Da', 'Db', 'MEASURE', 'BARRIER'] # gates unique to specific packages
+UNIQUE_GATES = ['ZXZ', 'RH', 'XX', 'YY', 'ZZ', 'CRX', 'CRY', 'CRZ', 'U1ex', 'Da', 'Db', 'MEASURE', 'BARRIER'] # gates unique to specific packages
 ALL_GATES = COMMON_GATES + UNIQUE_GATES
 
 
@@ -41,4 +41,4 @@ CIRQ_GATES = ['PhasedXPowGate', 'CNOT', 'CNotPowGate', 'CZ', 'CZPowGate', 'H', '
 # All gates natively support in qiskit
 QISKIT_GATES = ['ubase', 'u2', 'h', 'cxbase', 'cx', 'u1', 't', 'ccx', 'cswap', 'cx_base', 's', 'cy', 
                 'cz', 'swap', 'iden', 'sdg', 'tdg', 'u0', 'u3', 'u_base', 'x', 'y', 'z', 'rx', 'ry', 
-                'rz', 'cu1', 'ch', 'crz', 'cu3', 'rzz', 'measure', 'barrier']
+                'rz', 'cu1', 'ch', 'crz', 'crx', 'cry', 'cu3', 'rzz', 'measure', 'barrier']

@@ -327,6 +327,56 @@ def load_circuit_ordering(file):
 
     return data['ordering']
 
+class CircuitConnectivity(object):
+    """A class representing the connectivity of a circuit resulting from qpu
+        constraints, consisting of a list of tuples of qubits representing the 
+        allowed multiqubit gate connections.
+    """
+
+    def __init__(self, connections):
+        """
+        Args:
+            connections: list of tuples representing groups of qubits
+        """
+        self.connectivity = connections
+
+    def to_dict(self):
+        return {'connectivity': self.connectivity}
+
+    @classmethod
+    def from_dict(cls, data):
+        tuples = [tuple(x) for x in data['connectivity']]
+        return cls(tuples)
+
+def save_circuit_connectivity(circuit_connectivity, filename):
+    """Saves a circuit connectivity to a file.
+    Args:
+        circuit_connectivity (zquantum.core.circuit.CircuitConnectivity)
+        filename (str): the name of the file
+    """
+
+    circuit_connectivity = circuit_connectivity.to_dict()
+    circuit_connectivity['schema'] = SCHEMA_VERSION+'-circuit_connectivity'
+    with open(filename, 'w') as f:
+        f.write(json.dumps(circuit_connectivity))
+
+def load_circuit_connectivity(file):
+    """Loads a circuit connectivity from a file.
+    Args:
+        file (str or file-like object): the name of the file, or a file-like object.
+    
+    Returns:
+        (zquantum.core.circuit.CircuitConnectivity)
+    """
+
+    if isinstance(file, str):
+        with open(file, 'r') as f:
+            data = json.load(f)
+    else:
+        data = json.load(file)
+
+    return CircuitConnectivity.from_dict(data)
+
 def build_circuit_layers_and_connectivity(x_dimension, y_dimension=None,
                                          layer_type = 'nearest-neighbor'):
     """ Function to generate circuit layers for 1-dimensional and 2-dimensional
@@ -336,7 +386,7 @@ def build_circuit_layers_and_connectivity(x_dimension, y_dimension=None,
         y_dimension (int): number of qubits per column of the array
         layer_type (str): string designating type of layer to be created
     Returns:
-        circuit_layers (zmachine.circuit.CircuitLayers)
+        circuit_layers (zquantum.core.circuit.CircuitLayers)
     """
     if layer_type == 'sycamore':
         return  _build_circuit_layers_and_connectivity_sycamore(x_dimension, y_dimension)
@@ -352,8 +402,8 @@ def _build_circuit_layers_and_connectivity_sycamore(x_dimension, y_dimension):
         x_dimension (int): number of qubits per row of the array
         y_dimension (int): number of qubits per column of the array
     Returns:
-        final_connectivity (zmachine.circuit.CircuitConnectivity)
-        circuit_layers (zmachine.circuit.CircuitLayers)
+        final_connectivity (zquantum.core.circuit.CircuitConnectivity)
+        circuit_layers (zquantum.core.circuit.CircuitLayers)
     """
     connectivity = []
 
@@ -427,7 +477,7 @@ def _build_circuit_layers_and_connectivity_nearest_neighbors(n_qubits):
     Args:
         n_qubits (int): number of qubits in the qubit array
     Returns:
-        circuit_layers (zmachine.circuit.CircuitLayers)
+        circuit_layers (zquantum.core.circuit.CircuitLayers)
     """
     even_layer = []
     odd_layer = []

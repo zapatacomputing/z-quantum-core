@@ -6,7 +6,8 @@ from ._circuit_template import (save_circuit_template, load_circuit_template,
     combine_ansatz_params, generate_random_ansatz_params,
     build_uniform_param_grid, save_parameter_grid, load_parameter_grid,
     CircuitLayers, save_circuit_layers, load_circuit_layers, ParameterGrid, save_circuit_ordering,
-    load_circuit_ordering
+    load_circuit_ordering, save_circuit_connectivity, load_circuit_connectivity, build_circuit_layers_and_connectivity,
+    CircuitConnectivity
 )
 from ..utils import SCHEMA_VERSION
 from scipy.optimize import OptimizeResult
@@ -190,6 +191,20 @@ class TestCircuitLayers(unittest.TestCase):
         
         # Then
         self.assertEqual(loaded_ordering, ordering)
+        os.remove('ordering.json')
+
+    def test_circuit_connectivity_io(self):
+        # Given
+        connectivity = CircuitConnectivity([(0,1), (1,2), (2,3), (3,0)])
+        # When
+        save_circuit_connectivity(connectivity, 'connectivity.json')
+        loaded_connectivity = load_circuit_connectivity('connectivity.json')
+        # Then
+        self.assertEqual(len(connectivity.connectivity), len(loaded_connectivity.connectivity))
+        for connection, loaded_connection in zip(connectivity.connectivity, loaded_connectivity.connectivity):
+            self.assertEqual(connection, loaded_connection)
+        os.remove('connectivity.json')
+
 
     def test_build_circuit_layers_and_connectivity(self):
         # Sycamore

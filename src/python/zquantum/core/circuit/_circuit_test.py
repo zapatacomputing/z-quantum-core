@@ -15,9 +15,11 @@ from math import pi, sin, cos
 from . import (load_circuit, save_circuit, Circuit, 
                         Gate, Qubit, pyquil2cirq, cirq2pyquil)
 
-from qiskit import QuantumCircuit, QuantumRegister
+from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister
 from ..utils import compare_unitary, is_identity, is_unitary, RNDSEED
 from ..testing import create_random_circuit
+from qiskit.quantum_info import Operator
+import numpy.linalg as linalg
 
 class TestCircuit(unittest.TestCase):
 
@@ -1132,7 +1134,8 @@ class TestCircuit(unittest.TestCase):
 
         '''
         qr = QuantumRegister(2, name='q')
-        qc = QuantumCircuit(qr)
+        cr = ClassicalRegister(2, name='c')
+        qc = QuantumCircuit(qr, cr)
         angle = [np.pi/2, np.pi/4, np.pi/8]
         qc.crx(angle[0], 0, 1)
         qc.cry(angle[1], 0, 1)
@@ -1140,15 +1143,17 @@ class TestCircuit(unittest.TestCase):
 
         circuit = Circuit('test')
         qubits = [Qubit(0), Qubit(1)]
-        gates = [Gate('CRX', params=[angle[0]], control_qubits=[0], target_qubits=[1]), 
-            Gate('CRY', params=[angle[1]], control_qubits=[0], target_qubits=[1]), 
-            Gate('CRZ', params=[angle[2]], control_qubits=[0], target_qubits=[1])
+        gates = [Gate('CRX', qubits=qubits, params=[angle[0]]), 
+            Gate('CRY', qubits=qubits, params=[angle[1]]), 
+            Gate('CRZ', qubits=qubits, params=[angle[2]])
           ]
         circuit.qubits = qubits
         circuit.gates =gates
 
         ibm_circuit = circuit.to_qiskit()
-        self.assertEqual(qc==ibm_circuit, True)
+        ibm_circuit_unitary = Operator(ibm_circuit).data
+        qc_unitary = Operator(qc).data
+        self.assertLessEqual(np.linalg.norm(ibm_circuit_unitary - qc_unitary), pow(10, -15))
 
 
 if __name__ == "__main__":

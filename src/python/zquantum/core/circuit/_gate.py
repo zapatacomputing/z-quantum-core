@@ -45,14 +45,11 @@ class Gate(object):
                 as pyquil Program object or cirq GateOperation object.
     """
 
-    def __init__(self, name='none', qubits=[], params=[], control_qubits=None, target_qubits=None,  circuit = None):
+    def __init__(self, name='none', qubits=[], params=[]):
 
         self.name = name
         self.qubits = qubits
         self.params = params
-        self.circuit = circuit
-        self.control_qubits = control_qubits
-        self.target_qubits = target_qubits
 
         # optional attributes
         self.info = {

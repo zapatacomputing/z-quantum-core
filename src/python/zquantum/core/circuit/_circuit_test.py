@@ -1140,9 +1140,9 @@ class TestCircuit(unittest.TestCase):
 
         circuit = Circuit('test')
         qubits = [Qubit(0), Qubit(1)]
-        gates = [Gate('CRX', params=[angle[0]], control_qubts=[0], target_qubit=[1]), 
-            Gate('CRY', params=[angle[1]], control_qubts=[0], target_qubit=[1]), 
-            Gate('CRZ', params=[angle[2]], control_qubts=[0], target_qubit=[1])
+        gates = [Gate('CRX', params=[angle[0]], control_qubits=[0], target_qubit=[1]), 
+            Gate('CRY', params=[angle[1]], control_qubits=[0], target_qubit=[1]), 
+            Gate('CRZ', params=[angle[2]], control_qubits=[0], target_qubit=[1])
           ]
         circuit.qubits = qubits
         circuit.gates =gates

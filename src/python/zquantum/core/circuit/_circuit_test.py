@@ -15,7 +15,7 @@ from math import pi, sin, cos
 from . import (load_circuit, save_circuit, Circuit, 
                         Gate, Qubit, pyquil2cirq, cirq2pyquil)
 
-
+from qiskit import QuantumCircuit, QuantumRegister
 from ..utils import compare_unitary, is_identity, is_unitary, RNDSEED
 from ..testing import create_random_circuit
 
@@ -1126,6 +1126,30 @@ class TestCircuit(unittest.TestCase):
         zircuit = Circuit(cirq_circuit)
         self.assertTrue(compare_unitary(zircuit.to_unitary(),
                                         cirq.unitary(cirq_circuit)))
+
+    def test_control_rotation_gates(self):
+        '''Test addition of crx, cry and crz from qiskit
+
+        '''
+        qr = QuantumRegister(2, name='q')
+        qc = QuantumCircuit(qr)
+        angle = [np.pi/2, np.pi/4, np.pi/8]
+        qc.crx(angle[0], 0, 1)
+        qc.cry(angle[1], 0, 1)
+        qc.crz(angle[2], 0, 1)
+
+        circuit = Circuit('test')
+        qubits = [Qubit(0), Qubit(1)]
+        gates = [Gate('CRX', params=[angle[0]], control_qubts=[0], target_qubit=[1]), 
+            Gate('CRY', params=[angle[1]], control_qubts=[0], target_qubit=[1]), 
+            Gate('CRZ', params=[angle[2]], control_qubts=[0], target_qubit=[1])
+          ]
+        circuit.qubits = qubits
+        circuit.gates =gates
+
+        ibm_circuit = circuit.to_qiskit()
+        self.assertEqual(qc==ibm_circuit, True)
+
 
 if __name__ == "__main__":
     unittest.main()

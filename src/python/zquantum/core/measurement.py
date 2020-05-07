@@ -8,6 +8,7 @@ from .utils import (SCHEMA_VERSION, convert_array_to_dict, convert_dict_to_array
     sample_from_probability_distribution, convert_bitstrings_to_tuples)
 from typing import Optional, List, Tuple, TextIO, Iterable
 from collections import Counter
+from .bitstring_distribution import BitstringDistribution
 
 def save_expectation_values(expectation_values: np.ndarray, filename: str) -> None:
     """Save expectation values to a file.
@@ -494,8 +495,7 @@ class Measurements:
         """ Get the normalized probability distribution representing the measurements
 
         Returns:
-            distribution (dict): mapping of bitstrings to floats representing the frequency of the bitstring in the set
-                of measurements (bitstrings are in reversed-index order compared to measurement tuples)
+            distribution (BitstringDistribution): bitstring distribution based on the frequency of measurements 
         """
         counts = self.get_counts()
         num_measurements = self.get_num_measurements()
@@ -504,4 +504,4 @@ class Measurements:
         for bitstring in counts.keys():
             distribution[bitstring] = counts[bitstring]/num_measurements
 
-        return distribution
+        return BitstringDistribution(distribution)

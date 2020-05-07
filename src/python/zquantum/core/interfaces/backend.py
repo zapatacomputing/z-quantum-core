@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from ..bitstring_distribution import BitstringDistribution, create_bitstring_distribution_from_probability_distribution, create_bitstring_distribution_from_measurements
+from ..bitstring_distribution import BitstringDistribution, create_bitstring_distribution_from_probability_distribution
 from ..circuit import Circuit
 from ..measurement import ExpectationValues
 from typing import Optional, List, Tuple
@@ -23,6 +23,8 @@ class QuantumBackend(ABC):
         Method for executing the circuit and measuring the outcome.
         Args:
             circuit (core.circuit.Circuit): quantum circuit to be executed.
+        Returns:
+            Measurements: object representing the measurements resulting from the circuit
         """
         raise NotImplementedError
 
@@ -92,4 +94,4 @@ class QuantumSimulator(QuantumBackend):
         else:
             # Get the expectation values
             measurements = self.run_circuit_and_measure(circuit, **kwargs)
-            return create_bitstring_distribution_from_measurements(measurements)
+            return measurements.get_distribution()

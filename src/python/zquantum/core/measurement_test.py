@@ -13,6 +13,7 @@ from .measurement import (ExpectationValues, Parities,
                     expectation_values_to_real, convert_bitstring_to_int, Measurements)
 from pyquil.wavefunction import Wavefunction
 
+from .bitstring_distribution import BitstringDistribution
 from .testing import create_random_wavefunction
 from .utils import convert_bitstrings_to_tuples, SCHEMA_VERSION
 from collections import Counter
@@ -214,7 +215,7 @@ class TestMeasurement(unittest.TestCase):
         distribution = measurements.get_distribution()
 
         # Then
-        self.assertEqual(distribution, {"000": 1/9, "001": 2/9, "010": 1/9, "011": 1/9, "011": 1/9, "100": 1/9, "101": 1/9, "110": 1/9, "111": 1/9})
+        self.assertEqual(distribution.distribution_dict, {"000": 1/9, "001": 2/9, "010": 1/9, "011": 1/9, "011": 1/9, "100": 1/9, "101": 1/9, "110": 1/9, "111": 1/9})
 
     def test_measurement_class_get_num_measurements(self):
         # Given

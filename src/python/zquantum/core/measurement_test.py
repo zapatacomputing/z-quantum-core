@@ -1,6 +1,8 @@
 import unittest
 import os
 import numpy as np
+import json
+import subprocess
 from openfermion.ops import QubitOperator, IsingOperator
 from .measurement import (ExpectationValues, Parities,
                     save_expectation_values, load_expectation_values,
@@ -8,11 +10,11 @@ from .measurement import (ExpectationValues, Parities,
                     save_parities, load_parities, get_parities_from_measurements, 
                     get_expectation_values_from_measurements, 
                     get_expectation_values_from_parities,
-                    expectation_values_to_real, convert_bitstring_to_int)
+                    expectation_values_to_real, convert_bitstring_to_int, Measurements)
 from pyquil.wavefunction import Wavefunction
 
 from .testing import create_random_wavefunction
-from .utils import convert_bitstrings_to_tuples
+from .utils import convert_bitstrings_to_tuples, SCHEMA_VERSION
 from collections import Counter
 
 class TestMeasurement(unittest.TestCase):
@@ -134,3 +136,139 @@ class TestMeasurement(unittest.TestCase):
     def test_convert_bitstring_to_int(self):
         bitstring = (0, 1, 0, 1, 0, 1)
         self.assertEqual(convert_bitstring_to_int(bitstring), 42)
+
+    def test_measurement_class_io(self):
+        # Given
+        measurements_data = {
+            "schema": SCHEMA_VERSION + "-measurements",
+            "counts": {"000": 1, "001": 2, "010": 1, "011": 1, "011": 1, "100": 1, "101": 1, "110": 1, "111": 1},
+            "measurements": [ [0,0,0], [0,0,1], [0,1,0], [0,1,1], [1,0,0], [1,1,0], [1,1,1], [1,0,1], [1,0,0] ]
+        }
+        input_filename = "measurements_input_test.json"
+        output_filename = "measurements_output_test.json"
+
+        with open(input_filename, "w") as f:
+            f.write(json.dumps(measurements_data, indent=2))
+
+        # When 
+        measurements = Measurements(input_filename)
+        measurements.save(output_filename)
+
+        # Then
+        with open(output_filename, "r") as f:
+            output_data = json.load(f)
+        self.assertEqual(measurements_data, output_data)
+
+    def test_measurement_class_get_counts(self):
+        # Given
+        measurements_data = {
+            "schema": SCHEMA_VERSION + "-measurements",
+            "counts": {"000": 1, "001": 2, "010": 1, "011": 1, "011": 1, "100": 1, "101": 1, "110": 1, "111": 1},
+            "measurements": [ [0,0,0], [0,0,1], [0,1,0], [0,1,1], [1,0,0], [1,1,0], [1,1,1], [1,0,1], [1,0,0] ]
+        }
+        input_filename = "measurements_input_test.json"
+
+        with open(input_filename, "w") as f:
+            f.write(json.dumps(measurements_data, indent=2))
+        measurements = Measurements(input_filename)
+
+        # When 
+        counts = measurements.get_counts()
+
+        # Then
+        self.assertEqual(measurements_data["counts"], counts)
+
+    def test_measurement_class_get_measurements(self):
+        # Given
+        measurements_data = {
+            "schema": SCHEMA_VERSION + "-measurements",
+            "counts": {"000": 1, "001": 2, "010": 1, "011": 1, "011": 1, "100": 1, "101": 1, "110": 1, "111": 1},
+            "measurements": [ [0,0,0], [0,0,1], [0,1,0], [0,1,1], [1,0,0], [1,1,0], [1,1,1], [1,0,1], [1,0,0] ]
+        }
+        input_filename = "measurements_input_test.json"
+
+        with open(input_filename, "w") as f:
+            f.write(json.dumps(measurements_data, indent=2))
+        measurements = Measurements(input_filename)
+
+        # When 
+        measurements_list = measurements.get_measurements()
+
+        # Then
+        self.assertEqual(measurements_list, [ (0,0,0), (0,0,1), (0,1,0), (0,1,1), (1,0,0), (1,1,0), (1,1,1), (1,0,1), (1,0,0) ])
+
+    def test_measurement_class_get_distribution(self):
+        # Given
+        measurements_data = {
+            "schema": SCHEMA_VERSION + "-measurements",
+            "counts": {"000": 1, "001": 2, "010": 1, "011": 1, "011": 1, "100": 1, "101": 1, "110": 1, "111": 1},
+            "measurements": [ [0,0,0], [0,0,1], [0,1,0], [0,1,1], [1,0,0], [1,1,0], [1,1,1], [1,0,1], [1,0,0] ]
+        }
+        input_filename = "measurements_input_test.json"
+
+        with open(input_filename, "w") as f:
+            f.write(json.dumps(measurements_data, indent=2))
+        measurements = Measurements(input_filename)
+
+        # When 
+        distribution = measurements.get_distribution()
+
+        # Then
+        self.assertEqual(distribution, {"000": 1/9, "001": 2/9, "010": 1/9, "011": 1/9, "011": 1/9, "100": 1/9, "101": 1/9, "110": 1/9, "111": 1/9})
+
+    def test_measurement_class_get_num_measurements(self):
+        # Given
+        measurements_data = {
+            "schema": SCHEMA_VERSION + "-measurements",
+            "counts": {"000": 1, "001": 2, "010": 1, "011": 1, "011": 1, "100": 1, "101": 1, "110": 1, "111": 1},
+            "measurements": [ [0,0,0], [0,0,1], [0,1,0], [0,1,1], [1,0,0], [1,1,0], [1,1,1], [1,0,1], [1,0,0] ]
+        }
+        input_filename = "measurements_input_test.json"
+
+        with open(input_filename, "w") as f:
+            f.write(json.dumps(measurements_data, indent=2))
+        measurements = Measurements(input_filename)
+
+        # When 
+        num_measurements = measurements.get_num_measurements()
+
+        # Then
+        self.assertEqual(num_measurements, 9)
+
+    def test_measurement_class_add_counts(self):
+        # Given
+        measurements = Measurements()
+        measurements_counts = {"000": 1, "001": 2, "010": 1, "011": 1, "011": 1, "100": 1, "101": 1, "110": 1, "111": 1}
+
+        # When
+        measurements.add_counts(measurements_counts)
+
+        # Then
+        self.assertEqual(measurements.get_counts(), {"000": 1, "001": 2, "010": 1, "011": 1, "011": 1, "100": 1, "101": 1, "110": 1, "111": 1})
+        self.assertEqual(measurements.get_num_measurements(), 9)
+
+    def test_measurement_class_add_measurements(self):
+        # Given
+        measurements = Measurements()
+        measurements_list = [ [0,0,0], [0,0,1], [0,1,0], [0,1,1], [1,0,0], [1,1,0], [1,1,1], [1,0,1], [1,0,0] ]
+
+        # When
+        measurements.add_measurements(measurements_list)
+
+        # Then
+        self.assertEqual(measurements.get_measurements(), [ (0,0,0), (0,0,1), (0,1,0), (0,1,1), (1,0,0), (1,1,0), (1,1,1), (1,0,1), (1,0,0) ])
+        self.assertEqual(measurements.get_num_measurements(), 9)
+
+        # Given
+        measurements = Measurements()
+        measurements_tuples = [ (0,0,0), (0,0,1), (0,1,0), (0,1,1), (1,0,0), (1,1,0), (1,1,1), (1,0,1), (1,0,0) ]
+
+        # When
+        measurements.add_measurements(measurements_tuples)
+
+        # Then
+        self.assertEqual(measurements.get_measurements(), [ (0,0,0), (0,0,1), (0,1,0), (0,1,1), (1,0,0), (1,1,0), (1,1,1), (1,0,1), (1,0,0) ])
+        self.assertEqual(measurements.get_num_measurements(), 9)
+
+    def tearDown(self):
+        subprocess.run(["rm", "measurements_input_test.json", "measurements_output_test.json"])

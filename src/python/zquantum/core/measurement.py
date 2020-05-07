@@ -392,3 +392,116 @@ def convert_bitstring_to_int(bitstring: Iterable[int]) -> int:
             significant (little endian).
     """
     return int("".join(str(bit) for bit in bitstring[::-1]), 2)
+
+class Measurements:
+    """ A class representing measurements from a quantum circuit. """
+
+    def __init__(self, filename=None):
+        self.counts = {}
+        self.measurements = []
+        self.num_measurements = 0
+
+        if filename is not None:
+            with open(filename, "r") as f:
+                data = json.load(f)
+                self.add_measurements(data["measurements"])
+
+
+    def save(self, filename):
+        """ Serialize the Measurements object into a file in JSON format.
+        
+        Args:
+            filename (string): filename to save the data to 
+        """
+        data = { "schema":         SCHEMA_VERSION+"-measurements",
+                 "counts":         self.get_counts(),
+                 "measurements":   self.get_measurements()}
+        with open(filename, "w") as f:
+            f.write(json.dumps(data, indent=2))
+
+
+    def get_measurements(self):
+        """ Get the measurements as a list of tuples
+
+        Returns:
+            A list of tuples where the value at a given index is the measured state of the qubt at the given index 
+        """
+        return self.measurements
+
+
+    def get_counts(self):
+        """ Get the measurements as a list of tuples
+
+        Returns:
+            A list of tuples where the value at a given index is the measured state of the qubt at the given index 
+        """
+        return self.counts
+
+
+    def get_num_measurements(self):
+        """ Get the number of measurements
+
+        Returns:
+            integer representing the number of measurements
+        """
+        return self.num_measurements
+
+
+    def add_measurements(self, measurements):
+        """ Add a list of measurement tuples 
+
+        Args:
+            measurements (list of tuples): A list of the measurements to add
+        """
+        for measurement in measurements:
+            self.measurements.append(tuple(measurement))
+
+            # Bitstrings are in reversed-index order compared to measurement tuples
+            bitstring = ""
+            for bit_value in measurement[::-1]:
+                bitstring += str(bit_value)
+            
+            if bitstring in self.counts.keys():
+                self.counts[bitstring] += 1
+            else:
+                self.counts[bitstring] = 1
+            self.num_measurements += 1
+
+
+    def add_counts(self, counts):
+        """ Add a dictionary of counts mapping bitstrings to integers 
+
+        Args:
+            counts (dict): mapping of bitstrings to integers (bitstrings are in reversed-index order compared to 
+                measurement tuples)
+        """
+        for bitstring in counts.keys():
+            measurement = []
+            for bitvalue in bitstring[::-1]:
+                measurement.append(int(bitvalue))
+
+            measurements = [tuple(measurement)] * counts[bitstring]
+            self.measurements += measurements
+
+            if bitstring in self.counts.keys():
+                self.counts[bitstring] += counts[bitstring]
+            else:
+                self.counts[bitstring] = counts[bitstring]
+            self.num_measurements += counts[bitstring]
+
+
+    def get_distribution(self):
+        """ Get the normalized probability distribution representing the measurements
+
+        Returns:
+            distribution (dict): mapping of bitstrings to floats representing the frequency of the bitstring in the set
+                of measurements (bitstrings are in reversed-index order compared to measurement tuples)
+        """
+        counts = self.get_counts()
+        num_measurements = self.get_num_measurements()
+
+        distribution = {}
+        for bitstring in counts.keys():
+            distribution[bitstring] = counts[bitstring]/num_measurements
+
+        return distribution

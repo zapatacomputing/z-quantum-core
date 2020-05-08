@@ -248,12 +248,12 @@ def load_parities(file: TextIO) -> Parities:
 
     return Parities.from_dict(data)
 
-def get_expectation_values_from_measurements(measurements: List[Tuple[int]], 
+def get_expectation_values_from_measurements(measurements: Measurements, 
                                             ising_operator: IsingOperator) -> ExpectationValues:
     """Get expectation values from bitstrings.
 
     Args:
-        measurements (list): the measured bitstrings
+        measurements (core.measurement.Measurements): the measured bitstrings
         ising_operator (openfermion.ops.IsingOperator): the operator
 
     Returns:
@@ -266,7 +266,7 @@ def get_expectation_values_from_measurements(measurements: List[Tuple[int]],
         raise Exception("Input operator is not openfermion.IsingOperator")
 
     # Count number of occurrences of bitstrings
-    bitstring_frequencies = Counter(measurements)
+    bitstring_frequencies = measurements.get_counts()
 
     # Perform weighted average
     expectation_values = []
@@ -276,9 +276,9 @@ def get_expectation_values_from_measurements(measurements: List[Tuple[int]],
         for bitstring, count in bitstring_frequencies.items():
             bitstring_int = convert_bitstring_to_int(bitstring)
             if parity_even_p(bitstring_int, marked_qubits):
-                value = float(count)/len(measurements)
+                value = float(count)/len(measurements.bitstrings)
             else:
-                value = -float(count)/len(measurements)
+                value = -float(count)/len(measurements.bitstrings)
             expectation += np.real(coefficient) * value
         expectation_values.append(np.real(expectation))
     return ExpectationValues(np.array(expectation_values))

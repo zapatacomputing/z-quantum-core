@@ -99,7 +99,7 @@ class TestMeasurement(unittest.TestCase):
 
     def test_get_expectation_values_from_measurements(self):
         # Given
-        measurements = [(0,1,0), (0,1,0), (0,0,0), (0,0,0), (1,1,1)]
+        measurements = Measurements([(0,1,0), (0,1,0), (0,0,0), (0,0,0), (1,1,1)])
         ising_operator = IsingOperator('10[] + [Z0 Z1] - 10[Z1 Z2]')
         target_expectation_values = np.array([10, 0.2, -2])
         # When

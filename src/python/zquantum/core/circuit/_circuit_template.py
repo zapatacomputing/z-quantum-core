@@ -298,3 +298,31 @@ def load_circuit_layers(file: TextIO) -> CircuitLayers:
 
     return CircuitLayers.from_dict(data)
 
+def save_circuit_ordering(ordering, filename):
+    """Saves a circuit ordering (mapping from spin-orbitals to qubits) to a file.
+    Args:
+        ordering (list)
+        filename (str): the name of the file
+    """
+
+    ordering = {'ordering': ordering}
+    ordering['schema'] = SCHEMA_VERSION+'-circuit_ordering'
+    with open(filename, 'w') as f:
+        f.write(json.dumps(ordering))
+
+def load_circuit_ordering(file):
+    """Loads a circuit ordering (mapping from spin-orbitals to qubits) to a file.
+    Args:
+        file (str or file-like object): the name of the file, or a file-like object.
+    
+    Returns:
+        ordering (list)
+    """
+
+    if isinstance(file, str):
+        with open(file, 'r') as f:
+            data = json.load(f)
+    else:
+        data = json.load(file)
+
+    return data['ordering']

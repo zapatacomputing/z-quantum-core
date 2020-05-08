@@ -1,9 +1,12 @@
 from .backend import QuantumSimulator
 from .optimizer import Optimizer
 from ..measurement import ExpectationValues
+from ..circuit import Circuit
 import random
 from scipy.optimize import OptimizeResult
 import numpy as np
+from pyquil import Program
+from pyquil.gates import X
 
 class MockQuantumSimulator(QuantumSimulator):
     def __init__(self, n_samples=None):
@@ -42,3 +45,6 @@ class MockOptimizer(Optimizer):
         result['history'] = [{'value': result.opt_value, 'params': new_parameters}]
         result.opt_params = new_parameters
         return result
+
+def mock_ansatz(parameters):
+    return Circuit(Program(X(0)))

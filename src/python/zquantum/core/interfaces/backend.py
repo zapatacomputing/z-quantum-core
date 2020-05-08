@@ -24,7 +24,7 @@ class QuantumBackend(ABC):
         Args:
             circuit (core.circuit.Circuit): quantum circuit to be executed.
         Returns:
-            Measurements: object representing the measurements resulting from the circuit
+            core.measurement.Measurements: object representing the measurements resulting from the circuit
         """
         raise NotImplementedError
 

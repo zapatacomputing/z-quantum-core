@@ -107,7 +107,6 @@ class TestMeasurement(unittest.TestCase):
         # Then
         np.testing.assert_array_equal(expectation_values.values, target_expectation_values)
 
-
     def test_get_expectation_values_from_parities(self):
         parities = Parities(values=np.array([[18, 50], [120, 113], [75, 26]]))
         expectation_values = get_expectation_values_from_parities(parities)
@@ -141,9 +140,9 @@ class TestMeasurement(unittest.TestCase):
     def test_measurement_class_io(self):
         # Given
         measurements_data = {
-            "schema": SCHEMA_VERSION + "-measurements",
-            "counts": {"000": 1, "001": 2, "010": 1, "011": 1, "011": 1, "100": 1, "101": 1, "110": 1, "111": 1},
-            "measurements": [ [0,0,0], [0,0,1], [0,1,0], [0,1,1], [1,0,0], [1,1,0], [1,1,1], [1,0,1], [1,0,0] ]
+            "schema":     SCHEMA_VERSION + "-measurements",
+            "counts":     {"000": 1, "001": 2, "010": 1, "011": 1, "100": 1, "101": 1, "110": 1, "111": 1},
+            "bitstrings": [ [0,0,0], [0,0,1], [0,1,0], [0,1,1], [1,0,0], [1,1,0], [1,1,1], [1,0,1], [0,0,1] ]
         }
         input_filename = "measurements_input_test.json"
         output_filename = "measurements_output_test.json"
@@ -152,7 +151,7 @@ class TestMeasurement(unittest.TestCase):
             f.write(json.dumps(measurements_data, indent=2))
 
         # When 
-        measurements = Measurements(input_filename)
+        measurements = Measurements.load_from_file(input_filename)
         measurements.save(output_filename)
 
         # Then
@@ -160,18 +159,54 @@ class TestMeasurement(unittest.TestCase):
             output_data = json.load(f)
         self.assertEqual(measurements_data, output_data)
 
-    def test_measurement_class_get_counts(self):
+    def test_measurement_class_intialize_with_bitstrings(self):
+        # Given
+        bitstrings = [ (0,0,0), (0,0,1), (0,0,1), (0,1,0), (0,1,1), (1,0,0), (1,0,1), (1,1,0), (1,1,1) ]
+
+        # When
+        measurements = Measurements(bitstrings=bitstrings)
+
+        # Then
+        self.assertEqual(measurements.bitstrings, [ (0,0,0), (0,0,1), (0,0,1), (0,1,0), (0,1,1), (1,0,0), (1,0,1), (1,1,0), (1,1,1) ])
+
+    def test_measurement_class_intialize_with_counts(self):
+        # Given
+        counts = {"000": 1, "001": 2, "010": 1, "011": 1, "100": 1, "101": 1, "110": 1, "111": 1}
+
+        # When
+        measurements = Measurements.from_counts(counts)
+
+        # Then
+        self.assertEqual(measurements.bitstrings, [ (0,0,0), (0,0,1), (0,0,1), (0,1,0), (0,1,1), (1,0,0), (1,0,1), (1,1,0), (1,1,1) ])
+
+    def test_measurement_class_bitstrings(self):
         # Given
         measurements_data = {
-            "schema": SCHEMA_VERSION + "-measurements",
-            "counts": {"000": 1, "001": 2, "010": 1, "011": 1, "011": 1, "100": 1, "101": 1, "110": 1, "111": 1},
-            "measurements": [ [0,0,0], [0,0,1], [0,1,0], [0,1,1], [1,0,0], [1,1,0], [1,1,1], [1,0,1], [1,0,0] ]
+            "schema":     SCHEMA_VERSION + "-measurements",
+            "counts":     {"000": 1, "001": 2, "010": 1, "011": 1, "100": 1, "101": 1, "110": 1, "111": 1},
+            "bitstrings": [ [0,0,0], [0,0,1], [0,1,0], [0,1,1], [1,0,0], [1,1,0], [1,1,1], [1,0,1], [0,0,1] ]
         }
         input_filename = "measurements_input_test.json"
 
         with open(input_filename, "w") as f:
             f.write(json.dumps(measurements_data, indent=2))
-        measurements = Measurements(input_filename)
+        measurements = Measurements.load_from_file(input_filename)
+
+        # When/Then
+        self.assertEqual(measurements.bitstrings, [ (0,0,0), (0,0,1), (0,1,0), (0,1,1), (1,0,0), (1,1,0), (1,1,1), (1,0,1), (0,0,1) ])
+
+    def test_measurement_class_get_counts(self):
+        # Given
+        measurements_data = {
+            "schema":     SCHEMA_VERSION + "-measurements",
+            "counts":     {"000": 1, "001": 2, "010": 1, "011": 1, "100": 1, "101": 1, "110": 1, "111": 1},
+            "bitstrings": [ [0,0,0], [0,0,1], [0,1,0], [0,1,1], [1,0,0], [1,1,0], [1,1,1], [1,0,1], [0,0,1] ]
+        }
+        input_filename = "measurements_input_test.json"
+
+        with open(input_filename, "w") as f:
+            f.write(json.dumps(measurements_data, indent=2))
+        measurements = Measurements.load_from_file(input_filename)
 
         # When 
         counts = measurements.get_counts()
@@ -179,37 +214,18 @@ class TestMeasurement(unittest.TestCase):
         # Then
         self.assertEqual(measurements_data["counts"], counts)
 
-    def get_bitstrings(self):
-        # Given
-        measurements_data = {
-            "schema": SCHEMA_VERSION + "-measurements",
-            "counts": {"000": 1, "001": 2, "010": 1, "011": 1, "011": 1, "100": 1, "101": 1, "110": 1, "111": 1},
-            "measurements": [ [0,0,0], [0,0,1], [0,1,0], [0,1,1], [1,0,0], [1,1,0], [1,1,1], [1,0,1], [1,0,0] ]
-        }
-        input_filename = "measurements_input_test.json"
-
-        with open(input_filename, "w") as f:
-            f.write(json.dumps(measurements_data, indent=2))
-        measurements = Measurements(input_filename)
-
-        # When 
-        measurements_list = measurements.get_bitstrings()
-
-        # Then
-        self.assertEqual(measurements_list, [ (0,0,0), (0,0,1), (0,1,0), (0,1,1), (1,0,0), (1,1,0), (1,1,1), (1,0,1), (1,0,0) ])
-
     def test_measurement_class_get_distribution(self):
         # Given
         measurements_data = {
-            "schema": SCHEMA_VERSION + "-measurements",
-            "counts": {"000": 1, "001": 2, "010": 1, "011": 1, "011": 1, "100": 1, "101": 1, "110": 1, "111": 1},
-            "measurements": [ [0,0,0], [0,0,1], [0,1,0], [0,1,1], [1,0,0], [1,1,0], [1,1,1], [1,0,1], [1,0,0] ]
+            "schema":     SCHEMA_VERSION + "-measurements",
+            "counts":     {"000": 1, "001": 2, "010": 1, "011": 1, "100": 1, "101": 1, "110": 1, "111": 1},
+            "bitstrings": [ [0,0,0], [0,0,1], [0,1,0], [0,1,1], [1,0,0], [1,1,0], [1,1,1], [1,0,1], [0,0,1] ]
         }
         input_filename = "measurements_input_test.json"
 
         with open(input_filename, "w") as f:
             f.write(json.dumps(measurements_data, indent=2))
-        measurements = Measurements(input_filename)
+        measurements = Measurements.load_from_file(input_filename)
 
         # When 
         distribution = measurements.get_distribution()
@@ -217,59 +233,35 @@ class TestMeasurement(unittest.TestCase):
         # Then
         self.assertEqual(distribution.distribution_dict, {"000": 1/9, "001": 2/9, "010": 1/9, "011": 1/9, "011": 1/9, "100": 1/9, "101": 1/9, "110": 1/9, "111": 1/9})
 
-    def test_measurement_class_get_num_measurements(self):
-        # Given
-        measurements_data = {
-            "schema": SCHEMA_VERSION + "-measurements",
-            "counts": {"000": 1, "001": 2, "010": 1, "011": 1, "011": 1, "100": 1, "101": 1, "110": 1, "111": 1},
-            "measurements": [ [0,0,0], [0,0,1], [0,1,0], [0,1,1], [1,0,0], [1,1,0], [1,1,1], [1,0,1], [1,0,0] ]
-        }
-        input_filename = "measurements_input_test.json"
-
-        with open(input_filename, "w") as f:
-            f.write(json.dumps(measurements_data, indent=2))
-        measurements = Measurements(input_filename)
-
-        # When 
-        num_measurements = measurements.get_num_measurements()
-
-        # Then
-        self.assertEqual(num_measurements, 9)
-
     def test_measurement_class_add_counts(self):
         # Given
         measurements = Measurements()
-        measurements_counts = {"000": 1, "001": 2, "010": 1, "011": 1, "011": 1, "100": 1, "101": 1, "110": 1, "111": 1}
+        measurements_counts = {"000": 1, "001": 2, "010": 1, "011": 1, "100": 1, "101": 1, "110": 1, "111": 1}
 
         # When
         measurements.add_counts(measurements_counts)
 
         # Then
-        self.assertEqual(measurements.get_counts(), {"000": 1, "001": 2, "010": 1, "011": 1, "011": 1, "100": 1, "101": 1, "110": 1, "111": 1})
-        self.assertEqual(measurements.get_num_measurements(), 9)
+        self.assertEqual(measurements.bitstrings, [ (0,0,0), (0,0,1), (0,0,1), (0,1,0), (0,1,1), (1,0,0), (1,0,1), (1,1,0), (1,1,1) ])
+        self.assertEqual(measurements.get_counts(), {"000": 1, "001": 2, "010": 1, "011": 1, "100": 1, "101": 1, "110": 1, "111": 1})
 
     def test_measurement_class_add_measurements(self):
         # Given
         measurements = Measurements()
-        measurements_list = [ [0,0,0], [0,0,1], [0,1,0], [0,1,1], [1,0,0], [1,1,0], [1,1,1], [1,0,1], [1,0,0] ]
+        bitstrings = [ (0,0,0), (0,0,1), (0,0,1), (0,1,0), (0,1,1), (1,0,0), (1,0,1), (1,1,0), (1,1,1) ]
 
         # When
-        measurements.add_measurements(measurements_list)
+        measurements.bitstrings = bitstrings
 
         # Then
-        self.assertEqual(measurements.get_bitstrings(), [ (0,0,0), (0,0,1), (0,1,0), (0,1,1), (1,0,0), (1,1,0), (1,1,1), (1,0,1), (1,0,0) ])
-        self.assertEqual(measurements.get_num_measurements(), 9)
-
-        # Given
-        measurements = Measurements()
-        measurements_tuples = [ (0,0,0), (0,0,1), (0,1,0), (0,1,1), (1,0,0), (1,1,0), (1,1,1), (1,0,1), (1,0,0) ]
+        self.assertEqual(measurements.bitstrings, [ (0,0,0), (0,0,1), (0,0,1), (0,1,0), (0,1,1), (1,0,0), (1,0,1), (1,1,0), (1,1,1) ])
 
         # When
-        measurements.add_measurements(measurements_tuples)
+        measurements.bitstrings += bitstrings
 
         # Then
-        self.assertEqual(measurements.get_bitstrings(), [ (0,0,0), (0,0,1), (0,1,0), (0,1,1), (1,0,0), (1,1,0), (1,1,1), (1,0,1), (1,0,0) ])
-        self.assertEqual(measurements.get_num_measurements(), 9)
+        self.assertEqual(measurements.bitstrings, [ (0,0,0), (0,0,1), (0,0,1), (0,1,0), (0,1,1), (1,0,0), (1,0,1), (1,1,0), (1,1,1),
+                                                    (0,0,0), (0,0,1), (0,0,1), (0,1,0), (0,1,1), (1,0,0), (1,0,1), (1,1,0), (1,1,1) ])
 
     def tearDown(self):
         subprocess.run(["rm", "measurements_input_test.json", "measurements_output_test.json"])

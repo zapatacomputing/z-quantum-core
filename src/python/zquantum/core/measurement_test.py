@@ -179,7 +179,7 @@ class TestMeasurement(unittest.TestCase):
         # Then
         self.assertEqual(measurements_data["counts"], counts)
 
-    def test_measurement_class_get_measurements(self):
+    def get_bitstrings(self):
         # Given
         measurements_data = {
             "schema": SCHEMA_VERSION + "-measurements",
@@ -193,7 +193,7 @@ class TestMeasurement(unittest.TestCase):
         measurements = Measurements(input_filename)
 
         # When 
-        measurements_list = measurements.get_measurements()
+        measurements_list = measurements.get_bitstrings()
 
         # Then
         self.assertEqual(measurements_list, [ (0,0,0), (0,0,1), (0,1,0), (0,1,1), (1,0,0), (1,1,0), (1,1,1), (1,0,1), (1,0,0) ])
@@ -257,7 +257,7 @@ class TestMeasurement(unittest.TestCase):
         measurements.add_measurements(measurements_list)
 
         # Then
-        self.assertEqual(measurements.get_measurements(), [ (0,0,0), (0,0,1), (0,1,0), (0,1,1), (1,0,0), (1,1,0), (1,1,1), (1,0,1), (1,0,0) ])
+        self.assertEqual(measurements.get_bitstrings(), [ (0,0,0), (0,0,1), (0,1,0), (0,1,1), (1,0,0), (1,1,0), (1,1,1), (1,0,1), (1,0,0) ])
         self.assertEqual(measurements.get_num_measurements(), 9)
 
         # Given
@@ -268,7 +268,7 @@ class TestMeasurement(unittest.TestCase):
         measurements.add_measurements(measurements_tuples)
 
         # Then
-        self.assertEqual(measurements.get_measurements(), [ (0,0,0), (0,0,1), (0,1,0), (0,1,1), (1,0,0), (1,1,0), (1,1,1), (1,0,1), (1,0,0) ])
+        self.assertEqual(measurements.get_bitstrings(), [ (0,0,0), (0,0,1), (0,1,0), (0,1,1), (1,0,0), (1,1,0), (1,1,1), (1,0,1), (1,0,0) ])
         self.assertEqual(measurements.get_num_measurements(), 9)
 
     def tearDown(self):

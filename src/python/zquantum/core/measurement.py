@@ -399,7 +399,7 @@ class Measurements:
 
     def __init__(self, filename=None):
         self.counts = {}
-        self.measurements = []
+        self.bitstrings = []
         self.num_measurements = 0
 
         if filename is not None:
@@ -416,18 +416,18 @@ class Measurements:
         """
         data = { "schema":         SCHEMA_VERSION+"-measurements",
                  "counts":         self.get_counts(),
-                 "measurements":   self.get_measurements()}
+                 "measurements":   self.get_bitstrings()}
         with open(filename, "w") as f:
             f.write(json.dumps(data, indent=2))
 
 
-    def get_measurements(self):
+    def get_bitstrings(self):
         """ Get the measurements as a list of tuples
 
         Returns:
             A list of tuples where the value at a given index is the measured state of the qubt at the given index 
         """
-        return self.measurements
+        return self.bitstrings
 
 
     def get_counts(self):
@@ -455,7 +455,7 @@ class Measurements:
             measurements (list of tuples): A list of the measurements to add
         """
         for measurement in measurements:
-            self.measurements.append(tuple(measurement))
+            self.bitstrings.append(tuple(measurement))
 
             # Bitstrings are in reversed-index order compared to measurement tuples
             bitstring = ""
@@ -482,7 +482,7 @@ class Measurements:
                 measurement.append(int(bitvalue))
 
             measurements = [tuple(measurement)] * counts[bitstring]
-            self.measurements += measurements
+            self.bitstrings += measurements
 
             if bitstring in self.counts.keys():
                 self.counts[bitstring] += counts[bitstring]

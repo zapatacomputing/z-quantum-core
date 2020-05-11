@@ -397,7 +397,7 @@ def convert_bitstring_to_int(bitstring: Iterable[int]) -> int:
 class Measurements:
     """ A class representing measurements from a quantum circuit. The bitstrings variable represents the internal
     data structure of the Measurements class. It is expressed as a list of tuples wherein each tuple is a measurement
-    and the value of the tuple at a given index is the measured bit-value of the qubit (indexed from N-1 -> 0) """
+    and the value of the tuple at a given index is the measured bit-value of the qubit (indexed from 0 -> N-1) """
 
     def __init__(self, bitstrings: Optional[List[Tuple[int]]] = None):
         if bitstrings is None:
@@ -407,7 +407,7 @@ class Measurements:
 
 
     @classmethod
-    def from_counts(cls, counts: Dict):
+    def from_counts(cls, counts: Dict[str, int]):
         """ Create an instance of the Measurements class from a dictionary
         
         Args:
@@ -416,6 +416,7 @@ class Measurements:
         measurements = cls()
         measurements.add_counts(counts)
         return measurements
+
 
     @classmethod
     def load_from_file(cls, file: TextIO):
@@ -460,11 +461,13 @@ class Measurements:
         return dict(Counter(bitstrings))
 
 
-    def add_counts(self, counts: Dict):
+    def add_counts(self, counts: Dict[str, int]):
         """ Add measurements from a histogram
 
         Args:
             counts (dict): mapping of bitstrings to integers representing the number of times the bitstring was measured
+                NOTE: bitstrings are also indexed from 0 -> N-1, where the "001" bitstring represents a measurement of 
+                    qubit 2 in the 1 state
         """
         for bitstring in counts.keys():
             measurement = []

@@ -190,3 +190,4 @@ class TestCircuitLayers(unittest.TestCase):
         
         # Then
         self.assertEqual(loaded_ordering, ordering)
+        os.remove('ordering.json')

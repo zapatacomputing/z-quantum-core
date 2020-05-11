@@ -405,6 +405,7 @@ class Measurements:
         else:
             self.bitstrings = bitstrings
 
+
     @classmethod
     def from_counts(cls, counts: Dict):
         """ Create an instance of the Measurements class from a dictionary
@@ -435,7 +436,8 @@ class Measurements:
 
         return cls(bitstrings=bitstrings)
 
-    def save(self, filename: String):
+
+    def save(self, filename: str):
         """ Serialize the Measurements object into a file in JSON format.
         
         Args:

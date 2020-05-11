@@ -16,7 +16,7 @@ class MockQuantumSimulator(QuantumSimulator):
         n_qubits = len(circuit.qubits)
         measurements = Measurements()
         for _ in range(self.n_samples):
-            measurements.add_measurements([tuple([random.randint(0,1) for j in range(n_qubits)])])
+            measurements.bitstrings.append([tuple([random.randint(0,1) for j in range(n_qubits)])])
         return measurements
     
     def get_expectation_values(self, circuit, operator, **kwargs):

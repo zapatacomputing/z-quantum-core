@@ -8,7 +8,6 @@ from .measurement import (ExpectationValues, Parities,
                     save_expectation_values, load_expectation_values,
                     save_wavefunction, load_wavefunction, sample_from_wavefunction,
                     save_parities, load_parities, get_parities_from_measurements, 
-                    get_expectation_values_from_measurements, 
                     get_expectation_values_from_parities,
                     expectation_values_to_real, convert_bitstring_to_int, Measurements)
 from pyquil.wavefunction import Wavefunction
@@ -96,16 +95,6 @@ class TestMeasurement(unittest.TestCase):
         for i in range(len(parities.correlations)):
             self.assertTrue(np.allclose(parities.correlations[i], loaded_parities.correlations[i]))
         os.remove('parities.json')
-
-    def test_get_expectation_values_from_measurements(self):
-        # Given
-        measurements = Measurements([(0,1,0), (0,1,0), (0,0,0), (0,0,0), (1,1,1)])
-        ising_operator = IsingOperator('10[] + [Z0 Z1] - 10[Z1 Z2]')
-        target_expectation_values = np.array([10, 0.2, -2])
-        # When
-        expectation_values = get_expectation_values_from_measurements(measurements, ising_operator)
-        # Then
-        np.testing.assert_array_equal(expectation_values.values, target_expectation_values)
 
     def test_get_expectation_values_from_parities(self):
         parities = Parities(values=np.array([[18, 50], [120, 113], [75, 26]]))
@@ -262,6 +251,16 @@ class TestMeasurement(unittest.TestCase):
         # Then
         self.assertEqual(measurements.bitstrings, [ (0,0,0), (0,0,1), (0,0,1), (0,1,0), (0,1,1), (1,0,0), (1,0,1), (1,1,0), (1,1,1),
                                                     (0,0,0), (0,0,1), (0,0,1), (0,1,0), (0,1,1), (1,0,0), (1,0,1), (1,1,0), (1,1,1) ])
+
+    def test_get_expectation_values_from_measurements(self):
+        # Given
+        measurements = Measurements([(0,1,0), (0,1,0), (0,0,0), (0,0,0), (1,1,1)])
+        ising_operator = IsingOperator('10[] + [Z0 Z1] - 10[Z1 Z2]')
+        target_expectation_values = np.array([10, 0.2, -2])
+        # When
+        expectation_values = measurements.get_expectation_values(ising_operator)
+        # Then
+        np.testing.assert_array_equal(expectation_values.values, target_expectation_values)
 
     def tearDown(self):
         subprocess.run(["rm", "measurements_input_test.json", "measurements_output_test.json"])

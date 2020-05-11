@@ -248,41 +248,6 @@ def load_parities(file: TextIO) -> Parities:
 
     return Parities.from_dict(data)
 
-def get_expectation_values_from_measurements(measurements: Measurements, 
-                                            ising_operator: IsingOperator) -> ExpectationValues:
-    """Get expectation values from bitstrings.
-
-    Args:
-        measurements (core.measurement.Measurements): the measured bitstrings
-        ising_operator (openfermion.ops.IsingOperator): the operator
-
-    Returns:
-        zquantum.core.measurement.ExpectationValues: the expectation values of each term in the operator
-    """
-    # We require operator to be IsingOperator because measurements are always performed in the Z basis, 
-    # so we need the operator to be Ising (containing only Z terms). 
-    # A general Qubit Operator could have X or Y terms which don’t get directly measured.
-    if isinstance(ising_operator, IsingOperator) == False:
-        raise Exception("Input operator is not openfermion.IsingOperator")
-
-    # Count number of occurrences of bitstrings
-    bitstring_frequencies = measurements.get_counts()
-
-    # Perform weighted average
-    expectation_values = []
-    for term, coefficient in ising_operator.terms.items():
-        expectation = 0
-        marked_qubits = [op[0] for op in term] 
-        for bitstring, count in bitstring_frequencies.items():
-            bitstring_int = convert_bitstring_to_int(bitstring)
-            if parity_even_p(bitstring_int, marked_qubits):
-                value = float(count)/len(measurements.bitstrings)
-            else:
-                value = -float(count)/len(measurements.bitstrings)
-            expectation += np.real(coefficient) * value
-        expectation_values.append(np.real(expectation))
-    return ExpectationValues(np.array(expectation_values))
-
 def get_expectation_values_from_parities(parities: Parities) -> ExpectationValues:
     """Get the expectation values of a set of operators (with precisions) from a set of samples (with even/odd parities) for them.
 
@@ -491,3 +456,38 @@ class Measurements:
             distribution[bitstring] = counts[bitstring]/num_measurements
 
         return BitstringDistribution(distribution)
+
+
+    def get_expectation_values(self, ising_operator: IsingOperator) -> ExpectationValues:
+        """Get the expectation values of an operator from the measurements.
+
+        Args:
+            ising_operator (openfermion.ops.IsingOperator): the operator
+
+        Returns:
+            zquantum.core.measurement.ExpectationValues: the expectation values of each term in the operator
+        """
+        # We require operator to be IsingOperator because measurements are always performed in the Z basis, 
+        # so we need the operator to be Ising (containing only Z terms). 
+        # A general Qubit Operator could have X or Y terms which don’t get directly measured.
+        if isinstance(ising_operator, IsingOperator) == False:
+            raise Exception("Input operator is not openfermion.IsingOperator")
+
+        # Count number of occurrences of bitstrings
+        bitstring_frequencies = self.get_counts()
+        num_measurements = len(self.bitstrings)
+
+        # Perform weighted average
+        expectation_values = []
+        for term, coefficient in ising_operator.terms.items():
+            expectation = 0
+            marked_qubits = [op[0] for op in term] 
+            for bitstring, count in bitstring_frequencies.items():
+                bitstring_int = convert_bitstring_to_int(bitstring)
+                if parity_even_p(bitstring_int, marked_qubits):
+                    value = float(count)/num_measurements
+                else:
+                    value = -float(count)/num_measurements
+                expectation += np.real(coefficient) * value
+            expectation_values.append(np.real(expectation))
+        return ExpectationValues(np.array(expectation_values))

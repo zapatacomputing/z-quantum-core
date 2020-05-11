@@ -6,7 +6,7 @@ spec:
     parent: generic-task
     inputs:
       parameters:
-      - name: backend-spces
+      - name: backend-specs
       - name: command
         value: bash main_script.sh
       artifacts:

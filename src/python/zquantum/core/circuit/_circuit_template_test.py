@@ -205,7 +205,6 @@ class TestCircuitLayers(unittest.TestCase):
             self.assertEqual(connection, loaded_connection)
         os.remove('connectivity.json')
 
-
     def test_build_circuit_layers_and_connectivity(self):
         # Sycamore
         # Given
@@ -237,5 +236,4 @@ class TestCircuitLayers(unittest.TestCase):
         
         for row, test_row in zip(connectivity.connectivity, test_connectivity):
             self.assertEqual(row, test_row)
-    
     

@@ -5,7 +5,6 @@ from .bitstring_distribution import ( is_non_negative, is_key_length_fixed,
     are_keys_binary_strings, is_bitstring_distribution, is_normalized, 
     normalize_bitstring_distribution, save_bitstring_distribution, load_bitstring_distribution,
     create_bitstring_distribution_from_probability_distribution, compute_clipped_negative_log_likelihood,
-    create_bitstring_distribution_from_measurements,
     BitstringDistribution )
 from .utils import SCHEMA_VERSION 
 
@@ -100,19 +99,6 @@ class TestBitstringDistributionUtils(unittest.TestCase):
         prob_distribution = np.asarray([0.25, 0, 0.5, 0.25])
         # When calling create_bitstring_distribution_from_probability_distribution
         bitstring_dist = create_bitstring_distribution_from_probability_distribution(prob_distribution)
-
-        # Then the returned object is an instance of BitstringDistribution with the correct values
-        self.assertEqual(type(bitstring_dist), BitstringDistribution)
-        self.assertEqual(bitstring_dist.get_qubits_number(), 2)
-        self.assertEqual(bitstring_dist.distribution_dict['00'], 0.25)
-        self.assertEqual(bitstring_dist.distribution_dict['01'], 0.5)
-        self.assertEqual(bitstring_dist.distribution_dict['11'], 0.25)
-
-    def test_create_bitstring_distribution_from_measurements(self):
-        # Given a set of measurements
-        measurements = [(0,0), (0,1), (0,1), (1,1)]
-        # When calling create_bitstring_distribution_from_measurements
-        bitstring_dist = create_bitstring_distribution_from_measurements(measurements)
 
         # Then the returned object is an instance of BitstringDistribution with the correct values
         self.assertEqual(type(bitstring_dist), BitstringDistribution)

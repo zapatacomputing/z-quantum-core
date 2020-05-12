@@ -1,18 +1,20 @@
 import unittest
 import os
 import numpy as np
+import json
+import subprocess
 from openfermion.ops import QubitOperator, IsingOperator
 from .measurement import (ExpectationValues, Parities,
                     save_expectation_values, load_expectation_values,
                     save_wavefunction, load_wavefunction, sample_from_wavefunction,
                     save_parities, load_parities, get_parities_from_measurements, 
-                    get_expectation_values_from_measurements, 
                     get_expectation_values_from_parities,
-                    expectation_values_to_real, convert_bitstring_to_int)
+                    expectation_values_to_real, convert_bitstring_to_int, Measurements)
 from pyquil.wavefunction import Wavefunction
 
+from .bitstring_distribution import BitstringDistribution
 from .testing import create_random_wavefunction
-from .utils import convert_bitstrings_to_tuples
+from .utils import convert_bitstrings_to_tuples, SCHEMA_VERSION
 from collections import Counter
 
 class TestMeasurement(unittest.TestCase):
@@ -94,17 +96,6 @@ class TestMeasurement(unittest.TestCase):
             self.assertTrue(np.allclose(parities.correlations[i], loaded_parities.correlations[i]))
         os.remove('parities.json')
 
-    def test_get_expectation_values_from_measurements(self):
-        # Given
-        measurements = [(0,1,0), (0,1,0), (0,0,0), (0,0,0), (1,1,1)]
-        ising_operator = IsingOperator('10[] + [Z0 Z1] - 10[Z1 Z2]')
-        target_expectation_values = np.array([10, 0.2, -2])
-        # When
-        expectation_values = get_expectation_values_from_measurements(measurements, ising_operator)
-        # Then
-        np.testing.assert_array_equal(expectation_values.values, target_expectation_values)
-
-
     def test_get_expectation_values_from_parities(self):
         parities = Parities(values=np.array([[18, 50], [120, 113], [75, 26]]))
         expectation_values = get_expectation_values_from_parities(parities)
@@ -134,3 +125,142 @@ class TestMeasurement(unittest.TestCase):
     def test_convert_bitstring_to_int(self):
         bitstring = (0, 1, 0, 1, 0, 1)
         self.assertEqual(convert_bitstring_to_int(bitstring), 42)
+
+    def test_measurement_class_io(self):
+        # Given
+        measurements_data = {
+            "schema":     SCHEMA_VERSION + "-measurements",
+            "counts":     {"000": 1, "001": 2, "010": 1, "011": 1, "100": 1, "101": 1, "110": 1, "111": 1},
+            "bitstrings": [ [0,0,0], [0,0,1], [0,1,0], [0,1,1], [1,0,0], [1,1,0], [1,1,1], [1,0,1], [0,0,1] ]
+        }
+        input_filename = "measurements_input_test.json"
+        output_filename = "measurements_output_test.json"
+
+        with open(input_filename, "w") as f:
+            f.write(json.dumps(measurements_data, indent=2))
+
+        # When 
+        measurements = Measurements.load_from_file(input_filename)
+        measurements.save(output_filename)
+
+        # Then
+        with open(output_filename, "r") as f:
+            output_data = json.load(f)
+        self.assertEqual(measurements_data, output_data)
+
+    def test_measurement_class_intialize_with_bitstrings(self):
+        # Given
+        bitstrings = [ (0,0,0), (0,0,1), (0,0,1), (0,1,0), (0,1,1), (1,0,0), (1,0,1), (1,1,0), (1,1,1) ]
+
+        # When
+        measurements = Measurements(bitstrings=bitstrings)
+
+        # Then
+        self.assertEqual(measurements.bitstrings, [ (0,0,0), (0,0,1), (0,0,1), (0,1,0), (0,1,1), (1,0,0), (1,0,1), (1,1,0), (1,1,1) ])
+
+    def test_measurement_class_intialize_with_counts(self):
+        # Given
+        counts = {"000": 1, "001": 2, "010": 1, "011": 1, "100": 1, "101": 1, "110": 1, "111": 1}
+
+        # When
+        measurements = Measurements.from_counts(counts)
+
+        # Then
+        self.assertEqual(measurements.bitstrings, [ (0,0,0), (0,0,1), (0,0,1), (0,1,0), (0,1,1), (1,0,0), (1,0,1), (1,1,0), (1,1,1) ])
+
+    def test_measurement_class_bitstrings(self):
+        # Given
+        measurements_data = {
+            "schema":     SCHEMA_VERSION + "-measurements",
+            "counts":     {"000": 1, "001": 2, "010": 1, "011": 1, "100": 1, "101": 1, "110": 1, "111": 1},
+            "bitstrings": [ [0,0,0], [0,0,1], [0,1,0], [0,1,1], [1,0,0], [1,1,0], [1,1,1], [1,0,1], [0,0,1] ]
+        }
+        input_filename = "measurements_input_test.json"
+
+        with open(input_filename, "w") as f:
+            f.write(json.dumps(measurements_data, indent=2))
+        measurements = Measurements.load_from_file(input_filename)
+
+        # When/Then
+        self.assertEqual(measurements.bitstrings, [ (0,0,0), (0,0,1), (0,1,0), (0,1,1), (1,0,0), (1,1,0), (1,1,1), (1,0,1), (0,0,1) ])
+
+    def test_measurement_class_get_counts(self):
+        # Given
+        measurements_data = {
+            "schema":     SCHEMA_VERSION + "-measurements",
+            "counts":     {"000": 1, "001": 2, "010": 1, "011": 1, "100": 1, "101": 1, "110": 1, "111": 1},
+            "bitstrings": [ [0,0,0], [0,0,1], [0,1,0], [0,1,1], [1,0,0], [1,1,0], [1,1,1], [1,0,1], [0,0,1] ]
+        }
+        input_filename = "measurements_input_test.json"
+
+        with open(input_filename, "w") as f:
+            f.write(json.dumps(measurements_data, indent=2))
+        measurements = Measurements.load_from_file(input_filename)
+
+        # When 
+        counts = measurements.get_counts()
+
+        # Then
+        self.assertEqual(measurements_data["counts"], counts)
+
+    def test_measurement_class_get_distribution(self):
+        # Given
+        measurements_data = {
+            "schema":     SCHEMA_VERSION + "-measurements",
+            "counts":     {"000": 1, "001": 2, "010": 1, "011": 1, "100": 1, "101": 1, "110": 1, "111": 1},
+            "bitstrings": [ [0,0,0], [0,0,1], [0,1,0], [0,1,1], [1,0,0], [1,1,0], [1,1,1], [1,0,1], [0,0,1] ]
+        }
+        input_filename = "measurements_input_test.json"
+
+        with open(input_filename, "w") as f:
+            f.write(json.dumps(measurements_data, indent=2))
+        measurements = Measurements.load_from_file(input_filename)
+
+        # When 
+        distribution = measurements.get_distribution()
+
+        # Then
+        self.assertEqual(distribution.distribution_dict, {"000": 1/9, "001": 2/9, "010": 1/9, "011": 1/9, "011": 1/9, "100": 1/9, "101": 1/9, "110": 1/9, "111": 1/9})
+
+    def test_measurement_class_add_counts(self):
+        # Given
+        measurements = Measurements()
+        measurements_counts = {"000": 1, "001": 2, "010": 1, "011": 1, "100": 1, "101": 1, "110": 1, "111": 1}
+
+        # When
+        measurements.add_counts(measurements_counts)
+
+        # Then
+        self.assertEqual(measurements.bitstrings, [ (0,0,0), (0,0,1), (0,0,1), (0,1,0), (0,1,1), (1,0,0), (1,0,1), (1,1,0), (1,1,1) ])
+        self.assertEqual(measurements.get_counts(), {"000": 1, "001": 2, "010": 1, "011": 1, "100": 1, "101": 1, "110": 1, "111": 1})
+
+    def test_measurement_class_add_measurements(self):
+        # Given
+        measurements = Measurements()
+        bitstrings = [ (0,0,0), (0,0,1), (0,0,1), (0,1,0), (0,1,1), (1,0,0), (1,0,1), (1,1,0), (1,1,1) ]
+
+        # When
+        measurements.bitstrings = bitstrings
+
+        # Then
+        self.assertEqual(measurements.bitstrings, [ (0,0,0), (0,0,1), (0,0,1), (0,1,0), (0,1,1), (1,0,0), (1,0,1), (1,1,0), (1,1,1) ])
+
+        # When
+        measurements.bitstrings += bitstrings
+
+        # Then
+        self.assertEqual(measurements.bitstrings, [ (0,0,0), (0,0,1), (0,0,1), (0,1,0), (0,1,1), (1,0,0), (1,0,1), (1,1,0), (1,1,1),
+                                                    (0,0,0), (0,0,1), (0,0,1), (0,1,0), (0,1,1), (1,0,0), (1,0,1), (1,1,0), (1,1,1) ])
+
+    def test_get_expectation_values_from_measurements(self):
+        # Given
+        measurements = Measurements([(0,1,0), (0,1,0), (0,0,0), (0,0,0), (1,1,1)])
+        ising_operator = IsingOperator('10[] + [Z0 Z1] - 10[Z1 Z2]')
+        target_expectation_values = np.array([10, 0.2, -2])
+        # When
+        expectation_values = measurements.get_expectation_values(ising_operator)
+        # Then
+        np.testing.assert_array_equal(expectation_values.values, target_expectation_values)
+
+    def tearDown(self):
+        subprocess.run(["rm", "measurements_input_test.json", "measurements_output_test.json"])

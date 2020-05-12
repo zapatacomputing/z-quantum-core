@@ -154,18 +154,6 @@ def create_bitstring_distribution_from_probability_distribution(prob_distributio
     return BitstringDistribution(prob_dict)
 
 
-def create_bitstring_distribution_from_measurements(measurements):
-    """Create a well defined bitstring distribution starting from a list of bistrings, resulting from measurements.
-    Args:
-        measurements (list): List of bitstrings (tuples of integers) representing the outcomes of measurements.
-    Returns:
-        zquantum.core.bistring_distribution.BitstringDistribution : The BitstringDistribution object corresponding to the input measurements.
-    """
-    bitstring = convert_tuples_to_bitstrings(measurements)
-    bitstring_distribution=dict(Counter(bitstring))
-    return BitstringDistribution(bitstring_distribution)
-
-
 class BitstringDistribution():
     """A probability distribution defined on discrete bitstrings. Normalization is performed by default, unless otherwise specified.
 

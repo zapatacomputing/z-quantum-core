@@ -19,11 +19,11 @@ setuptools.setup(
         'networkx==2.3',
         'numpy>=1.18.1',
         'scipy>=1.4.1',
-        'openfermion>=0.10.0',
+        'openfermion>=0.11.0',
         'lea>=3.2.0',
         'pyquil>=2.17.0',
-        'cirq>=0.7.0',
-        'qiskit>=0.15.0',
+        'cirq==0.7.0',
+        'qiskit==0.18.3',
         'quantum-grove>=1.0.0'
     ]
 )

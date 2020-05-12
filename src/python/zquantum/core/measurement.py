@@ -5,9 +5,10 @@ from grove.pyvqe.vqe import parity_even_p
 import numpy as np
 from openfermion.ops import IsingOperator
 from .utils import (SCHEMA_VERSION, convert_array_to_dict, convert_dict_to_array,
-    sample_from_probability_distribution, convert_bitstrings_to_tuples)
+    sample_from_probability_distribution, convert_bitstrings_to_tuples, convert_tuples_to_bitstrings)
 from typing import Optional, List, Tuple, TextIO, Iterable
 from collections import Counter
+from .bitstring_distribution import BitstringDistribution
 
 def save_expectation_values(expectation_values: np.ndarray, filename: str) -> None:
     """Save expectation values to a file.
@@ -247,41 +248,6 @@ def load_parities(file: TextIO) -> Parities:
 
     return Parities.from_dict(data)
 
-def get_expectation_values_from_measurements(measurements: List[Tuple[int]], 
-                                            ising_operator: IsingOperator) -> ExpectationValues:
-    """Get expectation values from bitstrings.
-
-    Args:
-        measurements (list): the measured bitstrings
-        ising_operator (openfermion.ops.IsingOperator): the operator
-
-    Returns:
-        zquantum.core.measurement.ExpectationValues: the expectation values of each term in the operator
-    """
-    # We require operator to be IsingOperator because measurements are always performed in the Z basis, 
-    # so we need the operator to be Ising (containing only Z terms). 
-    # A general Qubit Operator could have X or Y terms which don’t get directly measured.
-    if isinstance(ising_operator, IsingOperator) == False:
-        raise Exception("Input operator is not openfermion.IsingOperator")
-
-    # Count number of occurrences of bitstrings
-    bitstring_frequencies = Counter(measurements)
-
-    # Perform weighted average
-    expectation_values = []
-    for term, coefficient in ising_operator.terms.items():
-        expectation = 0
-        marked_qubits = [op[0] for op in term] 
-        for bitstring, count in bitstring_frequencies.items():
-            bitstring_int = convert_bitstring_to_int(bitstring)
-            if parity_even_p(bitstring_int, marked_qubits):
-                value = float(count)/len(measurements)
-            else:
-                value = -float(count)/len(measurements)
-            expectation += np.real(coefficient) * value
-        expectation_values.append(np.real(expectation))
-    return ExpectationValues(np.array(expectation_values))
-
 def get_expectation_values_from_parities(parities: Parities) -> ExpectationValues:
     """Get the expectation values of a set of operators (with precisions) from a set of samples (with even/odd parities) for them.
 
@@ -392,3 +358,136 @@ def convert_bitstring_to_int(bitstring: Iterable[int]) -> int:
             significant (little endian).
     """
     return int("".join(str(bit) for bit in bitstring[::-1]), 2)
+
+class Measurements:
+    """ A class representing measurements from a quantum circuit. The bitstrings variable represents the internal
+    data structure of the Measurements class. It is expressed as a list of tuples wherein each tuple is a measurement
+    and the value of the tuple at a given index is the measured bit-value of the qubit (indexed from 0 -> N-1) """
+
+    def __init__(self, bitstrings: Optional[List[Tuple[int]]] = None):
+        if bitstrings is None:
+            self.bitstrings = []
+        else:
+            self.bitstrings = bitstrings
+
+
+    @classmethod
+    def from_counts(cls, counts: Dict[str, int]):
+        """ Create an instance of the Measurements class from a dictionary
+        
+        Args:
+            counts (dict): mapping of bitstrings to integers representing the number of times the bitstring was measured
+        """
+        measurements = cls()
+        measurements.add_counts(counts)
+        return measurements
+
+
+    @classmethod
+    def load_from_file(cls, file: TextIO):
+        """ Load a set of measurements from file 
+        
+        Args:
+            file (str or file-like object): the name of the file, or a file-like object
+        """        
+        if isinstance(file, str):
+            with open(file, 'r') as f:
+                data = json.load(f)
+        else:
+            data = json.load(file)
+
+        bitstrings = []
+        for bitstring in data["bitstrings"]:
+            bitstrings.append(tuple(bitstring))
+
+        return cls(bitstrings=bitstrings)
+
+
+    def save(self, filename: str):
+        """ Serialize the Measurements object into a file in JSON format.
+        
+        Args:
+            filename (string): filename to save the data to 
+        """
+        data = { "schema":     SCHEMA_VERSION+"-measurements",
+                 "counts":     self.get_counts(),
+                 "bitstrings": self.bitstrings}
+        with open(filename, "w") as f:
+            f.write(json.dumps(data, indent=2))
+
+
+    def get_counts(self):
+        """ Get the measurements as a histogram
+
+        Returns:
+            A dictionary mapping bitstrings to integers representing the number of times the bitstring was measured
+        """
+        bitstrings = convert_tuples_to_bitstrings(self.bitstrings)
+        return dict(Counter(bitstrings))
+
+
+    def add_counts(self, counts: Dict[str, int]):
+        """ Add measurements from a histogram
+
+        Args:
+            counts (dict): mapping of bitstrings to integers representing the number of times the bitstring was measured
+                NOTE: bitstrings are also indexed from 0 -> N-1, where the "001" bitstring represents a measurement of 
+                    qubit 2 in the 1 state
+        """
+        for bitstring in counts.keys():
+            measurement = []
+            for bitvalue in bitstring:
+                measurement.append(int(bitvalue))
+
+            self.bitstrings += [tuple(measurement)] * counts[bitstring]
+
+
+    def get_distribution(self):
+        """ Get the normalized probability distribution representing the measurements
+
+        Returns:
+            distribution (BitstringDistribution): bitstring distribution based on the frequency of measurements 
+        """
+        counts = self.get_counts()
+        num_measurements = len(self.bitstrings)
+
+        distribution = {}
+        for bitstring in counts.keys():
+            distribution[bitstring] = counts[bitstring]/num_measurements
+
+        return BitstringDistribution(distribution)
+
+
+    def get_expectation_values(self, ising_operator: IsingOperator) -> ExpectationValues:
+        """Get the expectation values of an operator from the measurements.
+
+        Args:
+            ising_operator (openfermion.ops.IsingOperator): the operator
+
+        Returns:
+            zquantum.core.measurement.ExpectationValues: the expectation values of each term in the operator
+        """
+        # We require operator to be IsingOperator because measurements are always performed in the Z basis, 
+        # so we need the operator to be Ising (containing only Z terms). 
+        # A general Qubit Operator could have X or Y terms which don’t get directly measured.
+        if isinstance(ising_operator, IsingOperator) == False:
+            raise Exception("Input operator is not openfermion.IsingOperator")
+
+        # Count number of occurrences of bitstrings
+        bitstring_frequencies = self.get_counts()
+        num_measurements = len(self.bitstrings)
+
+        # Perform weighted average
+        expectation_values = []
+        for term, coefficient in ising_operator.terms.items():
+            expectation = 0
+            marked_qubits = [op[0] for op in term] 
+            for bitstring, count in bitstring_frequencies.items():
+                bitstring_int = convert_bitstring_to_int(bitstring)
+                if parity_even_p(bitstring_int, marked_qubits):
+                    value = float(count)/num_measurements
+                else:
+                    value = -float(count)/num_measurements
+                expectation += np.real(coefficient) * value
+            expectation_values.append(np.real(expectation))
+        return ExpectationValues(np.array(expectation_values))

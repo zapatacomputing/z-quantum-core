@@ -389,7 +389,7 @@ def build_circuit_layers_and_connectivity(x_dimension, y_dimension=None,
         circuit_layers (zquantum.core.circuit.CircuitLayers)
     """
     if layer_type == 'sycamore':
-        return  _build_circuit_layers_and_connectivity_sycamore(x_dimension, y_dimension)
+        return _build_circuit_layers_and_connectivity_sycamore(x_dimension, y_dimension)
     elif layer_type == 'nearest-neighbor':
         return _build_circuit_layers_and_connectivity_nearest_neighbors(x_dimension)
     else:

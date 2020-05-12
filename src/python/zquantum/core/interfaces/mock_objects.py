@@ -1,6 +1,6 @@
 from .backend import QuantumSimulator
 from .optimizer import Optimizer
-from ..measurement import ExpectationValues
+from ..measurement import ExpectationValues, Measurements
 from ..circuit import Circuit
 import random
 from scipy.optimize import OptimizeResult
@@ -14,9 +14,9 @@ class MockQuantumSimulator(QuantumSimulator):
 
     def run_circuit_and_measure(self, circuit, **kwargs):
         n_qubits = len(circuit.qubits)
-        measurements = []
+        measurements = Measurements()
         for _ in range(self.n_samples):
-            measurements.append(tuple([random.randint(0,1) for j in range(n_qubits)]))
+            measurements.bitstrings += [tuple([random.randint(0,1) for j in range(n_qubits)])]
         return measurements
     
     def get_expectation_values(self, circuit, operator, **kwargs):

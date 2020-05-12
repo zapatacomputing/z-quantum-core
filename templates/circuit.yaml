@@ -127,3 +127,35 @@ spec:
       artifacts:
       - name: parameter-grid
         path: /app/parameter_grid.json
+
+  - name: build-circuit-layers-and-connectivity
+    parent: generic-task
+    inputs:
+      parameters:
+      - name: x-dimension
+      - name: y-dimension
+        default: 'None'
+      - name: layer-type
+        default: 'nearest-neighbor'
+      - name: command
+        value: python3 main_script.py
+      artifacts:
+      - name: main-script
+        path: /app/main_script.py
+        raw:
+          data: |
+            from zquantum.core.circuit import (save_circuit_layers,
+                                               save_circuit_connectivity,
+                                               build_circuit_layers_and_connectivity)
+            connectivity, layers = build_circuit_layers_and_connectivity(
+                                                {{inputs.parameters.x-dimension}},
+                                                {{inputs.parameters.y-dimension}},
+                                                '{{inputs.parameters.layer-type}}')
+            save_circuit_layers(layers, 'circuit_layers.json')
+            save_circuit_connectivity(connectivity, 'circuit_connectivity.json')
+    outputs:
+      artifacts:
+      - name: circuit-layers
+        path: /app/circuit_layers.json
+      - name: circuit-connectivity
+        path: /app/circuit_connectivity.json

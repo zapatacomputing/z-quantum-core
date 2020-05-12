@@ -1,5 +1,6 @@
 from .backend import QuantumSimulator
 from .optimizer import Optimizer
+from .cost_function import CostFunction
 from ..measurement import ExpectationValues
 from ..circuit import Circuit
 import random
@@ -45,6 +46,29 @@ class MockOptimizer(Optimizer):
         result['history'] = [{'value': result.opt_value, 'params': new_parameters}]
         result.opt_params = new_parameters
         return result
+
+
+class MockCostFunction(CostFunction):
+    def evaluate(self, parameters):
+        return np.sum(np.power(parameters, 2))
+
+    def get_gradient(self, parameters):
+        if self.use_analytical_gradient:
+            return 2 * parameters
+        else:
+            return self.get_numerical_gradient(parameters)
+
+    def get_numerical_gradient(self, parameters):
+        epsilon = 1e-5
+        gradient = []
+        for idx in range(len(parameters)):
+            values_plus = parameters
+            values_minus = parameters
+            values_plus = parameters[idx] + epsilon
+            values_minus = parameters[idx] - epsilon
+            gradient.append((self.evaluate(values_plus) - self.evaluate(values_minus)) / (2*epsilon))
+        return gradient
+
 
 def mock_ansatz(parameters):
     return Circuit(Program(X(0)))

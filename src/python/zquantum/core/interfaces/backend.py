@@ -77,6 +77,23 @@ class QuantumSimulator(QuantumBackend):
 
         raise NotImplementedError
 
+    def get_expectation_values_for_circuitset(self, circuitset:[Circuit], qubit_operator:QubitOperator, **kwargs) -> [ExpectationValues]:
+        """
+        Calculates the expectation values for given operator, based on the exact quantum state 
+        produced by a set of circuits.
+
+        Args:
+            circuitset ([core.circuit.Circuit]): quantum circuits to be executed.
+            qubit_operator(openfermion): Operator for which we calculate the expectation value.
+
+        Returns:
+            [ExpectationValues]: list of objects representing expectation values for given operator.
+        """
+        expectation_values = []
+        for circuit in circuitset:
+            expectation_values.append(self.get_expectation_values(circuit, qubit_operator, **kwargs))
+        return expectation_values
+
     def get_bitstring_distribution(self, circuit:Circuit, **kwargs) -> BitstringDistribution:
         """
         Calculates a bitstring distribution.

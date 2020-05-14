@@ -6,7 +6,8 @@ from ._circuit_template import (save_circuit_template, load_circuit_template,
     combine_ansatz_params, generate_random_ansatz_params,
     build_uniform_param_grid, save_parameter_grid, load_parameter_grid,
     CircuitLayers, save_circuit_layers, load_circuit_layers, ParameterGrid, save_circuit_ordering,
-    load_circuit_ordering
+    load_circuit_ordering, save_circuit_connectivity, load_circuit_connectivity, build_circuit_layers_and_connectivity,
+    CircuitConnectivity
 )
 from ..utils import SCHEMA_VERSION
 from scipy.optimize import OptimizeResult
@@ -190,3 +191,49 @@ class TestCircuitLayers(unittest.TestCase):
         
         # Then
         self.assertEqual(loaded_ordering, ordering)
+        os.remove('ordering.json')
+
+    def test_circuit_connectivity_io(self):
+        # Given
+        connectivity = CircuitConnectivity([(0,1), (1,2), (2,3), (3,0)])
+        # When
+        save_circuit_connectivity(connectivity, 'connectivity.json')
+        loaded_connectivity = load_circuit_connectivity('connectivity.json')
+        # Then
+        self.assertEqual(len(connectivity.connectivity), len(loaded_connectivity.connectivity))
+        for connection, loaded_connection in zip(connectivity.connectivity, loaded_connectivity.connectivity):
+            self.assertEqual(connection, loaded_connection)
+        os.remove('connectivity.json')
+
+    def test_build_circuit_layers_and_connectivity(self):
+        # Sycamore
+        # Given
+        test_layers = [[(3, 1), (4, 7)], [(3, 6), (4, 2), (5, 8)],
+        [(3, 1), (4, 2)], [(3, 6), (4, 7), (5, 8)], [(3, 0), (4, 8), (5, 2)],
+        [(3, 7), (4, 1)], [(3, 0), (4, 1), (5, 2)], [(3, 7), (4, 8)]]
+        test_connectivity = [(3, 0), (3, 1), (4, 1), (4, 2), (5, 2), (3, 6), (3, 7), (4, 7), (4, 8), (5, 8)]
+        # When
+        connectivity, layers = build_circuit_layers_and_connectivity(3, 3, 'sycamore')
+        
+        # Then
+        for layer, test_layer in zip(layers.layers, test_layers):
+            self.assertEqual(layer, test_layer)
+        
+        for row, test_row in zip(connectivity.connectivity, test_connectivity):
+            self.assertEqual(row, test_row)
+
+        # Nearest-Neighbors
+        # Given
+        test_layers = [[(0, 1), (2, 3)], [(1, 2)]]
+        test_connectivity = [(0, 1), (2, 3), (1, 2)]
+
+        # When
+        connectivity, layers = build_circuit_layers_and_connectivity(4, 'nearest-neighbor')
+        
+        # Then
+        for layer, test_layer in zip(layers.layers, test_layers):
+            self.assertEqual(layer, test_layer)
+        
+        for row, test_row in zip(connectivity.connectivity, test_connectivity):
+            self.assertEqual(row, test_row)
+    

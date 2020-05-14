@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from ..bitstring_distribution import BitstringDistribution, create_bitstring_distribution_from_probability_distribution, create_bitstring_distribution_from_measurements
+from ..bitstring_distribution import BitstringDistribution, create_bitstring_distribution_from_probability_distribution
 from ..circuit import Circuit
 from ..measurement import ExpectationValues
 from typing import Optional, List, Tuple
@@ -23,6 +23,8 @@ class QuantumBackend(ABC):
         Method for executing the circuit and measuring the outcome.
         Args:
             circuit (core.circuit.Circuit): quantum circuit to be executed.
+        Returns:
+            core.measurement.Measurements: object representing the measurements resulting from the circuit
         """
         raise NotImplementedError
 
@@ -75,6 +77,23 @@ class QuantumSimulator(QuantumBackend):
 
         raise NotImplementedError
 
+    def get_expectation_values_for_circuitset(self, circuitset:[Circuit], qubit_operator:QubitOperator, **kwargs) -> [ExpectationValues]:
+        """
+        Calculates the expectation values for given operator, based on the exact quantum state 
+        produced by a set of circuits.
+
+        Args:
+            circuitset ([core.circuit.Circuit]): quantum circuits to be executed.
+            qubit_operator(openfermion): Operator for which we calculate the expectation value.
+
+        Returns:
+            [ExpectationValues]: list of objects representing expectation values for given operator.
+        """
+        expectation_values = []
+        for circuit in circuitset:
+            expectation_values.append(self.get_expectation_values(circuit, qubit_operator, **kwargs))
+        return expectation_values
+
     def get_bitstring_distribution(self, circuit:Circuit, **kwargs) -> BitstringDistribution:
         """
         Calculates a bitstring distribution.
@@ -92,4 +111,4 @@ class QuantumSimulator(QuantumBackend):
         else:
             # Get the expectation values
             measurements = self.run_circuit_and_measure(circuit, **kwargs)
-            return create_bitstring_distribution_from_measurements(measurements)
+            return measurements.get_distribution()

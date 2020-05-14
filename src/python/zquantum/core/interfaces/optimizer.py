@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from scipy.optimize import OptimizeResult
+from .cost_function import CostFunction
 from typing import Callable, Optional, Dict
 import numpy as np
 
@@ -20,12 +21,12 @@ class Optimizer(ABC):
             self.options["keep_value_history"] = False
 
     @abstractmethod
-    def minimize(self, cost_function:Callable, initial_params:np.ndarray, **kwargs) -> OptimizeResult:
+    def minimize(self, cost_function:CostFunction, initial_params:np.ndarray, **kwargs) -> OptimizeResult:
         """
         Finds the parameters which minimize given cost function.
 
         Args:
-            cost_function: a cost function to be minimized, depends on some numerical parameters.
+            cost_function (zquantu.core.interfaces.CostFunction): an object representing the cost function.
             inital_params (np.ndarray): initial parameters for the cost function
 
         Returns:

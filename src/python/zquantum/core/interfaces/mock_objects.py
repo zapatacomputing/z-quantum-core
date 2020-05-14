@@ -42,14 +42,14 @@ class MockOptimizer(Optimizer):
         for i in range(len(initial_params)):
             new_parameters[i] += random.random()
         new_parameters = np.array(new_parameters)
-        result.opt_value = cost_function(new_parameters)
+        result.opt_value = cost_function.evaluate(new_parameters)
         result['history'] = [{'value': result.opt_value, 'params': new_parameters}]
         result.opt_params = new_parameters
         return result
 
 
 class MockCostFunction(CostFunction):
-    def evaluate(self, parameters):
+    def _evaluate(self, parameters):
         return np.sum(np.power(parameters, 2))
 
     def get_gradient(self, parameters):

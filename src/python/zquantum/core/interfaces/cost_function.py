@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from typing import Union
 import numpy as np
 
 
@@ -23,10 +22,25 @@ class CostFunction(ABC):
         self.evaluations_history = []
         self.save_evaluation_history = save_evaluation_history
         self.use_analytical_gradient = use_analytical_gradient
-        self.best_value = None
 
+    
+    def evaluate(self, parameters:np.ndarray) -> float:
+        """
+        Evaluates the value of the cost function for given parameters.
+
+        Args:
+            parameters: parameters for which the evaluation should occur
+
+        Returns:
+            value: cost function value for given parameters, either int or float.
+        """
+        value = self._evaluate(parameters)
+        if self.save_evaluation_history:
+            self.evaluations_history.append((parameters, value))
+        return value
+    
     @abstractmethod
-    def evaluate(self, parameters:np.ndarray) -> Union[int, float]:
+    def _evaluate(self, parameters:np.ndarray) -> float:
         """
         Evaluates the value of the cost function for given parameters.
 
@@ -37,6 +51,7 @@ class CostFunction(ABC):
             value: cost function value for given parameters, either int or float.
         """
         raise NotImplementedError
+
 
     @abstractmethod
     def get_gradient(self, parameters:np.ndarray) -> np.ndarray:
@@ -54,8 +69,8 @@ class CostFunction(ABC):
         if self.use_analytical_gradient:
             raise NotImplemented
         else:
-            raise NotImplemented
-
+            return self.get_numerical_gradient(parameters)
+    
     @abstractmethod
     def get_numerical_gradient(self, parameters:np.ndarray) -> np.ndarray:
         """
@@ -66,6 +81,5 @@ class CostFunction(ABC):
 
         Returns:
             np.ndarray: gradient vector
-
         """
         raise NotImplemented

@@ -107,6 +107,17 @@ class TestBitstringDistributionUtils(unittest.TestCase):
         self.assertEqual(bitstring_dist.distribution_dict['01'], 0.5)
         self.assertEqual(bitstring_dist.distribution_dict['11'], 0.25)
 
+    def test_create_bitstring_distribution_from_probability_distribution_5_qubits(self):
+        # Given a probability distribution
+        prob_distribution = np.ones(5**2)/5**2
+        # When calling create_bitstring_distribution_from_probability_distribution
+        bitstring_dist = create_bitstring_distribution_from_probability_distribution(prob_distribution)
+
+        # Then the returned object is an instance of BitstringDistribution with the correct values
+        self.assertEqual(type(bitstring_dist), BitstringDistribution)
+        self.assertEqual(bitstring_dist.get_qubits_number(), 5)
+        self.assertEqual(bitstring_dist.distribution_dict['00000'], 1/5**2)
+
     def test_compute_clipped_negative_log_likelihood(self):
         # Given a target bitstring distribution and a measured bitstring distribution
         target_distr = BitstringDistribution({"000":0.5,"111":0.5})

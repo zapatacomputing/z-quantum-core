@@ -35,7 +35,7 @@ class MockQuantumSimulator(QuantumSimulator):
         raise NotImplementedError
 
     
-class MockOptimizer(Optimizer):        
+class MockOptimizer(Optimizer): 
     def minimize(self, cost_function, initial_params, **kwargs):
         result = OptimizeResult()
         new_parameters = initial_params
@@ -43,7 +43,7 @@ class MockOptimizer(Optimizer):
             new_parameters[i] += random.random()
         new_parameters = np.array(new_parameters)
         result.opt_value = cost_function.evaluate(new_parameters)
-        result['history'] = [{'value': result.opt_value, 'params': new_parameters}]
+        result['history'] = cost_function.evaluations_history
         result.opt_params = new_parameters
         return result
 

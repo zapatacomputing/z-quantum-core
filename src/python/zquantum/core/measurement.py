@@ -340,10 +340,15 @@ def expectation_values_to_real(expectation_values: ExpectationValues) -> Expecta
     Returns:
         expectation_values (zquantum.core.measurement.ExpectationValues object)
     """
-    expectation_values.values = expectation_values.values.real
+    values = []
+    for i, value in enumerate(expectation_values.values):
+        if isinstance(value, complex):
+            value = value.real
+        values.append(value)
+    expectation_values.values = values
     if(expectation_values.correlations):
         for i, value in enumerate(expectation_values.correlations):
-            if(isinstance(value, complex)):
+            if isinstance(value, complex):
                 value = value.real
             expectation_values.correlations[i] = value
     return expectation_values

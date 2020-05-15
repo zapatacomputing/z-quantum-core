@@ -14,8 +14,6 @@ class CostFunction(ABC):
         evaluations_history (list): List of the tuples (parameters, value) representing all the evaluation in a chronological order.
         save_evaluation_history (bool): see Args
         use_analytical_gradient (bool): see Args
-        best_value (float): best value of the 
-
     """
 
     def __init__(self, save_evaluation_history:bool=True, use_analytical_gradient:bool=False):
@@ -26,8 +24,7 @@ class CostFunction(ABC):
     
     def evaluate(self, parameters:np.ndarray) -> float:
         """
-        Evaluates the value of the cost function for given parameters.
-
+        Evaluates the value of the cost function for given parameters and saves the results (if specified).
         Args:
             parameters: parameters for which the evaluation should occur
 
@@ -65,21 +62,5 @@ class CostFunction(ABC):
 
         Returns:
             np.ndarray: gradient vector 
-        """
-        if self.use_analytical_gradient:
-            raise NotImplemented
-        else:
-            return self.get_numerical_gradient(parameters)
-    
-    @abstractmethod
-    def get_numerical_gradient(self, parameters:np.ndarray) -> np.ndarray:
-        """
-        Evaluates the numerical gradient of the cost function for given parameters.
-
-        Args:
-            parameters: parameters for which we calculate the gradient.
-
-        Returns:
-            np.ndarray: gradient vector
         """
         raise NotImplemented

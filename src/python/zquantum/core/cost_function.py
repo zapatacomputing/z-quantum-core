@@ -16,23 +16,28 @@ class BasicCostFunction(CostFunction):
         gradient_function (Callable): function used to calculate gradients. Optional.
         save_evaluation_history (bool): flag indicating whether we want to store the history of all the evaluations.
         use_analytical_gradient (bool): flag indicating whether we want to use analytical or numerical gradient.
-
+        epsilon (float): epsilon used for calculating numerical gradient.
     Params:
         function (Callable): see Args
         gradient_function (Callable): see Args
         evaluations_history (list): List of the tuples (parameters, value) representing all the evaluation in a chronological order.
         save_evaluation_history (bool): see Args
         use_analytical_gradient (bool): see Args
-        best_value (float): best value of the 
+        epsilon (float): see Args
 
     """
 
-    def __init__(self, function:Callable, gradient_function:Optional[Callable]=None, save_evaluation_history:bool=True, use_analytical_gradient:bool=False):
+    def __init__(self, function:Callable, 
+                        gradient_function:Optional[Callable]=None, 
+                        save_evaluation_history:bool=True, 
+                        use_analytical_gradient:bool=False,
+                        epsilon=1e-5):
         self.evaluations_history = []
         self.save_evaluation_history = save_evaluation_history
         self.use_analytical_gradient = use_analytical_gradient
         self.function = function
         self.gradient_function = gradient_function
+        self.epsilon = epsilon
 
     def _evaluate(self, parameters:np.ndarray) -> float:
         """
@@ -59,7 +64,7 @@ class BasicCostFunction(CostFunction):
         Returns:
             np.ndarray: gradient vector 
         """
-        if self.use_analytical_gradient and gradient_function is not None:
+        if self.use_analytical_gradient and self.gradient_function is not None:
             return self.gradient_function(parameters)
         else:
             return self.get_numerical_gradient(parameters)
@@ -89,29 +94,25 @@ class EvaluateOperatorCostFunction(CostFunction):
     Cost function used for evaluating given operator using given ansatz.
 
     Args:
-        target_operator
-        ansatz
-        backend
-        constraints
+        target_operator (openfermion.QubitOperator): operator to be evaluated
+        ansatz (dict): dictionary representing the ansatz
+        backend (zquantu.core.interfaces.backend.QuantumBackend): backend used for evaluation
         save_evaluation_history (bool): flag indicating whether we want to store the history of all the evaluations.
         use_analytical_gradient (bool): flag indicating whether we want to use analytical or numerical gradient.
 
     Params:
-        target_operator
-        ansatz
-        backend
-        constraints
+        target_operator (openfermion.QubitOperator): see Args
+        ansatz (dict): see Args
+        backend (zquantu.core.interfaces.backend.QuantumBackend): see Args
         evaluations_history (list): List of the tuples (parameters, value) representing all the evaluation in a chronological order.
         save_evaluation_history (bool): see Args
         use_analytical_gradient (bool): see Args
-        best_value (float): best value of the 
 
     """
 
     def __init__(self, target_operator:SymbolicOperator, 
                         ansatz:Dict, 
                         backend:QuantumBackend, 
-                        constraints:Optional[Dict]=None, 
                         save_evaluation_history:bool=True, 
                         use_analytical_gradient:bool=False):
         self.target_operator = target_operator
@@ -152,17 +153,3 @@ class EvaluateOperatorCostFunction(CostFunction):
             raise NotImplementedError
         else:
             raise NotImplementedError
-
-    def get_numerical_gradient(self, parameters:np.ndarray) -> np.ndarray:
-        """
-        Evaluates the gradient of the cost function for given parameters.
-        Whether the gradient is calculated analytically (if implemented) or numerically, 
-        is indicated by `use_analytical_gradient` field.
-
-        Args:
-            parameters: parameters for which we calculate the gradient.
-
-        Returns:
-            np.ndarray: gradient vector 
-        """
-        raise NotImplementedError

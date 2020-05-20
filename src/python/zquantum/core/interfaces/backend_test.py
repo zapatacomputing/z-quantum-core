@@ -117,6 +117,8 @@ class QuantumSimulatorTests(QuantumBackendTests):
             # Then
             self.assertIsInstance(wavefunction, Wavefunction)
             self.assertEqual(len(wavefunction.probabilities()), 8)
+            self.assertAlmostEqual(wavefunction[0], (1/np.sqrt(2)+0j))
+            self.assertAlmostEqual(wavefunction[7], (1/np.sqrt(2)+0j))
 
 
     def test_get_exact_expectation_values(self):

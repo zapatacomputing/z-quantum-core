@@ -1,5 +1,6 @@
 from .backend import QuantumSimulator
 from .optimizer import Optimizer
+from .cost_function import CostFunction
 from ..measurement import ExpectationValues, Measurements
 from ..circuit import Circuit
 import random
@@ -34,17 +35,29 @@ class MockQuantumSimulator(QuantumSimulator):
         raise NotImplementedError
 
     
-class MockOptimizer(Optimizer):        
+class MockOptimizer(Optimizer): 
     def minimize(self, cost_function, initial_params, **kwargs):
         result = OptimizeResult()
         new_parameters = initial_params
         for i in range(len(initial_params)):
             new_parameters[i] += random.random()
         new_parameters = np.array(new_parameters)
-        result.opt_value = cost_function(new_parameters)
-        result['history'] = [{'value': result.opt_value, 'params': new_parameters}]
+        result.opt_value = cost_function.evaluate(new_parameters)
+        result['history'] = cost_function.evaluations_history
         result.opt_params = new_parameters
         return result
+
+
+class MockCostFunction(CostFunction):
+    def _evaluate(self, parameters):
+        return np.sum(np.power(parameters, 2))
+
+    def get_gradient(self, parameters):
+        if self.gradient_type == 'custom':
+            return 2 * parameters
+        else:
+            return self.get_gradients_finite_difference(parameters)
+
 
 def mock_ansatz(parameters):
     return Circuit(Program(X(0)))

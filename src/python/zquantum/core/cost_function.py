@@ -83,7 +83,7 @@ class EvaluateOperatorCostFunction(CostFunction):
     Args:
         target_operator (openfermion.QubitOperator): operator to be evaluated
         ansatz (dict): dictionary representing the ansatz
-        backend (zquantu.core.interfaces.backend.QuantumBackend): backend used for evaluation
+        backend (zquantum.core.interfaces.backend.QuantumBackend): backend used for evaluation
         gradient_type (str): parameter indicating which type of gradient should be used.
         save_evaluation_history (bool): flag indicating whether we want to store the history of all the evaluations.
         epsilon (float): epsilon used for calculating gradient using finite difference method.
@@ -91,7 +91,7 @@ class EvaluateOperatorCostFunction(CostFunction):
     Params:
         target_operator (openfermion.QubitOperator): see Args
         ansatz (dict): see Args
-        backend (zquantu.core.interfaces.backend.QuantumBackend): see Args
+        backend (zquantum.core.interfaces.backend.QuantumBackend): see Args
         evaluations_history (list): List of the tuples (parameters, value) representing all the evaluation in a chronological order.
         save_evaluation_history (bool): see Args
         gradient_type (str): see Args

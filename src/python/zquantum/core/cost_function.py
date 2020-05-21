@@ -14,27 +14,28 @@ class BasicCostFunction(CostFunction):
     Args:
         function (Callable): function we want to use as our cost function. Should take a numpy array as input and return a single number.
         gradient_function (Callable): function used to calculate gradients. Optional.
+        gradient_type (str): parameter indicating which type of gradient should be used.
         save_evaluation_history (bool): flag indicating whether we want to store the history of all the evaluations.
-        use_analytical_gradient (bool): flag indicating whether we want to use analytical or numerical gradient.
-        epsilon (float): epsilon used for calculating numerical gradient.
+        epsilon (float): epsilon used for calculating gradient using finite difference method.
+
     Params:
         function (Callable): see Args
         gradient_function (Callable): see Args
         evaluations_history (list): List of the tuples (parameters, value) representing all the evaluation in a chronological order.
+        gradient_type (str): see Args
         save_evaluation_history (bool): see Args
-        use_analytical_gradient (bool): see Args
         epsilon (float): see Args
 
     """
 
     def __init__(self, function:Callable, 
                         gradient_function:Optional[Callable]=None, 
+                        gradient_type:str='custom',
                         save_evaluation_history:bool=True, 
-                        use_analytical_gradient:bool=False,
-                        epsilon=1e-5):
+                        epsilon:float=1e-5):
         self.evaluations_history = []
         self.save_evaluation_history = save_evaluation_history
-        self.use_analytical_gradient = use_analytical_gradient
+        self.gradient_type = gradient_type
         self.function = function
         self.gradient_function = gradient_function
         self.epsilon = epsilon
@@ -55,8 +56,7 @@ class BasicCostFunction(CostFunction):
     def get_gradient(self, parameters:np.ndarray) -> np.ndarray:
         """
         Evaluates the gradient of the cost function for given parameters.
-        Whether the gradient is calculated analytically (if implemented) or numerically, 
-        is indicated by `use_analytical_gradient` field.
+        What method is used for calculating gradients is indicated by `self.gradient_type` field.
 
         Args:
             parameters: parameters for which we calculate the gradient.
@@ -64,29 +64,16 @@ class BasicCostFunction(CostFunction):
         Returns:
             np.ndarray: gradient vector 
         """
-        if self.use_analytical_gradient and self.gradient_function is not None:
-            return self.gradient_function(parameters)
-        else:
-            return self.get_numerical_gradient(parameters)
+        if self.gradient_type == 'custom':
+            if self.gradient_function is None:
+                raise Exception("Gradient function has not been provided.")
+            else:
+                return self.gradient_function(parameters)
+        elif self.gradient_type == 'finite_difference':
+            if self.gradient_function is not None:
+                raise Warning("Using finite difference method for calculating gradient even though self.gradient_function is defined.")
+            return self.get_gradients_finite_difference(parameters)
 
-    def get_numerical_gradient(self, parameters:np.ndarray) -> np.ndarray:
-        """
-        Evaluates the numerical gradient of the cost function for given parameters.
-
-        Args:
-            parameters: parameters for which we calculate the gradient.
-
-        Returns:
-            np.ndarray: gradient vector
-        """
-        gradient = []
-        for idx in range(len(parameters)):
-            values_plus = parameters
-            values_minus = parameters
-            values_plus = parameters[idx] + self.epsilon
-            values_minus = parameters[idx] - self.epsilon
-            gradient.append((self.evaluate(values_plus) - self.evaluate(values_minus)) / (2*self.epsilon))
-        return gradient
 
 
 class EvaluateOperatorCostFunction(CostFunction):
@@ -97,8 +84,9 @@ class EvaluateOperatorCostFunction(CostFunction):
         target_operator (openfermion.QubitOperator): operator to be evaluated
         ansatz (dict): dictionary representing the ansatz
         backend (zquantu.core.interfaces.backend.QuantumBackend): backend used for evaluation
+        gradient_type (str): parameter indicating which type of gradient should be used.
         save_evaluation_history (bool): flag indicating whether we want to store the history of all the evaluations.
-        use_analytical_gradient (bool): flag indicating whether we want to use analytical or numerical gradient.
+        epsilon (float): epsilon used for calculating gradient using finite difference method.
 
     Params:
         target_operator (openfermion.QubitOperator): see Args
@@ -106,21 +94,23 @@ class EvaluateOperatorCostFunction(CostFunction):
         backend (zquantu.core.interfaces.backend.QuantumBackend): see Args
         evaluations_history (list): List of the tuples (parameters, value) representing all the evaluation in a chronological order.
         save_evaluation_history (bool): see Args
-        use_analytical_gradient (bool): see Args
+        gradient_type (str): see Args
+        epsilon (float): see Args
 
     """
 
     def __init__(self, target_operator:SymbolicOperator, 
                         ansatz:Dict, 
                         backend:QuantumBackend, 
-                        save_evaluation_history:bool=True, 
-                        use_analytical_gradient:bool=False):
+                        gradient_type:str='finite_difference',
+                        save_evaluation_history:bool=True,
+                        epsilon:float=1e-5):
         self.target_operator = target_operator
         self.ansatz = ansatz
         self.backend = backend
         self.evaluations_history = []
         self.save_evaluation_history = save_evaluation_history
-        self.use_analytical_gradient = use_analytical_gradient
+        self.gradient_type = gradient_type
 
     def _evaluate(self, parameters:np.ndarray) -> float:
         """
@@ -140,8 +130,7 @@ class EvaluateOperatorCostFunction(CostFunction):
     def get_gradient(self, parameters:np.ndarray) -> np.ndarray:
         """
         Evaluates the gradient of the cost function for given parameters.
-        Whether the gradient is calculated analytically (if implemented) or numerically, 
-        is indicated by `use_analytical_gradient` field.
+        What method is used for calculating gradients is indicated by `self.gradient_type` field.
 
         Args:
             parameters: parameters for which we calculate the gradient.
@@ -149,7 +138,7 @@ class EvaluateOperatorCostFunction(CostFunction):
         Returns:
             np.ndarray: gradient vector 
         """
-        if self.use_analytical_gradient:
-            raise NotImplementedError
+        if self.gradient_type == "finite_difference":
+            return self.get_gradients_finite_difference()
         else:
-            raise NotImplementedError
+            raise Exception("Gradient type: %s is not supported", self.gradient_type)

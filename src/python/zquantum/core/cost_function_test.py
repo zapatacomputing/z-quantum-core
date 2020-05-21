@@ -38,7 +38,7 @@ class TestBasicCostFunction(unittest.TestCase):
         params_2 = np.array([1,2,3,4])
         target_gradient_value_1 = np.array([1,1,1])
         target_gradient_value_2 = np.array([1,1,1,1])
-        cost_function = BasicCostFunction(function, gradient_function=gradient_function, use_analytical_gradient=True)
+        cost_function = BasicCostFunction(function, gradient_function=gradient_function, gradient_type='custom')
 
         # When
         gradient_value_1 = cost_function.get_gradient(params_1)
@@ -48,14 +48,14 @@ class TestBasicCostFunction(unittest.TestCase):
         np.testing.assert_array_equal(gradient_value_1, target_gradient_value_1)
         np.testing.assert_array_equal(gradient_value_2, target_gradient_value_2)
 
-    def test_get_numerical_gradient(self):
+    def test_get_finite_difference_gradient(self):
         # Given
         function = np.sum
         params_1 = np.array([1,2,3])
         params_2 = np.array([1,2,3,4])
         target_gradient_value_1 = np.array([1,1,1])
         target_gradient_value_2 = np.array([1,1,1,1])
-        cost_function = BasicCostFunction(function, use_analytical_gradient=False)
+        cost_function = BasicCostFunction(function, gradient_type='finite_difference')
 
         # When
         gradient_value_1 = cost_function.get_gradient(params_1)

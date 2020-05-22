@@ -66,7 +66,7 @@ class CostFunction(ABC):
             np.ndarray: gradient vector 
         """
         if self.gradient_type == "finite_difference":
-            return self.get_gradients_finite_difference()
+            return self.get_gradients_finite_difference(parameters)
         else:
             raise Exception("Gradient type: %s is not supported", self.gradient_type)
 
@@ -83,11 +83,11 @@ class CostFunction(ABC):
         """
         if epsilon is None:
             epsilon = self.epsilon
-        gradient = []
+        gradient = np.array([])
         for idx in range(len(parameters)):
             values_plus = parameters
             values_minus = parameters
             values_plus = parameters[idx] + epsilon
             values_minus = parameters[idx] - epsilon
-            gradient.append((self.evaluate(values_plus) - self.evaluate(values_minus)) / (2*epsilon))
+            gradient = np.append(gradient, (self.evaluate(values_plus) - self.evaluate(values_minus)) / (2*epsilon))
         return gradient

@@ -73,6 +73,8 @@ class BasicCostFunction(CostFunction):
             if self.gradient_function is not None:
                 raise Warning("Using finite difference method for calculating gradient even though self.gradient_function is defined.")
             return self.get_gradients_finite_difference(parameters)
+        else:
+            raise Exception("Gradient type: %s is not supported", self.gradient_type)
 
 
 
@@ -111,6 +113,7 @@ class EvaluateOperatorCostFunction(CostFunction):
         self.evaluations_history = []
         self.save_evaluation_history = save_evaluation_history
         self.gradient_type = gradient_type
+        self.epsilon = epsilon
 
     def _evaluate(self, parameters:np.ndarray) -> float:
         """
@@ -139,6 +142,6 @@ class EvaluateOperatorCostFunction(CostFunction):
             np.ndarray: gradient vector 
         """
         if self.gradient_type == "finite_difference":
-            return self.get_gradients_finite_difference()
+            return self.get_gradients_finite_difference(parameters)
         else:
             raise Exception("Gradient type: %s is not supported", self.gradient_type)

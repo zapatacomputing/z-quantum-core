@@ -41,6 +41,38 @@ class QuantumBackend(ABC):
         """
         raise NotImplementedError
 
+    def get_expectation_values_for_circuitset(self, circuitset:List[Circuit], qubit_operator:QubitOperator, **kwargs) -> [ExpectationValues]:
+        """
+        Calculates the expectation values for given operator, based on the exact quantum state 
+        produced by a set of circuits.
+
+        Args:
+            circuitset ([core.circuit.Circuit]): quantum circuits to be executed.
+            qubit_operator(openfermion): Operator for which we calculate the expectation value.
+
+        Returns:
+            [ExpectationValues]: list of objects representing expectation values for given operator.
+        """
+        expectation_values = []
+        for circuit in circuitset:
+            expectation_values.append(self.get_expectation_values(circuit, qubit_operator, **kwargs))
+        return expectation_values
+
+    def get_bitstring_distribution(self, circuit:Circuit, **kwargs) -> BitstringDistribution:
+        """
+        Calculates a bitstring distribution.
+
+        Args:
+            circuit (core.circuit.Circuit): quantum circuit to be executed.
+
+        Returns:
+            BitstringDistribution: object representing the probabilities of getting specific bistrings.
+
+        """
+        # Get the expectation values
+        measurements = self.run_circuit_and_measure(circuit, **kwargs)
+        return measurements.get_distribution()
+
 
 class QuantumSimulator(QuantumBackend):
     @abstractmethod
@@ -76,23 +108,6 @@ class QuantumSimulator(QuantumBackend):
         """
 
         raise NotImplementedError
-
-    def get_expectation_values_for_circuitset(self, circuitset:[Circuit], qubit_operator:QubitOperator, **kwargs) -> [ExpectationValues]:
-        """
-        Calculates the expectation values for given operator, based on the exact quantum state 
-        produced by a set of circuits.
-
-        Args:
-            circuitset ([core.circuit.Circuit]): quantum circuits to be executed.
-            qubit_operator(openfermion): Operator for which we calculate the expectation value.
-
-        Returns:
-            [ExpectationValues]: list of objects representing expectation values for given operator.
-        """
-        expectation_values = []
-        for circuit in circuitset:
-            expectation_values.append(self.get_expectation_values(circuit, qubit_operator, **kwargs))
-        return expectation_values
 
     def get_bitstring_distribution(self, circuit:Circuit, **kwargs) -> BitstringDistribution:
         """

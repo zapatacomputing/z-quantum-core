@@ -54,7 +54,7 @@ class MockCostFunction(CostFunction):
 
     def get_gradient(self, parameters):
         if self.gradient_type == 'custom':
-            return 2 * parameters
+            return np.asarray(2 * parameters)
         else:
             return self.get_gradients_finite_difference(parameters)
 

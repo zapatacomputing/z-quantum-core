@@ -2,9 +2,17 @@ import unittest
 import numpy as np
 from .cost_function import BasicCostFunction, EvaluateOperatorCostFunction
 from .interfaces.mock_objects import MockQuantumSimulator
+from .interfaces.cost_function_test import CostFunctionTests
 from openfermion import QubitOperator
 
-class TestBasicCostFunction(unittest.TestCase):
+class TestBasicCostFunction(unittest.TestCase, CostFunctionTests):
+
+    def setUp(self):
+        # Setting up inherited tests
+        function = np.sum
+        cost_function = BasicCostFunction(function)
+        self.cost_functions = [cost_function]
+        self.params_sizes = [2]
 
     def test_evaluate(self):
         # Given
@@ -65,21 +73,26 @@ class TestBasicCostFunction(unittest.TestCase):
         np.testing.assert_almost_equal(gradient_value_1, target_gradient_value_1)
         np.testing.assert_almost_equal(gradient_value_2, target_gradient_value_2)
 
-class TestEvaluateOperatorCostFunction(unittest.TestCase):
+class TestEvaluateOperatorCostFunction(unittest.TestCase, CostFunctionTests):
 
-    def test_evaluate(self):
-        # Given
+    def setUp(self):
         target_operator = QubitOperator('Z0')
         ansatz = {'ansatz_module': 'zquantum.core.interfaces.mock_objects', 'ansatz_func': 'mock_ansatz', 'ansatz_kwargs': {}, 'n_params': [1]}
         backend = MockQuantumSimulator()
+        self.single_term_op_cost_function = EvaluateOperatorCostFunction(target_operator, ansatz, backend)
 
+        # Setting up inherited tests
+        self.cost_functions = [self.single_term_op_cost_function]
+        self.params_sizes = [2]
+
+    def test_evaluate(self):
+        # Given
         params = np.array([1, 2])
-        cost_function = EvaluateOperatorCostFunction(target_operator, ansatz, backend)
 
         # When
-        value_1 = cost_function.evaluate(params)
-        value_2 = cost_function.evaluate(params)
-        history = cost_function.evaluations_history
+        value_1 = self.single_term_op_cost_function.evaluate(params)
+        value_2 = self.single_term_op_cost_function.evaluate(params)
+        history = self.single_term_op_cost_function.evaluations_history
 
         # Then
         self.assertGreaterEqual(value_1, 0)

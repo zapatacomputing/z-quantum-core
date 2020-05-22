@@ -49,28 +49,39 @@ class QuantumBackendTests(object):
     def test_get_expectation_values(self):
         # Given
         circuit = Circuit(Program(H(0), CNOT(0,1), CNOT(1,2)))
-        qubit_operator = IsingOperator('[]')
+        operator = IsingOperator('[]')
         target_expectation_values = np.array([1])
         n_samples = 1
         # When
         for backend in self.backends:
             backend.n_samples = 1
-            expectation_values = backend.get_expectation_values(circuit, qubit_operator)
+            expectation_values = backend.get_expectation_values(circuit, operator)
             # Then
             self.assertIsInstance(expectation_values, ExpectationValues)
             np.testing.assert_array_equal(expectation_values.values, target_expectation_values)
+
+    def test_get_expectation_values_empty_op(self):
+        # Given
+        circuit = Circuit(Program(H(0), CNOT(0,1), CNOT(1,2)))
+        operator = IsingOperator()
+        # When
+        for backend in self.backends:
+            backend.n_samples = 1
+            expectation_values = backend.get_expectation_values(circuit, operator)
+            # Then
+            self.assertAlmostEqual(sum(expectation_values.values), 0.0)
 
     def test_get_expectation_values_for_circuitset(self):
         # Given
         num_circuits = 10
         circuitset = [Circuit(Program(H(0), CNOT(0,1), CNOT(1,2))) for _ in range(num_circuits)]
-        qubit_operator = IsingOperator('[]')
+        operator = IsingOperator('[]')
         target_expectation_values = np.array([1])
 
         # When
         for backend in self.backends:
             backend.n_samples = 1
-            expectation_values_set = backend.get_expectation_values_for_circuitset(circuitset, qubit_operator)
+            expectation_values_set = backend.get_expectation_values_for_circuitset(circuitset, operator)
 
             # Then
             self.assertEqual(len(expectation_values_set), num_circuits)

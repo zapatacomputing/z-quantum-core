@@ -9,7 +9,7 @@ from ..circuit import Circuit
 from ..measurement import Measurements, ExpectationValues
 from ..bitstring_distribution import BitstringDistribution
 
-class QuantumBackendTests(unittest.TestCase):
+class QuantumBackendTests(object):
     # To run tests with this base class, the following variables need to be properly initialized in the child class:
         # self.backends
 

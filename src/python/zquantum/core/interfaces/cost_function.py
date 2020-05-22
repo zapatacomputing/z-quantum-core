@@ -87,7 +87,7 @@ class CostFunction(ABC):
         for idx in range(len(parameters)):
             values_plus = parameters
             values_minus = parameters
-            values_plus = parameters[idx] + epsilon
-            values_minus = parameters[idx] - epsilon
+            values_plus[idx]  += epsilon
+            values_minus[idx] -= epsilon
             gradient = np.append(gradient, (self.evaluate(values_plus) - self.evaluate(values_minus)) / (2*epsilon))
         return gradient

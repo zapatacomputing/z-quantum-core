@@ -67,29 +67,47 @@ class TestUtils(unittest.TestCase):
         pass
 
     def test_value_estimate_io(self):
+        # Given
         value = -1.0
         precision = 0.1
-        
         value_estimate_object = ValueEstimate(value, precision)
 
+        # When
         save_value_estimate(value_estimate_object, 'value_estimate.json')
         value_estimate_object_loaded = load_value_estimate('value_estimate.json')
-
+        
+        # Then
         self.assertEqual(value_estimate_object.value,
                          value_estimate_object_loaded.value)
         self.assertEqual(value_estimate_object.precision,
                          value_estimate_object_loaded.precision)
         
+        # Given
         value_estimate_object = ValueEstimate(value)
-
+        # When
         save_value_estimate(value_estimate_object, 'value_estimate.json')
         value_estimate_object_loaded = load_value_estimate('value_estimate.json')
-
+        # Then
         self.assertEqual(value_estimate_object.value,
                          value_estimate_object_loaded.value)
         self.assertEqual(value_estimate_object.precision,
                          value_estimate_object_loaded.precision)
         
+        # Given
+        value = np.float64(-1.0)
+        precision = np.float64(0.1)
+        value_estimate_object = ValueEstimate(value, precision)
+
+        # When
+        save_value_estimate(value_estimate_object, 'value_estimate.json')
+        value_estimate_object_loaded = load_value_estimate('value_estimate.json')
+        
+        # Then
+        self.assertEqual(value_estimate_object.value,
+                         value_estimate_object_loaded.value)
+        self.assertEqual(value_estimate_object.precision,
+                         value_estimate_object_loaded.precision)
+
         os.remove('value_estimate.json')
 
     def test_list_io(self):

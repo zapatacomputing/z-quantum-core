@@ -58,7 +58,7 @@ class QuantumBackendTests(object):
             expectation_values = backend.get_expectation_values(circuit, operator)
             # Then
             self.assertIsInstance(expectation_values, ExpectationValues)
-            np.testing.assert_array_equal(expectation_values.values, target_expectation_values)
+            np.testing.assert_array_almost_equal(expectation_values.values, target_expectation_values, decimal=15)
 
     def test_get_expectation_values_empty_op(self):
         # Given
@@ -88,12 +88,12 @@ class QuantumBackendTests(object):
 
             for expectation_values in expectation_values_set:
                 self.assertIsInstance(expectation_values, ExpectationValues)
-                np.testing.assert_array_equal(expectation_values.values, target_expectation_values)
+                np.testing.assert_array_almost_equal(expectation_values.values, target_expectation_values, decimal=15)
 
     def test_get_bitstring_distribution(self):
         # Given
         circuit = Circuit(Program(H(0), CNOT(0,1), CNOT(1,2)))
-        n_samples = 100
+        n_samples = 1000
 
         for backend in self.backends:
             backend.n_samples = n_samples

@@ -28,7 +28,6 @@ class QuantumBackendTests(unittest.TestCase):
             counts = measurements.get_counts()
             self.assertEqual(max(counts, key=counts.get), "001")
 
-
     def test_run_circuit_and_measure_correct_num_measurements(self):
         # Given
         circuit = Circuit(Program(X(0), X(0), X(1), X(1), X(2)))
@@ -47,7 +46,6 @@ class QuantumBackendTests(unittest.TestCase):
                 for bitstring in measurements.bitstrings:
                     self.assertEqual(len(bitstring), 3)
 
-
     def test_get_expectation_values(self):
         # Given
         circuit = Circuit(Program(H(0), CNOT(0,1), CNOT(1,2)))
@@ -61,7 +59,6 @@ class QuantumBackendTests(unittest.TestCase):
             # Then
             self.assertIsInstance(expectation_values, ExpectationValues)
             np.testing.assert_array_equal(expectation_values.values, target_expectation_values)
-
 
     def test_get_expectation_values_for_circuitset(self):
         # Given
@@ -81,7 +78,6 @@ class QuantumBackendTests(unittest.TestCase):
             for expectation_values in expectation_values_set:
                 self.assertIsInstance(expectation_values, ExpectationValues)
                 np.testing.assert_array_equal(expectation_values.values, target_expectation_values)
-
 
     def test_get_bitstring_distribution(self):
         # Given
@@ -120,7 +116,6 @@ class QuantumSimulatorTests(QuantumBackendTests):
             self.assertAlmostEqual(wavefunction[0], (1/np.sqrt(2)+0j))
             self.assertAlmostEqual(wavefunction[7], (1/np.sqrt(2)+0j))
 
-
     def test_get_exact_expectation_values(self):
         # Given
         circuit = Circuit(Program(H(0), CNOT(0,1), CNOT(1,2)))
@@ -133,7 +128,6 @@ class QuantumSimulatorTests(QuantumBackendTests):
             # Then
             self.assertAlmostEqual(sum(expectation_values.values), 2.0)
 
-
     def test_get_exact_expectation_values_empty_op(self):
         # Given
         circuit = Circuit(Program(H(0), CNOT(0,1), CNOT(1,2)))
@@ -143,7 +137,6 @@ class QuantumSimulatorTests(QuantumBackendTests):
             expectation_values = simulator.get_exact_expectation_values(circuit, qubit_operator)
             # Then
             self.assertAlmostEqual(sum(expectation_values.values), 0.0)
-
 
     def test_get_bitstring_distribution_wf_simulators(self):
         # Given

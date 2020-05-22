@@ -41,7 +41,7 @@ class QuantumBackend(ABC):
         """
         raise NotImplementedError
 
-    def get_expectation_values_for_circuitset(self, circuitset:[Circuit], qubit_operator:QubitOperator, **kwargs) -> [ExpectationValues]:
+    def get_expectation_values_for_circuitset(self, circuitset:List[Circuit], qubit_operator:QubitOperator, **kwargs) -> [ExpectationValues]:
         """
         Calculates the expectation values for given operator, based on the exact quantum state 
         produced by a set of circuits.

@@ -61,8 +61,8 @@ class TestBasicCostFunction(unittest.TestCase, CostFunctionTests):
         function = np.sum
         params_1 = np.array([1,2,3])
         params_2 = np.array([1,2,3,4])
-        target_gradient_value_1 = np.zeros(3)
-        target_gradient_value_2 = np.zeros(4)
+        target_gradient_value_1 = np.array([1,1,1])
+        target_gradient_value_2 = np.array([1,1,1,1])
         cost_function = BasicCostFunction(function, gradient_type='finite_difference')
 
         # When

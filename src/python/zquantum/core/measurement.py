@@ -345,7 +345,7 @@ def expectation_values_to_real(expectation_values: ExpectationValues) -> Expecta
         if isinstance(value, complex):
             value = value.real
         values.append(value)
-    expectation_values.values = values
+    expectation_values.values = np.array(values)
     if(expectation_values.correlations):
         for i, value in enumerate(expectation_values.correlations):
             if isinstance(value, complex):

@@ -16,7 +16,7 @@ class OptimizerTests(object):
 
     def test_optimization(self):
         for optimizer in self.optimizers:
-            cost_function = BasicCostFunction(rosen)
+            cost_function = BasicCostFunction(rosen, gradient_type="finite_difference")
             results = optimizer.minimize(cost_function, initial_params=[0, 0])
             self.assertAlmostEqual(results.opt_value, 0, places=5)
             self.assertAlmostEqual(results.opt_params[0], 1, places=4)
@@ -30,7 +30,7 @@ class OptimizerTests(object):
 
     def test_optimization_simple_function(self):
         for optimizer in self.optimizers:
-            cost_function = BasicCostFunction(simple)
+            cost_function = BasicCostFunction(simple, gradient_type="finite_difference")
             results = optimizer.minimize(cost_function, initial_params=[1, -1])
             self.assertAlmostEqual(results.opt_value, 0, places=5)
             self.assertAlmostEqual(results.opt_params[0], 0, places=4)

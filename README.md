@@ -2,7 +2,7 @@
 
 ## What is it?
 
-`z-quantum-core` is a core library of the scientific code for [Orquestra](https://www.zapatacomputing.com/orquestra/) – platform for performing computations on quantum computers developed by [Zapata Computing](https://www.zapatacomputing.com).
+`z-quantum-core` is a core library of the scientific code for [Orquestra](https://www.zapatacomputing.com/orquestra/) – the platform developed by [Zapata Computing](https://www.zapatacomputing.com) for performing computations on quantum computers.
 
 `z-quantum-core` provides:
 - core functionalities required to run other Orquestra modules, such as the `Circuit` class.
@@ -41,7 +41,7 @@ Once that is done you can:
 
 ### Python
 
-Here's an example how to do use methods from `z-quantum-core` in a task:
+Here's an example how to use methods from `z-quantum-core` in a task:
 
 ```python
 from zquantum.core.circuit import (build_ansatz_circuit,

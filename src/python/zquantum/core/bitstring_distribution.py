@@ -143,7 +143,7 @@ def create_bitstring_distribution_from_probability_distribution(prob_distributio
     for state in range(len(prob_distribution)):
         # Convert state to bitstring
         bitstring = format(state, 'b')
-        while (len(bitstring) < np.sqrt(len(prob_distribution))):
+        while (len(bitstring) < np.log2(len(prob_distribution))):
             bitstring = '0' + bitstring
         # Reverse bitstring
         bitstring = bitstring[::-1]

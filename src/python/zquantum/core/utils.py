@@ -251,10 +251,14 @@ class ValueEstimate:
         """Convert to a dictionary"""
 
         data = {'schema' : SCHEMA_VERSION + '-value_estimate'}
- 
-        data['value'] = self.value
+        if type(self.value).__module__ == np.__name__:
+            data['value'] = self.value.item()
+        else:
+            data['value'] = self.value
 
-        if self.precision:
+        if type(self.precision).__module__ == np.__name__:
+            data['precision'] = self.precision.item()
+        else:
             data['precision'] = self.precision
         
         return data

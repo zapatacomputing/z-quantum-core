@@ -120,6 +120,8 @@ class TestMeasurement(unittest.TestCase):
         real_expectation_values = expectation_values_to_real(expectation_values)
 
         # Then
+        for value in expectation_values.values:
+            self.assertNotIsInstance(value, complex)
         np.testing.assert_array_equal(real_expectation_values.values, target_expectation_values.values)
     
     def test_convert_bitstring_to_int(self):

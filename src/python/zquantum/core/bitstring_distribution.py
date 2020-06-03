@@ -190,42 +190,42 @@ class BitstringDistribution():
         return(len(list(self.distribution_dict.keys())[0])) # already checked in __init__ that all keys have the same length
 
 
-def compute_clipped_negative_log_likelihood(target_distr, measured_distr, epsilon=1e-9):
+def compute_clipped_negative_log_likelihood(target_distribution, measured_distribution, epsilon=1e-9):
     """Compute the value of the clipped negative log likelihood between a target bitstring distribution 
     and a measured bitstring distribution
     See Equation (4) in https://advances.sciencemag.org/content/5/10/eaaw9918?rss=1
 
     Args:
-        target_distr (BitstringDistribution): The target bitstring probability distribution.
-        measured_distr (BitstringDistribution): The measured bitstring probability distribution.
+        target_distribution (BitstringDistribution): The target bitstring probability distribution.
+        measured_distribution (BitstringDistribution): The measured bitstring probability distribution.
         epsilon (float): The small parameter needed to regularize log computation when argument is zero. Default = 1e-9.
     Returns:
         float: The value of the clipped negative log likelihood
     """
 
     value=0.
-    target_keys = target_distr.distribution_dict.keys()
-    measured_keys = measured_distr.distribution_dict.keys()
+    target_keys = target_distribution.distribution_dict.keys()
+    measured_keys = measured_distribution.distribution_dict.keys()
     all_keys = set(target_keys).union(measured_keys)
 
     for bitstring in all_keys:
-        target_bitstring_value = target_distr.distribution_dict.get(bitstring,0)
-        measured_bitstring_value = measured_distr.distribution_dict.get(bitstring,0)
+        target_bitstring_value = target_distribution.distribution_dict.get(bitstring,0)
+        measured_bitstring_value = measured_distribution.distribution_dict.get(bitstring,0)
 
         value += target_bitstring_value * math.log(max(epsilon,measured_bitstring_value))
 
     return -value
 
 
-def evaluate_distribution_distance(target_distr, measured_distr,
-    distance_measure="clipped_log_likelihood", **kwargs):
+def evaluate_distribution_distance(target_distribution, measured_distribution,
+    distance_measure_function, **kwargs):
     """Evaluate the distance between two bitstring distributions - the target distribution and the one predicted (measured) by your model -
-       based on the chosen distance measure
+       based on the given distance measure
 
        Args:
-            target_distr (BitstringDistribution): The target bitstring probability distribution
-            measured_distr (BitstringDistribution): The measured bitstring probability distribution
-            distance_measure (str): name of the distance measure to be used. 
+            target_distribution (BitstringDistribution): The target bitstring probability distribution
+            measured_distribution (BitstringDistribution): The measured bitstring probability distribution
+            distance_measure_function (function): function used to calculate the distance measure
                 Currently implemented: clipped negative log-likelihood.
 
             Additional parameters can be passed as key word arguments.
@@ -234,20 +234,15 @@ def evaluate_distribution_distance(target_distr, measured_distr,
             float: The value of the distance metric
     """
     # Check inputs are BitstringDistribution objects
-    if not isinstance(target_distr, BitstringDistribution) or not isinstance(measured_distr,BitstringDistribution):
+    if not isinstance(target_distribution, BitstringDistribution) or not isinstance(measured_distribution, BitstringDistribution):
         raise TypeError("Arguments of evaluate_cost_function must be of type BitstringDistribution.")
 
     # Check inputs are defined on consistent bitstring domains
-    if target_distr.get_qubits_number() != measured_distr.get_qubits_number():
+    if target_distribution.get_qubits_number() != measured_distribution.get_qubits_number():
         raise RuntimeError('Bitstring Distribution Distance Evaluation FAILED: target and measured distributions are defined on bitstrings of different length.')
 
     # Check inputs are both normalized (or not normalized)
-    if is_normalized(target_distr.distribution_dict) != is_normalized(measured_distr.distribution_dict):
+    if is_normalized(target_distribution.distribution_dict) != is_normalized(measured_distribution.distribution_dict):
         raise RuntimeError('Bitstring Distribution Distance Evaluation FAILED: one among target and measured distribution is normalized, whereas the other is not.')
 
-    if distance_measure=="clipped_log_likelihood":
-        return compute_clipped_negative_log_likelihood(target_distr, measured_distr, **kwargs)
-    #elif distance_measure=="something else":
-    #remember to initialize cost_function
-    else:
-        raise RuntimeError('Bitstring Distribution Distance Measure "{}" not implemented.'.format(distance_measure))
+    return distance_measure_function(target_distribution, measured_distribution, **kwargs)

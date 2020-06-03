@@ -5,7 +5,7 @@ from .bitstring_distribution import ( is_non_negative, is_key_length_fixed,
     are_keys_binary_strings, is_bitstring_distribution, is_normalized, 
     normalize_bitstring_distribution, save_bitstring_distribution, load_bitstring_distribution,
     create_bitstring_distribution_from_probability_distribution, compute_clipped_negative_log_likelihood,
-    BitstringDistribution )
+    evaluate_distribution_distance, BitstringDistribution )
 from .utils import SCHEMA_VERSION 
 
 class TestBitstringDistributionUtils(unittest.TestCase):
@@ -128,6 +128,46 @@ class TestBitstringDistributionUtils(unittest.TestCase):
 
         # Then the clipped log likelihood calculated is correct
         self.assertEqual(clipped_log_likelihood, 1.203972804325936)
+
+    def test_evaluate_distribution_distance(self):
+        # Given
+        target_dict = {"0": 10, "1": 5}
+        measured_dict = {"0": 10, "1": 5}
+        target_distribution = BitstringDistribution(target_dict)
+        measured_distribution = BitstringDistribution(measured_dict)
+        target_distance = 0.6365141682948128
+        
+        # When
+        distance = evaluate_distribution_distance(target_distribution, measured_distribution, compute_clipped_negative_log_likelihood)
+
+        # Then
+        self.assertAlmostEqual(distance, target_distance)
+
+        # Testing assertions
+        # When/Then
+        with self.assertRaises(TypeError):
+            evaluate_distribution_distance(target_distribution, measured_dict, compute_clipped_negative_log_likelihood)
+        
+        # When/Then
+        with self.assertRaises(TypeError):
+            evaluate_distribution_distance(target_dict, measured_distribution, compute_clipped_negative_log_likelihood)
+
+        # Given
+        measured_dict = {"00": 10, "11": 5}
+        measured_distribution = BitstringDistribution(measured_dict)
+        
+        # When/Then
+        with self.assertRaises(RuntimeError):
+            evaluate_distribution_distance(target_distribution, measured_distribution, compute_clipped_negative_log_likelihood)
+
+        # Given
+        measured_dict = {"0": 10, "1": 5}
+        measured_distribution = BitstringDistribution(measured_dict, normalize=False)
+
+        # When/Then
+        with self.assertRaises(RuntimeError):
+            evaluate_distribution_distance(target_distribution, measured_distribution, compute_clipped_negative_log_likelihood)
+
 
 
 class TestBitstringDistribution(unittest.TestCase):

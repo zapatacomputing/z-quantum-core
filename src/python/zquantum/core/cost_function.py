@@ -77,7 +77,6 @@ class BasicCostFunction(CostFunction):
             raise Exception("Gradient type: %s is not supported", self.gradient_type)
 
 
-
 class EvaluateOperatorCostFunction(CostFunction):
     """
     Cost function used for evaluating given operator using given ansatz.

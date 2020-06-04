@@ -8,6 +8,7 @@ from ..circuit import Circuit
 from typing import TextIO, List, Tuple, Dict
 from scipy.optimize import OptimizeResult
 
+
 def save_circuit_template(circuit_template: dict, filename: str):
     """Saves a circuit template to a file.
 
@@ -17,13 +18,16 @@ def save_circuit_template(circuit_template: dict, filename: str):
     """
 
     try:
-        circuit_template['ansatz_kwargs']['layers'] = circuit_template['ansatz_kwargs']['layers'].to_dict()
+        circuit_template["ansatz_kwargs"]["layers"] = circuit_template["ansatz_kwargs"][
+            "layers"
+        ].to_dict()
     except KeyError:
         pass
     circuit_template = dict(circuit_template)
-    circuit_template['schema'] = SCHEMA_VERSION+'-circuit_template'
-    with open(filename, 'w') as f:
+    circuit_template["schema"] = SCHEMA_VERSION + "-circuit_template"
+    with open(filename, "w") as f:
         f.write(json.dumps(circuit_template))
+
 
 def load_circuit_template(file: TextIO) -> dict:
     """Loads a circuit template from a file.
@@ -36,17 +40,20 @@ def load_circuit_template(file: TextIO) -> dict:
     """
 
     if isinstance(file, str):
-        with open(file, 'r') as f:
+        with open(file, "r") as f:
             data = json.load(f)
     else:
         data = json.load(file)
 
     try:
-        data['ansatz_kwargs']['layers'] = CircuitLayers.from_dict(data['ansatz_kwargs']['layers'])
+        data["ansatz_kwargs"]["layers"] = CircuitLayers.from_dict(
+            data["ansatz_kwargs"]["layers"]
+        )
     except KeyError:
         pass
 
-    return(data)
+    return data
+
 
 def save_circuit_template_params(params: np.ndarray, filename: str) -> None:
     """Saves a circuit object to a file.
@@ -56,10 +63,11 @@ def save_circuit_template_params(params: np.ndarray, filename: str) -> None:
         filename (str): the name of the file
     """
 
-    dictionary = {'schema': SCHEMA_VERSION + '-circuit_template_params'}
-    dictionary['parameters'] = convert_array_to_dict(params)
-    with open(filename, 'w') as f:
+    dictionary = {"schema": SCHEMA_VERSION + "-circuit_template_params"}
+    dictionary["parameters"] = convert_array_to_dict(params)
+    with open(filename, "w") as f:
         f.write(json.dumps(dictionary))
+
 
 def load_circuit_template_params(file: TextIO):
     """Loads a circuit template from a file.
@@ -72,12 +80,13 @@ def load_circuit_template_params(file: TextIO):
     """
 
     if isinstance(file, str):
-        with open(file, 'r') as f:
+        with open(file, "r") as f:
             data = json.load(f)
     else:
         data = json.load(file)
 
-    return convert_dict_to_array(data['parameters'])
+    return convert_dict_to_array(data["parameters"])
+
 
 def build_ansatz_circuit(ansatz: dict, params: np.ndarray) -> Circuit:
     """Construct the circuit corresponding to the ansatz.
@@ -90,18 +99,21 @@ def build_ansatz_circuit(ansatz: dict, params: np.ndarray) -> Circuit:
         core.circuit.Circuit: the circuit
     """
 
-    module = importlib.import_module(ansatz['ansatz_module'])
-    func = getattr(module, ansatz['ansatz_func'])
-    qprog = func(params, **ansatz['ansatz_kwargs'])
+    module = importlib.import_module(ansatz["ansatz_module"])
+    func = getattr(module, ansatz["ansatz_func"])
+    qprog = func(params, **ansatz["ansatz_kwargs"])
 
     return qprog
 
-def generate_random_ansatz_params(ansatz: dict, 
-                                min_val: float=0, 
-                                max_val: float=1., 
-                                n_layers: int=1,
-                                include_non_layered_params: bool=True, 
-                                layer_index: int=0) -> np.ndarray:
+
+def generate_random_ansatz_params(
+    ansatz: dict,
+    min_val: float = 0,
+    max_val: float = 1.0,
+    n_layers: int = 1,
+    include_non_layered_params: bool = True,
+    layer_index: int = 0,
+) -> np.ndarray:
     """For the given ansatz, generate random parameters.
 
     Args:
@@ -119,16 +131,17 @@ def generate_random_ansatz_params(ansatz: dict,
     """
     n_params = 0
     for i in range(n_layers):
-        n_params += ansatz['n_params'][(i + layer_index) % len(ansatz['n_params'])]
-        if 'ansatz_type' in ansatz.keys():
-            if 'IBM' in ansatz['ansatz_type'] and 'HEA v2' in ansatz['ansatz_type']:
-                if (i + layer_index) % len(ansatz['n_params']) == 0:
-                    n_params += 2 * ansatz['ansatz_kwargs']['n_mo']
+        n_params += ansatz["n_params"][(i + layer_index) % len(ansatz["n_params"])]
+        if "ansatz_type" in ansatz.keys():
+            if "IBM" in ansatz["ansatz_type"] and "HEA v2" in ansatz["ansatz_type"]:
+                if (i + layer_index) % len(ansatz["n_params"]) == 0:
+                    n_params += 2 * ansatz["ansatz_kwargs"]["n_mo"]
 
-    if ansatz.get('n_non_layered_params') and include_non_layered_params:
-        n_params += ansatz['n_non_layered_params']
+    if ansatz.get("n_non_layered_params") and include_non_layered_params:
+        n_params += ansatz["n_non_layered_params"]
     params = (max_val - min_val) * random_sample(n_params) + min_val
     return params
+
 
 def combine_ansatz_params(params1: np.ndarray, params2: np.ndarray) -> np.ndarray:
     """Combine two sets of ansatz parameters.
@@ -142,6 +155,7 @@ def combine_ansatz_params(params1: np.ndarray, params2: np.ndarray) -> np.ndarra
     """
     return np.concatenate((params1, params2))
 
+
 class ParameterGrid:
     """A class representing a grid of parameter values to be used in a grid search.
 
@@ -152,7 +166,7 @@ class ParameterGrid:
         param_ranges (list): same as above.
     """
 
-    def __init__(self, param_ranges:List[Tuple[float]]):
+    def __init__(self, param_ranges: List[Tuple[float]]):
         self.param_ranges = param_ranges
 
     @property
@@ -162,15 +176,15 @@ class ParameterGrid:
         grid = []
         for i in range(grid_array.shape[1]):
             grid.append(grid_array[:, i].flatten())
-        
+
         return grid
 
     def to_dict(self) -> dict:
-        return {'param_ranges': self.param_ranges}
+        return {"param_ranges": self.param_ranges}
 
     @classmethod
     def from_dict(cls, data: dict):
-        return cls(data['param_ranges'])
+        return cls(data["param_ranges"])
 
     @property
     def params_meshgrid(self) -> np.ndarray:
@@ -178,16 +192,17 @@ class ParameterGrid:
         Creates a meshgrid from the parameter ranges.
         """
         param_vectors = []
-        
+
         for param_spec in self.param_ranges:
             param_vectors.append(np.arange(param_spec[0], param_spec[1], param_spec[2]))
 
-        return np.meshgrid(*param_vectors, indexing='ij')
+        return np.meshgrid(*param_vectors, indexing="ij")
 
     @property
     def n_params(self) -> int:
         return len(self.param_ranges)
-    
+
+
 def save_parameter_grid(grid: ParameterGrid, filename: str) -> None:
     """Saves a parameter grid to a file.
 
@@ -197,10 +212,11 @@ def save_parameter_grid(grid: ParameterGrid, filename: str) -> None:
     """
 
     data = grid.to_dict()
-    data['schema'] =  SCHEMA_VERSION + '-parameter_grid'
+    data["schema"] = SCHEMA_VERSION + "-parameter_grid"
 
-    with open(filename, 'w') as f:
+    with open(filename, "w") as f:
         f.write(json.dumps(data))
+
 
 def load_parameter_grid(file: TextIO) -> ParameterGrid:
     """Loads a parameter grid from a file.
@@ -213,18 +229,21 @@ def load_parameter_grid(file: TextIO) -> ParameterGrid:
     """
 
     if isinstance(file, str):
-        with open(file, 'r') as f:
+        with open(file, "r") as f:
             data = json.load(f)
     else:
         data = json.load(file)
 
     return ParameterGrid.from_dict(data)
 
-def build_uniform_param_grid(ansatz: dict, 
-                            n_layers: int=1, 
-                            min_value: float=0., 
-                            max_value: float=2*np.pi, 
-                            step: float=np.pi/5) -> ParameterGrid:
+
+def build_uniform_param_grid(
+    ansatz: dict,
+    n_layers: int = 1,
+    min_value: float = 0.0,
+    max_value: float = 2 * np.pi,
+    step: float = np.pi / 5,
+) -> ParameterGrid:
     """Builds a uniform grid of parameters.
 
     Args:
@@ -239,10 +258,11 @@ def build_uniform_param_grid(ansatz: dict,
     """
     n_params = 0
     for i in range(n_layers):
-        n_params += ansatz['n_params'][i % len(ansatz['n_params'])]
+        n_params += ansatz["n_params"][i % len(ansatz["n_params"])]
 
-    param_ranges = [(min_value, max_value, step)]*n_params
+    param_ranges = [(min_value, max_value, step)] * n_params
     return ParameterGrid(param_ranges)
+
 
 class CircuitLayers(object):
     """A class representing a pattern of circuit layers, consisting of lists,
@@ -260,14 +280,15 @@ class CircuitLayers(object):
         self.layers = layers
 
     def to_dict(self) -> dict:
-        return {'layers': self.layers}
+        return {"layers": self.layers}
 
     @classmethod
     def from_dict(cls, data: Dict[str, List[List[Tuple]]]):
         layers = []
-        for layer in data['layers']:
+        for layer in data["layers"]:
             layers.append([tuple(x) for x in layer])
         return cls(layers)
+
 
 def save_circuit_layers(circuit_layers: CircuitLayers, filename: str) -> None:
     """Saves a list of circuit layers to a file.
@@ -277,9 +298,10 @@ def save_circuit_layers(circuit_layers: CircuitLayers, filename: str) -> None:
     """
 
     circuit_layers = circuit_layers.to_dict()
-    circuit_layers['schema'] = SCHEMA_VERSION+'-circuit_layers'
-    with open(filename, 'w') as f:
+    circuit_layers["schema"] = SCHEMA_VERSION + "-circuit_layers"
+    with open(filename, "w") as f:
         f.write(json.dumps(circuit_layers))
+
 
 def load_circuit_layers(file: TextIO) -> CircuitLayers:
     """Loads a list of circuit layers from a file.
@@ -291,12 +313,13 @@ def load_circuit_layers(file: TextIO) -> CircuitLayers:
     """
 
     if isinstance(file, str):
-        with open(file, 'r') as f:
+        with open(file, "r") as f:
             data = json.load(f)
     else:
         data = json.load(file)
 
     return CircuitLayers.from_dict(data)
+
 
 def save_circuit_ordering(ordering, filename):
     """Saves a circuit ordering (e.g. mapping from spin-orbitals to qubits) to a file.
@@ -305,10 +328,11 @@ def save_circuit_ordering(ordering, filename):
         filename (str): the name of the file
     """
 
-    ordering = {'ordering': ordering}
-    ordering['schema'] = SCHEMA_VERSION+'-circuit_ordering'
-    with open(filename, 'w') as f:
+    ordering = {"ordering": ordering}
+    ordering["schema"] = SCHEMA_VERSION + "-circuit_ordering"
+    with open(filename, "w") as f:
         f.write(json.dumps(ordering))
+
 
 def load_circuit_ordering(file):
     """Loads a circuit ordering (e.g. mapping from spin-orbitals to qubits) to a file.
@@ -320,12 +344,13 @@ def load_circuit_ordering(file):
     """
 
     if isinstance(file, str):
-        with open(file, 'r') as f:
+        with open(file, "r") as f:
             data = json.load(f)
     else:
         data = json.load(file)
 
-    return data['ordering']
+    return data["ordering"]
+
 
 class CircuitConnectivity(object):
     """A class representing the connectivity of a circuit resulting from qpu
@@ -341,12 +366,13 @@ class CircuitConnectivity(object):
         self.connectivity = connections
 
     def to_dict(self):
-        return {'connectivity': self.connectivity}
+        return {"connectivity": self.connectivity}
 
     @classmethod
     def from_dict(cls, data):
-        tuples = [tuple(x) for x in data['connectivity']]
+        tuples = [tuple(x) for x in data["connectivity"]]
         return cls(tuples)
+
 
 def save_circuit_connectivity(circuit_connectivity, filename):
     """Saves a circuit connectivity to a file.
@@ -356,9 +382,10 @@ def save_circuit_connectivity(circuit_connectivity, filename):
     """
 
     circuit_connectivity = circuit_connectivity.to_dict()
-    circuit_connectivity['schema'] = SCHEMA_VERSION+'-circuit_connectivity'
-    with open(filename, 'w') as f:
+    circuit_connectivity["schema"] = SCHEMA_VERSION + "-circuit_connectivity"
+    with open(filename, "w") as f:
         f.write(json.dumps(circuit_connectivity))
+
 
 def load_circuit_connectivity(file):
     """Loads a circuit connectivity from a file.
@@ -370,15 +397,17 @@ def load_circuit_connectivity(file):
     """
 
     if isinstance(file, str):
-        with open(file, 'r') as f:
+        with open(file, "r") as f:
             data = json.load(f)
     else:
         data = json.load(file)
 
     return CircuitConnectivity.from_dict(data)
 
-def build_circuit_layers_and_connectivity(x_dimension, y_dimension=None,
-                                         layer_type = 'nearest-neighbor'):
+
+def build_circuit_layers_and_connectivity(
+    x_dimension, y_dimension=None, layer_type="nearest-neighbor"
+):
     """ Function to generate circuit layers for 1-dimensional and 2-dimensional
     arrays of qubits
     Args:
@@ -388,12 +417,13 @@ def build_circuit_layers_and_connectivity(x_dimension, y_dimension=None,
     Returns:
         (zquantum.core.circuit.CircuitConnectivity, zquantum.core.circuit.CircuitLayers)
     """
-    if layer_type == 'sycamore':
+    if layer_type == "sycamore":
         return _build_circuit_layers_and_connectivity_sycamore(x_dimension, y_dimension)
-    elif layer_type == 'nearest-neighbor':
+    elif layer_type == "nearest-neighbor":
         return _build_circuit_layers_and_connectivity_nearest_neighbors(x_dimension)
     else:
         ValueError("Layer type {0} is not defined".format(layer_type))
+
 
 def _build_circuit_layers_and_connectivity_sycamore(x_dimension, y_dimension):
     """ Function to generate circuit connectivity and circuit layers
@@ -422,19 +452,23 @@ def _build_circuit_layers_and_connectivity_sycamore(x_dimension, y_dimension):
             node = y_index * x_dimension + x_index
             if x_index == x_dimension - 1:
                 row_up.append((node, node - x_dimension))
-                pattern1[py_index, px_index] = (x_index + m) % 2 
+                pattern1[py_index, px_index] = (x_index + m) % 2
                 if y_dimension - 1 > y_index:
                     row_down.append((node, node + x_dimension))
                     pattern1[py_index + 1, px_index] = (x_index + m + 1) % 2
                 px_index += 1
             else:
-                row_up.extend([(node, node - x_dimension), (node, node - x_dimension + 1)])
-                pattern1[py_index, px_index] = (x_index + m) % 2 
-                pattern1[py_index, px_index + 1] = (x_index + m) % 2 
+                row_up.extend(
+                    [(node, node - x_dimension), (node, node - x_dimension + 1)]
+                )
+                pattern1[py_index, px_index] = (x_index + m) % 2
+                pattern1[py_index, px_index + 1] = (x_index + m) % 2
                 if y_dimension - 1 > y_index:
-                    row_down.extend([(node, node + x_dimension), (node, node + x_dimension + 1)])
-                    pattern1[py_index + 1, px_index] = (x_index + m + 1) % 2 
-                    pattern1[py_index + 1, px_index + 1] = (x_index + m + 1) % 2 
+                    row_down.extend(
+                        [(node, node + x_dimension), (node, node + x_dimension + 1)]
+                    )
+                    pattern1[py_index + 1, px_index] = (x_index + m + 1) % 2
+                    pattern1[py_index + 1, px_index + 1] = (x_index + m + 1) % 2
                 px_index += 2
         py_index += 2
 
@@ -447,8 +481,8 @@ def _build_circuit_layers_and_connectivity_sycamore(x_dimension, y_dimension):
         mask1 = pattern1.copy()
         mask2 = pattern2.copy()
         for m in range(mask1.shape[0]):
-            mask1[m, (m+n)%2:mask1.shape[1]:2] = -1
-            mask2[m, (m+n)%2:mask1.shape[1]:2] = -1
+            mask1[m, (m + n) % 2 : mask1.shape[1] : 2] = -1
+            mask2[m, (m + n) % 2 : mask1.shape[1] : 2] = -1
         masks.extend([mask1, mask2])
 
     # generate layers
@@ -463,12 +497,13 @@ def _build_circuit_layers_and_connectivity_sycamore(x_dimension, y_dimension):
                 elif mask[y, x] == 1:
                     layer2.append(connectivity[y][x])
         layers.extend([layer1, layer2])
-    
+
     final_connectivity = []
     for group in connectivity:
         final_connectivity.extend(group)
 
     return CircuitConnectivity(final_connectivity), CircuitLayers(layers)
+
 
 def _build_circuit_layers_and_connectivity_nearest_neighbors(n_qubits):
     """ Function to generate circuit layers for processors with nearest-neighbor 
@@ -487,4 +522,4 @@ def _build_circuit_layers_and_connectivity_nearest_neighbors(n_qubits):
     connectivity = []
     connectivity.extend(even_layer)
     connectivity.extend(odd_layer)
-    return CircuitConnectivity(connectivity), CircuitLayers([even_layer, odd_layer]) 
+    return CircuitConnectivity(connectivity), CircuitLayers([even_layer, odd_layer])

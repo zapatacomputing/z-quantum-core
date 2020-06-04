@@ -3,6 +3,7 @@
 import pyquil
 import cirq
 
+
 class Qubit(object):
     """Class for storing information associated with a qubit.
 
@@ -17,32 +18,27 @@ class Qubit(object):
     """
 
     def __init__(self, index=-1):
-        
+
         self.index = index
 
         # optional attributes
-        self.info = {
-            'label':'none'
-        }
+        self.info = {"label": "none"}
 
     def __str__(self):
-        return f'qubit {self.index}'
+        return f"qubit {self.index}"
 
     def __repr__(self):
-        return f'zquantum.core.circuit.Qubit(index={self.index})'
+        return f"zquantum.core.circuit.Qubit(index={self.index})"
 
     def to_dict(self):
-        return {
-            'index':self.index,
-            'info': self.info
-        }
-    
+        return {"index": self.index, "info": self.info}
+
     @classmethod
     def from_dict(cls, dict):
-        qubit = cls(dict['index'])
-        qubit.info = dict['info']
+        qubit = cls(dict["index"])
+        qubit.info = dict["info"]
         return qubit
-        
+
     @classmethod
     def from_pyquil(cls, pyquil_qubit):
         """Converts a pyquil Qubit object to core.qubit.Qubit object.
@@ -60,11 +56,13 @@ class Qubit(object):
         """
 
         output = cls()
-        output.info['label']='pyquil'
+        output.info["label"] = "pyquil"
         if isinstance(pyquil_qubit, pyquil.quilatom.Qubit):
             output.index = pyquil_qubit.index
         else:
-            raise TypeError("Input item {} not a pyquil Qubit object".format(pyquil_qubit))
+            raise TypeError(
+                "Input item {} not a pyquil Qubit object".format(pyquil_qubit)
+            )
         return output
 
     @classmethod
@@ -92,17 +90,17 @@ class Qubit(object):
         """
 
         output = cls(index)
-        output.info['label'] = 'cirq'
+        output.info["label"] = "cirq"
         if isinstance(cirq_qubit, cirq.GridQubit):
             qubit_key = lambda q: (q.row, q.col)
-            output.info['QubitType'] = 'GridQubit'
-            output.info['QubitKey'] = qubit_key(cirq_qubit)
+            output.info["QubitType"] = "GridQubit"
+            output.info["QubitKey"] = qubit_key(cirq_qubit)
         elif isinstance(cirq_qubit, cirq.LineQubit):
             qubit_key = lambda q: q.x
-            output.info['QubitType'] = 'LineQubit'
-            output.info['QubitKey'] = qubit_key(cirq_qubit)
+            output.info["QubitType"] = "LineQubit"
+            output.info["QubitKey"] = qubit_key(cirq_qubit)
         else:
-            raise ValueError('Qubit type {} not yet supported'.format(type(cirq_qubit)))
+            raise ValueError("Qubit type {} not yet supported".format(type(cirq_qubit)))
 
         return output
 
@@ -131,8 +129,8 @@ class Qubit(object):
         """
 
         output = cls(index)
-        output.info['label'] = 'qiskit'
-        output.info['qreg'] = str(qiskit_qubit.register)
-        output.info['num'] = index
+        output.info["label"] = "qiskit"
+        output.info["qreg"] = str(qiskit_qubit.register)
+        output.info["num"] = index
 
         return output

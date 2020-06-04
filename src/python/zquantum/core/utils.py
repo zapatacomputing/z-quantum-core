@@ -342,6 +342,24 @@ def save_list(array, filename):
         f.write(json.dumps(dictionary, indent=2))
 
 
+def get_func_from_specs(specs):
+    """
+    Return function based on given specs.
+    Args:
+        specs (dict): dictionary containing the following keys:
+            module_name: specifies from which module an function comes.
+            function_name: specifies the name of the function.
+    
+    Returns:
+        callable: function defined by specs
+
+    """
+    module_name = specs.pop("module_name")
+    module = importlib.import_module(module_name)
+    function_name = specs.pop("function_name")
+    return getattr(module, function_name)
+
+
 def create_object(specs, **kwargs):
     """
     Creates an object based on given specs.

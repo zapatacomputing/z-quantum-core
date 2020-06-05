@@ -380,3 +380,32 @@ def create_object(specs, **kwargs):
     creator = getattr(module, creator_name)
     created_object = creator(**specs, **kwargs)
     return created_object
+    
+def load_dict(file):
+    """Load a dictionary from a file.
+
+    Args:
+        file (str or file-like object): the name of the file, or a file-like object.
+    
+    Returns:
+        dict (dict): the dictionary
+    """
+
+    if isinstance(file, str):
+        with open(file, 'r') as f:
+            data = json.load(f)
+    else:
+        data = json.load(file)
+    
+    return data
+    
+
+def save_dict(dictionary, filename):
+    """Save a dictionary to a file.
+
+    Args:
+        dictionary (dict): the dict to save to file
+        file (str or file-like object): the name of the file, or a file-like object.
+    """
+    with open(filename, 'w') as f:
+        f.write(json.dumps(dictionary, indent=2))

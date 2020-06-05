@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from ..bitstring_distribution import BitstringDistribution, create_bitstring_distribution_from_probability_distribution
-from ..circuit import Circuit
+from ..circuit import Circuit, CircuitConnectivity
 from ..measurement import ExpectationValues
 from typing import Optional, List, Tuple
 from openfermion import QubitOperator
@@ -76,8 +76,11 @@ class QuantumBackend(ABC):
 
 class QuantumSimulator(QuantumBackend):
     @abstractmethod
-    def __init__(self, n_samples:Optional[int]=None):
+    def __init__(self, n_samples:Optional[int]=None, noise_model=Optional[dict],
+                 device_connectivity=Optional[CircuitConnectivity]):
         self.n_samples = n_samples
+        self.noise_model = noise_model
+        self.device_connectivity = device_connectivity
 
     @abstractmethod
     def get_wavefunction(self, circuit:Circuit, **kwargs) -> Wavefunction:

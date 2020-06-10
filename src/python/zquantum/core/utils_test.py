@@ -10,7 +10,7 @@ from .utils import (convert_array_to_dict, convert_dict_to_array,
                     dec2bin, bin2dec, 
                     is_identity, is_unitary, compare_unitary, RNDSEED,
                     ValueEstimate, save_value_estimate, load_value_estimate, 
-                    save_list, load_list, create_object)
+                    save_list, load_list, create_object, get_func_from_specs)
 from .interfaces.mock_objects import MockQuantumSimulator
 
 class TestUtils(unittest.TestCase):
@@ -125,11 +125,25 @@ class TestUtils(unittest.TestCase):
         n_samples = 100
         function_name = 'MockQuantumSimulator'
         specs = {'module_name': 'zquantum.core.interfaces.mock_objects', 'function_name': function_name, 'n_samples': n_samples}
-        
+
         # When
         mock_simulator = create_object(specs)
 
         # Then
         self.assertEqual(type(mock_simulator).__name__, function_name)
         self.assertEqual(mock_simulator.n_samples, n_samples)
+    
+
+    def test_get_func_from_specs(self):
+        # Given
+        function_name = 'sum_x_squared'
+        specs = {'module_name': 'zquantum.core.interfaces.optimizer_test', 'function_name': function_name}
+        data = np.array([1.0, 2.0])
+        target_value = 5.0
+        # When
+        function = get_func_from_specs(specs)
+
+        # Then
+        self.assertEqual(function.__name__, function_name)
+        self.assertEqual(function(data), target_value)
     

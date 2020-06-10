@@ -46,7 +46,7 @@ class QuantumBackendTests(object):
                 for bitstring in measurements.bitstrings:
                     self.assertEqual(len(bitstring), 3)
 
-    def test_get_expectation_values(self):
+    def test_get_expectation_values_identity(self):
         # Given
         circuit = Circuit(Program(H(0), CNOT(0,1), CNOT(1,2)))
         operator = IsingOperator('[]')
@@ -130,24 +130,26 @@ class QuantumSimulatorTests(QuantumBackendTests):
     def test_get_exact_expectation_values(self):
         # Given
         circuit = Circuit(Program(H(0), CNOT(0,1), CNOT(1,2)))
-        qubit_operator = QubitOperator('[] + [Z0 Z1] + [X0 X2] ')
+        qubit_operator = QubitOperator('2[] - [Z0 Z1] + [X0 X2]')
+        target_values = np.array([2., -1., 0.])
 
         # When
         for simulator in self.wf_simulators:
             expectation_values = simulator.get_exact_expectation_values(circuit, qubit_operator)
-
             # Then
-            self.assertAlmostEqual(sum(expectation_values.values), 2.0)
+            np.testing.assert_array_almost_equal(expectation_values.values, target_values)
+
 
     def test_get_exact_expectation_values_empty_op(self):
         # Given
         circuit = Circuit(Program(H(0), CNOT(0,1), CNOT(1,2)))
         qubit_operator = QubitOperator()
+        target_value = 0.0
         # When
         for simulator in self.wf_simulators:
             expectation_values = simulator.get_exact_expectation_values(circuit, qubit_operator)
             # Then
-            self.assertAlmostEqual(sum(expectation_values.values), 0.0)
+            self.assertAlmostEqual(sum(expectation_values.values), target_value)
 
     def test_get_bitstring_distribution_wf_simulators(self):
         # Given

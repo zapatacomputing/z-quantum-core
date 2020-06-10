@@ -59,16 +59,17 @@ RUN python3 -m pip install rpcq==3.0.0 \
                     networkx==2.3 \
                     pyquil==2.17.0 \
                     cirq==0.7.0 \
-                    openfermion==0.10.0 \
+                    openfermion==0.11.0 \
                     openfermioncirq==0.3.0 \
-                    qiskit==0.15.0 \
+                    qiskit==0.18.3 \
                     cffi>=1.14.0 \
                     scipy==1.4.1 \
                     lea==3.2.0 \
                     numpy==1.18.1 \
                     werkzeug==0.14.1 \
                     flask==1.1.1 \
-                    pyyaml==5.1
+                    pyyaml==5.1 \
+                    quantum-grove>=1.0.0
 
 WORKDIR /app
 ENTRYPOINT bash

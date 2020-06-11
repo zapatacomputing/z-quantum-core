@@ -36,31 +36,44 @@ class TestGate(unittest.TestCase):
         gate = Gate(gate_name, qubits=qubit_list, params=params)
         return gate, qubit_list, params
 
-    def test_create_evaluated_gate(self):
-        # Given
-        gate, _ = self.create_gate("Rx")
-        symbolic_gate, _, params = self.create_gate_with_symbolic_params("Rx")
-        symbols_map = [(params[0], 1.0)]
+    def test_create_evaluated_gate_works_with_regular_gate(self):
 
-        # When
-        evaluated_symbolic_gate = symbolic_gate.create_evaluated_gate(symbols_map)
-        evaluated_regular_gate = gate.create_evaluated_gate(symbols_map)
+        for gate_name in self.one_parameter_gates:
+            # Given
+            gate, _ = self.create_gate(gate_name)
+            symbols_map = [(Symbol("theta_0"), 1.0)]
 
-        # Then
-        self.assertEqual(gate, evaluated_symbolic_gate)
-        # Check if the params of the initial gate has not been overwritten
-        self.assertEqual(symbolic_gate.params[0], symbols_map[0][0])
-        # Check if evaluating a regular gate returns the exact same gate
-        self.assertEqual(evaluated_regular_gate, gate)
+            # When
+            evaluated_regular_gate = gate.create_evaluated_gate(symbols_map)
 
-        # Given
-        symbols_map = [("x", 1.0)]
+            # Then
+            self.assertEqual(evaluated_regular_gate, gate)
 
-        # When
-        evaluated_symbolic_gate = symbolic_gate.create_evaluated_gate(symbols_map)
+    def test_create_evaluated_gate_works_with_symbolic_gate(self):
 
-        # Then
-        self.assertEqual(evaluated_symbolic_gate, symbolic_gate)
+        for gate_name in self.one_parameter_gates:
+            # Given
+            param_value = 1.0
+            gate, _ = self.create_gate(gate_name, params=[param_value])
+            symbolic_gate, _, params = self.create_gate_with_symbolic_params(gate_name)
+            symbols_map = [(params[0], param_value)]
+
+            # When
+            evaluated_symbolic_gate = symbolic_gate.create_evaluated_gate(symbols_map)
+
+            # Then
+            self.assertEqual(gate, evaluated_symbolic_gate)
+            # Check if the params of the initial gate has not been overwritten
+            self.assertEqual(symbolic_gate.params[0], symbols_map[0][0])
+
+            # Given
+            symbols_map = [("x", 1.0)]
+
+            # When
+            evaluated_symbolic_gate = symbolic_gate.create_evaluated_gate(symbols_map)
+
+            # Then
+            self.assertEqual(evaluated_symbolic_gate, symbolic_gate)
 
     def test_dict_io(self):
         for gate_name in COMMON_GATES:

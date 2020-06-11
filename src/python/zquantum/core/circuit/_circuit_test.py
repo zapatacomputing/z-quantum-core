@@ -126,15 +126,15 @@ class TestCircuit(unittest.TestCase):
     def test_circuit_evaluate(self):
         # Given
         theta_1 = sympy.Symbol("theta_1")
-        theta_2 = sympy.Symbol("theta_1")
+        theta_2 = sympy.Symbol("theta_2")
         value_1 = 0.5
-        value_2 = 0.5
+        value_2 = 0.6
         symbols_map = [(theta_1, value_1), (theta_2, value_2)]
         circuit = Circuit(
-            Program().inst(RX(2 * theta_1, 0), RY(theta_1, 0), RZ(theta_2, 0))
+            Program().inst(RX(2 * theta_1 + theta_2, 0), RY(theta_1, 0), RZ(theta_2, 0))
         )
         target_circuit = Circuit(
-            Program().inst(RX(2 * value_1, 0), RY(value_1, 0), RZ(value_2, 0))
+            Program().inst(RX(2 * value_1 + value_2, 0), RY(value_1, 0), RZ(value_2, 0))
         )
 
         # When

@@ -23,7 +23,7 @@ class TestGate(unittest.TestCase):
             if gate_name in self.one_parameter_gates:
                 params = [1.0]
         gate = Gate(gate_name, qubits=qubit_list, params=params)
-        return gate, qubit_list
+        return gate
 
     def create_gate_with_symbolic_params(self, gate_name, qubit_indices=[0, 1]):
         if gate_name in self.two_qubit_gates:
@@ -34,13 +34,13 @@ class TestGate(unittest.TestCase):
         if gate_name in self.one_parameter_gates:
             params = [Symbol("theta_0")]
         gate = Gate(gate_name, qubits=qubit_list, params=params)
-        return gate, qubit_list, params
+        return gate, params
 
     def test_create_evaluated_gate_works_with_regular_gate(self):
 
         for gate_name in self.one_parameter_gates:
             # Given
-            gate, _ = self.create_gate(gate_name)
+            gate = self.create_gate(gate_name)
             symbols_map = [(Symbol("theta_0"), 1.0)]
 
             # When
@@ -54,8 +54,8 @@ class TestGate(unittest.TestCase):
         for gate_name in self.one_parameter_gates:
             # Given
             param_value = 1.0
-            gate, _ = self.create_gate(gate_name, params=[param_value])
-            symbolic_gate, _, params = self.create_gate_with_symbolic_params(gate_name)
+            gate = self.create_gate(gate_name, params=[param_value])
+            symbolic_gate, params = self.create_gate_with_symbolic_params(gate_name)
             symbols_map = [(params[0], param_value)]
 
             # When
@@ -78,7 +78,7 @@ class TestGate(unittest.TestCase):
     def test_dict_io(self):
         for gate_name in COMMON_GATES:
             # Given
-            gate, _ = self.create_gate(gate_name)
+            gate = self.create_gate(gate_name)
 
             # When
             gate_dict = gate.to_dict()
@@ -90,11 +90,11 @@ class TestGate(unittest.TestCase):
     def test_pyquil_io(self):
         for gate_name in COMMON_GATES:
             # Given
-            gate, qubit_list = self.create_gate(gate_name)
+            gate = self.create_gate(gate_name)
 
             # When
             pyquil_gate = gate.to_pyquil()
-            recreated_gate = Gate.from_pyquil(pyquil_gate, qubit_list)
+            recreated_gate = Gate.from_pyquil(pyquil_gate, gate.qubits)
 
             # Then
             self.assertEqual(gate, recreated_gate)
@@ -102,11 +102,11 @@ class TestGate(unittest.TestCase):
     def test_cirq_io(self):
         for gate_name in COMMON_GATES:
             # Given
-            gate, qubit_list = self.create_gate(gate_name)
+            gate = self.create_gate(gate_name)
 
             # When
             cirq_gate = gate.to_cirq()
-            recreated_gate = Gate.from_cirq(cirq_gate, qubit_list)
+            recreated_gate = Gate.from_cirq(cirq_gate, gate.qubits)
 
             # Then
             self.assertEqual(gate, recreated_gate)
@@ -114,7 +114,7 @@ class TestGate(unittest.TestCase):
     def test_qiskit_io(self):
         for gate_name in COMMON_GATES:
             # Given
-            gate, qubit_list = self.create_gate(gate_name)
+            gate = self.create_gate(gate_name)
             qreg = qiskit.QuantumRegister(2, "q")
             cphase_targets = [
                 ("Rx", [pi / 2]),
@@ -133,20 +133,22 @@ class TestGate(unittest.TestCase):
                 for i in range(int(len(cphase_decomposition) / 3)):
                     current_gate = cphase_decomposition[3 * i]
                     current_qreg = cphase_decomposition[3 * i + 1]
-                    target_gate, qubit_list = self.create_gate(
+                    target_gate = self.create_gate(
                         cphase_targets[i][0], params=cphase_targets[i][1]
                     )
-                    recreated_current_gate = Gate.from_qiskit(current_gate, qubit_list)
+                    recreated_current_gate = Gate.from_qiskit(
+                        current_gate, target_gate.qubits
+                    )
                     self.assertEqual(target_gate, recreated_current_gate)
                 continue
 
             else:
                 qiskit_gate, qreg, creg = gate.to_qiskit(qreg=qreg)
-                recreated_gate = Gate.from_qiskit(qiskit_gate, qubit_list)
+                recreated_gate = Gate.from_qiskit(qiskit_gate, gate.qubits)
 
             # Then
             if gate_name == "PHASE":
-                rz_gate, _ = self.create_gate("Rz")
+                rz_gate = self.create_gate("Rz")
                 self.assertEqual(rz_gate, recreated_gate)
             else:
                 self.assertEqual(gate, recreated_gate)
@@ -154,7 +156,7 @@ class TestGate(unittest.TestCase):
     def test_dict_io_for_symbolic_parameters(self):
         for gate_name in self.one_parameter_gates:
             # Given
-            gate, _, _ = self.create_gate_with_symbolic_params(gate_name)
+            gate, _ = self.create_gate_with_symbolic_params(gate_name)
 
             # When
             gate_dict = gate.to_dict()
@@ -166,11 +168,11 @@ class TestGate(unittest.TestCase):
     def test_pyquil_io_for_symbolic_parameters(self):
         for gate_name in self.one_parameter_gates:
             # Given
-            gate, qubit_list, _ = self.create_gate_with_symbolic_params(gate_name)
+            gate, _ = self.create_gate_with_symbolic_params(gate_name)
 
             # When
             pyquil_gate = gate.to_pyquil()
-            recreated_gate = Gate.from_pyquil(pyquil_gate, qubit_list)
+            recreated_gate = Gate.from_pyquil(pyquil_gate, gate.qubits)
 
             # Then
             self.assertEqual(gate, recreated_gate)
@@ -178,14 +180,14 @@ class TestGate(unittest.TestCase):
     def test_cirq_io_for_symbolic_parameters(self):
         for gate_name in self.one_parameter_gates:
             # Given
-            gate, qubit_list, params = self.create_gate_with_symbolic_params(gate_name)
+            gate, params = self.create_gate_with_symbolic_params(gate_name)
             symbols_map = []
             for param in params:
                 symbols_map.append((param, 0.38553))
 
             # When
             cirq_gate = gate.to_cirq()
-            recreated_gate = Gate.from_cirq(cirq_gate, qubit_list)
+            recreated_gate = Gate.from_cirq(cirq_gate, gate.qubits)
             gate_evaluated = gate.create_evaluated_gate(symbols_map)
             recreated_gate_evaluated = recreated_gate.create_evaluated_gate(symbols_map)
 

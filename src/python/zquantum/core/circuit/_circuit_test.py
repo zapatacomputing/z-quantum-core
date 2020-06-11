@@ -6,12 +6,12 @@ import pyquil
 import cirq
 import qiskit
 import os
+import sympy
 
 from pyquil import Program
 from pyquil.gates import *
 from pyquil.gates import QUANTUM_GATES
 from math import pi, sin, cos
-from sympy import Symbol
 
 from . import load_circuit, save_circuit, Circuit, Gate, Qubit, pyquil2cirq, cirq2pyquil
 
@@ -51,8 +51,8 @@ class TestCircuit(unittest.TestCase):
 
         # Given
         qubits = [Qubit(i) for i in range(0, 3)]
-        theta_1 = Symbol("theta_1")
-        theta_2 = Symbol("theta_2")
+        theta_1 = sympy.Symbol("theta_1")
+        theta_2 = sympy.Symbol("theta_2")
 
         gate_RX_1 = Gate("Rx", params=[theta_1], qubits=[qubits[0]])
         gate_RX_2 = Gate("Rx", params=[theta_2], qubits=[qubits[0]])
@@ -123,6 +123,26 @@ class TestCircuit(unittest.TestCase):
 
         self.assertEqual(circuit_from_cirq, circuit_from_pyquil)
 
+    def test_circuit_evaluate(self):
+        # Given
+        theta_1 = sympy.Symbol("theta_1")
+        theta_2 = sympy.Symbol("theta_1")
+        value_1 = 0.5
+        value_2 = 0.5
+        symbols_map = [(theta_1, value_1), (theta_2, value_2)]
+        circuit = Circuit(
+            Program().inst(RX(theta_1, 0), RY(theta_1, 0), RZ(theta_2, 0))
+        )
+        target_circuit = Circuit(
+            Program().inst(RX(value_1, 0), RY(value_1, 0), RZ(value_2, 0))
+        )
+
+        # When
+        evaluated_circuit = circuit.evaluate(symbols_map)
+
+        # Then
+        self.assertEqual(evaluated_circuit, target_circuit)
+
     def test_circuit_io(self):
         circuit = Circuit(Program().inst(X(0), Y(1), Z(0)))
         save_circuit(circuit, "circuit.json")
@@ -131,10 +151,13 @@ class TestCircuit(unittest.TestCase):
         os.remove("circuit.json")
 
     def test_circuit_io_with_symbolic_params(self):
-        theta_1 = Symbol("theta_1")
+        # Given
+        theta_1 = sympy.Symbol("theta_1")
         circuit = Circuit(Program().inst(RX(theta_1, 0), Y(1), Z(0)))
+        # When
         save_circuit(circuit, "circuit.json")
         loaded_circuit = load_circuit("circuit.json")
+        # Then
         self.assertTrue(circuit == loaded_circuit)
         os.remove("circuit.json")
 

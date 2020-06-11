@@ -131,12 +131,12 @@ class Circuit(object):
         Args:
             symbols_map list(tuple(sympy.Basic, number)): List containing symbols and values that they should take.
         """
-        new_circuit = cls()
-        new_circuit.name = input_circuit.name
-        new_circuit.qubits = input_circuit.input_circuit
-        new_circuit.info = input_circuit.info
+        new_circuit = type(self)()
+        new_circuit.name = self.name
+        new_circuit.qubits = self.qubits
+        new_circuit.info = self.info
         gates = []
-        for gate in input_circuit.gates:
+        for gate in self.gates:
             gates.append(gate.evaluate(symbols_map))
 
         new_circuit.gates = gates

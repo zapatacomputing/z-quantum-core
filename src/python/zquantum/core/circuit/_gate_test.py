@@ -6,6 +6,7 @@ from ._qubit import Qubit
 from sympy import Symbol
 import qiskit
 from math import pi
+import pyquil
 
 
 class TestGate(unittest.TestCase):
@@ -169,10 +170,13 @@ class TestGate(unittest.TestCase):
 
             # When
             gate_dict = gate.to_dict()
+            gate_dict_serialized = gate.to_dict(serialize_params=True)
             recreated_gate = Gate.from_dict(gate_dict)
+            recreated_gate_from_serialized = Gate.from_dict(gate_dict_serialized)
 
             # Then
             self.assertEqual(gate, recreated_gate)
+            self.assertEqual(gate, recreated_gate_from_serialized)
 
     def test_pyquil_io_for_symbolic_parameters(self):
         for gate_name in self.one_parameter_gates:

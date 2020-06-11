@@ -1,6 +1,8 @@
 from .interfaces.cost_function import CostFunction
 from .interfaces.backend import QuantumBackend
+from .interfaces.estimator import Estimator
 from .circuit import build_ansatz_circuit
+from .estimator import BasicEstimator
 from typing import Callable, Optional, Dict
 import numpy as np
 import copy
@@ -83,9 +85,9 @@ class BasicCostFunction(CostFunction):
             raise Exception("Gradient type: %s is not supported", self.gradient_type)
 
 
-class EvaluateOperatorCostFunction(CostFunction):
+class AnsatzBasedCostFunction(CostFunction):
     """
-    Cost function used for evaluating given operator using given ansatz.
+    Cost function used for evaluating a given operator using given ansatz.
 
     Args:
         target_operator (openfermion.QubitOperator): operator to be evaluated
@@ -111,6 +113,7 @@ class EvaluateOperatorCostFunction(CostFunction):
         target_operator: SymbolicOperator,
         ansatz: Dict,
         backend: QuantumBackend,
+        estimator: Estimator = BasicEstimator(),
         gradient_type: str = "finite_difference",
         save_evaluation_history: bool = True,
         epsilon: float = 1e-5,
@@ -118,6 +121,7 @@ class EvaluateOperatorCostFunction(CostFunction):
         self.target_operator = target_operator
         self.ansatz = ansatz
         self.backend = backend
+        self.estimator = estimator
         self.evaluations_history = []
         self.save_evaluation_history = save_evaluation_history
         self.gradient_type = gradient_type
@@ -134,8 +138,8 @@ class EvaluateOperatorCostFunction(CostFunction):
             value: cost function value for given parameters, either int or float.
         """
         circuit = build_ansatz_circuit(self.ansatz, parameters)
-        expectation_values = self.backend.get_expectation_values(
-            circuit, self.target_operator
+        expectation_values = self.estimator.get_estimated_values(
+            self.backend, circuit, self.target_operator
         )
         final_value = np.sum(expectation_values.values)
         return final_value

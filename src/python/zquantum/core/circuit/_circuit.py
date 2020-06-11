@@ -84,10 +84,21 @@ class Circuit(object):
     def __eq__(self, anotherCircuit):
         """Comparison between two Circuit objects.
         """
+        if self.name != anotherCircuit.name:
+            return False
+        if len(self.qubits) != len(anotherCircuit.qubits):
+            return False
+        for i in range(len(self.qubits)):
+            if str(self.qubits[i]) != str(anotherCircuit.qubits[i]):
+                return False
 
-        p1 = self.to_pyquil()
-        p2 = anotherCircuit.to_pyquil()
-        return p1 == p2
+        if len(self.gates) != len(anotherCircuit.gates):
+            return False
+        for i in range(len(self.gates)):
+            if self.gates[i] != anotherCircuit.gates[i]:
+                return False
+
+        return True
 
     def __add__(self, other_circuit):
         """Add two circuits.

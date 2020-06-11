@@ -14,6 +14,7 @@ from pyquil.quilatom import quil_sin, quil_cos
 from qiskit import QuantumRegister, ClassicalRegister
 from qiskit.circuit.quantumregister import Qubit as QiskitQubit
 from qiskit.circuit.classicalregister import Clbit as QiskitClbit
+from qiskit.circuit import ParameterExpression
 
 from ._gateset import ALL_GATES
 from ._qubit import Qubit
@@ -379,7 +380,10 @@ class Gate(object):
                 qiskit_qubit = QiskitQubit(qreg, q.index)
                 qiskit_qubits.append(qiskit_qubit)
         if len(self.params) > 0:
-            params = self.params
+            params = copy.copy(self.params)
+            for i in range(len(params)):
+                if isinstance(params[i], sympy.Basic):
+                    params[i] = ParameterExpression({}, params[i])
         # single-qubit gates
         if self.name == "X":
             return [qiskit.extensions.standard.XGate(), [qiskit_qubits[0]], []]
@@ -772,24 +776,32 @@ class Gate(object):
         """
 
         output = cls()
-        if qiskit_gate.name in {'x','y','z','h','t','s'}:
+        if qiskit_gate.name in {"x", "y", "z", "h", "t", "s"}:
             output.name = qiskit_gate.name.upper()
-        elif qiskit_gate.name in {'rx', 'ry', 'rz'}:
-            output.name = 'R'+qiskit_gate.name[1]
-        elif qiskit_gate.name == 'cx':
-            output.name = 'CNOT'
-        elif qiskit_gate.name in {'cz', 'swap'}:
+        elif qiskit_gate.name in {"rx", "ry", "rz"}:
+            output.name = "R" + qiskit_gate.name[1]
+        elif qiskit_gate.name == "cx":
+            output.name = "CNOT"
+        elif qiskit_gate.name in {"cz", "swap"}:
             output.name = qiskit_gate.name.upper()
-        elif qiskit_gate.name in {'measure', 'barrier'}:
+        elif qiskit_gate.name in {"measure", "barrier"}:
             output.name = qiskit_gate.name.upper()
         else:
-            raise NotImplementedError("The gate {} is currently not supported.".format(qiskit_gate.name))
-        
+            raise NotImplementedError(
+                "The gate {} is currently not supported.".format(qiskit_gate.name)
+            )
+
         output.qubits = Qubit_list
         if len(qiskit_gate.params) > 0:
-            output.params = [float(x) for x in qiskit_gate.params]
-        output.info = {'label': 'qiskit'}
+            output.params = []
+            for x in qiskit_gate.params:
+                if isinstance(x, ParameterExpression):
+                    output.params.append(x._symbol_expr)
+                else:
+                    output.params.append(float(x))
+        output.info = {"label": "qiskit"}
         return output
+
 
 class DampingAlpha(cirq.ops.gate_features.SingleQubitGate):
     """A cirq gate class for the first damping Kraus operator."""
@@ -801,7 +813,8 @@ class DampingAlpha(cirq.ops.gate_features.SingleQubitGate):
         return np.diag([1, np.sqrt(1 - self.p)])
 
     def __str__(self):
-        return f'Da({self.p})'
+        return f"Da({self.p})"
+
 
 class DampingBeta(cirq.ops.gate_features.SingleQubitGate):
     """A cirq gate class for the first damping Kraus operator."""
@@ -815,4 +828,4 @@ class DampingBeta(cirq.ops.gate_features.SingleQubitGate):
         return matrix
 
     def __str__(self):
-        return f'Db({self.p})'
+        return f"Db({self.p})"

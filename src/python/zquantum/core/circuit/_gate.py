@@ -84,11 +84,16 @@ class Gate(object):
     def __repr__(self):
         return f"zquantum.core.circuit.Gate(name={self.name}, qubits={self.qubits}, params={self.params})"
 
-    def create_evaluated_gate(self, symbols_map):
+    def evaluate(self, symbols_map):
         """
-        Creates a copy of gate with symbolic params
+        Returns a copy of a gate with specified symbolic parameters evaluated to provided values.
+
+        Args:
+            symbols_map list(tuple(sympy.Basic, number)): List containing symbols and values that they should take.
         """
-        evaluated_gate = copy.deepcopy(self)
+        gate_class = type(self)
+        evaluated_gate = Gate(name=self.name, qubits=self.qubits, params=self.params)
+
         for i in range(len(evaluated_gate.params)):
             if isinstance(evaluated_gate.params[i], sympy.Basic):
                 number = evaluated_gate.params[i].subs(symbols_map).evalf()

@@ -1,7 +1,7 @@
 import unittest
 import os
 from ._gate import Gate
-from ._gateset import COMMON_GATES, UNIQUE_GATES
+from ._gateset import COMMON_GATES
 from ._qubit import Qubit
 from sympy import Symbol
 import qiskit
@@ -36,7 +36,7 @@ class TestGate(unittest.TestCase):
         gate = Gate(gate_name, qubits=qubit_list, params=params)
         return gate, params
 
-    def test_create_evaluated_gate_works_with_regular_gate(self):
+    def test_evaluate_works_with_regular_gate(self):
 
         for gate_name in self.one_parameter_gates:
             # Given
@@ -44,12 +44,12 @@ class TestGate(unittest.TestCase):
             symbols_map = [(Symbol("theta_0"), 1.0)]
 
             # When
-            evaluated_regular_gate = gate.create_evaluated_gate(symbols_map)
+            evaluated_regular_gate = gate.evaluate(symbols_map)
 
             # Then
             self.assertEqual(evaluated_regular_gate, gate)
 
-    def test_create_evaluated_gate_works_with_symbolic_gate(self):
+    def test_evaluate_works_with_symbolic_gate(self):
 
         for gate_name in self.one_parameter_gates:
             # Given
@@ -59,7 +59,7 @@ class TestGate(unittest.TestCase):
             symbols_map = [(params[0], param_value)]
 
             # When
-            evaluated_symbolic_gate = symbolic_gate.create_evaluated_gate(symbols_map)
+            evaluated_symbolic_gate = symbolic_gate.evaluate(symbols_map)
 
             # Then
             self.assertEqual(gate, evaluated_symbolic_gate)
@@ -70,7 +70,7 @@ class TestGate(unittest.TestCase):
             symbols_map = [("x", 1.0)]
 
             # When
-            evaluated_symbolic_gate = symbolic_gate.create_evaluated_gate(symbols_map)
+            evaluated_symbolic_gate = symbolic_gate.evaluate(symbols_map)
 
             # Then
             self.assertEqual(evaluated_symbolic_gate, symbolic_gate)
@@ -207,10 +207,8 @@ class TestGate(unittest.TestCase):
                 recreated_gate = Gate.from_cirq(cirq_gate, qubits)
 
                 recreated_gate = Gate.from_cirq(cirq_gate, qubits)
-                gate_evaluated = gate.create_evaluated_gate(symbols_map)
-                recreated_gate_evaluated = recreated_gate.create_evaluated_gate(
-                    symbols_map
-                )
+                gate_evaluated = gate.evaluate(symbols_map)
+                recreated_gate_evaluated = recreated_gate.evaluate(symbols_map)
 
                 # Then
                 # There were numerical & sympy related issues when comparing gates directly, so in this case we compare the evaluated forms of the gates.

@@ -13,11 +13,11 @@ class TestGate(unittest.TestCase):
         self.two_qubit_gates = ["CNOT", "CZ", "CPHASE", "SWAP"]
         self.one_parameter_gates = ["PHASE", "Rx", "Ry", "Rz", "CPHASE"]
 
-    def create_gate(self, gate_name, params=None):
+    def create_gate(self, gate_name, qubit_indices=[0, 1], params=None):
         if gate_name in self.two_qubit_gates:
-            qubit_list = [Qubit(0), Qubit(1)]
+            qubit_list = [Qubit(qubit_indices[0]), Qubit(qubit_indices[1])]
         else:
-            qubit_list = [Qubit(0)]
+            qubit_list = [Qubit(qubit_indices[0])]
         if params is None:
             params = []
             if gate_name in self.one_parameter_gates:
@@ -25,11 +25,11 @@ class TestGate(unittest.TestCase):
         gate = Gate(gate_name, qubits=qubit_list, params=params)
         return gate, qubit_list
 
-    def create_gate_with_symbolic_params(self, gate_name):
+    def create_gate_with_symbolic_params(self, gate_name, qubit_indices=[0, 1]):
         if gate_name in self.two_qubit_gates:
-            qubit_list = [Qubit(0), Qubit(1)]
+            qubit_list = [Qubit(qubit_indices[0]), Qubit(qubit_indices[1])]
         else:
-            qubit_list = [Qubit(0)]
+            qubit_list = [Qubit(qubit_indices[0])]
         params = []
         if gate_name in self.one_parameter_gates:
             params = [Symbol("theta_0")]

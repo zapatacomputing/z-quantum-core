@@ -9,6 +9,7 @@ import numpy as np
 from pyquil import Program
 from pyquil.gates import X
 
+
 class MockQuantumSimulator(QuantumSimulator):
     def __init__(self, n_samples=None):
         self.n_samples = n_samples
@@ -17,9 +18,11 @@ class MockQuantumSimulator(QuantumSimulator):
         n_qubits = len(circuit.qubits)
         measurements = Measurements()
         for _ in range(self.n_samples):
-            measurements.bitstrings += [tuple([random.randint(0,1) for j in range(n_qubits)])]
+            measurements.bitstrings += [
+                tuple([random.randint(0, 1) for j in range(n_qubits)])
+            ]
         return measurements
-    
+
     def get_expectation_values(self, circuit, operator, **kwargs):
         n_qubits = len(circuit.qubits)
         values = [random.random() for i in range(n_qubits)]
@@ -34,8 +37,8 @@ class MockQuantumSimulator(QuantumSimulator):
     def get_density_matrix(self, circuit):
         raise NotImplementedError
 
-    
-class MockOptimizer(Optimizer): 
+
+class MockOptimizer(Optimizer):
     def minimize(self, cost_function, initial_params, **kwargs):
         result = OptimizeResult()
         new_parameters = initial_params
@@ -43,7 +46,7 @@ class MockOptimizer(Optimizer):
             new_parameters[i] += random.random()
         new_parameters = np.array(new_parameters)
         result.opt_value = cost_function.evaluate(new_parameters)
-        result['history'] = cost_function.evaluations_history
+        result["history"] = cost_function.evaluations_history
         result.opt_params = new_parameters
         return result
 
@@ -53,7 +56,7 @@ class MockCostFunction(CostFunction):
         return np.sum(np.power(parameters, 2))
 
     def get_gradient(self, parameters):
-        if self.gradient_type == 'custom':
+        if self.gradient_type == "custom":
             return np.asarray(2 * parameters)
         else:
             return self.get_gradients_finite_difference(parameters)
@@ -61,3 +64,7 @@ class MockCostFunction(CostFunction):
 
 def mock_ansatz(parameters):
     return Circuit(Program(X(0)))
+
+
+def mock_load_noise_model(noise_model_data):
+    return None

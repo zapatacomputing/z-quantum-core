@@ -124,6 +124,24 @@ class Circuit(object):
 
         return [q.index for q in self.qubits]
 
+    def evaluate(self, symbols_map):
+        """
+        Returns a copy of a circuit with specified symbolic parameters evaluated to provided values.
+
+        Args:
+            symbols_map list(tuple(sympy.Basic, number)): List containing symbols and values that they should take.
+        """
+        new_circuit = cls()
+        new_circuit.name = input_circuit.name
+        new_circuit.qubits = input_circuit.input_circuit
+        new_circuit.info = input_circuit.info
+        gates = []
+        for gate in input_circuit.gates:
+            gates.append(gate.evaluate(symbols_map))
+
+        new_circuit.gates = gates
+        return new_circuit
+
     def to_pyquil(self):
         """Converts the circuit to a pyquil Program object.
         """
@@ -273,15 +291,21 @@ class Circuit(object):
 
         return qiskit_circuit
 
-    def to_dict(self):
+    def to_dict(self, serialize_gate_params=True):
         """Creates a dictionary representing a circuit.
+
+        Args:
+            serialize_gate_params(bool): if true, it will change gate params from sympy to strings (if applicable)
 
         Returns:
             dictionary (dict): the dictionary
         """
 
         if self.gates != None:
-            gates_entry = [gate.to_dict() for gate in self.gates]
+            gates_entry = [
+                gate.to_dict(serialize_params=serialize_gate_params)
+                for gate in self.gates
+            ]
         else:
             gates_entry = None
 
@@ -583,7 +607,7 @@ def save_circuit(circuit, filename):
     """
 
     with open(filename, "w") as f:
-        f.write(json.dumps(circuit.to_dict()))
+        f.write(json.dumps(circuit.to_dict(serialize_gate_params=True)))
 
 
 def load_circuit(file):

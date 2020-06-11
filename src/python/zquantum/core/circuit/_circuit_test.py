@@ -130,6 +130,14 @@ class TestCircuit(unittest.TestCase):
         self.assertTrue(circuit == loaded_circuit)
         os.remove("circuit.json")
 
+    def test_circuit_io_with_symbolic_params(self):
+        theta_1 = Symbol("theta_1")
+        circuit = Circuit(Program().inst(RX(theta_1, 0), Y(1), Z(0)))
+        save_circuit(circuit, "circuit.json")
+        loaded_circuit = load_circuit("circuit.json")
+        self.assertTrue(circuit == loaded_circuit)
+        os.remove("circuit.json")
+
     def test_zxz_cirq(self):
         """Test the special gate ZXZ (from cirq PhasedXPowGate)
         """

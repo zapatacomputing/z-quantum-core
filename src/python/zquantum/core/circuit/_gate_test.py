@@ -179,21 +179,24 @@ class TestGate(unittest.TestCase):
 
     def test_cirq_io_for_symbolic_parameters(self):
         for gate_name in self.one_parameter_gates:
-            # Given
-            gate, params = self.create_gate_with_symbolic_params(gate_name)
-            symbols_map = []
-            for param in params:
-                symbols_map.append((param, 0.38553))
+            for param_value in [-pi, 0, pi / 2, pi, 2 * pi, 0.38553]:
+                # Given
+                gate, params = self.create_gate_with_symbolic_params(gate_name)
+                symbols_map = []
+                for param in params:
+                    symbols_map.append((param, param_value))
 
-            # When
-            cirq_gate = gate.to_cirq()
-            recreated_gate = Gate.from_cirq(cirq_gate, gate.qubits)
-            gate_evaluated = gate.create_evaluated_gate(symbols_map)
-            recreated_gate_evaluated = recreated_gate.create_evaluated_gate(symbols_map)
+                # When
+                cirq_gate = gate.to_cirq()
+                recreated_gate = Gate.from_cirq(cirq_gate, gate.qubits)
+                gate_evaluated = gate.create_evaluated_gate(symbols_map)
+                recreated_gate_evaluated = recreated_gate.create_evaluated_gate(
+                    symbols_map
+                )
 
-            # Then
-            # There were numerical & sympy related issues when comparing gates directly, so in this case we compare the evaluated forms of the gates.
-            self.assertEqual(gate_evaluated, recreated_gate_evaluated)
+                # Then
+                # There were numerical & sympy related issues when comparing gates directly, so in this case we compare the evaluated forms of the gates.
+                self.assertEqual(gate_evaluated, recreated_gate_evaluated)
 
     def test_qiskit_io_for_symbolic_parameters(self):
         pass

@@ -131,10 +131,10 @@ class TestCircuit(unittest.TestCase):
         value_2 = 0.5
         symbols_map = [(theta_1, value_1), (theta_2, value_2)]
         circuit = Circuit(
-            Program().inst(RX(theta_1, 0), RY(theta_1, 0), RZ(theta_2, 0))
+            Program().inst(RX(2 * theta_1, 0), RY(theta_1, 0), RZ(theta_2, 0))
         )
         target_circuit = Circuit(
-            Program().inst(RX(value_1, 0), RY(value_1, 0), RZ(value_2, 0))
+            Program().inst(RX(2 * value_1, 0), RY(value_1, 0), RZ(value_2, 0))
         )
 
         # When

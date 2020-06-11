@@ -92,7 +92,9 @@ class Gate(object):
             symbols_map list(tuple(sympy.Basic, number)): List containing symbols and values that they should take.
         """
         gate_class = type(self)
-        evaluated_gate = Gate(name=self.name, qubits=self.qubits, params=self.params)
+        evaluated_gate = Gate(
+            name=self.name, qubits=self.qubits, params=copy.copy(self.params)
+        )
 
         for i in range(len(evaluated_gate.params)):
             if isinstance(evaluated_gate.params[i], sympy.Basic):

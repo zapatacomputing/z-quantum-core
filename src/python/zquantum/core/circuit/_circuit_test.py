@@ -11,9 +11,9 @@ from pyquil import Program
 from pyquil.gates import *
 from pyquil.gates import QUANTUM_GATES
 from math import pi, sin, cos
+from sympy import Symbol
 
 from . import load_circuit, save_circuit, Circuit, Gate, Qubit, pyquil2cirq, cirq2pyquil
-
 
 from ..utils import compare_unitary, is_identity, is_unitary, RNDSEED
 from ..testing import create_random_circuit
@@ -41,6 +41,33 @@ class TestCircuit(unittest.TestCase):
         circ3 = Circuit("circ3")
         circ3.qubits = qubits
         circ3.gates = [gate_H0, gate_CNOT01, gate_T2]
+
+        self.assertEqual(circ1 == circ2, False)
+        self.assertEqual(circ1 == circ3, True)
+
+    def test_circuit_eq_with_symbolic_params(self):
+        """Test equality operation between Circuit objects when some of the parameters are symbolical.
+        """
+
+        # Given
+        qubits = [Qubit(i) for i in range(0, 3)]
+        theta_1 = Symbol("theta_1")
+        theta_2 = Symbol("theta_2")
+
+        gate_RX_1 = Gate("Rx", params=[theta_1], qubits=[qubits[0]])
+        gate_RX_2 = Gate("Rx", params=[theta_2], qubits=[qubits[0]])
+
+        circ1 = Circuit("circ1")
+        circ1.qubits = qubits
+        circ1.gates = [gate_RX_1]
+
+        circ2 = Circuit("circ2")
+        circ2.qubits = qubits
+        circ2.gates = [gate_RX_2]
+
+        circ3 = Circuit("circ3")
+        circ3.qubits = qubits
+        circ3.gates = [gate_RX_1]
 
         self.assertEqual(circ1 == circ2, False)
         self.assertEqual(circ1 == circ3, True)

@@ -21,8 +21,8 @@ class TestQubit(unittest.TestCase):
     def test_from_pyquil(self):
         # Given
         pyquil_qubit = pyquil.quilatom.Qubit(0)
-        target_qubit_dict = {'index': 0, 'info': {'label': 'pyquil'}}
-        
+        target_qubit_dict = {"index": 0, "info": {"label": "pyquil"}}
+
         # When
         recreated_qubit = Qubit.from_pyquil(pyquil_qubit)
 
@@ -35,9 +35,15 @@ class TestQubit(unittest.TestCase):
         cirq_grid_qubit = cirq.GridQubit(1, 2)
         cirq_line_qubit = cirq.LineQubit(3)
 
-        target_grid_qubit_dict = {'index': 5, 'info': {'label': 'cirq', 'QubitType': 'GridQubit', 'QubitKey': (1, 2)}}
-        target_line_qubit_dict = {'index': 5, 'info': {'label': 'cirq', 'QubitType': 'LineQubit', 'QubitKey': 3}}
-        
+        target_grid_qubit_dict = {
+            "index": 5,
+            "info": {"label": "cirq", "QubitType": "GridQubit", "QubitKey": (1, 2)},
+        }
+        target_line_qubit_dict = {
+            "index": 5,
+            "info": {"label": "cirq", "QubitType": "LineQubit", "QubitKey": 3},
+        }
+
         # When
         recreated_grid_qubit = Qubit.from_cirq(cirq_grid_qubit, index)
         recreated_line_qubit = Qubit.from_cirq(cirq_line_qubit, index)
@@ -46,17 +52,18 @@ class TestQubit(unittest.TestCase):
         self.assertDictEqual(recreated_grid_qubit.to_dict(), target_grid_qubit_dict)
         self.assertDictEqual(recreated_line_qubit.to_dict(), target_line_qubit_dict)
 
-
     def test_from_qiskit(self):
         # Given
         register = qiskit.QuantumRegister(3)
         index = 1
         qubit = qiskit.circuit.Qubit(register, index)
-        target_qubit_dict = {'index': index, 'info': {'label': 'qiskit', 'qreg': str(register), 'num': index}}
+        target_qubit_dict = {
+            "index": index,
+            "info": {"label": "qiskit", "qreg": str(register), "num": index},
+        }
 
         # When
         recreated_qubit = Qubit.from_qiskit(qubit, index)
 
         # Then
         self.assertDictEqual(recreated_qubit.to_dict(), target_qubit_dict)
-

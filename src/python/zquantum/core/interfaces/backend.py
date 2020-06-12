@@ -89,7 +89,12 @@ class QuantumBackend(ABC):
 
 class QuantumSimulator(QuantumBackend):
     @abstractmethod
-    def __init__(self, n_samples: Optional[int] = None):
+    def __init__(
+        self,
+        n_samples: Optional[int] = None,
+        noise_model: Optional = None,
+        device_connectivity: Optional[CircuitConnectivity] = None,
+    ):
         self.n_samples = n_samples
 
     @abstractmethod

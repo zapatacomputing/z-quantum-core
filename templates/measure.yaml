@@ -11,6 +11,12 @@ spec:
         artifacts:
           - name: circuit
             path: /app/circuit.json
+          - name: noise-model
+            path: /app/noise_model.json
+            optional: True
+          - name: device-connectivity
+            path: /app/device_connectivity.json
+            optional: True
           - name: main-script
             path: /app/main_script.sh
             raw:
@@ -27,7 +33,14 @@ spec:
                 from zquantum.core.circuit import load_circuit
 
                 circuit = load_circuit('circuit.json')
+                  
                 backend_specs = {{inputs.parameters.backend-specs}}
+                if os.path.isfile('noise_model.json'):
+                  backend_specs["noise_model"] = load_noise_model("noise_model.json")
+                if os.path.isfile("device_connectivity.json"):
+                    backend_specs["device_connectivity"] = load_circuit_connectivity(
+                        "device_connectivity.json"
+                    )
                 backend = create_object(backend_specs)
 
                 measurements = backend.run_circuit_and_measure(circuit)

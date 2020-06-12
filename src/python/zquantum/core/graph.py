@@ -6,6 +6,7 @@ import networkx as nx
 from .utils import SCHEMA_VERSION
 from typing import TextIO
 
+
 def save_graph(graph: nx.Graph, filename: str):
     """Saves a NetworkX graph object to JSON file.
 
@@ -13,11 +14,12 @@ def save_graph(graph: nx.Graph, filename: str):
         graph (networks.Graph): the input graph object
         filename (string): name of the output file
     """
-    f = open(filename, 'w')
+    f = open(filename, "w")
     graph_dict = nx.readwrite.json_graph.node_link_data(graph)
-    graph_dict['schema'] = SCHEMA_VERSION + "-graph"
+    graph_dict["schema"] = SCHEMA_VERSION + "-graph"
     json.dump(graph_dict, f, indent=2)
     f.close()
+
 
 def load_graph(file: TextIO) -> nx.Graph:
     """Reads a JSON file for extracting the NetworkX graph object.
@@ -30,12 +32,13 @@ def load_graph(file: TextIO) -> nx.Graph:
     """
 
     if isinstance(file, str):
-        with open(file, 'r') as f:
+        with open(file, "r") as f:
             data = json.load(f)
     else:
         data = json.load(file)
 
     return nx.readwrite.json_graph.node_link_graph(data)
+
 
 def compare_graphs(graph1: nx.Graph, graph2: nx.Graph) -> bool:
     """Compares two NetworkX graph objects to see if they are identical.
@@ -49,6 +52,7 @@ def compare_graphs(graph1: nx.Graph, graph2: nx.Graph) -> bool:
         if e1 != e2:
             return False
     return True
+
 
 def generate_graph_node_dict(graph: nx.Graph) -> dict:
     """Generates a dictionary containing key:value pairs in the form of
@@ -66,9 +70,10 @@ def generate_graph_node_dict(graph: nx.Graph) -> dict:
     nodes_dict = dict(nodes_int_map)
     return nodes_dict
 
-def generate_random_graph_erdos_renyi(num_nodes: int, 
-                                    probability: float, 
-                                    random_weights: bool = False) -> nx.Graph:
+
+def generate_random_graph_erdos_renyi(
+    num_nodes: int, probability: float, random_weights: bool = False
+) -> nx.Graph:
     """Randomly generate a graph from Erdos-Renyi ensemble. 
     A graph is constructed by connecting nodes randomly. 
     Each edge is included in the graph with probability p independent from 
@@ -92,11 +97,11 @@ def generate_random_graph_erdos_renyi(num_nodes: int,
 
     # iterate through all pairs of nodes
     for pair in combinations(range(0, num_nodes), 2):
-        if uniform(0,1) < probability: # with the given probability
+        if uniform(0, 1) < probability:  # with the given probability
             if random_weights:
                 weight = uniform(0, 1)
             else:
                 weight = 1.0
             output_graph.add_edge(pair[0], pair[1], weight=weight)
-    
+
     return output_graph

@@ -4,11 +4,18 @@ from pyquil.wavefunction import Wavefunction
 from grove.pyvqe.vqe import parity_even_p
 import numpy as np
 from openfermion.ops import IsingOperator
-from .utils import (SCHEMA_VERSION, convert_array_to_dict, convert_dict_to_array,
-    sample_from_probability_distribution, convert_bitstrings_to_tuples, convert_tuples_to_bitstrings)
-from typing import Optional, List, Tuple, TextIO, Iterable
+from .utils import (
+    SCHEMA_VERSION,
+    convert_array_to_dict,
+    convert_dict_to_array,
+    sample_from_probability_distribution,
+    convert_bitstrings_to_tuples,
+    convert_tuples_to_bitstrings,
+)
+from typing import Optional, List, Tuple, TextIO, Iterable, Dict
 from collections import Counter
 from .bitstring_distribution import BitstringDistribution
+
 
 def save_expectation_values(expectation_values: np.ndarray, filename: str) -> None:
     """Save expectation values to a file.
@@ -18,9 +25,9 @@ def save_expectation_values(expectation_values: np.ndarray, filename: str) -> No
         file (str or file-like object): the name of the file, or a file-like object
     """
     dictionary = expectation_values.to_dict()
-    dictionary['schema'] = SCHEMA_VERSION + '-expectation_values'
+    dictionary["schema"] = SCHEMA_VERSION + "-expectation_values"
 
-    with open(filename, 'w') as f:
+    with open(filename, "w") as f:
         f.write(json.dumps(dictionary, indent=2))
 
 
@@ -35,7 +42,7 @@ def load_expectation_values(file: TextIO) -> ExpectationValues:
     """
 
     if isinstance(file, str):
-        with open(file, 'r') as f:
+        with open(file, "r") as f:
             data = json.load(f)
     else:
         data = json.load(file)
@@ -54,12 +61,12 @@ def load_wavefunction(file: TextIO) -> Wavefunction:
     """
 
     if isinstance(file, str):
-        with open(file, 'r') as f:
+        with open(file, "r") as f:
             data = json.load(f)
     else:
         data = json.load(file)
 
-    wavefunction = Wavefunction(convert_dict_to_array(data['amplitudes']))
+    wavefunction = Wavefunction(convert_dict_to_array(data["amplitudes"]))
     return wavefunction
 
 
@@ -71,9 +78,9 @@ def save_wavefunction(wavefunction: Wavefunction, filename: str) -> None:
         filename (str): the name of the file
     """
 
-    data = {'schema': SCHEMA_VERSION + '-wavefunction'}
-    data['amplitudes'] = convert_array_to_dict(wavefunction.amplitudes)
-    with open(filename, 'w') as f:
+    data = {"schema": SCHEMA_VERSION + "-wavefunction"}
+    data["amplitudes"] = convert_array_to_dict(wavefunction.amplitudes)
+    with open(filename, "w") as f:
         f.write(json.dumps(data, indent=2))
 
 
@@ -92,10 +99,12 @@ class ExpectationValues:
             objects, with each array corresponding to a frame. Is None if no covariances are available.
     """
 
-    def __init__(self, values: np.ndarray, 
-                correlations: Optional[List[np.ndarray]]=None, 
-                covariances: Optional[List[np.ndarray]]=None
-                ):
+    def __init__(
+        self,
+        values: np.ndarray,
+        correlations: Optional[List[np.ndarray]] = None,
+        covariances: Optional[List[np.ndarray]] = None,
+    ):
         self.values = values
         self.correlations = correlations
         self.covariances = covariances
@@ -103,52 +112,53 @@ class ExpectationValues:
     def to_dict(self) -> dict:
         """Convert to a dictionary"""
 
-        data = {'schema' : SCHEMA_VERSION + '-expectation_values',
-                'frames' : []}
+        data = {"schema": SCHEMA_VERSION + "-expectation_values", "frames": []}
 
-        data['expectation_values'] = convert_array_to_dict(self.values)
+        data["expectation_values"] = convert_array_to_dict(self.values)
 
         if self.correlations:
-            data['correlations'] = []
+            data["correlations"] = []
             for correlation_matrix in self.correlations:
-                data['correlations'].append(convert_array_to_dict(correlation_matrix))
+                data["correlations"].append(convert_array_to_dict(correlation_matrix))
 
         if self.covariances:
-            data['covariances'] = []
+            data["covariances"] = []
             for covariance_matrix in self.covariances:
-                data['covariances'].append(convert_array_to_dict(covariance_matrix))
+                data["covariances"].append(convert_array_to_dict(covariance_matrix))
 
         return data
 
     @classmethod
-    def from_dict(cls, dictionary:dict) -> ExpectationValues:
+    def from_dict(cls, dictionary: dict) -> ExpectationValues:
         """Create an ExpectationValues object from a dictionary."""
 
-        expectation_values = convert_dict_to_array(dictionary['expectation_values'])
+        expectation_values = convert_dict_to_array(dictionary["expectation_values"])
         correlations = None
-        if dictionary.get('correlations'):
+        if dictionary.get("correlations"):
             correlations = []
-            for correlation_matrx in dictionary.get('correlations'):
+            for correlation_matrx in dictionary.get("correlations"):
                 correlations.append(convert_dict_to_array(correlation_matrx))
 
         covariances = None
-        if dictionary.get('covariances'):
+        if dictionary.get("covariances"):
             covariances = []
-            for covariance_matrix in dictionary.get('covariances'):
+            for covariance_matrix in dictionary.get("covariances"):
                 covariances.append(convert_dict_to_array(covariance_matrix))
 
         return cls(expectation_values, correlations, covariances)
 
 
-def sample_from_wavefunction(wavefunction: Wavefunction, n_samples: int) -> List[Tuple[int]]:
-    '''Sample bitstrings from a wavefunction
+def sample_from_wavefunction(
+    wavefunction: Wavefunction, n_samples: int
+) -> List[Tuple[int]]:
+    """Sample bitstrings from a wavefunction
     Args:
         wavefunction (pyquil.wavefunction.Wavefunction): the wavefunction to
             sample from
         n_samples (int): the number of samples
     Returns:
         A list of bitstrings in tuple format
-    '''
+    """
     # Get probabilities from pyquil
     probabilities = wavefunction.probabilities()
 
@@ -156,9 +166,9 @@ def sample_from_wavefunction(wavefunction: Wavefunction, n_samples: int) -> List
     prob_dict = {}
     for state in range(len(probabilities)):
         # Convert state to bitstring
-        bitstring = format(state, 'b')
-        while (len(bitstring) < len(wavefunction)):
-            bitstring = '0' + bitstring
+        bitstring = format(state, "b")
+        while len(bitstring) < len(wavefunction):
+            bitstring = "0" + bitstring
         # Reverse bitstring
         bitstring = bitstring[::-1]
         # Convert bitstring to tuple
@@ -175,6 +185,7 @@ def sample_from_wavefunction(wavefunction: Wavefunction, n_samples: int) -> List
         for _ in range(samples_dict[key]):
             samples.append(key)
     return samples
+
 
 class Parities:
     """A class representing counts of parities for Pauli terms.
@@ -196,21 +207,23 @@ class Parities:
             of samples with even and odd parities term P_j P_k in frame i, respectively.
     """
 
-    def __init__(self, values: np.ndarray, correlations: Optional[np.ndarray]=None):
+    def __init__(self, values: np.ndarray, correlations: Optional[np.ndarray] = None):
         self.values = values
         self.correlations = correlations
 
     def to_dict(self) -> dict:
-        data = {'values': convert_array_to_dict(self.values)}
+        data = {"values": convert_array_to_dict(self.values)}
         if self.correlations:
-            data['correlations'] = [convert_array_to_dict(arr) for arr in self.correlations]
+            data["correlations"] = [
+                convert_array_to_dict(arr) for arr in self.correlations
+            ]
         return data
 
     @classmethod
     def from_dict(cls, data: dict):
-        values = convert_dict_to_array(data['values'])
-        if data.get('correlations'):
-            correlations = [convert_dict_to_array(arr) for arr in data['correlations']]
+        values = convert_dict_to_array(data["values"])
+        if data.get("correlations"):
+            correlations = [convert_dict_to_array(arr) for arr in data["correlations"]]
         else:
             correlations = None
         return cls(values, correlations)
@@ -224,9 +237,9 @@ def save_parities(parities: Parities, filename: str) -> None:
         file (str or file-like object): the name of the file, or a file-like object
     """
     data = parities.to_dict()
-    data['schema'] = SCHEMA_VERSION + '-parities'
+    data["schema"] = SCHEMA_VERSION + "-parities"
 
-    with open(filename, 'w') as f:
+    with open(filename, "w") as f:
         f.write(json.dumps(data, indent=2))
 
 
@@ -241,12 +254,13 @@ def load_parities(file: TextIO) -> Parities:
     """
 
     if isinstance(file, str):
-        with open(file, 'r') as f:
+        with open(file, "r") as f:
             data = json.load(f)
     else:
         data = json.load(file)
 
     return Parities.from_dict(data)
+
 
 def get_expectation_values_from_parities(parities: Parities) -> ExpectationValues:
     """Get the expectation values of a set of operators (with precisions) from a set of samples (with even/odd parities) for them.
@@ -265,7 +279,7 @@ def get_expectation_values_from_parities(parities: Parities) -> ExpectationValue
         N1 = parities.values[i][1]
         N = N0 + N1
         if N == 0:
-            raise ValueError('There must be at least one sample for each operator')
+            raise ValueError("There must be at least one sample for each operator")
 
         p = N0 / N
         value = 2.0 * p - 1.0
@@ -284,8 +298,10 @@ def get_expectation_values_from_parities(parities: Parities) -> ExpectationValue
 
     return ExpectationValues(values=np.array(values), covariances=covariances)
 
-def get_parities_from_measurements(measurements: List[Tuple[int]], 
-                                    ising_operator:IsingOperator) -> Parities:
+
+def get_parities_from_measurements(
+    measurements: List[Tuple[int]], ising_operator: IsingOperator
+) -> Parities:
     """Get expectation values from bitstrings.
 
     Args:
@@ -325,14 +341,17 @@ def get_parities_from_measurements(measurements: List[Tuple[int]],
                 bitstring_int = convert_bitstring_to_int(bitstring)
                 parity1 = parity_even_p(bitstring_int, marked_qubits_term1)
                 parity2 = parity_even_p(bitstring_int, marked_qubits_term2)
-                if  parity1 == parity2:
+                if parity1 == parity2:
                     correlations[0][term1_index, term2_index][0] += count
                 else:
                     correlations[0][term1_index, term2_index][1] += count
 
     return Parities(np.array(values), correlations)
 
-def expectation_values_to_real(expectation_values: ExpectationValues) -> ExpectationValues:
+
+def expectation_values_to_real(
+    expectation_values: ExpectationValues,
+) -> ExpectationValues:
     """Remove the imaginary parts of the expectation values
 
     Args:
@@ -346,12 +365,13 @@ def expectation_values_to_real(expectation_values: ExpectationValues) -> Expecta
             value = value.real
         values.append(value)
     expectation_values.values = np.array(values)
-    if(expectation_values.correlations):
+    if expectation_values.correlations:
         for i, value in enumerate(expectation_values.correlations):
             if isinstance(value, complex):
                 value = value.real
             expectation_values.correlations[i] = value
     return expectation_values
+
 
 def convert_bitstring_to_int(bitstring: Iterable[int]) -> int:
     """Convert a bitstring to an integer.
@@ -364,6 +384,7 @@ def convert_bitstring_to_int(bitstring: Iterable[int]) -> int:
     """
     return int("".join(str(bit) for bit in bitstring[::-1]), 2)
 
+
 class Measurements:
     """ A class representing measurements from a quantum circuit. The bitstrings variable represents the internal
     data structure of the Measurements class. It is expressed as a list of tuples wherein each tuple is a measurement
@@ -374,7 +395,6 @@ class Measurements:
             self.bitstrings = []
         else:
             self.bitstrings = bitstrings
-
 
     @classmethod
     def from_counts(cls, counts: Dict[str, int]):
@@ -387,16 +407,15 @@ class Measurements:
         measurements.add_counts(counts)
         return measurements
 
-
     @classmethod
     def load_from_file(cls, file: TextIO):
         """ Load a set of measurements from file 
         
         Args:
             file (str or file-like object): the name of the file, or a file-like object
-        """        
+        """
         if isinstance(file, str):
-            with open(file, 'r') as f:
+            with open(file, "r") as f:
                 data = json.load(f)
         else:
             data = json.load(file)
@@ -407,19 +426,19 @@ class Measurements:
 
         return cls(bitstrings=bitstrings)
 
-
     def save(self, filename: str):
         """ Serialize the Measurements object into a file in JSON format.
         
         Args:
             filename (string): filename to save the data to 
         """
-        data = { "schema":     SCHEMA_VERSION+"-measurements",
-                 "counts":     self.get_counts(),
-                 "bitstrings": self.bitstrings}
+        data = {
+            "schema": SCHEMA_VERSION + "-measurements",
+            "counts": self.get_counts(),
+            "bitstrings": self.bitstrings,
+        }
         with open(filename, "w") as f:
             f.write(json.dumps(data, indent=2))
-
 
     def get_counts(self):
         """ Get the measurements as a histogram
@@ -429,7 +448,6 @@ class Measurements:
         """
         bitstrings = convert_tuples_to_bitstrings(self.bitstrings)
         return dict(Counter(bitstrings))
-
 
     def add_counts(self, counts: Dict[str, int]):
         """ Add measurements from a histogram
@@ -446,7 +464,6 @@ class Measurements:
 
             self.bitstrings += [tuple(measurement)] * counts[bitstring]
 
-
     def get_distribution(self):
         """ Get the normalized probability distribution representing the measurements
 
@@ -458,12 +475,13 @@ class Measurements:
 
         distribution = {}
         for bitstring in counts.keys():
-            distribution[bitstring] = counts[bitstring]/num_measurements
+            distribution[bitstring] = counts[bitstring] / num_measurements
 
         return BitstringDistribution(distribution)
 
-
-    def get_expectation_values(self, ising_operator: IsingOperator) -> ExpectationValues:
+    def get_expectation_values(
+        self, ising_operator: IsingOperator
+    ) -> ExpectationValues:
         """Get the expectation values of an operator from the measurements.
 
         Args:
@@ -472,8 +490,8 @@ class Measurements:
         Returns:
             zquantum.core.measurement.ExpectationValues: the expectation values of each term in the operator
         """
-        # We require operator to be IsingOperator because measurements are always performed in the Z basis, 
-        # so we need the operator to be Ising (containing only Z terms). 
+        # We require operator to be IsingOperator because measurements are always performed in the Z basis,
+        # so we need the operator to be Ising (containing only Z terms).
         # A general Qubit Operator could have X or Y terms which don’t get directly measured.
         if isinstance(ising_operator, IsingOperator) == False:
             raise Exception("Input operator is not openfermion.IsingOperator")
@@ -486,13 +504,13 @@ class Measurements:
         expectation_values = []
         for term, coefficient in ising_operator.terms.items():
             expectation = 0
-            marked_qubits = [op[0] for op in term] 
+            marked_qubits = [op[0] for op in term]
             for bitstring, count in bitstring_frequencies.items():
                 bitstring_int = convert_bitstring_to_int(bitstring)
                 if parity_even_p(bitstring_int, marked_qubits):
-                    value = float(count)/num_measurements
+                    value = float(count) / num_measurements
                 else:
-                    value = -float(count)/num_measurements
+                    value = -float(count) / num_measurements
                 expectation += np.real(coefficient) * value
             expectation_values.append(np.real(expectation))
         return ExpectationValues(np.array(expectation_values))

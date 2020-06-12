@@ -6,6 +6,7 @@ import numpy as np
 from .utils import SCHEMA_VERSION, convert_tuples_to_bitstrings
 from collections import Counter
 
+
 def is_non_negative(input_dict):
     """Check if the input dictionary values are non negative.
 
@@ -40,7 +41,7 @@ def are_keys_binary_strings(input_dict):
     Returns:
         bool: boolean variable indicating whether dict keys are binary strings or not.
     """
-    return all(not any(char not in '10' for char in key) for key in input_dict.keys())
+    return all(not any(char not in "10" for char in key) for key in input_dict.keys())
 
 
 def is_bitstring_distribution(input_dict):
@@ -54,7 +55,11 @@ def is_bitstring_distribution(input_dict):
     Returns:
         bool: boolean variable indicating whether the bitstring distribution is well defined or not.
     """
-    return (is_non_negative(input_dict) and is_key_length_fixed(input_dict) and are_keys_binary_strings(input_dict))
+    return (
+        is_non_negative(input_dict)
+        and is_key_length_fixed(input_dict)
+        and are_keys_binary_strings(input_dict)
+    )
 
 
 def is_normalized(input_dict):
@@ -67,7 +72,7 @@ def is_normalized(input_dict):
         bool: boolean variable indicating whether the bitstring distribution is normalized or not.
     """
     norm = sum(input_dict.values())
-    return (math.isclose(norm,1))
+    return math.isclose(norm, 1)
 
 
 def normalize_bitstring_distribution(bitstring_distribution):
@@ -80,15 +85,19 @@ def normalize_bitstring_distribution(bitstring_distribution):
         dict: dictionary representing the normalized probability distribution where the keys are bitstrings represented as strings and the values are floats.
     """
     norm = sum(bitstring_distribution.values())
-    if norm==0:
-         raise ValueError('Normalization of BitstringDistribution FAILED: input dict is empty (all zero values).')
+    if norm == 0:
+        raise ValueError(
+            "Normalization of BitstringDistribution FAILED: input dict is empty (all zero values)."
+        )
     elif 0 < norm < sys.float_info.min:
-        raise ValueError('Normalization of BitstringDistribution FAILED: too small values.')
+        raise ValueError(
+            "Normalization of BitstringDistribution FAILED: too small values."
+        )
     elif norm == 1:
         return bitstring_distribution
     else:
         for key in bitstring_distribution:
-            bitstring_distribution[key]*=1./norm
+            bitstring_distribution[key] *= 1.0 / norm
         return bitstring_distribution
 
 
@@ -103,7 +112,7 @@ def save_bitstring_distribution(distribution, filename):
     dictionary["bitstring_distribution"] = distribution.distribution_dict
     dictionary["schema"] = SCHEMA_VERSION + "-bitstring-probability-distribution"
 
-    with open(filename, 'w') as f:
+    with open(filename, "w") as f:
         f.write(json.dumps(dictionary, indent=2))
 
 
@@ -119,14 +128,14 @@ def load_bitstring_distribution(file, many=False):
     """
 
     if isinstance(file, str):
-        with open(file, 'r') as f:
+        with open(file, "r") as f:
             data = json.load(f)
     else:
         data = json.load(file)
-    
+
     bitstring_distribution = BitstringDistribution(data["bitstring_distribution"])
     return bitstring_distribution
-    
+
 
 def create_bitstring_distribution_from_probability_distribution(prob_distribution):
     """Create a well defined bitstring distribution starting from a probability distribution
@@ -142,9 +151,9 @@ def create_bitstring_distribution_from_probability_distribution(prob_distributio
     prob_dict = {}
     for state in range(len(prob_distribution)):
         # Convert state to bitstring
-        bitstring = format(state, 'b')
-        while (len(bitstring) < np.log2(len(prob_distribution))):
-            bitstring = '0' + bitstring
+        bitstring = format(state, "b")
+        while len(bitstring) < np.log2(len(prob_distribution)):
+            bitstring = "0" + bitstring
         # Reverse bitstring
         bitstring = bitstring[::-1]
 
@@ -154,7 +163,7 @@ def create_bitstring_distribution_from_probability_distribution(prob_distributio
     return BitstringDistribution(prob_dict)
 
 
-class BitstringDistribution():
+class BitstringDistribution:
     """A probability distribution defined on discrete bitstrings. Normalization is performed by default, unless otherwise specified.
 
     Args:
@@ -165,20 +174,26 @@ class BitstringDistribution():
     """
 
     def __init__(self, input_dict, normalize=True):
-        if(is_bitstring_distribution(input_dict)): # accept the input dict only if it is a prob distribution
-            if(is_normalized(input_dict)):
+        if is_bitstring_distribution(
+            input_dict
+        ):  # accept the input dict only if it is a prob distribution
+            if is_normalized(input_dict):
                 self.distribution_dict = input_dict
             else:
-                if(normalize==True):
-                    self.distribution_dict = normalize_bitstring_distribution(input_dict)
+                if normalize == True:
+                    self.distribution_dict = normalize_bitstring_distribution(
+                        input_dict
+                    )
                 else:
                     warnings.warn("BitstringDistribution object is not normalized.")
                     self.distribution_dict = input_dict
         else:
-            raise RuntimeError("Initialization of BitstringDistribution object FAILED: the input dictionary is not a bitstring probability distribution. Check keys (same-length binary strings) and values (non-negative floats).")
+            raise RuntimeError(
+                "Initialization of BitstringDistribution object FAILED: the input dictionary is not a bitstring probability distribution. Check keys (same-length binary strings) and values (non-negative floats)."
+            )
 
     def __repr__(self):
-        output = f'BitstringDistribution(input={self.distribution_dict})'
+        output = f"BitstringDistribution(input={self.distribution_dict})"
         return output
 
     def get_qubits_number(self):
@@ -187,10 +202,14 @@ class BitstringDistribution():
         Returns:
             float: number of qubits in a bitstring (i.e. bitstring length).
         """
-        return(len(list(self.distribution_dict.keys())[0])) # already checked in __init__ that all keys have the same length
+        return len(
+            list(self.distribution_dict.keys())[0]
+        )  # already checked in __init__ that all keys have the same length
 
 
-def compute_clipped_negative_log_likelihood(target_distribution, measured_distribution, epsilon=1e-9):
+def compute_clipped_negative_log_likelihood(
+    target_distribution, measured_distribution, epsilon=1e-9
+):
     """Compute the value of the clipped negative log likelihood between a target bitstring distribution 
     and a measured bitstring distribution
     See Equation (4) in https://advances.sciencemag.org/content/5/10/eaaw9918?rss=1
@@ -203,22 +222,27 @@ def compute_clipped_negative_log_likelihood(target_distribution, measured_distri
         float: The value of the clipped negative log likelihood
     """
 
-    value=0.
+    value = 0.0
     target_keys = target_distribution.distribution_dict.keys()
     measured_keys = measured_distribution.distribution_dict.keys()
     all_keys = set(target_keys).union(measured_keys)
 
     for bitstring in all_keys:
-        target_bitstring_value = target_distribution.distribution_dict.get(bitstring,0)
-        measured_bitstring_value = measured_distribution.distribution_dict.get(bitstring,0)
+        target_bitstring_value = target_distribution.distribution_dict.get(bitstring, 0)
+        measured_bitstring_value = measured_distribution.distribution_dict.get(
+            bitstring, 0
+        )
 
-        value += target_bitstring_value * math.log(max(epsilon,measured_bitstring_value))
+        value += target_bitstring_value * math.log(
+            max(epsilon, measured_bitstring_value)
+        )
 
     return -value
 
 
-def evaluate_distribution_distance(target_distribution, measured_distribution,
-    distance_measure_function, **kwargs):
+def evaluate_distribution_distance(
+    target_distribution, measured_distribution, distance_measure_function, **kwargs
+):
     """Evaluate the distance between two bitstring distributions - the target distribution and the one predicted (measured) by your model -
        based on the given distance measure
 
@@ -234,15 +258,30 @@ def evaluate_distribution_distance(target_distribution, measured_distribution,
             float: The value of the distance metric
     """
     # Check inputs are BitstringDistribution objects
-    if not isinstance(target_distribution, BitstringDistribution) or not isinstance(measured_distribution, BitstringDistribution):
-        raise TypeError("Arguments of evaluate_cost_function must be of type BitstringDistribution.")
+    if not isinstance(target_distribution, BitstringDistribution) or not isinstance(
+        measured_distribution, BitstringDistribution
+    ):
+        raise TypeError(
+            "Arguments of evaluate_cost_function must be of type BitstringDistribution."
+        )
 
     # Check inputs are defined on consistent bitstring domains
-    if target_distribution.get_qubits_number() != measured_distribution.get_qubits_number():
-        raise RuntimeError('Bitstring Distribution Distance Evaluation FAILED: target and measured distributions are defined on bitstrings of different length.')
+    if (
+        target_distribution.get_qubits_number()
+        != measured_distribution.get_qubits_number()
+    ):
+        raise RuntimeError(
+            "Bitstring Distribution Distance Evaluation FAILED: target and measured distributions are defined on bitstrings of different length."
+        )
 
     # Check inputs are both normalized (or not normalized)
-    if is_normalized(target_distribution.distribution_dict) != is_normalized(measured_distribution.distribution_dict):
-        raise RuntimeError('Bitstring Distribution Distance Evaluation FAILED: one among target and measured distribution is normalized, whereas the other is not.')
+    if is_normalized(target_distribution.distribution_dict) != is_normalized(
+        measured_distribution.distribution_dict
+    ):
+        raise RuntimeError(
+            "Bitstring Distribution Distance Evaluation FAILED: one among target and measured distribution is normalized, whereas the other is not."
+        )
 
-    return distance_measure_function(target_distribution, measured_distribution, **kwargs)
+    return distance_measure_function(
+        target_distribution, measured_distribution, **kwargs
+    )

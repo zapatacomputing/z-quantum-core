@@ -6,6 +6,7 @@ import numpy as np
 import copy
 from openfermion import SymbolicOperator
 
+
 class BasicCostFunction(CostFunction):
     """
     Basic implementation of the CostFunction interface.
@@ -28,11 +29,14 @@ class BasicCostFunction(CostFunction):
 
     """
 
-    def __init__(self, function:Callable, 
-                        gradient_function:Optional[Callable]=None, 
-                        gradient_type:str='custom',
-                        save_evaluation_history:bool=True, 
-                        epsilon:float=1e-5):
+    def __init__(
+        self,
+        function: Callable,
+        gradient_function: Optional[Callable] = None,
+        gradient_type: str = "custom",
+        save_evaluation_history: bool = True,
+        epsilon: float = 1e-5,
+    ):
         self.evaluations_history = []
         self.save_evaluation_history = save_evaluation_history
         self.gradient_type = gradient_type
@@ -40,7 +44,7 @@ class BasicCostFunction(CostFunction):
         self.gradient_function = gradient_function
         self.epsilon = epsilon
 
-    def _evaluate(self, parameters:np.ndarray) -> float:
+    def _evaluate(self, parameters: np.ndarray) -> float:
         """
         Evaluates the value of the cost function for given parameters.
 
@@ -53,7 +57,7 @@ class BasicCostFunction(CostFunction):
         value = self.function(parameters)
         return value
 
-    def get_gradient(self, parameters:np.ndarray) -> np.ndarray:
+    def get_gradient(self, parameters: np.ndarray) -> np.ndarray:
         """
         Evaluates the gradient of the cost function for given parameters.
         What method is used for calculating gradients is indicated by `self.gradient_type` field.
@@ -64,14 +68,16 @@ class BasicCostFunction(CostFunction):
         Returns:
             np.ndarray: gradient vector 
         """
-        if self.gradient_type == 'custom':
+        if self.gradient_type == "custom":
             if self.gradient_function is None:
                 raise Exception("Gradient function has not been provided.")
             else:
                 return self.gradient_function(parameters)
-        elif self.gradient_type == 'finite_difference':
+        elif self.gradient_type == "finite_difference":
             if self.gradient_function is not None:
-                raise Warning("Using finite difference method for calculating gradient even though self.gradient_function is defined.")
+                raise Warning(
+                    "Using finite difference method for calculating gradient even though self.gradient_function is defined."
+                )
             return self.get_gradients_finite_difference(parameters)
         else:
             raise Exception("Gradient type: %s is not supported", self.gradient_type)
@@ -100,12 +106,15 @@ class EvaluateOperatorCostFunction(CostFunction):
 
     """
 
-    def __init__(self, target_operator:SymbolicOperator, 
-                        ansatz:Dict, 
-                        backend:QuantumBackend, 
-                        gradient_type:str='finite_difference',
-                        save_evaluation_history:bool=True,
-                        epsilon:float=1e-5):
+    def __init__(
+        self,
+        target_operator: SymbolicOperator,
+        ansatz: Dict,
+        backend: QuantumBackend,
+        gradient_type: str = "finite_difference",
+        save_evaluation_history: bool = True,
+        epsilon: float = 1e-5,
+    ):
         self.target_operator = target_operator
         self.ansatz = ansatz
         self.backend = backend
@@ -114,7 +123,7 @@ class EvaluateOperatorCostFunction(CostFunction):
         self.gradient_type = gradient_type
         self.epsilon = epsilon
 
-    def _evaluate(self, parameters:np.ndarray) -> float:
+    def _evaluate(self, parameters: np.ndarray) -> float:
         """
         Evaluates the value of the cost function for given parameters.
 
@@ -125,22 +134,8 @@ class EvaluateOperatorCostFunction(CostFunction):
             value: cost function value for given parameters, either int or float.
         """
         circuit = build_ansatz_circuit(self.ansatz, parameters)
-        expectation_values = self.backend.get_expectation_values(circuit, self.target_operator)
+        expectation_values = self.backend.get_expectation_values(
+            circuit, self.target_operator
+        )
         final_value = np.sum(expectation_values.values)
         return final_value
-
-    def get_gradient(self, parameters:np.ndarray) -> np.ndarray:
-        """
-        Evaluates the gradient of the cost function for given parameters.
-        What method is used for calculating gradients is indicated by `self.gradient_type` field.
-
-        Args:
-            parameters: parameters for which we calculate the gradient.
-
-        Returns:
-            np.ndarray: gradient vector 
-        """
-        if self.gradient_type == "finite_difference":
-            return self.get_gradients_finite_difference(parameters)
-        else:
-            raise Exception("Gradient type: %s is not supported", self.gradient_type)

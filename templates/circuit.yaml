@@ -158,3 +158,28 @@ spec:
             path: /app/circuit_layers.json
           - name: circuit-connectivity
             path: /app/circuit_connectivity.json
+
+    - name: create-random-circuit
+      parent: generic-task
+      inputs:
+        parameters:
+          - name: num-qubits
+          - name: num-gates
+          - name: seed
+            default: "None"
+          - name: command
+            value: python3 main_script.py
+        artifacts:
+          - name: main-script
+            path: /app/main_script.py
+            raw:
+              data: |
+                from zquantum.core.circuit import save_circuit
+                from zquantum.core.testing import create_random_circuit
+                circuit = create_random_circuit({{inputs.parameters.num-qubits}},
+                  {{inputs.parameters.num-gates}}, seed={{inputs.parameters.seed}})
+                save_circuit(circuit, "circuit.json")
+      outputs:
+        artifacts:
+          - name: circuit
+            path: /app/circuit.json

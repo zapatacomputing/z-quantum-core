@@ -71,7 +71,7 @@ RUN python3 -m pip install rpcq==3.0.0 \
                     pyyaml==5.1 \
                     quantum-grove>=1.0.0
 
-RUN python3 -m pip install qutip
+RUN python3 -m pip install qutip>=5.4.1
 
 WORKDIR /app
 ENTRYPOINT bash

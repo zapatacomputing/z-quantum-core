@@ -209,7 +209,7 @@ class EvaluateOperatorCostFunction(CostFunction):
             params (numpy.array): the ansatz parameters
 
         Returns:
-            list_of_qprogs (list of lists of zmachine.core.circuit.Circuit: the circuits)
+            list_of_qprogs (list of lists of zquantum.core.circuit.Circuit: the circuits)
             factors (list of lists of floats): combination coefficients for the expectation
                 values of the list of circuits.
 
@@ -247,10 +247,10 @@ class EvaluateOperatorCostFunction(CostFunction):
         a list of gradient circuits.
 
         Args:
-            gradient_circuits (list of zmachine.core.circuit.Circuit): the circuits to run to measure the gradient
+            gradient_circuits (list of zquantum.core.circuit.Circuit): the circuits to run to measure the gradient
         
         Returns:
-            list of zmachine.core.ExpectationValues objects
+            list of zquantum.core..measurement.ExpectationValues objects
 
         WARNING: This function evaluates the gradient for ansatzes for which the function
             get_gradient_circuits_for_objective_function can be applied.

@@ -29,8 +29,8 @@ spec:
             path: /app/python_script.py
             raw:
               data: |
-                from zquantum.core.utils import create_object
-                from zquantum.core.circuit import load_circuit
+                from zquantum.core.utils import create_object, load_noise_model
+                from zquantum.core.circuit import load_circuit, load_circuit_connectivity
                 import os
 
                 circuit = load_circuit('circuit.json')

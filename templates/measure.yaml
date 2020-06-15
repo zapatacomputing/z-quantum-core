@@ -31,6 +31,7 @@ spec:
               data: |
                 from zquantum.core.utils import create_object
                 from zquantum.core.circuit import load_circuit
+                import os
 
                 circuit = load_circuit('circuit.json')
                   

@@ -393,3 +393,46 @@ def create_object(specs, **kwargs):
     creator = getattr(module, creator_name)
     created_object = creator(**specs, **kwargs)
     return created_object
+
+
+def load_noise_model(file):
+    """Load a noise model from file
+
+    Args:
+        file (str or file-like object): the name of the file, or a file-like object.
+    
+    Returns:
+        noise model 
+    """
+
+    if isinstance(file, str):
+        with open(file, "r") as f:
+            data = json.load(f)
+    else:
+        data = json.load(file)
+
+    func = get_func_from_specs(data)
+    return func(data["data"])
+
+
+def save_noise_model(noise_model_data, module_name, function_name, filename):
+    """Save a noise model to file
+
+    Args:
+        noise_model_data (dict): the serialized version of the noise model
+        module_name (str): the module name with the function to load the noise model
+        function_name (str): the function to load the noise model data into a noise model
+        filename (str or file-like object): the name of the file, or a file-like object.
+    
+    Returns:
+        noise model 
+    """
+
+    data = {
+        "module_name": module_name,
+        "function_name": function_name,
+        "data": noise_model_data,
+    }
+
+    with open(filename, "w") as f:
+        f.write(json.dumps(data, indent=2))

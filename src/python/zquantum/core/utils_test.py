@@ -22,6 +22,8 @@ from .utils import (
     load_list,
     create_object,
     get_func_from_specs,
+    load_noise_model,
+    save_noise_model,
 )
 from .interfaces.mock_objects import MockQuantumSimulator
 
@@ -173,3 +175,17 @@ class TestUtils(unittest.TestCase):
         self.assertEqual(function.__name__, function_name)
         self.assertEqual(function(data), target_value)
 
+    def test_noise_model_io(self):
+        # Given
+        module_name = "zquantum.core.testing.mocks"
+        function_name = "mock_create_noise_model"
+        noise_model_data = {"testing": "data"}
+
+        # When
+        save_noise_model(
+            noise_model_data, module_name, function_name, "noise_model.json",
+        )
+        noise_model = load_noise_model("noise_model.json")
+
+        # Then
+        self.assertEqual(noise_model, None)

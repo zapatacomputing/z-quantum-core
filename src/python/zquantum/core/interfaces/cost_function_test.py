@@ -1,10 +1,11 @@
 import unittest
 import numpy as np
 
+
 class CostFunctionTests(object):
     # To run tests with this base class, the following variables need to be properly initialized in the child class:
-        # self.cost_functions
-        # self.params_sizes
+    # self.cost_functions
+    # self.params_sizes
 
     def test_evaluate_returns_number(self):
         for cost_function, num_params in zip(self.cost_functions, self.params_sizes):
@@ -24,8 +25,12 @@ class CostFunctionTests(object):
             value = cost_function.evaluate(params)
             # Then
             self.assertEqual(len(cost_function.evaluations_history), 1)
-            np.testing.assert_equal(cost_function.evaluations_history[0]["value"], value)
-            np.testing.assert_equal(cost_function.evaluations_history[0]["params"], params)
+            np.testing.assert_equal(
+                cost_function.evaluations_history[0]["value"], value
+            )
+            np.testing.assert_equal(
+                cost_function.evaluations_history[0]["params"], params
+            )
 
     def test_evaluatue_does_not_save_evaluation_history(self):
         for cost_function, num_params in zip(self.cost_functions, self.params_sizes):

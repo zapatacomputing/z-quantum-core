@@ -13,6 +13,7 @@ from qeopenfermion import evaluate_qubit_operator
 from zquantum.qaoa.ansatz import build_qaoa_circuit_grads
 from openfermion import SymbolicOperator
 
+
 class BasicCostFunction(CostFunction):
     """
     Basic implementation of the CostFunction interface.
@@ -35,11 +36,14 @@ class BasicCostFunction(CostFunction):
 
     """
 
-    def __init__(self, function:Callable, 
-                        gradient_function:Optional[Callable]=None, 
-                        gradient_type:str='custom',
-                        save_evaluation_history:bool=True, 
-                        epsilon:float=1e-5):
+    def __init__(
+        self,
+        function: Callable,
+        gradient_function: Optional[Callable] = None,
+        gradient_type: str = "custom",
+        save_evaluation_history: bool = True,
+        epsilon: float = 1e-5,
+    ):
         self.evaluations_history = []
         self.save_evaluation_history = save_evaluation_history
         self.gradient_type = gradient_type
@@ -47,7 +51,7 @@ class BasicCostFunction(CostFunction):
         self.gradient_function = gradient_function
         self.epsilon = epsilon
 
-    def _evaluate(self, parameters:np.ndarray) -> float:
+    def _evaluate(self, parameters: np.ndarray) -> float:
         """
         Evaluates the value of the cost function for given parameters.
 
@@ -60,7 +64,7 @@ class BasicCostFunction(CostFunction):
         value = self.function(parameters)
         return value
 
-    def get_gradient(self, parameters:np.ndarray) -> np.ndarray:
+    def get_gradient(self, parameters: np.ndarray) -> np.ndarray:
         """
         Evaluates the gradient of the cost function for given parameters.
         What method is used for calculating gradients is indicated by `self.gradient_type` field.
@@ -71,14 +75,16 @@ class BasicCostFunction(CostFunction):
         Returns:
             np.ndarray: gradient vector 
         """
-        if self.gradient_type == 'custom':
+        if self.gradient_type == "custom":
             if self.gradient_function is None:
                 raise Exception("Gradient function has not been provided.")
             else:
                 return self.gradient_function(parameters)
-        elif self.gradient_type == 'finite_difference':
+        elif self.gradient_type == "finite_difference":
             if self.gradient_function is not None:
-                raise Warning("Using finite difference method for calculating gradient even though self.gradient_function is defined.")
+                raise Warning(
+                    "Using finite difference method for calculating gradient even though self.gradient_function is defined."
+                )
             return self.get_gradients_finite_difference(parameters)
         else:
             raise Exception("Gradient type: %s is not supported", self.gradient_type)
@@ -107,12 +113,15 @@ class EvaluateOperatorCostFunction(CostFunction):
 
     """
 
-    def __init__(self, target_operator:SymbolicOperator, 
-                        ansatz:Dict, 
-                        backend:QuantumBackend, 
-                        gradient_type:str='finite_difference',
-                        save_evaluation_history:bool=True,
-                        epsilon:float=1e-5):
+    def __init__(
+        self,
+        target_operator: SymbolicOperator,
+        ansatz: Dict,
+        backend: QuantumBackend,
+        gradient_type: str = "finite_difference",
+        save_evaluation_history: bool = True,
+        epsilon: float = 1e-5,
+    ):
         self.target_operator = target_operator
         self.ansatz = ansatz
         self.backend = backend
@@ -121,7 +130,7 @@ class EvaluateOperatorCostFunction(CostFunction):
         self.gradient_type = gradient_type
         self.epsilon = epsilon
 
-    def _evaluate(self, parameters:np.ndarray) -> float:
+    def _evaluate(self, parameters: np.ndarray) -> float:
         """
         Evaluates the value of the cost function for given parameters.
 
@@ -132,11 +141,13 @@ class EvaluateOperatorCostFunction(CostFunction):
             value: cost function value for given parameters, either int or float.
         """
         circuit = build_ansatz_circuit(self.ansatz, parameters)
-        expectation_values = self.backend.get_expectation_values(circuit, self.target_operator)
+        expectation_values = self.backend.get_expectation_values(
+            circuit, self.target_operator
+        )
         final_value = np.sum(expectation_values.values)
         return final_value
 
-    def get_gradient(self, parameters:np.ndarray) -> np.ndarray:
+    def get_gradient(self, parameters: np.ndarray) -> np.ndarray:
         """
         Evaluates the gradient of the cost function for given parameters.
         What method is used for calculating gradients is indicated by `self.gradient_type` field.
@@ -158,23 +169,35 @@ class EvaluateOperatorCostFunction(CostFunction):
 
     def get_gradients_qaoa(self, parameters):
         # Get circuits to measure gradient
-        gradient_circuits, factors = build_qaoa_circuit_grads(parameters, self.ansatz['ansatz_kwargs']['hamiltonians'])
+        gradient_circuits, factors = build_qaoa_circuit_grads(
+            parameters, self.ansatz["ansatz_kwargs"]["hamiltonians"]
+        )
 
         # Run circuits to get expectation values for all gradient circuits wrt qubit operator
-        expectation_lists = self._get_expectation_values_for_gradient_circuits_for_operator(gradient_circuits)
+        expectation_lists = self._get_expectation_values_for_gradient_circuits_for_operator(
+            gradient_circuits
+        )
 
         # Get analytical gradient of operator wrt parameters from expectation values
-        return self.get_analytical_gradient_from_expectation_values_for_operator(factors, expectation_lists)
+        return self.get_analytical_gradient_from_expectation_values_for_operator(
+            factors, expectation_lists
+        )
 
     def get_gradients_schuld_shift(self, parameters):
         # Get circuits to measure gradient
-        gradient_circuits, factors = gradient_circuits_for_simple_shift_rule(self, parameters)
+        gradient_circuits, factors = gradient_circuits_for_simple_shift_rule(
+            self, parameters
+        )
 
         # Run circuits to get expectation values for all gradient circuits wrt qubit operator
-        expectation_lists = self._get_expectation_values_for_gradient_circuits_for_operator(gradient_circuits)
+        expectation_lists = self._get_expectation_values_for_gradient_circuits_for_operator(
+            gradient_circuits
+        )
 
         # Get analytical gradient of operator wrt parameters from expectation values
-        return self.get_analytical_gradient_from_expectation_values_for_operator(factors, expectation_lists)
+        return self.get_analytical_gradient_from_expectation_values_for_operator(
+            factors, expectation_lists
+        )
 
     def gradient_circuits_for_simple_shift_rule(self, params):
         """Construct a list of circuit corresponding to the 
@@ -197,25 +220,29 @@ class EvaluateOperatorCostFunction(CostFunction):
 
         gradient_circuits = []
         output_factors = []
-        module = importlib.import_module(self.ansatz['ansatz_module'])
-        func = getattr(module, self.ansatz['ansatz_func'])
+        module = importlib.import_module(self.ansatz["ansatz_module"])
+        func = getattr(module, self.ansatz["ansatz_func"])
 
-        for param_index in range(len(params)):               
-                
+        for param_index in range(len(params)):
+
             circuits_per_param = []
 
             for factor in factors:
-                    
+
                 new_ansatz_params = params.copy()
                 new_ansatz_params[param_index] += factor * np.pi / 4.0
-                circuits_per_param.append(func(new_ansatz_params, **self.ansatz['ansatz_kwargs']))  
+                circuits_per_param.append(
+                    func(new_ansatz_params, **self.ansatz["ansatz_kwargs"])
+                )
 
             gradient_circuits.append(circuits_per_param)
             output_factors.append(factors)
 
         return gradient_circuits, output_factors
 
-    def _get_expectation_values_for_gradient_circuits_for_operator(self, gradient_circuits):
+    def _get_expectation_values_for_gradient_circuits_for_operator(
+        self, gradient_circuits
+    ):
         """ Computes a list of the expectation values of an operator with respect to
         a list of gradient circuits.
 
@@ -233,17 +260,18 @@ class EvaluateOperatorCostFunction(CostFunction):
 
         qubit_op_to_measure = QubitOperator()
         for term in self.target_operator.terms:
-            qubit_op_to_measure.terms[term] = 1.
-        
+            qubit_op_to_measure.terms[term] = 1.0
+
         all_circuits = []
         for shifted_circuits_per_param in gradient_circuits:
             for circuit in shifted_circuits_per_param:
                 all_circuits.append(circuit)
-        
+
         # Get exp vals
         expectation_values_set = self.backend.get_expectation_values_for_circuitset(
-                all_circuits, qubit_op_to_measure)
-        
+            all_circuits, qubit_op_to_measure
+        )
+
         # Store expectation values in a list of list of lists of the same shape as gradients_circuits
         expectation_lists = []
         counter = 0
@@ -256,7 +284,9 @@ class EvaluateOperatorCostFunction(CostFunction):
 
         return expectation_lists
 
-    def get_analytical_gradient_from_expectation_values_for_operator(self, factors, expectation_lists):
+    def get_analytical_gradient_from_expectation_values_for_operator(
+        self, factors, expectation_lists
+    ):
         """Computes the analytical gradient vector for the given operator from provided lists
         of expectation values.
 
@@ -276,11 +306,13 @@ class EvaluateOperatorCostFunction(CostFunction):
         """
 
         gradient = np.zeros(len(expectation_lists))
-        
+
         for i, shifted_exval_list in enumerate(expectation_lists):
             expectation_values = 0.0
             for j, exval in enumerate(shifted_exval_list):
                 expectation_values += factors[i][j] * np.asarray(exval.values)
-            gradient[i] = evaluate_qubit_operator(self.target_operator, ExpectationValues(expectation_values)).value
+            gradient[i] = evaluate_qubit_operator(
+                self.target_operator, ExpectationValues(expectation_values)
+            ).value
 
         return gradient

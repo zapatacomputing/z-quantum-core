@@ -123,18 +123,68 @@ class TestCircuit(unittest.TestCase):
 
         self.assertEqual(circuit_from_cirq, circuit_from_pyquil)
 
-    def test_circuit_evaluate(self):
+    def test_circuit_evaluate_with_all_params_specified(self):
+        # Given
+        theta_1 = sympy.Symbol("theta_1")
+        theta_2 = sympy.Symbol("theta_2")
+        theta_3 = sympy.Symbol("theta_3")
+        value_1 = 0.5
+        value_2 = 0.6
+        value_3 = 0.7
+        symbols_map = [(theta_1, value_1), (theta_2, value_2), (theta_3, value_3)]
+        circuit = Circuit(
+            Program().inst(
+                RX(2 * theta_1 + theta_2, 0), RY(theta_1, 0), RZ(theta_2, 0), RZ(0.4, 0)
+            )
+        )
+        target_circuit = Circuit(
+            Program().inst(
+                RX(2 * value_1 + value_2, 0), RY(value_1, 0), RZ(value_2, 0), RZ(0.4, 0)
+            )
+        )
+
+        # When
+        evaluated_circuit = circuit.evaluate(symbols_map)
+
+        # Then
+        self.assertEqual(evaluated_circuit, target_circuit)
+
+    def test_circuit_evaluate_with_some_params_specified(self):
         # Given
         theta_1 = sympy.Symbol("theta_1")
         theta_2 = sympy.Symbol("theta_2")
         value_1 = 0.5
         value_2 = 0.6
-        symbols_map = [(theta_1, value_1), (theta_2, value_2)]
+        symbols_map = [(theta_1, value_1)]
         circuit = Circuit(
-            Program().inst(RX(2 * theta_1 + theta_2, 0), RY(theta_1, 0), RZ(theta_2, 0))
+            Program().inst(
+                RX(2 * theta_1 + theta_2, 0), RY(theta_1, 0), RZ(theta_2, 0), RZ(0.4, 0)
+            )
         )
         target_circuit = Circuit(
-            Program().inst(RX(2 * value_1 + value_2, 0), RY(value_1, 0), RZ(value_2, 0))
+            Program().inst(
+                RX(2 * value_1 + theta_2, 0), RY(value_1, 0), RZ(theta_2, 0), RZ(0.4, 0)
+            )
+        )
+
+        # When
+        evaluated_circuit = circuit.evaluate(symbols_map)
+
+        # Then
+        self.assertEqual(evaluated_circuit, target_circuit)
+
+    def test_circuit_evaluate_with_wrong_params(self):
+        # Given
+        theta_1 = sympy.Symbol("theta_1")
+        theta_2 = sympy.Symbol("theta_2")
+        value_1 = 0.5
+        value_2 = 0.6
+        symbols_map = [(theta_2, value_2)]
+        circuit = Circuit(
+            Program().inst(RX(2 * theta_1, 0), RY(theta_1, 0), RZ(0.4, 0))
+        )
+        target_circuit = Circuit(
+            Program().inst(RX(2 * theta_1, 0), RY(theta_1, 0), RZ(0.4, 0))
         )
 
         # When

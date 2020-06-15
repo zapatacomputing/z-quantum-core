@@ -5,6 +5,7 @@ import pyquil
 import cirq
 import qiskit
 import random
+import warnings
 
 from qiskit import QuantumRegister
 
@@ -84,14 +85,17 @@ class Circuit(object):
     @property
     def symbolic_params(self):
         """
-        Returns a list of symbolic parameters used in the circuit
+        Returns a set of symbolic parameters used in the circuit
+
+        Returns:
+            set: set of all the sympy symbols used as params of gates in the circuit.
         """
         symbolic_params = []
         for gate in self.gates:
             symbolic_params_per_gate = gate.symbolic_params
             symbolic_params += symbolic_params_per_gate
 
-        return symbolic_params
+        return set(symbolic_params)
 
     def __eq__(self, anotherCircuit):
         """Comparison between two Circuit objects.
@@ -148,6 +152,20 @@ class Circuit(object):
         new_circuit.qubits = self.qubits
         new_circuit.info = self.info
         gates = []
+
+        all_symbols_in_map = set([item[0] for item in symbols_map])
+        if len(all_symbols_in_map - self.symbolic_params) > 0:
+            warnings.warn(
+                """
+                Trying to evaluate circuit with symbols not existing in the circuit:
+                Symbols in circuit: {0}
+                Symbols in the map: {1}
+                """.format(
+                    self.symbolic_params, all_symbols_in_map
+                ),
+                Warning,
+            )
+
         for gate in self.gates:
             gates.append(gate.evaluate(symbols_map))
 

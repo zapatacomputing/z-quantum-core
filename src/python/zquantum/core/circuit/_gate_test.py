@@ -81,9 +81,9 @@ class TestGate(unittest.TestCase):
         # Given
         params = [0.5, Symbol("theta_0"), Symbol("theta_0") + 2 * Symbol("theta_1")]
         target_symbolic_params = [
-            [],
-            [Symbol("theta_0")],
-            [Symbol("theta_0"), Symbol("theta_1")],
+            set(),
+            set([Symbol("theta_0")]),
+            set([Symbol("theta_0"), Symbol("theta_1")]),
         ]
 
         for param, target_params in zip(params, target_symbolic_params):
@@ -95,7 +95,7 @@ class TestGate(unittest.TestCase):
             symbolic_params = gate.symbolic_params
 
             # Then
-            self.assertEqual(set(symbolic_params), set(target_params))
+            self.assertEqual(symbolic_params, target_params)
 
     def test_dict_io(self):
         for gate_name in COMMON_GATES:

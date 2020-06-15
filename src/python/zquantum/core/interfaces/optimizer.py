@@ -4,6 +4,7 @@ from .cost_function import CostFunction
 from typing import Callable, Optional, Dict
 import numpy as np
 
+
 class Optimizer(ABC):
     """
     Interface for implementing different optimizers.
@@ -13,7 +14,7 @@ class Optimizer(ABC):
 
     """
 
-    def __init__(self, options:Optional[Dict]=None):
+    def __init__(self, options: Optional[Dict] = None):
         if options is None:
             options = {}
         self.options = options
@@ -21,7 +22,9 @@ class Optimizer(ABC):
             self.options["keep_value_history"] = False
 
     @abstractmethod
-    def minimize(self, cost_function:CostFunction, initial_params:np.ndarray, **kwargs) -> OptimizeResult:
+    def minimize(
+        self, cost_function: CostFunction, initial_params: np.ndarray, **kwargs
+    ) -> OptimizeResult:
         """
         Finds the parameters which minimize given cost function.
 

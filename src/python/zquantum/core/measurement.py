@@ -478,6 +478,7 @@ class Measurements:
             distribution[bitstring] = counts[bitstring] / num_measurements
 
         return BitstringDistribution(distribution)
+
     def get_expectation_values(
         self, ising_operator: IsingOperator
     ) -> ExpectationValues:

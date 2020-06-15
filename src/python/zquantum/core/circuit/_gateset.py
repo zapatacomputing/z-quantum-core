@@ -16,7 +16,32 @@ Gate.params: [float]
 """
 
 # All gates supported in Orquestra
-COMMON_GATES = ['X', 'Y', 'Z', 'H', 'S', 'T', 'PHASE', 'Rx', 'Ry', 'Rz', 
-                'CNOT', 'CZ', 'CPHASE', 'SWAP']
-UNIQUE_GATES = ['ZXZ', 'RH', 'XX', 'YY', 'ZZ', 'U1ex', 'Da', 'Db', 'MEASURE', 'BARRIER'] # gates unique to specific packages
+COMMON_GATES = [
+    "X",
+    "Y",
+    "Z",
+    "H",
+    "S",
+    "T",
+    "PHASE",
+    "Rx",
+    "Ry",
+    "Rz",
+    "CNOT",
+    "CZ",
+    "CPHASE",
+    "SWAP",
+]
+UNIQUE_GATES = [
+    "ZXZ",
+    "RH",
+    "XX",
+    "YY",
+    "ZZ",
+    "U1ex",
+    "Da",
+    "Db",
+    "MEASURE",
+    "BARRIER",
+]  # gates unique to specific packages
 ALL_GATES = COMMON_GATES + UNIQUE_GATES

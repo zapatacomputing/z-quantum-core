@@ -64,7 +64,3 @@ class MockCostFunction(CostFunction):
 
 def mock_ansatz(parameters):
     return Circuit(Program(X(0)))
-
-
-def mock_create_noise_model(noise_model_data):
-    return None

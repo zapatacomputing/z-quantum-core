@@ -104,6 +104,19 @@ class Gate(object):
                 evaluated_gate.params[i] = number
         return evaluated_gate
 
+    @property
+    def symbolic_params(self):
+        """
+        Returns a list of symbolic parameters used in the gate
+        """
+        all_symbols = []
+        for param in self.params:
+            if isinstance(param, sympy.Basic):
+                for symbol in param.free_symbols:
+                    all_symbols.append(symbol)
+
+        return all_symbols
+
     def get_param_string(self):
         r"""Get a string containing the parameters, e.g.
 

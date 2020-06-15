@@ -76,6 +76,27 @@ class TestGate(unittest.TestCase):
             # Then
             self.assertEqual(evaluated_symbolic_gate, symbolic_gate)
 
+    def test_symbolic_params(self):
+
+        # Given
+        params = [0.5, Symbol("theta_0"), Symbol("theta_0") + 2 * Symbol("theta_1")]
+        target_symbolic_params = [
+            [],
+            [Symbol("theta_0")],
+            [Symbol("theta_0"), Symbol("theta_1")],
+        ]
+
+        for param, target_params in zip(params, target_symbolic_params):
+            # Given
+            qubit_list = [Qubit(0)]
+            gate = Gate("Rx", qubits=qubit_list, params=[param])
+
+            # When
+            symbolic_params = gate.symbolic_params
+
+            # Then
+            self.assertEqual(set(symbolic_params), set(target_params))
+
     def test_dict_io(self):
         for gate_name in COMMON_GATES:
             # Given

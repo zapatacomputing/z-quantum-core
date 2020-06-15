@@ -81,6 +81,18 @@ class Circuit(object):
 
         return n_mq_gates
 
+    @property
+    def symbolic_params(self):
+        """
+        Returns a list of symbolic parameters used in the circuit
+        """
+        symbolic_params = []
+        for gate in self.gates:
+            symbolic_params_per_gate = gate.symbolic_params
+            symbolic_params += symbolic_params_per_gate
+
+        return symbolic_params
+
     def __eq__(self, anotherCircuit):
         """Comparison between two Circuit objects.
         """

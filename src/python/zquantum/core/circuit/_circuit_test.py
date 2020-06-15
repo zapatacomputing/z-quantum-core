@@ -123,6 +123,36 @@ class TestCircuit(unittest.TestCase):
 
         self.assertEqual(circuit_from_cirq, circuit_from_pyquil)
 
+    def test_circuit_symbolic_params(self):
+        # Given
+        qubits = [Qubit(i) for i in range(0, 3)]
+        theta_1 = sympy.Symbol("theta_1")
+        theta_2 = sympy.Symbol("theta_2")
+
+        gate_1 = Gate("Rx", params=[theta_1], qubits=[qubits[0]])
+        gate_2 = Gate("Ry", params=[theta_2], qubits=[qubits[0]])
+        gate_3 = Gate("Rz", params=[0.5 * theta_1 - 2 * theta_2], qubits=[qubits[0]])
+        gate_4 = Gate("Rx", params=[0.3], qubits=[qubits[0]])
+
+        target_symbolic_params_1 = [theta_1, theta_2]
+        target_symbolic_params_2 = []
+
+        circ_1 = Circuit("circ1")
+        circ_1.qubits = qubits
+        circ_1.gates = [gate_1, gate_2, gate_3, gate_4]
+
+        circ_2 = Circuit("circ2")
+        circ_2.qubits = qubits
+        circ_2.gates = [gate_4]
+
+        # When
+        symbolic_params_1 = circ_1.symbolic_params
+        symbolic_params_2 = circ_2.symbolic_params
+
+        # Then
+        self.assertEqual(set(symbolic_params_1), set(target_symbolic_params_1))
+        self.assertEqual(symbolic_params_2, target_symbolic_params_2)
+
     def test_circuit_evaluate_with_all_params_specified(self):
         # Given
         theta_1 = sympy.Symbol("theta_1")

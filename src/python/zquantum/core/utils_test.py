@@ -178,7 +178,7 @@ class TestUtils(unittest.TestCase):
     def test_noise_model_io(self):
         # Given
         module_name = "zquantum.core.interfaces.mock_objects"
-        function_name = "mock_load_noise_model"
+        function_name = "mock_create_noise_model"
         noise_model_data = {"testing": "data"}
 
         # When

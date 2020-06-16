@@ -78,7 +78,7 @@ class MockAnsatz(Ansatz):
     def get_gradient_circuits(self):
         if self.gradient_type == "finite_differences":
             return [self.get_circuit()]
-        else:
+        elif self.gradient_type == "parameter_shift_rule":
             circuit_plus = Circuit()
             circuit_minus = Circuit()
             for layer_index in range(self._n_layers):

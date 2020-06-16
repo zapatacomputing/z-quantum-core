@@ -104,6 +104,22 @@ class Gate(object):
                 evaluated_gate.params[i] = number
         return evaluated_gate
 
+    @property
+    def symbolic_params(self):
+        """
+        Returns a list of symbolic parameters used in the gate
+
+        Returns:
+            set: set containing all the sympy symbols used in gate params
+        """
+        all_symbols = []
+        for param in self.params:
+            if isinstance(param, sympy.Basic):
+                for symbol in param.free_symbols:
+                    all_symbols.append(symbol)
+
+        return set(all_symbols)
+
     def get_param_string(self):
         r"""Get a string containing the parameters, e.g.
 
@@ -123,17 +139,32 @@ class Gate(object):
 
         return param_string
 
-    def to_dict(self):
-        """Convert the gate back to a dictionary (for serialization).
+    def to_dict(self, serialize_params=False):
+        """Convert the gate back to a dictionary.
+        Params might be sympy objects, which are not serializable by default.
+        In order to convert them to strings, `serialize_params` must be set to true.
+        If all the params are numerical, they will be serializable anyway.
+
+        Args:
+            serialize_params(bool): flag indicating whether sympy parameters should be serialized.
 
         Returns:
             A dictionary with only serializable values.
         """
+        if serialize_params:
+            params = []
+            for param in self.params:
+                if isinstance(param, sympy.Basic):
+                    params.append(str(param))
+                else:
+                    params.append(param)
+        else:
+            params = self.params
         return {
             "name": self.name,
             "qubits": [qubit.to_dict() for qubit in self.qubits],
             "info": self.info,
-            "params": self.params,
+            "params": params,
         }
 
     def to_unitary(self):
@@ -170,6 +201,7 @@ class Gate(object):
     def from_dict(cls, dict):
         """Generates Gate object from dictionary. This is the inverse operation to the 
         serialization function to_dict.
+        If any of the gate params is string it will be converted to sympy symbol.
         
         dict: dictionary
         Contains information needed to specify the Gate. See to_dict for details.
@@ -177,10 +209,14 @@ class Gate(object):
         Return:
         A core.gate.Gate object.
         """
+        params = []
+        for param in dict["params"]:
+            if type(param) is str:
+                params.append(sympy.sympify(param))
+            else:
+                params.append(param)
         output = cls(
-            dict["name"],
-            [Qubit.from_dict(qubit) for qubit in dict["qubits"]],
-            dict["params"],
+            dict["name"], [Qubit.from_dict(qubit) for qubit in dict["qubits"]], params,
         )
         output.info = dict["info"]
         return output

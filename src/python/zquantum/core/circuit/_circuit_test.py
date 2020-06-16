@@ -6,6 +6,7 @@ import pyquil
 import cirq
 import qiskit
 import os
+import sympy
 
 from pyquil import Program
 from pyquil.gates import *
@@ -13,7 +14,6 @@ from pyquil.gates import QUANTUM_GATES
 from math import pi, sin, cos
 
 from . import load_circuit, save_circuit, Circuit, Gate, Qubit, pyquil2cirq, cirq2pyquil
-
 
 from ..utils import compare_unitary, is_identity, is_unitary, RNDSEED
 from ..testing import create_random_circuit
@@ -41,6 +41,33 @@ class TestCircuit(unittest.TestCase):
         circ3 = Circuit("circ3")
         circ3.qubits = qubits
         circ3.gates = [gate_H0, gate_CNOT01, gate_T2]
+
+        self.assertEqual(circ1 == circ2, False)
+        self.assertEqual(circ1 == circ3, True)
+
+    def test_circuit_eq_with_symbolic_params(self):
+        """Test equality operation between Circuit objects when some of the parameters are symbolical.
+        """
+
+        # Given
+        qubits = [Qubit(i) for i in range(0, 3)]
+        theta_1 = sympy.Symbol("theta_1")
+        theta_2 = sympy.Symbol("theta_2")
+
+        gate_RX_1 = Gate("Rx", params=[theta_1], qubits=[qubits[0]])
+        gate_RX_2 = Gate("Rx", params=[theta_2], qubits=[qubits[0]])
+
+        circ1 = Circuit("circ1")
+        circ1.qubits = qubits
+        circ1.gates = [gate_RX_1]
+
+        circ2 = Circuit("circ2")
+        circ2.qubits = qubits
+        circ2.gates = [gate_RX_2]
+
+        circ3 = Circuit("circ3")
+        circ3.qubits = qubits
+        circ3.gates = [gate_RX_1]
 
         self.assertEqual(circ1 == circ2, False)
         self.assertEqual(circ1 == circ3, True)
@@ -96,10 +123,145 @@ class TestCircuit(unittest.TestCase):
 
         self.assertEqual(circuit_from_cirq, circuit_from_pyquil)
 
+    def test_circuit_symbolic_params(self):
+        # Given
+        qubits = [Qubit(i) for i in range(0, 3)]
+        theta_1 = sympy.Symbol("theta_1")
+        theta_2 = sympy.Symbol("theta_2")
+
+        gate_1 = Gate("Rx", params=[theta_1], qubits=[qubits[0]])
+        gate_2 = Gate("Ry", params=[theta_2], qubits=[qubits[0]])
+        gate_3 = Gate("Rz", params=[0.5 * theta_1 - 2 * theta_2], qubits=[qubits[0]])
+        gate_4 = Gate("Rx", params=[0.3], qubits=[qubits[0]])
+
+        target_symbolic_params_1 = set([theta_1, theta_2])
+        target_symbolic_params_2 = set()
+
+        circ_1 = Circuit("circ1")
+        circ_1.qubits = qubits
+        circ_1.gates = [gate_1, gate_2, gate_3, gate_4]
+
+        circ_2 = Circuit("circ2")
+        circ_2.qubits = qubits
+        circ_2.gates = [gate_4]
+
+        # When
+        symbolic_params_1 = circ_1.symbolic_params
+        symbolic_params_2 = circ_2.symbolic_params
+
+        # Then
+        self.assertEqual(symbolic_params_1, target_symbolic_params_1)
+        self.assertEqual(symbolic_params_2, target_symbolic_params_2)
+
+    def test_circuit_evaluate_with_all_params_specified(self):
+        # Given
+        theta_1 = sympy.Symbol("theta_1")
+        theta_2 = sympy.Symbol("theta_2")
+        value_1 = 0.5
+        value_2 = 0.6
+        symbols_map = [(theta_1, value_1), (theta_2, value_2)]
+        circuit = Circuit(
+            Program().inst(
+                RX(2 * theta_1 + theta_2, 0), RY(theta_1, 0), RZ(theta_2, 0), RZ(0.4, 0)
+            )
+        )
+        target_circuit = Circuit(
+            Program().inst(
+                RX(2 * value_1 + value_2, 0), RY(value_1, 0), RZ(value_2, 0), RZ(0.4, 0)
+            )
+        )
+
+        # When
+        evaluated_circuit = circuit.evaluate(symbols_map)
+
+        # Then
+        self.assertEqual(evaluated_circuit, target_circuit)
+
+    def test_circuit_evaluate_with_too_many_params_specified(self):
+        # Given
+        theta_1 = sympy.Symbol("theta_1")
+        theta_2 = sympy.Symbol("theta_2")
+        theta_3 = sympy.Symbol("theta_3")
+        value_1 = 0.5
+        value_2 = 0.6
+        value_3 = 0.7
+        symbols_map = [(theta_1, value_1), (theta_2, value_2), (theta_3, value_3)]
+        circuit = Circuit(
+            Program().inst(
+                RX(2 * theta_1 + theta_2, 0), RY(theta_1, 0), RZ(theta_2, 0), RZ(0.4, 0)
+            )
+        )
+        target_circuit = Circuit(
+            Program().inst(
+                RX(2 * value_1 + value_2, 0), RY(value_1, 0), RZ(value_2, 0), RZ(0.4, 0)
+            )
+        )
+
+        # When/Then
+        with self.assertWarns(Warning):
+            evaluated_circuit = circuit.evaluate(symbols_map)
+
+        self.assertEqual(evaluated_circuit, target_circuit)
+
+    def test_circuit_evaluate_with_some_params_specified(self):
+        # Given
+        theta_1 = sympy.Symbol("theta_1")
+        theta_2 = sympy.Symbol("theta_2")
+        value_1 = 0.5
+        value_2 = 0.6
+        symbols_map = [(theta_1, value_1)]
+        circuit = Circuit(
+            Program().inst(
+                RX(2 * theta_1 + theta_2, 0), RY(theta_1, 0), RZ(theta_2, 0), RZ(0.4, 0)
+            )
+        )
+        target_circuit = Circuit(
+            Program().inst(
+                RX(2 * value_1 + theta_2, 0), RY(value_1, 0), RZ(theta_2, 0), RZ(0.4, 0)
+            )
+        )
+
+        # When
+        evaluated_circuit = circuit.evaluate(symbols_map)
+
+        # Then
+        self.assertEqual(evaluated_circuit, target_circuit)
+
+    def test_circuit_evaluate_with_wrong_params(self):
+        # Given
+        theta_1 = sympy.Symbol("theta_1")
+        theta_2 = sympy.Symbol("theta_2")
+        value_1 = 0.5
+        value_2 = 0.6
+        symbols_map = [(theta_2, value_2)]
+        circuit = Circuit(
+            Program().inst(RX(2 * theta_1, 0), RY(theta_1, 0), RZ(0.4, 0))
+        )
+        target_circuit = Circuit(
+            Program().inst(RX(2 * theta_1, 0), RY(theta_1, 0), RZ(0.4, 0))
+        )
+
+        # When
+        evaluated_circuit = circuit.evaluate(symbols_map)
+
+        # Then
+        self.assertEqual(evaluated_circuit, target_circuit)
+
     def test_circuit_io(self):
         circuit = Circuit(Program().inst(X(0), Y(1), Z(0)))
         save_circuit(circuit, "circuit.json")
         loaded_circuit = load_circuit("circuit.json")
+        self.assertTrue(circuit == loaded_circuit)
+        os.remove("circuit.json")
+
+    def test_circuit_io_with_symbolic_params(self):
+        # Given
+        theta_1 = sympy.Symbol("theta_1")
+        circuit = Circuit(Program().inst(RX(theta_1, 0), Y(1), Z(0)))
+        # When
+        save_circuit(circuit, "circuit.json")
+        loaded_circuit = load_circuit("circuit.json")
+        # Then
         self.assertTrue(circuit == loaded_circuit)
         os.remove("circuit.json")
 

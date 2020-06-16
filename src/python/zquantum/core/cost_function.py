@@ -87,12 +87,13 @@ class BasicCostFunction(CostFunction):
 
 class AnsatzBasedCostFunction(CostFunction):
     """
-    Cost function used for evaluating a given operator using given ansatz.
+    Cost function used for evaluating given operator using given ansatz.
 
     Args:
         target_operator (openfermion.QubitOperator): operator to be evaluated
         ansatz (dict): dictionary representing the ansatz
         backend (zquantum.core.interfaces.backend.QuantumBackend): backend used for evaluation
+        estimator: (zquantum.core.interfaces.estimator.Estimator) = estimator used to compute expectation value of target operator 
         gradient_type (str): parameter indicating which type of gradient should be used.
         save_evaluation_history (bool): flag indicating whether we want to store the history of all the evaluations.
         epsilon (float): epsilon used for calculating gradient using finite difference method.
@@ -101,6 +102,7 @@ class AnsatzBasedCostFunction(CostFunction):
         target_operator (openfermion.QubitOperator): see Args
         ansatz (dict): see Args
         backend (zquantum.core.interfaces.backend.QuantumBackend): see Args
+        estimator: (zquantum.core.interfaces.estimator.Estimator) = see Args 
         evaluations_history (list): List of the tuples (parameters, value) representing all the evaluation in a chronological order.
         save_evaluation_history (bool): see Args
         gradient_type (str): see Args

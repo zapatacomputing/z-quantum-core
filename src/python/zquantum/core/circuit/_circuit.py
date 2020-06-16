@@ -5,6 +5,7 @@ import pyquil
 import cirq
 import qiskit
 import random
+import warnings
 
 from qiskit import QuantumRegister
 
@@ -81,13 +82,39 @@ class Circuit(object):
 
         return n_mq_gates
 
+    @property
+    def symbolic_params(self):
+        """
+        Returns a set of symbolic parameters used in the circuit
+
+        Returns:
+            set: set of all the sympy symbols used as params of gates in the circuit.
+        """
+        symbolic_params = []
+        for gate in self.gates:
+            symbolic_params_per_gate = gate.symbolic_params
+            symbolic_params += symbolic_params_per_gate
+
+        return set(symbolic_params)
+
     def __eq__(self, anotherCircuit):
         """Comparison between two Circuit objects.
         """
+        if self.name != anotherCircuit.name:
+            return False
+        if len(self.qubits) != len(anotherCircuit.qubits):
+            return False
+        for i in range(len(self.qubits)):
+            if str(self.qubits[i]) != str(anotherCircuit.qubits[i]):
+                return False
 
-        p1 = self.to_pyquil()
-        p2 = anotherCircuit.to_pyquil()
-        return p1 == p2
+        if len(self.gates) != len(anotherCircuit.gates):
+            return False
+        for i in range(len(self.gates)):
+            if self.gates[i] != anotherCircuit.gates[i]:
+                return False
+
+        return True
 
     def __add__(self, other_circuit):
         """Add two circuits.
@@ -112,6 +139,38 @@ class Circuit(object):
         """
 
         return [q.index for q in self.qubits]
+
+    def evaluate(self, symbols_map):
+        """
+        Returns a copy of a circuit with specified symbolic parameters evaluated to provided values.
+
+        Args:
+            symbols_map list(tuple(sympy.Basic, number)): List containing symbols and values that they should take.
+        """
+        new_circuit = type(self)()
+        new_circuit.name = self.name
+        new_circuit.qubits = self.qubits
+        new_circuit.info = self.info
+        gates = []
+
+        all_symbols_in_map = set([item[0] for item in symbols_map])
+        if len(all_symbols_in_map - self.symbolic_params) > 0:
+            warnings.warn(
+                """
+                Trying to evaluate circuit with symbols not existing in the circuit:
+                Symbols in circuit: {0}
+                Symbols in the map: {1}
+                """.format(
+                    self.symbolic_params, all_symbols_in_map
+                ),
+                Warning,
+            )
+
+        for gate in self.gates:
+            gates.append(gate.evaluate(symbols_map))
+
+        new_circuit.gates = gates
+        return new_circuit
 
     def to_pyquil(self):
         """Converts the circuit to a pyquil Program object.
@@ -262,15 +321,21 @@ class Circuit(object):
 
         return qiskit_circuit
 
-    def to_dict(self):
+    def to_dict(self, serialize_gate_params=True):
         """Creates a dictionary representing a circuit.
+
+        Args:
+            serialize_gate_params(bool): if true, it will change gate params from sympy to strings (if applicable)
 
         Returns:
             dictionary (dict): the dictionary
         """
 
         if self.gates != None:
-            gates_entry = [gate.to_dict() for gate in self.gates]
+            gates_entry = [
+                gate.to_dict(serialize_params=serialize_gate_params)
+                for gate in self.gates
+            ]
         else:
             gates_entry = None
 
@@ -572,7 +637,7 @@ def save_circuit(circuit, filename):
     """
 
     with open(filename, "w") as f:
-        f.write(json.dumps(circuit.to_dict()))
+        f.write(json.dumps(circuit.to_dict(serialize_gate_params=True)))
 
 
 def load_circuit(file):

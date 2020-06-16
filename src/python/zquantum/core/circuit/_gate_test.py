@@ -6,6 +6,7 @@ from ._qubit import Qubit
 from sympy import Symbol
 import qiskit
 from math import pi
+import pyquil
 
 
 class TestGate(unittest.TestCase):
@@ -74,6 +75,27 @@ class TestGate(unittest.TestCase):
 
             # Then
             self.assertEqual(evaluated_symbolic_gate, symbolic_gate)
+
+    def test_symbolic_params(self):
+
+        # Given
+        params = [0.5, Symbol("theta_0"), Symbol("theta_0") + 2 * Symbol("theta_1")]
+        target_symbolic_params = [
+            set(),
+            set([Symbol("theta_0")]),
+            set([Symbol("theta_0"), Symbol("theta_1")]),
+        ]
+
+        for param, target_params in zip(params, target_symbolic_params):
+            # Given
+            qubit_list = [Qubit(0)]
+            gate = Gate("Rx", qubits=qubit_list, params=[param])
+
+            # When
+            symbolic_params = gate.symbolic_params
+
+            # Then
+            self.assertEqual(symbolic_params, target_params)
 
     def test_dict_io(self):
         for gate_name in COMMON_GATES:
@@ -169,10 +191,13 @@ class TestGate(unittest.TestCase):
 
             # When
             gate_dict = gate.to_dict()
+            gate_dict_serialized = gate.to_dict(serialize_params=True)
             recreated_gate = Gate.from_dict(gate_dict)
+            recreated_gate_from_serialized = Gate.from_dict(gate_dict_serialized)
 
             # Then
             self.assertEqual(gate, recreated_gate)
+            self.assertEqual(gate, recreated_gate_from_serialized)
 
     def test_pyquil_io_for_symbolic_parameters(self):
         for gate_name in self.one_parameter_gates:

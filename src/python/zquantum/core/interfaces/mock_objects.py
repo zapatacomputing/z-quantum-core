@@ -1,3 +1,4 @@
+from .ansatz import Ansatz
 from .backend import QuantumSimulator
 from .optimizer import Optimizer
 from .cost_function import CostFunction
@@ -7,7 +8,8 @@ import random
 from scipy.optimize import OptimizeResult
 import numpy as np
 from pyquil import Program
-from pyquil.gates import X
+from pyquil.gates import RX
+import sympy
 
 
 class MockQuantumSimulator(QuantumSimulator):
@@ -62,5 +64,40 @@ class MockCostFunction(CostFunction):
             return self.get_gradients_finite_difference(parameters)
 
 
-def mock_ansatz(parameters):
-    return Circuit(Program(X(0)))
+class MockAnsatz(Ansatz):
+    supported_gradient_methods = ["finite_differences", "parameter_shift_rule"]
+
+    def get_circuit(self):
+        circuit = Circuit()
+        for layer_index in range(self._n_layers):
+            theta = sympy.Symbol("theta" + str(layer_index))
+            for qubit_index in range(self._n_qubits):
+                circuit += Program(RX(theta, qubit_index))
+        return circuit
+
+    def get_gradient_circuits(self):
+        if self.gradient_type == "finite_differences":
+            return [self.get_circuit()]
+        else:
+            circuit_plus = Circuit()
+            circuit_minus = Circuit()
+            for layer_index in range(self._n_layers):
+                theta = sympy.Symbol("theta" + str(layer_index))
+                for qubit_index in range(self._n_qubits):
+                    circuit_plus += Program(RX(theta + np.pi, qubit_index))
+                    circuit_minus += Program(RX(theta - np.pi, qubit_index))
+            return [circuit_plus, circuit_minus]
+        else:
+            raise Exception(
+                "Gradient type: {0} not supported.".format(self.gradient_type)
+            )
+
+    def get_number_of_params_per_layer(self):
+        return self._n_qubits
+
+    def get_symbols(self):
+        symbols = []
+        for layer_index in range(self._n_layers):
+            theta = sympy.Symbol("theta" + str(layer_index))
+            symbols.append(theta)
+        return symbols

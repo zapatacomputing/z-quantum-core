@@ -2,6 +2,7 @@
 from abc import ABC, abstractmethod
 import numpy as np
 from typing import Optional
+from ..utils import ValueEstimate
 
 
 class CostFunction(ABC):
@@ -27,7 +28,7 @@ class CostFunction(ABC):
         self.epsilon = epsilon
 
     
-    def evaluate(self, parameters:np.ndarray) -> float:
+    def evaluate(self, parameters:np.ndarray) -> ValueEstimate:
         """
         Evaluates the value of the cost function for given parameters and saves the results (if specified).
         Args:
@@ -42,7 +43,7 @@ class CostFunction(ABC):
         return value
     
     @abstractmethod
-    def _evaluate(self, parameters:np.ndarray) -> float:
+    def _evaluate(self, parameters:np.ndarray) -> ValueEstimate:
         """
         Evaluates the value of the cost function for given parameters.
 

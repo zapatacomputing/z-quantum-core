@@ -3,6 +3,7 @@ from .interfaces.backend import QuantumBackend
 from .interfaces.estimator import Estimator
 from .circuit import build_ansatz_circuit
 from .estimator import BasicEstimator
+from .utils import ValueEstimate
 from typing import Callable, Optional, Dict
 import numpy as np
 import copy
@@ -46,7 +47,7 @@ class BasicCostFunction(CostFunction):
         self.gradient_function = gradient_function
         self.epsilon = epsilon
 
-    def _evaluate(self, parameters: np.ndarray) -> float:
+    def _evaluate(self, parameters: np.ndarray) -> ValueEstimate:
         """
         Evaluates the value of the cost function for given parameters.
 
@@ -56,7 +57,7 @@ class BasicCostFunction(CostFunction):
         Returns:
             value: cost function value for given parameters, either int or float.
         """
-        value = self.function(parameters)
+        value = ValueEstimate(self.function(parameters))
         return value
 
     def get_gradient(self, parameters: np.ndarray) -> np.ndarray:
@@ -129,7 +130,7 @@ class AnsatzBasedCostFunction(CostFunction):
         self.gradient_type = gradient_type
         self.epsilon = epsilon
 
-    def _evaluate(self, parameters: np.ndarray) -> float:
+    def _evaluate(self, parameters: np.ndarray) -> ValueEstimate:
         """
         Evaluates the value of the cost function for given parameters.
 
@@ -144,4 +145,4 @@ class AnsatzBasedCostFunction(CostFunction):
             self.backend, circuit, self.target_operator
         )
         final_value = np.sum(expectation_values.values)
-        return final_value
+        return ValueEstimate(final_value)

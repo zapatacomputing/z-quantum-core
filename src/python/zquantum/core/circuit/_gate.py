@@ -171,6 +171,7 @@ class Gate(object):
         """Returns a unitary matrix representing the gate.
         """
         if self.name in {
+            "I",
             "X",
             "Y",
             "Z",
@@ -241,7 +242,7 @@ class Gate(object):
 
         # single-qubit gates
         if self.name == "I":  # identity
-            return Program(I(q1))
+            return pyquil.gates.I(q1)
         if self.name == "X":  # Pauli X
             return pyquil.gates.X(q1)
         if self.name == "Y":  # Pauli Y
@@ -317,6 +318,8 @@ class Gate(object):
             params = self.params
 
         # single-qubit gates
+        if self.name == "I":  # Identity
+            return cirq.I(cirq_qubits[0])
         if self.name == "X":  # Pauli X
             return cirq.X(cirq_qubits[0])
         if self.name == "Y":  # Pauli Y
@@ -433,6 +436,8 @@ class Gate(object):
                 if isinstance(params[i], sympy.Basic):
                     params[i] = ParameterExpression({}, params[i])
         # single-qubit gates
+        if self.name == "I":
+            return [qiskit.extensions.standard.IGate(), [qiskit_qubits[0]], []]
         if self.name == "X":
             return [qiskit.extensions.standard.XGate(), [qiskit_qubits[0]], []]
         if self.name == "Y":
@@ -748,6 +753,7 @@ class Gate(object):
             )
             name_str = parsed_gatename[0]
             if name_str in {
+                "I",
                 "X",
                 "Y",
                 "Z",
@@ -769,6 +775,9 @@ class Gate(object):
                     if name_str == "X":
                         output.name = "Rx"
                         output.params = [cirq_gate.gate.exponent * pi]
+                    elif name_str == "I":
+                        output.name = "I"
+                        output.params = []
                     elif name_str == "Y":
                         output.name = "Ry"
                         output.params = [cirq_gate.gate.exponent * pi]
@@ -826,6 +835,8 @@ class Gate(object):
         output = cls()
         if qiskit_gate.name in {"x", "y", "z", "h", "t", "s"}:
             output.name = qiskit_gate.name.upper()
+        elif qiskit_gate.name in {"id"}:
+            output.name = "I"
         elif qiskit_gate.name in {"rx", "ry", "rz"}:
             output.name = "R" + qiskit_gate.name[1]
         elif qiskit_gate.name == "cx":

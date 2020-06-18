@@ -4,6 +4,7 @@ import random
 import numpy as np
 from scipy.linalg import expm
 from scipy.stats import unitary_group
+import sympy
 
 from openfermion.utils import qubit_operator_sparse
 from .utils import (
@@ -24,6 +25,7 @@ from .utils import (
     get_func_from_specs,
     load_noise_model,
     save_noise_model,
+    create_symbols_map,
 )
 from .interfaces.mock_objects import MockQuantumSimulator
 
@@ -189,3 +191,18 @@ class TestUtils(unittest.TestCase):
 
         # Then
         self.assertEqual(noise_model, None)
+
+    def test_create_symbols_map(self):
+        # Given
+        symbol_1 = sympy.Symbol("alpha")
+        symbol_2 = sympy.Symbol("beta")
+        symbols = [symbol_1, symbol_2]
+        params = np.array([1, 2])
+        target_symbols_map = [(symbol_1, 1), (symbol_2, 2)]
+
+        # When
+        symbols_map = create_symbols_map(symbols, params)
+
+        # Then
+        self.assertEqual(symbols_map, target_symbols_map)
+

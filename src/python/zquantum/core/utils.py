@@ -8,14 +8,16 @@ import operator
 import sys
 import json
 import openfermion
+import sympy
 from openfermion import hermitian_conjugated
 from openfermion.ops import SymbolicOperator
 from networkx.readwrite import json_graph
 import lea
 import collections
 import scipy
-from typing import List
+from typing import List, Tuple
 import importlib
+
 
 SCHEMA_VERSION = "zapata-v1"
 RNDSEED = 12345
@@ -436,3 +438,16 @@ def save_noise_model(noise_model_data, module_name, function_name, filename):
 
     with open(filename, "w") as f:
         f.write(json.dumps(data, indent=2))
+
+
+def create_symbols_map(
+    symbols: List[sympy.Symbol], params: np.ndarray
+) -> Tuple[sympy.Symbol, float]:
+    """
+    Creates a map to be used for evaluating sympy expressions.
+
+    Args:
+        symbols: list of sympy Symbols to be evaluated
+        params: numpy array containing numerical value for the symbols
+    """
+    return [(symbol, param) for symbol, param in zip(symbols, params.tolist())]

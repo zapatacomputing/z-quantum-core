@@ -1,9 +1,10 @@
 from abc import ABC, abstractmethod
-from zquantum.core.circuit import Circuit
+from ..circuit import Circuit
 import copy
 import sympy
 from typing import List
 from overrides import EnforceOverrides
+from .ansatz_utils import invalidates_circuits
 
 
 class Ansatz(ABC, EnforceOverrides):
@@ -23,10 +24,15 @@ class Ansatz(ABC, EnforceOverrides):
             gradient_type: string defining what method should be used for calculating gradients.
         
         Attributes:
+            n_qubits (int): see Args
+            n_layers (int): see Args
+            gradient_type (str): see Args
+            circuit (zquantum.core.circuit.Circuit): circuit representation of the ansatz.
+            gradient_circuits (List[zquantum.core.circuit.Circuit]): circuits required for calculating ansatz gradients.
             supported_gradient_methods(list): List containing what type of gradients does given ansatz support.
         
         """
-        if self._gradient_type not in supported_gradient_methods:
+        if gradient_type not in self.supported_gradient_methods:
             raise ValueError(
                 "Gradient type: {0} not supported.".format(self._gradient_type)
             )
@@ -35,7 +41,39 @@ class Ansatz(ABC, EnforceOverrides):
         self._n_qubits = n_qubits
         self._n_layers = n_layers
         self._circuit = None
-        self.gradient_circuits = None
+        self._gradient_circuits = None
+
+    @property
+    def n_qubits(self):
+        return self._n_qubits
+
+    @invalidates_circuits
+    @n_qubits.setter
+    def n_qubits(self, new_n_qubits):
+        self._n_qubits = new_n_qubits
+
+    @property
+    def n_layers(self):
+        return self._n_layers
+
+    @invalidates_circuits
+    @n_layers.setter
+    def n_layers(self, new_n_layers):
+        self._n_layers = new_n_layers
+
+    @property
+    def gradient_type(self):
+        return self._gradient_type
+
+    @invalidates_circuits
+    @gradient_type.setter
+    def gradient_type(self, new_gradient_type):
+        if new_gradient_type not in self.supported_gradient_methods:
+            raise ValueError(
+                "Gradient type: {0} not supported.".format(self._gradient_type)
+            )
+        else:
+            self._gradient_type = new_gradient_type
 
     @property
     def circuit(self) -> Circuit:
@@ -47,45 +85,9 @@ class Ansatz(ABC, EnforceOverrides):
     @property
     def gradient_circuits(self) -> List[Circuit]:
         if self._circuit is None:
-            return self.generate_circuit()
+            return self.generate_gradient_circuits()
         else:
             return self._gradient_circuits
-
-    @property
-    def gradient_type(self):
-        return self._gradient_type
-
-    @gradient_type.setter
-    def gradient_type(self, new_gradient_type):
-        if new_gradient_type not in supported_gradient_methods:
-            raise ValueError(
-                "Gradient type: {0} not supported.".format(self._gradient_type)
-            )
-        else:
-            self._gradient_type = new_gradient_type
-        # TODO: not sure which one is the best:
-        # 1. self._regenerate_circuits()
-        # 2. self._regenerate_circuits(gradients_only=True)
-        # 3. self.gradient_circuits = self.generate_gradient_circuits()
-        self._regenerate_circuits()
-
-    @property
-    def n_qubits(self):
-        return self._n_qubits
-
-    @n_qubits.setter
-    def n_qubits(self, new_n_qubits):
-        self._n_qubits = new_n_qubits
-        self._regenerate_circuits()
-
-    @property
-    def n_qubits(self):
-        return self._n_qubits
-
-    @n_qubits.setter
-    def n_qubits(self, new_n_qubits):
-        self._n_qubits = new_n_qubits
-        self._regenerate_circuits()
 
     def generate_circuit(self) -> Circuit:
         """
@@ -110,10 +112,3 @@ class Ansatz(ABC, EnforceOverrides):
         Returns a list of parameters used for creating the ansatz.
         """
         raise NotImplementedError
-
-    def _regenerate_circuits(self):
-        """
-        Regenerates `circuit` and `gradient_circuits` after some fields of the class change.
-        """
-        self.circuit = self.generate_circuit()
-        self.gradient_circuits = self.generate_gradient_circuits()

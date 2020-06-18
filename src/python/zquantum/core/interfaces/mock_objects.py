@@ -71,8 +71,7 @@ class MockAnsatz(Ansatz):
     @overrides
     def generate_circuit(self):
         circuit = Circuit()
-        for layer_index in range(self._n_layers):
-            theta = sympy.Symbol("theta" + str(layer_index))
+        for theta in self.get_symbols():
             for qubit_index in range(self._n_qubits):
                 circuit += Program(RX(theta, qubit_index))
         return circuit
@@ -84,8 +83,7 @@ class MockAnsatz(Ansatz):
         elif self.gradient_type == "parameter_shift_rule":
             circuit_plus = Circuit()
             circuit_minus = Circuit()
-            for layer_index in range(self._n_layers):
-                theta = sympy.Symbol("theta" + str(layer_index))
+            for theta in self.get_symbols():
                 for qubit_index in range(self._n_qubits):
                     circuit_plus += Program(RX(theta + np.pi / 2, qubit_index))
                     circuit_minus += Program(RX(theta - np.pi / 2, qubit_index))

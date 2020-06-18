@@ -25,5 +25,6 @@ setuptools.setup(
         "cirq==0.7.0",
         "qiskit==0.18.3",
         "quantum-grove>=1.0.0",
+        "overrides>=3.1.0",
     ],
 )

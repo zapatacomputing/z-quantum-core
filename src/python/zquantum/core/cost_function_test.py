@@ -1,7 +1,7 @@
 import unittest
 import numpy as np
 from .cost_function import BasicCostFunction, EvaluateOperatorCostFunction
-from .interfaces.mock_objects import MockQuantumSimulator
+from .interfaces.mock_objects import MockQuantumSimulator, MockAnsatz
 from .interfaces.cost_function_test import CostFunctionTests
 from openfermion import QubitOperator
 
@@ -81,12 +81,7 @@ class TestBasicCostFunction(unittest.TestCase, CostFunctionTests):
 class TestEvaluateOperatorCostFunction(unittest.TestCase, CostFunctionTests):
     def setUp(self):
         target_operator = QubitOperator("Z0")
-        ansatz = {
-            "ansatz_module": "zquantum.core.interfaces.mock_objects",
-            "ansatz_func": "mock_ansatz",
-            "ansatz_kwargs": {},
-            "n_params": [1],
-        }
+        ansatz = MockAnsatz(n_qubits=1, n_layers=1)
         backend = MockQuantumSimulator()
         self.single_term_op_cost_function = EvaluateOperatorCostFunction(
             target_operator, ansatz, backend

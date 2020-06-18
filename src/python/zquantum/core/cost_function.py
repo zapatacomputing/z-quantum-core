@@ -1,6 +1,8 @@
 from .interfaces.cost_function import CostFunction
 from .interfaces.backend import QuantumBackend
+from .interfaces.ansatz import Ansatz
 from .circuit import build_ansatz_circuit
+from .utils import create_symbols_map
 from typing import Callable, Optional, Dict
 import numpy as np
 import copy
@@ -89,7 +91,7 @@ class EvaluateOperatorCostFunction(CostFunction):
 
     Args:
         target_operator (openfermion.QubitOperator): operator to be evaluated
-        ansatz (dict): dictionary representing the ansatz
+        ansatz (zquantum.core.interfaces.ansatz.Ansatz): ansatz usef to evaluate cost function
         backend (zquantum.core.interfaces.backend.QuantumBackend): backend used for evaluation
         gradient_type (str): parameter indicating which type of gradient should be used.
         save_evaluation_history (bool): flag indicating whether we want to store the history of all the evaluations.
@@ -97,7 +99,7 @@ class EvaluateOperatorCostFunction(CostFunction):
 
     Params:
         target_operator (openfermion.QubitOperator): see Args
-        ansatz (dict): see Args
+        ansatz (zquantum.core.interfaces.ansatz.Ansatz): see Args
         backend (zquantum.core.interfaces.backend.QuantumBackend): see Args
         evaluations_history (list): List of the tuples (parameters, value) representing all the evaluation in a chronological order.
         save_evaluation_history (bool): see Args
@@ -109,7 +111,7 @@ class EvaluateOperatorCostFunction(CostFunction):
     def __init__(
         self,
         target_operator: SymbolicOperator,
-        ansatz: Dict,
+        ansatz: Ansatz,
         backend: QuantumBackend,
         gradient_type: str = "finite_difference",
         save_evaluation_history: bool = True,
@@ -133,7 +135,12 @@ class EvaluateOperatorCostFunction(CostFunction):
         Returns:
             value: cost function value for given parameters, either int or float.
         """
-        circuit = build_ansatz_circuit(self.ansatz, parameters)
+
+        parametrized_circuit = self.ansatz.circuit
+        symbols = self.ansatz.get_symbols()
+        symbols_map = create_symbols_map(symbols, parameters)
+        circuit = parametrized_circuit.evaluate(symbols_map)
+
         expectation_values = self.backend.get_expectation_values(
             circuit, self.target_operator
         )

@@ -92,5 +92,5 @@ class CostFunction(ABC):
             increment = np.zeros(len(parameters))
             values_plus[idx]  += epsilon
             values_minus[idx] -= epsilon
-            gradient = np.append(gradient, (self.evaluate(values_plus) - self.evaluate(values_minus)) / (2*epsilon))
+            gradient = np.append(gradient, (self.evaluate(values_plus).value - self.evaluate(values_minus).value) / (2*epsilon))
         return gradient

@@ -260,6 +260,9 @@ class ValueEstimate:
         self.value = value
         self.precision = precision
 
+    def __eq__(self, other):
+        return self.value == other.value and self.precision == other.precision
+
     def to_dict(self):
         """Convert to a dictionary"""
 

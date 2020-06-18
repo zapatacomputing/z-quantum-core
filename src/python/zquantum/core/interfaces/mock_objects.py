@@ -10,6 +10,7 @@ import numpy as np
 from pyquil import Program
 from pyquil.gates import RX
 import sympy
+from overrides import overrides
 
 
 class MockQuantumSimulator(QuantumSimulator):
@@ -67,7 +68,8 @@ class MockCostFunction(CostFunction):
 class MockAnsatz(Ansatz):
     supported_gradient_methods = ["finite_differences", "parameter_shift_rule"]
 
-    def get_circuit(self):
+    @overrides
+    def generate_circuit(self):
         circuit = Circuit()
         for layer_index in range(self._n_layers):
             theta = sympy.Symbol("theta" + str(layer_index))
@@ -75,7 +77,8 @@ class MockAnsatz(Ansatz):
                 circuit += Program(RX(theta, qubit_index))
         return circuit
 
-    def get_gradient_circuits(self):
+    @overrides
+    def generate_gradient_circuits(self):
         if self.gradient_type == "finite_differences":
             return [self.get_circuit()]
         elif self.gradient_type == "parameter_shift_rule":
@@ -84,20 +87,20 @@ class MockAnsatz(Ansatz):
             for layer_index in range(self._n_layers):
                 theta = sympy.Symbol("theta" + str(layer_index))
                 for qubit_index in range(self._n_qubits):
-                    circuit_plus += Program(RX(theta + np.pi, qubit_index))
-                    circuit_minus += Program(RX(theta - np.pi, qubit_index))
+                    circuit_plus += Program(RX(theta + np.pi / 2, qubit_index))
+                    circuit_minus += Program(RX(theta - np.pi / 2, qubit_index))
             return [circuit_plus, circuit_minus]
         else:
-            raise Exception(
+            raise ValueError(
                 "Gradient type: {0} not supported.".format(self.gradient_type)
             )
 
+    @overrides
     def get_number_of_params_per_layer(self):
-        return self._n_qubits
+        return 1
 
+    @overrides
     def get_symbols(self):
-        symbols = []
-        for layer_index in range(self._n_layers):
-            theta = sympy.Symbol("theta" + str(layer_index))
-            symbols.append(theta)
-        return symbols
+        return [
+            sympy.Symbol(f"theta{layer_index}") for layer_index in range(self._n_layers)
+        ]

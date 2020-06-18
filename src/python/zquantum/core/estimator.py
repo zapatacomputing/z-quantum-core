@@ -30,7 +30,7 @@ class BasicEstimator(Estimator):
 
 
 class ExactEstimator(Estimator):
-    """An estimator that must run on a quantum simulator. The estimator exactly computes the expectation values an operator.
+    """An estimator that exactly computes the expectation values of an operator. This estimator must run on a quantum simulator. 
     """
 
     def get_estimated_values(

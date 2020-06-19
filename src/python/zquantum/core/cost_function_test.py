@@ -1,7 +1,7 @@
 import unittest
 import numpy as np
 from .cost_function import BasicCostFunction, AnsatzBasedCostFunction
-from .interfaces.mock_objects import MockQuantumSimulator
+from .interfaces.mock_objects import MockQuantumSimulator, MockEstimator
 from .interfaces.cost_function_test import CostFunctionTests
 from .utils import ValueEstimate
 from openfermion import QubitOperator
@@ -89,8 +89,9 @@ class TestAnsatzBasedCostFunction(unittest.TestCase, CostFunctionTests):
             "n_params": [1],
         }
         backend = MockQuantumSimulator()
+        estimator = MockEstimator()
         self.single_term_op_cost_function = AnsatzBasedCostFunction(
-            target_operator, ansatz, backend
+            target_operator, ansatz, backend, estimator=estimator
         )
 
         # Setting up inherited tests

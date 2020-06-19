@@ -1452,19 +1452,19 @@ class TestCircuit(unittest.TestCase):
         # Construct Orquestra circuit
         qubits = [Qubit(i) for i in range(6)]
         CCX = Gate('CCX', qubits=[Qubit(2), Qubit(3), Qubit(4)])
-        circ = Circuit('test ccx')
-        circ.qubits = qubits
-        circ.gates = [CCX]
+        circuit = Circuit('test ccx')
+        circuit.qubits = qubits
+        circuit.gates = [CCX]
         # Change to qiskit version
-        ibm_circ = circ.to_qiskit()
+        translated_ibm_circuit = circuit.to_qiskit()
 
         # Create the same qiskit circuit
         q_reg = qiskit.QuantumRegister(6, 'q')
         c_reg = qiskit.ClassicalRegister(6, 'c')
-        circuit = qiskit.QuantumCircuit(q_reg, c_reg)
-        circuit.ccx(2,3,4)
+        ibm_circuit = qiskit.QuantumCircuit(q_reg, c_reg)
+        ibm_circuit.ccx(2,3,4)
         # print(circuit)
-        self.assertEqual(circuit == ibm_circ, True)
+        self.assertEqual(ibm_circuit == translated_ibm_circuit, True)
 
     def test_ccx_from_qiskit_conversion(self):
         """
@@ -1475,12 +1475,12 @@ class TestCircuit(unittest.TestCase):
 
         # Create the same qiskit circuit
         q_reg = qiskit.QuantumRegister(6, 'q')
-        circuit = qiskit.QuantumCircuit(q_reg)
-        circuit.ccx(2,3,4)
+        ibm_circuit = qiskit.QuantumCircuit(q_reg)
+        ibm_circuit.ccx(2,3,4)
       
         # Create Orquestra circuit from qiskit
-        zircuit = Circuit(input_object =circuit, name='test ccx')
-        self.assertEqual(circuit == zircuit.to_qiskit(), True)
+        circuit = Circuit(input_object =ibm_circuit, name='test ccx')
+        self.assertEqual(ibm_circuit == circuit.to_qiskit(), True)
 
     def test_mct(self):
         ctrl = [0, 1, 2, 3, 5]
@@ -1489,18 +1489,18 @@ class TestCircuit(unittest.TestCase):
         qubits = [Qubit(0), Qubit(1), Qubit(2), Qubit(3), Qubit(4), Qubit(5), Qubit(6), Qubit(7), Qubit(8)]
         circuit = Circuit(name='test_mct')
         circuit.qubits = qubits
-        gate = MCTGate(circuit, control_qubits= ctrl, target_qubits= targ)
+        gate = MCTGate(circuit.qubits, control_qubits= ctrl, target_qubits= targ)
         gate.create_gate_list()
         qiskit_gates = gate.ccx_decomposition
 
         # Test MCT using it as a gate in an Orquestra Circuit
         circuit_1 = Circuit(name= 'test_mct_2')
         circuit_1.qubits = qubits
-        gate_1 = Gate('MCT', qubits=qubits, control_qubits=ctrl, target_qubits=targ, circuit = circuit_1,)
+        gate_1 = Gate('MCT', qubits=qubits, control_qubits=ctrl, target_qubits=targ, all_circuit_qubits=circuit_1.qubits)
         circuit_1.gates = [gate_1]
         # Change to qiksit
-        ibm_circuit_1 = circuit_1.to_qiskit()
-        self.assertEqual(qiskit_gates == ibm_circuit_1, True)
+        translated_ibm_circuit_1 = circuit_1.to_qiskit()
+        self.assertEqual(qiskit_gates == translated_ibm_circuit_1, True)
 
     def test_phase_oracle(self):
         ctrl = [0, 1, 2, 3]
@@ -1510,7 +1510,7 @@ class TestCircuit(unittest.TestCase):
         qubits = [Qubit(0), Qubit(1), Qubit(2), Qubit(3), Qubit(4), Qubit(5), Qubit(6), Qubit(7), Qubit(8)]
         circuit = Circuit(name='test_phase_oracle')
         circuit.qubits = qubits
-        gate = PhaseOracle(angle, circuit, control_qubits=ctrl, target_qubits=targ)
+        gate = PhaseOracle(angle, circuit.qubits, control_qubits=ctrl, target_qubits=targ)
         gate.create_gate_list()
         qiskit_gates = gate.ccx_decomposition
 
@@ -1518,11 +1518,11 @@ class TestCircuit(unittest.TestCase):
         # Test PhaseOracle using it as a gate in an Orquestra Circuit
         circuit_1 = Circuit(name= 'test_phase_oracle')
         circuit_1.qubits = qubits
-        gate_1 = Gate('MCU1',params=[angle], qubits=qubits, control_qubits=ctrl, target_qubits=targ, circuit = circuit_1)
+        gate_1 = Gate('MCU1',params=[angle], qubits=qubits, control_qubits=ctrl, target_qubits=targ, all_circuit_qubits= circuit_1.qubits)
         circuit_1.gates = [gate_1]
         # Change to qiksit
-        ibm_circuit_1 = circuit_1.to_qiskit()
-        self.assertEqual(qiskit_gates == ibm_circuit_1, True)
+        translated_ibm_circuit_1 = circuit_1.to_qiskit()
+        self.assertEqual(qiskit_gates == translated_ibm_circuit_1, True)
 
     def test_mcry(self):
         ctrl = [0, 1, 2, 3]
@@ -1532,7 +1532,7 @@ class TestCircuit(unittest.TestCase):
         qubits = [Qubit(0), Qubit(1), Qubit(2), Qubit(3), Qubit(4), Qubit(5), Qubit(6), Qubit(7), Qubit(8)]
         circuit = Circuit(name='test_mcry')
         circuit.qubits = qubits
-        gate = MCRY(angle, circuit, control_qubits=ctrl, target_qubits=targ)
+        gate = MCRY(angle, circuit.qubits, control_qubits=ctrl, target_qubits=targ)
         gate.create_gate_list()
         qiskit_gates = gate.ccx_decomposition
 
@@ -1540,11 +1540,11 @@ class TestCircuit(unittest.TestCase):
         # Test PhaseOracle using it as a gate in an Orquestra Circuit
         circuit_1 = Circuit(name= 'test_mcry')
         circuit_1.qubits = qubits
-        gate_1 = Gate('MCRY', params=[angle],qubits=qubits, control_qubits=ctrl, target_qubits=targ,  circuit = circuit_1)
+        gate_1 = Gate('MCRY', params=[angle],qubits=qubits, control_qubits=ctrl, target_qubits=targ,  all_circuit_qubits= circuit_1.qubits)
         circuit_1.gates = [gate_1]
         # Change to qiksit
-        ibm_circuit_1 = circuit_1.to_qiskit()
-        self.assertEqual(qiskit_gates == ibm_circuit_1, True)
+        translated_ibm_circuit_1 = circuit_1.to_qiskit()
+        self.assertEqual(qiskit_gates == translated_ibm_circuit_1, True)
 
 
 

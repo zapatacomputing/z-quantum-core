@@ -116,7 +116,7 @@ class AnsatzBasedCostFunction(CostFunction):
         target_operator: SymbolicOperator,
         ansatz: Dict,
         backend: QuantumBackend,
-        estimator: Estimator = BasicEstimator(),
+        estimator: Estimator = None,
         gradient_type: str = "finite_difference",
         save_evaluation_history: bool = True,
         epsilon: float = 1e-5,
@@ -124,11 +124,14 @@ class AnsatzBasedCostFunction(CostFunction):
         self.target_operator = target_operator
         self.ansatz = ansatz
         self.backend = backend
-        self.estimator = estimator
-        self.evaluations_history = []
-        self.save_evaluation_history = save_evaluation_history
+        if estimator is None:
+            estimator = BasicEstimator()
+        else:
+            self.estimator = estimator
         self.gradient_type = gradient_type
+        self.save_evaluation_history = save_evaluation_history
         self.epsilon = epsilon
+        self.evaluations_history = []
 
     def _evaluate(self, parameters: np.ndarray) -> ValueEstimate:
         """

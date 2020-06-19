@@ -141,7 +141,7 @@ class AnsatzBasedCostFunction(CostFunction):
             value: cost function value for given parameters, either int or float.
         """
         circuit = build_ansatz_circuit(self.ansatz, parameters)
-        expectation_values = self.estimator.get_estimated_values(
+        expectation_values = self.estimator.get_estimated_expectation_values(
             self.backend, circuit, self.target_operator
         )
         final_value = np.sum(expectation_values.values)

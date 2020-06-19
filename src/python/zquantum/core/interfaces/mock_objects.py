@@ -90,7 +90,7 @@ class MockCostFunction(CostFunction):
 
 
 class MockEstimator(Estimator):
-    def get_estimated_values(
+    def get_estimated_expectation_values(
         self,
         backend: QuantumBackend,
         circuit: Circuit,

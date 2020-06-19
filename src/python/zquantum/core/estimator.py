@@ -9,7 +9,7 @@ class BasicEstimator(Estimator):
     """An estimator that uses the standard approach to computing expectation values of an operator.
     """
 
-    def get_estimated_values(
+    def get_estimated_expectation_values(
         self,
         backend: QuantumBackend,
         circuit: Circuit,
@@ -33,7 +33,7 @@ class ExactEstimator(Estimator):
     """An estimator that exactly computes the expectation values of an operator. This estimator must run on a quantum simulator. 
     """
 
-    def get_estimated_values(
+    def get_estimated_expectation_values(
         self,
         backend: QuantumBackend,
         circuit: Circuit,

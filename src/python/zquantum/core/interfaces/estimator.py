@@ -14,7 +14,7 @@ class Estimator(ABC):
         pass
 
     @abstractmethod
-    def get_estimated_values(
+    def get_estimated_expectation_values(
         self,
         backend: QuantumBackend,
         circuit: Circuit,

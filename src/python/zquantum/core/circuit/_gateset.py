@@ -17,6 +17,7 @@ Gate.params: [float]
 
 # All gates supported in Orquestra
 COMMON_GATES = [
+    "I",
     "X",
     "Y",
     "Z",

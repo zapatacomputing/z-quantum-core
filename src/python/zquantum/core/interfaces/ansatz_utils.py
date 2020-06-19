@@ -2,7 +2,7 @@ from functools import wraps
 
 
 class _InvalidatingSetter(object):
-    """Setter descriptor that sets target object's _circuit and _gratiend_circuits to None.
+    """Setter descriptor that sets target object's _circuit to None.
 
     The descriptor uses __get__ and __set__ methods. Both of them accept ansatz as a
     first argument (in this case).
@@ -18,11 +18,10 @@ class _InvalidatingSetter(object):
     def __set__(self, ansatz, new_obj):
         self.target.__set__(ansatz, new_obj)
         ansatz._circuit = None
-        ansatz._gradient_circuits = None
 
 
-def invalidates_circuits(target):
-    """Make given target (either property or method) invalidate ansatz's circuit and gradient circuits."""
+def invalidates_circuit(target):
+    """Make given target (either property or method) invalidate ansatz's circuit."""
     if isinstance(target, property):
         # If we are dealing with a property, return our modified descriptor.
         return _InvalidatingSetter(target)
@@ -36,7 +35,6 @@ def invalidates_circuits(target):
             return_value = target(ansatz, *args, **kwargs)
             # Invalidate circuit
             ansatz._circuit = None
-            ansatz._gradient_circuits = None
             # Return original result
             return return_value
 

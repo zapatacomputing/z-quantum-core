@@ -66,8 +66,6 @@ class MockCostFunction(CostFunction):
 
 
 class MockAnsatz(Ansatz):
-    supported_gradient_methods = ["finite_differences", "parameter_shift_rule"]
-
     @overrides
     def generate_circuit(self):
         circuit = Circuit()
@@ -75,29 +73,6 @@ class MockAnsatz(Ansatz):
             for qubit_index in range(self.n_qubits):
                 circuit += Circuit(Program(RX(theta, qubit_index)))
         return circuit
-
-    @overrides
-    def generate_gradient_circuits(self):
-        if self.gradient_type == "finite_differences":
-            return [self.get_circuit()]
-        elif self.gradient_type == "parameter_shift_rule":
-            circuit_plus = Circuit()
-            circuit_minus = Circuit()
-            for theta in self.get_symbols():
-                for qubit_index in range(self.n_qubits):
-                    circuit_plus += Circuit(Program(RX(theta + np.pi / 2, qubit_index)))
-                    circuit_minus += Circuit(
-                        Program(RX(theta - np.pi / 2, qubit_index))
-                    )
-            return [circuit_plus, circuit_minus]
-        else:
-            raise ValueError(
-                "Gradient type: {0} not supported.".format(self.gradient_type)
-            )
-
-    @overrides
-    def get_number_of_params_per_layer(self):
-        return 1
 
     @overrides
     def get_symbols(self):

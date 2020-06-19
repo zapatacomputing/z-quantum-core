@@ -8,33 +8,21 @@ from .ansatz_utils import invalidates_circuit
 
 
 class Ansatz(ABC, EnforceOverrides):
-    def __init__(self, n_qubits: int, n_layers: int):
+    def __init__(self, n_layers: int):
         """
         Interface for implementing different ansatzes.
         This class also caches the circuit for given ansatz parameters.
 
         Args:
-            n_qubits: number of qubits used for the ansatz.
             n_layers: number of layers of the ansatz
         
         Attributes:
-            n_qubits (int): see Args
             n_layers (int): see Args
             circuit (zquantum.core.circuit.Circuit): circuit representation of the ansatz.
         
         """
-        self._n_qubits = n_qubits
         self._n_layers = n_layers
         self._circuit = None
-
-    @property
-    def n_qubits(self):
-        return self._n_qubits
-
-    @invalidates_circuit
-    @n_qubits.setter
-    def n_qubits(self, new_n_qubits):
-        self._n_qubits = new_n_qubits
 
     @property
     def n_layers(self):

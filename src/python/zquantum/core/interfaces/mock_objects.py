@@ -1,4 +1,5 @@
 from .ansatz import Ansatz
+from .ansatz_utils import invalidates_circuit
 from .backend import QuantumSimulator
 from .optimizer import Optimizer
 from .cost_function import CostFunction
@@ -66,6 +67,20 @@ class MockCostFunction(CostFunction):
 
 
 class MockAnsatz(Ansatz):
+    def __init__(self, n_layers: int, n_qubits: int):
+        super().__init__(n_layers)
+        self._n_layers = n_layers
+        self._n_qubits = n_qubits
+
+    @property
+    def n_qubits(self):
+        return self._n_qubits
+
+    @invalidates_circuit
+    @n_qubits.setter
+    def n_qubits(self, new_n_qubits):
+        self._n_qubits = new_n_qubits
+
     @overrides
     def generate_circuit(self):
         circuit = Circuit()

@@ -11,17 +11,15 @@ class Ansatz(ABC, EnforceOverrides):
     def __init__(self, n_qubits: int, n_layers: int):
         """
         Interface for implementing different ansatzes.
-        This class also caches the circuit and gradient circuits for given ansatz parameters.
+        This class also caches the circuit for given ansatz parameters.
 
         Args:
-            n_qubits: number of qubits used for the ansatz. Note that some gradient techniques might require use of ancilla qubits.
+            n_qubits: number of qubits used for the ansatz.
             n_layers: number of layers of the ansatz
-            gradient_type: string defining what method should be used for calculating gradients.
         
         Attributes:
             n_qubits (int): see Args
             n_layers (int): see Args
-            gradient_type (str): see Args
             circuit (zquantum.core.circuit.Circuit): circuit representation of the ansatz.
         
         """

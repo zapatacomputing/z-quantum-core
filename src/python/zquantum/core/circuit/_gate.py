@@ -924,7 +924,9 @@ class MCTGate(object):
     the fact that the Multi Toffoli Gate is a circuit rather a gate applied natively on a device
 
     Attributes:
-    all_available_qubits (List): Needed to apply the mct gate from qiskit
+    all_available_qubits (List): Needed to apply the mct gate from qiskit. In general we need more qubits than those
+                                 assigned as control and target qubits. We thus get all qubits in the circuit in order
+                                 to use them as possible ancilla qubits.
 
     control_qubits (list): This list contains integer labels for the qubits thats will act as the
     control qubits. e.g [1, 2, 3, 4]
@@ -976,7 +978,7 @@ class MCTGate(object):
          Produces the gate decomposition using qiskit
         """
         self.ccx_decomposition.mct(self.qiskit_ctrl_q, self.qiskit_targ_q, self.qiskit_ancilla_q)
-        
+
     def _create_qiskit_qubits(self):
         """
         Producing list of qiskit qubit objects

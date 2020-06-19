@@ -13,6 +13,8 @@ from pyquil.gates import *
 from pyquil.gates import QUANTUM_GATES
 from math import pi, sin, cos
 
+from qiskit.aqua.circuits.gates import mcu1, mcry
+
 from . import load_circuit, save_circuit, Circuit, Gate, Qubit, pyquil2cirq, cirq2pyquil,\
         MCTGate, PhaseOracle, MCRY
 
@@ -1473,8 +1475,7 @@ class TestCircuit(unittest.TestCase):
 
         # Create the same qiskit circuit
         q_reg = qiskit.QuantumRegister(6, 'q')
-        c_reg = qiskit.ClassicalRegister(6, 'c')
-        circuit = qiskit.QuantumCircuit(q_reg, c_reg)
+        circuit = qiskit.QuantumCircuit(q_reg)
         circuit.ccx(2,3,4)
       
         # Create Orquestra circuit from qiskit

@@ -4,6 +4,7 @@ from .cost_function import CostFunction
 from .estimator import Estimator
 from ..measurement import ExpectationValues, Measurements
 from ..circuit import Circuit
+from ..utils import ValueEstimate
 import random
 from scipy.optimize import OptimizeResult
 import numpy as np
@@ -80,7 +81,7 @@ class MockOptimizer(Optimizer):
 
 class MockCostFunction(CostFunction):
     def _evaluate(self, parameters):
-        return np.sum(np.power(parameters, 2))
+        return ValueEstimate(np.sum(np.power(parameters, 2)))
 
     def get_gradient(self, parameters):
         if self.gradient_type == "custom":

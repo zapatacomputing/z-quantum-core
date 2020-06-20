@@ -1,4 +1,3 @@
-
 from abc import ABC, abstractmethod
 import numpy as np
 from typing import Optional
@@ -21,29 +20,33 @@ class CostFunction(ABC):
         epsilon (float): see Args
     """
 
-    def __init__(self, gradient_type:str='finite_difference', save_evaluation_history:bool=True, epsilon:float=1e-5):
+    def __init__(
+        self,
+        gradient_type: str = "finite_difference",
+        save_evaluation_history: bool = True,
+        epsilon: float = 1e-5,
+    ):
         self.evaluations_history = []
         self.save_evaluation_history = save_evaluation_history
         self.gradient_type = gradient_type
         self.epsilon = epsilon
 
-    
-    def evaluate(self, parameters:np.ndarray) -> ValueEstimate:
+    def evaluate(self, parameters: np.ndarray) -> ValueEstimate:
         """
         Evaluates the value of the cost function for given parameters and saves the results (if specified).
         Args:
             parameters: parameters for which the evaluation should occur
 
         Returns:
-            value: cost function value for given parameters, either int or float.
+            value: cost function value for given parameters.
         """
         value = self._evaluate(parameters)
         if self.save_evaluation_history:
-            self.evaluations_history.append({'value':value, 'params': parameters})
+            self.evaluations_history.append({"value": value, "params": parameters})
         return value
-    
+
     @abstractmethod
-    def _evaluate(self, parameters:np.ndarray) -> ValueEstimate:
+    def _evaluate(self, parameters: np.ndarray) -> ValueEstimate:
         """
         Evaluates the value of the cost function for given parameters.
 
@@ -51,11 +54,11 @@ class CostFunction(ABC):
             parameters: parameters for which the evaluation should occur
 
         Returns:
-            value: cost function value for given parameters, either int or float.
+            value: cost function value for given parameters.
         """
         raise NotImplementedError
 
-    def get_gradient(self, parameters:np.ndarray) -> np.ndarray:
+    def get_gradient(self, parameters: np.ndarray) -> np.ndarray:
         """
         Evaluates the gradient of the cost function for given parameters.
         What method is used for calculating gradients is indicated by `self.gradient_type` field.
@@ -71,7 +74,9 @@ class CostFunction(ABC):
         else:
             raise Exception("Gradient type: %s is not supported", self.gradient_type)
 
-    def get_gradients_finite_difference(self, parameters:np.ndarray, epsilon:Optional[float]=None) -> np.ndarray:
+    def get_gradients_finite_difference(
+        self, parameters: np.ndarray, epsilon: Optional[float] = None
+    ) -> np.ndarray:
         """
         Evaluates the gradient of the cost function for given parameters using finite differences method.
 
@@ -90,7 +95,11 @@ class CostFunction(ABC):
             values_plus = parameters.astype(float)
             values_minus = parameters.astype(float)
             increment = np.zeros(len(parameters))
-            values_plus[idx]  += epsilon
+            values_plus[idx] += epsilon
             values_minus[idx] -= epsilon
-            gradient = np.append(gradient, (self.evaluate(values_plus).value - self.evaluate(values_minus).value) / (2*epsilon))
+            gradient = np.append(
+                gradient,
+                (self.evaluate(values_plus).value - self.evaluate(values_minus).value)
+                / (2 * epsilon),
+            )
         return gradient

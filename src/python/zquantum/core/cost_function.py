@@ -55,7 +55,7 @@ class BasicCostFunction(CostFunction):
             parameters: parameters for which the evaluation should occur
 
         Returns:
-            value: cost function value for given parameters, either int or float.
+            value: cost function value for given parameters.
         """
         value = ValueEstimate(self.function(parameters))
         return value
@@ -141,7 +141,7 @@ class AnsatzBasedCostFunction(CostFunction):
             parameters: parameters for which the evaluation should occur.
 
         Returns:
-            value: cost function value for given parameters, either int or float.
+            value: cost function value for given parameters.
         """
         circuit = build_ansatz_circuit(self.ansatz, parameters)
         expectation_values = self.estimator.get_estimated_expectation_values(

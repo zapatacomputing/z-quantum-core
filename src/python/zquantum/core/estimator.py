@@ -14,6 +14,9 @@ class BasicEstimator(Estimator):
         backend: QuantumBackend,
         circuit: Circuit,
         target_operator: SymbolicOperator,
+        n_samples: int = None,
+        epsilon: float = None,
+        delta: float = None,
     ) -> ExpectationValues:
         """Given a circuit, backend, and target operators, this method produces expectation values 
         for each target operator using the get_expectation_values method built into the provided QuantumBackend. 
@@ -22,10 +25,25 @@ class BasicEstimator(Estimator):
             backend (QuantumBackend): the backend that will be used to run the circuit
             circuit (Circuit): the circuit that prepares the state.
             target_operator (List[SymbolicOperator]): List of target functions to be estimated.
+            n_samples (int): Number of measurements done on the unknown quantum state. 
+            epsilon (float): an error term.
+            delta (float): a confidence term.
 
         Returns:
             ExpectationValues: expectation values for each term in the target operator.
         """
+        estimator_name = type(self).__name__
+        self._ignore_parameter(estimator_name, "epsilon", epsilon)
+        self._ignore_parameter(estimator_name, "delta", delta)
+
+        if n_samples is not None:
+            save = backend.n_samples
+            backend.n_samples = n_samples
+            expectation_values = backend.get_expectation_values(
+                circuit, target_operator
+            )
+            backend.n_samples = save
+            return backend.get_expectation_values(circuit, target_operator)
         return backend.get_expectation_values(circuit, target_operator)
 
 
@@ -38,6 +56,9 @@ class ExactEstimator(Estimator):
         backend: QuantumBackend,
         circuit: Circuit,
         target_operator: SymbolicOperator,
+        n_samples: int = None,
+        epsilon: float = None,
+        delta: float = None,
     ) -> ExpectationValues:
         """Given a circuit, backend, and target operators, this method produces expectation values 
         for each target operator using the get_exact_expectation_values method built into the provided QuantumBackend. 
@@ -46,6 +67,9 @@ class ExactEstimator(Estimator):
             backend (QuantumBackend): the backend that will be used to run the circuit
             circuit (Circuit): the circuit that prepares the state.
             target_operator (List[SymbolicOperator]): List of target functions to be estimated.
+            n_samples (int): Number of measurements done on the unknown quantum state. 
+            epsilon (float): an error term.
+            delta (float): a confidence term.
 
         Raises:
             AttributeError: If backend is not a QuantumSimulator. 
@@ -53,6 +77,10 @@ class ExactEstimator(Estimator):
         Returns:
             ExpectationValues: expectation values for each term in the target operator.
         """
+        estimator_name = type(self).__name__
+        self._ignore_parameter(estimator_name, "n_samples", n_samples)
+        self._ignore_parameter(estimator_name, "epsilon", epsilon)
+        self._ignore_parameter(estimator_name, "delta", delta)
 
         if isinstance(backend, QuantumSimulator):
             return backend.get_exact_expectation_values(circuit, target_operator)

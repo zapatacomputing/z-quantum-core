@@ -436,3 +436,21 @@ def save_noise_model(noise_model_data, module_name, function_name, filename):
 
     with open(filename, "w") as f:
         f.write(json.dumps(data, indent=2))
+
+
+def save_backend_usage_info(backend, filename):
+    """Save the usage information for the backend
+
+    Args:
+        backend (zquantum.core.interfaces.QuantumBackend): the backend used
+        filename (str or file-like object): the name of the file, or a file-like object.
+    """
+
+    data = {
+        "schema": SCHEMA_VERSION + "-backend-usage",
+        "num_circuits_run": backend.num_circuits_run,
+        "num_jobs_run": backend.num_jobs_run,
+    }
+
+    with open(filename, "w") as f:
+        f.write(json.dumps(data, indent=2))

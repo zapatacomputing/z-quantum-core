@@ -31,7 +31,7 @@ class Estimator(ABC):
             backend (QuantumBackend): The backend used to run quantum circuits, either a simulator or quantum hardware.
             circuit (Circuit): The circuit that prepares the unknown quantum state.
             target_operator (List[SymbolicOperator]): List of target functions to be estimated.
-            n_samples (int): Number of measurements done on the unknown quantum state. 
+            n_samples (int): Number of measurements done. 
             epsilon (float): an error term.
             delta (float): a confidence term.
 
@@ -40,7 +40,7 @@ class Estimator(ABC):
         """
         raise NotImplementedError
 
-    def _ignore_parameter(
+    def _log_ignore_parameter(
         self, estimator_name: str, parameter_name: str, parameter_value: float
     ):
         """In an estimator, users can specify the number of samples, an error term, and/or a confidence term. 

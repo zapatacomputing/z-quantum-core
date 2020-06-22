@@ -24,7 +24,7 @@ class TestEstimatorInterface(unittest.TestCase):
             )
 
             for pn, pv in zip(parameter_names, parameter_values):
-                estimator._ignore_parameter(estimator_name, pn, pv)
+                estimator._log_ignore_parameter(estimator_name, pn, pv)
             self.assertEqual(context_manager.output, expected_logs)
 
 

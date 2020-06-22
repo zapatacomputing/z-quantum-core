@@ -3,12 +3,14 @@ from .interfaces.backend import QuantumBackend, QuantumSimulator
 from .circuit import Circuit
 from .measurement import ExpectationValues
 from openfermion import SymbolicOperator
+from overrides import overrides
 
 
 class BasicEstimator(Estimator):
     """An estimator that uses the standard approach to computing expectation values of an operator.
     """
 
+    @overrides
     def get_estimated_expectation_values(
         self,
         backend: QuantumBackend,
@@ -56,6 +58,7 @@ class ExactEstimator(Estimator):
     """An estimator that exactly computes the expectation values of an operator. This estimator must run on a quantum simulator. 
     """
 
+    @overrides
     def get_estimated_expectation_values(
         self,
         backend: QuantumBackend,

@@ -11,6 +11,7 @@ import numpy as np
 from openfermion import SymbolicOperator
 from pyquil import Program
 from pyquil.gates import X
+from overrides import overrides
 
 
 class MockQuantumBackend(QuantumBackend):
@@ -91,6 +92,7 @@ class MockCostFunction(CostFunction):
 
 
 class MockEstimator(Estimator):
+    @overrides
     def get_estimated_expectation_values(
         self,
         backend: QuantumBackend,

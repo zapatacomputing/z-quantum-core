@@ -924,7 +924,7 @@ class MCTGate(object):
     the fact that the Multi Toffoli Gate is a circuit rather a gate applied natively on a device
 
     Attributes:
-    all_available_qubits (List): Needed to apply the mct gate from qiskit. In general we need more qubits than those
+    all_circuit_qubits (List): Needed to apply the mct gate from qiskit. In general we need more qubits than those
                                  assigned as control and target qubits. We thus get all qubits in the circuit in order
                                  to use them as possible ancilla qubits.
 
@@ -950,24 +950,24 @@ class MCTGate(object):
 
     """
 
-    def __init__(self, all_available_qubits, control_qubits=None, target_qubits=None):
+    def __init__(self, all_circuit_qubits, control_qubits=None, target_qubits=None):
         if isinstance(control_qubits, list) and isinstance(target_qubits, list):
             if control_qubits is None and target_qubits is None:
                 self.control_qubits = []
                 self.target_qubits = []
             self.control_qubits = control_qubits
             self.target_qubits = target_qubits
-            self.all_available_qubits = all_available_qubits
+            self.all_circuit_qubits = all_circuit_qubits
             self.ancilla_qubits = []
             self.ccx_list = []
             self.qiskit_data = []
-            for i in range(len(self.all_available_qubits)):
+            for i in range(len(self.all_circuit_qubits)):
                 if i not in self.control_qubits and i not in self.target_qubits:
                     self.ancilla_qubits.append(i)
         else:
             raise TypeError('Expecting a list integer labels for control and target qubits')
         # This is the ibm circuit object with all the toffoli gates
-        self.ccx_decomposition = qiskit.QuantumCircuit(len(self.all_available_qubits), len(self.all_available_qubits))
+        self.ccx_decomposition = qiskit.QuantumCircuit(len(self.all_circuit_qubits), len(self.all_circuit_qubits))
         self.qiskit_ctrl_q = None
         self.qiskit_targ_q = None
         self.qiskit_ancilla_q = None
@@ -983,7 +983,7 @@ class MCTGate(object):
         """
         Producing list of qiskit qubit objects
         """
-        qreg = QuantumRegister(len(self.all_available_qubits), 'q')
+        qreg = QuantumRegister(len(self.all_circuit_qubits), 'q')
         self.qiskit_ctrl_q = [qreg[i] for i in self.control_qubits]
         self.qiskit_targ_q = qreg[self.target_qubits[0]]
         self.qiskit_ancilla_q = [qreg[i] for i in self.ancilla_qubits]
@@ -1003,8 +1003,8 @@ class PhaseOracle(MCTGate):
     Attributes:
     phase(numpy float): The phase angle for oracle to be implemented
     """
-    def __init__(self, phase, all_available_qubits, control_qubits=[], target_qubits=[]):
-        super().__init__(all_available_qubits, control_qubits=control_qubits, target_qubits=target_qubits)
+    def __init__(self, phase, all_circuit_qubits, control_qubits=[], target_qubits=[]):
+        super().__init__(all_circuit_qubits, control_qubits=control_qubits, target_qubits=target_qubits)
         self.phase = phase
         print('phase: ', self.phase)
 
@@ -1021,8 +1021,8 @@ class MCRY(MCTGate):
     phase(numpy float): The phase angle for oracle to be implemente
     """
 
-    def __init__(self, phase, all_available_qubits, control_qubits=[], target_qubits=[]):
-        super().__init__(all_available_qubits, control_qubits=control_qubits, target_qubits=target_qubits)
+    def __init__(self, phase, all_circuit_qubits, control_qubits=[], target_qubits=[]):
+        super().__init__(all_circuit_qubits, control_qubits=control_qubits, target_qubits=target_qubits)
         self.phase = phase
       
 

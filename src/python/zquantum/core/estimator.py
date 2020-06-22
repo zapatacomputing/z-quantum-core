@@ -38,7 +38,7 @@ class BasicEstimator(Estimator):
 
         if n_samples is not None:
             self.logger.warning(
-                "Using n_samples={} (arugment passed to get_estimated_expectation_values). Ignoring backend.n_samples={}.".format(
+                "Using n_samples={} (argument passed to get_estimated_expectation_values). Ignoring backend.n_samples={}.".format(
                     n_samples, backend.n_samples
                 )
             )

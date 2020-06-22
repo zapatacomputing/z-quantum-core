@@ -1490,7 +1490,6 @@ class TestCircuit(unittest.TestCase):
         circuit = Circuit(name='test_mct')
         circuit.qubits = qubits
         gate = MCTGate(circuit.qubits, control_qubits= ctrl, target_qubits= targ)
-        gate.create_gate_list()
         qiskit_gates = gate.ccx_decomposition
 
         # Test MCT using it as a gate in an Orquestra Circuit
@@ -1511,7 +1510,6 @@ class TestCircuit(unittest.TestCase):
         circuit = Circuit(name='test_phase_oracle')
         circuit.qubits = qubits
         gate = PhaseOracle(angle, circuit.qubits, control_qubits=ctrl, target_qubits=targ)
-        gate.create_gate_list()
         qiskit_gates = gate.ccx_decomposition
 
 
@@ -1533,7 +1531,6 @@ class TestCircuit(unittest.TestCase):
         circuit = Circuit(name='test_mcry')
         circuit.qubits = qubits
         gate = MCRY(angle, circuit.qubits, control_qubits=ctrl, target_qubits=targ)
-        gate.create_gate_list()
         qiskit_gates = gate.ccx_decomposition
 
 

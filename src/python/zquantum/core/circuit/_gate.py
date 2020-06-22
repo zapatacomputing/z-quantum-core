@@ -625,15 +625,12 @@ class Gate(object):
             [qiskit_qubits[0], qiskit_qubits[1], qiskit_qubits[2]], []]
         if self.name == 'MCT':
             gate = MCTGate(self.all_circuit_qubits, control_qubits=self.control_qubits, target_qubits=self.target_qubits)
-            gate.create_gate_list()
             return gate.qiskit_data
         if self.name == 'MCU1':
             gate = PhaseOracle(self.params[0], self.all_circuit_qubits, control_qubits=self.control_qubits, target_qubits=self.target_qubits)
-            gate.create_gate_list()
             return gate.qiskit_data
         if self.name == 'MCRY':
             gate = MCRY(self.params[0], self.all_circuit_qubits, control_qubits=self.control_qubits, target_qubits=self.target_qubits)
-            gate.create_gate_list()
             return gate.qiskit_data
         if self.name == "MEASURE":
             return [qiskit.circuit.measure.Measure(), qiskit_qubits, qiskit_bits]
@@ -971,8 +968,8 @@ class MCTGate(object):
         self.qiskit_ctrl_q = None
         self.qiskit_targ_q = None
         self.qiskit_ancilla_q = None
+        self.create_gate_list()
        
-    # super().__init__('MCT', qubits=self.all_qubits, control_qubits=control_qubits, target_qubits=target_qubits)
     def _synthesize_circuit(self):
         """
          Produces the gate decomposition using qiskit
@@ -1003,9 +1000,13 @@ class PhaseOracle(MCTGate):
     Attributes:
     phase(numpy float): The phase angle for oracle to be implemented
     """
-    def __init__(self, phase, all_circuit_qubits, control_qubits=[], target_qubits=[]):
-        super().__init__(all_circuit_qubits, control_qubits=control_qubits, target_qubits=target_qubits)
+    def __init__(self, phase, all_circuit_qubits, control_qubits=None, target_qubits=None):
         self.phase = phase
+        if control_qubits is None and target_qubits is None:
+            self.control_qubits = []
+            self.target_qubits = []
+        super().__init__(all_circuit_qubits, control_qubits=control_qubits, target_qubits=target_qubits)
+      
         print('phase: ', self.phase)
 
     def _synthesize_circuit(self):
@@ -1021,11 +1022,13 @@ class MCRY(MCTGate):
     phase(numpy float): The phase angle for oracle to be implemente
     """
 
-    def __init__(self, phase, all_circuit_qubits, control_qubits=[], target_qubits=[]):
-        super().__init__(all_circuit_qubits, control_qubits=control_qubits, target_qubits=target_qubits)
+    def __init__(self, phase, all_circuit_qubits, control_qubits=None, target_qubits=None):
         self.phase = phase
-      
-
+        if control_qubits is None and target_qubits is None:
+            self.control_qubits = []
+            self.target_qubits = []
+        super().__init__(all_circuit_qubits, control_qubits=control_qubits, target_qubits=target_qubits)
+     
     def _synthesize_circuit(self):
         """
         Produces the circuit that represents the multicontrol y rotation

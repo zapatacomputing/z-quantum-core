@@ -37,6 +37,11 @@ class BasicEstimator(Estimator):
         self._log_ignore_parameter(estimator_name, "delta", delta)
 
         if n_samples is not None:
+            self.logger.warning(
+                "Using n_samples={} (arugment passed to get_estimated_expectation_values). Ignoring backend.n_samples={}.".format(
+                    n_samples, backend.n_samples
+                )
+            )
             saved_n_samples = backend.n_samples
             backend.n_samples = n_samples
             expectation_values = backend.get_expectation_values(

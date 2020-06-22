@@ -1007,8 +1007,6 @@ class PhaseOracle(MCTGate):
             self.target_qubits = []
         super().__init__(all_circuit_qubits, control_qubits=control_qubits, target_qubits=target_qubits)
       
-        print('phase: ', self.phase)
-
     def _synthesize_circuit(self):
         """
         Produces the circuit that represents the multi control phase gate

@@ -968,7 +968,7 @@ class MCTGate(object):
         self.qiskit_ctrl_q = None
         self.qiskit_targ_q = None
         self.qiskit_ancilla_q = None
-        self.create_gate_list()
+        self._create_gate_list()
        
     def _synthesize_circuit(self):
         """
@@ -985,7 +985,7 @@ class MCTGate(object):
         self.qiskit_targ_q = qreg[self.target_qubits[0]]
         self.qiskit_ancilla_q = [qreg[i] for i in self.ancilla_qubits]
 
-    def create_gate_list(self):
+    def _create_gate_list(self):
         # First create qiskit objects
         self._create_qiskit_qubits()
 

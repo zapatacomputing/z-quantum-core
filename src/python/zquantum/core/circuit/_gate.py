@@ -15,6 +15,7 @@ from qiskit import QuantumRegister, ClassicalRegister
 from qiskit.circuit.quantumregister import Qubit as QiskitQubit
 from qiskit.circuit.classicalregister import Clbit as QiskitClbit
 from qiskit.circuit import ParameterExpression
+from qiskit.aqua.circuits.gates import mct
 
 from ._gateset import ALL_GATES
 from ._qubit import Qubit
@@ -49,7 +50,7 @@ class Gate(object):
                 as pyquil Program object or cirq GateOperation object.
     """
 
-    def __init__(self, name="none", qubits=None, params=None):
+    def __init__(self, name="none", qubits=None, params=None, control_qubits=None, target_qubits=None,  all_circuit_qubits = None):
 
         if qubits is None:
             qubits = []
@@ -59,6 +60,9 @@ class Gate(object):
         self.name = name
         self.qubits = qubits
         self.params = params
+        self.all_circuit_qubits = all_circuit_qubits
+        self.control_qubits = control_qubits
+        self.target_qubits = target_qubits
 
         # optional attributes
         self.info = {"label": "none"}
@@ -616,6 +620,18 @@ class Gate(object):
                 [qiskit_qubits[0], qiskit_qubits[1]],
                 [],
             ]
+        if self.name == 'CCX':
+            return [qiskit.extensions.standard.ToffoliGate(), 
+            [qiskit_qubits[0], qiskit_qubits[1], qiskit_qubits[2]], []]
+        if self.name == 'MCT':
+            gate = MCTGate(self.all_circuit_qubits, control_qubits=self.control_qubits, target_qubits=self.target_qubits)
+            return gate.qiskit_data
+        if self.name == 'MCU1':
+            gate = PhaseOracle(self.params[0], self.all_circuit_qubits, control_qubits=self.control_qubits, target_qubits=self.target_qubits)
+            return gate.qiskit_data
+        if self.name == 'MCRY':
+            gate = MCRY(self.params[0], self.all_circuit_qubits, control_qubits=self.control_qubits, target_qubits=self.target_qubits)
+            return gate.qiskit_data
         if self.name == "MEASURE":
             return [qiskit.circuit.measure.Measure(), qiskit_qubits, qiskit_bits]
         if self.name == "BARRIER":
@@ -845,6 +861,14 @@ class Gate(object):
             output.name = qiskit_gate.name.upper()
         elif qiskit_gate.name in {"measure", "barrier"}:
             output.name = qiskit_gate.name.upper()
+        elif qiskit_gate.name == 'ccx':
+            output.name = 'CCX'
+        elif qiskit_gate.name == 'mct':
+            output.name = 'MCT'
+        elif qiskit_gate.name == 'mcu1':
+            output.name = 'MCU1'
+        elif qiskit_gate.name == 'u1':
+            output.name = 'PHASE'
         else:
             raise NotImplementedError(
                 "The gate {} is currently not supported.".format(qiskit_gate.name)
@@ -888,3 +912,127 @@ class DampingBeta(cirq.ops.gate_features.SingleQubitGate):
 
     def __str__(self):
         return f"Db({self.p})"
+
+
+class MCTGate(object):
+    """
+    An Orquestra gate class that deals with synthesis of a Multi Toffoli Gate
+    Although this inherits the Gate class it has extra attributes fundamentally related to
+    the fact that the Multi Toffoli Gate is a circuit rather a gate applied natively on a device
+
+    Attributes:
+    all_circuit_qubits (List): Needed to apply the mct gate from qiskit. In general we need more qubits than those
+                                 assigned as control and target qubits. We thus get all qubits in the circuit in order
+                                 to use them as possible ancilla qubits.
+
+    control_qubits (list): This list contains integer labels for the qubits thats will act as the
+    control qubits. e.g [1, 2, 3, 4]
+    target_qubits (list): This is a list that contains integer labels for the qubits that are target qubits
+
+    all_qubits (list): A list of zmachine.core.qubit.Qubit This is necessary to determine what qubits
+    are the ancilla
+
+    ancilla_qubits (list): A list that contians integer labels for all the qubits labels that are the ancilla. These are needed since the MCT synthesis
+    requires in general addition of ancilla qubits
+
+    ccx_list (list): A list that contains CCX orquestra gates that represent the decompostion of the MCT gate
+
+    ccx_decomposition (qiskit circuit): Contains the Toffoli Decomposition which is the output from the mct gate
+
+    qiskit_ctrl_q (list): List of qiskit qubits that are control qubits for the MCT gate
+    qiskit_targ_q (list): List of qiskit qubits that are targ qubits for the MCT gate
+
+    qiskit_ancilla_q (list): List of qiskit qubits that are ancilla qubits for the mct gate synthesis
+
+
+    """
+
+    def __init__(self, all_circuit_qubits, control_qubits=None, target_qubits=None):
+        if isinstance(control_qubits, list) and isinstance(target_qubits, list):
+            if control_qubits is None and target_qubits is None:
+                self.control_qubits = []
+                self.target_qubits = []
+            self.control_qubits = control_qubits
+            self.target_qubits = target_qubits
+            self.all_circuit_qubits = all_circuit_qubits
+            self.ancilla_qubits = []
+            self.ccx_list = []
+            self.qiskit_data = []
+            for i in range(len(self.all_circuit_qubits)):
+                if i not in self.control_qubits and i not in self.target_qubits:
+                    self.ancilla_qubits.append(i)
+        else:
+            raise TypeError('Expecting a list integer labels for control and target qubits')
+        # This is the ibm circuit object with all the toffoli gates
+        self.ccx_decomposition = qiskit.QuantumCircuit(len(self.all_circuit_qubits), len(self.all_circuit_qubits))
+        self.qiskit_ctrl_q = None
+        self.qiskit_targ_q = None
+        self.qiskit_ancilla_q = None
+        self._create_gate_list()
+       
+    def _synthesize_circuit(self):
+        """
+         Produces the gate decomposition using qiskit
+        """
+        self.ccx_decomposition.mct(self.qiskit_ctrl_q, self.qiskit_targ_q, self.qiskit_ancilla_q)
+
+    def _create_qiskit_qubits(self):
+        """
+        Producing list of qiskit qubit objects
+        """
+        qreg = QuantumRegister(len(self.all_circuit_qubits), 'q')
+        self.qiskit_ctrl_q = [qreg[i] for i in self.control_qubits]
+        self.qiskit_targ_q = qreg[self.target_qubits[0]]
+        self.qiskit_ancilla_q = [qreg[i] for i in self.ancilla_qubits]
+
+    def _create_gate_list(self):
+        # First create qiskit objects
+        self._create_qiskit_qubits()
+
+        # Synthesize circuit
+        self._synthesize_circuit()
+        for i in range(len(self.ccx_decomposition.data)):
+            self.qiskit_data += list(self.ccx_decomposition[i])
+
+class PhaseOracle(MCTGate):
+    """
+    This applies the Multicontrol phase gate
+    Attributes:
+    phase(numpy float): The phase angle for oracle to be implemented
+    """
+    def __init__(self, phase, all_circuit_qubits, control_qubits=None, target_qubits=None):
+        self.phase = phase
+        if control_qubits is None and target_qubits is None:
+            self.control_qubits = []
+            self.target_qubits = []
+        super().__init__(all_circuit_qubits, control_qubits=control_qubits, target_qubits=target_qubits)
+      
+    def _synthesize_circuit(self):
+        """
+        Produces the circuit that represents the multi control phase gate
+        """
+        self.ccx_decomposition.mcu1(self.phase, self.qiskit_ctrl_q, self.qiskit_targ_q)
+       
+class MCRY(MCTGate):
+    """
+    This applies the MulltiControl Y rotation
+    Attributes:
+    phase(numpy float): The phase angle for oracle to be implemente
+    """
+
+    def __init__(self, phase, all_circuit_qubits, control_qubits=None, target_qubits=None):
+        self.phase = phase
+        if control_qubits is None and target_qubits is None:
+            self.control_qubits = []
+            self.target_qubits = []
+        super().__init__(all_circuit_qubits, control_qubits=control_qubits, target_qubits=target_qubits)
+     
+    def _synthesize_circuit(self):
+        """
+        Produces the circuit that represents the multicontrol y rotation
+        """
+        self.ccx_decomposition.mcry(self.phase, self.qiskit_ctrl_q, self.qiskit_targ_q, self.qiskit_ancilla_q)
+
+     
+
+

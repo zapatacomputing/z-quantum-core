@@ -1,6 +1,9 @@
 from .interfaces.cost_function import CostFunction
 from .interfaces.backend import QuantumBackend
+from .interfaces.estimator import Estimator
 from .circuit import build_ansatz_circuit
+from .estimator import BasicEstimator
+from .utils import ValueEstimate
 from typing import Callable, Optional, Dict
 import numpy as np
 import copy
@@ -44,7 +47,7 @@ class BasicCostFunction(CostFunction):
         self.gradient_function = gradient_function
         self.epsilon = epsilon
 
-    def _evaluate(self, parameters: np.ndarray) -> float:
+    def _evaluate(self, parameters: np.ndarray) -> ValueEstimate:
         """
         Evaluates the value of the cost function for given parameters.
 
@@ -52,9 +55,9 @@ class BasicCostFunction(CostFunction):
             parameters: parameters for which the evaluation should occur
 
         Returns:
-            value: cost function value for given parameters, either int or float.
+            value: cost function value for given parameters.
         """
-        value = self.function(parameters)
+        value = ValueEstimate(self.function(parameters))
         return value
 
     def get_gradient(self, parameters: np.ndarray) -> np.ndarray:
@@ -83,7 +86,7 @@ class BasicCostFunction(CostFunction):
             raise Exception("Gradient type: %s is not supported", self.gradient_type)
 
 
-class EvaluateOperatorCostFunction(CostFunction):
+class AnsatzBasedCostFunction(CostFunction):
     """
     Cost function used for evaluating given operator using given ansatz.
 
@@ -91,6 +94,7 @@ class EvaluateOperatorCostFunction(CostFunction):
         target_operator (openfermion.QubitOperator): operator to be evaluated
         ansatz (dict): dictionary representing the ansatz
         backend (zquantum.core.interfaces.backend.QuantumBackend): backend used for evaluation
+        estimator: (zquantum.core.interfaces.estimator.Estimator) = estimator used to compute expectation value of target operator 
         gradient_type (str): parameter indicating which type of gradient should be used.
         save_evaluation_history (bool): flag indicating whether we want to store the history of all the evaluations.
         epsilon (float): epsilon used for calculating gradient using finite difference method.
@@ -99,6 +103,7 @@ class EvaluateOperatorCostFunction(CostFunction):
         target_operator (openfermion.QubitOperator): see Args
         ansatz (dict): see Args
         backend (zquantum.core.interfaces.backend.QuantumBackend): see Args
+        estimator: (zquantum.core.interfaces.estimator.Estimator) = see Args 
         evaluations_history (list): List of the tuples (parameters, value) representing all the evaluation in a chronological order.
         save_evaluation_history (bool): see Args
         gradient_type (str): see Args
@@ -111,6 +116,7 @@ class EvaluateOperatorCostFunction(CostFunction):
         target_operator: SymbolicOperator,
         ansatz: Dict,
         backend: QuantumBackend,
+        estimator: Estimator = None,
         gradient_type: str = "finite_difference",
         save_evaluation_history: bool = True,
         epsilon: float = 1e-5,
@@ -118,12 +124,16 @@ class EvaluateOperatorCostFunction(CostFunction):
         self.target_operator = target_operator
         self.ansatz = ansatz
         self.backend = backend
-        self.evaluations_history = []
-        self.save_evaluation_history = save_evaluation_history
+        if estimator is None:
+            self.estimator = BasicEstimator()
+        else:
+            self.estimator = estimator
         self.gradient_type = gradient_type
+        self.save_evaluation_history = save_evaluation_history
         self.epsilon = epsilon
+        self.evaluations_history = []
 
-    def _evaluate(self, parameters: np.ndarray) -> float:
+    def _evaluate(self, parameters: np.ndarray) -> ValueEstimate:
         """
         Evaluates the value of the cost function for given parameters.
 
@@ -131,11 +141,11 @@ class EvaluateOperatorCostFunction(CostFunction):
             parameters: parameters for which the evaluation should occur.
 
         Returns:
-            value: cost function value for given parameters, either int or float.
+            value: cost function value for given parameters.
         """
         circuit = build_ansatz_circuit(self.ansatz, parameters)
-        expectation_values = self.backend.get_expectation_values(
-            circuit, self.target_operator
+        expectation_values = self.estimator.get_estimated_expectation_values(
+            self.backend, circuit, self.target_operator
         )
         final_value = np.sum(expectation_values.values)
-        return final_value
+        return ValueEstimate(final_value)

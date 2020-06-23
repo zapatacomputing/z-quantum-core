@@ -19,6 +19,7 @@ class MockQuantumBackend(QuantumBackend):
         self.n_samples = n_samples
 
     def run_circuit_and_measure(self, circuit, **kwargs):
+
         n_qubits = len(circuit.qubits)
         measurements = Measurements()
         for _ in range(self.n_samples):

@@ -43,7 +43,7 @@ class TestBasicEstimator(unittest.TestCase, EstimatorTests):
         self.operator = QubitOperator("Z0")
         self.circuit = Circuit(Program(X(0)))
         self.backend = MockQuantumBackend()
-        self.n_samples = None
+        self.n_samples = 10
         self.epsilon = None
         self.delta = None
         self.estimators = [BasicEstimator()]
@@ -53,12 +53,17 @@ class TestBasicEstimator(unittest.TestCase, EstimatorTests):
             # Given
             # When
             values = estimator.get_estimated_expectation_values(
-                self.backend, self.circuit, self.operator,
+                self.backend,
+                self.circuit,
+                self.operator,
+                n_samples=self.n_samples,
+                epsilon=self.epsilon,
+                delta=self.delta,
             ).values
             value = values[0]
             # Then
             self.assertTrue(len(values) == 1)
-            self.assertGreaterEqual(value, 0)
+            self.assertGreaterEqual(value, -1)
             self.assertLessEqual(value, 1)
 
     def test_n_samples_is_restored(self):

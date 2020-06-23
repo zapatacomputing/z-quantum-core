@@ -34,7 +34,7 @@ class EstimatorTests(object):
     # self.backend
     # self.circuit
     # self.operator
-    # self.n_sample
+    # self.n_samples
     # self.epsilon
     # self.delta
 
@@ -77,11 +77,9 @@ def parameter_is_ignored(
 ):
     with self.assertLogs("z-quantum-core", level="WARN") as context_manager:
         # Given
-        expected_logs = [
-            "WARNING:z-quantum-core:{} = {}. {} does not use {}. The value was ignored.".format(
-                parameter_name, parameter_value, estimator_name, parameter_name
-            )
-        ]
+        expected_log = "WARNING:z-quantum-core:{} = {}. {} does not use {}. The value was ignored.".format(
+            parameter_name, parameter_value, estimator_name, parameter_name
+        )
         # When
         if parameter_name == "n_samples":
             self.n_samples = parameter_value
@@ -99,4 +97,4 @@ def parameter_is_ignored(
             delta=self.delta,
         )
         # Then
-        self.assertEqual(context_manager.output, expected_logs)
+        self.assertIn(expected_log, context_manager.output)

@@ -514,3 +514,32 @@ class Measurements:
                 expectation += np.real(coefficient) * value
             expectation_values.append(np.real(expectation))
         return ExpectationValues(np.array(expectation_values))
+
+def concatenate_expectation_values(
+    expectation_values_set: Iterable[ExpectationValues],
+) -> ExpectationValues:
+    """Concatenates a set of expectation values objects.
+
+    Args:
+        expectation_values_set: The expectation values objects to be concatenated.
+    
+    Returns:
+        The combined expectation values.
+    """
+
+    combined_expectation_values = ExpectationValues(np.zeros(0,))
+
+    for expectation_values in expectation_values_set:
+        combined_expectation_values.values = np.concatenate(
+            (combined_expectation_values.values, expectation_values.values)
+        )
+        if expectation_values.correlations:
+            if not combined_expectation_values.correlations:
+                combined_expectation_values.correlations = []
+            combined_expectation_values.correlations += expectation_values.correlations
+        if expectation_values.covariances:
+            if not combined_expectation_values.covariances:
+                combined_expectation_values.covariances = []
+            combined_expectation_values.covariances += expectation_values.covariances
+
+    return combined_expectation_values

@@ -125,7 +125,7 @@ class AnsatzBasedCostFunction(CostFunction):
         self.ansatz = ansatz
         self.backend = backend
         if estimator is None:
-            estimator = BasicEstimator()
+            self.estimator = BasicEstimator()
         else:
             self.estimator = estimator
         self.gradient_type = gradient_type

@@ -136,10 +136,7 @@ class EvaluateOperatorCostFunction(CostFunction):
             value: cost function value for given parameters, either int or float.
         """
 
-        parametrized_circuit = self.ansatz.circuit
-        symbols = self.ansatz.get_symbols()
-        symbols_map = create_symbols_map(symbols, parameters)
-        circuit = parametrized_circuit.evaluate(symbols_map)
+        circuit = self.ansatz.get_executable_circuit(parameters)
 
         expectation_values = self.backend.get_expectation_values(
             circuit, self.target_operator

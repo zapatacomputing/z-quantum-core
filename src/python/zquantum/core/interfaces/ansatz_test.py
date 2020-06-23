@@ -12,13 +12,14 @@ class AnsatzTests(object):
         # Then
         self.assertEqual(self.ansatz.n_layers, new_n_layers)
 
-    def test_set_n_qubits_invalidates_circuit(self):
+    def test_set_n_layers_invalidates_parametrized_circuit(self):
         # Given
         new_n_layers = 100
-        new_circuit = self.ansatz.circuit()
+        if self.ansatz.supports_parametrized_circuits:
+            initial_circuit = self.ansatz.parametrized_circuit
 
-        # When
-        self.ansatz.n_layers = new_n_layers
+            # When
+            self.ansatz.n_layers = new_n_layers
 
-        # Then
-        self.assertIsNone(self.ansatz._circuit)
+            # Then
+            self.assertIsNone(self.ansatz._parametrized_circuit)

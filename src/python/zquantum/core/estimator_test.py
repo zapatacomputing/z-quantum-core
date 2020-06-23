@@ -1,11 +1,40 @@
 import unittest
 from .interfaces.estimator_test import EstimatorTests, parameter_is_ignored
 from .interfaces.mock_objects import MockQuantumBackend, MockQuantumSimulator
-from .estimator import BasicEstimator, ExactEstimator
+from .estimator import BasicEstimator, ExactEstimator, get_context_selection_circuit
 from .circuit import Circuit
 from pyquil import Program
 from pyquil.gates import X
-from openfermion import QubitOperator
+from openfermion import QubitOperator, qubit_operator_sparse, IsingOperator
+import numpy as np
+
+
+class TestEstimatorUtils(unittest.TestCase):
+    def test_get_context_selection_circuit_offdiagonal(self):
+        term = ((0, "X"), (1, "Y"))
+        circuit, ising_operator = get_context_selection_circuit(term)
+
+        # Need to convert to QubitOperator in order to get matrix representation
+        qubit_operator = QubitOperator()
+        for ising_term in ising_operator.terms:
+            qubit_operator += QubitOperator(
+                ising_term, ising_operator.terms[ising_term]
+            )
+
+        target_unitary = qubit_operator_sparse(QubitOperator(term))
+        transformed_unitary = (
+            circuit.to_unitary().conj().T
+            @ qubit_operator_sparse(qubit_operator)
+            @ circuit.to_unitary()
+        )
+
+        self.assertTrue(np.allclose(target_unitary.todense(), transformed_unitary))
+
+    def test_get_context_selection_circuit_diagonal(self):
+        term = ((4, "Z"), (2, "Z"))
+        circuit, ising_operator = get_context_selection_circuit(term)
+        self.assertEqual(len(circuit.gates), 0)
+        self.assertEqual(ising_operator, IsingOperator(term))
 
 
 class TestBasicEstimator(unittest.TestCase, EstimatorTests):

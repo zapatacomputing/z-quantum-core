@@ -2,8 +2,38 @@ from .interfaces.estimator import Estimator
 from .interfaces.backend import QuantumBackend, QuantumSimulator
 from .circuit import Circuit
 from .measurement import ExpectationValues
-from openfermion import SymbolicOperator
+from openfermion import SymbolicOperator, QubitOperator, IsingOperator
 from overrides import overrides
+import numpy as np
+import pyquil
+from typing import Tuple
+
+
+def get_context_selection_circuit(
+    term: Tuple[Tuple[int, str], ...]
+) -> Tuple[Circuit, IsingOperator]:
+    """Get the context selection circuit for measuring the expectation value
+    of a Pauli term.
+
+    Args:
+        term: The Pauli term, expressed using the OpenFermion convention.
+    
+    Returns:
+        Tuple containing:
+        - The context selection circuit.
+        - The frame operator
+    """
+
+    context_selection_circuit = Circuit()
+    operator = IsingOperator(())
+    for factor in term:
+        if factor[1] == "X":
+            context_selection_circuit += Circuit(pyquil.gates.RY(-np.pi / 2, factor[0]))
+        elif factor[1] == "Y":
+            context_selection_circuit += Circuit(pyquil.gates.RX(np.pi / 2, factor[0]))
+        operator *= IsingOperator((factor[0], "Z"))
+
+    return context_selection_circuit, operator
 
 
 class BasicEstimator(Estimator):

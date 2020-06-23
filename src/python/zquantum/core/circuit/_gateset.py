@@ -42,6 +42,10 @@ UNIQUE_GATES = [
     "U1ex",
     "Da",
     "Db",
+    "MCT",
+    "CCX",
+    "MCRY",
+    "MCU1",
     "MEASURE",
     "BARRIER",
 ]  # gates unique to specific packages

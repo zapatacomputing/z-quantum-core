@@ -53,24 +53,6 @@ class EstimatorTests(object):
             # Then
             self.assertIsInstance(value, ExpectationValues)
 
-    def test_get_estimated_expectation_values(self):
-        for estimator in self.estimators:
-            # Given
-            # When
-            values = estimator.get_estimated_expectation_values(
-                self.backend,
-                self.circuit,
-                self.operator,
-                n_samples=self.n_samples,
-                epsilon=self.epsilon,
-                delta=self.delta,
-            ).values
-            value = values[0]
-            # Then
-            self.assertTrue(len(values) == 1)
-            self.assertGreaterEqual(value, 0)
-            self.assertLessEqual(value, 1)
-
 
 def parameter_is_ignored(
     self, estimator, estimator_name, parameter_name, parameter_value

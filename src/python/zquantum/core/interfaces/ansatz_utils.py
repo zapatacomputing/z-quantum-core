@@ -39,3 +39,26 @@ def invalidates_parametrized_circuit(target):
             return return_value
 
         return _wrapper
+
+
+class DynamicProperty:
+    """A shortcut to create a getter-setter descriptor with one liners."""
+    def __init__(self, name: str, default_value=None):
+        self.default_value = default_value
+        self.name = name
+
+    @property
+    def attrname(self):
+        return f"_{self.name}"
+
+    def __get__(self, obj, obj_type):
+        if not hasattr(obj, self.attrname):
+            setattr(obj, self.attrname, self.default_value)
+        return getattr(obj, self.attrname)
+
+    def __set__(self, obj, new_obj):
+        setattr(obj, self.attrname, new_obj)
+
+
+def ansatz_property(name: str, default_value=None):
+    return _InvalidatingSetter(DynamicProperty(name, default_value))

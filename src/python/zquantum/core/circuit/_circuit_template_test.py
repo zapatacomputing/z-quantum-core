@@ -26,6 +26,7 @@ from ..utils import SCHEMA_VERSION
 from scipy.optimize import OptimizeResult
 
 
+
 class TestCircuitTemplate(unittest.TestCase):
     def test_circuit_template_io(self):
         # Given

@@ -105,6 +105,28 @@ def build_ansatz_circuit(ansatz: dict, params: np.ndarray) -> Circuit:
 
     return qprog
 
+def build_inverse_ansatz_circuit(ansatz: dict, params: np.ndarray) -> Circuit:
+    """Construct the circuit corresponding to the inverse of the ansatz
+    
+    Args:
+        ansatz (dict): the ansatz
+        params (numpy.ndarray): the ansatz parameters
+
+    Returns:
+        core.circuit.Circuit: the circuit
+    """
+
+    
+    circuit = Circuit('Inverse Circuit')
+    module = importlib.import_module(ansatz['ansatz_module'])
+    func = getattr(module, ansatz['ansatz_func'])
+    qprog = func(params, **ansatz['ansatz_kwargs'])
+    ibm_circuit = qprog.to_qiskit()
+    inverse_ibm_circuit = ibm_circuit.inverse()
+    circuit.from_qiskit(inverse_ibm_circuit)
+    
+    return circuit
+
 
 def generate_random_ansatz_params(
     ansatz: dict,

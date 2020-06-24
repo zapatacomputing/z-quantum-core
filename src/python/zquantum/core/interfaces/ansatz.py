@@ -75,5 +75,6 @@ class Ansatz(ABC, EnforceOverrides):
     def get_symbols(self) -> List[sympy.Symbol]:
         """
         Returns a list of parameters used for creating the ansatz.
+        The order of the symbols should match the order in which parameters should be passed for creating executable circuit.
         """
         raise NotImplementedError

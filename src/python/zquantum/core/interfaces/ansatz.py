@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from ..circuit import Circuit
-from .ansatz_utils import invalidates_parametrized_circuit
+from .ansatz_utils import ansatz_property
 from ..utils import create_symbols_map
 import copy
 import sympy
@@ -12,6 +12,7 @@ import numpy as np
 class Ansatz(ABC, EnforceOverrides):
 
     supports_parametrized_circuits = None
+    n_layers = ansatz_property("n_layers")
 
     def __init__(self, n_layers: int):
         """
@@ -27,17 +28,8 @@ class Ansatz(ABC, EnforceOverrides):
             supports_parametrized_circuits(bool): flag indicating whether given ansatz supports parametrized circuits.
         
         """
-        self._n_layers = n_layers
+        self.n_layers = n_layers
         self._parametrized_circuit = None
-
-    @property
-    def n_layers(self):
-        return self._n_layers
-
-    @invalidates_parametrized_circuit
-    @n_layers.setter
-    def n_layers(self, new_n_layers):
-        self._n_layers = new_n_layers
 
     @property
     def parametrized_circuit(self) -> Circuit:

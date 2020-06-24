@@ -42,7 +42,7 @@ class TestBasicEstimator(unittest.TestCase, EstimatorTests):
         # Setting up inherited tests
         self.operator = QubitOperator("Z0")
         self.circuit = Circuit(Program(X(0)))
-        self.backend = MockQuantumBackend()
+        self.backend = MockQuantumBackend(n_samples=20)
         self.n_samples = 10
         self.epsilon = None
         self.delta = None
@@ -57,6 +57,23 @@ class TestBasicEstimator(unittest.TestCase, EstimatorTests):
                 self.circuit,
                 self.operator,
                 n_samples=self.n_samples,
+                epsilon=self.epsilon,
+                delta=self.delta,
+            ).values
+            value = values[0]
+            # Then
+            self.assertTrue(len(values) == 1)
+            self.assertGreaterEqual(value, -1)
+            self.assertLessEqual(value, 1)
+
+    def test_get_estimated_expectation_values_samples_from_backend(self):
+        for estimator in self.estimators:
+            # Given
+            # When
+            values = estimator.get_estimated_expectation_values(
+                self.backend,
+                self.circuit,
+                self.operator,
                 epsilon=self.epsilon,
                 delta=self.delta,
             ).values

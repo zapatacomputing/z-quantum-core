@@ -19,6 +19,7 @@ from .measurement import (
     expectation_values_to_real,
     convert_bitstring_to_int,
     Measurements,
+    concatenate_expectation_values,
 )
 from pyquil.wavefunction import Wavefunction
 
@@ -535,6 +536,68 @@ class TestMeasurement(unittest.TestCase):
         # Then
         np.testing.assert_array_equal(
             expectation_values.values, target_expectation_values
+        )
+
+    def test_concatenate_expectation_values(self):
+        expectation_values_set = [
+            ExpectationValues(np.array([1.0, 2.0])),
+            ExpectationValues(np.array([3.0, 4.0])),
+        ]
+
+        combined_expectation_values = concatenate_expectation_values(
+            expectation_values_set
+        )
+        self.assertTrue(combined_expectation_values.correlations is None)
+        self.assertTrue(combined_expectation_values.covariances is None)
+        self.assertTrue(
+            np.allclose(combined_expectation_values.values, [1.0, 2.0, 3.0, 4.0])
+        )
+
+    def test_concatenate_expectation_values_with_cov_and_corr(self):
+        expectation_values_set = [
+            ExpectationValues(
+                np.array([1.0, 2.0]),
+                covariances=[np.array([[0.1, 0.2], [0.3, 0.4]])],
+                correlations=[np.array([[-0.1, -0.2], [-0.3, -0.4]])],
+            ),
+            ExpectationValues(
+                np.array([3.0, 4.0]),
+                covariances=[np.array([[0.1]]), np.array([[0.2]])],
+                correlations=[np.array([[-0.1]]), np.array([[-0.2]])],
+            ),
+        ]
+        combined_expectation_values = concatenate_expectation_values(
+            expectation_values_set
+        )
+        self.assertEqual(len(combined_expectation_values.covariances), 3)
+        self.assertTrue(
+            np.allclose(
+                combined_expectation_values.covariances[0], [[0.1, 0.2], [0.3, 0.4]]
+            )
+        )
+        self.assertTrue(
+            np.allclose(combined_expectation_values.covariances[1], [[0.1]])
+        )
+        self.assertTrue(
+            np.allclose(combined_expectation_values.covariances[2], [[0.2]])
+        )
+
+        self.assertEqual(len(combined_expectation_values.correlations), 3)
+        self.assertTrue(
+            np.allclose(
+                combined_expectation_values.correlations[0],
+                [[-0.1, -0.2], [-0.3, -0.4]],
+            )
+        )
+        self.assertTrue(
+            np.allclose(combined_expectation_values.correlations[1], [[-0.1]])
+        )
+        self.assertTrue(
+            np.allclose(combined_expectation_values.correlations[2], [[-0.2]])
+        )
+
+        self.assertTrue(
+            np.allclose(combined_expectation_values.values, [1.0, 2.0, 3.0, 4.0])
         )
 
     def tearDown(self):

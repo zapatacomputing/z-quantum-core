@@ -34,7 +34,7 @@ class EstimatorTests(object):
     # self.backend
     # self.circuit
     # self.operator
-    # self.n_sample
+    # self.n_samples
     # self.epsilon
     # self.delta
 
@@ -53,35 +53,15 @@ class EstimatorTests(object):
             # Then
             self.assertIsInstance(value, ExpectationValues)
 
-    def test_get_estimated_expectation_values(self):
-        for estimator in self.estimators:
-            # Given
-            # When
-            values = estimator.get_estimated_expectation_values(
-                self.backend,
-                self.circuit,
-                self.operator,
-                n_samples=self.n_samples,
-                epsilon=self.epsilon,
-                delta=self.delta,
-            ).values
-            value = values[0]
-            # Then
-            self.assertTrue(len(values) == 1)
-            self.assertGreaterEqual(value, 0)
-            self.assertLessEqual(value, 1)
-
 
 def parameter_is_ignored(
     self, estimator, estimator_name, parameter_name, parameter_value
 ):
     with self.assertLogs("z-quantum-core", level="WARN") as context_manager:
         # Given
-        expected_logs = [
-            "WARNING:z-quantum-core:{} = {}. {} does not use {}. The value was ignored.".format(
-                parameter_name, parameter_value, estimator_name, parameter_name
-            )
-        ]
+        expected_log = "WARNING:z-quantum-core:{} = {}. {} does not use {}. The value was ignored.".format(
+            parameter_name, parameter_value, estimator_name, parameter_name
+        )
         # When
         if parameter_name == "n_samples":
             self.n_samples = parameter_value
@@ -99,4 +79,4 @@ def parameter_is_ignored(
             delta=self.delta,
         )
         # Then
-        self.assertEqual(context_manager.output, expected_logs)
+        self.assertIn(expected_log, context_manager.output)

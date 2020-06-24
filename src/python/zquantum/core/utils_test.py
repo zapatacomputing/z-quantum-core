@@ -192,7 +192,7 @@ class TestUtils(unittest.TestCase):
         # Then
         self.assertEqual(noise_model, None)
 
-    def test_create_symbols_map(self):
+    def test_create_symbols_map_with_correct_input(self):
         # Given
         symbol_1 = sympy.Symbol("alpha")
         symbol_2 = sympy.Symbol("beta")
@@ -206,3 +206,12 @@ class TestUtils(unittest.TestCase):
         # Then
         self.assertEqual(symbols_map, target_symbols_map)
 
+    def test_create_symbols_map_with_incorrect_input(self):
+        # Given
+        symbol_1 = sympy.Symbol("alpha")
+        symbols = [symbol_1]
+        params = np.array([1, 2])
+
+        # When/Then
+        with self.assertRaises(ValueError):
+            symbols_map = create_symbols_map(symbols, params)

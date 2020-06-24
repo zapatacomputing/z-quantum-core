@@ -450,4 +450,12 @@ def create_symbols_map(
         symbols: list of sympy Symbols to be evaluated
         params: numpy array containing numerical value for the symbols
     """
+    if len(symbols) != len(params):
+        raise (
+            ValueError(
+                "Length of symbols: {0} doesn't match length of params: {1}".format(
+                    len(symbols), len(params)
+                )
+            )
+        )
     return [(symbol, param) for symbol, param in zip(symbols, params.tolist())]

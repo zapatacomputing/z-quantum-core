@@ -75,20 +75,12 @@ class MockCostFunction(CostFunction):
 class MockAnsatz(Ansatz):
 
     supports_parametrized_circuits = True
+    n_qubits = ansatz_property("n_qubits")
 
     def __init__(self, n_layers: int, n_qubits: int):
         super().__init__(n_layers)
-        self._n_layers = n_layers
-        self._n_qubits = n_qubits
-
-    @property
-    def n_qubits(self):
-        return self._n_qubits
-
-    @invalidates_parametrized_circuit
-    @n_qubits.setter
-    def n_qubits(self, new_n_qubits: int):
-        self._n_qubits = new_n_qubits
+        self.n_layers = n_layers
+        self.n_qubits = n_qubits
 
     @overrides
     def _generate_circuit(self, parameters: Optional[np.ndarray] = None):

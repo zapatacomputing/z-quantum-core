@@ -1,5 +1,5 @@
 from .ansatz import Ansatz
-from .ansatz_utils import invalidates_parametrized_circuit
+from .ansatz_utils import ansatz_property
 from .backend import QuantumSimulator
 from .optimizer import Optimizer
 from .cost_function import CostFunction

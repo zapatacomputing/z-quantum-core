@@ -12,7 +12,7 @@ class TestBasicCostFunction(unittest.TestCase, CostFunctionTests):
         function = np.sum
         cost_function = BasicCostFunction(function)
         self.cost_functions = [cost_function]
-        self.params_sizes = [2]
+        self.params_sizes = [1]
 
     def test_evaluate(self):
         # Given
@@ -89,11 +89,11 @@ class TestEvaluateOperatorCostFunction(unittest.TestCase, CostFunctionTests):
 
         # Setting up inherited tests
         self.cost_functions = [self.single_term_op_cost_function]
-        self.params_sizes = [2]
+        self.params_sizes = [1]
 
     def test_evaluate(self):
         # Given
-        params = np.array([1, 2])
+        params = np.array([1])
 
         # When
         value_1 = self.single_term_op_cost_function.evaluate(params)

@@ -21,7 +21,10 @@ class _InvalidatingSetter(object):
 
 
 def invalidates_parametrized_circuit(target):
-    """Make given target (either property or method) invalidate ansatz's circuit."""
+    """
+    Make given target (either property or method) invalidate ansatz's circuit.
+    It can be used as a decorator, when for some reason `ansatz_property` shouldn't be used.
+    """
     if isinstance(target, property):
         # If we are dealing with a property, return our modified descriptor.
         return _InvalidatingSetter(target)

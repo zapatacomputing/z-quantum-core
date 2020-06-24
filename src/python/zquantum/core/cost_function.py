@@ -2,7 +2,6 @@ from .interfaces.cost_function import CostFunction
 from .interfaces.backend import QuantumBackend
 from .interfaces.ansatz import Ansatz
 from .circuit import build_ansatz_circuit
-from .utils import create_symbols_map
 from typing import Callable, Optional, Dict
 import numpy as np
 import copy
@@ -91,7 +90,7 @@ class EvaluateOperatorCostFunction(CostFunction):
 
     Args:
         target_operator (openfermion.QubitOperator): operator to be evaluated
-        ansatz (zquantum.core.interfaces.ansatz.Ansatz): ansatz usef to evaluate cost function
+        ansatz (zquantum.core.interfaces.ansatz.Ansatz): ansatz used to evaluate cost function
         backend (zquantum.core.interfaces.backend.QuantumBackend): backend used for evaluation
         gradient_type (str): parameter indicating which type of gradient should be used.
         save_evaluation_history (bool): flag indicating whether we want to store the history of all the evaluations.

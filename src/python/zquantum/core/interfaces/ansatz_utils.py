@@ -43,6 +43,7 @@ def invalidates_parametrized_circuit(target):
 
 class DynamicProperty:
     """A shortcut to create a getter-setter descriptor with one liners."""
+
     def __init__(self, name: str, default_value=None):
         self.default_value = default_value
         self.name = name

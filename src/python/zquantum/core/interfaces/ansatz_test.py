@@ -1,3 +1,6 @@
+from ..circuit import Circuit
+
+
 class AnsatzTests(object):
     # To run tests with this base class, the following variables need to be properly initialized in the child class:
     # self.ansatz
@@ -23,3 +26,10 @@ class AnsatzTests(object):
 
             # Then
             self.assertIsNone(self.ansatz._parametrized_circuit)
+
+    def test_generate_circuit(self):
+        # When
+        circuit = self.ansatz._generate_circuit()
+
+        # Then
+        self.assertTrue(isinstance(circuit, Circuit))

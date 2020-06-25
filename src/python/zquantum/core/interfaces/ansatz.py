@@ -38,7 +38,7 @@ class Ansatz(ABC, EnforceOverrides):
                 return self._generate_circuit()
             else:
                 raise (
-                    Exception(
+                    NotImplementedError(
                         "{0} does not support parametrized circuits.".format(
                             type(self).__name__
                         )

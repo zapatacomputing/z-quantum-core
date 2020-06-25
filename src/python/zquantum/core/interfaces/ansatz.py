@@ -47,34 +47,45 @@ class Ansatz(ABC, EnforceOverrides):
         else:
             return self._parametrized_circuit
 
-    def get_executable_circuit(self, parameters: np.ndarray) -> Circuit:
+    @property
+    def number_of_params(self) -> int:
+        """
+        Returns number of parameters in the ansatz.
+        """
+
+        if self.supports_parametrized_circuits:
+            return len(self.get_symbols())
+        else:
+            raise NotImplementedError
+
+    def get_executable_circuit(self, params: np.ndarray) -> Circuit:
         """
         Returns an executable circuit representing the ansatz.
         Args:
-            parameters: circuit parameters
+            params: circuit parameters
         """
-        if parameters is None:
+        if params is None:
             raise (Exception("Parameters can't be None for executable circuit."))
         if self.supports_parametrized_circuits:
             symbols = self.get_symbols()
-            symbols_map = create_symbols_map(symbols, parameters)
+            symbols_map = create_symbols_map(symbols, params)
             executable_circuit = self.parametrized_circuit.evaluate(symbols_map)
             return executable_circuit
         else:
-            return self._generate_circuit(parameters)
+            return self._generate_circuit(params)
 
-    def _generate_circuit(self, parameters: Optional[np.ndarray] = None) -> Circuit:
+    def _generate_circuit(self, params: Optional[np.ndarray] = None) -> Circuit:
         """
         Returns a circuit represention of the ansatz.
         Will return parametrized circuits if no parameters are passed and the ansatz supports parametrized circuits.
         Args:
-            parameters: circuit parameters
+            params: circuit params
         """
         raise NotImplementedError
 
     def get_symbols(self) -> List[sympy.Symbol]:
         """
-        Returns a list of parameters used for creating the ansatz.
+        Returns a list of symbolic parameters used for creating the ansatz.
         The order of the symbols should match the order in which parameters should be passed for creating executable circuit.
         """
         raise NotImplementedError

@@ -11,8 +11,7 @@ from openfermion import SymbolicOperator
 
 
 class BasicCostFunction(CostFunction):
-    """
-    Basic implementation of the CostFunction interface.
+    """Basic implementation of the CostFunction interface.
     It allows to pass any function (and gradient) when initialized.
 
     Args:
@@ -20,7 +19,7 @@ class BasicCostFunction(CostFunction):
         gradient_function (Callable): function used to calculate gradients. Optional.
         gradient_type (str): parameter indicating which type of gradient should be used.
         save_evaluation_history (bool): flag indicating whether we want to store the history of all the evaluations.
-        epsilon (float): epsilon used for calculating gradient using finite difference method.
+        accuracy(float): accuracy term used in finite difference approximation, as accuracy tends to 0, the approximation improves. 
 
     Params:
         function (Callable): see Args
@@ -28,7 +27,7 @@ class BasicCostFunction(CostFunction):
         evaluations_history (list): List of the tuples (parameters, value) representing all the evaluation in a chronological order.
         gradient_type (str): see Args
         save_evaluation_history (bool): see Args
-        epsilon (float): see Args
+        accuracy (float): see Args
 
     """
 
@@ -38,14 +37,14 @@ class BasicCostFunction(CostFunction):
         gradient_function: Optional[Callable] = None,
         gradient_type: str = "custom",
         save_evaluation_history: bool = True,
-        epsilon: float = 1e-5,
+        accuracy: float = 1e-5,
     ):
         self.evaluations_history = []
         self.save_evaluation_history = save_evaluation_history
         self.gradient_type = gradient_type
         self.function = function
         self.gradient_function = gradient_function
-        self.epsilon = epsilon
+        self.accuracy = accuracy
 
     def _evaluate(self, parameters: np.ndarray) -> ValueEstimate:
         """
@@ -97,7 +96,7 @@ class AnsatzBasedCostFunction(CostFunction):
         estimator: (zquantum.core.interfaces.estimator.Estimator) = estimator used to compute expectation value of target operator 
         gradient_type (str): parameter indicating which type of gradient should be used.
         save_evaluation_history (bool): flag indicating whether we want to store the history of all the evaluations.
-        epsilon (float): epsilon used for calculating gradient using finite difference method.
+        accuracy(float): accuracy term used in finite difference approximation, as accuracy tends to 0, the approximation improves. 
 
     Params:
         target_operator (openfermion.QubitOperator): see Args
@@ -107,7 +106,7 @@ class AnsatzBasedCostFunction(CostFunction):
         evaluations_history (list): List of the tuples (parameters, value) representing all the evaluation in a chronological order.
         save_evaluation_history (bool): see Args
         gradient_type (str): see Args
-        epsilon (float): see Args
+        accuracy (float): see Args
 
     """
 
@@ -119,7 +118,7 @@ class AnsatzBasedCostFunction(CostFunction):
         estimator: Estimator = None,
         gradient_type: str = "finite_difference",
         save_evaluation_history: bool = True,
-        epsilon: float = 1e-5,
+        accuracy: float = 1e-5,
     ):
         self.target_operator = target_operator
         self.ansatz = ansatz
@@ -130,7 +129,7 @@ class AnsatzBasedCostFunction(CostFunction):
             self.estimator = estimator
         self.gradient_type = gradient_type
         self.save_evaluation_history = save_evaluation_history
-        self.epsilon = epsilon
+        self.accuracy = accuracy
         self.evaluations_history = []
 
     def _evaluate(self, parameters: np.ndarray) -> ValueEstimate:

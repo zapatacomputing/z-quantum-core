@@ -5,35 +5,34 @@ from ..utils import ValueEstimate
 
 
 class CostFunction(ABC):
-    """
-    Interface for implementing different cost functions.
+    """Interface for implementing different cost functions.
 
     Args:
         save_evaluation_history (bool): flag indicating whether we want to store the history of all the evaluations.
         gradient_type (str): parameter indicating which type of gradient should be used.
-        epsilon (float): epsilon used for calculating gradient using finite difference method.
+        accuracy(float): accuracy term used in finite difference approximation, as accuracy tends to 0, the approximation improves. 
 
     Params:
         evaluations_history (list): List of the tuples (parameters, value) representing all the evaluation in a chronological order.
         save_evaluation_history (bool): see Args
         gradient_type (str): see Args
-        epsilon (float): see Args
+        accuracy(float): see Args
     """
 
     def __init__(
         self,
         gradient_type: str = "finite_difference",
         save_evaluation_history: bool = True,
-        epsilon: float = 1e-5,
+        accuracy: float = 1e-5,
     ):
         self.evaluations_history = []
         self.save_evaluation_history = save_evaluation_history
         self.gradient_type = gradient_type
-        self.epsilon = epsilon
+        self.accuracy = accuracy
 
     def evaluate(self, parameters: np.ndarray) -> ValueEstimate:
-        """
-        Evaluates the value of the cost function for given parameters and saves the results (if specified).
+        """Evaluates the value of the cost function for given parameters and saves the results (if specified).
+
         Args:
             parameters: parameters for which the evaluation should occur
 
@@ -47,8 +46,7 @@ class CostFunction(ABC):
 
     @abstractmethod
     def _evaluate(self, parameters: np.ndarray) -> ValueEstimate:
-        """
-        Evaluates the value of the cost function for given parameters.
+        """Evaluates the value of the cost function for given parameters.
 
         Args:
             parameters: parameters for which the evaluation should occur
@@ -59,8 +57,7 @@ class CostFunction(ABC):
         raise NotImplementedError
 
     def get_gradient(self, parameters: np.ndarray) -> np.ndarray:
-        """
-        Evaluates the gradient of the cost function for given parameters.
+        """Evaluates the gradient of the cost function for given parameters.
         What method is used for calculating gradients is indicated by `self.gradient_type` field.
 
         Args:
@@ -75,31 +72,30 @@ class CostFunction(ABC):
             raise Exception("Gradient type: %s is not supported", self.gradient_type)
 
     def get_gradients_finite_difference(
-        self, parameters: np.ndarray, epsilon: Optional[float] = None
+        self, parameters: np.ndarray, accuracy: Optional[float] = None
     ) -> np.ndarray:
-        """
-        Evaluates the gradient of the cost function for given parameters using finite differences method.
+        """Evaluates the gradient of the cost function for given parameters using finite differences method.
 
         Args:
             parameters (np.ndarray): parameters for which we calculate the gradient.
-            epsilon (float): difference used for calculating finite differences. If not defined uses value specified by self.epsilon. Otherwise – overrides it.
+            accuracy(float): accuracy term used in finite difference approximation, as accuracy tends to 0, the approximation improves. If not defined uses value specified by self.accuracy. Otherwise, overrides it.
 
         Returns:
             np.ndarray: gradient vector
         """
-        if epsilon is None:
-            epsilon = self.epsilon
+        if accuracy is None:
+            accuracy = self.accuracy
 
         gradient = np.array([])
         for idx in range(len(parameters)):
             values_plus = parameters.astype(float)
             values_minus = parameters.astype(float)
             increment = np.zeros(len(parameters))
-            values_plus[idx] += epsilon
-            values_minus[idx] -= epsilon
+            values_plus[idx] += accuracy
+            values_minus[idx] -= accuracy
             gradient = np.append(
                 gradient,
                 (self.evaluate(values_plus).value - self.evaluate(values_minus).value)
-                / (2 * epsilon),
+                / (2 * accuracy),
             )
         return gradient

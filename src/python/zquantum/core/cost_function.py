@@ -47,8 +47,7 @@ class BasicCostFunction(CostFunction):
         self.accuracy = accuracy
 
     def _evaluate(self, parameters: np.ndarray) -> ValueEstimate:
-        """
-        Evaluates the value of the cost function for given parameters.
+        """Evaluates the value of the cost function for given parameters.
 
         Args:
             parameters: parameters for which the evaluation should occur
@@ -60,8 +59,7 @@ class BasicCostFunction(CostFunction):
         return value
 
     def get_gradient(self, parameters: np.ndarray) -> np.ndarray:
-        """
-        Evaluates the gradient of the cost function for given parameters.
+        """Evaluates the gradient of the cost function for given parameters.
         What method is used for calculating gradients is indicated by `self.gradient_type` field.
 
         Args:
@@ -86,8 +84,7 @@ class BasicCostFunction(CostFunction):
 
 
 class AnsatzBasedCostFunction(CostFunction):
-    """
-    Cost function used for evaluating given operator using given ansatz.
+    """Cost function used for evaluating given operator using given ansatz.
 
     Args:
         target_operator (openfermion.QubitOperator): operator to be evaluated
@@ -97,6 +94,10 @@ class AnsatzBasedCostFunction(CostFunction):
         gradient_type (str): parameter indicating which type of gradient should be used.
         save_evaluation_history (bool): flag indicating whether we want to store the history of all the evaluations.
         accuracy(float): accuracy term used in finite difference approximation, as accuracy tends to 0, the approximation improves. 
+        n_samples (int): number of samples (i.e. measurements) to be used in the estimator. 
+        epsilon (float): an additive/multiplicative error term. The cost function should be computed to within this error term. 
+        delta (float): a confidence term. If theoretical upper bounds are known for the estimation technique, 
+            the final estimate should be within the epsilon term, with probability 1 - delta.
 
     Params:
         target_operator (openfermion.QubitOperator): see Args
@@ -107,7 +108,9 @@ class AnsatzBasedCostFunction(CostFunction):
         save_evaluation_history (bool): see Args
         gradient_type (str): see Args
         accuracy (float): see Args
-
+        n_samples (int): see Args
+        epsilon (float): see Args
+        delta (float): see Args
     """
 
     def __init__(
@@ -119,6 +122,9 @@ class AnsatzBasedCostFunction(CostFunction):
         gradient_type: str = "finite_difference",
         save_evaluation_history: bool = True,
         accuracy: float = 1e-5,
+        n_samples: Optional[int] = None,
+        epsilon: Optional[float] = None,
+        delta: Optional[float] = None,
     ):
         self.target_operator = target_operator
         self.ansatz = ansatz
@@ -131,6 +137,9 @@ class AnsatzBasedCostFunction(CostFunction):
         self.save_evaluation_history = save_evaluation_history
         self.accuracy = accuracy
         self.evaluations_history = []
+        self.n_samples = n_samples
+        self.epsilon = epsilon
+        self.delta = delta
 
     def _evaluate(self, parameters: np.ndarray) -> ValueEstimate:
         """
@@ -144,7 +153,12 @@ class AnsatzBasedCostFunction(CostFunction):
         """
         circuit = build_ansatz_circuit(self.ansatz, parameters)
         expectation_values = self.estimator.get_estimated_expectation_values(
-            self.backend, circuit, self.target_operator
+            self.backend,
+            circuit,
+            self.target_operator,
+            n_samples=self.n_samples,
+            epsilon=self.epsilon,
+            delta=self.delta,
         )
         final_value = np.sum(expectation_values.values)
         return ValueEstimate(final_value)

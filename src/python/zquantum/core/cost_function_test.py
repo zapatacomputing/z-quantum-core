@@ -1,8 +1,9 @@
 import unittest
 import numpy as np
-from .cost_function import BasicCostFunction, EvaluateOperatorCostFunction
-from .interfaces.mock_objects import MockQuantumSimulator, MockAnsatz
+from .cost_function import BasicCostFunction, AnsatzBasedCostFunction
+from .interfaces.mock_objects import MockQuantumSimulator, MockEstimator, MockAnsatz
 from .interfaces.cost_function_test import CostFunctionTests
+from .utils import ValueEstimate
 from openfermion import QubitOperator
 
 
@@ -19,8 +20,8 @@ class TestBasicCostFunction(unittest.TestCase, CostFunctionTests):
         function = np.sum
         params_1 = np.array([1, 2, 3])
         params_2 = np.array([1, 2, 3, 4])
-        target_value_1 = 6
-        target_value_2 = 10
+        target_value_1 = ValueEstimate(6)
+        target_value_2 = ValueEstimate(10)
         cost_function = BasicCostFunction(function)
 
         # When
@@ -78,13 +79,14 @@ class TestBasicCostFunction(unittest.TestCase, CostFunctionTests):
         np.testing.assert_almost_equal(gradient_value_2, target_gradient_value_2)
 
 
-class TestEvaluateOperatorCostFunction(unittest.TestCase, CostFunctionTests):
+class TestAnsatzBasedCostFunction(unittest.TestCase, CostFunctionTests):
     def setUp(self):
         target_operator = QubitOperator("Z0")
         ansatz = MockAnsatz(n_qubits=1, n_layers=1)
         backend = MockQuantumSimulator()
-        self.single_term_op_cost_function = EvaluateOperatorCostFunction(
-            target_operator, ansatz, backend
+        estimator = MockEstimator()
+        self.single_term_op_cost_function = AnsatzBasedCostFunction(
+            target_operator, ansatz, backend, estimator=estimator
         )
 
         # Setting up inherited tests
@@ -101,10 +103,10 @@ class TestEvaluateOperatorCostFunction(unittest.TestCase, CostFunctionTests):
         history = self.single_term_op_cost_function.evaluations_history
 
         # Then
-        self.assertGreaterEqual(value_1, 0)
-        self.assertLessEqual(value_1, 1)
-        self.assertGreaterEqual(value_2, 0)
-        self.assertLessEqual(value_2, 1)
+        self.assertGreaterEqual(value_1.value, 0)
+        self.assertLessEqual(value_1.value, 1)
+        self.assertGreaterEqual(value_2.value, 0)
+        self.assertLessEqual(value_2.value, 1)
         self.assertEqual(len(history), 2)
         self.assertEqual(history[0]["value"], value_1)
         np.testing.assert_array_equal(history[0]["params"], params)

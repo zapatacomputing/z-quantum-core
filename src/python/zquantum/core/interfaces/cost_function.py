@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 import numpy as np
 from typing import Optional
+from ..utils import ValueEstimate
 
 
 class CostFunction(ABC):
@@ -30,14 +31,14 @@ class CostFunction(ABC):
         self.gradient_type = gradient_type
         self.epsilon = epsilon
 
-    def evaluate(self, parameters: np.ndarray) -> float:
+    def evaluate(self, parameters: np.ndarray) -> ValueEstimate:
         """
         Evaluates the value of the cost function for given parameters and saves the results (if specified).
         Args:
             parameters: parameters for which the evaluation should occur
 
         Returns:
-            value: cost function value for given parameters, either int or float.
+            value: cost function value for given parameters.
         """
         value = self._evaluate(parameters)
         if self.save_evaluation_history:
@@ -45,7 +46,7 @@ class CostFunction(ABC):
         return value
 
     @abstractmethod
-    def _evaluate(self, parameters: np.ndarray) -> float:
+    def _evaluate(self, parameters: np.ndarray) -> ValueEstimate:
         """
         Evaluates the value of the cost function for given parameters.
 
@@ -53,7 +54,7 @@ class CostFunction(ABC):
             parameters: parameters for which the evaluation should occur
 
         Returns:
-            value: cost function value for given parameters, either int or float.
+            value: cost function value for given parameters.
         """
         raise NotImplementedError
 
@@ -98,7 +99,7 @@ class CostFunction(ABC):
             values_minus[idx] -= epsilon
             gradient = np.append(
                 gradient,
-                (self.evaluate(values_plus) - self.evaluate(values_minus))
+                (self.evaluate(values_plus).value - self.evaluate(values_minus).value)
                 / (2 * epsilon),
             )
         return gradient

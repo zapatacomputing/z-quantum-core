@@ -4,8 +4,8 @@ from ..bitstring_distribution import (
     create_bitstring_distribution_from_probability_distribution,
 )
 from ..circuit import Circuit, CircuitConnectivity
-from ..measurement import ExpectationValues
-from typing import Optional, List, Tuple
+from ..measurement import ExpectationValues, Measurements
+from typing import Optional, List, Tuple, Iterable
 from openfermion import QubitOperator
 from pyquil.wavefunction import Wavefunction
 
@@ -32,6 +32,25 @@ class QuantumBackend(ABC):
             core.measurement.Measurements: object representing the measurements resulting from the circuit
         """
         raise NotImplementedError
+
+    def run_circuitset_and_measure(
+        self, circuit_set: Iterable[Circuit], **kwargs
+    ) -> List[Measurements]:
+        """Run a set of circuits and measure a certain number of bitstrings.
+        
+        It may be useful to override this method for backends that support
+        batching. Note that self.n_samples shots are used for each circuit.
+
+        Args:
+            circuit_set: The circuits to execute.
+
+        Returns:
+            Measurements for each circuit.
+        """
+        measurement_set = []
+        for circuit in circuit_set:
+            measurement_set.append(self.run_circuit_and_measure(circuit), **kwargs)
+        return measurement_set
 
     def get_expectation_values(
         self, circuit: Circuit, qubit_operator: QubitOperator, **kwargs

@@ -1,5 +1,6 @@
 import unittest
 import numpy as np
+from ..utils import ValueEstimate
 
 
 class CostFunctionTests(object):
@@ -7,14 +8,14 @@ class CostFunctionTests(object):
     # self.cost_functions
     # self.params_sizes
 
-    def test_evaluate_returns_number(self):
+    def test_evaluate_returns_value_estimate(self):
         for cost_function, num_params in zip(self.cost_functions, self.params_sizes):
             # Given
             params = np.random.rand(num_params)
             # When
             value = cost_function.evaluate(params)
             # Then
-            # self.assertIsInstance(value, (int, float))
+            self.assertIsInstance(value, ValueEstimate)
 
     def test_evaluatue_saves_evaluation_history(self):
         for cost_function, num_params in zip(self.cost_functions, self.params_sizes):

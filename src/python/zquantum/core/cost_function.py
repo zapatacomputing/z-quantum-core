@@ -19,7 +19,7 @@ class BasicCostFunction(CostFunction):
         gradient_function (Callable): function used to calculate gradients. Optional.
         gradient_type (str): parameter indicating which type of gradient should be used.
         save_evaluation_history (bool): flag indicating whether we want to store the history of all the evaluations.
-        accuracy(float): accuracy term used in finite difference approximation, as accuracy tends to 0, the approximation improves. 
+        finite_diff_step_size(float): the step size used in finite difference approximation.
 
     Params:
         function (Callable): see Args
@@ -27,7 +27,7 @@ class BasicCostFunction(CostFunction):
         evaluations_history (list): List of the tuples (parameters, value) representing all the evaluation in a chronological order.
         gradient_type (str): see Args
         save_evaluation_history (bool): see Args
-        accuracy (float): see Args
+        finite_diff_step_size (float): see Args
 
     """
 
@@ -37,14 +37,14 @@ class BasicCostFunction(CostFunction):
         gradient_function: Optional[Callable] = None,
         gradient_type: str = "custom",
         save_evaluation_history: bool = True,
-        accuracy: float = 1e-5,
+        finite_diff_step_size: float = 1e-5,
     ):
         self.evaluations_history = []
         self.save_evaluation_history = save_evaluation_history
         self.gradient_type = gradient_type
         self.function = function
         self.gradient_function = gradient_function
-        self.accuracy = accuracy
+        self.finite_diff_step_size = finite_diff_step_size
 
     def _evaluate(self, parameters: np.ndarray) -> ValueEstimate:
         """Evaluates the value of the cost function for given parameters.
@@ -93,7 +93,7 @@ class AnsatzBasedCostFunction(CostFunction):
         estimator: (zquantum.core.interfaces.estimator.Estimator) = estimator used to compute expectation value of target operator 
         gradient_type (str): parameter indicating which type of gradient should be used.
         save_evaluation_history (bool): flag indicating whether we want to store the history of all the evaluations.
-        accuracy(float): accuracy term used in finite difference approximation, as accuracy tends to 0, the approximation improves. 
+        finite_diff_step_size(float): the step size used in finite difference approximation.
         n_samples (int): number of samples (i.e. measurements) to be used in the estimator. 
         epsilon (float): an additive/multiplicative error term. The cost function should be computed to within this error term. 
         delta (float): a confidence term. If theoretical upper bounds are known for the estimation technique, 
@@ -107,7 +107,7 @@ class AnsatzBasedCostFunction(CostFunction):
         evaluations_history (list): List of the tuples (parameters, value) representing all the evaluation in a chronological order.
         save_evaluation_history (bool): see Args
         gradient_type (str): see Args
-        accuracy (float): see Args
+        finite_diff_step_size (float): see Args
         n_samples (int): see Args
         epsilon (float): see Args
         delta (float): see Args
@@ -121,7 +121,7 @@ class AnsatzBasedCostFunction(CostFunction):
         estimator: Estimator = None,
         gradient_type: str = "finite_difference",
         save_evaluation_history: bool = True,
-        accuracy: float = 1e-5,
+        finite_diff_step_size: float = 1e-5,
         n_samples: Optional[int] = None,
         epsilon: Optional[float] = None,
         delta: Optional[float] = None,
@@ -135,7 +135,7 @@ class AnsatzBasedCostFunction(CostFunction):
             self.estimator = estimator
         self.gradient_type = gradient_type
         self.save_evaluation_history = save_evaluation_history
-        self.accuracy = accuracy
+        self.finite_diff_step_size = finite_diff_step_size
         self.evaluations_history = []
         self.n_samples = n_samples
         self.epsilon = epsilon

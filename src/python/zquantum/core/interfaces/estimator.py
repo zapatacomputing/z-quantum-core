@@ -4,7 +4,7 @@ from .backend import QuantumBackend
 from ..measurement import ExpectationValues
 from abc import ABC, abstractmethod
 from openfermion import SymbolicOperator
-from typing import List
+from typing import List, Optional
 
 
 class Estimator(ABC):
@@ -20,9 +20,9 @@ class Estimator(ABC):
         backend: QuantumBackend,
         circuit: Circuit,
         target_operator: SymbolicOperator,
-        n_samples: int = None,
-        epsilon: float = None,
-        delta: float = None,
+        n_samples: Optional[int] = None,
+        epsilon: Optional[float] = None,
+        delta: Optional[float] = None,
     ) -> ExpectationValues:
         """Estimators take an unknown quantum state (or the circuit that prepares the unknown state) and a list of target functions
         as input and produce a list of estimations as output. 

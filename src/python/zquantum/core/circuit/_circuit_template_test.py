@@ -21,7 +21,9 @@ from ._circuit_template import (
     load_circuit_connectivity,
     build_circuit_layers_and_connectivity,
     CircuitConnectivity,
+    create_layer_of_gates,
 )
+from . import Gate, Qubit, Circuit
 from ..utils import SCHEMA_VERSION
 from scipy.optimize import OptimizeResult
 
@@ -291,4 +293,23 @@ class TestCircuitLayers(unittest.TestCase):
 
         for row, test_row in zip(connectivity.connectivity, test_connectivity):
             self.assertEqual(row, test_row)
+
+    def test_create_layer_of_gates(self):
+        # Given
+        number_of_qubits = 4
+        gate_name = "X"
+        qubits = [Qubit(i) for i in range(0, number_of_qubits)]
+        gate_0 = Gate(gate_name, qubits=[qubits[0]])
+        gate_1 = Gate(gate_name, qubits=[qubits[1]])
+        gate_2 = Gate(gate_name, qubits=[qubits[2]])
+        gate_3 = Gate(gate_name, qubits=[qubits[3]])
+        target_circuit = Circuit()
+        target_circuit.qubits = qubits
+        target_circuit.gates = [gate_0, gate_1, gate_2, gate_3]
+
+        # When
+        layer_of_x = create_layer_of_gates(number_of_qubits, gate_name)
+
+        # Then
+        self.assertEqual(layer_of_x, target_circuit)
 

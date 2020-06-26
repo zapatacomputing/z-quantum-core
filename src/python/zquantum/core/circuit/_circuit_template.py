@@ -524,3 +524,15 @@ def _build_circuit_layers_and_connectivity_nearest_neighbors(n_qubits):
     connectivity.extend(odd_layer)
     return CircuitConnectivity(connectivity), CircuitLayers([even_layer, odd_layer])
 
+
+def create_layer_of_gates(number_of_qubits: int, gate_name: str) -> Circuit:
+    """
+    Creates a circuit consisting of a single layer of specific gate.
+    """
+    circuit = Circuit()
+    circuit.qubits = [Qubit(i) for i in range(0, number_of_qubits)]
+    circuit.gates = []
+    for i in range(number_of_qubits):
+        circuit.gates.append(Gate(gate_name, [circuit.qubits[i]]))
+
+    return circuit

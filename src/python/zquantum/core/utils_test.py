@@ -26,6 +26,7 @@ from .utils import (
     load_noise_model,
     save_noise_model,
     create_symbols_map,
+    generate_random_params,
 )
 from .interfaces.mock_objects import MockQuantumSimulator
 
@@ -215,3 +216,24 @@ class TestUtils(unittest.TestCase):
         # When/Then
         with self.assertRaises(ValueError):
             symbols_map = create_symbols_map(symbols, params)
+
+    def test_generate_random_params(self):
+        # Given
+        number_of_parameters_set = [0, 1, 2, 100]
+        parameter_ranges = [
+            [0, 1],
+            [0, np.pi],
+            [-np.pi, np.pi],
+            [-100 * np.pi, 100 * np.pi],
+        ]
+
+        for number_of_parameters in number_of_parameters_set:
+            for min_val, max_val in parameter_ranges:
+
+                # When
+                params = generate_random_params(number_of_parameters, min_val, max_val)
+
+                # Then
+                self.assertEqual(len(params), number_of_parameters)
+                self.assertFalse(any([param > max_val for param in params]))
+                self.assertFalse(any([param < min_val for param in params]))

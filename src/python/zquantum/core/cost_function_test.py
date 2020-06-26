@@ -82,7 +82,7 @@ class TestBasicCostFunction(unittest.TestCase, CostFunctionTests):
 class TestAnsatzBasedCostFunction(unittest.TestCase, CostFunctionTests):
     def setUp(self):
         target_operator = QubitOperator("Z0")
-        ansatz = MockAnsatz(n_qubits=1, n_layers=1)
+        ansatz = MockAnsatz(number_of_layers=1, problem_size=1)
         backend = MockQuantumSimulator()
         estimator = MockEstimator()
         self.single_term_op_cost_function = AnsatzBasedCostFunction(

@@ -12,23 +12,22 @@ import numpy as np
 class Ansatz(ABC, EnforceOverrides):
 
     supports_parametrized_circuits = None
-    n_layers = ansatz_property("n_layers")
+    number_of_layers = ansatz_property("number_of_layers")
 
-    def __init__(self, n_layers: int):
-        """
-        Interface for implementing different ansatzes.
+    def __init__(self, number_of_layers: int):
+        """Interface for implementing different ansatzes.
         This class also caches the circuit for given ansatz parameters.
 
         Args:
-            n_layers: number of layers of the ansatz
+            number_of_layers: number of layers of the ansatz
         
         Attributes:
-            n_layers (int): see Args
-            circuit (zquantum.core.circuit.Circuit): circuit representation of the ansatz.
+            number_of_layers (int): see Args
+            parametrized_circuit (zquantum.core.circuit.Circuit): parameterized circuit representation of the ansatz. Might not be supported for given ansatz, see supports_parametrized_circuits. 
             supports_parametrized_circuits(bool): flag indicating whether given ansatz supports parametrized circuits.
         
         """
-        self.n_layers = n_layers
+        self.number_of_layers = number_of_layers
         self._parametrized_circuit = None
 
     @property
@@ -48,10 +47,13 @@ class Ansatz(ABC, EnforceOverrides):
             return self._parametrized_circuit
 
     @property
+    def number_of_qubits(self) -> int:
+        """Returns number of qubits ansatz circuit uses"""
+        raise NotImplementedError
+
+    @property
     def number_of_params(self) -> int:
-        """
-        Returns number of parameters in the ansatz.
-        """
+        """Returns number of parameters in the ansatz."""
 
         if self.supports_parametrized_circuits:
             return len(self.get_symbols())
@@ -59,8 +61,7 @@ class Ansatz(ABC, EnforceOverrides):
             raise NotImplementedError
 
     def get_executable_circuit(self, params: np.ndarray) -> Circuit:
-        """
-        Returns an executable circuit representing the ansatz.
+        """Returns an executable circuit representing the ansatz.
         Args:
             params: circuit parameters
         """
@@ -75,8 +76,7 @@ class Ansatz(ABC, EnforceOverrides):
             return self._generate_circuit(params)
 
     def _generate_circuit(self, params: Optional[np.ndarray] = None) -> Circuit:
-        """
-        Returns a circuit represention of the ansatz.
+        """Returns a circuit represention of the ansatz.
         Will return parametrized circuits if no parameters are passed and the ansatz supports parametrized circuits.
         Args:
             params: circuit params
@@ -84,8 +84,7 @@ class Ansatz(ABC, EnforceOverrides):
         raise NotImplementedError
 
     def get_symbols(self) -> List[sympy.Symbol]:
-        """
-        Returns a list of symbolic parameters used for creating the ansatz.
+        """Returns a list of symbolic parameters used for creating the ansatz.
         The order of the symbols should match the order in which parameters should be passed for creating executable circuit.
         """
         raise NotImplementedError

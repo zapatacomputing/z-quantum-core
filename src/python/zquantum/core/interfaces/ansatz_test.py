@@ -6,34 +6,41 @@ class AnsatzTests(object):
     # To run tests with this base class, the following variables need to be properly initialized in the child class:
     # self.ansatz
 
-    def test_set_n_layers(self):
+    def test_set_number_of_layers(self):
         # Given
-        new_n_layers = 100
+        new_number_of_layers = 100
 
         # When
-        self.ansatz.n_layers = new_n_layers
+        self.ansatz.number_of_layers = new_number_of_layers
 
         # Then
-        self.assertEqual(self.ansatz.n_layers, new_n_layers)
+        self.assertEqual(self.ansatz.number_of_layers, new_number_of_layers)
 
-    def test_set_n_layers_invalidates_parametrized_circuit(self):
+    def test_set_number_of_layers_invalidates_parametrized_circuit(self):
         # Given
-        new_n_layers = 100
+        new_number_of_layers = 100
         if self.ansatz.supports_parametrized_circuits:
             initial_circuit = self.ansatz.parametrized_circuit
 
             # When
-            self.ansatz.n_layers = new_n_layers
+            self.ansatz.number_of_layers = new_number_of_layers
 
             # Then
             self.assertIsNone(self.ansatz._parametrized_circuit)
 
-    def test_number_of_params(self):
+    def test_number_of_params_greater_than_0(self):
         # When
-        n_params = self.ansatz.number_of_params
+        number_of_params = self.ansatz.number_of_params
 
         # Then
-        self.assertTrue(n_params > 0)
+        self.assertTrue(number_of_params > 0)
+
+    def test_number_of_qubits_greater_than_0(self):
+        # When
+        n_qubits = self.ansatz.number_of_qubits
+
+        # Then
+        self.assertTrue(n_qubits > 0)
 
     def test_get_executable_circuit_is_not_empty(self):
         # Given

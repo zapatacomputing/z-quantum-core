@@ -103,18 +103,22 @@ class MockCostFunction(CostFunction):
 class MockAnsatz(Ansatz):
 
     supports_parametrized_circuits = True
-    n_qubits = ansatz_property("n_qubits")
+    problem_size = ansatz_property("problem_size")
 
-    def __init__(self, n_layers: int, n_qubits: int):
-        super().__init__(n_layers)
-        self.n_layers = n_layers
-        self.n_qubits = n_qubits
+    def __init__(self, number_of_layers: int, problem_size: int):
+        super().__init__(number_of_layers)
+        self.number_of_layers = number_of_layers
+        self.problem_size = problem_size
+
+    @property
+    def number_of_qubits(self) -> int:
+        return self.problem_size
 
     @overrides
     def _generate_circuit(self, parameters: Optional[np.ndarray] = None):
         circuit = Circuit()
         for theta in self.get_symbols():
-            for qubit_index in range(self.n_qubits):
+            for qubit_index in range(self.number_of_qubits):
                 circuit += Circuit(Program(RX(theta, qubit_index)))
         if parameters is not None:
             symbols_map = create_symbols_map(self.get_symbols(), parameters)
@@ -125,7 +129,7 @@ class MockAnsatz(Ansatz):
     def get_symbols(self):
         return [
             sympy.Symbol(f"theta_{layer_index}")
-            for layer_index in range(self._n_layers)
+            for layer_index in range(self._number_of_layers)
         ]
 
 

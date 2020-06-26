@@ -34,7 +34,7 @@ class Ansatz(ABC, EnforceOverrides):
     def parametrized_circuit(self) -> Circuit:
         if self._parametrized_circuit is None:
             if self.supports_parametrized_circuits:
-                return self._generate_circuit()
+                self._parametrized_circuit = self._generate_circuit()
             else:
                 raise (
                     NotImplementedError(
@@ -43,8 +43,7 @@ class Ansatz(ABC, EnforceOverrides):
                         )
                     )
                 )
-        else:
-            return self._parametrized_circuit
+        return self._parametrized_circuit
 
     @property
     def number_of_qubits(self) -> int:

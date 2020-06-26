@@ -12,6 +12,7 @@ from openfermion import SymbolicOperator
 from pyquil import Program
 from pyquil.gates import X
 from overrides import overrides
+from typing import Optional
 
 
 class MockQuantumBackend(QuantumBackend):
@@ -99,6 +100,9 @@ class MockEstimator(Estimator):
         backend: QuantumBackend,
         circuit: Circuit,
         target_operator: SymbolicOperator,
+        n_samples: Optional[int],
+        epsilon: Optional[float],
+        delta: Optional[float],
     ) -> ExpectationValues:
         return backend.get_expectation_values(circuit, target_operator)
 

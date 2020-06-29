@@ -477,5 +477,4 @@ def generate_random_params(
     Returns:
         numpy.ndarray: the generated parameters
     """
-    random_params = np.random.sample(number_of_params)
-    return (max_val - min_val) * random_params + min_val
+    return np.random.uniform(min_val, max_val, number_of_params)

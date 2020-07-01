@@ -56,7 +56,21 @@ class MockQuantumSimulator(QuantumSimulator):
 
     def get_expectation_values(self, circuit, operator, **kwargs):
         n_qubits = len(circuit.qubits)
-        values = [random.random() for i in range(n_qubits)]
+        try:
+            n_operator = len(operator.terms.keys())
+            for index, term in enumerate(operator.terms):
+                if term == ():
+                    constant_position = index
+        except:
+            n_operator = None
+            print("WARNING: operator does not have attribute terms")
+        if n_operator is not None:
+            length = n_operator
+        else:
+            length = n_qubits
+        values = [2.0 * random.random() - 1.0 for i in range(length)]
+        if n_operator is not None:
+            values[constant_position] = 1.0
         return ExpectationValues(values)
 
     def get_exact_expectation_values(self, circuit, operator, **kwargs):

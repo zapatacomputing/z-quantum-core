@@ -249,21 +249,22 @@ class NoisyEstimator(Estimator):
             for index, (expectation, n_measurements) in enumerate(
                 zip(exact_expectations, measurements_per_term)
             ):
-                if n_measurements > 1:
-                    probability = (expectation + 1.0) / 2.0
-                    if probability == 1.0 or probability == 0.0:
-                        probability_variance = 1.0 / ((n_measurements + 2) ** 2.0)
-                    else:
-                        probability_variance = (
-                            (1.0 - probability) * probability / n_measurements
-                        )
-                    # sampling from a beta distribution
-                    a, b = self._get_beta_parameters_from_mu_and_sigma(
-                        probability, np.sqrt(probability_variance)
-                    )
-                    noisy_expectations[index] = 2.0 * np.random.beta(a, b) - 1.0
+                probability = (expectation + 1.0) / 2.0
+                if probability == 1.0 or probability == 0.0:
+                    probability_variance = 1.0 / ((n_measurements + 2) ** 2.0)
                 else:
+                    probability_variance = (
+                        (1.0 - probability) * probability / n_measurements
+                    )
+                # sampling from a beta distribution
+                a, b = self._get_beta_parameters_from_mu_and_sigma(
+                    probability, np.sqrt(probability_variance)
+                )
+                print("a, b:", a, b)
+                if a <=0 or b<=0:
                     noisy_expectations[index] = 0.0
+                else:
+                    noisy_expectations[index] = 2.0 * np.random.beta(a, b) - 1.0
 
         elif n_samples is None and epsilon is not None:
 
@@ -273,15 +274,17 @@ class NoisyEstimator(Estimator):
             for index, (expectation, precision) in enumerate(
                 zip(exact_expectations, precisions_per_term)
             ):
-                if precision < 1.0 and precision > 0.0:
-                    probability = (expectation + 1.0) / 2.0
-                    # the factor of 2 comes from the conversion from expectations to probabilities
-                    a, b = self._get_beta_parameters_from_mu_and_sigma(
-                        probability, precision / 2.0
-                    )
-                    noisy_expectations[index] = 2.0 * np.random.beta(a, b) - 1.0
-                else:
+                probability = (expectation + 1.0) / 2.0
+                # the factor of 2 comes from the conversion from expectations to probabilities
+                a, b = self._get_beta_parameters_from_mu_and_sigma(
+                    probability, precision / 2.0
+                )
+                print("a, b:", a, b)
+                #if precision < 1.0 and precision > 0.0:
+                if a <=0 or b<=0:
                     noisy_expectations[index] = 0.0
+                else:
+                    noisy_expectations[index] = 2.0 * np.random.beta(a, b) - 1.0
 
         # reinserting constant term expectation
         if constant_position is not None:

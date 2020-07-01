@@ -17,7 +17,8 @@ spec:
             path: /app/main_script.py
             raw:
               data: |
-                from zquantum.core.circuit import generate_random_ansatz_params, save_circuit_template_params
+                import numpy as np
+                from zquantum.core.circuit import save_circuit_template_params
                 from zquantum.core.utils import create_object
                 ansatz_specs = {{inputs.parameters.ansatz-specs}}
                 ansatz = create_object(ansatz_specs)

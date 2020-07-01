@@ -493,9 +493,8 @@ def create_layer_of_gates(number_of_qubits: int, gate_name: str) -> Circuit:
     Creates a circuit consisting of a single layer of specific gate.
     """
     circuit = Circuit()
-    circuit.qubits = [Qubit(i) for i in range(0, number_of_qubits)]
-    circuit.gates = []
-    for i in range(number_of_qubits):
-        circuit.gates.append(Gate(gate_name, [circuit.qubits[i]]))
-
+    circuit.qubits = [Qubit(i) for i in range(number_of_qubits)]
+    circuit.gates = [
+        Gate(gate_name, [circuit.qubits[i]]) for i in range(number_of_qubits)
+    ]
     return circuit

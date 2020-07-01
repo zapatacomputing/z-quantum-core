@@ -5,33 +5,24 @@ spec:
       parent: generic-task
       inputs:
         parameters:
+          - name: ansatz-specs
           - name: min-val
             default: -0.01
           - name: max-val
             default: 0.01
-          - name: n-layers
-            default: 1
-          - name: include-non-layered-params
-            default: "True"
-          - name: layer-index
-            default: 0
           - name: command
             value: python3 main_script.py
         artifacts:
-          - name: ansatz
-            path: /app/ansatz.json
           - name: main-script
             path: /app/main_script.py
             raw:
               data: |
-                from zquantum.core.circuit import generate_random_ansatz_params, load_circuit_template, save_circuit_template_params
-                ansatz = load_circuit_template('ansatz.json')
-                params = generate_random_ansatz_params(ansatz,
-                                                       min_val={{inputs.parameters.min-val}},
-                                                       max_val={{inputs.parameters.max-val}},
-                                                       n_layers={{inputs.parameters.n-layers}},
-                                                       include_non_layered_params={{inputs.parameters.include-non-layered-params}},
-                                                       layer_index={{inputs.parameters.layer-index}})
+                from zquantum.core.circuit import generate_random_ansatz_params, save_circuit_template_params
+                from zquantum.core.utils import create_object
+                ansatz_specs = {{inputs.parameters.ansatz-specs}}
+                ansatz = create_object(ansatz_specs)
+                number_of_params = ansatz.number_of_params
+                params = np.random.uniform({{inputs.parameters.min-val}}, {{inputs.parameters.max-val}}, number_of_params)
                 save_circuit_template_params(params, 'params.json')
       outputs:
         artifacts:

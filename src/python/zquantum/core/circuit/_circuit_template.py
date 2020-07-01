@@ -106,43 +106,6 @@ def build_ansatz_circuit(ansatz: dict, params: np.ndarray) -> Circuit:
     return qprog
 
 
-def generate_random_ansatz_params(
-    ansatz: dict,
-    min_val: float = 0,
-    max_val: float = 1.0,
-    n_layers: int = 1,
-    include_non_layered_params: bool = True,
-    layer_index: int = 0,
-) -> np.ndarray:
-    """For the given ansatz, generate random parameters.
-
-    Args:
-        ansatz (dict): the ansatz
-        min_val (float): minimum parameter value
-        max_val (float): maximum parameter value
-        n_layers (int): number of layers for params with a
-            layer-by-layer structured
-        include_non_layered_params (bool): whether non_layered_params
-            are considered in the calculation
-        layer_index (int): for ansatz with sublayers, the index of the sublayer where
-                        to start the guess
-    Returns:
-        numpy.ndarray: the generated parameters
-    """
-    n_params = 0
-    for i in range(n_layers):
-        n_params += ansatz["n_params"][(i + layer_index) % len(ansatz["n_params"])]
-        if "ansatz_type" in ansatz.keys():
-            if "IBM" in ansatz["ansatz_type"] and "HEA v2" in ansatz["ansatz_type"]:
-                if (i + layer_index) % len(ansatz["n_params"]) == 0:
-                    n_params += 2 * ansatz["ansatz_kwargs"]["n_mo"]
-
-    if ansatz.get("n_non_layered_params") and include_non_layered_params:
-        n_params += ansatz["n_non_layered_params"]
-    params = (max_val - min_val) * random_sample(n_params) + min_val
-    return params
-
-
 def combine_ansatz_params(params1: np.ndarray, params2: np.ndarray) -> np.ndarray:
     """Combine two sets of ansatz parameters.
     

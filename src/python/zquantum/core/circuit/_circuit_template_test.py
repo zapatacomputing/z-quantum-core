@@ -7,7 +7,6 @@ from ._circuit_template import (
     save_circuit_template_params,
     load_circuit_template_params,
     combine_ansatz_params,
-    generate_random_ansatz_params,
     build_uniform_param_grid,
     save_parameter_grid,
     load_parameter_grid,
@@ -67,30 +66,6 @@ class TestCircuitTemplate(unittest.TestCase):
         # Then
         np.testing.assert_array_equal(params, recreated_params)
         os.remove(filename)
-
-    def test_generate_random_ansatz_params(self):
-        # Given
-        ansatz = {"n_params": [560], "ansatz_kwargs": {"dummy_kwarg": None}}
-
-        # When
-        params = generate_random_ansatz_params(ansatz, -1.0, 1.0)
-
-        # Then
-        self.assertEqual(len(params), 560)
-        self.assertFalse(any([abs(x) > 1.0 for x in params]))
-
-        # Given
-        ansatz = {
-            "n_params": [30],
-            "n_non_layered_params": 4,
-            "ansatz_kwargs": {"dummy_kwarg": None},
-        }
-
-        # When
-        params = generate_random_ansatz_params(ansatz, -1.0, 1.0, 0)
-
-        # Then
-        self.assertEqual(len(params), 4)
 
     def test_combine_ansatz_params(self):
         # Given

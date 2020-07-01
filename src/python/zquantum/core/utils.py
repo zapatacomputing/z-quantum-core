@@ -463,18 +463,3 @@ def create_symbols_map(
         )
     return [(symbol, param) for symbol, param in zip(symbols, params.tolist())]
 
-
-def generate_random_params(
-    number_of_params: int, min_val: float = 0, max_val: float = 1.0
-) -> np.ndarray:
-    """For the given ansatz, generate random parameters.
-
-    Args:
-        number_of_params (int): the number of parameters to generate
-        min_val (float): minimum parameter value
-        max_val (float): maximum parameter value
-
-    Returns:
-        numpy.ndarray: the generated parameters
-    """
-    return np.random.uniform(min_val, max_val, number_of_params)

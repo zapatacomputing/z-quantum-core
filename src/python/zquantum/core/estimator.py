@@ -10,7 +10,7 @@ from openfermion import SymbolicOperator, QubitOperator, IsingOperator
 from overrides import overrides
 import numpy as np
 import pyquil
-from typing import Tuple
+from typing import Tuple, Optional
 
 
 def get_context_selection_circuit(
@@ -50,9 +50,9 @@ class BasicEstimator(Estimator):
         backend: QuantumBackend,
         circuit: Circuit,
         target_operator: SymbolicOperator,
-        n_samples: int = None,
-        epsilon: float = None,
-        delta: float = None,
+        n_samples: Optional[int] = None,
+        epsilon: Optional[float] = None,
+        delta: Optional[float] = None,
     ) -> ExpectationValues:
         """Given a circuit, backend, and target operators, this method produces expectation values 
         for each target operator using the get_expectation_values method built into the provided QuantumBackend. 
@@ -115,9 +115,9 @@ class ExactEstimator(Estimator):
         backend: QuantumBackend,
         circuit: Circuit,
         target_operator: SymbolicOperator,
-        n_samples: int = None,
-        epsilon: float = None,
-        delta: float = None,
+        n_samples: Optional[int] = None,
+        epsilon: Optional[float] = None,
+        delta: Optional[float] = None,
     ) -> ExpectationValues:
         """Given a circuit, backend, and target operators, this method produces expectation values 
         for each target operator using the get_exact_expectation_values method built into the provided QuantumBackend. 

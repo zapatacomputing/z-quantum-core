@@ -12,8 +12,7 @@ from openfermion import SymbolicOperator
 
 
 class BasicCostFunction(CostFunction):
-    """
-    Basic implementation of the CostFunction interface.
+    """Basic implementation of the CostFunction interface.
     It allows to pass any function (and gradient) when initialized.
 
     Args:
@@ -21,7 +20,7 @@ class BasicCostFunction(CostFunction):
         gradient_function (Callable): function used to calculate gradients. Optional.
         gradient_type (str): parameter indicating which type of gradient should be used.
         save_evaluation_history (bool): flag indicating whether we want to store the history of all the evaluations.
-        epsilon (float): epsilon used for calculating gradient using finite difference method.
+        finite_diff_step_size(float): the step size used in finite difference approximation.
 
     Params:
         function (Callable): see Args
@@ -29,7 +28,7 @@ class BasicCostFunction(CostFunction):
         evaluations_history (list): List of the tuples (parameters, value) representing all the evaluation in a chronological order.
         gradient_type (str): see Args
         save_evaluation_history (bool): see Args
-        epsilon (float): see Args
+        finite_diff_step_size (float): see Args
 
     """
 
@@ -39,18 +38,17 @@ class BasicCostFunction(CostFunction):
         gradient_function: Optional[Callable] = None,
         gradient_type: str = "custom",
         save_evaluation_history: bool = True,
-        epsilon: float = 1e-5,
+        finite_diff_step_size: float = 1e-5,
     ):
         self.evaluations_history = []
         self.save_evaluation_history = save_evaluation_history
         self.gradient_type = gradient_type
         self.function = function
         self.gradient_function = gradient_function
-        self.epsilon = epsilon
+        self.finite_diff_step_size = finite_diff_step_size
 
     def _evaluate(self, parameters: np.ndarray) -> ValueEstimate:
-        """
-        Evaluates the value of the cost function for given parameters.
+        """Evaluates the value of the cost function for given parameters.
 
         Args:
             parameters: parameters for which the evaluation should occur
@@ -62,8 +60,7 @@ class BasicCostFunction(CostFunction):
         return value
 
     def get_gradient(self, parameters: np.ndarray) -> np.ndarray:
-        """
-        Evaluates the gradient of the cost function for given parameters.
+        """Evaluates the gradient of the cost function for given parameters.
         What method is used for calculating gradients is indicated by `self.gradient_type` field.
 
         Args:
@@ -88,8 +85,7 @@ class BasicCostFunction(CostFunction):
 
 
 class AnsatzBasedCostFunction(CostFunction):
-    """
-    Cost function used for evaluating given operator using given ansatz.
+    """Cost function used for evaluating given operator using given ansatz.
 
     Args:
         target_operator (openfermion.QubitOperator): operator to be evaluated
@@ -98,7 +94,11 @@ class AnsatzBasedCostFunction(CostFunction):
         estimator: (zquantum.core.interfaces.estimator.Estimator) = estimator used to compute expectation value of target operator 
         gradient_type (str): parameter indicating which type of gradient should be used.
         save_evaluation_history (bool): flag indicating whether we want to store the history of all the evaluations.
-        epsilon (float): epsilon used for calculating gradient using finite difference method.
+        finite_diff_step_size(float): the step size used in finite difference approximation.
+        n_samples (int): number of samples (i.e. measurements) to be used in the estimator. 
+        epsilon (float): an additive/multiplicative error term. The cost function should be computed to within this error term. 
+        delta (float): a confidence term. If theoretical upper bounds are known for the estimation technique, 
+            the final estimate should be within the epsilon term, with probability 1 - delta.
 
     Params:
         target_operator (openfermion.QubitOperator): see Args
@@ -108,8 +108,10 @@ class AnsatzBasedCostFunction(CostFunction):
         evaluations_history (list): List of the tuples (parameters, value) representing all the evaluation in a chronological order.
         save_evaluation_history (bool): see Args
         gradient_type (str): see Args
+        finite_diff_step_size (float): see Args
+        n_samples (int): see Args
         epsilon (float): see Args
-
+        delta (float): see Args
     """
 
     def __init__(
@@ -120,7 +122,10 @@ class AnsatzBasedCostFunction(CostFunction):
         estimator: Estimator = None,
         gradient_type: str = "finite_difference",
         save_evaluation_history: bool = True,
-        epsilon: float = 1e-5,
+        finite_diff_step_size: float = 1e-5,
+        n_samples: Optional[int] = None,
+        epsilon: Optional[float] = None,
+        delta: Optional[float] = None,
     ):
         self.target_operator = target_operator
         self.ansatz = ansatz
@@ -131,8 +136,11 @@ class AnsatzBasedCostFunction(CostFunction):
             self.estimator = estimator
         self.gradient_type = gradient_type
         self.save_evaluation_history = save_evaluation_history
-        self.epsilon = epsilon
+        self.finite_diff_step_size = finite_diff_step_size
         self.evaluations_history = []
+        self.n_samples = n_samples
+        self.epsilon = epsilon
+        self.delta = delta
 
     def _evaluate(self, parameters: np.ndarray) -> ValueEstimate:
         """
@@ -146,7 +154,12 @@ class AnsatzBasedCostFunction(CostFunction):
         """
         circuit = self.ansatz.get_executable_circuit(parameters)
         expectation_values = self.estimator.get_estimated_expectation_values(
-            self.backend, circuit, self.target_operator
+            self.backend,
+            circuit,
+            self.target_operator,
+            n_samples=self.n_samples,
+            epsilon=self.epsilon,
+            delta=self.delta,
         )
         final_value = np.sum(expectation_values.values)
         return ValueEstimate(final_value)

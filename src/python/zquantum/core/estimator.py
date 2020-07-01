@@ -291,6 +291,9 @@ class NoisyEstimator(Estimator):
         # reinserting constant term expectation
         if constant_position is not None:
             noisy_expectations = np.insert(noisy_expectations, constant_position, 1.0)
+        print("noisy_expectations:\n", noisy_expectations)
+        print("exact_expectations:\n", exact_expectations)
+        print("constant_position:", constant_position)
         return ExpectationValues(noisy_expectations)
 
     def _get_beta_parameters_from_mu_and_sigma(self, mu: float, sigma: float):

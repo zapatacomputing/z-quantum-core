@@ -32,6 +32,8 @@ class Ansatz(ABC, EnforceOverrides):
 
     @property
     def parametrized_circuit(self) -> Circuit:
+        """Returns a parametrized circuit if given ansatz supports it.
+        """
         if self._parametrized_circuit is None:
             if self.supports_parametrized_circuits:
                 self._parametrized_circuit = self._generate_circuit()

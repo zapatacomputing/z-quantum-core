@@ -6,6 +6,9 @@ spec:
       inputs:
         parameters:
           - name: ansatz-specs
+            optional: True
+          - name: number-of-params
+            optional: True
           - name: min-val
             default: -0.01
           - name: max-val
@@ -20,9 +23,12 @@ spec:
                 import numpy as np
                 from zquantum.core.circuit import save_circuit_template_params
                 from zquantum.core.utils import create_object
-                ansatz_specs = {{inputs.parameters.ansatz-specs}}
-                ansatz = create_object(ansatz_specs)
-                number_of_params = ansatz.number_of_params
+                if {{inputs.parameters.ansatz-specs}} is not None:
+                  ansatz_specs = {{inputs.parameters.ansatz-specs}}
+                  ansatz = create_object(ansatz_specs)
+                  number_of_params = ansatz.number_of_params
+                elif {{inputs.parameters.number-of-params}} is not None:
+                  number_of_params = {{inputs.parameters.number-of-params}}
                 params = np.random.uniform({{inputs.parameters.min-val}}, {{inputs.parameters.max-val}}, number_of_params)
                 save_circuit_template_params(params, 'params.json')
       outputs:

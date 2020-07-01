@@ -260,7 +260,6 @@ class NoisyEstimator(Estimator):
                 a, b = self._get_beta_parameters_from_mu_and_sigma(
                     probability, np.sqrt(probability_variance)
                 )
-                print("a, b:", a, b)
                 if a <=0 or b<=0:
                     noisy_expectations[index] = 0.0
                 else:
@@ -279,8 +278,7 @@ class NoisyEstimator(Estimator):
                 a, b = self._get_beta_parameters_from_mu_and_sigma(
                     probability, precision / 2.0
                 )
-                print("a, b:", a, b)
-                #if precision < 1.0 and precision > 0.0:
+                # sampling from a beta distribution
                 if a <=0 or b<=0:
                     noisy_expectations[index] = 0.0
                 else:

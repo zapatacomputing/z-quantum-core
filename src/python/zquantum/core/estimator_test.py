@@ -151,7 +151,6 @@ class TestExactEstimator(unittest.TestCase, EstimatorTests):
                 epsilon=self.epsilon,
                 delta=self.delta,
             ).values
-            print("JRF:", values)
             value = values[0]
             # Then
             self.assertTrue(len(values) == 1)

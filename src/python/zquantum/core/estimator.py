@@ -249,8 +249,9 @@ class NoisyEstimator(Estimator):
             for index, (expectation, n_measurements) in enumerate(
                 zip(exact_expectations, measurements_per_term)
             ):
-                if n_measurements > 1:
+                if n_measurements >= 1:
                     probability = (expectation + 1.0) / 2.0
+                    # cases where p=1.0 or p=0.0 considers rule of succession
                     if probability == 1.0 or probability == 0.0:
                         probability_variance = 1.0 / ((n_measurements + 2) ** 2.0)
                     else:
@@ -261,19 +262,17 @@ class NoisyEstimator(Estimator):
                     a, b = self._get_beta_parameters_from_mu_and_sigma(
                         probability, np.sqrt(probability_variance)
                     )
-                else:
-                    a = 0
-                    b = 0
-                if a <=0 or b<=0:
-                    noisy_expectations[index] = 0.0
-                else:
                     noisy_expectations[index] = 2.0 * np.random.beta(a, b) - 1.0
+                else:
+                    # term is ignored if no measurements are taken
+                    noisy_expectations[index] = 0.0
 
         elif n_samples is None and epsilon is not None:
 
             self._log_ignore_parameter(estimator_name, "n_samples", n_samples)
             # compute required precision per term based on deterministic weighting rule
             precisions_per_term = np.sqrt((epsilon ** 2.0) * weights / total_weight)
+
             for index, (expectation, precision) in enumerate(
                 zip(exact_expectations, precisions_per_term)
             ):
@@ -283,25 +282,40 @@ class NoisyEstimator(Estimator):
                     probability, precision / 2.0
                 )
                 # sampling from a beta distribution
-                if a <=0 or b<=0:
-                    noisy_expectations[index] = 0.0
-                else:
-                    noisy_expectations[index] = 2.0 * np.random.beta(a, b) - 1.0
+                noisy_expectations[index] = 2.0 * np.random.beta(a, b) - 1.0
 
         # reinserting constant term expectation
         if constant_position is not None:
             noisy_expectations = np.insert(noisy_expectations, constant_position, 1.0)
-        print("noisy_expectations:\n", noisy_expectations)
-        print("exact_expectations:\n", exact_expectations)
-        print("constant_position:", constant_position)
+            
         return ExpectationValues(noisy_expectations)
 
     def _get_beta_parameters_from_mu_and_sigma(self, mu: float, sigma: float):
         """
             Auxiliary function to estimate parameters of a beta distribution from
             values of mean (mu) and precision (sigma)
-            mu \in (0, 1), sigma \in (0, 0.5)
+            mu \in [0, 1] sigma \in (0, 0.5)
         """
+        assert (mu <= 1.0 and mu >= 0.0)
+        assert (sigma > 0.0 and sigma < 0.5)
+
+        # estimate pseudo count
+        pseudo_count = (1 - mu) * mu / (sigma ** 2.0)
+        if pseudo_count <= 1.0:
+        # We applied Rule of succession here to guarantee 
+        # valid values for alpha and beta
+        # https://en.wikipedia.org/wiki/Rule_of_succession
+            if mu == 1.0:
+                pseudo_count = (1.0 / sigma) - 2.0
+                mu = (pseudo_count + 1.0) / (pseudo_count + 2.0)    
+            elif mu == 0.0:
+                pseudo_count = (1.0 / sigma) - 2.0
+                mu = 1.0 / (pseudo_count + 2.0)
+            else:
+                # this takes care of cases when sigma is too big (close to 0.5)
+                sigma = np.sqrt(mu * (1.0 - mu) / (pseudo_count + 2))
+
         alpha = (mu ** 2.0) * ((1.0 - mu) / (sigma ** 2.0) - (1.0 / mu))
         beta = alpha * ((1.0 / mu) - 1.0)
+
         return alpha, beta

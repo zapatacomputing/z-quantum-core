@@ -58,18 +58,20 @@ class MockQuantumSimulator(QuantumSimulator):
         n_qubits = len(circuit.qubits)
         try:
             n_operator = len(operator.terms.keys())
+            constant_position = None
             for index, term in enumerate(operator.terms):
                 if term == ():
                     constant_position = index
         except:
             n_operator = None
+            constant_position = None
             print("WARNING: operator does not have attribute terms")
         if n_operator is not None:
             length = n_operator
         else:
             length = n_qubits
         values = [2.0 * random.random() - 1.0 for i in range(length)]
-        if n_operator is not None:
+        if n_operator is not None and constant_position is not None:
             values[constant_position] = 1.0
         return ExpectationValues(values)
 

@@ -13,7 +13,6 @@ from pyquil.gates import X
 from openfermion import QubitOperator, qubit_operator_sparse, IsingOperator
 import numpy as np
 
-
 class TestEstimatorUtils(unittest.TestCase):
     def test_get_context_selection_circuit_offdiagonal(self):
         term = ((0, "X"), (1, "Y"))
@@ -123,7 +122,7 @@ class TestBasicEstimator(unittest.TestCase, EstimatorTests):
 class TestExactEstimator(unittest.TestCase, EstimatorTests):
     def setUp(self):
         # Setting up inherited tests
-        self.operator = QubitOperator("Z0") + QubitOperator("X0")
+        self.operator = QubitOperator("Z0")
         self.circuit = Circuit(Program(X(0)))
         self.backend = MockQuantumSimulator()
         self.n_samples = None

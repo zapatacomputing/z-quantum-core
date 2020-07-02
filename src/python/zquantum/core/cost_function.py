@@ -2,7 +2,7 @@ from .interfaces.cost_function import CostFunction
 from .interfaces.backend import QuantumBackend
 from .interfaces.ansatz import Ansatz
 from .interfaces.estimator import Estimator
-from .circuit import build_ansatz_circuit
+from .circuit import build_ansatz_circuit, combine_ansatz_params
 from .estimator import BasicEstimator
 from .utils import ValueEstimate
 from typing import Callable, Optional, Dict
@@ -126,6 +126,7 @@ class AnsatzBasedCostFunction(CostFunction):
         n_samples: Optional[int] = None,
         epsilon: Optional[float] = None,
         delta: Optional[float] = None,
+        fixed_parameters: Optional[np.ndarray] = None,
     ):
         self.target_operator = target_operator
         self.ansatz = ansatz
@@ -141,6 +142,7 @@ class AnsatzBasedCostFunction(CostFunction):
         self.n_samples = n_samples
         self.epsilon = epsilon
         self.delta = delta
+        self.fixed_parameters = fixed_parameters
 
     def _evaluate(self, parameters: np.ndarray) -> ValueEstimate:
         """
@@ -152,6 +154,8 @@ class AnsatzBasedCostFunction(CostFunction):
         Returns:
             value: cost function value for given parameters.
         """
+        if self.fixed_parameters is not None:
+            parameters = combine_ansatz_params(self.fixed_parameters, parameters)
         circuit = self.ansatz.get_executable_circuit(parameters)
         expectation_values = self.estimator.get_estimated_expectation_values(
             self.backend,

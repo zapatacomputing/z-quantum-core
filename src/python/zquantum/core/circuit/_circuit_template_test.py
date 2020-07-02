@@ -144,11 +144,15 @@ class TestParameterGrid(unittest.TestCase):
 
     def test_build_uniform_param_grid(self):
         # Given
-        ansatz = {"n_params": [2]}
+        n_params_per_layer = 2
 
         # When
         grid = build_uniform_param_grid(
-            ansatz, n_layers=1, min_value=0.0, max_value=2 * np.pi, step=np.pi / 5
+            n_params_per_layer,
+            n_layers=1,
+            min_value=0.0,
+            max_value=2 * np.pi,
+            step=np.pi / 5,
         )
 
         # Then

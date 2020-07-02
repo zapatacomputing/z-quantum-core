@@ -201,7 +201,7 @@ def load_parameter_grid(file: TextIO) -> ParameterGrid:
 
 
 def build_uniform_param_grid(
-    ansatz: dict,
+    n_params_per_layer: int,
     n_layers: int = 1,
     min_value: float = 0.0,
     max_value: float = 2 * np.pi,
@@ -210,7 +210,7 @@ def build_uniform_param_grid(
     """Builds a uniform grid of parameters.
 
     Args:
-        ansatz (dict): a dict representing a variational circuit template
+        n_params_per_layer (int): number of parameters for each layer
         n_layers (int): the number of layers to create parameters for
         min_value (float): the minimum value for the parameters
         max_value (float): the maximum value for the parameters
@@ -219,9 +219,8 @@ def build_uniform_param_grid(
     Returns:
         list: a list of numpy.ndarray objects representing points on a grid in parameter space
     """
-    n_params = 0
-    for i in range(n_layers):
-        n_params += ansatz["n_params"][i % len(ansatz["n_params"])]
+
+    n_params = n_params_per_layer * n_layers
 
     param_ranges = [(min_value, max_value, step)] * n_params
     return ParameterGrid(param_ranges)

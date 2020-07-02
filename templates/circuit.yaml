@@ -6,9 +6,9 @@ spec:
       inputs:
         parameters:
           - name: ansatz-specs
-            optional: True
+            default: None
           - name: number-of-params
-            optional: True
+            optional: None
           - name: min-val
             default: -0.01
           - name: max-val

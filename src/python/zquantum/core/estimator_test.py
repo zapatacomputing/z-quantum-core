@@ -4,7 +4,6 @@ from .interfaces.mock_objects import MockQuantumBackend, MockQuantumSimulator
 from .estimator import (
     BasicEstimator,
     ExactEstimator,
-    NoisyEstimator,
     get_context_selection_circuit,
 )
 from .circuit import Circuit

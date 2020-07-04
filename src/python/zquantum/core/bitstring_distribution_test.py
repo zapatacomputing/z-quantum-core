@@ -43,35 +43,32 @@ def test_dicts_with_variable_key_length_are_correctly_classified():
     """The is_key_length_fixed should return False if some keys have different length."""
     assert not is_key_length_fixed({"a": 3, "10": 2, "www": 1})
 
+
+def test_dicts_with_binary_strings_keys_are_correctly_classified():
+    """The are_keys_binary_strings should return True for binary string keyed dicts."""
+    assert are_keys_binary_strings({"100001": 3, "10": 2, "0101": 1})
+
+
+def test_dicts_with_other_kes_are_correctly_classified():
+    """The are_keys_binary_strings should return False for non-binary string keyed dicts."""
+    assert not are_keys_binary_strings({"abc": 3, "100": 2, "www": 1})
+
+
+@pytest.mark.parametrize(
+    "distribution",
+    [{"abc": 3, "100": 2, "www": 1}, {"100001": 3, "10": 2, "0101": 1}]
+)
+def test_bitstring_distributions_are_correctly_classified(distribution):
+    """The is_bitstring_distribution should return True for bitstring distributions."""
+    assert not is_bitstring_distribution(distribution)
+
+
+def test_non_bitstring_distributions_are_correctly_classified():
+    """The is_bitstring_distribution should return False if dict is not bitstring distribution."""
+    assert is_bitstring_distribution({"100": 3, "110": 2, "010": 1})
+
+
 class TestBitstringDistributionUtils(unittest.TestCase):
-
-    def test_are_keys_binary_strings(self):
-        # Given a dictionary with keys that are binary strings
-        dict_a = {"100001": 3, "10": 2, "0101": 1}
-        # When calling are_keys_binary_strings
-        # Then the return value is true
-        self.assertEqual(are_keys_binary_strings(dict_a), True)
-
-        # Given a dictionary with keys that are NOT binary strings
-        dict_b = {"abc": 3, "100": 2, "www": 1}
-        # When calling are_keys_binary_strings
-        # Then the return value is false
-        self.assertEqual(are_keys_binary_strings(dict_b), False)
-
-    def test_is_bitstring_distribution(self):
-        # Given a dictionary that does NOT represent a bitstring distribution
-        dict_a = {"abc": 3, "100": 2, "www": 1}
-        dict_b = {"100001": 3, "10": 2, "0101": 1}
-        # When calling is_bitstring_distribution
-        # Then the return value is false
-        self.assertEqual(is_bitstring_distribution(dict_a), False)
-        self.assertEqual(is_bitstring_distribution(dict_b), False)
-
-        # Given a dictionary that represents a bitstring distribution
-        dict_c = {"100": 3, "110": 2, "010": 1}
-        # When calling is_bitstring_distribution
-        # Then the return value is true
-        self.assertEqual(is_bitstring_distribution(dict_c), True)
 
     def test_is_normalized(self):
         # Given dictionaries representing normalized bitstring distributions

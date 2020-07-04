@@ -1,6 +1,9 @@
 import unittest
 import numpy as np
 import subprocess
+
+import pytest
+
 from .bitstring_distribution import (
     is_non_negative,
     is_key_length_fixed,
@@ -18,33 +21,29 @@ from .bitstring_distribution import (
 from .utils import SCHEMA_VERSION
 
 
+def test_dicts_with_nonnegative_values_are_correctly_classified():
+    """The is_non_negative function should return True for dicts with nonnegative values."""
+    n_elements = 10
+    nonnegative_dict = {i: i + 1 for i in range(n_elements)}
+    assert is_non_negative(nonnegative_dict)
+
+
+@pytest.mark.parametrize("dictionary", [{i: -i for i in range(10)}, {0: -1, 1: 2, 3: 0}])
+def test_dicts_with_some_negative_values_are_correctly_classified(dictionary):
+    """The is_non_negative function should return False for dicts with some negative values."""
+    assert not is_non_negative(dictionary)
+
+
+def test_dicts_with_fixed_key_length_are_correctly_classified():
+    """The is_key_length_fixed should return True if all keys have the same length."""
+    assert is_key_length_fixed({"abc": 3, "100": 2, "www": 1})
+
+
+def test_dicts_with_variable_key_length_are_correctly_classified():
+    """The is_key_length_fixed should return False if some keys have different length."""
+    assert not is_key_length_fixed({"a": 3, "10": 2, "www": 1})
+
 class TestBitstringDistributionUtils(unittest.TestCase):
-    def test_is_non_negative(self):
-        dict_a = {}
-        dict_b = {}
-        n_elements = 10
-        for i in range(n_elements):
-            # Given dictionaries with positive and negative values respectively
-            dict_a[i] = i + 1
-            dict_b[i] = -i
-
-        # When calling is_non_negative
-        # Then the return value is true only if all values are non negative
-        self.assertEqual(is_non_negative(dict_a), True)
-        self.assertLessEqual(is_non_negative(dict_b), False)
-
-    def test_is_key_length_fixed(self):
-        # Given two dictionaries with keys that are the same length
-        dict_a = {"abc": 3, "100": 2, "www": 1}
-        # When calling is_key_length_fixed
-        # Then the return value is true
-        self.assertEqual(is_key_length_fixed(dict_a), True)
-
-        # Given two dictionaries with keys that are NOT the same length
-        dict_b = {"a": 3, "10": 2, "www": 1}
-        # When calling is_key_length_fixed
-        # Then the return value is false
-        self.assertEqual(is_key_length_fixed(dict_b), False)
 
     def test_are_keys_binary_strings(self):
         # Given a dictionary with keys that are binary strings

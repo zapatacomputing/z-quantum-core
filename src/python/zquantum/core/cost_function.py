@@ -99,6 +99,7 @@ class AnsatzBasedCostFunction(CostFunction):
         epsilon (float): an additive/multiplicative error term. The cost function should be computed to within this error term. 
         delta (float): a confidence term. If theoretical upper bounds are known for the estimation technique, 
             the final estimate should be within the epsilon term, with probability 1 - delta.
+        fixed_parameters (np.ndarray): values for the circuit parameters that should be fixed. 
 
     Params:
         target_operator (openfermion.QubitOperator): see Args
@@ -112,6 +113,7 @@ class AnsatzBasedCostFunction(CostFunction):
         n_samples (int): see Args
         epsilon (float): see Args
         delta (float): see Args
+        fixed_parameters (np.ndarray): see Args
     """
 
     def __init__(

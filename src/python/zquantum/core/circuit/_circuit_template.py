@@ -487,13 +487,31 @@ def _build_circuit_layers_and_connectivity_nearest_neighbors(n_qubits):
     return CircuitConnectivity(connectivity), CircuitLayers([even_layer, odd_layer])
 
 
-def create_layer_of_gates(number_of_qubits: int, gate_name: str) -> Circuit:
-    """
-    Creates a circuit consisting of a single layer of specific gate.
+def create_layer_of_gates(
+    number_of_qubits: int, gate_name: str, parameters: np.ndarray = None
+) -> Circuit:
+    """ Creates a circuit consisting of a layer of single-qubit gates acting on all qubits.
+
+    Args:
+        number_of_qubits (int): number of qubits in the circuit
+        gate_name (str): the single qubit gate to be applied to each qubit
+        params (numpy.array): parameters of the single-qubit gates
+
+    Returns:
+        Circuit: a zquantum.core.circuit.Circuit object
     """
     circuit = Circuit()
     circuit.qubits = [Qubit(i) for i in range(number_of_qubits)]
-    circuit.gates = [
-        Gate(gate_name, [circuit.qubits[i]]) for i in range(number_of_qubits)
-    ]
+
+    if parameters is not None:
+        assert len(parameters) == number_of_qubits
+
+        circuit.gates = [
+            Gate(gate_name, [circuit.qubits[i]], [parameters[i]])
+            for i in range(number_of_qubits)
+        ]
+    else:
+        circuit.gates = [
+            Gate(gate_name, [circuit.qubits[i]]) for i in range(number_of_qubits)
+        ]
     return circuit

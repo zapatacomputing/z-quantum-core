@@ -5,7 +5,7 @@ from numpy.random import random_sample
 from ..utils import SCHEMA_VERSION
 from ..utils import convert_array_to_dict, convert_dict_to_array
 from ..circuit import Circuit, Qubit, Gate
-from typing import TextIO, List, Tuple, Dict
+from typing import TextIO, List, Tuple, Dict, Optional
 from scipy.optimize import OptimizeResult
 
 
@@ -488,7 +488,7 @@ def _build_circuit_layers_and_connectivity_nearest_neighbors(n_qubits):
 
 
 def create_layer_of_gates(
-    number_of_qubits: int, gate_name: str, parameters: np.ndarray = None
+    number_of_qubits: int, gate_name: str, parameters: Optional[np.ndarray] = None
 ) -> Circuit:
     """ Creates a circuit consisting of a layer of single-qubit gates acting on all qubits.
 

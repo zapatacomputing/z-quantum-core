@@ -1,6 +1,7 @@
 import unittest
 import os
 import numpy as np
+import cirq
 from ._circuit_template import (
     save_circuit_template,
     load_circuit_template,
@@ -23,7 +24,7 @@ from ._circuit_template import (
     create_layer_of_gates,
 )
 from . import Gate, Qubit, Circuit
-from ..utils import SCHEMA_VERSION
+from ..utils import SCHEMA_VERSION, compare_unitary
 from scipy.optimize import OptimizeResult
 
 
@@ -273,7 +274,7 @@ class TestCircuitLayers(unittest.TestCase):
         for row, test_row in zip(connectivity.connectivity, test_connectivity):
             self.assertEqual(row, test_row)
 
-    def test_create_layer_of_gates(self):
+    def test_create_layer_of_gates_not_parameterized(self):
         # Given
         number_of_qubits = 4
         gate_name = "X"
@@ -292,3 +293,35 @@ class TestCircuitLayers(unittest.TestCase):
         # Then
         self.assertEqual(layer_of_x, target_circuit)
 
+    def test_create_layer_of_gates_parameterized(self):
+        # Given
+        single_qubit_gate = "Ry"
+        n_qubits_list = [2, 3, 4, 10]
+
+        for n_qubits in n_qubits_list:
+            # Given
+            params = [x for x in range(0, n_qubits)]
+            test = cirq.Circuit()
+            qubits = [cirq.LineQubit(x) for x in range(0, n_qubits)]
+            for i in range(0, n_qubits):
+                test.append(cirq.Ry(params[i]).on(qubits[i]))
+            u_cirq = test._unitary_()
+
+            # When
+            circ = create_layer_of_gates(n_qubits, single_qubit_gate, params)
+            unitary = circ.to_cirq()._unitary_()
+
+            # Then
+            self.assertEqual(circ.n_multiqubit_gates, 0)
+            self.assertEqual(compare_unitary(unitary, u_cirq, tol=1e-10), True)
+
+    def test_create_layer_of_gates_wrong_num_params(self):
+        # Given
+        single_qubit_gate = "Ry"
+        n_qubits = 2
+        params = np.ones(3)
+        # When/Then
+        self.assertRaises(
+            AssertionError,
+            lambda: create_layer_of_gates(n_qubits, single_qubit_gate, params),
+        )

@@ -68,63 +68,61 @@ def test_non_bitstring_distributions_are_correctly_classified():
     assert is_bitstring_distribution({"100": 3, "110": 2, "010": 1})
 
 
+@pytest.mark.parametrize(
+    "distribution",
+    [
+        {"000": 0.1, "111": 0.9},
+        {"010": 0.3, "000": 0.2, "111": 0.5},
+        {"010": 0.3, "000": 0.2, "111": 0.1, "100": 0.4},
+    ]
+)
+def test_normalized_distributions_are_correctly_classified(distribution):
+    """The is_normalized should return True for distributions whose values sum to one."""
+    assert is_normalized(distribution)
+
+
+@pytest.mark.parametrize(
+    "distribution",
+    [{"000": 0.1, "111": 9}, {"000": 2, "111": 0.9}, {"000": 1e-3, "111": 0, "100": 100}]
+)
+def test_notnormalized_distributions_are_correctly_classified(distribution):
+    """The is_normalized should return False for distributions whose values don't sum to one."""
+    assert not is_normalized(distribution)
+
+
+@pytest.mark.parametrize(
+    "distribution",
+    [
+    {"000": 0.1, "111": 9},
+    {"000": 2, "111": 0.9},
+    {"000": 1e-3, "111": 0, "100": 100},
+    ]
+)
+def test_normalizes_distribution(distribution):
+    """The normalize_bitstring_distributions should normalize notnormalized distributions."""
+    assert not is_normalized(distribution)
+    normalize_bitstring_distribution(distribution)
+    assert is_normalized(distribution)
+
+
+def test_constructs_correct_dbitstring_distribution_from_probability_distribution():
+    """Probability distributions should be converted to matching bitstring distributions.
+
+    The bitstring distributions constructed from prabability distribution should have:
+    - keys equal to binary representation of consecutive natural numbers,
+    - values corresponding to original probabilities.
+    """
+    prob_distribution = np.asarray([0.25, 0, 0.5, 0.25])
+    bitstring_dist = create_bitstring_distribution_from_probability_distribution(
+        prob_distribution
+    )
+    expected_dist = BitstringDistribution({"00": 0.25, "01": 0.5, "10": 0.0, "11": 0.25})
+    assert bitstring_dist.distribution_dict == expected_dist.distribution_dict
+    assert bitstring_dist.get_qubits_number() == expected_dist.get_qubits_number()
+
+
 class TestBitstringDistributionUtils(unittest.TestCase):
 
-    def test_is_normalized(self):
-        # Given dictionaries representing normalized bitstring distributions
-        l = [
-            {"000": 0.1, "111": 0.9},
-            {"010": 0.3, "000": 0.2, "111": 0.5},
-            {"010": 0.3, "000": 0.2, "111": 0.1, "100": 0.4},
-        ]
-        for distr in l:
-            # When calling is_normalized
-            # Then the return value is true
-            self.assertEqual(is_normalized(distr), True)
-
-        # Given dictionaries representing bitstring distributions that are not normalized
-        exc = [
-            {"000": 0.1, "111": 9},
-            {"000": 2, "111": 0.9},
-            {"000": 1e-3, "111": 0, "100": 100},
-        ]
-        for distr in exc:
-            # When calling is_normalized
-            # Then the return value is false
-            self.assertEqual(is_normalized(distr), False)
-
-    def test_normalize_bitstring_distribution(self):
-        # Given dictionaries representing bitstring distributions that are not normalized
-        exc = [
-            {"000": 0.1, "111": 9},
-            {"000": 2, "111": 0.9},
-            {"000": 1e-3, "111": 0, "100": 100},
-        ]
-        for distr in exc:
-            # When calling is_normalized
-            # Then the return value is false
-            self.assertEqual(is_normalized(distr), False)
-
-            normalize_bitstring_distribution(distr)
-
-            # When calling is_normalized after calling normalize_bitstring_distribution
-            # Then the return value is true
-            self.assertEqual(is_normalized(distr), True)
-
-    def test_create_bitstring_distribution_from_probability_distribution(self):
-        # Given a probability distribution
-        prob_distribution = np.asarray([0.25, 0, 0.5, 0.25])
-        # When calling create_bitstring_distribution_from_probability_distribution
-        bitstring_dist = create_bitstring_distribution_from_probability_distribution(
-            prob_distribution
-        )
-
-        # Then the returned object is an instance of BitstringDistribution with the correct values
-        self.assertEqual(type(bitstring_dist), BitstringDistribution)
-        self.assertEqual(bitstring_dist.get_qubits_number(), 2)
-        self.assertEqual(bitstring_dist.distribution_dict["00"], 0.25)
-        self.assertEqual(bitstring_dist.distribution_dict["01"], 0.5)
-        self.assertEqual(bitstring_dist.distribution_dict["11"], 0.25)
 
     def test_create_bitstring_distribution_from_probability_distribution_5_qubits(self):
         # Given a probability distribution

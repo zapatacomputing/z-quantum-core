@@ -641,7 +641,7 @@ class Gate(object):
             ]
         if self.name == 'CU3':
             return [ 
-                  qiskit.extensions.standard.CU3(params[0], params[1], params[1]),
+                  qiskit.extensions.standard.CU3(params[0], params[1], params[2]),
                   [qiskit_qubits[0], qiskit_qubits[1]],
                   []
             ]

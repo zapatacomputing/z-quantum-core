@@ -1,26 +1,26 @@
 spec:
   templates:
-  - name: generate-erdos-renyi-graph
-    parent: generic-task
-    inputs:
-      parameters:
-      - name: n-nodes
-      - name: edge-probability
-      - name: random-weights
-        value: False
-      - name: command
-        value: python3 main_script.py
-      artifacts:
-      - name: main-script
-        path: /app/main_script.py
-        raw:
-          data: |
-            from zquantum.core.graph import generate_random_graph_erdos_renyi, save_graph
-            graph = generate_random_graph_erdos_renyi({{inputs.parameters.n-nodes}},
-                                                      {{inputs.parameters.edge-probability}},
-                                                      bool("{{inputs.parameters.random-weights}}"))
-            save_graph(graph, 'graph.json')
-    outputs:
-      artifacts:
-      - name: graph
-        path: /app/graph.json
+    - name: generate-erdos-renyi-graph
+      parent: generic-task
+      inputs:
+        parameters:
+          - name: n-nodes
+          - name: edge-probability
+          - name: random-weights
+            value: False
+          - name: command
+            value: python3 main_script.py
+        artifacts:
+          - name: main-script
+            path: /app/main_script.py
+            raw:
+              data: |
+                from zquantum.core.graph import generate_random_graph_erdos_renyi, save_graph
+                graph = generate_random_graph_erdos_renyi({{inputs.parameters.n-nodes}},
+                                                          {{inputs.parameters.edge-probability}},
+                                                          bool("{{inputs.parameters.random-weights}}"))
+                save_graph(graph, 'graph.json')
+      outputs:
+        artifacts:
+          - name: graph
+            path: /app/graph.json

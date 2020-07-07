@@ -1,10 +1,14 @@
 from abc import ABC, abstractmethod
-from ..bitstring_distribution import BitstringDistribution, create_bitstring_distribution_from_probability_distribution
-from ..circuit import Circuit
-from ..measurement import ExpectationValues
-from typing import Optional, List, Tuple
+from ..bitstring_distribution import (
+    BitstringDistribution,
+    create_bitstring_distribution_from_probability_distribution,
+)
+from ..circuit import Circuit, CircuitConnectivity
+from ..measurement import ExpectationValues, Measurements
+from typing import Optional, List, Tuple, Iterable
 from openfermion import QubitOperator
 from pyquil.wavefunction import Wavefunction
+
 
 class QuantumBackend(ABC):
     """
@@ -14,11 +18,12 @@ class QuantumBackend(ABC):
         n_samples (int): number of times a circuit should be sampled.
 
     """
-    def __init__(self, n_samples:Optional[int]=None):
+
+    def __init__(self, n_samples: Optional[int] = None):
         self.n_samples = n_samples
 
     @abstractmethod
-    def run_circuit_and_measure(self, circuit:Circuit, **kwargs) -> List[Tuple]:
+    def run_circuit_and_measure(self, circuit: Circuit, **kwargs) -> List[Tuple]:
         """
         Method for executing the circuit and measuring the outcome.
         Args:
@@ -28,7 +33,28 @@ class QuantumBackend(ABC):
         """
         raise NotImplementedError
 
-    def get_expectation_values(self, circuit:Circuit, qubit_operator:QubitOperator, **kwargs) -> ExpectationValues:
+    def run_circuitset_and_measure(
+        self, circuit_set: Iterable[Circuit], **kwargs
+    ) -> List[Measurements]:
+        """Run a set of circuits and measure a certain number of bitstrings.
+        
+        It may be useful to override this method for backends that support
+        batching. Note that self.n_samples shots are used for each circuit.
+
+        Args:
+            circuit_set: The circuits to execute.
+
+        Returns:
+            Measurements for each circuit.
+        """
+        measurement_set = []
+        for circuit in circuit_set:
+            measurement_set.append(self.run_circuit_and_measure(circuit), **kwargs)
+        return measurement_set
+
+    def get_expectation_values(
+        self, circuit: Circuit, qubit_operator: QubitOperator, **kwargs
+    ) -> ExpectationValues:
         """
         Executes the circuit and calculates the expectation values for given operator.
 
@@ -41,7 +67,9 @@ class QuantumBackend(ABC):
         """
         raise NotImplementedError
 
-    def get_expectation_values_for_circuitset(self, circuitset:List[Circuit], qubit_operator:QubitOperator, **kwargs) -> [ExpectationValues]:
+    def get_expectation_values_for_circuitset(
+        self, circuitset: List[Circuit], qubit_operator: QubitOperator, **kwargs
+    ) -> [ExpectationValues]:
         """
         Calculates the expectation values for given operator, based on the exact quantum state 
         produced by a set of circuits.
@@ -55,10 +83,14 @@ class QuantumBackend(ABC):
         """
         expectation_values = []
         for circuit in circuitset:
-            expectation_values.append(self.get_expectation_values(circuit, qubit_operator, **kwargs))
+            expectation_values.append(
+                self.get_expectation_values(circuit, qubit_operator, **kwargs)
+            )
         return expectation_values
 
-    def get_bitstring_distribution(self, circuit:Circuit, **kwargs) -> BitstringDistribution:
+    def get_bitstring_distribution(
+        self, circuit: Circuit, **kwargs
+    ) -> BitstringDistribution:
         """
         Calculates a bitstring distribution.
 
@@ -76,11 +108,16 @@ class QuantumBackend(ABC):
 
 class QuantumSimulator(QuantumBackend):
     @abstractmethod
-    def __init__(self, n_samples:Optional[int]=None):
+    def __init__(
+        self,
+        n_samples: Optional[int] = None,
+        noise_model: Optional = None,
+        device_connectivity: Optional[CircuitConnectivity] = None,
+    ):
         self.n_samples = n_samples
 
     @abstractmethod
-    def get_wavefunction(self, circuit:Circuit, **kwargs) -> Wavefunction:
+    def get_wavefunction(self, circuit: Circuit, **kwargs) -> Wavefunction:
         """
         Returns a wavefunction representing quantum state produced by a circuit
 
@@ -95,7 +132,9 @@ class QuantumSimulator(QuantumBackend):
         raise NotImplementedError
 
     @abstractmethod
-    def get_exact_expectation_values(self, circuit:Circuit, qubit_operator:QubitOperator, **kwargs) -> ExpectationValues:
+    def get_exact_expectation_values(
+        self, circuit: Circuit, qubit_operator: QubitOperator, **kwargs
+    ) -> ExpectationValues:
         """
         Calculates the expectation values for given operator, based on the exact quantum state produced by circuit.
 
@@ -109,7 +148,9 @@ class QuantumSimulator(QuantumBackend):
 
         raise NotImplementedError
 
-    def get_bitstring_distribution(self, circuit:Circuit, **kwargs) -> BitstringDistribution:
+    def get_bitstring_distribution(
+        self, circuit: Circuit, **kwargs
+    ) -> BitstringDistribution:
         """
         Calculates a bitstring distribution.
 
@@ -122,7 +163,9 @@ class QuantumSimulator(QuantumBackend):
         """
         if self.n_samples == None:
             wavefunction = self.get_wavefunction(circuit, **kwargs)
-            return create_bitstring_distribution_from_probability_distribution(wavefunction.probabilities())
+            return create_bitstring_distribution_from_probability_distribution(
+                wavefunction.probabilities()
+            )
         else:
             # Get the expectation values
             measurements = self.run_circuit_and_measure(circuit, **kwargs)

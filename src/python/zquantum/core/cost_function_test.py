@@ -1,12 +1,13 @@
 import unittest
 import numpy as np
-from .cost_function import BasicCostFunction, EvaluateOperatorCostFunction
-from .interfaces.mock_objects import MockQuantumSimulator
+from .cost_function import BasicCostFunction, AnsatzBasedCostFunction
+from .interfaces.mock_objects import MockQuantumSimulator, MockEstimator
 from .interfaces.cost_function_test import CostFunctionTests
+from .utils import ValueEstimate
 from openfermion import QubitOperator
 
-class TestBasicCostFunction(unittest.TestCase, CostFunctionTests):
 
+class TestBasicCostFunction(unittest.TestCase, CostFunctionTests):
     def setUp(self):
         # Setting up inherited tests
         function = np.sum
@@ -17,10 +18,10 @@ class TestBasicCostFunction(unittest.TestCase, CostFunctionTests):
     def test_evaluate(self):
         # Given
         function = np.sum
-        params_1 = np.array([1,2,3])
-        params_2 = np.array([1,2,3,4])
-        target_value_1 = 6
-        target_value_2 = 10
+        params_1 = np.array([1, 2, 3])
+        params_2 = np.array([1, 2, 3, 4])
+        target_value_1 = ValueEstimate(6)
+        target_value_2 = ValueEstimate(10)
         cost_function = BasicCostFunction(function)
 
         # When
@@ -32,21 +33,25 @@ class TestBasicCostFunction(unittest.TestCase, CostFunctionTests):
         self.assertEqual(value_1, target_value_1)
         self.assertEqual(value_2, target_value_2)
         self.assertEqual(len(history), 2)
-        self.assertEqual(history[0]['value'], target_value_1)
-        np.testing.assert_array_equal(history[0]['params'], params_1)
-        self.assertEqual(history[1]['value'], target_value_2)
-        np.testing.assert_array_equal(history[1]['params'], params_2)
+        self.assertEqual(history[0]["value"], target_value_1)
+        np.testing.assert_array_equal(history[0]["params"], params_1)
+        self.assertEqual(history[1]["value"], target_value_2)
+        np.testing.assert_array_equal(history[1]["params"], params_2)
 
     def test_get_gradient(self):
         # Given
         function = np.sum
+
         def gradient_function(params):
             return np.ones(params.size)
-        params_1 = np.array([1,2,3])
-        params_2 = np.array([1,2,3,4])
-        target_gradient_value_1 = np.array([1,1,1])
-        target_gradient_value_2 = np.array([1,1,1,1])
-        cost_function = BasicCostFunction(function, gradient_function=gradient_function, gradient_type='custom')
+
+        params_1 = np.array([1, 2, 3])
+        params_2 = np.array([1, 2, 3, 4])
+        target_gradient_value_1 = np.array([1, 1, 1])
+        target_gradient_value_2 = np.array([1, 1, 1, 1])
+        cost_function = BasicCostFunction(
+            function, gradient_function=gradient_function, gradient_type="custom"
+        )
 
         # When
         gradient_value_1 = cost_function.get_gradient(params_1)
@@ -59,11 +64,11 @@ class TestBasicCostFunction(unittest.TestCase, CostFunctionTests):
     def test_get_finite_difference_gradient(self):
         # Given
         function = np.sum
-        params_1 = np.array([1,2,3])
-        params_2 = np.array([1,2,3,4])
-        target_gradient_value_1 = np.array([1,1,1])
-        target_gradient_value_2 = np.array([1,1,1,1])
-        cost_function = BasicCostFunction(function, gradient_type='finite_difference')
+        params_1 = np.array([1, 2, 3])
+        params_2 = np.array([1, 2, 3, 4])
+        target_gradient_value_1 = np.array([1, 1, 1])
+        target_gradient_value_2 = np.array([1, 1, 1, 1])
+        cost_function = BasicCostFunction(function, gradient_type="finite_difference")
 
         # When
         gradient_value_1 = cost_function.get_gradient(params_1)
@@ -73,13 +78,21 @@ class TestBasicCostFunction(unittest.TestCase, CostFunctionTests):
         np.testing.assert_almost_equal(gradient_value_1, target_gradient_value_1)
         np.testing.assert_almost_equal(gradient_value_2, target_gradient_value_2)
 
-class TestEvaluateOperatorCostFunction(unittest.TestCase, CostFunctionTests):
 
+class TestAnsatzBasedCostFunction(unittest.TestCase, CostFunctionTests):
     def setUp(self):
-        target_operator = QubitOperator('Z0')
-        ansatz = {'ansatz_module': 'zquantum.core.interfaces.mock_objects', 'ansatz_func': 'mock_ansatz', 'ansatz_kwargs': {}, 'n_params': [1]}
+        target_operator = QubitOperator("Z0")
+        ansatz = {
+            "ansatz_module": "zquantum.core.interfaces.mock_objects",
+            "ansatz_func": "mock_ansatz",
+            "ansatz_kwargs": {},
+            "n_params": [1],
+        }
         backend = MockQuantumSimulator()
-        self.single_term_op_cost_function = EvaluateOperatorCostFunction(target_operator, ansatz, backend)
+        estimator = MockEstimator()
+        self.single_term_op_cost_function = AnsatzBasedCostFunction(
+            target_operator, ansatz, backend, estimator=estimator
+        )
 
         # Setting up inherited tests
         self.cost_functions = [self.single_term_op_cost_function]
@@ -95,12 +108,12 @@ class TestEvaluateOperatorCostFunction(unittest.TestCase, CostFunctionTests):
         history = self.single_term_op_cost_function.evaluations_history
 
         # Then
-        self.assertGreaterEqual(value_1, 0)
-        self.assertLessEqual(value_1, 1)
-        self.assertGreaterEqual(value_2, 0)
-        self.assertLessEqual(value_2, 1)
+        self.assertGreaterEqual(value_1.value, 0)
+        self.assertLessEqual(value_1.value, 1)
+        self.assertGreaterEqual(value_2.value, 0)
+        self.assertLessEqual(value_2.value, 1)
         self.assertEqual(len(history), 2)
-        self.assertEqual(history[0]['value'], value_1)
-        np.testing.assert_array_equal(history[0]['params'], params)
-        self.assertEqual(history[1]['value'], value_2)
-        np.testing.assert_array_equal(history[1]['params'], params)
+        self.assertEqual(history[0]["value"], value_1)
+        np.testing.assert_array_equal(history[0]["params"], params)
+        self.assertEqual(history[1]["value"], value_2)
+        np.testing.assert_array_equal(history[1]["params"], params)

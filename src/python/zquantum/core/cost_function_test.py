@@ -1,7 +1,7 @@
 import unittest
 import numpy as np
 from .cost_function import BasicCostFunction, AnsatzBasedCostFunction
-from .interfaces.mock_objects import MockQuantumSimulator, MockEstimator
+from .interfaces.mock_objects import MockQuantumSimulator, MockEstimator, MockAnsatz
 from .interfaces.cost_function_test import CostFunctionTests
 from .utils import ValueEstimate
 from openfermion import QubitOperator
@@ -13,7 +13,7 @@ class TestBasicCostFunction(unittest.TestCase, CostFunctionTests):
         function = np.sum
         cost_function = BasicCostFunction(function)
         self.cost_functions = [cost_function]
-        self.params_sizes = [2]
+        self.params_sizes = [1]
 
     def test_evaluate(self):
         # Given
@@ -82,12 +82,7 @@ class TestBasicCostFunction(unittest.TestCase, CostFunctionTests):
 class TestAnsatzBasedCostFunction(unittest.TestCase, CostFunctionTests):
     def setUp(self):
         target_operator = QubitOperator("Z0")
-        ansatz = {
-            "ansatz_module": "zquantum.core.interfaces.mock_objects",
-            "ansatz_func": "mock_ansatz",
-            "ansatz_kwargs": {},
-            "n_params": [1],
-        }
+        ansatz = MockAnsatz(number_of_layers=1, problem_size=1)
         backend = MockQuantumSimulator()
         estimator = MockEstimator()
         self.single_term_op_cost_function = AnsatzBasedCostFunction(
@@ -96,11 +91,11 @@ class TestAnsatzBasedCostFunction(unittest.TestCase, CostFunctionTests):
 
         # Setting up inherited tests
         self.cost_functions = [self.single_term_op_cost_function]
-        self.params_sizes = [2]
+        self.params_sizes = [1]
 
     def test_evaluate(self):
         # Given
-        params = np.array([1, 2])
+        params = np.array([1])
 
         # When
         value_1 = self.single_term_op_cost_function.evaluate(params)

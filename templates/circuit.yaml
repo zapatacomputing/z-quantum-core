@@ -83,7 +83,7 @@ spec:
                                                 save_circuit)
               import os
               ansatz = create_object({{inputs.parameters.ansatz-specs}})
-              if os.exists('params.json'):
+              if os.path.exists('params.json'):
                 params = load_circuit_template_params('params.json')
               else:
                 params = None

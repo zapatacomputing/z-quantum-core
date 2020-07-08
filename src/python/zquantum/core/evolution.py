@@ -1,13 +1,14 @@
 import openfermion, pyquil
-from pyquil.paulis import exponentiate
+from pyquil.paulis import exponentiate as pyquil_exponentiate
 import numpy as np
 from .circuit import Circuit
-from typing import Tuple, List
+from typing import Tuple, List, Union
+import sympy
 
 
 def time_evolution(
     hamiltonian: pyquil.paulis.PauliSum,
-    time: float,
+    time: Union[float, sympy.Expr],
     method: str = "Trotter",
     trotter_order: int = 1,
 ) -> Circuit:
@@ -17,29 +18,25 @@ def time_evolution(
     the operation exp(-iHt).
 
     Args:
-        hamiltonian: pyquil.paulis.PauliSum
-            The Hamiltonian to be evolved under.
-        time: float
-            Time duration of the evolution.
-        method (str): Time evolution method. Currently the only option is 'Trotter'.
-        trotter_order (int): order of Trotter evolution
+        hamiltonian: The Hamiltonian to be evolved under.
+        time: Time duration of the evolution.
+        method: Time evolution method. Currently the only option is 'Trotter'.
+        trotter_order: order of Trotter evolution
     
     Returns:
         A Circuit (core.circuit) object representing the time evolution.
     """
 
     if method == "Trotter":
-        output = pyquil.Program()
+        output = Circuit()
         for index_order in range(0, trotter_order):  # iterate over Trotter orders
             for index_term in range(0, len(hamiltonian.terms)):
-                pyquil_expitH_circuit = exponentiate(
-                    hamiltonian[index_term] * (time / trotter_order)
-                )
-                output += pyquil_expitH_circuit
+                output += exponentiate(hamiltonian[index_term], time / trotter_order)
+
     else:
         raise ValueError("Currently the method {} is not supported".format(method))
 
-    return Circuit(output)
+    return output
 
 
 def time_evolution_derivatives(
@@ -53,12 +50,10 @@ def time_evolution_derivatives(
     function time_evolution
 
     Args:
-        hamiltonian: pyquil.paulis.PauliSum
-            The Hamiltonian to be evolved under.
-        time: float
-            Time duration of the evolution.
-        method (str): Time evolution method. Currently the only option is 'Trotter'.
-        trotter_order (int): order of Trotter evolution
+        hamiltonian: The Hamiltonian to be evolved under.
+        time: Time duration of the evolution.
+        method: Time evolution method. Currently the only option is 'Trotter'.
+        trotter_order: order of Trotter evolution
     
     Returns:
         A Circuit (core.circuit) object representing the time evolution.
@@ -74,7 +69,7 @@ def time_evolution_derivatives(
 
             for factor in factors:
 
-                output = pyquil.Program()
+                output = Circuit()
                 # r is the eigenvalue of the generator of the gate. The value is modified
                 # to take into account the coefficient and trotter step in front of the
                 # Pauli term
@@ -84,17 +79,17 @@ def time_evolution_derivatives(
 
                 for index_term2 in range(0, len(hamiltonian.terms)):
                     if index_term1 == index_term2:
-                        pyquil_expitH_circuit = exponentiate(
-                            hamiltonian[index_term2] * ((time + shift) / trotter_order)
+                        expitH_circuit = exponentiate(
+                            hamiltonian[index_term2], ((time + shift) / trotter_order)
                         )
-                        output += pyquil_expitH_circuit
+                        output += expitH_circuit
                     else:
-                        pyquil_expitH_circuit = exponentiate(
-                            hamiltonian[index_term2] * (time / trotter_order)
+                        expitH_circuit = exponentiate(
+                            hamiltonian[index_term2], (time / trotter_order)
                         )
-                        output += pyquil_expitH_circuit
+                        output += expitH_circuit
 
-                single_trotter_derivatives.append(Circuit(output))
+                single_trotter_derivatives.append(output)
 
         if trotter_order > 1:
 
@@ -155,3 +150,32 @@ def generate_circuit_sequence(
         else:
             circuit_sequence += repeated_circuit
     return circuit_sequence
+
+
+def exponentiate(
+    term: pyquil.paulis.PauliSum, factor: Union[float, sympy.Expr]
+) -> Circuit:
+    """Exponentiates a Pauli term and returns a circuit representing it.
+    Args:
+        term: Pauli term to be exponentiated
+        factor: factor for exponentiation
+    Returns:
+        Circuit: Circuit representing exponentiated term.
+    """
+    if isinstance(factor, sympy.Expr):
+        circuit = Circuit(pyquil_exponentiate(term))
+        for gate in circuit.gates:
+            if len(gate.params) == 0:
+                pass
+            elif len(gate.params) > 1:
+                raise (
+                    NotImplementedError(
+                        "Exponentiation of multi-parametered gates with symbolic parameters is not supported."
+                    )
+                )
+            elif gate.name == "Rz" or gate.name == "PHASE":
+                # We only want to modify the parameter of Rz gate or PHASE gate.
+                gate.params[0] = gate.params[0] * factor
+    else:
+        circuit = Circuit(pyquil_exponentiate(term * factor))
+    return circuit

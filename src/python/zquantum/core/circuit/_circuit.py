@@ -45,7 +45,7 @@ class Circuit(object):
         object in other packages to core.circuit.Circuit object.
 
         Args:
-            input_object: pyquil.Program, cirq.Circuit
+            input_object: pyquil.Program, cirq.Circuit, qiskit.QuantumCircuit
                 A generic circuit object that may be created from one of the various packages
                 currently supported by Zap OS.
         """
@@ -62,13 +62,21 @@ class Circuit(object):
 
         if isinstance(input_object, pyquil.Program):
             self.from_pyquil(input_object)
-        if isinstance(input_object, pyquil.quilbase.Gate):
+        elif isinstance(input_object, pyquil.quilbase.Gate):
             converted_input = pyquil.Program(input_object)
             self.from_pyquil(converted_input)
-        if isinstance(input_object, cirq.Circuit):
+        elif isinstance(input_object, cirq.Circuit):
             self.from_cirq(input_object)
-        if isinstance(input_object, qiskit.QuantumCircuit):
+        elif isinstance(input_object, qiskit.QuantumCircuit):
             self.from_qiskit(input_object)
+        elif input_object is None:
+            pass
+        else:
+            raise (
+                TypeError(
+                    "Incorrect type of input object: {0}".format(type(input_object))
+                )
+            )
 
     @property
     def n_multiqubit_gates(self):
@@ -417,7 +425,7 @@ class Circuit(object):
             A core.circuit.Circuit object
         """
 
-        output = cls(dictionary["name"])
+        output = cls(name=dictionary["name"])
         if dictionary["gates"] != None:
             output.gates = [Gate.from_dict(gate) for gate in dictionary["gates"]]
         else:

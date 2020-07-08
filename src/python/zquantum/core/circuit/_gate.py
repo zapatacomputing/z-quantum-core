@@ -845,6 +845,7 @@ class Gate(object):
             output.name = qiskit_gate.name.upper()
         elif qiskit_gate.name in {"measure", "barrier"}:
             output.name = qiskit_gate.name.upper()
+            return
         else:
             raise NotImplementedError(
                 "The gate {} is currently not supported.".format(qiskit_gate.name)

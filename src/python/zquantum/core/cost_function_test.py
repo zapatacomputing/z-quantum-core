@@ -103,9 +103,9 @@ class TestAnsatzBasedCostFunction(unittest.TestCase, CostFunctionTests):
         history = self.single_term_op_cost_function.evaluations_history
 
         # Then
-        self.assertGreaterEqual(value_1.value, 0)
+        self.assertGreaterEqual(value_1.value, -1)
         self.assertLessEqual(value_1.value, 1)
-        self.assertGreaterEqual(value_2.value, 0)
+        self.assertGreaterEqual(value_2.value, -1)
         self.assertLessEqual(value_2.value, 1)
         self.assertEqual(len(history), 2)
         self.assertEqual(history[0]["value"], value_1)

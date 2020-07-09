@@ -61,13 +61,13 @@ class MockQuantumSimulator(QuantumSimulator):
         self, circuit: Circuit, operator: SymbolicOperator, **kwargs
     ):
         n_qubits = len(circuit.qubits)
-        try:
+        if hasattr(operator, 'terms'):
             n_operator = len(operator.terms.keys())
             constant_position = None
             for index, term in enumerate(operator.terms):
                 if term == ():
                     constant_position = index
-        except:
+        else:
             n_operator = None
             constant_position = None
             print("WARNING: operator does not have attribute terms")

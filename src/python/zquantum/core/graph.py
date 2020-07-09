@@ -179,7 +179,7 @@ def generate_graph_from_specs(graph_specs:dict) -> nx.Graph:
     Returns:
         A networkx.Graph object
     """
-    type_graph = graph_specs['type']
+    type_graph = graph_specs['type_graph']
     num_nodes = graph_specs['num_nodes']
     random_weights = graph_specs.get('random_weights', False)
     

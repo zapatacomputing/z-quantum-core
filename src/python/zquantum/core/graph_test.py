@@ -98,7 +98,6 @@ class TestGraph(unittest.TestCase):
         graph = generate_random_graph_regular(num_nodes, degree)
 
         # Then
-        self.assertTrue()
         for n in graph.nodes():
             node_in_edge = [n in e for e in graph.edges()]
             self.assertTrue(sum(node_in_edge) == degree)
@@ -121,7 +120,7 @@ class TestGraph(unittest.TestCase):
 
     def test_generate_complete_graph(self):
         # Given
-        num_nodes = 3
+        num_nodes = 4
 
         target_graph = nx.Graph()
         target_graph.add_edges_from([(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)])
@@ -165,13 +164,12 @@ class TestGraph(unittest.TestCase):
         graph = generate_graph_from_specs(specs)
         
         # Then
-        self.assertTrue()
         for n in graph.nodes():
             node_in_edge = [n in e for e in graph.edges()]
             self.assertTrue(sum(node_in_edge) == 2)
         
         # Given
-        specs = {'type_graph':'complete', 'num_nodes': 3}
+        specs = {'type_graph':'complete', 'num_nodes': 4}
         target_graph = nx.Graph()
         target_graph.add_edges_from([(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)])
         

@@ -7,6 +7,9 @@ from .graph import (
     load_graph,
     generate_graph_node_dict,
     generate_random_graph_erdos_renyi,
+    generate_random_graph_regular,
+    generate_complete_graph,
+    generate_graph_from_specs,
 )
 import os
 
@@ -86,8 +89,106 @@ class TestGraph(unittest.TestCase):
             num_nodes, probability, random_weights
         )
 
+    def test_generate_random_graph_regular(self):
+        # Given
+        num_nodes = 4
+        degree = 2
+
+        # When
+        graph = generate_random_graph_regular(num_nodes, degree)
+
+        # Then
+        self.assertTrue()
+        for n in graph.nodes():
+            node_in_edge = [n in e for e in graph.edges()]
+            self.assertTrue(sum(node_in_edge) == degree)
+
+        # Given
+        num_nodes = 20
+        degree = 3
+        random_weights = True
+
+        # When
+        graph = generate_random_graph_regular(
+            num_nodes, degree, random_weights
+        )
+
         # Then
         for edge in graph.edges:
             self.assertIn("weight", graph.edges[edge].keys())
 
         self.assertEqual(len(graph.nodes), num_nodes)
+
+    def test_generate_complete_graph(self):
+        # Given
+        num_nodes = 3
+
+        target_graph = nx.Graph()
+        target_graph.add_edges_from([(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)])
+        # When
+        graph = generate_complete_graph(num_nodes)
+
+        # Then
+        self.assertTrue(compare_graphs(graph, target_graph))
+
+        # Given
+        num_nodes = 10
+        random_weights = True
+
+        # When
+        graph = generate_complete_graph(
+            num_nodes, random_weights
+        )
+
+        # Then
+        for edge in graph.edges:
+            self.assertIn("weight", graph.edges[edge].keys())
+
+        self.assertEqual(len(graph.nodes), num_nodes)
+
+    def test_generate_graph_from_specs(self):
+        # Given
+        specs = {'type_graph':'erdos_renyi', 'num_nodes':3, 'probability':1.}
+        target_graph = nx.Graph()
+        target_graph.add_edges_from([(0, 1), (1, 2), (0, 2)])
+        
+        # When
+        graph = generate_graph_from_specs(specs)
+
+        # Then
+        self.assertTrue(compare_graphs(graph, target_graph))
+
+        # Given
+        specs = {'type_graph':'regular', 'num_nodes':4 , 'degree':2}
+    
+        # When
+        graph = generate_graph_from_specs(specs)
+        
+        # Then
+        self.assertTrue()
+        for n in graph.nodes():
+            node_in_edge = [n in e for e in graph.edges()]
+            self.assertTrue(sum(node_in_edge) == 2)
+        
+        # Given
+        specs = {'type_graph':'complete', 'num_nodes': 3}
+        target_graph = nx.Graph()
+        target_graph.add_edges_from([(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)])
+        
+        # When
+        graph = generate_graph_from_specs(specs)
+
+        # Then
+        self.assertTrue(compare_graphs(graph, target_graph))
+        
+        # When
+        specs = {'type_graph':'complete', 'num_nodes': 10, 'random_weights': True}
+
+
+        # When
+        graph = generate_graph_from_specs(specs)
+
+        # Then
+        for edge in graph.edges:
+            self.assertIn("weight", graph.edges[edge].keys())
+

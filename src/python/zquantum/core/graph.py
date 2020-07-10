@@ -90,7 +90,7 @@ def generate_random_graph_erdos_renyi(
     Returns:
         A networkx.Graph object
     """
-    output_graph = nx.random_regular_graph(n = num_nodes, p = probability, seed = seed)
+    output_graph = nx.erdos_renyi_graph(n = num_nodes, p = probability, seed = seed)
     output_graph = weight_graph_edges(output_graph, random_weights, seed)
      
     return output_graph

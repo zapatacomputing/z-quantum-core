@@ -7,8 +7,7 @@ from .graph import (
     load_graph,
     generate_graph_node_dict,
     generate_random_graph_erdos_renyi,
-    generate_random_graph_regular,
-    generate_complete_graph,
+    generate_random_regular_graph,
     generate_graph_from_specs,
 )
 import os
@@ -89,13 +88,13 @@ class TestGraph(unittest.TestCase):
             num_nodes, probability, random_weights
         )
 
-    def test_generate_random_graph_regular(self):
+    def test_generate_random_regular_graph(self):
         # Given
         num_nodes = 4
         degree = 2
 
         # When
-        graph = generate_random_graph_regular(num_nodes, degree)
+        graph = generate_random_regular_graph(num_nodes, degree)
 
         # Then
         for n in graph.nodes():
@@ -108,7 +107,7 @@ class TestGraph(unittest.TestCase):
         random_weights = True
 
         # When
-        graph = generate_random_graph_regular(
+        graph = generate_random_regular_graph(
             num_nodes, degree, random_weights
         )
 
@@ -118,32 +117,20 @@ class TestGraph(unittest.TestCase):
 
         self.assertEqual(len(graph.nodes), num_nodes)
 
-    def test_generate_complete_graph(self):
+    def test_seed(self):
         # Given
         num_nodes = 4
+        degree = 2
+        seed = 123
+        
+        target_graph = generate_random_regular_graph(num_nodes, degree, random_weights = True, seed=seed)
 
-        target_graph = nx.Graph()
-        target_graph.add_edges_from([(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)])
         # When
-        graph = generate_complete_graph(num_nodes)
+        graph = generate_random_regular_graph(num_nodes, degree, random_weights = True, seed=seed)
 
         # Then
         self.assertTrue(compare_graphs(graph, target_graph))
 
-        # Given
-        num_nodes = 10
-        random_weights = True
-
-        # When
-        graph = generate_complete_graph(
-            num_nodes, random_weights
-        )
-
-        # Then
-        for edge in graph.edges:
-            self.assertIn("weight", graph.edges[edge].keys())
-
-        self.assertEqual(len(graph.nodes), num_nodes)
 
     def test_generate_graph_from_specs(self):
         # Given

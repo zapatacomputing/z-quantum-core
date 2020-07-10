@@ -127,24 +127,6 @@ def generate_random_graph_regular(num_nodes: int,
 
     return output_graph
 
-def generate_complete_graph(num_nodes: int, 
-                           random_weights: bool = False) -> nx.Graph:
-    """Generate a complete graph, i.e. each node is connected to each other one. 
-
-    Args:
-        num_nodes: integer
-            Number of nodes.
-        random_weights: bool
-            Flag indicating whether the weights should be random or constant.
-    
-    Returns:
-        A networkx.Graph object
-    """
-    output_graph = nx.complete_graph(n = num_nodes)
-    output_graph = weight_graph_edges(output_graph, random_weights)
-    
-    return output_graph
-
 def weight_graph_edges(graph: nx.Graph, random_weights: bool = False) -> nx.Graph:
     """Update the weights of all the edges of a graph. 
 
@@ -192,6 +174,9 @@ def generate_graph_from_specs(graph_specs:dict) -> nx.Graph:
         graph = generate_random_graph_regular(num_nodes, degree, random_weights)
     
     elif type_graph == 'complete':
-        graph = generate_complete_graph(num_nodes, random_weights)
+        graph = generate_random_graph_erdos_renyi(num_nodes, probability=1., random_weights=random_weights)
+        
+    else:
+        raise(NotImplementedError("This type of graph is not supported: ", type_graph))
 
     return graph

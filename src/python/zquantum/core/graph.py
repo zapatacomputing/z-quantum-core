@@ -104,7 +104,7 @@ def generate_random_graph_erdos_renyi(
     
     return output_graph
 
-def generate_random_graph_regular(num_nodes: int, 
+def generate_random_regular_graph(num_nodes: int, 
                                     degree: int, 
                                     random_weights: bool = False) -> nx.Graph:
     """Randomly generate a d-regular graph. 
@@ -171,7 +171,7 @@ def generate_graph_from_specs(graph_specs:dict) -> nx.Graph:
     
     elif type_graph == 'regular':
         degree = graph_specs['degree']
-        graph = generate_random_graph_regular(num_nodes, degree, random_weights)
+        graph = generate_random_regular_graph(num_nodes, degree, random_weights)
     
     elif type_graph == 'complete':
         graph = generate_random_graph_erdos_renyi(num_nodes, probability=1., random_weights=random_weights)

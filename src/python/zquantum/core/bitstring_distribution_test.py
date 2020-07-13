@@ -159,7 +159,7 @@ def test_uses_epsilon_instead_of_zero_in_target_distribution():
         log_spy.assert_has_calls([mock.call(0.1), mock.call(0.9), mock.call(0.01)], any_order=True)
 
 
-def test_evaluates_distribution_distance_using_passed_measure():
+def test_passed_measure_is_used_for_evaluating_distribution_distance():
     """Evaluating distance distribution uses distance measure passed as an argument."""
     target_distribution = BitstringDistribution({"0": 10, "1": 5})
     measured_distribution = BitstringDistribution({"0": 10, "1": 5})

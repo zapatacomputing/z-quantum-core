@@ -39,8 +39,8 @@ def test_dicts_with_fixed_key_length_are_correctly_classified():
     assert is_key_length_fixed({"abc": 3, "100": 2, "www": 1})
 
 
-def test_dicts_with_variable_key_length_are_correctly_classified():
-    """The is_key_length_fixed should return False if some keys have different length."""
+def test_if_some_keys_have_different_keys_the_key_length_is_not_fixed():
+    """The is_key_length_fixed returns False if some keys have different length."""
     assert not is_key_length_fixed({"a": 3, "10": 2, "www": 1})
 
 
@@ -116,157 +116,161 @@ def test_constructs_correct_dbitstring_distribution_from_probability_distributio
     bitstring_dist = create_bitstring_distribution_from_probability_distribution(
         prob_distribution
     )
-    expected_dist = BitstringDistribution({"00": 0.25, "01": 0.5, "10": 0.0, "11": 0.25})
-    assert bitstring_dist.distribution_dict == expected_dist.distribution_dict
-    assert bitstring_dist.get_qubits_number() == expected_dist.get_qubits_number()
+
+    assert clipped_log_likelihood == 1.203972804325936
 
 
-class TestBitstringDistributionUtils(unittest.TestCase):
+def test_uses_epsilon_instead_of_zero_in_target_distribution():
+    """Computing clipped negative log likelihood should use epsilon instead of zeros in log."""
+    log_spy = mock.Mock(wraps=math.log)
+    with mock.patch("core.bitstring_distribution.math.log", log_spy):
+        target_distr = BitstringDistribution({"000": 0.5, "111": 0.4, "010": 0.0})
+        measured_dist = BitstringDistribution({"000": 0.1, "111": 0.9, "010": 0.0})
 
-
-    def test_create_bitstring_distribution_from_probability_distribution_5_qubits(self):
-        # Given a probability distribution
-        prob_distribution = np.ones(5 ** 2) / 5 ** 2
-        # When calling create_bitstring_distribution_from_probability_distribution
-        bitstring_dist = create_bitstring_distribution_from_probability_distribution(
-            prob_distribution
+        compute_clipped_negative_log_likelihood(
+            target_distr, measured_dist, epsilon=0.01
         )
 
-        # Then the returned object is an instance of BitstringDistribution with the correct values
-        self.assertEqual(type(bitstring_dist), BitstringDistribution)
-        self.assertEqual(bitstring_dist.get_qubits_number(), 5)
-        self.assertEqual(bitstring_dist.distribution_dict["00000"], 1 / 5 ** 2)
-
-    def test_compute_clipped_negative_log_likelihood(self):
-        # Given a target bitstring distribution and a measured bitstring distribution
-        target_distr = BitstringDistribution({"000": 0.5, "111": 0.5})
-        measured_distr = BitstringDistribution({"000": 0.1, "111": 0.9})
-
-        # When calling compute_clipped_negative_log_likelihood
-        clipped_log_likelihood = compute_clipped_negative_log_likelihood(
-            target_distr, measured_distr, epsilon=0.1
-        )
-
-        # Then the clipped log likelihood calculated is correct
-        self.assertEqual(clipped_log_likelihood, 1.203972804325936)
-
-    def test_evaluate_distribution_distance(self):
-        # Given
-        target_dict = {"0": 10, "1": 5}
-        measured_dict = {"0": 10, "1": 5}
-        target_distribution = BitstringDistribution(target_dict)
-        measured_distribution = BitstringDistribution(measured_dict)
-        target_distance = 0.6365141682948128
-
-        # When
-        distance = evaluate_distribution_distance(
-            target_distribution,
-            measured_distribution,
-            compute_clipped_negative_log_likelihood,
-        )
-
-        # Then
-        self.assertAlmostEqual(distance, target_distance)
-
-        # Testing assertions
-        # When/Then
-        with self.assertRaises(TypeError):
-            evaluate_distribution_distance(
-                target_distribution,
-                measured_dict,
-                compute_clipped_negative_log_likelihood,
-            )
-
-        # When/Then
-        with self.assertRaises(TypeError):
-            evaluate_distribution_distance(
-                target_dict,
-                measured_distribution,
-                compute_clipped_negative_log_likelihood,
-            )
-
-        # Given
-        measured_dict = {"00": 10, "11": 5}
-        measured_distribution = BitstringDistribution(measured_dict)
-
-        # When/Then
-        with self.assertRaises(RuntimeError):
-            evaluate_distribution_distance(
-                target_distribution,
-                measured_distribution,
-                compute_clipped_negative_log_likelihood,
-            )
-
-        # Given
-        measured_dict = {"0": 10, "1": 5}
-        measured_distribution = BitstringDistribution(measured_dict, normalize=False)
-
-        # When/Then
-        with self.assertRaises(RuntimeError):
-            evaluate_distribution_distance(
-                target_distribution,
-                measured_distribution,
-                compute_clipped_negative_log_likelihood,
-            )
+        log_spy.assert_has_calls([mock.call(0.1), mock.call(0.9), mock.call(0.01)], any_order=True)
 
 
-class TestBitstringDistribution(unittest.TestCase):
-    def test_bitstring_distribution_io(self):
-        # Given a BitstringDistribution object
-        distr = BitstringDistribution({"000": 0.1, "111": 0.9})
-        # When calling save_bitstring_distribution and then load_bitstring_distribution
-        save_bitstring_distribution(distr, "distr_test.json")
-        new_distr = load_bitstring_distribution("distr_test.json")
+def test_evaluates_distribution_distance_using_passed_measure():
+    """Evaluating distance distribution should use distance measure passed as an argument."""
+    target_distribution = BitstringDistribution({"0": 10, "1": 5})
+    measured_distribution = BitstringDistribution({"0": 10, "1": 5})
+    distance_function = mock.Mock()
 
-        # Then the resulting two objects have identical key-value pairs
-        for bitstring in distr.distribution_dict:
-            self.assertAlmostEqual(
-                distr.distribution_dict[bitstring],
-                new_distr.distribution_dict[bitstring],
-            )
-        for bitstring in new_distr.distribution_dict:
-            self.assertAlmostEqual(
-                distr.distribution_dict[bitstring],
-                new_distr.distribution_dict[bitstring],
-            )
+    distance = evaluate_distribution_distance(
+        target_distribution,
+        measured_distribution,
+        distance_function,
+    )
 
-    def test_bitstring_distribution_normalization(self):
-        # Given a list of BistringDistibutions that are built from bitstring distribution dictionaries that are both normalized and not normalized
-        # When not passing the normalize=False flag to the constructor
-        l = [
-            BitstringDistribution({"000": 0.1, "111": 0.9}),
-            BitstringDistribution({"010": 0.3, "111": 0.9}),
-            BitstringDistribution({"000": 2, "111": 0.9}),
-            BitstringDistribution({"000": 2, "111": 4.9}),
-            BitstringDistribution({"000": 0.2, "111": 9}),
-            BitstringDistribution({"000": 1e-3, "111": 0}),
-        ]
-        for distr in l:
-            # Then the distributions are all normalized
-            self.assertAlmostEqual(sum(distr.distribution_dict.values()), 1)
-            self.assertEqual(is_bitstring_distribution(distr.distribution_dict), True)
+    distance_function.assert_called_once_with(target_distribution, measured_distribution)
+    assert distance == distance_function.return_value
 
-        # Given a BistringDistibutions object that is built from a bitstring distribution dictionary that is not normalized
-        # When passing the normalize=False flag to the constructor
-        exc = BitstringDistribution({"000": 0.1, "111": 9}, normalize=False)
-        # Then the distributions are not normalized
-        self.assertNotEqual(sum(exc.distribution_dict.values()), 1)
-        self.assertEqual(is_bitstring_distribution(exc.distribution_dict), True)
 
-    def test_get_qubits_number(self):
-        # Given a list of BistringDistributions with different qubit numbers
-        l = [
-            BitstringDistribution({"00": 0.1, "11": 0.9}),
-            BitstringDistribution({"000": 0.2, "111": 0.8}),
-            BitstringDistribution({"0000": 1e-3, "1111": 0}),
-        ]
-        i = 2
-        for distr in l:
-            # When calling BitstringDistribution.get_qubits_number
-            # Then the returned integer is the number of qubits in the distribution keys
-            self.assertEqual(distr.get_qubits_number(), i)
-            i += 1
+@pytest.mark.parametrize(
+    "target_cls,measured_cls",
+    [(BitstringDistribution, dict), (dict, BitstringDistribution), (dict, dict)]
+)
+def test_distribution_distance_can_be_evaluated_only_for_bitstring_distributions(
+        target_cls, measured_cls
+):
+    """Distribution distance can be evaluated only if both arguments are bitstring distributions."""
+    target = target_cls({"0": 10, "1": 5})
+    measured = measured_cls({"0": 10, "1": 5})
 
-    def tearDown(self):
-        subprocess.run(["rm", "distr_test.json"])
-        return super().tearDown()
+    with pytest.raises(TypeError):
+        evaluate_distribution_distance(target, measured, compute_clipped_negative_log_likelihood)
+
+
+def test_distribution_distance_cannot_be_evaluated_if_supports_are_incompatible():
+    """Distribution distance can be evaluated only if arguments have compatible support."""
+    target = BitstringDistribution({"0": 10, "1": 5})
+    measured = BitstringDistribution({"00": 10, "10": 5})
+
+    with pytest.raises(RuntimeError):
+        evaluate_distribution_distance(target, measured, compute_clipped_negative_log_likelihood)
+
+
+@pytest.mark.parametrize("normalize_target,normalize_measured", [(True, False), (False, True)])
+def test_distribution_distance_cannot_be_computed_if_distributions_differ_in_normalization(
+    normalize_target, normalize_measured
+):
+    """Distribution distance cannot be computed if only one distribution is normalized."""
+    target = BitstringDistribution({"0": 10, "1": 5}, normalize_target)
+    measured = BitstringDistribution({"0": 10, "1": 5}, normalize_measured)
+
+    with pytest.raises(RuntimeError):
+        evaluate_distribution_distance(target, measured, compute_clipped_negative_log_likelihood)
+
+
+@pytest.fixture
+def mock_open():
+    mock_open = mock.mock_open()
+    with mock.patch("core.bitstring_distribution.open", mock_open):
+        yield mock_open
+
+
+def test_saving_bitstring_distribution_opens_file_for_writing_using_context_manager(mock_open):
+    """Saving bitstring distribution opens file for writing using context manager."""
+    distribution = BitstringDistribution({"000": 0.1, "111": 0.9})
+    save_bitstring_distribution(distribution, "/some/path/to/distribution.json")
+
+    mock_open.assert_called_once_with("/some/path/to/distribution.json", "w")
+    mock_open().__enter__.assert_called_once()
+    mock_open().__exit__.assert_called_once()
+
+
+def test_saving_bitstring_distribution_writes_correct_json_data_to_file(mock_open):
+    """Saving bitstring distribution writes correct json dictionary to file."""
+    distribution = BitstringDistribution({"000": 0.1, "111": 0.9})
+
+    expected_dict = {
+        "bitstring_distribution": distribution.distribution_dict,
+        "schema": SCHEMA_VERSION + "-bitstring-probability-distribution"
+    }
+
+    save_bitstring_distribution(distribution, "/some/path/to/distribution.json")
+
+    written_data = mock_open().__enter__().write.call_args[0][0]
+    assert json.loads(written_data) == expected_dict
+
+
+def test_saved_bitstring_distribution_can_be_loaded(mock_open):
+    """Saved bitstring distribution can be loaded to obtain the same distribution."""
+    fake_file = StringIO()
+    mock_open().__enter__.return_value = fake_file
+    dist = BitstringDistribution({"000": 0.1, "111": 0.9})
+
+    save_bitstring_distribution(dist, "distribution.json")
+    fake_file.seek(0)
+
+    loaded_dist = load_bitstring_distribution(fake_file)
+    assert all(
+        math.isclose(
+            dist.distribution_dict[key], loaded_dist.distribution_dict[key]
+        ) for key in dist.distribution_dict.keys()
+    )
+
+    assert dist.distribution_dict.keys() == loaded_dist.distribution_dict.keys()
+
+
+@pytest.mark.parametrize(
+    "distribution",
+    [
+        {"000": 0.1, "111": 0.9},
+        {"010": 0.3, "111": 0.9},
+        {"000": 2, "111": 0.9},
+        {"000": 2, "111": 4.9},
+        {"000": 0.2, "111": 9},
+        {"000": 1e-3, "111": 0}
+    ]
+)
+def test_bitstring_distribution_gets_normalized_by_default(distribution):
+    """Constructing bitstring distribution normalizes it by default."""
+    distribution = BitstringDistribution(distribution)
+    assert is_normalized(distribution.distribution_dict)
+
+
+def test_bitstring_distribution_keeps_original_dict_if_normalization_is_not_requested():
+    """Bistring distribution keeps original dict if normalization is not requested."""
+    distribution_dict = {"000": 0.1, "111": 9}
+    distribution = BitstringDistribution({"000": 0.1, "111": 9}, normalize=False)
+    assert distribution.distribution_dict == distribution_dict
+
+
+@pytest.mark.parametrize(
+    "distribution,num_qubits",
+    [
+        (BitstringDistribution({"00": 0.1, "11": 0.9}), 2),
+        (BitstringDistribution({"000": 0.2, "111": 0.8}), 3),
+        (BitstringDistribution({"0000": 1e-3, "1111": 0}), 4)
+    ]
+)
+def test_number_of_qubits_in_bitstring_distribution_equals_length_of_keys(
+    distribution, num_qubits
+):
+    """Number of qubits of bitstring distribution is equal to length of keys of distribution."""
+    assert distribution.get_qubits_number() == num_qubits

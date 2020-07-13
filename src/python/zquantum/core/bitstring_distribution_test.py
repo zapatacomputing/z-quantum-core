@@ -1,6 +1,11 @@
-import unittest
+import json
+import math
+from io import StringIO
+from itertools import product
+from unittest import mock
+
 import numpy as np
-import subprocess
+
 
 import pytest
 
@@ -21,21 +26,21 @@ from .bitstring_distribution import (
 from .utils import SCHEMA_VERSION
 
 
-def test_dicts_with_nonnegative_values_are_correctly_classified():
-    """The is_non_negative function should return True for dicts with nonnegative values."""
+def test_dicts_with_nonnegative_values_are_nonnegative():
+    """The is_non_negative function returns True for dicts with nonnegative values."""
     n_elements = 10
     nonnegative_dict = {i: i + 1 for i in range(n_elements)}
     assert is_non_negative(nonnegative_dict)
 
 
 @pytest.mark.parametrize("dictionary", [{i: -i for i in range(10)}, {0: -1, 1: 2, 3: 0}])
-def test_dicts_with_some_negative_values_are_correctly_classified(dictionary):
-    """The is_non_negative function should return False for dicts with some negative values."""
+def test_dicts_with_some_negative_values_are_not_nonnegative(dictionary):
+    """The is_non_negative function returns False for dicts with some negative values."""
     assert not is_non_negative(dictionary)
 
 
-def test_dicts_with_fixed_key_length_are_correctly_classified():
-    """The is_key_length_fixed should return True if all keys have the same length."""
+def test_if_all_keys_have_the_same_length_the_key_length_is_fixed():
+    """The is_key_length_fixed returns True if all keys have the same length."""
     assert is_key_length_fixed({"abc": 3, "100": 2, "www": 1})
 
 
@@ -44,27 +49,28 @@ def test_if_some_keys_have_different_keys_the_key_length_is_not_fixed():
     assert not is_key_length_fixed({"a": 3, "10": 2, "www": 1})
 
 
-def test_dicts_with_binary_strings_keys_are_correctly_classified():
-    """The are_keys_binary_strings should return True for binary string keyed dicts."""
+def test_if_dict_keys_have_only_01_characters_the_keys_are_binary_strings():
+    """The are_keys_binary_strings returns True for binary string keyed dicts."""
     assert are_keys_binary_strings({"100001": 3, "10": 2, "0101": 1})
 
 
-def test_dicts_with_other_kes_are_correctly_classified():
-    """The are_keys_binary_strings should return False for non-binary string keyed dicts."""
+def test_if_dict_keys_have_characters_other_than_01_the_keys_are_not_binary_strings():
+    """The are_keys_binary_strings returns False for non-binary string keyed dicts."""
     assert not are_keys_binary_strings({"abc": 3, "100": 2, "www": 1})
 
 
-@pytest.mark.parametrize(
-    "distribution",
-    [{"abc": 3, "100": 2, "www": 1}, {"100001": 3, "10": 2, "0101": 1}]
-)
-def test_bitstring_distributions_are_correctly_classified(distribution):
-    """The is_bitstring_distribution should return True for bitstring distributions."""
-    assert not is_bitstring_distribution(distribution)
+def test_dict_with_varying_key_length_is_not_bitstring_distributions():
+    """Dictionaries with varying key length are not bitstring distributions."""
+    assert not is_bitstring_distribution({"100001": 3, "10": 2, "0101": 1})
 
 
-def test_non_bitstring_distributions_are_correctly_classified():
-    """The is_bitstring_distribution should return False if dict is not bitstring distribution."""
+def test_dict_with_non_binary_string_key_is_not_bitstring_distribution():
+    """Dictionaries with non 0-1 chars in their keys are not bitstring distributions."""
+    assert not is_bitstring_distribution({"abc": 3, "100": 2, "www": 1})
+
+
+def test_dicts_with_binary_keys_and_fixed_key_length_are_bitstring_distributions():
+    """Binary string keyed dictionaries with fixed key length are bitstring distributions."""
     assert is_bitstring_distribution({"100": 3, "110": 2, "010": 1})
 
 
@@ -76,8 +82,8 @@ def test_non_bitstring_distributions_are_correctly_classified():
         {"010": 0.3, "000": 0.2, "111": 0.1, "100": 0.4},
     ]
 )
-def test_normalized_distributions_are_correctly_classified(distribution):
-    """The is_normalized should return True for distributions whose values sum to one."""
+def test_distributions_with_probabilities_summing_to_one_are_normalized(distribution):
+    """Distributions with probabilities summing to one are normalized."""
     assert is_normalized(distribution)
 
 
@@ -85,8 +91,8 @@ def test_normalized_distributions_are_correctly_classified(distribution):
     "distribution",
     [{"000": 0.1, "111": 9}, {"000": 2, "111": 0.9}, {"000": 1e-3, "111": 0, "100": 100}]
 )
-def test_notnormalized_distributions_are_correctly_classified(distribution):
-    """The is_normalized should return False for distributions whose values don't sum to one."""
+def test_distributions_with_probabilities_not_summing_to_one_are_not_normalized(distribution):
+    """Distributions with probabilities not summing to one are normalized."""
     assert not is_normalized(distribution)
 
 
@@ -98,30 +104,47 @@ def test_notnormalized_distributions_are_correctly_classified(distribution):
     {"000": 1e-3, "111": 0, "100": 100},
     ]
 )
-def test_normalizes_distribution(distribution):
-    """The normalize_bitstring_distributions should normalize notnormalized distributions."""
+def test_normalizing_distribution_gives_normalized_distribution(distribution):
+    """Normalizing bitstring distribution returns normalized bitstring distribution."""
     assert not is_normalized(distribution)
     normalize_bitstring_distribution(distribution)
     assert is_normalized(distribution)
 
 
-def test_constructs_correct_dbitstring_distribution_from_probability_distribution():
-    """Probability distributions should be converted to matching bitstring distributions.
+@pytest.mark.parametrize(
+    "prob_dist,expected_bitstring_dist",
+    [
+        (np.asarray([0.25, 0, 0.5, 0.25]), BitstringDistribution({"00": 0.25, "01": 0.5, "10": 0.0, "11": 0.25})),
+        (np.ones(2 ** 5) / 2 ** 5, BitstringDistribution({"".join(string): 1 / 2 ** 5 for string in  product("01", repeat=5)}))
+     ]
+)
+def test_constructs_correct_bitstring_distribution_from_probability_distribution(
+    prob_dist, expected_bitstring_dist
+):
+    """Probability distributions is converted to matching bitstring distributions.
 
     The bitstring distributions constructed from prabability distribution should have:
     - keys equal to binary representation of consecutive natural numbers,
     - values corresponding to original probabilities.
     """
-    prob_distribution = np.asarray([0.25, 0, 0.5, 0.25])
-    bitstring_dist = create_bitstring_distribution_from_probability_distribution(
-        prob_distribution
+    bitstring_dist = create_bitstring_distribution_from_probability_distribution(prob_dist)
+    assert bitstring_dist.distribution_dict == expected_bitstring_dist.distribution_dict
+    assert bitstring_dist.get_qubits_number() == expected_bitstring_dist.get_qubits_number()
+
+
+def test_clipped_negative_log_likelihood_is_computed_correctly():
+    """Clipped negative log likelihood between distributions is computed correctly."""
+    target_distr = BitstringDistribution({"000": 0.5, "111": 0.5})
+    measured_dist = BitstringDistribution({"000": 0.1, "111": 0.9})
+    clipped_log_likelihood = compute_clipped_negative_log_likelihood(
+        target_distr, measured_dist, epsilon=0.1
     )
 
     assert clipped_log_likelihood == 1.203972804325936
 
 
 def test_uses_epsilon_instead_of_zero_in_target_distribution():
-    """Computing clipped negative log likelihood should use epsilon instead of zeros in log."""
+    """Computing clipped negative log likelihood uses epsilon instead of zeros in log."""
     log_spy = mock.Mock(wraps=math.log)
     with mock.patch("core.bitstring_distribution.math.log", log_spy):
         target_distr = BitstringDistribution({"000": 0.5, "111": 0.4, "010": 0.0})
@@ -135,7 +158,7 @@ def test_uses_epsilon_instead_of_zero_in_target_distribution():
 
 
 def test_evaluates_distribution_distance_using_passed_measure():
-    """Evaluating distance distribution should use distance measure passed as an argument."""
+    """Evaluating distance distribution uses distance measure passed as an argument."""
     target_distribution = BitstringDistribution({"0": 10, "1": 5})
     measured_distribution = BitstringDistribution({"0": 10, "1": 5})
     distance_function = mock.Mock()

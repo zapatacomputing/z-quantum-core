@@ -80,7 +80,7 @@ def test_dicts_with_binary_keys_and_fixed_key_length_are_bitstring_distributions
         {"000": 0.1, "111": 0.9},
         {"010": 0.3, "000": 0.2, "111": 0.5},
         {"010": 0.3, "000": 0.2, "111": 0.1, "100": 0.4},
-    ]
+    ],
 )
 def test_distributions_with_probabilities_summing_to_one_are_normalized(distribution):
     """Distributions with probabilities summing to one are normalized."""
@@ -89,7 +89,7 @@ def test_distributions_with_probabilities_summing_to_one_are_normalized(distribu
 
 @pytest.mark.parametrize(
     "distribution",
-    [{"000": 0.1, "111": 9}, {"000": 2, "111": 0.9}, {"000": 1e-3, "111": 0, "100": 100}]
+    [{"000": 0.1, "111": 9}, {"000": 2, "111": 0.9}, {"000": 1e-3, "111": 0, "100": 100}],
 )
 def test_distributions_with_probabilities_not_summing_to_one_are_not_normalized(distribution):
     """Distributions with probabilities not summing to one are normalized."""
@@ -98,11 +98,7 @@ def test_distributions_with_probabilities_not_summing_to_one_are_not_normalized(
 
 @pytest.mark.parametrize(
     "distribution",
-    [
-    {"000": 0.1, "111": 9},
-    {"000": 2, "111": 0.9},
-    {"000": 1e-3, "111": 0, "100": 100},
-    ]
+    [{"000": 0.1, "111": 9}, {"000": 2, "111": 0.9}, {"000": 1e-3, "111": 0, "100": 100}],
 )
 def test_normalizing_distribution_gives_normalized_distribution(distribution):
     """Normalizing bitstring distribution returns normalized bitstring distribution."""
@@ -114,9 +110,17 @@ def test_normalizing_distribution_gives_normalized_distribution(distribution):
 @pytest.mark.parametrize(
     "prob_dist,expected_bitstring_dist",
     [
-        (np.asarray([0.25, 0, 0.5, 0.25]), BitstringDistribution({"00": 0.25, "01": 0.5, "10": 0.0, "11": 0.25})),
-        (np.ones(2 ** 5) / 2 ** 5, BitstringDistribution({"".join(string): 1 / 2 ** 5 for string in  product("01", repeat=5)}))
-     ]
+        (
+            np.asarray([0.25, 0, 0.5, 0.25]),
+            BitstringDistribution({"00": 0.25, "01": 0.5, "10": 0.0, "11": 0.25}),
+        ),
+        (
+            np.ones(2 ** 5) / 2 ** 5,
+            BitstringDistribution(
+                {"".join(string): 1 / 2 ** 5 for string in product("01", repeat=5)}
+            ),
+        ),
+    ],
 )
 def test_constructs_correct_bitstring_distribution_from_probability_distribution(
     prob_dist, expected_bitstring_dist
@@ -150,9 +154,7 @@ def test_uses_epsilon_instead_of_zero_in_target_distribution():
         target_distr = BitstringDistribution({"000": 0.5, "111": 0.4, "010": 0.0})
         measured_dist = BitstringDistribution({"000": 0.1, "111": 0.9, "010": 0.0})
 
-        compute_clipped_negative_log_likelihood(
-            target_distr, measured_dist, epsilon=0.01
-        )
+        compute_clipped_negative_log_likelihood(target_distr, measured_dist, epsilon=0.01)
 
         log_spy.assert_has_calls([mock.call(0.1), mock.call(0.9), mock.call(0.01)], any_order=True)
 
@@ -164,9 +166,7 @@ def test_evaluates_distribution_distance_using_passed_measure():
     distance_function = mock.Mock()
 
     distance = evaluate_distribution_distance(
-        target_distribution,
-        measured_distribution,
-        distance_function,
+        target_distribution, measured_distribution, distance_function
     )
 
     distance_function.assert_called_once_with(target_distribution, measured_distribution)
@@ -175,10 +175,10 @@ def test_evaluates_distribution_distance_using_passed_measure():
 
 @pytest.mark.parametrize(
     "target_cls,measured_cls",
-    [(BitstringDistribution, dict), (dict, BitstringDistribution), (dict, dict)]
+    [(BitstringDistribution, dict), (dict, BitstringDistribution), (dict, dict)],
 )
 def test_distribution_distance_can_be_evaluated_only_for_bitstring_distributions(
-        target_cls, measured_cls
+    target_cls, measured_cls
 ):
     """Distribution distance can be evaluated only if both arguments are bitstring distributions."""
     target = target_cls({"0": 10, "1": 5})
@@ -232,7 +232,7 @@ def test_saving_bitstring_distribution_writes_correct_json_data_to_file(mock_ope
 
     expected_dict = {
         "bitstring_distribution": distribution.distribution_dict,
-        "schema": SCHEMA_VERSION + "-bitstring-probability-distribution"
+        "schema": SCHEMA_VERSION + "-bitstring-probability-distribution",
     }
 
     save_bitstring_distribution(distribution, "/some/path/to/distribution.json")
@@ -252,9 +252,8 @@ def test_saved_bitstring_distribution_can_be_loaded(mock_open):
 
     loaded_dist = load_bitstring_distribution(fake_file)
     assert all(
-        math.isclose(
-            dist.distribution_dict[key], loaded_dist.distribution_dict[key]
-        ) for key in dist.distribution_dict.keys()
+        math.isclose(dist.distribution_dict[key], loaded_dist.distribution_dict[key])
+        for key in dist.distribution_dict.keys()
     )
 
     assert dist.distribution_dict.keys() == loaded_dist.distribution_dict.keys()
@@ -268,8 +267,8 @@ def test_saved_bitstring_distribution_can_be_loaded(mock_open):
         {"000": 2, "111": 0.9},
         {"000": 2, "111": 4.9},
         {"000": 0.2, "111": 9},
-        {"000": 1e-3, "111": 0}
-    ]
+        {"000": 1e-3, "111": 0},
+    ],
 )
 def test_bitstring_distribution_gets_normalized_by_default(distribution):
     """Constructing bitstring distribution normalizes it by default."""
@@ -289,11 +288,9 @@ def test_bitstring_distribution_keeps_original_dict_if_normalization_is_not_requ
     [
         (BitstringDistribution({"00": 0.1, "11": 0.9}), 2),
         (BitstringDistribution({"000": 0.2, "111": 0.8}), 3),
-        (BitstringDistribution({"0000": 1e-3, "1111": 0}), 4)
-    ]
+        (BitstringDistribution({"0000": 1e-3, "1111": 0}), 4),
+    ],
 )
-def test_number_of_qubits_in_bitstring_distribution_equals_length_of_keys(
-    distribution, num_qubits
-):
+def test_number_of_qubits_in_bitstring_distribution_equals_length_of_keys(distribution, num_qubits):
     """Number of qubits of bitstring distribution is equal to length of keys of distribution."""
     assert distribution.get_qubits_number() == num_qubits

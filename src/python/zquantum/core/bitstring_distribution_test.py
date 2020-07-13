@@ -44,7 +44,7 @@ def test_if_all_keys_have_the_same_length_the_key_length_is_fixed():
     assert is_key_length_fixed({"abc": 3, "100": 2, "www": 1})
 
 
-def test_if_some_keys_have_different_keys_the_key_length_is_not_fixed():
+def test_if_some_keys_have_different_length_the_key_length_is_not_fixed():
     """The is_key_length_fixed returns False if some keys have different length."""
     assert not is_key_length_fixed({"a": 3, "10": 2, "www": 1})
 

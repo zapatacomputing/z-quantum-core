@@ -1,7 +1,8 @@
 from .interfaces.cost_function import CostFunction
 from .interfaces.backend import QuantumBackend
+from .interfaces.ansatz import Ansatz
 from .interfaces.estimator import Estimator
-from .circuit import build_ansatz_circuit
+from .circuit import build_ansatz_circuit, combine_ansatz_params
 from .estimator import BasicEstimator
 from .utils import ValueEstimate
 from typing import Callable, Optional, Dict
@@ -88,7 +89,7 @@ class AnsatzBasedCostFunction(CostFunction):
 
     Args:
         target_operator (openfermion.QubitOperator): operator to be evaluated
-        ansatz (dict): dictionary representing the ansatz
+        ansatz (zquantum.core.interfaces.ansatz.Ansatz): ansatz used to evaluate cost function
         backend (zquantum.core.interfaces.backend.QuantumBackend): backend used for evaluation
         estimator: (zquantum.core.interfaces.estimator.Estimator) = estimator used to compute expectation value of target operator 
         gradient_type (str): parameter indicating which type of gradient should be used.
@@ -98,10 +99,11 @@ class AnsatzBasedCostFunction(CostFunction):
         epsilon (float): an additive/multiplicative error term. The cost function should be computed to within this error term. 
         delta (float): a confidence term. If theoretical upper bounds are known for the estimation technique, 
             the final estimate should be within the epsilon term, with probability 1 - delta.
+        fixed_parameters (np.ndarray): values for the circuit parameters that should be fixed. 
 
     Params:
         target_operator (openfermion.QubitOperator): see Args
-        ansatz (dict): see Args
+        ansatz (zquantum.core.interfaces.ansatz.Ansatz): see Args
         backend (zquantum.core.interfaces.backend.QuantumBackend): see Args
         estimator: (zquantum.core.interfaces.estimator.Estimator) = see Args 
         evaluations_history (list): List of the tuples (parameters, value) representing all the evaluation in a chronological order.
@@ -111,12 +113,13 @@ class AnsatzBasedCostFunction(CostFunction):
         n_samples (int): see Args
         epsilon (float): see Args
         delta (float): see Args
+        fixed_parameters (np.ndarray): see Args
     """
 
     def __init__(
         self,
         target_operator: SymbolicOperator,
-        ansatz: Dict,
+        ansatz: Ansatz,
         backend: QuantumBackend,
         estimator: Estimator = None,
         gradient_type: str = "finite_difference",
@@ -125,6 +128,7 @@ class AnsatzBasedCostFunction(CostFunction):
         n_samples: Optional[int] = None,
         epsilon: Optional[float] = None,
         delta: Optional[float] = None,
+        fixed_parameters: Optional[np.ndarray] = None,
     ):
         self.target_operator = target_operator
         self.ansatz = ansatz
@@ -140,6 +144,7 @@ class AnsatzBasedCostFunction(CostFunction):
         self.n_samples = n_samples
         self.epsilon = epsilon
         self.delta = delta
+        self.fixed_parameters = fixed_parameters
 
     def _evaluate(self, parameters: np.ndarray) -> ValueEstimate:
         """
@@ -151,7 +156,9 @@ class AnsatzBasedCostFunction(CostFunction):
         Returns:
             value: cost function value for given parameters.
         """
-        circuit = build_ansatz_circuit(self.ansatz, parameters)
+        if self.fixed_parameters is not None:
+            parameters = combine_ansatz_params(self.fixed_parameters, parameters)
+        circuit = self.ansatz.get_executable_circuit(parameters)
         expectation_values = self.estimator.get_estimated_expectation_values(
             self.backend,
             circuit,

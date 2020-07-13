@@ -5,33 +5,35 @@ spec:
       parent: generic-task
       inputs:
         parameters:
+          - name: ansatz-specs
+            default: None
+          - name: number-of-params
+            default: None
           - name: min-val
             default: -0.01
           - name: max-val
             default: 0.01
-          - name: n-layers
-            default: 1
-          - name: include-non-layered-params
-            default: "True"
-          - name: layer-index
-            default: 0
+          - name: seed
+            default: None
           - name: command
             value: python3 main_script.py
         artifacts:
-          - name: ansatz
-            path: /app/ansatz.json
           - name: main-script
             path: /app/main_script.py
             raw:
               data: |
-                from zquantum.core.circuit import generate_random_ansatz_params, load_circuit_template, save_circuit_template_params
-                ansatz = load_circuit_template('ansatz.json')
-                params = generate_random_ansatz_params(ansatz,
-                                                       min_val={{inputs.parameters.min-val}},
-                                                       max_val={{inputs.parameters.max-val}},
-                                                       n_layers={{inputs.parameters.n-layers}},
-                                                       include_non_layered_params={{inputs.parameters.include-non-layered-params}},
-                                                       layer_index={{inputs.parameters.layer-index}})
+                import numpy as np
+                from zquantum.core.circuit import save_circuit_template_params
+                from zquantum.core.utils import create_object
+                if {{inputs.parameters.ansatz-specs}} is not None:
+                  ansatz_specs = {{inputs.parameters.ansatz-specs}}
+                  ansatz = create_object(ansatz_specs)
+                  number_of_params = ansatz.number_of_params
+                elif {{inputs.parameters.number-of-params}} is not None:
+                  number_of_params = {{inputs.parameters.number-of-params}}
+                if {{inputs.parameters.seed}} is not None:
+                  np.random.seed({{inputs.parameters.seed}})
+                params = np.random.uniform({{inputs.parameters.min-val}}, {{inputs.parameters.max-val}}, number_of_params)
                 save_circuit_template_params(params, 'params.json')
       outputs:
         artifacts:
@@ -69,35 +71,48 @@ spec:
       parent: generic-task
       inputs:
         parameters:
-          - name: command
-            value: python3 main_script.py
+        - name: ansatz-specs
+        - name: command
+          value: python3 main_script.py
         artifacts:
-          - name: ansatz
-            path: /app/ansatz.json
-          - name: params
-            path: /app/params.json
-          - name: main-script
-            path: /app/main_script.py
-            raw:
-              data: |
-                from zquantum.core.circuit import (build_ansatz_circuit,
-                                                   load_circuit_template,
-                                                   load_circuit_template_params,
-                                                   save_circuit)
-                ansatz = load_circuit_template('ansatz.json');
-                params = load_circuit_template_params('params.json');
-                circuit = build_ansatz_circuit(ansatz, params);
-                save_circuit(circuit, 'circuit.json')
+        - name: params
+          optional: True
+          path: /app/params.json
+        - name: main-script
+          path: /app/main_script.py
+          raw:
+            data: |
+              from zquantum.core.utils import create_object
+              from zquantum.core.circuit import (load_circuit_template_params,
+                                                save_circuit)
+              import os
+              ansatz = create_object({{inputs.parameters.ansatz-specs}})
+              if os.path.exists('params.json'):
+                params = load_circuit_template_params('params.json')
+              else:
+                params = None
+              
+              if params is not None:
+                circuit = ansatz.get_executable_circuit(params)
+              elif ansatz.supports_parametrized_circuits:
+                circuit = ansatz.parametrized_circuit()
+              else:
+                raise(Exception("Ansatz is not parametrizable and no parameters has been provided."))
+              save_circuit(circuit, 'circuit.json')
       outputs:
         artifacts:
-          - name: circuit
-            path: /app/circuit.json
+        - name: circuit
+          path: /app/circuit.json
 
     # Build uniform parameter grid
     - name: build-uniform-parameter-grid
       parent: generic-task
       inputs:
         parameters:
+          - name: ansatz-specs
+            default: None
+          - name: number-of-params-per-layer
+            optional: None
           - name: n-layers
             default: 1
           - name: min-value
@@ -106,17 +121,21 @@ spec:
           - name: command
             value: python3 main_script.py
         artifacts:
-          - name: ansatz
-            path: /app/ansatz.json
           - name: main-script
             path: /app/main_script.py
             raw:
               data: |
                 from zquantum.core.circuit import (save_parameter_grid,
-                                                   load_circuit_template,
                                                    build_uniform_param_grid)
-                ansatz = load_circuit_template('ansatz.json')
-                grid = build_uniform_param_grid(ansatz,
+                from zquantum.core.utils import create_object
+                if {{inputs.parameters.ansatz-specs}} is not None:
+                  ansatz_specs = {{inputs.parameters.ansatz-specs}}
+                  ansatz = create_object(ansatz_specs)
+                  number_of_params = ansatz.number_of_params
+                elif {{inputs.parameters.number-of-params-per-layer}} is not None:
+                  number_of_params = {{inputs.parameters.number-of-params-per-layer}}
+
+                grid = build_uniform_param_grid(number_of_params,
                                                     {{inputs.parameters.n-layers}},
                                                     {{inputs.parameters.min-value}},
                                                     {{inputs.parameters.max-value}},

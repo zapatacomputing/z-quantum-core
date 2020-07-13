@@ -4,8 +4,8 @@ import importlib
 from numpy.random import random_sample
 from ..utils import SCHEMA_VERSION
 from ..utils import convert_array_to_dict, convert_dict_to_array
-from ..circuit import Circuit
-from typing import TextIO, List, Tuple, Dict
+from ..circuit import Circuit, Qubit, Gate
+from typing import TextIO, List, Tuple, Dict, Optional
 from scipy.optimize import OptimizeResult
 
 
@@ -106,43 +106,6 @@ def build_ansatz_circuit(ansatz: dict, params: np.ndarray) -> Circuit:
     return qprog
 
 
-def generate_random_ansatz_params(
-    ansatz: dict,
-    min_val: float = 0,
-    max_val: float = 1.0,
-    n_layers: int = 1,
-    include_non_layered_params: bool = True,
-    layer_index: int = 0,
-) -> np.ndarray:
-    """For the given ansatz, generate random parameters.
-
-    Args:
-        ansatz (dict): the ansatz
-        min_val (float): minimum parameter value
-        max_val (float): maximum parameter value
-        n_layers (int): number of layers for params with a
-            layer-by-layer structured
-        include_non_layered_params (bool): whether non_layered_params
-            are considered in the calculation
-        layer_index (int): for ansatz with sublayers, the index of the sublayer where
-                        to start the guess
-    Returns:
-        numpy.ndarray: the generated parameters
-    """
-    n_params = 0
-    for i in range(n_layers):
-        n_params += ansatz["n_params"][(i + layer_index) % len(ansatz["n_params"])]
-        if "ansatz_type" in ansatz.keys():
-            if "IBM" in ansatz["ansatz_type"] and "HEA v2" in ansatz["ansatz_type"]:
-                if (i + layer_index) % len(ansatz["n_params"]) == 0:
-                    n_params += 2 * ansatz["ansatz_kwargs"]["n_mo"]
-
-    if ansatz.get("n_non_layered_params") and include_non_layered_params:
-        n_params += ansatz["n_non_layered_params"]
-    params = (max_val - min_val) * random_sample(n_params) + min_val
-    return params
-
-
 def combine_ansatz_params(params1: np.ndarray, params2: np.ndarray) -> np.ndarray:
     """Combine two sets of ansatz parameters.
     
@@ -238,7 +201,7 @@ def load_parameter_grid(file: TextIO) -> ParameterGrid:
 
 
 def build_uniform_param_grid(
-    ansatz: dict,
+    n_params_per_layer: int,
     n_layers: int = 1,
     min_value: float = 0.0,
     max_value: float = 2 * np.pi,
@@ -247,7 +210,7 @@ def build_uniform_param_grid(
     """Builds a uniform grid of parameters.
 
     Args:
-        ansatz (dict): a dict representing a variational circuit template
+        n_params_per_layer (int): number of parameters for each layer
         n_layers (int): the number of layers to create parameters for
         min_value (float): the minimum value for the parameters
         max_value (float): the maximum value for the parameters
@@ -256,9 +219,8 @@ def build_uniform_param_grid(
     Returns:
         list: a list of numpy.ndarray objects representing points on a grid in parameter space
     """
-    n_params = 0
-    for i in range(n_layers):
-        n_params += ansatz["n_params"][i % len(ansatz["n_params"])]
+
+    n_params = n_params_per_layer * n_layers
 
     param_ranges = [(min_value, max_value, step)] * n_params
     return ParameterGrid(param_ranges)
@@ -524,3 +486,32 @@ def _build_circuit_layers_and_connectivity_nearest_neighbors(n_qubits):
     connectivity.extend(odd_layer)
     return CircuitConnectivity(connectivity), CircuitLayers([even_layer, odd_layer])
 
+
+def create_layer_of_gates(
+    number_of_qubits: int, gate_name: str, parameters: Optional[np.ndarray] = None
+) -> Circuit:
+    """ Creates a circuit consisting of a layer of single-qubit gates acting on all qubits.
+
+    Args:
+        number_of_qubits (int): number of qubits in the circuit
+        gate_name (str): the single qubit gate to be applied to each qubit
+        params (numpy.array): parameters of the single-qubit gates
+
+    Returns:
+        Circuit: a zquantum.core.circuit.Circuit object
+    """
+    circuit = Circuit()
+    circuit.qubits = [Qubit(i) for i in range(number_of_qubits)]
+
+    if parameters is not None:
+        assert len(parameters) == number_of_qubits
+
+        circuit.gates = [
+            Gate(gate_name, [circuit.qubits[i]], [parameters[i]])
+            for i in range(number_of_qubits)
+        ]
+    else:
+        circuit.gates = [
+            Gate(gate_name, [circuit.qubits[i]]) for i in range(number_of_qubits)
+        ]
+    return circuit

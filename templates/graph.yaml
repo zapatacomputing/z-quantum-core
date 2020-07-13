@@ -10,6 +10,8 @@ spec:
         value: False
       - name: command
         value: python3 main_script.py
+      - name: seed
+        value: None
       artifacts:
       - name: main-script
         path: /app/main_script.py
@@ -18,7 +20,9 @@ spec:
             from zquantum.core.graph import generate_random_graph_erdos_renyi, save_graph
             graph = generate_random_graph_erdos_renyi({{inputs.parameters.n-nodes}},
                                                       {{inputs.parameters.edge-probability}},
-                                                      bool("{{inputs.parameters.random-weights}}"))
+                                                      bool("{{inputs.parameters.random-weights}}"),
+                                                      {{inputs.parameters.seed}}
+                                                      )
             save_graph(graph, 'graph.json')
     outputs:
       artifacts:
@@ -35,6 +39,8 @@ spec:
         value: False
       - name: command
         value: python3 main_script.py
+      - name: seed
+        value: None
       artifacts:
       - name: main-script
         path: /app/main_script.py
@@ -43,7 +49,8 @@ spec:
             from zquantum.core.graph import generate_random_graph_regular, save_graph
             graph = generate_random_graph_regular({{inputs.parameters.n-nodes}},
                                                     {{inputs.parameters.degree}},
-                                                    bool("{{inputs.parameters.random-weights}}"))
+                                                    bool("{{inputs.parameters.random-weights}}"),
+                                                    {{inputs.parameters.seed}})
             save_graph(graph, 'graph.json')
     outputs:
       artifacts:
@@ -59,6 +66,8 @@ spec:
         value: False
       - name: command
         value: python3 main_script.py
+      - name: seed
+        value: None        
       artifacts:
       - name: main-script
         path: /app/main_script.py
@@ -67,7 +76,8 @@ spec:
             from zquantum.core.graph import generate_complete_graph, save_graph
             graph = generate_random_graph_erdos_renyi({{inputs.parameters.n-nodes}},
                                               "1.0",
-                                              bool("{{inputs.parameters.random-weights}}"))
+                                              bool("{{inputs.parameters.random-weights}}"),
+                                              {{inputs.parameters.seed}})
             save_graph(graph, 'graph.json')
     outputs:
       artifacts:

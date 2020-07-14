@@ -666,6 +666,41 @@ def load_circuit(file):
 
     return Circuit.from_dict(data)
 
+def save_circuit_set(circuit_set, filename):
+    """Save a circuit set to a file.
+    
+    Args:
+        circuit_set (list): a list of core.Circuit objects
+        file (str or file-like object): the name of the file, or a file-like object
+    """
+    dictionary = {}
+    dictionary['schema'] = SCHEMA_VERSION+'-circuit_set'
+    dictionary['circuits'] = []
+    for circuit in circuit_set:
+        dictionary['circuits'].append(circuit.to_dict(serialize_gate_params=True))
+    with open(filename, 'w') as f:
+        f.write(json.dumps(dictionary, indent=2))
+     
+        
+def load_circuit_set(file):
+    """Load a set of circuits from a file.
+    
+    Args:
+        file (str or file-like object): the name of the file, or a file-like object.
+
+    Returns:
+        circuit_set (list): a list of core.Circuit objects
+    """
+    if isinstance(file, str):
+        with open(file, 'r') as f:
+            data = json.load(f)
+    else:
+        data = json.load(file)
+    
+    circuit_set = []
+    for circuit_dict in data['circuits']:
+        circuit_set.append(Circuit.from_dict(circuit_dict))
+    return circuit_set
 
 def pyquil2cirq(qprog):
     """Convert a pyquil Program to a cirq Circuit.

@@ -191,6 +191,7 @@ class TestUtils(unittest.TestCase):
 
         # Then
         self.assertEqual(noise_model, None)
+        os.remove("noise_model.json")
 
     def test_create_symbols_map_with_correct_input(self):
         # Given

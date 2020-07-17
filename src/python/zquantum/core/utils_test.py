@@ -5,6 +5,7 @@ import numpy as np
 from scipy.linalg import expm
 from scipy.stats import unitary_group
 import sympy
+import json
 
 from openfermion.utils import qubit_operator_sparse
 from .utils import (
@@ -26,6 +27,7 @@ from .utils import (
     load_noise_model,
     save_noise_model,
     create_symbols_map,
+    save_timing,
 )
 from .interfaces.mock_objects import MockQuantumSimulator
 
@@ -191,6 +193,7 @@ class TestUtils(unittest.TestCase):
 
         # Then
         self.assertEqual(noise_model, None)
+        os.remove("noise_model.json")
 
     def test_create_symbols_map_with_correct_input(self):
         # Given
@@ -215,3 +218,12 @@ class TestUtils(unittest.TestCase):
         # When/Then
         with self.assertRaises(ValueError):
             symbols_map = create_symbols_map(symbols, params)
+
+    def test_save_timing(self):
+        walltime = 4.2
+        save_timing(walltime, "timing.json")
+        with open("timing.json") as f:
+            timing = json.load(f)
+        self.assertEqual(timing["walltime"], walltime)
+        self.assertTrue("schema" in timing)
+

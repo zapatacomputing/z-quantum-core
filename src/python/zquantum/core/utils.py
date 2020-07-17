@@ -463,3 +463,17 @@ def create_symbols_map(
         )
     return [(symbol, param) for symbol, param in zip(symbols, params.tolist())]
 
+
+def save_timing(walltime: float, filename: str) -> None:
+    """
+    Saves timing information.
+
+    Args:
+        walltime: The execution time.
+    """
+
+    with open(filename, "w") as f:
+        f.write(
+            json.dumps({"schema": SCHEMA_VERSION + "-timing", "walltime": walltime})
+        )
+

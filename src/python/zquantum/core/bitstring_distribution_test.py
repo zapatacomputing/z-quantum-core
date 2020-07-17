@@ -276,7 +276,7 @@ def test_bitstring_distribution_gets_normalized_by_default(distribution):
     assert is_normalized(distribution.distribution_dict)
 
 
-def test_bitstring_distribution_keeps_original_dict_if_normalization_is_not_requested():
+def test_bitstring_distribution_keeps_original_dict_if_normalization_should_not_be_performed():
     """Bistring distribution keeps original dict if normalization is not requested."""
     distribution_dict = {"000": 0.1, "111": 9}
     distribution = BitstringDistribution({"000": 0.1, "111": 9}, normalize=False)

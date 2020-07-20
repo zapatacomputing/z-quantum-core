@@ -251,7 +251,7 @@ def evaluate_distribution_distance(
             target_distribution (BitstringDistribution): The target bitstring probability distribution
             measured_distribution (BitstringDistribution): The measured bitstring probability distribution
             distance_measure_function (function): function used to calculate the distance measure
-                Currently implemented: clipped negative log-likelihood.
+                Currently implemented: clipped negative log-likelihood, maximum mean discrepancy (MMD).
 
             Additional parameters can be passed as key word arguments.
 

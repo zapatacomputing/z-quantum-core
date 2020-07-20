@@ -43,7 +43,7 @@ def compute_rbf_kernel(x_i, y_j, sigma):
     return K
 
 
-def compute_mmd(target_distribution, measured_distribution, epsilon=1):
+def compute_mmd(target_distribution, measured_distribution, sigma=1):
     """ Compute the squared Maximum Mean Discrepancy (MMD) distance measure between between a target bitstring distribution
     and a measured bitstring distribution.
     Reference: arXiv.1804.04168.
@@ -71,6 +71,6 @@ def compute_mmd(target_distribution, measured_distribution, epsilon=1):
         )
 
     basis = np.asarray([int(item, 2) for item in all_keys])  # bitstring to int
-    K = compute_rbf_kernel(basis, basis, epsilon)
+    K = compute_rbf_kernel(basis, basis, sigma)
     diff = np.array(target_values) - np.array(measured_values)
     return diff.dot(K.dot(diff))

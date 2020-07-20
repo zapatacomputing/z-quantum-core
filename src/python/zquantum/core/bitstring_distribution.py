@@ -5,6 +5,7 @@ import json
 import numpy as np
 from .utils import SCHEMA_VERSION, convert_tuples_to_bitstrings
 from collections import Counter
+from .distance_measures import compute_mmd
 
 
 def is_non_negative(input_dict):
@@ -210,7 +211,7 @@ class BitstringDistribution:
 def compute_clipped_negative_log_likelihood(
     target_distribution, measured_distribution, epsilon=1e-9
 ):
-    """Compute the value of the clipped negative log likelihood between a target bitstring distribution 
+    """Compute the value of the clipped negative log likelihood between a target bitstring distribution
     and a measured bitstring distribution
     See Equation (4) in https://advances.sciencemag.org/content/5/10/eaaw9918?rss=1
 

@@ -209,7 +209,7 @@ class BitstringDistribution:
 
 
 def compute_clipped_negative_log_likelihood(
-    target_distribution, measured_distribution, epsilon=1e-9
+    target_distribution, measured_distribution, distance_measure_parameters
 ):
     """Compute the value of the clipped negative log likelihood between a target bitstring distribution
     and a measured bitstring distribution
@@ -218,11 +218,13 @@ def compute_clipped_negative_log_likelihood(
     Args:
         target_distribution (BitstringDistribution): The target bitstring probability distribution.
         measured_distribution (BitstringDistribution): The measured bitstring probability distribution.
-        epsilon (float): The small parameter needed to regularize log computation when argument is zero. Default = 1e-9.
+        distance_measure_parameters (dict): dictionary containing the relevant parameters for the clipped negative log likelihood, i.e.:
+                                            - epsilon: The small parameter needed to regularize log computation when argument is zero. Default = 1e-9.
     Returns:
         float: The value of the clipped negative log likelihood
     """
 
+    epsilon = distance_measure_parameters.get("epsilon", 1e-9)
     value = 0.0
     target_keys = target_distribution.distribution_dict.keys()
     measured_keys = measured_distribution.distribution_dict.keys()
@@ -253,7 +255,7 @@ def evaluate_distribution_distance(
             distance_measure_function (function): function used to calculate the distance measure
                 Currently implemented: clipped negative log-likelihood, maximum mean discrepancy (MMD).
 
-            Additional parameters can be passed as key word arguments.
+            Additional distance measure parameters can be passed as key word arguments.
 
        Returns:
             float: The value of the distance metric

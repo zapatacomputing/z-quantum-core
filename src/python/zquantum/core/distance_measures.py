@@ -26,7 +26,7 @@ import numpy as np
 # TODO: Mixture of gaussian kernels?
 
 
-def compute_rbf_kernel(x_i, y_j, sigma):
+def compute_rbf_kernel(x_i, y_j, float):
     """ Compute the gaussian (RBF) kernel matrix K, with K_ij = exp(-gamma |x_i - y_j|^2) and gamma = 1/(2*sigma).
 
         Args:
@@ -43,7 +43,9 @@ def compute_rbf_kernel(x_i, y_j, sigma):
     return K
 
 
-def compute_mmd(target_distribution, measured_distribution, sigma=1):
+def compute_mmd(
+    target_distribution, measured_distribution, distance_measure_parameters,
+):
     """ Compute the squared Maximum Mean Discrepancy (MMD) distance measure between between a target bitstring distribution
     and a measured bitstring distribution.
     Reference: arXiv.1804.04168.
@@ -51,12 +53,13 @@ def compute_mmd(target_distribution, measured_distribution, sigma=1):
         Args:
             target_distribution (BitstringDistribution): The target bitstring probability distribution.
             measured_distribution (BitstringDistribution): The measured bitstring probability distribution.
-            sigma (float): The bandwidth parameter for the gaussian kernel used to compute MMD.
-
+            distance_measure_parameters (dict): dictionary containing the relevant parameters for the clipped negative log likelihood, i.e.:
+                                                - sigma: the bandwidth parameter used to compute the gaussian kernel.
         Returns:
             float: The value of the maximum mean discrepancy.
     """
 
+    sigma = distance_measure_parameters.get("sigma", 1)
     target_keys = target_distribution.distribution_dict.keys()
     measured_keys = measured_distribution.distribution_dict.keys()
     all_keys = set(target_keys).union(measured_keys)

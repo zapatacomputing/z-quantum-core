@@ -23,8 +23,6 @@
 
 import numpy as np
 
-# TODO: Mixture of gaussian kernels?
-
 
 def compute_rbf_kernel(x_i, y_j, sigma):
     """ Compute the gaussian (RBF) kernel matrix K, with K_ij = exp(-gamma |x_i - y_j|^2) and gamma = 1/(2*sigma).
@@ -38,9 +36,36 @@ def compute_rbf_kernel(x_i, y_j, sigma):
             np.ndarray: The gaussian kernel matrix.
     """
     exponent = np.abs(x_i[:, None] - y_j[None, :]) ** 2
-    gamma = 1.0 / (2 * sigma)
+    try:
+        gamma = 1.0 / (2 * sigma)
+    except ZeroDivisionError as error:
+        print("Handling run-time error:", error)
+        raise
     K = np.exp(-gamma * exponent)
     return K
+
+
+def compute_multi_rbf_kernel(x_i, y_j, sigmas):
+    """ Compute the multi-gaussian (RBF) kernel matrix K, with K_ij = 1/c Sum_n[exp(-gamma_n |x_i - y_j|^2)] and gamma = 1/(2*sigma).
+
+        Args:
+            x_i (np.array): Samples A (integers).
+            y_j (np.array): Samples B (integers).
+            sigmas (np.array): The list of bandwidths of the multi-gaussian kernel.
+
+        Returns:
+            np.ndarray: The gaussian kernel matrix.
+    """
+    exponent = np.abs(x_i[:, None] - y_j[None, :]) ** 2
+    K = 0.0
+    for sigma in sigmas:
+        try:
+            gamma = 1.0 / (2 * sigma)
+        except ZeroDivisionError as error:
+            print("Handling run-time error:", error)
+            raise
+        K = K + np.exp(-gamma * exponent)
+    return K / len(sigmas)
 
 
 def compute_mmd(
@@ -53,13 +78,13 @@ def compute_mmd(
         Args:
             target_distribution (BitstringDistribution): The target bitstring probability distribution.
             measured_distribution (BitstringDistribution): The measured bitstring probability distribution.
-            distance_measure_parameters (dict): dictionary containing the relevant parameters for the clipped negative log likelihood, i.e.:
+            distance_measure_parameters (dict): dictionary containing the relevant parameters for the maximum mean discrepancy, i.e.:
                                                 - sigma: the bandwidth parameter used to compute the gaussian kernel.
         Returns:
             float: The value of the maximum mean discrepancy.
     """
 
-    sigma = distance_measure_parameters.get("sigma", 1)
+    sigma = distance_measure_parameters.get("sigma", 1.0)
     target_keys = target_distribution.distribution_dict.keys()
     measured_keys = measured_distribution.distribution_dict.keys()
     all_keys = set(target_keys).union(measured_keys)
@@ -74,6 +99,10 @@ def compute_mmd(
         )
 
     basis = np.asarray([int(item, 2) for item in all_keys])  # bitstring to int
-    K = compute_rbf_kernel(basis, basis, sigma)
+    if not hasattr(sigma, "__len__"):
+        K = compute_rbf_kernel(basis, basis, sigma)
+    else:
+        K = compute_multi_rbf_kernel(basis, basis, sigma)
+
     diff = np.array(target_values) - np.array(measured_values)
     return diff.dot(K.dot(diff))

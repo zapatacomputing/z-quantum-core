@@ -158,8 +158,9 @@ def test_clipped_negative_log_likelihood_is_computed_correctly():
     """Clipped negative log likelihood between distributions is computed correctly."""
     target_distr = BitstringDistribution({"000": 0.5, "111": 0.5})
     measured_dist = BitstringDistribution({"000": 0.1, "111": 0.9})
+    distance_measure_params = {"epsilon": 0.1}
     clipped_log_likelihood = compute_clipped_negative_log_likelihood(
-        target_distr, measured_dist, epsilon=0.1
+        target_distr, measured_dist, distance_measure_params
     )
 
     assert clipped_log_likelihood == 1.203972804325936
@@ -171,9 +172,9 @@ def test_uses_epsilon_instead_of_zero_in_target_distribution():
     with mock.patch("core.bitstring_distribution.math.log", log_spy):
         target_distr = BitstringDistribution({"000": 0.5, "111": 0.4, "010": 0.0})
         measured_dist = BitstringDistribution({"000": 0.1, "111": 0.9, "010": 0.0})
-
+        distance_measure_params = {"epsilon": 0.01}
         compute_clipped_negative_log_likelihood(
-            target_distr, measured_dist, epsilon=0.01
+            target_distr, measured_dist, distance_measure_params
         )
 
         log_spy.assert_has_calls(
@@ -182,17 +183,27 @@ def test_uses_epsilon_instead_of_zero_in_target_distribution():
 
 
 @pytest.mark.parametrize(
-    "measured_dist,expected_mmd",
+    "measured_dist,distance_measure_params,expected_mmd",
     [
-        (BitstringDistribution({"000": 0.1, "111": 0.9}), 0.32000000000000006),
-        (BitstringDistribution({"000": 0.5, "111": 0.5}), 0.00),
+        (
+            BitstringDistribution({"000": 0.1, "111": 0.9}),
+            {"sigma": 0.5},
+            0.32000000000000006,
+        ),
+        (BitstringDistribution({"000": 0.5, "111": 0.5}), {"sigma": 1}, 0.00,),
+        (
+            BitstringDistribution({"000": 0.5, "111": 0.5}),
+            {"sigma": [1, 0.5, 2]},
+            0.00,
+        ),
     ],
 )
-def test_mmd_is_computed_correctly(measured_dist, expected_mmd):
-    """Maximum mean discrepancy (MMD) between distributions is computed correctly."""
+def test_gaussian_mmd_is_computed_correctly(
+    measured_dist, distance_measure_params, expected_mmd
+):
+    """Maximum mean discrepancy (MMD) with gaussian kernel between distributions is computed correctly."""
     target_distr = BitstringDistribution({"000": 0.5, "111": 0.5})
-    # measured_dist = BitstringDistribution({"000": 0.1, "111": 0.9})
-    mmd = compute_mmd(target_distr, measured_dist, sigma=0.5)
+    mmd = compute_mmd(target_distr, measured_dist, distance_measure_params)
 
     assert mmd == expected_mmd
 

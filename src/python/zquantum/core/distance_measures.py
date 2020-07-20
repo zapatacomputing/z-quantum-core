@@ -26,7 +26,7 @@ import numpy as np
 # TODO: Mixture of gaussian kernels?
 
 
-def compute_rbf_kernel(x_i, y_j, float):
+def compute_rbf_kernel(x_i, y_j, sigma):
     """ Compute the gaussian (RBF) kernel matrix K, with K_ij = exp(-gamma |x_i - y_j|^2) and gamma = 1/(2*sigma).
 
         Args:

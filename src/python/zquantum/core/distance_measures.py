@@ -41,8 +41,8 @@ def compute_rbf_kernel(x_i, y_j, sigma):
     except ZeroDivisionError as error:
         print("Handling run-time error:", error)
         raise
-    K = np.exp(-gamma * exponent)
-    return K
+    kernel_matrix = np.exp(-gamma * exponent)
+    return kernel_matrix
 
 
 def compute_multi_rbf_kernel(x_i, y_j, sigmas):
@@ -57,15 +57,15 @@ def compute_multi_rbf_kernel(x_i, y_j, sigmas):
             np.ndarray: The gaussian kernel matrix.
     """
     exponent = np.abs(x_i[:, None] - y_j[None, :]) ** 2
-    K = 0.0
+    kernel_matrix = 0.0
     for sigma in sigmas:
         try:
             gamma = 1.0 / (2 * sigma)
         except ZeroDivisionError as error:
             print("Handling run-time error:", error)
             raise
-        K = K + np.exp(-gamma * exponent)
-    return K / len(sigmas)
+        kernel_matrix = kernel_matrix + np.exp(-gamma * exponent)
+    return kernel_matrix / len(sigmas)
 
 
 def compute_mmd(
@@ -100,9 +100,9 @@ def compute_mmd(
 
     basis = np.asarray([int(item, 2) for item in all_keys])  # bitstring to int
     if not hasattr(sigma, "__len__"):
-        K = compute_rbf_kernel(basis, basis, sigma)
+        kernel_matrix = compute_rbf_kernel(basis, basis, sigma)
     else:
-        K = compute_multi_rbf_kernel(basis, basis, sigma)
+        kernel_matrix = compute_multi_rbf_kernel(basis, basis, sigma)
 
     diff = np.array(target_values) - np.array(measured_values)
-    return diff.dot(K.dot(diff))
+    return diff.dot(kernel_matrix.dot(diff))

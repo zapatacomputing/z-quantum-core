@@ -78,8 +78,10 @@ def compute_mmd(
         Args:
             target_distribution (BitstringDistribution): The target bitstring probability distribution.
             measured_distribution (BitstringDistribution): The measured bitstring probability distribution.
-            distance_measure_parameters (dict): dictionary containing the relevant parameters for the maximum mean discrepancy, i.e.:
-                                                - sigma: the bandwidth parameter used to compute the gaussian kernel.
+
+            distance_measure_parameters (dict):
+                - sigma (float/np.array): the bandwidth parameter used to compute the single/multi gaussian kernel. The default value is 1.0.
+
         Returns:
             float: The value of the maximum mean discrepancy.
     """

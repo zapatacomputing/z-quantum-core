@@ -225,8 +225,10 @@ def compute_clipped_negative_log_likelihood(
     Args:
         target_distribution (BitstringDistribution): The target bitstring probability distribution.
         measured_distribution (BitstringDistribution): The measured bitstring probability distribution.
-        distance_measure_parameters (dict): dictionary containing the relevant parameters for the clipped negative log likelihood, i.e.:
-                                            - epsilon: The small parameter needed to regularize log computation when argument is zero. Default = 1e-9.
+
+        distance_measure_parameters (dict):
+            - epsilon (float): The small parameter needed to regularize log computation when argument is zero. The default value is 1e-9.
+
     Returns:
         float: The value of the clipped negative log likelihood
     """

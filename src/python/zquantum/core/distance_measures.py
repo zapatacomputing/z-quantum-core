@@ -46,7 +46,7 @@ def compute_rbf_kernel(x_i, y_j, sigma):
 
 
 def compute_multi_rbf_kernel(x_i, y_j, sigmas):
-    """ Compute the multi-gaussian (RBF) kernel matrix K, with K_ij = 1/c Sum_n[exp(-gamma_n |x_i - y_j|^2)] and gamma = 1/(2*sigma).
+    """ Compute the multi-gaussian (RBF) kernel matrix K, with K_ij = 1/N * Sum_n [exp(-gamma_n |x_i - y_j|^2)] with n = 1,...,N and gamma = 1/(2*sigma).
 
         Args:
             x_i (np.array): Samples A (integers).

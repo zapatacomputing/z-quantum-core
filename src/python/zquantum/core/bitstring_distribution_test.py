@@ -208,6 +208,27 @@ def test_gaussian_mmd_is_computed_correctly(
     assert mmd == expected_mmd
 
 
+@pytest.mark.parametrize(
+    "distance_measure_function, expected_default_values",
+    [
+        (compute_mmd, {"sigma": 1.0},),
+        (compute_clipped_negative_log_likelihood, {"epsilon": 1e-9}),
+    ],
+)
+def test_distance_measure_default_parameters_are_set_correctly(
+    distance_measure_function, expected_default_values
+):
+    """Default values of distance measure parameters are set correctly."""
+    target_distr = BitstringDistribution({"000": 0.5, "111": 0.5})
+    measured_distr = BitstringDistribution({"000": 0.1, "111": 0.9})
+    distance = distance_measure_function(target_distr, measured_distr, {})
+    expected_distance = distance_measure_function(
+        target_distr, measured_distr, expected_default_values
+    )
+
+    assert distance == expected_distance
+
+
 def test_passed_measure_is_used_for_evaluating_distribution_distance():
     """Evaluating distance distribution uses distance measure passed as an argument."""
     target_distribution = BitstringDistribution({"0": 10, "1": 5})

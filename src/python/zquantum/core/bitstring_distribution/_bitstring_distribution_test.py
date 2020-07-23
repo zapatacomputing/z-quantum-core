@@ -9,7 +9,7 @@ import numpy as np
 
 import pytest
 
-from .bitstring_distribution import (
+from ._bitstring_distribution import (
     is_non_negative,
     is_key_length_fixed,
     are_keys_binary_strings,
@@ -19,12 +19,10 @@ from .bitstring_distribution import (
     save_bitstring_distribution,
     load_bitstring_distribution,
     create_bitstring_distribution_from_probability_distribution,
-    compute_clipped_negative_log_likelihood,
-    compute_mmd,
     evaluate_distribution_distance,
     BitstringDistribution,
 )
-from .utils import SCHEMA_VERSION
+from ..utils import SCHEMA_VERSION
 
 
 def test_dicts_with_nonnegative_values_are_nonnegative():
@@ -154,81 +152,6 @@ def test_constructs_correct_bitstring_distribution_from_probability_distribution
     )
 
 
-def test_clipped_negative_log_likelihood_is_computed_correctly():
-    """Clipped negative log likelihood between distributions is computed correctly."""
-    target_distr = BitstringDistribution({"000": 0.5, "111": 0.5})
-    measured_dist = BitstringDistribution({"000": 0.1, "111": 0.9})
-    distance_measure_params = {"epsilon": 0.1}
-    clipped_log_likelihood = compute_clipped_negative_log_likelihood(
-        target_distr, measured_dist, distance_measure_params
-    )
-
-    assert clipped_log_likelihood == 1.203972804325936
-
-
-def test_uses_epsilon_instead_of_zero_in_target_distribution():
-    """Computing clipped negative log likelihood uses epsilon instead of zeros in log."""
-    log_spy = mock.Mock(wraps=math.log)
-    with mock.patch("core.bitstring_distribution.math.log", log_spy):
-        target_distr = BitstringDistribution({"000": 0.5, "111": 0.4, "010": 0.0})
-        measured_dist = BitstringDistribution({"000": 0.1, "111": 0.9, "010": 0.0})
-        distance_measure_params = {"epsilon": 0.01}
-        compute_clipped_negative_log_likelihood(
-            target_distr, measured_dist, distance_measure_params
-        )
-
-        log_spy.assert_has_calls(
-            [mock.call(0.1), mock.call(0.9), mock.call(0.01)], any_order=True
-        )
-
-
-@pytest.mark.parametrize(
-    "measured_dist,distance_measure_params,expected_mmd",
-    [
-        (
-            BitstringDistribution({"000": 0.1, "111": 0.9}),
-            {"sigma": 0.5},
-            0.32000000000000006,
-        ),
-        (BitstringDistribution({"000": 0.5, "111": 0.5}), {"sigma": 1}, 0.00,),
-        (
-            BitstringDistribution({"000": 0.5, "111": 0.5}),
-            {"sigma": [1, 0.5, 2]},
-            0.00,
-        ),
-    ],
-)
-def test_gaussian_mmd_is_computed_correctly(
-    measured_dist, distance_measure_params, expected_mmd
-):
-    """Maximum mean discrepancy (MMD) with gaussian kernel between distributions is computed correctly."""
-    target_distr = BitstringDistribution({"000": 0.5, "111": 0.5})
-    mmd = compute_mmd(target_distr, measured_dist, distance_measure_params)
-
-    assert mmd == expected_mmd
-
-
-@pytest.mark.parametrize(
-    "distance_measure_function, expected_default_values",
-    [
-        (compute_mmd, {"sigma": 1.0},),
-        (compute_clipped_negative_log_likelihood, {"epsilon": 1e-9}),
-    ],
-)
-def test_distance_measure_default_parameters_are_set_correctly(
-    distance_measure_function, expected_default_values
-):
-    """Default values of distance measure parameters are set correctly."""
-    target_distr = BitstringDistribution({"000": 0.5, "111": 0.5})
-    measured_distr = BitstringDistribution({"000": 0.1, "111": 0.9})
-    distance = distance_measure_function(target_distr, measured_distr, {})
-    expected_distance = distance_measure_function(
-        target_distr, measured_distr, expected_default_values
-    )
-
-    assert distance == expected_distance
-
-
 def test_passed_measure_is_used_for_evaluating_distribution_distance():
     """Evaluating distance distribution uses distance measure passed as an argument."""
     target_distribution = BitstringDistribution({"0": 10, "1": 5})
@@ -245,54 +168,12 @@ def test_passed_measure_is_used_for_evaluating_distribution_distance():
     assert distance == distance_function.return_value
 
 
-@pytest.mark.parametrize(
-    "target_cls,measured_cls",
-    [(BitstringDistribution, dict), (dict, BitstringDistribution), (dict, dict)],
-)
-def test_distribution_distance_can_be_evaluated_only_for_bitstring_distributions(
-    target_cls, measured_cls
-):
-    """Distribution distance can be evaluated only if both arguments are bitstring distributions."""
-    target = target_cls({"0": 10, "1": 5})
-    measured = measured_cls({"0": 10, "1": 5})
-
-    with pytest.raises(TypeError):
-        evaluate_distribution_distance(
-            target, measured, compute_clipped_negative_log_likelihood
-        )
-
-
-def test_distribution_distance_cannot_be_evaluated_if_supports_are_incompatible():
-    """Distribution distance can be evaluated only if arguments have compatible support."""
-    target = BitstringDistribution({"0": 10, "1": 5})
-    measured = BitstringDistribution({"00": 10, "10": 5})
-
-    with pytest.raises(RuntimeError):
-        evaluate_distribution_distance(
-            target, measured, compute_clipped_negative_log_likelihood
-        )
-
-
-@pytest.mark.parametrize(
-    "normalize_target,normalize_measured", [(True, False), (False, True)]
-)
-def test_distribution_distance_cannot_be_computed_if_distributions_differ_in_normalization(
-    normalize_target, normalize_measured
-):
-    """Distribution distance cannot be computed if only one distribution is normalized."""
-    target = BitstringDistribution({"0": 10, "1": 5}, normalize_target)
-    measured = BitstringDistribution({"0": 10, "1": 5}, normalize_measured)
-
-    with pytest.raises(RuntimeError):
-        evaluate_distribution_distance(
-            target, measured, compute_clipped_negative_log_likelihood
-        )
-
-
 @pytest.fixture
 def mock_open():
     mock_open = mock.mock_open()
-    with mock.patch("core.bitstring_distribution.open", mock_open):
+    with mock.patch(
+        "core.bitstring_distribution._bitstring_distribution.open", mock_open
+    ):
         yield mock_open
 
 

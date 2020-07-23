@@ -136,6 +136,15 @@ class TestUtils(unittest.TestCase):
 
         os.remove("value_estimate.json")
 
+    def test_value_estimate_to_string(self):
+        value = -1.0
+        precision = 0.1
+        value_estimate = ValueEstimate(value, precision)
+        self.assertEqual(str(value_estimate), f'{value} ± {precision}')
+
+        value_estimate_no_precision = ValueEstimate(value)
+        self.assertEqual(str(value_estimate_no_precision), f'{value}')
+
     def test_list_io(self):
         # Given
         initial_list = [0.1, 0.3, -0.3]

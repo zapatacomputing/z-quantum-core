@@ -12,6 +12,7 @@ from pyquil.gates import X
 from openfermion import QubitOperator, qubit_operator_sparse, IsingOperator
 import numpy as np
 
+
 class TestEstimatorUtils(unittest.TestCase):
     def test_get_context_selection_circuit_offdiagonal(self):
         term = ((0, "X"), (1, "Y"))

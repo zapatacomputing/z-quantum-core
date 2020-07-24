@@ -7,7 +7,9 @@ from ..measurement import ExpectationValues
 class TestEstimatorInterface(unittest.TestCase):
     @patch.object(Estimator, "__abstractmethods__", set())
     def test_ignore_parameter(self):
-        with self.assertLogs("z-quantum-core", level="WARN") as context_manager:
+        with self.assertLogs(
+            "core.interfaces.estimator", level="WARN"
+        ) as context_manager:
             estimator = Estimator()
             estimator_name = type(estimator).__name__
             parameter_names = ["x", "y", "z"]
@@ -15,9 +17,7 @@ class TestEstimatorInterface(unittest.TestCase):
             expected_logs = list(
                 [
                     (
-                        yield "WARNING:z-quantum-core:{} = {}. {} does not use {}. The value was ignored.".format(
-                            pn, pv, estimator_name, pn
-                        )
+                        yield f"WARNING:core.interfaces.estimator:{pn} = {pv}. {estimator_name} does not use {pn}. The value was ignored."
                     )
                     for (pn, pv) in zip(parameter_names, parameter_values)
                 ]
@@ -55,13 +55,16 @@ class EstimatorTests(object):
 
 
 def parameter_is_ignored(
-    self, estimator, estimator_name, parameter_name, parameter_value
+    self,
+    estimator,
+    estimator_name,
+    parameter_name,
+    parameter_value,
+    logger_name="core.interfaces.estimator",
 ):
-    with self.assertLogs("z-quantum-core", level="WARN") as context_manager:
+    with self.assertLogs(logger_name, level="WARN") as context_manager:
         # Given
-        expected_log = "WARNING:z-quantum-core:{} = {}. {} does not use {}. The value was ignored.".format(
-            parameter_name, parameter_value, estimator_name, parameter_name
-        )
+        expected_log = f"WARNING:{logger_name}:{parameter_name} = {parameter_value}. {estimator_name} does not use {parameter_name}. The value was ignored."
         # When
         if parameter_name == "n_samples":
             self.n_samples = parameter_value
@@ -70,7 +73,7 @@ def parameter_is_ignored(
         if parameter_name == "delta":
             self.delta = parameter_value
 
-        values = estimator.get_estimated_expectation_values(
+        estimator.get_estimated_expectation_values(
             self.backend,
             self.circuit,
             self.operator,

@@ -4,15 +4,18 @@ from .backend import QuantumBackend
 from ..measurement import ExpectationValues
 from abc import ABC, abstractmethod
 from openfermion import SymbolicOperator
-from typing import List, Optional
+from typing import Optional
+from overrides import EnforceOverrides
+
+logger = logging.getLogger(__name__)
 
 
-class Estimator(ABC):
+class Estimator(ABC, EnforceOverrides):
     """Interface for implementing different estimators.
     """
 
     def __init__(self):
-        self.logger = logging.getLogger("z-quantum-core")
+        pass
 
     @abstractmethod
     def get_estimated_expectation_values(
@@ -40,8 +43,9 @@ class Estimator(ABC):
         """
         raise NotImplementedError
 
+    @staticmethod
     def _log_ignore_parameter(
-        self, estimator_name: str, parameter_name: str, parameter_value: float
+        estimator_name: str, parameter_name: str, parameter_value: float
     ):
         """In an estimator, users can specify the number of samples, an error term, and/or a confidence term. 
         Usually, selecting two terms fixes the third (e.g., chooseing a number of samples and an error term will fix the probability 
@@ -56,7 +60,7 @@ class Estimator(ABC):
             parameter_value (float): The parameter value.
         """
         if parameter_value is not None:
-            self.logger.warning(
+            logger.warning(
                 "{} = {}. {} does not use {}. The value was ignored.".format(
                     parameter_name, parameter_value, estimator_name, parameter_name,
                 )

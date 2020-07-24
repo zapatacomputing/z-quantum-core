@@ -8,9 +8,12 @@ from .measurement import (
 )
 from openfermion import SymbolicOperator, QubitOperator, IsingOperator
 from overrides import overrides
+import logging
 import numpy as np
 import pyquil
 from typing import Tuple, Optional
+
+logger = logging.getLogger(__name__)
 
 
 def get_context_selection_circuit(
@@ -80,7 +83,7 @@ class BasicEstimator(Estimator):
             frame_operators.append(target_operator.terms[term] * frame_operator)
 
         if n_samples is not None:
-            self.logger.warning(
+            logger.warning(
                 "Using n_samples={} (argument passed to get_estimated_expectation_values). Ignoring backend.n_samples={}.".format(
                     n_samples, backend.n_samples
                 )

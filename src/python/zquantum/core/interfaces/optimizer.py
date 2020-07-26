@@ -1,4 +1,6 @@
 from abc import ABC, abstractmethod
+
+import scipy
 from scipy.optimize import OptimizeResult
 from .cost_function import CostFunction
 from typing import Callable, Optional, Dict
@@ -36,3 +38,24 @@ class Optimizer(ABC):
             OptimizeResults
         """
         raise NotImplementedError
+
+
+def optimization_result(*, opt_value, opt_params, **kwargs) -> scipy.optimize.OptimizeResult:
+    """Construct instance of OptimizeResult.
+
+    The purpose of this function is to add a safety layer by detecting if required
+    components of OptimizationResult are missing already during static analysis.
+
+    Args:
+        opt_value: the final value of the function being optimized.
+        opt_params: the parameters (arguments) for which opt_value has been achieved.
+        kwargs: other attributes (e.g. history) that should be stored in OptimizeResult.
+    Returns:
+        An instance of OptimizeResult containing opt_value, opt_params and all of the
+        other passed arguments.
+    """
+    return scipy.optimize.OptimizeResult(
+        opt_value=opt_value,
+        opt_params=opt_params,
+        **kwargs
+    )

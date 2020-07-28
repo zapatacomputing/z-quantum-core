@@ -3,7 +3,7 @@ import os
 
 setuptools.setup(
     name="z-quantum-core",
-    version="0.1.0",
+    version="0.2.0",
     author="Zapata Computing, Inc.",
     author_email="info@zapatacomputing.com",
     description="A core library of the scientific code for Orquestra.",

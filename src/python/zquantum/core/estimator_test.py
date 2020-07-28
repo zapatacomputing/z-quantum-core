@@ -1,5 +1,5 @@
 import unittest
-from .interfaces.estimator_test import EstimatorTests, parameter_is_ignored
+from .interfaces.estimator_test import EstimatorTests
 from .interfaces.mock_objects import MockQuantumBackend, MockQuantumSimulator
 from .estimator import (
     BasicEstimator,
@@ -98,26 +98,6 @@ class TestBasicEstimator(unittest.TestCase, EstimatorTests):
             # Then
             self.assertEqual(self.backend.n_samples, 5)
 
-    def test_epsilon_is_ignored(self):
-        for estimator in self.estimators:
-            # Given
-            estimator_name = type(estimator).__name__
-            parameter_name = "epsilon"
-            parameter_value = 0.1
-            parameter_is_ignored(
-                self, estimator, estimator_name, parameter_name, parameter_value
-            )
-
-    def test_delta_is_ignored(self):
-        for estimator in self.estimators:
-            # Given
-            estimator_name = type(estimator).__name__
-            parameter_name = "delta"
-            parameter_value = 0.9
-            parameter_is_ignored(
-                self, estimator, estimator_name, parameter_name, parameter_value
-            )
-
 
 class TestExactEstimator(unittest.TestCase, EstimatorTests):
     def setUp(self):
@@ -155,33 +135,3 @@ class TestExactEstimator(unittest.TestCase, EstimatorTests):
             self.assertTrue(len(values) == 1)
             self.assertGreaterEqual(value, -1)
             self.assertLessEqual(value, 1)
-
-    def test_n_samples_is_ignored(self):
-        for estimator in self.estimators:
-            # Given
-            estimator_name = type(estimator).__name__
-            parameter_name = "n_samples"
-            parameter_value = 1
-            parameter_is_ignored(
-                self, estimator, estimator_name, parameter_name, parameter_value
-            )
-
-    def test_epsilon_is_ignored(self):
-        for estimator in self.estimators:
-            # Given
-            estimator_name = type(estimator).__name__
-            parameter_name = "epsilon"
-            parameter_value = 0.1
-            parameter_is_ignored(
-                self, estimator, estimator_name, parameter_name, parameter_value
-            )
-
-    def test_delta_is_ignored(self):
-        for estimator in self.estimators:
-            # Given
-            estimator_name = type(estimator).__name__
-            parameter_name = "delta"
-            parameter_value = 0.9
-            parameter_is_ignored(
-                self, estimator, estimator_name, parameter_name, parameter_value
-            )

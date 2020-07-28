@@ -155,6 +155,16 @@ class TestUtils(unittest.TestCase):
         self.assertListEqual(initial_list, loaded_list)
         os.remove("list.json")
 
+    def test_named_list_io(self):
+        # Given
+        initial_list = [0.1, 0.3, -0.3]
+        # When
+        save_list(initial_list, "list.json", "number")
+        loaded_list = load_list("list.json")
+        # Then
+        self.assertListEqual(initial_list, loaded_list)
+        os.remove("list.json")
+
     def test_create_object(self):
         # Given
         n_samples = 100

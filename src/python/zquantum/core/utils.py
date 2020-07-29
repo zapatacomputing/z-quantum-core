@@ -265,6 +265,12 @@ class ValueEstimate:
     def __eq__(self, other):
         return self.value == other.value and self.precision == other.precision
 
+    def __str__(self):
+        if self.precision is not None:
+            return f'{self.value} ± {self.precision}'
+        else:
+            return f'{self.value}'
+
     def to_dict(self):
         """Convert to a dictionary"""
 
@@ -475,4 +481,18 @@ def create_symbols_map(
             )
         )
     return [(symbol, param) for symbol, param in zip(symbols, params.tolist())]
+
+
+def save_timing(walltime: float, filename: str) -> None:
+    """
+    Saves timing information.
+
+    Args:
+        walltime: The execution time.
+    """
+
+    with open(filename, "w") as f:
+        f.write(
+            json.dumps({"schema": SCHEMA_VERSION + "-timing", "walltime": walltime})
+        )
 

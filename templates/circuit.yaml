@@ -13,6 +13,8 @@ spec:
             default: -0.01
           - name: max-val
             default: 0.01
+          - name: seed
+            default: None
           - name: command
             value: python3 main_script.py
         artifacts:
@@ -29,6 +31,8 @@ spec:
                   number_of_params = ansatz.number_of_params
                 elif {{inputs.parameters.number-of-params}} is not None:
                   number_of_params = {{inputs.parameters.number-of-params}}
+                if {{inputs.parameters.seed}} is not None:
+                  np.random.seed({{inputs.parameters.seed}})
                 params = np.random.uniform({{inputs.parameters.min-val}}, {{inputs.parameters.max-val}}, number_of_params)
                 save_circuit_template_params(params, 'params.json')
       outputs:

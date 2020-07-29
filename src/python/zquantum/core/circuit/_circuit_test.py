@@ -19,6 +19,8 @@ from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister
 from . import (
     load_circuit,
     save_circuit,
+    load_circuit_set,
+    save_circuit_set,
     Circuit,
     Gate,
     Qubit,
@@ -277,6 +279,18 @@ class TestCircuit(unittest.TestCase):
         loaded_circuit = load_circuit("circuit.json")
         self.assertTrue(circuit == loaded_circuit)
         os.remove("circuit.json")
+
+    def test_circuit_set_io(self):
+        circuit1 = Circuit(Program().inst(X(0), Y(1), Z(0)))
+        circuit2 = Circuit(Program().inst(Z(2)))
+        circuit_set = [circuit1, circuit2]
+        save_circuit_set(circuit_set, 'circuit_set.json')
+        loaded_circuit_set = load_circuit_set('circuit_set.json')
+        for i in range(len(circuit_set)):
+            self.assertTrue(circuit_set[i] == loaded_circuit_set[i], 
+                msg=str([circuit_set[i].to_pyquil().out(), 
+                         loaded_circuit_set[i].to_pyquil().out()]))
+        os.remove("circuit_set.json")
 
     def test_circuit_io_with_symbolic_params(self):
         # Given

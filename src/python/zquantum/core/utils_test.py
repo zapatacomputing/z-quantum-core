@@ -31,6 +31,7 @@ from .utils import (
 )
 from .interfaces.mock_objects import MockQuantumSimulator
 
+SCHEMA_VERSION = "zapata-v1"
 
 class TestUtils(unittest.TestCase):
     def test_real_array_conversion(self):
@@ -163,6 +164,15 @@ class TestUtils(unittest.TestCase):
         loaded_list = load_list("list.json")
         # Then
         self.assertListEqual(initial_list, loaded_list)
+        # And
+        # After manually loading json        
+        if isinstance("list.json", str):
+            with open("list.json", "r") as f:
+                data = json.load(f)
+        else:
+            data = json.load("list.json")        
+        # Check that
+        self.assertEqual(data["schema"], SCHEMA_VERSION + "-number-list")
         os.remove("list.json")
 
     def test_create_object(self):

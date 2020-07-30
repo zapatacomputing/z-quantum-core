@@ -360,7 +360,7 @@ def save_list(array, filename, artifact_name=""):
         artifact_name (str): optional argument to specify the schema name
     """
     dictionary = {}
-    dictionary["schema"] = SCHEMA_VERSION + artifact_name + "-list"
+    dictionary["schema"] = SCHEMA_VERSION + "-" + artifact_name + "-list"
     dictionary["list"] = array
 
     with open(filename, "w") as f:

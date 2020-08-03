@@ -34,7 +34,7 @@ spec:
                 import os
 
                 circuit = load_circuit('circuit.json')
-                  
+
                 backend_specs = {{inputs.parameters.backend-specs}}
                 if os.path.isfile('noise_model.json'):
                   backend_specs["noise_model"] = load_noise_model("noise_model.json")
@@ -51,3 +51,55 @@ spec:
         artifacts:
           - name: measurements
             path: /app/measurements.json
+
+    - name: get-circuit-wavefunction
+      parent: generic-task
+      inputs:
+        parameters:
+          - name: backend-specs
+          - name: command
+            value: bash main_script.sh
+        artifacts:
+          - name: circuit
+            path: /app/circuit.json
+          - name: noise-model
+            path: /app/noise_model.json
+            optional: True
+          - name: device-connectivity
+            path: /app/device_connectivity.json
+            optional: True
+          - name: main-script
+            path: /app/main_script.sh
+            raw:
+              data: |
+                qvm -S &
+                quilc -S &
+                source /app/usr/local/bin/compilers_and_libraries.sh
+                python3 python_script.py
+          - name: python-script
+            path: /app/python_script.py
+            raw:
+              data: |
+                from zquantum.core.utils import create_object, load_noise_model
+                from zquantum.core.circuit import load_circuit, load_circuit_connectivity
+                from zquantum.core.measurements import save_wavefunction
+                import os
+
+                circuit = load_circuit('circuit.json')
+
+                backend_specs = {{inputs.parameters.backend-specs}}
+                if os.path.isfile('noise_model.json'):
+                  backend_specs["noise_model"] = load_noise_model("noise_model.json")
+                if os.path.isfile("device_connectivity.json"):
+                    backend_specs["device_connectivity"] = load_circuit_connectivity(
+                        "device_connectivity.json"
+                    )
+                backend = create_object(backend_specs)
+
+                wavefunction = backend.get_wavefunction(circuit)
+
+                save_wavefunction(wavefunction,"wavefunction.json")
+      outputs:
+        artifacts:
+          - name: wavefunction
+            path: /app/wavefunction.json

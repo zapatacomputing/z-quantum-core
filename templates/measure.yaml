@@ -82,7 +82,7 @@ spec:
               data: |
                 from zquantum.core.utils import create_object, load_noise_model
                 from zquantum.core.circuit import load_circuit, load_circuit_connectivity
-                from zquantum.core.measurements import save_wavefunction
+                from zquantum.core.measurement import save_wavefunction
                 import os
 
                 circuit = load_circuit('circuit.json')

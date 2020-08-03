@@ -52,7 +52,7 @@ spec:
           - name: measurements
             path: /app/measurements.json
 
-    - name: get-circuit-wavefunction
+    - name: get-bitstring-distribution
       parent: generic-task
       inputs:
         parameters:
@@ -82,7 +82,7 @@ spec:
               data: |
                 from zquantum.core.utils import create_object, load_noise_model
                 from zquantum.core.circuit import load_circuit, load_circuit_connectivity
-                from zquantum.core.measurement import save_wavefunction
+                from zquantum.core.bitstring_distribution import save_bitstring_distribution
                 import os
 
                 circuit = load_circuit('circuit.json')
@@ -96,10 +96,10 @@ spec:
                     )
                 backend = create_object(backend_specs)
 
-                wavefunction = backend.get_wavefunction(circuit)
+                bitstring_distribution = backend.get_bitstring_distribution(circuit)
 
-                save_wavefunction(wavefunction,"wavefunction.json")
+                save_bitstring_distribution(bitstring_distribution,"bitstring_distribution.json")
       outputs:
         artifacts:
-          - name: wavefunction
-            path: /app/wavefunction.json
+          - name: bitstring-distribution
+            path: /app/bitstring_distribution.json

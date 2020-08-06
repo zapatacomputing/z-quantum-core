@@ -351,15 +351,16 @@ def load_list(file):
     return data["list"]
 
 
-def save_list(array, filename):
+def save_list(array, filename, artifact_name=""):
     """Save expectation values to a file.
 
     Args:
         array (list): the list to be saved
         file (str or file-like object): the name of the file, or a file-like object
+        artifact_name (str): optional argument to specify the schema name
     """
     dictionary = {}
-    dictionary["schema"] = SCHEMA_VERSION + "-list"
+    dictionary["schema"] = SCHEMA_VERSION + "-" + artifact_name + "-list"
     dictionary["list"] = array
 
     with open(filename, "w") as f:

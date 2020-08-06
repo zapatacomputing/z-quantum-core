@@ -28,10 +28,9 @@ from .utils import (
     save_noise_model,
     create_symbols_map,
     save_timing,
+    SCHEMA_VERSION
 )
 from .interfaces.mock_objects import MockQuantumSimulator
-
-SCHEMA_VERSION = "zapata-v1"
 
 class TestUtils(unittest.TestCase):
     def test_real_array_conversion(self):

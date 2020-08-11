@@ -209,7 +209,10 @@ def generate_random_value_from_string(specs: Union[str, int, float])->Union[int,
             of the form: type-randomness_arg0_arg1_.._argN                
             
     Returns:
-        A int or float value
+        A int or float value (the type will depend on the specs, 
+        E.g. generate_random_value_from_string('choice_5_6_7') will return an int 
+        while generate_random_value_from_string('choice_5._6._7.')  will return
+        a float)
     """    
     if type(specs) in [int, float]:
         return specs 

@@ -273,3 +273,28 @@ class TestGraph(unittest.TestCase):
             AssertionError,
             lambda: generate_random_value_from_string(specs_int)
         )
+
+    def test_generate_graph_from_specs_with_string_random(self):
+        # Given
+        specs = {'type_graph':'regular', 'num_nodes':8, 'degree':'choice_3_4'}
+        
+        # When
+        graph = generate_graph_from_specs(specs)
+
+        # Then
+        degrees = [deg for node, deg in graph.degree]
+        degree_ref = degrees[0]
+        self.assertTrue(degree_ref in [3, 4])
+        for degree in degrees:
+            self.assertEqual(degree, degree_ref)
+
+        # Given
+        specs = {'type_graph':'regular', 'num_nodes':8, 'degree':3, 'random_weights':'uniform_-1_-0.5'}
+    
+        # When
+        graph = generate_graph_from_specs(specs)
+        
+        # Then
+        for node1, node2, weight in graph.edges(data='weight'):
+            self.assertTrue((weight>-1) and (weight<-0.5))
+        

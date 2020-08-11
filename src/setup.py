@@ -18,6 +18,7 @@ setuptools.setup(
         "pytest>=5.3.5",
         "networkx==2.3",
         "numpy>=1.18.1",
+	"sympy>=1.5",
         "scipy>=1.4.1",
         "openfermion>=0.11.0",
         "lea>=3.2.0",

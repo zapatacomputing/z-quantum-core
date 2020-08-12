@@ -155,7 +155,7 @@ def test_jensen_shannon_divergence_is_computed_correctly():
         target_distr, measured_dist, distance_measure_params
     )
 
-    assert jensen_shannon_divergence == 1.8971199848858813
+    assert jensen_shannon_divergence == 0.9485599924429406
 
 def test_uses_epsilon_instead_of_zero_in_target_distribution():
     """Computing jensen shannon divergence uses epsilon instead of zeros in log."""

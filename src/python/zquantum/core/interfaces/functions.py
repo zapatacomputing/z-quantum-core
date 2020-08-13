@@ -1,5 +1,5 @@
 """Protocols describing different kinds of functions."""
-from typing import NamedTuple, Callable, Any, TypeVar
+from typing import NamedTuple, Callable, Any, TypeVar, Optional
 from typing_extensions import Protocol, runtime_checkable
 import numpy as np
 
@@ -19,7 +19,7 @@ class CallableWithGradient(Protocol):
 @runtime_checkable
 class CallableStoringArtifacts(Protocol[S, T]):
     def __call__(
-        self, params: S, store_artifact: Callable[[str, Any, bool], None]
+        self, params: S, store_artifact: Optional[Callable[[str, Any, bool], None]]
     ) -> T:
         pass
 

@@ -1,4 +1,10 @@
 """Save conditions possible to use with recorder."""
+from typing_extensions import Protocol
+
+
+class SaveCondition(Protocol):
+    def __call__(self, value, params, call_number: int) -> bool:
+        pass
 
 
 def always(value, params, call_number):

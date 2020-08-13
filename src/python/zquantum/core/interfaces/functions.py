@@ -7,6 +7,11 @@ T = TypeVar("T", covariant=True)
 S = TypeVar("S", contravariant=True)
 
 
+class StoreArtifact(Protocol):
+    def __call__(self, artifact_name: str, artifact: Any, force: bool = False) -> None:
+        pass
+
+
 @runtime_checkable
 class CallableWithGradient(Protocol):
     def __call__(self, params: np.ndarray):
@@ -19,7 +24,7 @@ class CallableWithGradient(Protocol):
 @runtime_checkable
 class CallableStoringArtifacts(Protocol[S, T]):
     def __call__(
-        self, params: S, store_artifact: Optional[Callable[[str, Any, bool], None]]
+        self, params: S, store_artifact: Optional[StoreArtifact]
     ) -> T:
         pass
 

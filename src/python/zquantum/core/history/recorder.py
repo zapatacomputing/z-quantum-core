@@ -5,7 +5,7 @@ from typing_extensions import overload
 from ..interfaces.functions import (
     CallableWithGradient,
     CallableStoringArtifacts,
-    CallableWithGradientStoringArtifacts,
+    CallableWithGradientStoringArtifacts, StoreArtifact,
 )
 from .save_conditions import always, SaveCondition
 
@@ -84,12 +84,11 @@ class ArtifactRecorderWithGradient(ArtifactRecorder):
         self.gradient = target.gradient
 
 
-def store_artifact(artifacts):
+def store_artifact(artifacts) -> StoreArtifact:
     def _store(artifact_name: str, artifact: Any, force: bool = False) -> None:
         artifacts[artifact_name] = artifact
         if force:
             artifacts.forced = True
-
     return _store
 
 

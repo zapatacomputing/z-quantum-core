@@ -1,7 +1,7 @@
 from .ansatz import Ansatz
 from .ansatz_utils import ansatz_property
 from .backend import QuantumBackend, QuantumSimulator
-from .optimizer import Optimizer
+from .optimizer import Optimizer, optimization_result
 from .cost_function import CostFunction
 from .estimator import Estimator
 from ..measurement import ExpectationValues, Measurements
@@ -98,10 +98,11 @@ class MockOptimizer(Optimizer):
         for i in range(len(initial_params)):
             new_parameters[i] += random.random()
         new_parameters = np.array(new_parameters)
-        result.opt_value = cost_function.evaluate(new_parameters)
-        result["history"] = cost_function.evaluations_history
-        result.opt_params = new_parameters
-        return result
+        return optimization_result(
+            opt_value=cost_function.evaluate(new_parameters),
+            opt_params= new_parameters,
+            history=cost_function.evaluations_history
+        )
 
 
 class MockCostFunction(CostFunction):

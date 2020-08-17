@@ -6,7 +6,7 @@ resources:
   type: git
   parameters:
     url: "git@github.com:zapatacomputing/z-quantum-core.git"
-    branch: "fix-build-ansatz-circuit"
+    branch: "dev"
 
 metadata:
   generateName: z-quantum-core-acceptance-test-build-ansatz-circuit-

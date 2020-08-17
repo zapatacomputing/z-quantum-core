@@ -95,7 +95,7 @@ spec:
               if params is not None:
                 circuit = ansatz.get_executable_circuit(params)
               elif ansatz.supports_parametrized_circuits:
-                circuit = ansatz.parametrized_circuit()
+                circuit = ansatz.parametrized_circuit
               else:
                 raise(Exception("Ansatz is not parametrizable and no parameters has been provided."))
               save_circuit(circuit, 'circuit.json')

@@ -48,7 +48,10 @@ for key in workflowresult.keys():
             total_probability += workflowresult[key]["bitstring-distribution"][
                 "bitstring_distribution"
             ][bitstring]
-        assert total_probability == 1.0
+
+        print(total_probability)
+        assert total_probability <= 1.0000000000000002
+        assert total_probability >= 0.9999999999999998
 
 assert found_template == True
 print("Workflow result is as expected")

@@ -112,7 +112,7 @@ spec:
           - name: ansatz-specs
             default: None
           - name: number-of-params-per-layer
-            optional: None
+            default: None
           - name: n-layers
             default: 1
           - name: min-value

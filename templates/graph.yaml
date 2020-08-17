@@ -75,7 +75,7 @@ spec:
           data: |
             from zquantum.core.graph import generate_random_graph_erdos_renyi, save_graph
             graph = generate_random_graph_erdos_renyi({{inputs.parameters.n-nodes}},
-                                              "1.0",
+                                              1.0,
                                               bool("{{inputs.parameters.random-weights}}"),
                                               {{inputs.parameters.seed}})
             save_graph(graph, 'graph.json')

@@ -251,7 +251,7 @@ spec:
             raw:
               data: |
                 from zquantum.core.circuit import load_circuit_set, save_circuit, Circuit
-                circuit_set = load_circuit_set("circuit.json")
+                circuit_set = load_circuit_set("circuit_set.json")
                 circuit = Circuit()
                 for circ in circuit_set:
                   circuit += circ

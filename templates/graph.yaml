@@ -46,8 +46,8 @@ spec:
         path: /app/main_script.py
         raw:
           data: |
-            from zquantum.core.graph import generate_random_graph_regular, save_graph
-            graph = generate_random_graph_regular({{inputs.parameters.n-nodes}},
+            from zquantum.core.graph import generate_random_regular_graph, save_graph
+            graph = generate_random_regular_graph({{inputs.parameters.n-nodes}},
                                                     {{inputs.parameters.degree}},
                                                     bool("{{inputs.parameters.random-weights}}"),
                                                     {{inputs.parameters.seed}})
@@ -73,9 +73,9 @@ spec:
         path: /app/main_script.py
         raw:
           data: |
-            from zquantum.core.graph import generate_complete_graph, save_graph
+            from zquantum.core.graph import generate_random_graph_erdos_renyi, save_graph
             graph = generate_random_graph_erdos_renyi({{inputs.parameters.n-nodes}},
-                                              "1.0",
+                                              1.0,
                                               bool("{{inputs.parameters.random-weights}}"),
                                               {{inputs.parameters.seed}})
             save_graph(graph, 'graph.json')

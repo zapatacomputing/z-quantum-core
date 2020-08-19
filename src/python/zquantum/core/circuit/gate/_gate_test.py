@@ -695,3 +695,130 @@ def test_gate_is_successfully_loaded_from_a_dict(matrix, qubits):
     # Then
     assert gate == new_gate
 
+
+#### evaluate ####
+def test_gate_is_evaluated_successfully():
+    """The Gate class should be able evaluated with certain parameters"""
+    # Given
+    qubits = (0, 2)
+    matrix = sympy.Matrix(
+        [
+            [sympy.Symbol("theta"), 0, 0, 0],
+            [0, sympy.Symbol("theta"), 0, 0],
+            [0, 0, 0, sympy.Symbol("theta")],
+            [0, 0, sympy.Symbol("theta"), 0],
+        ]
+    )
+    gate = Gate(matrix, qubits)
+    symbols_map = {"theta": 1}
+    evaluated_matrix = sympy.Matrix(
+        [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 1], [0, 0, 1, 0],]
+    )
+    expected_new_gate = Gate(evaluated_matrix, qubits)
+
+    # When
+    new_gate = gate.evaluate(symbols_map)
+
+    # Then
+    assert new_gate == expected_new_gate
+    assert gate == Gate(matrix, qubits)
+
+
+def test_gate_is_evaluated_successfully_with_multiple_parameters():
+    """The Gate class should be able evaluated with mulitple parameters"""
+    # Given
+    qubits = (0, 2)
+    matrix = sympy.Matrix(
+        [
+            [sympy.Symbol("theta"), 0, 0, 0],
+            [0, sympy.Symbol("theta"), 0, 0],
+            [0, 0, 0, complex(0, -1) * sympy.Symbol("gamma")],
+            [0, 0, complex(0, -1) * sympy.Symbol("gamma"), 0],
+        ]
+    )
+    gate = Gate(matrix, qubits)
+    symbols_map = {"theta": 1, "gamma": complex(0, 1)}
+    evaluated_matrix = sympy.Matrix(
+        [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 1], [0, 0, 1, 0],]
+    )
+    expected_new_gate = Gate(evaluated_matrix, qubits)
+
+    # When
+    new_gate = gate.evaluate(symbols_map)
+
+    # Then
+    assert new_gate == expected_new_gate
+
+
+def test_gate_is_evaluated_successfully_with_multiple_parameters_only_some_set():
+    """The Gate class should be able evaluated with only some parameters evaluated"""
+    # Given
+    qubits = (0, 2)
+    matrix = sympy.Matrix(
+        [
+            [sympy.Symbol("theta"), 0, 0, 0],
+            [0, sympy.Symbol("theta"), 0, 0],
+            [0, 0, 0, complex(0, -1) * sympy.Symbol("gamma")],
+            [0, 0, complex(0, -1) * sympy.Symbol("gamma"), 0],
+        ]
+    )
+    gate = Gate(matrix, qubits)
+    symbols_map = {"theta": 1}
+    evaluated_matrix = sympy.Matrix(
+        [
+            [1, 0, 0, 0],
+            [0, 1, 0, 0],
+            [0, 0, 0, complex(0, -1) * sympy.Symbol("gamma")],
+            [0, 0, complex(0, -1) * sympy.Symbol("gamma"), 0],
+        ]
+    )
+    expected_new_gate = Gate(evaluated_matrix, qubits)
+
+    # When
+    new_gate = gate.evaluate(symbols_map)
+
+    # Then
+    assert new_gate == expected_new_gate
+
+
+@pytest.mark.parametrize(
+    "theta, evaluated_matrix",
+    [
+        [np.pi, sympy.Matrix([[0, -1], [-1, 0],])],
+        [2 * np.pi, sympy.Matrix([[-1, 0], [0, -1],])],
+        [
+            np.pi / 2,
+            sympy.Matrix(
+                [
+                    [0.7071067811865476, -0.7071067811865475],
+                    [-0.7071067811865475, 0.7071067811865476],
+                ]
+            ),
+        ],
+    ],
+)
+def test_rx_gate_is_as_expected_when_evaluated(theta, evaluated_matrix):
+    """The Rx Gate should be as expected when evaluated to certain parameters"""
+    # Given
+    qubits = (0,)
+    matrix = sympy.Matrix(
+        [
+            [
+                sympy.cos(sympy.Symbol("theta") / 2),
+                -1 * sympy.sin(sympy.Symbol("theta") / 2),
+            ],
+            [
+                -1 * sympy.sin(sympy.Symbol("theta") / 2),
+                sympy.cos(sympy.Symbol("theta") / 2),
+            ],
+        ]
+    )
+    gate = Gate(matrix, qubits)
+    symbols_map = {"theta": theta}
+    expected_new_gate = Gate(evaluated_matrix, qubits)
+
+    # When
+    new_gate = gate.evaluate(symbols_map)
+
+    # Then
+    assert new_gate == expected_new_gate

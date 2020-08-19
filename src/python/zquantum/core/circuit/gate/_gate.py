@@ -1,6 +1,7 @@
 import numpy as np
 import sympy
 import json
+import copy
 from typing import Tuple, Union, Dict, TextIO
 from collections import Counter
 from ...utils import SCHEMA_VERSION, convert_array_to_dict, convert_dict_to_array
@@ -59,7 +60,16 @@ class Gate(object):
             return False
         for element, another_element in zip(self.matrix, another_gate.matrix):
             if element != another_element:
-                return False
+                if isinstance(element, sympy.Number) and isinstance(
+                    another_element, sympy.Number
+                ):
+                    if not np.isclose(
+                        complex(sympy.re(element), sympy.im(element)),
+                        complex(sympy.re(another_element), sympy.im(another_element),),
+                    ):
+                        return False
+                else:
+                    return False
 
         if self.symbolic_params != another_gate.symbolic_params:
             return False
@@ -109,3 +119,20 @@ class Gate(object):
             matrix = data["matrix"]
 
         return cls(matrix, qubits)
+
+    def evaluate(self, symbols_map: Dict):
+        gate_class = type(self)
+
+        evaluated_matrix = copy.deepcopy(self.matrix)
+        for index, element in enumerate(evaluated_matrix):
+            new_element = element.subs(symbols_map).evalf()
+            if isinstance(sympy.re(new_element), sympy.Number) and isinstance(
+                sympy.im(new_element), sympy.Number
+            ):
+                new_element = complex(
+                    round(sympy.re(new_element), 16), round(sympy.im(new_element), 16)
+                )
+            evaluated_matrix[index] = new_element
+
+        evaluated_gate = gate_class(evaluated_matrix, self.qubits)
+        return evaluated_gate

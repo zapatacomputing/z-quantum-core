@@ -2,6 +2,7 @@ import numpy as np
 import pytest
 import json
 import os
+import sympy
 from ...utils import SCHEMA_VERSION
 
 from ._gate import Gate
@@ -10,10 +11,10 @@ from ._gate import Gate
 @pytest.mark.parametrize(
     "matrix",
     [
-        np.asarray([np.asarray([0, 0]), np.asarray([0, 0, 0])]),
-        np.asarray([np.asarray([0, 0]), np.asarray([0])]),
-        np.asarray([np.asarray([]), np.asarray([0, 0, 0])]),
-        np.asarray([np.asarray([0])]),
+        sympy.Matrix([[0, 0], [0, 0], [0, 0]]),
+        sympy.Matrix([[0], [0]]),
+        sympy.Matrix([[0, 0, 0], [0, 0, 0]]),
+        sympy.Matrix([[0]]),
     ],
 )
 def test_creating_gate_with_rectangular_matrix_fails(matrix):
@@ -26,10 +27,10 @@ def test_creating_gate_with_rectangular_matrix_fails(matrix):
 @pytest.mark.parametrize(
     "matrix",
     [
-        np.asarray([np.asarray([]), np.asarray([])]),
-        np.asarray([np.asarray([0]), np.asarray([0])]),
-        np.asarray([np.asarray([0, 0, 0]), np.asarray([0, 0, 0])]),
-        np.asarray([np.asarray([0, 0, 0, 0]), np.asarray([0, 0, 0, 0])]),
+        sympy.Matrix([[], []]),
+        sympy.Matrix([[0], [0]]),
+        sympy.Matrix([[0, 0, 0], [0, 0, 0]]),
+        sympy.Matrix([[0, 0, 0, 0], [0, 0, 0, 0]]),
     ],
 )
 def test_creating_gate_with_invalid_matrix_size_for_one_qubit_fails(matrix):
@@ -42,10 +43,10 @@ def test_creating_gate_with_invalid_matrix_size_for_one_qubit_fails(matrix):
 @pytest.mark.parametrize(
     "matrix",
     [
-        np.asarray([np.asarray([]), np.asarray([])]),
-        np.asarray([np.asarray([0]), np.asarray([0])]),
-        np.asarray([np.asarray([0, 0]), np.asarray([0, 0])]),
-        np.asarray([np.asarray([0, 0, 0]), np.asarray([0, 0, 0])]),
+        sympy.Matrix([[], []]),
+        sympy.Matrix([[0], [0]]),
+        sympy.Matrix([[0, 0], [0, 0]]),
+        sympy.Matrix([[0, 0, 0], [0, 0, 0]]),
     ],
 )
 def test_creating_gate_with_invalid_matrix_size_for_two_qubit_fails(matrix):
@@ -63,17 +64,17 @@ def test_creating_gate_with_invalid_matrix_size_for_two_qubit_fails(matrix):
 )
 def test_creating_gate_with_repeated_qubits_fails(qubits):
     """The Gate class should raise an assertion error if all qubit indices are not unique"""
-    matrix = np.eye(2 ** len(qubits))
+    matrix = sympy.Matrix(np.eye(2 ** len(qubits)))
     with pytest.raises(AssertionError):
         Gate(matrix, qubits)
 
 
 @pytest.mark.parametrize("number_of_qubits", [1, 2, 3, 4, 5, 6])
-def test_creating_identity_gate_for_succeeds(number_of_qubits):
+def test_creating_identity_gate_succeeds(number_of_qubits):
     """The Gate class should be able to handle the identity gate for different numbers of qubits"""
     # Given
     qubits = tuple([i for i in range(number_of_qubits)])
-    matrix = np.eye(2 ** number_of_qubits)
+    matrix = sympy.Matrix(np.eye(2 ** number_of_qubits))
 
     # When
     gate = Gate(matrix, qubits)
@@ -81,20 +82,17 @@ def test_creating_identity_gate_for_succeeds(number_of_qubits):
     # Then
     assert gate.qubits == qubits
     assert all(
-        element_gate == element
-        for gate_row, row in zip(gate.matrix, matrix)
-        for element_gate, element in zip(gate_row, row)
+        element_gate == element for element_gate, element in zip(gate.matrix, matrix)
     )
 
 
 def test_creating_complex_gate():
     """The Gate class should be able to handle complex matrices"""
     # Given
-    qubits = (
-        0,
-        1,
+    qubits = (0,)
+    matrix = sympy.Matrix(
+        [[complex(0), complex(0 + 1j)], [complex(0 - 1j), complex(0)],]
     )
-    matrix = np.eye(2 ** len(qubits), dtype=complex)
 
     # When
     gate = Gate(matrix, qubits)
@@ -102,9 +100,7 @@ def test_creating_complex_gate():
     # Then
     assert gate.qubits == qubits
     assert all(
-        element_gate == element
-        for gate_row, row in zip(gate.matrix, matrix)
-        for element_gate, element in zip(gate_row, row)
+        element_gate == element for element_gate, element in zip(gate.matrix, matrix)
     )
 
 
@@ -115,49 +111,66 @@ def test_creating_gate_support_non_unitary_gates():
         0,
         1,
     )
-    matrix = np.zeros(shape=(2 ** len(qubits), 2 ** len(qubits)))
+    matrix = sympy.Matrix(np.zeros(shape=(2 ** len(qubits), 2 ** len(qubits))))
 
     # When
     gate = Gate(matrix, qubits)
 
     # Then
     assert gate.qubits == qubits
-    assert all(element == 0 for row in gate.matrix for element in row)
+    assert all(element == 0 for element in gate.matrix)
+
+
+def test_creating_parameterized_gate_repeated_symbol():
+    """The Gate class should be able to handle complex matrices"""
+    # Given
+    qubits = (0,)
+    matrix = sympy.Matrix(np.eye(2 ** len(qubits)))
+    matrix[0, 0] = sympy.Symbol("theta_0")
+    matrix[1, 1] = 3 * sympy.Symbol("theta_0")
+
+    # When
+    gate = Gate(matrix, qubits)
+
+    # Then
+    assert gate.qubits == qubits
+    assert all(
+        gate_element == element for gate_element, element in zip(gate.matrix, matrix)
+    )
+    assert gate.symbolic_params == set([sympy.Symbol("theta_0")])
+
+
+def test_creating_parameterized_gate_multiple_symbols():
+    """The Gate class should be able to handle complex matrices"""
+    # Given
+    qubits = (0,)
+    matrix = sympy.Matrix(np.eye(2 ** len(qubits)))
+    matrix[0, 0] = sympy.Symbol("theta_0")
+    matrix[1, 1] = 3 * sympy.Symbol("theta_1")
+
+    # When
+    gate = Gate(matrix, qubits)
+
+    # Then
+    assert gate.qubits == qubits
+    assert all(
+        gate_element == element for gate_element, element in zip(gate.matrix, matrix)
+    )
+    assert gate.symbolic_params == set(
+        [sympy.Symbol("theta_0"), sympy.Symbol("theta_1")]
+    )
 
 
 #### __eq__ ####
 @pytest.mark.parametrize(
     "matrix, qubits",
     [
-        [np.eye(2, dtype=complex), (0,)],
-        [np.eye(2, dtype=complex), (1,)],
+        [sympy.Matrix(np.eye(2)), (0,)],
+        [sympy.Matrix(np.eye(2)), (1,)],
+        [sympy.Matrix([[0, 0 + 1j], [0 - 1j, 0],]), (0,),],
+        [sympy.Matrix([[0, 0 + 1j], [0 - 1j, 0],]), (1,),],
         [
-            np.asarray(
-                [
-                    np.asarray([0, 0 + 1j], dtype=complex),
-                    np.asarray([0 - 1j, 0], dtype=complex),
-                ]
-            ),
-            (0,),
-        ],
-        [
-            np.asarray(
-                [
-                    np.asarray([0, 0 + 1j], dtype=complex),
-                    np.asarray([0 - 1j, 0], dtype=complex),
-                ]
-            ),
-            (1,),
-        ],
-        [
-            np.asarray(
-                [
-                    np.asarray([1, 0, 0, 0], dtype=complex),
-                    np.asarray([0, 1, 0, 0], dtype=complex),
-                    np.asarray([0, 0, 0, 1], dtype=complex),
-                    np.asarray([0, 0, 1, 0], dtype=complex),
-                ]
-            ),
+            sympy.Matrix([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 1], [0, 0, 1, 0],]),
             (0, 2),
         ],
     ],
@@ -178,52 +191,23 @@ def test_gate_eq_same_gates(matrix, qubits):
 @pytest.mark.parametrize(
     "matrix1, qubits1, matrix2, qubits2",
     [
-        [np.eye(2, dtype=complex), (0,), np.eye(2, dtype=complex), (1,)],
+        [sympy.Matrix(np.eye(2)), (0,), sympy.Matrix(np.eye(2)), (1,),],
         [
-            np.eye(2, dtype=complex),
+            sympy.Matrix(np.eye(2)),
             (1,),
-            np.asarray(
-                [
-                    np.asarray([0, 0 + 1j], dtype=complex),
-                    np.asarray([0 - 1j, 0], dtype=complex),
-                ]
-            ),
+            sympy.Matrix([[0, 0 + 1j], [0 - 1j, 0],]),
             (0,),
         ],
         [
-            np.asarray(
-                [
-                    np.asarray([0, 0 + 1j], dtype=complex),
-                    np.asarray([0 - 1j, 0], dtype=complex),
-                ]
-            ),
+            sympy.Matrix([[0, 0 + 1j], [0 - 1j, 0],]),
             (0,),
-            np.asarray(
-                [
-                    np.asarray([0, 0 + 1j], dtype=complex),
-                    np.asarray([0 - 1j, 0], dtype=complex),
-                ]
-            ),
+            sympy.Matrix([[0, 0 + 1j], [0 - 1j, 0],]),
             (1,),
         ],
         [
-            np.asarray(
-                [
-                    np.asarray([1, 0, 0, 0], dtype=complex),
-                    np.asarray([0, 1, 0, 0], dtype=complex),
-                    np.asarray([0, 0, 0, 1], dtype=complex),
-                    np.asarray([0, 0, 1, 0], dtype=complex),
-                ]
-            ),
+            sympy.Matrix([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 1], [0, 0, 1, 0],]),
             (0, 2),
-            np.asarray(
-                [
-                    np.asarray([1, 0, 0, 0], dtype=complex),
-                    np.asarray([0, 1, 0, 0], dtype=complex),
-                    np.asarray([0, 0, 1, 0], dtype=complex),
-                    np.asarray([0, 0, 0, 1], dtype=complex),
-                ]
-            ),
+            sympy.Matrix([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1],]),
             (0, 2),
         ],
     ],
@@ -245,35 +229,12 @@ def test_gate_eq_not_same_gates(matrix1, qubits1, matrix2, qubits2):
 @pytest.mark.parametrize(
     "matrix, qubits",
     [
-        [np.eye(2, dtype=complex), (0,)],
-        [np.eye(2, dtype=complex), (1,)],
+        [sympy.Matrix(np.eye(2)), (0,)],
+        [sympy.Matrix(np.eye(2)), (1,)],
+        [sympy.Matrix([[0, 0 + 1j], [0 - 1j, 0],]), (0,),],
+        [sympy.Matrix([[0, 0 + 1j], [0 - 1j, 0],]), (1,),],
         [
-            np.asarray(
-                [
-                    np.asarray([0, 0 + 1j], dtype=complex),
-                    np.asarray([0 - 1j, 0], dtype=complex),
-                ]
-            ),
-            (0,),
-        ],
-        [
-            np.asarray(
-                [
-                    np.asarray([0, 0 + 1j], dtype=complex),
-                    np.asarray([0 - 1j, 0], dtype=complex),
-                ]
-            ),
-            (1,),
-        ],
-        [
-            np.asarray(
-                [
-                    np.asarray([1, 0, 0, 0], dtype=complex),
-                    np.asarray([0, 1, 0, 0], dtype=complex),
-                    np.asarray([0, 0, 0, 1], dtype=complex),
-                    np.asarray([0, 0, 1, 0], dtype=complex),
-                ]
-            ),
+            sympy.Matrix([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 1], [0, 0, 1, 0],]),
             (0, 2),
         ],
     ],
@@ -296,35 +257,12 @@ def test_gate__repr__(matrix, qubits):
 @pytest.mark.parametrize(
     "matrix, qubits",
     [
-        [np.eye(2, dtype=complex), (0,)],
-        [np.eye(2, dtype=complex), (1,)],
+        [sympy.Matrix(np.eye(2)), (0,)],
+        [sympy.Matrix(np.eye(2)), (1,)],
+        [sympy.Matrix([[0, 0 + 1j], [0 - 1j, 0],]), (0,),],
+        [sympy.Matrix([[0, 0 + 1j], [0 - 1j, 0],]), (1,),],
         [
-            np.asarray(
-                [
-                    np.asarray([0, 0 + 1j], dtype=complex),
-                    np.asarray([0 - 1j, 0], dtype=complex),
-                ]
-            ),
-            (0,),
-        ],
-        [
-            np.asarray(
-                [
-                    np.asarray([0, 0 + 1j], dtype=complex),
-                    np.asarray([0 - 1j, 0], dtype=complex),
-                ]
-            ),
-            (1,),
-        ],
-        [
-            np.asarray(
-                [
-                    np.asarray([1, 0, 0, 0], dtype=complex),
-                    np.asarray([0, 1, 0, 0], dtype=complex),
-                    np.asarray([0, 0, 0, 1], dtype=complex),
-                    np.asarray([0, 0, 1, 0], dtype=complex),
-                ]
-            ),
+            sympy.Matrix([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 1], [0, 0, 1, 0],]),
             (0, 2),
         ],
     ],
@@ -340,45 +278,18 @@ def test_gate_is_successfully_converted_to_dict_form(matrix, qubits):
     # Then
     assert gate_dict["schema"] == SCHEMA_VERSION + "-gate"
     assert gate_dict["qubits"] == qubits
-    assert all(
-        element_dict == element
-        for row_dict, row in zip(gate_dict["matrix"], matrix)
-        for element_dict, element in zip(row_dict, row)
-    )
+    assert gate_dict["matrix"] == matrix
 
 
 @pytest.mark.parametrize(
     "matrix, qubits",
     [
-        [np.eye(2, dtype=complex), (0,)],
-        [np.eye(2, dtype=complex), (1,)],
+        [sympy.Matrix(np.eye(2)), (0,)],
+        [sympy.Matrix(np.eye(2)), (1,)],
+        [sympy.Matrix([[0, 0 + 1j], [0 - 1j, 0],]), (0,),],
+        [sympy.Matrix([[0, 0 + 1j], [0 - 1j, 0],]), (1,),],
         [
-            np.asarray(
-                [
-                    np.asarray([0, 0 + 1j], dtype=complex),
-                    np.asarray([0 - 1j, 0], dtype=complex),
-                ]
-            ),
-            (0,),
-        ],
-        [
-            np.asarray(
-                [
-                    np.asarray([0, 0 + 1j], dtype=complex),
-                    np.asarray([0 - 1j, 0], dtype=complex),
-                ]
-            ),
-            (1,),
-        ],
-        [
-            np.asarray(
-                [
-                    np.asarray([1, 0, 0, 0], dtype=complex),
-                    np.asarray([0, 1, 0, 0], dtype=complex),
-                    np.asarray([0, 0, 0, 1], dtype=complex),
-                    np.asarray([0, 0, 1, 0], dtype=complex),
-                ]
-            ),
+            sympy.Matrix([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 1], [0, 0, 1, 0],]),
             (0, 2),
         ],
     ],
@@ -396,44 +307,21 @@ def test_gate_is_successfully_converted_to_serializable_dict_form(matrix, qubits
     assert gate_dict["qubits"] == list(qubits)
     for row_index, row in enumerate(gate_dict["matrix"]):
         for col_index, real_value in enumerate(row["real"]):
-            assert real_value == matrix[row_index][col_index].real
+            assert float(real_value) == sympy.re(matrix[row_index, col_index])
         for col_index, imag_value in enumerate(row["imag"]):
-            assert imag_value == matrix[row_index][col_index].imag
+            assert float(imag_value) == sympy.im(matrix[row_index, col_index])
 
 
 #### save ####
 @pytest.mark.parametrize(
     "matrix, qubits",
     [
-        [np.eye(2, dtype=complex), (0,)],
-        [np.eye(2, dtype=complex), (1,)],
+        [sympy.Matrix(np.eye(2)), (0,)],
+        [sympy.Matrix(np.eye(2)), (1,)],
+        [sympy.Matrix([[0, 0 + 1j], [0 - 1j, 0],]), (0,),],
+        [sympy.Matrix([[0, 0 + 1j], [0 - 1j, 0],]), (1,),],
         [
-            np.asarray(
-                [
-                    np.asarray([0, 0 + 1j], dtype=complex),
-                    np.asarray([0 - 1j, 0], dtype=complex),
-                ]
-            ),
-            (0,),
-        ],
-        [
-            np.asarray(
-                [
-                    np.asarray([0, 0 + 1j], dtype=complex),
-                    np.asarray([0 - 1j, 0], dtype=complex),
-                ]
-            ),
-            (1,),
-        ],
-        [
-            np.asarray(
-                [
-                    np.asarray([1, 0, 0, 0], dtype=complex),
-                    np.asarray([0, 1, 0, 0], dtype=complex),
-                    np.asarray([0, 0, 0, 1], dtype=complex),
-                    np.asarray([0, 0, 1, 0], dtype=complex),
-                ]
-            ),
+            sympy.Matrix([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 1], [0, 0, 1, 0],]),
             (0, 2),
         ],
     ],
@@ -453,46 +341,23 @@ def test_gate_is_successfully_saved_to_a_file(qubits, matrix):
     assert saved_data["qubits"] == list(qubits)
     for row_index, row in enumerate(saved_data["matrix"]):
         for col_index, real_value in enumerate(row["real"]):
-            assert real_value == matrix[row_index][col_index].real
+            assert float(real_value) == matrix[row_index, col_index].as_real_imag()[0]
         for col_index, imag_value in enumerate(row["imag"]):
-            assert imag_value == matrix[row_index][col_index].imag
+            assert float(imag_value) == matrix[row_index, col_index].as_real_imag()[1]
 
-    os.remove("gate.json")
+    # os.remove("gate.json")
 
 
 #### load ####
 @pytest.mark.parametrize(
     "matrix, qubits",
     [
-        [np.eye(2, dtype=complex), (0,)],
-        [np.eye(2, dtype=complex), (1,)],
+        [sympy.Matrix(np.eye(2)), (0,)],
+        [sympy.Matrix(np.eye(2)), (1,)],
+        [sympy.Matrix([[0, 0 + 1j], [0 - 1j, 0],]), (0,),],
+        [sympy.Matrix([[0, 0 + 1j], [0 - 1j, 0],]), (1,),],
         [
-            np.asarray(
-                [
-                    np.asarray([0, 0 + 1j], dtype=complex),
-                    np.asarray([0 - 1j, 0], dtype=complex),
-                ]
-            ),
-            (0,),
-        ],
-        [
-            np.asarray(
-                [
-                    np.asarray([0, 0 + 1j], dtype=complex),
-                    np.asarray([0 - 1j, 0], dtype=complex),
-                ]
-            ),
-            (1,),
-        ],
-        [
-            np.asarray(
-                [
-                    np.asarray([1, 0, 0, 0], dtype=complex),
-                    np.asarray([0, 1, 0, 0], dtype=complex),
-                    np.asarray([0, 0, 0, 1], dtype=complex),
-                    np.asarray([0, 0, 1, 0], dtype=complex),
-                ]
-            ),
+            sympy.Matrix([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 1], [0, 0, 1, 0],]),
             (0, 2),
         ],
     ],
@@ -505,15 +370,10 @@ def test_gate_is_successfully_loaded_from_a_file(matrix, qubits):
     gate.save("gate.json")
 
     # When
-    gate = Gate.load("gate.json")
+    new_gate = Gate.load("gate.json")
 
     # Then
-    assert gate.qubits == qubits
-    assert all(
-        element_gate == element
-        for gate_row, row in zip(gate.matrix, matrix)
-        for element_gate, element in zip(gate_row, row)
-    )
+    assert gate == new_gate
 
     os.remove("gate.json")
 
@@ -521,35 +381,12 @@ def test_gate_is_successfully_loaded_from_a_file(matrix, qubits):
 @pytest.mark.parametrize(
     "matrix, qubits",
     [
-        [np.eye(2, dtype=complex), (0,)],
-        [np.eye(2, dtype=complex), (1,)],
+        [sympy.Matrix(np.eye(2)), (0,)],
+        [sympy.Matrix(np.eye(2)), (1,)],
+        [sympy.Matrix([[0, 0 + 1j], [0 - 1j, 0],]), (0,),],
+        [sympy.Matrix([[0, 0 + 1j], [0 - 1j, 0],]), (1,),],
         [
-            np.asarray(
-                [
-                    np.asarray([0, 0 + 1j], dtype=complex),
-                    np.asarray([0 - 1j, 0], dtype=complex),
-                ]
-            ),
-            (0,),
-        ],
-        [
-            np.asarray(
-                [
-                    np.asarray([0, 0 + 1j], dtype=complex),
-                    np.asarray([0 - 1j, 0], dtype=complex),
-                ]
-            ),
-            (1,),
-        ],
-        [
-            np.asarray(
-                [
-                    np.asarray([1, 0, 0, 0], dtype=complex),
-                    np.asarray([0, 1, 0, 0], dtype=complex),
-                    np.asarray([0, 0, 0, 1], dtype=complex),
-                    np.asarray([0, 0, 1, 0], dtype=complex),
-                ]
-            ),
+            sympy.Matrix([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 1], [0, 0, 1, 0],]),
             (0, 2),
         ],
     ],
@@ -562,13 +399,8 @@ def test_gate_is_successfully_loaded_from_a_dict(matrix, qubits):
     gate_dict = gate.to_dict(serializable=True)
 
     # When
-    gate = Gate.load(gate_dict)
+    new_gate = Gate.load(gate_dict)
 
     # Then
-    assert gate.qubits == qubits
-    assert all(
-        element_gate == element
-        for gate_row, row in zip(gate.matrix, matrix)
-        for element_gate, element in zip(gate_row, row)
-    )
+    assert gate == new_gate
 

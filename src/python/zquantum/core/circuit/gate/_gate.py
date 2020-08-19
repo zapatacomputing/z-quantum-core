@@ -75,10 +75,9 @@ class Gate(object):
             gate_dict["qubits"] = list(self.qubits)
             gate_dict["matrix"] = []
             for i in range(self.matrix.shape[0]):
-                gate_dict["matrix"].append({"real": [], "imag": []})
+                gate_dict["matrix"].append({"elements": []})
                 for element in self.matrix.row(i):
-                    gate_dict["matrix"][-1]["real"].append(str(sympy.re(element)))
-                    gate_dict["matrix"][-1]["imag"].append(str(sympy.im(element)))
+                    gate_dict["matrix"][-1]["elements"].append(str(element))
         else:
             gate_dict["qubits"] = self.qubits
             gate_dict["matrix"] = self.matrix
@@ -102,13 +101,8 @@ class Gate(object):
             matrix = []
             for row_index, row in enumerate(data["matrix"]):
                 new_row = []
-                for element_index in range(len(row["real"])):
-                    new_row.append(
-                        complex(
-                            float(row["real"][element_index]),
-                            float(row["imag"][element_index]),
-                        )
-                    )
+                for element_index in range(len(row["elements"])):
+                    new_row.append(sympy.sympify(row["elements"][element_index]))
                 matrix.append(new_row)
             matrix = sympy.Matrix(matrix)
         else:

@@ -15,6 +15,7 @@ from ._gate import Gate
         sympy.Matrix([[0], [0]]),
         sympy.Matrix([[0, 0, 0], [0, 0, 0]]),
         sympy.Matrix([[0]]),
+        sympy.Matrix([[sympy.Symbol("theta")]]),
     ],
 )
 def test_creating_gate_with_rectangular_matrix_fails(matrix):
@@ -31,6 +32,7 @@ def test_creating_gate_with_rectangular_matrix_fails(matrix):
         sympy.Matrix([[0], [0]]),
         sympy.Matrix([[0, 0, 0], [0, 0, 0]]),
         sympy.Matrix([[0, 0, 0, 0], [0, 0, 0, 0]]),
+        sympy.Matrix([[sympy.Symbol("theta")], [sympy.Symbol("theta")]]),
     ],
 )
 def test_creating_gate_with_invalid_matrix_size_for_one_qubit_fails(matrix):
@@ -47,6 +49,7 @@ def test_creating_gate_with_invalid_matrix_size_for_one_qubit_fails(matrix):
         sympy.Matrix([[0], [0]]),
         sympy.Matrix([[0, 0], [0, 0]]),
         sympy.Matrix([[0, 0, 0], [0, 0, 0]]),
+        sympy.Matrix([[sympy.Symbol("theta")], [sympy.Symbol("theta")]]),
     ],
 )
 def test_creating_gate_with_invalid_matrix_size_for_two_qubit_fails(matrix):
@@ -173,6 +176,48 @@ def test_creating_parameterized_gate_multiple_symbols():
             sympy.Matrix([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 1], [0, 0, 1, 0],]),
             (0, 2),
         ],
+        [
+            sympy.Matrix(
+                [
+                    [1, 0, sympy.Symbol("theta_0"), 0],
+                    [0, 1, 0, sympy.Symbol("theta_0")],
+                    [sympy.Symbol("theta_0"), 0, 0, 1],
+                    [0, sympy.Symbol("theta_0"), 1, 0],
+                ]
+            ),
+            (0, 2),
+        ],
+        [
+            sympy.Matrix(
+                [
+                    [
+                        complex(1, 0),
+                        complex(0, 0),
+                        sympy.Symbol("theta_0") + complex(1, 2),
+                        complex(0, 0),
+                    ],
+                    [
+                        complex(0, 0),
+                        complex(1, 0),
+                        complex(0, 0),
+                        sympy.Symbol("theta_0") + complex(1, 2),
+                    ],
+                    [
+                        sympy.Symbol("theta_0") + complex(1, 2),
+                        complex(0, 0),
+                        complex(0, 0),
+                        complex(1, 0),
+                    ],
+                    [
+                        complex(0, 0),
+                        sympy.Symbol("theta_0") + complex(1, 2),
+                        complex(1, 0),
+                        complex(0, 0),
+                    ],
+                ]
+            ),
+            (0, 2),
+        ],
     ],
 )
 def test_gate_eq_same_gates(matrix, qubits):
@@ -210,6 +255,26 @@ def test_gate_eq_same_gates(matrix, qubits):
             sympy.Matrix([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1],]),
             (0, 2),
         ],
+        [
+            sympy.Matrix(
+                [
+                    [1, 0, sympy.Symbol("theta_0"), 0],
+                    [0, 1, 0, sympy.Symbol("theta_0")],
+                    [sympy.Symbol("theta_0"), 0, 0, 1],
+                    [0, sympy.Symbol("theta_0"), 1, 0],
+                ]
+            ),
+            (0, 2),
+            sympy.Matrix(
+                [
+                    [1, 0, sympy.Symbol("theta_1"), 0],
+                    [0, 1, 0, sympy.Symbol("theta_1")],
+                    [sympy.Symbol("theta_1"), 0, 0, 1],
+                    [0, sympy.Symbol("theta_1"), 1, 0],
+                ]
+            ),
+            (0, 2),
+        ],
     ],
 )
 def test_gate_eq_not_same_gates(matrix1, qubits1, matrix2, qubits2):
@@ -235,6 +300,48 @@ def test_gate_eq_not_same_gates(matrix1, qubits1, matrix2, qubits2):
         [sympy.Matrix([[0, 0 + 1j], [0 - 1j, 0],]), (1,),],
         [
             sympy.Matrix([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 1], [0, 0, 1, 0],]),
+            (0, 2),
+        ],
+        [
+            sympy.Matrix(
+                [
+                    [1, 0, sympy.Symbol("theta_0"), 0],
+                    [0, 1, 0, sympy.Symbol("theta_0")],
+                    [sympy.Symbol("theta_0"), 0, 0, 1],
+                    [0, sympy.Symbol("theta_0"), 1, 0],
+                ]
+            ),
+            (0, 2),
+        ],
+        [
+            sympy.Matrix(
+                [
+                    [
+                        complex(1, 0),
+                        complex(0, 0),
+                        sympy.Symbol("theta_0") + complex(1, 2),
+                        complex(0, 0),
+                    ],
+                    [
+                        complex(0, 0),
+                        complex(1, 0),
+                        complex(0, 0),
+                        sympy.Symbol("theta_0") + complex(1, 2),
+                    ],
+                    [
+                        sympy.Symbol("theta_0") + complex(1, 2),
+                        complex(0, 0),
+                        complex(0, 0),
+                        complex(1, 0),
+                    ],
+                    [
+                        complex(0, 0),
+                        sympy.Symbol("theta_0") + complex(1, 2),
+                        complex(1, 0),
+                        complex(0, 0),
+                    ],
+                ]
+            ),
             (0, 2),
         ],
     ],
@@ -265,6 +372,48 @@ def test_gate__repr__(matrix, qubits):
             sympy.Matrix([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 1], [0, 0, 1, 0],]),
             (0, 2),
         ],
+        [
+            sympy.Matrix(
+                [
+                    [1, 0, sympy.Symbol("theta_0"), 0],
+                    [0, 1, 0, sympy.Symbol("theta_0")],
+                    [sympy.Symbol("theta_0"), 0, 0, 1],
+                    [0, sympy.Symbol("theta_0"), 1, 0],
+                ]
+            ),
+            (0, 2),
+        ],
+        [
+            sympy.Matrix(
+                [
+                    [
+                        complex(1, 0),
+                        complex(0, 0),
+                        sympy.Symbol("theta_0") + complex(1, 2),
+                        complex(0, 0),
+                    ],
+                    [
+                        complex(0, 0),
+                        complex(1, 0),
+                        complex(0, 0),
+                        sympy.Symbol("theta_0") + complex(1, 2),
+                    ],
+                    [
+                        sympy.Symbol("theta_0") + complex(1, 2),
+                        complex(0, 0),
+                        complex(0, 0),
+                        complex(1, 0),
+                    ],
+                    [
+                        complex(0, 0),
+                        sympy.Symbol("theta_0") + complex(1, 2),
+                        complex(1, 0),
+                        complex(0, 0),
+                    ],
+                ]
+            ),
+            (0, 2),
+        ],
     ],
 )
 def test_gate_is_successfully_converted_to_dict_form(matrix, qubits):
@@ -292,6 +441,48 @@ def test_gate_is_successfully_converted_to_dict_form(matrix, qubits):
             sympy.Matrix([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 1], [0, 0, 1, 0],]),
             (0, 2),
         ],
+        [
+            sympy.Matrix(
+                [
+                    [1, 0, sympy.Symbol("theta_0"), 0],
+                    [0, 1, 0, sympy.Symbol("theta_0")],
+                    [sympy.Symbol("theta_0"), 0, 0, 1],
+                    [0, sympy.Symbol("theta_0"), 1, 0],
+                ]
+            ),
+            (0, 2),
+        ],
+        [
+            sympy.Matrix(
+                [
+                    [
+                        complex(1, 0),
+                        complex(0, 0),
+                        sympy.Symbol("theta_0") + complex(1, 2),
+                        complex(0, 0),
+                    ],
+                    [
+                        complex(0, 0),
+                        complex(1, 0),
+                        complex(0, 0),
+                        sympy.Symbol("theta_0") + complex(1, 2),
+                    ],
+                    [
+                        sympy.Symbol("theta_0") + complex(1, 2),
+                        complex(0, 0),
+                        complex(0, 0),
+                        complex(1, 0),
+                    ],
+                    [
+                        complex(0, 0),
+                        sympy.Symbol("theta_0") + complex(1, 2),
+                        complex(1, 0),
+                        complex(0, 0),
+                    ],
+                ]
+            ),
+            (0, 2),
+        ],
     ],
 )
 def test_gate_is_successfully_converted_to_serializable_dict_form(matrix, qubits):
@@ -306,10 +497,8 @@ def test_gate_is_successfully_converted_to_serializable_dict_form(matrix, qubits
     assert gate_dict["schema"] == SCHEMA_VERSION + "-gate"
     assert gate_dict["qubits"] == list(qubits)
     for row_index, row in enumerate(gate_dict["matrix"]):
-        for col_index, real_value in enumerate(row["real"]):
-            assert float(real_value) == sympy.re(matrix[row_index, col_index])
-        for col_index, imag_value in enumerate(row["imag"]):
-            assert float(imag_value) == sympy.im(matrix[row_index, col_index])
+        for col_index, element in enumerate(row["elements"]):
+            assert sympy.sympify(element) == matrix[row_index, col_index]
 
 
 #### save ####
@@ -322,6 +511,37 @@ def test_gate_is_successfully_converted_to_serializable_dict_form(matrix, qubits
         [sympy.Matrix([[0, 0 + 1j], [0 - 1j, 0],]), (1,),],
         [
             sympy.Matrix([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 1], [0, 0, 1, 0],]),
+            (0, 2),
+        ],
+        [
+            sympy.Matrix(
+                [
+                    [
+                        complex(1, 0),
+                        complex(0, 0),
+                        sympy.Symbol("theta_0") + complex(1, 2),
+                        complex(0, 0),
+                    ],
+                    [
+                        complex(0, 0),
+                        complex(1, 0),
+                        complex(0, 0),
+                        sympy.Symbol("theta_0") + complex(1, 2),
+                    ],
+                    [
+                        sympy.Symbol("theta_0") + complex(1, 2),
+                        complex(0, 0),
+                        complex(0, 0),
+                        complex(1, 0),
+                    ],
+                    [
+                        complex(0, 0),
+                        sympy.Symbol("theta_0") + complex(1, 2),
+                        complex(1, 0),
+                        complex(0, 0),
+                    ],
+                ]
+            ),
             (0, 2),
         ],
     ],
@@ -340,12 +560,10 @@ def test_gate_is_successfully_saved_to_a_file(qubits, matrix):
     assert saved_data["schema"] == SCHEMA_VERSION + "-gate"
     assert saved_data["qubits"] == list(qubits)
     for row_index, row in enumerate(saved_data["matrix"]):
-        for col_index, real_value in enumerate(row["real"]):
-            assert float(real_value) == matrix[row_index, col_index].as_real_imag()[0]
-        for col_index, imag_value in enumerate(row["imag"]):
-            assert float(imag_value) == matrix[row_index, col_index].as_real_imag()[1]
+        for col_index, element in enumerate(row["elements"]):
+            assert sympy.sympify(element) == matrix[row_index, col_index]
 
-    # os.remove("gate.json")
+    os.remove("gate.json")
 
 
 #### load ####
@@ -358,6 +576,37 @@ def test_gate_is_successfully_saved_to_a_file(qubits, matrix):
         [sympy.Matrix([[0, 0 + 1j], [0 - 1j, 0],]), (1,),],
         [
             sympy.Matrix([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 1], [0, 0, 1, 0],]),
+            (0, 2),
+        ],
+        [
+            sympy.Matrix(
+                [
+                    [
+                        complex(1, 0),
+                        complex(0, 0),
+                        sympy.Symbol("theta_0") + complex(1, 2),
+                        complex(0, 0),
+                    ],
+                    [
+                        complex(0, 0),
+                        complex(1, 0),
+                        complex(0, 0),
+                        sympy.Symbol("theta_0") + complex(1, 2),
+                    ],
+                    [
+                        sympy.Symbol("theta_0") + complex(1, 2),
+                        complex(0, 0),
+                        complex(0, 0),
+                        complex(1, 0),
+                    ],
+                    [
+                        complex(0, 0),
+                        sympy.Symbol("theta_0") + complex(1, 2),
+                        complex(1, 0),
+                        complex(0, 0),
+                    ],
+                ]
+            ),
             (0, 2),
         ],
     ],
@@ -387,6 +636,48 @@ def test_gate_is_successfully_loaded_from_a_file(matrix, qubits):
         [sympy.Matrix([[0, 0 + 1j], [0 - 1j, 0],]), (1,),],
         [
             sympy.Matrix([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 1], [0, 0, 1, 0],]),
+            (0, 2),
+        ],
+        [
+            sympy.Matrix(
+                [
+                    [1, 0, sympy.Symbol("theta_0"), 0],
+                    [0, 1, 0, sympy.Symbol("theta_0")],
+                    [sympy.Symbol("theta_0"), 0, 0, 1],
+                    [0, sympy.Symbol("theta_0"), 1, 0],
+                ]
+            ),
+            (0, 2),
+        ],
+        [
+            sympy.Matrix(
+                [
+                    [
+                        complex(1, 0),
+                        complex(0, 0),
+                        sympy.Symbol("theta_0") + complex(1, 2),
+                        complex(0, 0),
+                    ],
+                    [
+                        complex(0, 0),
+                        complex(1, 0),
+                        complex(0, 0),
+                        sympy.Symbol("theta_0") + complex(1, 2),
+                    ],
+                    [
+                        sympy.Symbol("theta_0") + complex(1, 2),
+                        complex(0, 0),
+                        complex(0, 0),
+                        complex(1, 0),
+                    ],
+                    [
+                        complex(0, 0),
+                        sympy.Symbol("theta_0") + complex(1, 2),
+                        complex(1, 0),
+                        complex(0, 0),
+                    ],
+                ]
+            ),
             (0, 2),
         ],
     ],

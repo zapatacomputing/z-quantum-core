@@ -10,9 +10,9 @@ spec:
           - name: number-of-params
             default: None
           - name: min-val
-            default: -0.01
+            default: "-0.01"
           - name: max-val
-            default: 0.01
+            default: "0.01"
           - name: seed
             default: None
           - name: command
@@ -95,7 +95,7 @@ spec:
               if params is not None:
                 circuit = ansatz.get_executable_circuit(params)
               elif ansatz.supports_parametrized_circuits:
-                circuit = ansatz.parametrized_circuit()
+                circuit = ansatz.parametrized_circuit
               else:
                 raise(Exception("Ansatz is not parametrizable and no parameters has been provided."))
               save_circuit(circuit, 'circuit.json')
@@ -112,9 +112,9 @@ spec:
           - name: ansatz-specs
             default: None
           - name: number-of-params-per-layer
-            optional: None
+            default: None
           - name: n-layers
-            default: 1
+            default: "1"
           - name: min-value
           - name: max-value
           - name: step

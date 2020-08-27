@@ -17,11 +17,11 @@ from collections import Counter
 from .bitstring_distribution import BitstringDistribution
 
 
-def save_expectation_values(expectation_values: np.ndarray, filename: str) -> None:
+def save_expectation_values(expectation_values: ExpectationValues, filename: str) -> None:
     """Save expectation values to a file.
 
     Args:
-        array (numpy.array): the array
+        expectation_values (ExpectationValues): the expectation values to save
         file (str or file-like object): the name of the file, or a file-like object
     """
     dictionary = expectation_values.to_dict()

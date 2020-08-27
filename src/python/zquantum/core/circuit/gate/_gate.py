@@ -88,15 +88,10 @@ class Gate(object):
             return False
         for element, another_element in zip(self.matrix, another_gate.matrix):
             if element != another_element:
-                if isinstance(element, sympy.Number) and isinstance(
-                    another_element, sympy.Number
+                if not np.isclose(
+                    complex(sympy.re(element), sympy.im(element)),
+                    complex(sympy.re(another_element), sympy.im(another_element),),
                 ):
-                    if not np.isclose(
-                        complex(sympy.re(element), sympy.im(element)),
-                        complex(sympy.re(another_element), sympy.im(another_element),),
-                    ):
-                        return False
-                else:
                     return False
 
         if self.symbolic_params != another_gate.symbolic_params:

@@ -805,14 +805,14 @@ def test_gate_is_evaluated_successfully_with_multiple_parameters_only_some_set()
 @pytest.mark.parametrize(
     "theta, evaluated_matrix",
     [
-        [np.pi, sympy.Matrix([[0, -1], [-1, 0],])],
+        [np.pi, sympy.Matrix([[0, complex(0, -1)], [complex(0, -1), 0],])],
         [2 * np.pi, sympy.Matrix([[-1, 0], [0, -1],])],
         [
             np.pi / 2,
             sympy.Matrix(
                 [
-                    [0.7071067811865476, -0.7071067811865475],
-                    [-0.7071067811865475, 0.7071067811865476],
+                    [0.7071067811865476, complex(0, -0.7071067811865475)],
+                    [complex(0, -0.7071067811865475), 0.7071067811865476],
                 ]
             ),
         ],
@@ -826,10 +826,10 @@ def test_rx_gate_is_as_expected_when_evaluated(theta, evaluated_matrix):
         [
             [
                 sympy.cos(sympy.Symbol("theta") / 2),
-                -1 * sympy.sin(sympy.Symbol("theta") / 2),
+                complex(0, -1) * sympy.sin(sympy.Symbol("theta") / 2),
             ],
             [
-                -1 * sympy.sin(sympy.Symbol("theta") / 2),
+                complex(0, -1) * sympy.sin(sympy.Symbol("theta") / 2),
                 sympy.cos(sympy.Symbol("theta") / 2),
             ],
         ]

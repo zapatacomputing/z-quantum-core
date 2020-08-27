@@ -89,6 +89,27 @@ def test_creating_identity_gate_succeeds(number_of_qubits):
     )
 
 
+def test_creating_hadamard_gate_succeeds():
+    """The Gate class should be able to handle the hadamard gate"""
+    # Given
+    matrix = sympy.Matrix(
+        [
+            [(1 / np.sqrt(2)) * complex(1, 0), (1 / np.sqrt(2)) * complex(1, 0)],
+            [(1 / np.sqrt(2)) * complex(1, 0), (1 / np.sqrt(2)) * complex(-1, 0)],
+        ]
+    )
+    qubits = (0,)
+
+    # When
+    gate = Gate(matrix, qubits)
+
+    # Then
+    assert gate.qubits == qubits
+    assert all(
+        element_gate == element for element_gate, element in zip(gate.matrix, matrix)
+    )
+
+
 def test_creating_complex_gate():
     """The Gate class should be able to handle complex matrices"""
     # Given

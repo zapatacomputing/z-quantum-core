@@ -2,6 +2,7 @@ import numpy as np
 import sympy
 import json
 import copy
+import warnings
 from typing import Tuple, Union, Dict, TextIO
 from collections import Counter
 from ...utils import SCHEMA_VERSION, convert_array_to_dict, convert_dict_to_array
@@ -185,6 +186,19 @@ class Gate(object):
         Returns:
             Gate
         """
+        for symbol in symbols_map.keys():
+            if symbol not in self.symbolic_params:
+                warnings.warn(
+                    """
+                Trying to evaluate gate with symbols not existing in the gate:
+                Symbols in circuit: {0}
+                Symbols in the map: {1}
+                """.format(
+                        self.symbolic_params, symbols_map.keys()
+                    ),
+                    Warning,
+                )
+
         gate_class = type(self)
 
         evaluated_matrix = copy.deepcopy(self.matrix)

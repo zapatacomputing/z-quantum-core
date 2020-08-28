@@ -802,6 +802,37 @@ def test_gate_is_evaluated_successfully_with_multiple_parameters_only_some_set()
     assert new_gate == expected_new_gate
 
 
+def test_gate_evaluated_raises_warning_when_extra_symbols_are_in_symbols_map():
+    """The Gate class should raise a warning when evaluated with a symbols map containing symbols not present in
+    the gate's matrix"""
+    # Given
+    qubits = (0, 2)
+    matrix = sympy.Matrix(
+        [
+            [sympy.Symbol("theta"), 0, 0, 0],
+            [0, sympy.Symbol("theta"), 0, 0],
+            [0, 0, 0, complex(0, -1) * sympy.Symbol("gamma")],
+            [0, 0, complex(0, -1) * sympy.Symbol("gamma"), 0],
+        ]
+    )
+    gate = Gate(matrix, qubits)
+    symbols_map = {"theta": 1, "lambda": 0.2}
+    evaluated_matrix = sympy.Matrix(
+        [
+            [1, 0, 0, 0],
+            [0, 1, 0, 0],
+            [0, 0, 0, complex(0, -1) * sympy.Symbol("gamma")],
+            [0, 0, complex(0, -1) * sympy.Symbol("gamma"), 0],
+        ]
+    )
+    expected_new_gate = Gate(evaluated_matrix, qubits)
+
+    # When/Then
+    with pytest.warns(Warning):
+        new_gate = gate.evaluate(symbols_map)
+    assert new_gate == expected_new_gate
+
+
 @pytest.mark.parametrize(
     "theta, evaluated_matrix",
     [

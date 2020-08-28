@@ -34,7 +34,7 @@ class MockQuantumBackend(QuantumBackend):
 
     def get_expectation_values(self, circuit, operator, **kwargs):
         n_qubits = len(circuit.qubits)
-        values = [random.random() for i in range(n_qubits)]
+        values = np.asarray([random.random() for i in range(n_qubits)])
         return ExpectationValues(values)
 
     def get_wavefunction(self, circuit):
@@ -75,7 +75,7 @@ class MockQuantumSimulator(QuantumSimulator):
             length = n_operator
         else:
             length = n_qubits
-        values = [2.0 * random.random() - 1.0 for i in range(length)]
+        values = np.asarray([2.0 * random.random() - 1.0 for i in range(length)])
         if n_operator is not None and constant_position is not None:
             values[constant_position] = 1.0
         return ExpectationValues(values)

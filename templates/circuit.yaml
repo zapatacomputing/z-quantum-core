@@ -229,7 +229,7 @@ spec:
             path: /app/extended_circuit.json
 
 
-    # Create circuit set from 4 circuit artifacts #TODO for an arbitrary number of artifacts
+    # Create circuit set from 4 circuit artifacts
     - name: create-circuit-set-from-circuit-artifacts
       parent: generic-task
       inputs:
@@ -260,7 +260,7 @@ spec:
           - name: circuit-set
             path: /app/circuit_set.json
 
-    # Add a circuit to a circuit-set
+    # Add a circuit to a circuit-set (if we want to add more than 4 circuit artifacts)
     - name: add-circuit-artifact-to-circuit-set
       parent: generic-task
       inputs:
@@ -286,35 +286,6 @@ spec:
                   circuit_set = []
 
                 circuit_set.append(load_circuit("circuit.json"))
-                save_circuit_set(circuit_set,"circuit_set.json")
-      outputs:
-        artifacts:
-          - name: circuit-set
-            path: /app/circuit_set.json
-
-
-    # Initialize
-    - name: initalize-circuit-set
-      parent: generic-task
-      inputs:
-        parameters:
-          - name: command
-            value: python3 main_script.py
-        artifacts:
-          - name: circuit-set
-            path: /app/circuit_set_input.json
-            optional: true
-          - name: main-script
-            path: /app/main_script.py
-            raw:
-              data: |
-                import os
-                from zquantum.core.circuit import load_circuit_set, save_circuit_set
-
-                if os.path.exists('circuit_set_input.json'):
-                  circuit_set = load_circuit_set('circuit_set_input.json')
-                else:
-                  circuit_set = []
                 save_circuit_set(circuit_set,"circuit_set.json")
       outputs:
         artifacts:

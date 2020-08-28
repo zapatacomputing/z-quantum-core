@@ -291,3 +291,32 @@ spec:
         artifacts:
           - name: circuit-set
             path: /app/circuit_set.json
+
+
+    # Initialize
+    - name: initalize-circuit-set
+      parent: generic-task
+      inputs:
+        parameters:
+          - name: command
+            value: python3 main_script.py
+        artifacts:
+          - name: circuit-set
+            path: /app/circuit_set_input.json
+            optional: true
+          - name: main-script
+            path: /app/main_script.py
+            raw:
+              data: |
+                import os
+                from zquantum.core.circuit import load_circuit_set, save_circuit_set
+
+                if os.path.exists('circuit_set_input.json'):
+                  circuit_set = load_circuit_set('circuit_set_input.json')
+                else:
+                  circuit_set = []
+                save_circuit_set(circuit_set,"circuit_set.json")
+      outputs:
+        artifacts:
+          - name: circuit-set
+            path: /app/circuit_set.json

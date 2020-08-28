@@ -260,7 +260,7 @@ spec:
           - name: circuit-set
             path: /app/circuit_set.json
 
-    # Add a circuit to a circuit-set 
+    # Add a circuit to a circuit-set
     - name: add-circuit-artifact-to-circuit-set
       parent: generic-task
       inputs:
@@ -269,7 +269,7 @@ spec:
             value: python3 main_script.py
         artifacts:
           - name: circuit-set
-            path: /app/circuit_set.json
+            path: /app/circuit_set_input.json
             optional: true
           - name: circuit
             path: /app/circuit.json
@@ -280,8 +280,8 @@ spec:
                 import os
                 from zquantum.core.circuit import load_circuit_set, load_circuit, save_circuit_set
 
-                if os.path.exists('circuit_set.json'):
-                  circuit_set = load_circuit_set('circuit_set.json')
+                if os.path.exists('circuit_set_input.json'):
+                  circuit_set = load_circuit_set('circuit_set_input.json')
                 else:
                   circuit_set = []
 

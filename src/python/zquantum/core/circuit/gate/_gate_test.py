@@ -449,6 +449,7 @@ def test_gate_is_successfully_converted_to_dict_form(matrix, qubits):
     assert gate_dict["schema"] == SCHEMA_VERSION + "-gate"
     assert gate_dict["qubits"] == qubits
     assert gate_dict["matrix"] == matrix
+    assert gate_dict["symbolic_params"] == gate.symbolic_params
 
 
 @pytest.mark.parametrize(
@@ -520,6 +521,9 @@ def test_gate_is_successfully_converted_to_serializable_dict_form(matrix, qubits
     for row_index, row in enumerate(gate_dict["matrix"]):
         for col_index, element in enumerate(row["elements"]):
             assert sympy.sympify(element) == matrix[row_index, col_index]
+    assert gate_dict["symbolic_params"] == [
+        str(param) for param in gate.symbolic_params
+    ]
 
 
 #### save ####
@@ -583,6 +587,9 @@ def test_gate_is_successfully_saved_to_a_file(qubits, matrix):
     for row_index, row in enumerate(saved_data["matrix"]):
         for col_index, element in enumerate(row["elements"]):
             assert sympy.sympify(element) == matrix[row_index, col_index]
+    assert saved_data["symbolic_params"] == [
+        str(param) for param in gate.symbolic_params
+    ]
 
     os.remove("gate.json")
 

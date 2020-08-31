@@ -121,7 +121,7 @@ class Gate(object):
                 in JSON format
 
         Returns:
-            Dict: keys are schema, qubits, and matrix
+            Dict: keys are schema, qubits, matrix, and symbolic_params
         """
         gate_dict = {"schema": SCHEMA_VERSION + "-gate"}
         if serializable:
@@ -131,9 +131,13 @@ class Gate(object):
                 gate_dict["matrix"].append({"elements": []})
                 for element in self.matrix.row(i):
                     gate_dict["matrix"][-1]["elements"].append(str(element))
+            gate_dict["symbolic_params"] = [
+                str(param) for param in self.symbolic_params
+            ]
         else:
             gate_dict["qubits"] = self.qubits
             gate_dict["matrix"] = self.matrix
+            gate_dict["symbolic_params"] = self.symbolic_params
         return gate_dict
 
     def save(self, filename: str):

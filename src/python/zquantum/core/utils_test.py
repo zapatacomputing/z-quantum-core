@@ -28,9 +28,10 @@ from .utils import (
     save_noise_model,
     create_symbols_map,
     save_timing,
-    SCHEMA_VERSION
+    SCHEMA_VERSION,
 )
 from .interfaces.mock_objects import MockQuantumSimulator
+
 
 class TestUtils(unittest.TestCase):
     def test_real_array_conversion(self):
@@ -38,6 +39,7 @@ class TestUtils(unittest.TestCase):
         dictionary = convert_array_to_dict(arr)
         new_arr = convert_dict_to_array(dictionary)
         self.assertTrue(np.allclose(arr, new_arr))
+        self.assertTrue(False)
 
     def test_complex_array_conversion(self):
         arr = np.array([[1.0, 2.0], [3.0, 4.0j]])
@@ -140,10 +142,10 @@ class TestUtils(unittest.TestCase):
         value = -1.0
         precision = 0.1
         value_estimate = ValueEstimate(value, precision)
-        self.assertEqual(str(value_estimate), f'{value} ± {precision}')
+        self.assertEqual(str(value_estimate), f"{value} ± {precision}")
 
         value_estimate_no_precision = ValueEstimate(value)
-        self.assertEqual(str(value_estimate_no_precision), f'{value}')
+        self.assertEqual(str(value_estimate_no_precision), f"{value}")
 
     def test_list_io(self):
         # Given
@@ -164,12 +166,12 @@ class TestUtils(unittest.TestCase):
         # Then
         self.assertListEqual(initial_list, loaded_list)
         # And
-        # After manually loading json        
+        # After manually loading json
         if isinstance("list.json", str):
             with open("list.json", "r") as f:
                 data = json.load(f)
         else:
-            data = json.load("list.json")        
+            data = json.load("list.json")
         # Check that
         self.assertEqual(data["schema"], SCHEMA_VERSION + "-number-list")
         os.remove("list.json")

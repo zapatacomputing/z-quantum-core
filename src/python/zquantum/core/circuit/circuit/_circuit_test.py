@@ -655,26 +655,148 @@ def test_gate_is_successfully_converted_to_serializable_dict_form(circuit):
     # Then
     assert circuit_dict["schema"] == SCHEMA_VERSION + "-circuit"
     assert circuit_dict["qubits"] == list(circuit.qubits)
+    assert circuit_dict["symbolic_params"] == [
+        str(param) for param in circuit.symbolic_params
+    ]
     assert isinstance(circuit_dict["gates"], list)
     for gate_dict, gate in zip(circuit_dict["gates"], circuit.gates):
-        assert gate_dict == gate.to_dict(serializable=False)
-
-    """The Gate class should be able to be converted to a dict in a serializable form"""
-    # Given
-    gate = Gate(matrix, qubits)
-
-    # When
-    gate_dict = gate.to_dict(serializable=True)
-
-    # Then
-    assert gate_dict["schema"] == SCHEMA_VERSION + "-gate"
-    assert gate_dict["qubits"] == list(qubits)
-    assert circuit_dict["symbolic_params"] == list(circuit.symbolic_params)
-    for row_index, row in enumerate(gate_dict["matrix"]):
-        for col_index, element in enumerate(row["elements"]):
-            assert sympy.sympify(element) == matrix[row_index, col_index]
+        assert gate_dict == gate.to_dict(serializable=True)
 
 
 #### save ####
+@pytest.mark.parametrize(
+    "circuit",
+    [
+        Circuit(gates=[]),
+        Circuit(gates=[XGateQubit0]),
+        Circuit(gates=[XGateQubit1]),
+        Circuit(gates=[XGateQubit0, XGateQubit1]),
+        Circuit(
+            gates=[
+                HGateQubit0,
+                CNOTGateQubits01,
+                ParameterizedRXGateQubit0,
+                CNOTGateQubits01,
+                HGateQubit0,
+            ]
+        ),
+        Circuit(gates=[ParameterizedGateQubits02]),
+        Circuit(
+            gates=[
+                ParameterizedRXGateQubit0,
+                ParameterizedRYGateQubit0,
+                ParameterizedRZGateQubit0,
+                ParameterizedGateQubits02,
+            ]
+        ),
+        Circuit(gates=[IGateQubit0 for _ in range(100)]),
+        Circuit(gates=[random.choice(RandomGateList) for _ in range(100)]),
+        Circuit(gates=[random.choice(RandomGateList) for _ in range(1000)]),
+        Circuit(gates=[random.choice(RandomGateList) for _ in range(10000)]),
+    ],
+)
+def test_circuit_is_successfully_saved_to_a_file(circuit):
+    # When
+    circuit.save("circuit.json")
+    with open("circuit.json", "r") as f:
+        saved_data = json.loads(f.read())
+
+    # Then
+    assert saved_data["schema"] == SCHEMA_VERSION + "-circuit"
+    assert saved_data["qubits"] == list(circuit.qubits)
+    assert saved_data["gates"] == [
+        gate.to_dict(serializable=True) for gate in circuit.gates
+    ]
+    assert saved_data["symbolic_params"] == [
+        str(param) for param in circuit.symbolic_params
+    ]
+
+    os.remove("circuit.json")
+
 
 #### load ####
+@pytest.mark.parametrize(
+    "circuit",
+    [
+        Circuit(gates=[]),
+        Circuit(gates=[XGateQubit0]),
+        Circuit(gates=[XGateQubit1]),
+        Circuit(gates=[XGateQubit0, XGateQubit1]),
+        Circuit(
+            gates=[
+                HGateQubit0,
+                CNOTGateQubits01,
+                ParameterizedRXGateQubit0,
+                CNOTGateQubits01,
+                HGateQubit0,
+            ]
+        ),
+        Circuit(gates=[ParameterizedGateQubits02]),
+        Circuit(
+            gates=[
+                ParameterizedRXGateQubit0,
+                ParameterizedRYGateQubit0,
+                ParameterizedRZGateQubit0,
+                ParameterizedGateQubits02,
+            ]
+        ),
+        Circuit(gates=[IGateQubit0 for _ in range(100)]),
+        Circuit(gates=[random.choice(RandomGateList) for _ in range(100)]),
+        Circuit(gates=[random.choice(RandomGateList) for _ in range(1000)]),
+        Circuit(gates=[random.choice(RandomGateList) for _ in range(10000)]),
+    ],
+)
+def test_circuit_is_successfully_loaded_from_a_file(circuit):
+    # Given
+    circuit.save("circuit.json")
+
+    # When
+    new_circuit = Circuit.load("circuit.json")
+
+    # Then
+    assert circuit == new_circuit
+
+    os.remove("circuit.json")
+
+
+@pytest.mark.parametrize(
+    "circuit",
+    [
+        Circuit(gates=[]),
+        Circuit(gates=[XGateQubit0]),
+        Circuit(gates=[XGateQubit1]),
+        Circuit(gates=[XGateQubit0, XGateQubit1]),
+        Circuit(
+            gates=[
+                HGateQubit0,
+                CNOTGateQubits01,
+                ParameterizedRXGateQubit0,
+                CNOTGateQubits01,
+                HGateQubit0,
+            ]
+        ),
+        Circuit(gates=[ParameterizedGateQubits02]),
+        Circuit(
+            gates=[
+                ParameterizedRXGateQubit0,
+                ParameterizedRYGateQubit0,
+                ParameterizedRZGateQubit0,
+                ParameterizedGateQubits02,
+            ]
+        ),
+        Circuit(gates=[IGateQubit0 for _ in range(100)]),
+        Circuit(gates=[random.choice(RandomGateList) for _ in range(100)]),
+        Circuit(gates=[random.choice(RandomGateList) for _ in range(1000)]),
+        Circuit(gates=[random.choice(RandomGateList) for _ in range(10000)]),
+    ],
+)
+def test_circuit_is_successfully_loaded_from_a_dict(circuit):
+    for serializable in [True, False]:
+        # Given
+        circuit_dict = circuit.to_dict()
+
+        # When
+        new_circuit = Circuit.load(circuit_dict)
+
+        # Then
+        assert circuit == new_circuit

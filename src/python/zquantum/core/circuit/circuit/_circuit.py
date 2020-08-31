@@ -4,7 +4,7 @@ import numpy as np
 # from ..utils import convert_array_to_dict, convert_dict_to_array
 from ..gate import Gate
 from ...utils import SCHEMA_VERSION
-from typing import List, Dict
+from typing import List, Dict, Union, TextIO
 
 
 class Circuit(object):
@@ -17,7 +17,7 @@ class Circuit(object):
             does not contain parameterized gates, this value is the empty set.
     """
 
-    def __init__(self, gates=None):
+    def __init__(self, gates: List[Gate] = None):
         """Initialize a quantum circuit 
 
         Args:
@@ -82,7 +82,7 @@ class Circuit(object):
         new_circuit.gates = self.gates + other_circuit.gates
         return new_circuit
 
-    def evaluate(self, symbols_map):
+    def evaluate(self, symbols_map: Dict):
         """ Create a copy of the current Circuit with the parameters of each gate evaluated to the values 
         provided in the input symbols map
 
@@ -94,70 +94,56 @@ class Circuit(object):
         evaluated_circuit = circuit_class(gates=evaluated_gate_list)
         return evaluated_circuit
 
-    def to_dict(self, serialize_gate_params=True):
-        """Creates a dictionary representing a circuit.
+    def to_dict(self, serializable: bool = True):
+        """ Creates a dictionary representing a circuit.
 
         Args:
-            serialize_gate_params(bool): if true, it will change gate params from sympy to strings (if applicable)
-
+            serializable (bool): If true, the returned dictionary is serializable so that it can be stored
+                in JSON format
         Returns:
-            dictionary (dict): the dictionary
+            Dict: keys are schema, qubits, gates, and symbolic_params
         """
-
-        # if self.gates != None:
-        #     gates_entry = [
-        #         gate.to_dict(serialize_params=serialize_gate_params)
-        #         for gate in self.gates
-        #     ]
-        # else:
-        #     gates_entry = None
-
-        # if self.qubits != None:
-        #     qubits_entry = [qubit.to_dict() for qubit in self.qubits]
-        # else:
-        #     qubits_entry = None
-
-        # dictionary = {
-        #     "schema": SCHEMA_VERSION + "-circuit",
-        #     "name": self.name,
-        #     "gates": gates_entry,
-        #     "qubits": qubits_entry,
-        #     "info": self.info,
-        # }
-
-        # return dictionary
-        pass
+        circuit_dict = {"schema": SCHEMA_VERSION + "-circuit"}
+        if serializable:
+            circuit_dict["qubits"] = list(self.qubits)
+            circuit_dict["gates"] = [
+                gate.to_dict(serializable=True) for gate in self.gates
+            ]
+            circuit_dict["symbolic_params"] = [
+                str(param) for param in self.symbolic_params
+            ]
+        else:
+            circuit_dict["qubits"] = self.qubits
+            circuit_dict["gates"] = [
+                gate.to_dict(serializable=False) for gate in self.gates
+            ]
+            circuit_dict["symbolic_params"] = self.symbolic_params
+        return circuit_dict
 
     def save(self, filename: str):
-        """ Save the Gate object to file in JSON format
+        """ Save the Circuit object to file in JSON format
 
         Args:
-            filename (str): The path to the file to store the Gate
+            filename (str): The path to the file to store the Circuit
         """
-        pass
+        with open(filename, "w") as f:
+            f.write(json.dumps(self.to_dict(serializable=True), indent=2))
 
     @classmethod
-    def load(cls, dictionary):
-        """Loads information of the circuit from a dictionary. This corresponds to the
-        serialization routines to_dict for Circuit, Gate and Qubit.
+    def load(cls, data: Union[Dict, TextIO]):
+        """ Load a Circuit object from either a file/file-like object or a dictionary
 
         Args:
-            dictionary (dict): the dictionary
+            data (Union[Dict, TextIO]): The data to load into the Circuit object
 
         Returns:
-            A core.circuit.Circuit object
+            Circuit
         """
+        if isinstance(data, str):
+            with open(data, "r") as f:
+                data = json.load(f)
+        elif not isinstance(data, dict):
+            data = json.load(data)
 
-        # output = cls(name=dictionary["name"])
-        # if dictionary["gates"] != None:
-        #     output.gates = [Gate.from_dict(gate) for gate in dictionary["gates"]]
-        # else:
-        #     output.gates = None
-
-        # if dictionary["qubits"] != None:
-        #     output.qubits = [Qubit.from_dict(qubit) for qubit in dictionary["qubits"]]
-        # else:
-        #     output.qubits = None
-        # output.info = dictionary["info"]
-        # return output
-        pass
+        gates = [Gate.load(gate_data) for gate_data in data["gates"]]
+        return cls(gates=gates)

@@ -712,16 +712,17 @@ def test_gate_is_successfully_loaded_from_a_file(matrix, qubits):
 )
 def test_gate_is_successfully_loaded_from_a_dict(matrix, qubits):
     """The Gate class should be able to be loaded from a dict"""
-    # Given
-    gate = Gate(matrix, qubits)
+    for serializable in [True, False]:
+        # Given
+        gate = Gate(matrix, qubits)
 
-    gate_dict = gate.to_dict(serializable=True)
+        gate_dict = gate.to_dict(serializable=serializable)
 
-    # When
-    new_gate = Gate.load(gate_dict)
+        # When
+        new_gate = Gate.load(gate_dict)
 
-    # Then
-    assert gate == new_gate
+        # Then
+        assert gate == new_gate
 
 
 #### evaluate ####

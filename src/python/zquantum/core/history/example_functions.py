@@ -34,20 +34,20 @@ class Function2:
         return self.multiplier * np.array([1 - params[1], -params[0], 2 * params[2]])
 
 
-def function_3(n: int, store_artifact=None):
+def function_3(params: int, store_artifact=None):
     """An example of function that stores artifacts."""
-    bitstring = bin(n)[2:]
+    bitstring = bin(params)[2:]
     if store_artifact:
         store_artifact("bitstring", bitstring)
-    return 2 * n
+    return 2 * params
 
 
-def function_4(n: int, store_artifact: Optional[StoreArtifact] = None):
+def function_4(params: int, store_artifact: Optional[StoreArtifact] = None) -> int:
     """Another example of function that stores artifacts, but forces store for some condition."""
-    bitstring = bin(n)[2:]
+    bitstring = bin(params)[2:]
     if store_artifact:
-        store_artifact("bitstring", bitstring, force=n % 2 == 0)
-    return 2 * n
+        store_artifact("bitstring", bitstring, force=params % 2 == 0)
+    return 2 * params
 
 
 class Function5:

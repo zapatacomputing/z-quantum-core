@@ -1,23 +1,26 @@
 """Save conditions possible to use with recorder."""
+from typing import Any
+
 from typing_extensions import Protocol
 
 
 class SaveCondition(Protocol):
-    def __call__(self, value, params, call_number: int) -> bool:
+    def __call__(self, value: Any, params: Any, call_number: int) -> bool:
         pass
 
 
-def always(value, params, call_number):
+def always(value: Any, params: Any, call_number: int) -> bool:
     """Default save condition: save always."""
     return True
 
 
-def every_nth(n):
+def every_nth(n: int) -> SaveCondition:
     """Save condition: every n-th step, counting from zero-th one.
 
     Note: this is factory function, i.e. it returns the actual save condition for given n.
     """
-    def _save_condition(value, params, call_number):
+
+    def _save_condition(value: Any, params: Any, call_number: int) -> bool:
         return call_number % n == 0
 
     return _save_condition

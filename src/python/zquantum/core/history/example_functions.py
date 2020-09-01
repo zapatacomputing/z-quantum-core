@@ -3,7 +3,7 @@
 Note that none of this use ValueEstimate as a return value. This is because
 recorders can work with callable objects of any return type.
 """
-from typing import Optional, Callable, Any
+from typing import Optional
 
 import numpy as np
 from ..interfaces.functions import FunctionWithGradient, StoreArtifact

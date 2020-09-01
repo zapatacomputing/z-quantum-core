@@ -10,9 +10,9 @@ spec:
           - name: number-of-params
             default: None
           - name: min-val
-            default: -0.01
+            default: "-0.01"
           - name: max-val
-            default: 0.01
+            default: "0.01"
           - name: seed
             default: None
           - name: command
@@ -91,7 +91,7 @@ spec:
                 params = load_circuit_template_params('params.json')
               else:
                 params = None
-              
+
               if params is not None:
                 circuit = ansatz.get_executable_circuit(params)
               elif ansatz.supports_parametrized_circuits:
@@ -114,7 +114,7 @@ spec:
           - name: number-of-params-per-layer
             default: None
           - name: n-layers
-            default: 1
+            default: "1"
           - name: min-value
           - name: max-value
           - name: step
@@ -202,3 +202,28 @@ spec:
         artifacts:
           - name: circuit
             path: /app/circuit.json
+
+    # Add register of ancilla qubits to circuit
+    - name: add-ancilla-qubits-register-to-circuit
+      parent: generic-task
+      inputs:
+        parameters:
+          - name: n-ancilla-qubits
+          - name: command
+            value: python3 main_script.py
+        artifacts:
+          - name: circuit
+            path: /app/circuit.json
+          - name: main-script
+            path: /app/main_script.py
+            raw:
+              data: |
+                from zquantum.core.circuit import load_circuit, add_ancilla_register_to_circuit, save_circuit
+
+                circuit = load_circuit("circuit.json")
+                extended_circuit = add_ancilla_register_to_circuit(circuit, int({{inputs.parameters.n-ancilla-qubits}}))
+                save_circuit(extended_circuit,"extended_circuit.json")
+      outputs:
+        artifacts:
+          - name: extended-circuit
+            path: /app/extended_circuit.json

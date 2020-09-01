@@ -227,3 +227,28 @@ spec:
         artifacts:
           - name: extended-circuit
             path: /app/extended_circuit.json
+
+    # Combine circuits in a circuitset to create a composite circuit
+    - name: concatenate-circuits
+      parent: generic-task
+      inputs:
+        parameters:
+          - name: command
+            value: python3 main_script.py
+        artifacts:
+          - name: circuit-set
+            path: /app/circuit_set.json
+          - name: main-script
+            path: /app/main_script.py
+            raw:
+              data: |
+                from zquantum.core.circuit import load_circuit_set, save_circuit, Circuit
+                circuit_set  = load_circuit_set('circuit_set.json')
+                result_circuit = Circuit()
+                for circuit in circuit_set:
+                  result_circuit += circuit
+                save_circuit(result_circuit, 'circuit.json')
+      outputs:
+        artifacts:
+          - name: circuit
+            path: /app/circuit.json

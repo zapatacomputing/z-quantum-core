@@ -229,7 +229,7 @@ spec:
             path: /app/extended_circuit.json
 
     # Combine circuits in a circuitset to create a composite circuit
-    - name: combine-circuits
+    - name: concatenate-circuits
       parent: generic-task
       inputs:
         parameters:

@@ -293,7 +293,7 @@ spec:
                   if os.path.exists(file):
                     circuit_set.append(load_circuit(file))
 
-                 save_circuit_set(circuit_set,"circuit_set.json")
+                save_circuit_set(circuit_set,"circuit_set.json")
       outputs:
         artifacts:
           - name: circuit-set

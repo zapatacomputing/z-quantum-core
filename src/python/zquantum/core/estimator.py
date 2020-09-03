@@ -6,11 +6,14 @@ from .measurement import (
     expectation_values_to_real,
     concatenate_expectation_values,
 )
-from openfermion import SymbolicOperator, QubitOperator, IsingOperator
+from openfermion import SymbolicOperator, IsingOperator
 from overrides import overrides
+import logging
 import numpy as np
 import pyquil
 from typing import Tuple, Optional
+
+logger = logging.getLogger(__name__)
 
 
 def get_context_selection_circuit(
@@ -68,10 +71,6 @@ class BasicEstimator(Estimator):
         Returns:
             ExpectationValues: expectation values for each term in the target operator.
         """
-        estimator_name = type(self).__name__
-        self._log_ignore_parameter(estimator_name, "epsilon", epsilon)
-        self._log_ignore_parameter(estimator_name, "delta", delta)
-
         frame_operators = []
         frame_circuits = []
         for term in target_operator.terms:
@@ -80,10 +79,9 @@ class BasicEstimator(Estimator):
             frame_operators.append(target_operator.terms[term] * frame_operator)
 
         if n_samples is not None:
-            self.logger.warning(
-                "Using n_samples={} (argument passed to get_estimated_expectation_values). Ignoring backend.n_samples={}.".format(
-                    n_samples, backend.n_samples
-                )
+            logger.warning(
+                f"""Using n_samples={n_samples} (argument passed to get_estimated_expectation_values). 
+                    Ignoring backend.n_samples={backend.n_samples}"""
             )
             saved_n_samples = backend.n_samples
             backend.n_samples = n_samples
@@ -136,11 +134,6 @@ class ExactEstimator(Estimator):
         Returns:
             ExpectationValues: expectation values for each term in the target operator.
         """
-        estimator_name = type(self).__name__
-        self._log_ignore_parameter(estimator_name, "n_samples", n_samples)
-        self._log_ignore_parameter(estimator_name, "epsilon", epsilon)
-        self._log_ignore_parameter(estimator_name, "delta", delta)
-
         if isinstance(backend, QuantumSimulator):
             return backend.get_exact_expectation_values(circuit, target_operator)
         else:

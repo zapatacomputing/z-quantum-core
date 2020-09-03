@@ -28,6 +28,7 @@ from .utils import (
     save_noise_model,
     create_symbols_map,
     save_timing,
+    SCHEMA_VERSION,
 )
 from .interfaces.mock_objects import MockQuantumSimulator
 
@@ -140,10 +141,10 @@ class TestUtils(unittest.TestCase):
         value = -1.0
         precision = 0.1
         value_estimate = ValueEstimate(value, precision)
-        self.assertEqual(str(value_estimate), f'{value} ± {precision}')
+        self.assertEqual(str(value_estimate), f"{value} ± {precision}")
 
         value_estimate_no_precision = ValueEstimate(value)
-        self.assertEqual(str(value_estimate_no_precision), f'{value}')
+        self.assertEqual(str(value_estimate_no_precision), f"{value}")
 
     def test_list_io(self):
         # Given
@@ -153,6 +154,25 @@ class TestUtils(unittest.TestCase):
         loaded_list = load_list("list.json")
         # Then
         self.assertListEqual(initial_list, loaded_list)
+        os.remove("list.json")
+
+    def test_named_list_io(self):
+        # Given
+        initial_list = [0.1, 0.3, -0.3]
+        # When
+        save_list(initial_list, "list.json", "number")
+        loaded_list = load_list("list.json")
+        # Then
+        self.assertListEqual(initial_list, loaded_list)
+        # And
+        # After manually loading json
+        if isinstance("list.json", str):
+            with open("list.json", "r") as f:
+                data = json.load(f)
+        else:
+            data = json.load("list.json")
+        # Check that
+        self.assertEqual(data["schema"], SCHEMA_VERSION + "-number-list")
         os.remove("list.json")
 
     def test_create_object(self):

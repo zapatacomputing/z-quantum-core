@@ -5,7 +5,23 @@ from typing_extensions import Protocol
 
 
 class SaveCondition(Protocol):
+    """Protocol of a function determining if given call should should be saved in the history."""
+
     def __call__(self, value: Any, params: Any, call_number: int) -> bool:
+        """Determine whether current call should be saved in the history.
+
+        Suppose the recorder is constructed for a function `f`, and the params
+        `x` are passed to `f` such that `y`=`f(x)`. Then, if this is `n-th`
+        evaluation of the function, the value of __call__(y, x, n) determines
+        if current call should be saved to the history.
+
+        :param value: current value of the function.
+        :param params: parameters passed to the function.
+        :param call_number: a natural number determining how many times the target
+         function has been called.
+        :return: A boolean indicating whether the call being processed should be saved to
+        history.
+        """
         pass
 
 

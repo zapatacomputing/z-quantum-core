@@ -8,12 +8,15 @@ S = TypeVar("S", contravariant=True)
 
 
 class StoreArtifact(Protocol):
+    """A protocol describing how the artifacts are stored."""
     def __call__(self, artifact_name: str, artifact: Any, force: bool = False) -> None:
         pass
 
 
 @runtime_checkable
 class CallableWithGradient(Protocol):
+    """A callable with gradient."""
+
     def __call__(self, params: np.ndarray):
         pass
 
@@ -23,6 +26,8 @@ class CallableWithGradient(Protocol):
 
 @runtime_checkable
 class CallableStoringArtifacts(Protocol[S, T]):
+    """A callable that stores artifacts."""
+
     def __call__(
         self, params: S, store_artifact: Optional[StoreArtifact]
     ) -> T:
@@ -33,11 +38,13 @@ class CallableStoringArtifacts(Protocol[S, T]):
 class CallableWithGradientStoringArtifacts(
     CallableStoringArtifacts[np.ndarray, T], Protocol
 ):
+    """A callable with gradient that stored artifacts."""
     def gradient(self, params: np.ndarray) -> np.ndarray:
         pass
 
 
 class FunctionWithGradient(NamedTuple):
+    """A callable with gradient."""
     function: Callable[[np.ndarray], np.ndarray]
     gradient: Callable[[np.ndarray], np.ndarray]
 

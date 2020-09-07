@@ -167,7 +167,6 @@ spec:
               cost_function_specs["target_operator"] = operator
               cost_function_specs["ansatz"] = ansatz
               cost_function_specs["backend"] = backend
-              cost_function_specs["fixed_parameters"] = fixed_parameters
               cost_function = create_object(cost_function_specs)
               
               value_estimate = cost_function.evaluate(ansatz_parameters)

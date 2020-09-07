@@ -137,10 +137,9 @@ spec:
           raw:
             data: |
               import os
-              from zquantum.optimizers.utils import save_value_estimate
               from zquantum.core.circuit import load_circuit_template_params, load_circuit_connectivity
               from qeopenfermion import load_qubit_operator
-              from zquantum.core.utils import create_object, load_noise_model
+              from zquantum.core.utils import create_object, load_noise_model, save_value_estimate
               import json
               
               ansatz_parameters = load_circuit_template_params('ansatz_parameters.json')

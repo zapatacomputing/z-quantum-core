@@ -71,38 +71,38 @@ spec:
       parent: generic-task
       inputs:
         parameters:
-        - name: ansatz-specs
-        - name: command
-          value: python3 main_script.py
+          - name: ansatz-specs
+          - name: command
+            value: python3 main_script.py
         artifacts:
-        - name: params
-          optional: True
-          path: /app/params.json
-        - name: main-script
-          path: /app/main_script.py
-          raw:
-            data: |
-              from zquantum.core.utils import create_object
-              from zquantum.core.circuit import (load_circuit_template_params,
-                                                save_circuit)
-              import os
-              ansatz = create_object({{inputs.parameters.ansatz-specs}})
-              if os.path.exists('params.json'):
-                params = load_circuit_template_params('params.json')
-              else:
-                params = None
+          - name: params
+            optional: True
+            path: /app/params.json
+          - name: main-script
+            path: /app/main_script.py
+            raw:
+              data: |
+                from zquantum.core.utils import create_object
+                from zquantum.core.circuit import (load_circuit_template_params,
+                                                  save_circuit)
+                import os
+                ansatz = create_object({{inputs.parameters.ansatz-specs}})
+                if os.path.exists('params.json'):
+                  params = load_circuit_template_params('params.json')
+                else:
+                  params = None
 
-              if params is not None:
-                circuit = ansatz.get_executable_circuit(params)
-              elif ansatz.supports_parametrized_circuits:
-                circuit = ansatz.parametrized_circuit
-              else:
-                raise(Exception("Ansatz is not parametrizable and no parameters has been provided."))
-              save_circuit(circuit, 'circuit.json')
+                if params is not None:
+                  circuit = ansatz.get_executable_circuit(params)
+                elif ansatz.supports_parametrized_circuits:
+                  circuit = ansatz.parametrized_circuit
+                else:
+                  raise(Exception("Ansatz is not parametrizable and no parameters has been provided."))
+                save_circuit(circuit, 'circuit.json')
       outputs:
         artifacts:
-        - name: circuit
-          path: /app/circuit.json
+          - name: circuit
+            path: /app/circuit.json
 
     # Build uniform parameter grid
     - name: build-uniform-parameter-grid
@@ -253,7 +253,6 @@ spec:
           - name: circuit
             path: /app/circuit.json
 
-
     # Create circuit set from circuit artifacts
     - name: create-circuit-set-from-circuit-artifacts
       parent: generic-task
@@ -298,3 +297,34 @@ spec:
         artifacts:
           - name: circuit-set
             path: /app/circuit_set.json
+
+    - name: create-one-qubit-circuit
+      parent: generic-task
+      inputs:
+        parameters:
+          - name: ry-parameter-1
+          - name: rz-parameter
+          - name: ry-parameter-2
+          - name: command
+            value: python3 main_script.py
+        artifacts:
+          - name: main-script
+            path: /app/main_script.py
+            raw:
+              data: |
+                from zquantum.core.circuit import Circuit, Gate, Qubit,  save_circuit
+
+                circuit = Circuit()
+                circuit.qubits = [Qubit(0)]
+                ry_parameter_1 = float({{inputs.parameters.ry-parameter-1}})
+                rz_parameter = float({{inputs.parameters.rz-parameter}})
+                ry_parameter_2 = float({{inputs.parameters.rz-parameter-2}})
+
+                gates = [Gate('Ry', qubits=[Qubit(0)], params = [ry_parameter_1]), Gate('Rz', qubits=[Qubit(0)], params = [rz_parameter]), Gate('Ry', qubits=[Qubit(0)], params = [ry_parameter_2]) ]
+                circuit.gates = gates
+                save_circuit(circuit, 'circuit.json')
+
+      outputs:
+        artifacts:
+          - name: circuit
+            path: /app/circuit.json

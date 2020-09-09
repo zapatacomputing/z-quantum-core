@@ -318,7 +318,7 @@ spec:
                 circuit.qubits = [Qubit(0)]
                 ry_parameter_1 = float({{inputs.parameters.ry-parameter-1}})
                 rz_parameter = float({{inputs.parameters.rz-parameter}})
-                ry_parameter_2 = float({{inputs.parameters.rz-parameter-2}})
+                ry_parameter_2 = float({{inputs.parameters.ry-parameter-2}})
 
                 gates = [Gate('Ry', qubits=[Qubit(0)], params = [ry_parameter_1]), Gate('Rz', qubits=[Qubit(0)], params = [rz_parameter]), Gate('Ry', qubits=[Qubit(0)], params = [ry_parameter_2]) ]
                 circuit.gates = gates

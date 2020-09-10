@@ -1,8 +1,6 @@
 import json
 import numpy as np
-
-# from ..utils import convert_array_to_dict, convert_dict_to_array
-from ..gate import Gate
+from ..gates import Gate
 from ...utils import SCHEMA_VERSION
 from typing import List, Dict, Union, TextIO
 

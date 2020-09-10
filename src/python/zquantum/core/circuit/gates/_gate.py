@@ -5,7 +5,7 @@ import copy
 import warnings
 from typing import Tuple, Union, Dict, TextIO
 from collections import Counter
-from ...utils import SCHEMA_VERSION, convert_array_to_dict, convert_dict_to_array
+from ...utils import SCHEMA_VERSION
 
 
 class Gate(object):
@@ -29,7 +29,6 @@ class Gate(object):
         self._assert_qubits_are_unique(qubits)
         self.matrix = matrix
         self.qubits = qubits
-        self.symbolic_params = self._get_symbolic_params()
 
     def _assert_is_valid_operator(self, matrix: sympy.Matrix, qubits: Tuple[int]):
         """ Check to make sure the the given operator is a valid Gate. This function asserts that
@@ -57,11 +56,18 @@ class Gate(object):
         """
         assert len(set(qubits)) == len(qubits)
 
-    def _get_symbolic_params(self):
-        """ Returns a list of symbolic parameters used in the gate
+    @property
+    def is_parameterized(self):
+        """Boolean indicating if any symbolic parameters used in the gate
+        """
+        for element in self.matrix:
+            if isinstance(element, sympy.Expr):
+                return True
+        return False
 
-        Returns:
-            set: set containing all the sympy symbols used in gate params
+    @property
+    def symbolic_params(self):
+        """A set containing all the sympy symbols used in the gate
         """
         all_symbols = []
         for element in self.matrix:
@@ -190,6 +196,12 @@ class Gate(object):
         Returns:
             Gate
         """
+        if not self.is_parameterized:
+            warnings.warn(
+                """Gate is not parameterized. evaluate will return a copy of the current gate"""
+            )
+            return copy.deepcopy(self)
+
         for symbol in symbols_map.keys():
             if symbol not in self.symbolic_params:
                 warnings.warn(

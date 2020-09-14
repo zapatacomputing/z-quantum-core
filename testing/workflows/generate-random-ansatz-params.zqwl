@@ -1,0 +1,73 @@
+# Workflow API version
+apiVersion: io.orquestra.workflow/1.0.0
+
+# Prefix for workflow ID
+name: generate-params
+
+imports:
+- name: z-quantum-core
+  type: git
+  parameters:
+    repository: "git@github.com:zapatacomputing/z-quantum-core.git"
+    branch: "workflow-v1"
+- name: z-quantum-qcbm
+  type: git
+  parameters:
+    repository: "git@github.com:zapatacomputing/z-quantum-qcbm.git"
+    branch: "workflow-v1"
+
+steps:
+- name: get-initial-parameters
+  config:
+    runtime:
+      type: python3
+      imports: [z-quantum-core, z-quantum-qcbm]
+      parameters:
+        file: z-quantum-core/tasks/circuit_tasks.py
+        function: generate_random_ansatz_params
+    resources:
+      cpu: "1000m"
+      memory: "1Gi"
+      disk: "10Gi"
+  inputs:
+    - ansatz_specs: '{"module_name": "zquantum.qcbm.ansatz", "function_name": "QCBMAnsatz", "number_of_layers": 4, "number_of_qubits": 4, "topology": "all"}'
+      type: string
+    - min_value: 0.1
+      type: float
+    - max_value: 0.5
+      type: float
+    - seed: 9
+      type: int
+    - number_of_parameters: "None"
+      type: string
+  outputs:
+    - name: params
+      type: ansatz-params
+- name: get-other-parameters
+  config:
+    runtime:
+      type: python3
+      imports: [z-quantum-core, z-quantum-qcbm]
+      parameters:
+        file: z-quantum-core/tasks/circuit_tasks.py
+        function: generate_random_ansatz_params
+    resources:
+      cpu: "1000m"
+      memory: "1Gi"
+      disk: "10Gi"
+  inputs:
+    - ansatz_specs: "None"
+      type: string
+    - min_value: -2.45
+      type: float
+    - max_value: 531.5
+      type: float
+    - seed: "None"
+      type: string
+    - number_of_parameters: 5
+      type: int
+  outputs:
+    - name: params
+      type: ansatz-params
+types:
+  - ansatz-params

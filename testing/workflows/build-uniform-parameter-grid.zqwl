@@ -1,0 +1,50 @@
+# Workflow API version
+apiVersion: io.orquestra.workflow/1.0.0
+
+# Prefix for workflow ID
+name: build-parameter-grid
+
+imports:
+- name: z-quantum-core
+  type: git
+  parameters:
+    repository: "git@github.com:zapatacomputing/z-quantum-core.git"
+    branch: "workflow-v1"
+- name: z-quantum-qcbm
+  type: git
+  parameters:
+    repository: "git@github.com:zapatacomputing/z-quantum-qcbm.git"
+    branch: "workflow-v1"
+
+steps:
+- name: build-uniform-parameter-grid
+  config:
+    runtime:
+      type: python3
+      imports: [z-quantum-core, z-quantum-qcbm]
+      parameters:
+        file: z-quantum-core/tasks/circuit_tasks.py
+        function: build_uniform_parameter_grid
+    resources:
+      cpu: "1000m"
+      memory: "1Gi"
+      disk: "10Gi"
+  inputs:
+    - ansatz_specs: '{"module_name": "zquantum.qcbm.ansatz", "function_name": "QCBMAnsatz", "number_of_layers": 4, "number_of_qubits": 4, "topology": "all"}'
+      type: string
+    - number_of_layers: 1
+      type: int
+    - min_value: 0.01
+      type: float
+    - max_value: 6.2832
+      type: float
+    - step: 0.62832
+      type: float
+    - number_of_params_per_layers: "None"
+      type: string
+  outputs:
+    - name: parameter-grid
+      type: grid
+
+types:
+  - grid

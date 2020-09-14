@@ -1,0 +1,34 @@
+# Workflow API version
+apiVersion: io.orquestra.workflow/1.0.0
+
+# Prefix for workflow ID
+name: generate-graph-from-specs
+
+imports:
+- name: z-quantum-core
+  type: git
+  parameters:
+    repository: "git@github.com:zapatacomputing/z-quantum-core.git"
+    branch: "workflow-v1"
+
+steps:
+- name: generate-specs-graph
+  config:
+    runtime:
+      type: python3
+      imports: [z-quantum-core]
+      parameters:
+        file: z-quantum-core/tasks/graph_tasks.py
+        function: generate_graph_from_specs
+    resources:
+      cpu: "1000m"
+      memory: "1Gi"
+      disk: "10Gi"
+  inputs:
+    - graph_specs: '{"type_graph": "complete", "num_nodes": 10, "random_weights": "True"}'
+      type: string
+  outputs:
+    - name: graph
+      type: custom-graph
+types:
+  - custom-graph

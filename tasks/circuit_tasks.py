@@ -29,7 +29,7 @@ def generate_random_ansatz_params(
 ):
     print(f"Start", flush=True)
     print(f"ansatz specs: {ansatz_specs}", flush=True)
-    if ansatz_specs is not "None":
+    if ansatz_specs is not None:
         print(f"aaa", flush=True)
         ansatz_specs_dict = loads(ansatz_specs)
         ansatz = create_object(ansatz_specs_dict)

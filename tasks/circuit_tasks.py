@@ -107,7 +107,7 @@ def build_random_circuit(number_of_qubits, number_of_gates, seed=None):
 def add_ancilla_qubits_register_to_circuit_task(number_of_ancilla_qubits, circuit):
     circuit_object = load_circuit(circuit)
     extended_circuit = add_ancilla_register_to_circuit(
-        circuit, number_of_ancilla_qubits
+        circuit_object, number_of_ancilla_qubits
     )
     save_circuit(extended_circuit, "extended-circuit.json")
 

@@ -51,7 +51,8 @@ def combine_ansatz_params(params1, params2):
     parameters2 = load_circuit_template_params(params2)
     print(f"parameters1: {parameters1}", flush=True)
     print(f"parameters2: {parameters2}", flush=True)
-    combined_params = combine_ansatz_params(parameters1, parameters2)
+    combined_params = []
+    # combined_params = combine_ansatz_params(parameters1, parameters2)
     print(f"parameters combined: {combined_params}", flush=True)
     save_circuit_template_params(combined_params, "combined-params.json")
 

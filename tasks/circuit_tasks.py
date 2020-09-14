@@ -33,8 +33,9 @@ def generate_random_ansatz_params(
 
 # Combine two sets of ansatz parameters
 def combine_ansatz_params(params1, params2):
-    assert type(params1) == np.ndarray
-    parameters1 = load_circuit_template_params(params1)
+    paramet1 = loads(params1)
+    assert type(paramet1) == np.ndarray
+    parameters1 = load_circuit_template_params(paramet1)
     parameters2 = load_circuit_template_params(params2)
     combined_params = combine_ansatz_params(parameters1, parameters2)
     save_circuit_template_params(combined_params, "combined_params.json")

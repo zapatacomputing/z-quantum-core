@@ -52,7 +52,8 @@ def combine_ansatz_params(params1, params2):
     print(f"parameters1: {type(parameters1)}", flush=True)
     print(f"parameters2: {type(parameters2)}", flush=True)
 
-    # combined_params = combine_ansatz_params(parameters1, parameters2)
+    combined_params = combine_ansatz_params(parameters1, parameters2)
+    print(f"parameterscomb: {type(combined_params)}", flush=True)
     # print(f"parameters combined: {combined_params}", flush=True)
     # save_circuit_template_params(combined_params, "combined-params.json")
     save_circuit_template_params(parameters1, "combined-params.json")

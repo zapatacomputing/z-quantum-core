@@ -27,8 +27,8 @@ def generate_random_ansatz_params(
     max_value=np.pi * 0.5,
     seed=None,
 ):
+
     if ansatz_specs is not None:
-        print(f"I hame here", flush=True)
         ansatz_specs_dict = loads(ansatz_specs)
         ansatz = create_object(ansatz_specs_dict)
         number_of_params = ansatz.number_of_params
@@ -36,6 +36,10 @@ def generate_random_ansatz_params(
         number_of_params = number_of_parameters
     if seed is not None:
         np.random.seed(seed)
+    print("number_of_parameters:", number_of_parameters)
+    print("min_value:", min_value)
+    print("max_value:", max_value)
+    print("seed", seed)
     params = np.random.uniform(min_value, max_value, number_of_params)
     save_circuit_template_params(params, "params.json")
 

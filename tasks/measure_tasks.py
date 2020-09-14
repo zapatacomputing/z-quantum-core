@@ -20,7 +20,7 @@ def run_circuit_and_measure(
     measurements.save("measurements.json")
 
 
-def get_bitstring_distribution_task(
+def get_bitstring_distribution(
     backend_specs, circuit, noise_model="None", device_connectivity="None"
 ):
     backend_specs_dict = loads(backend_specs)

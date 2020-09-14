@@ -13,11 +13,11 @@ from zquantum.core.utils import create_object
 
 # Generate random parameters for an ansatz
 def generate_random_ansatz_params(
-    ansatz_specs=None,
-    number_of_parameters=None,
-    seed=None,
+    ansatz_specs,
+    # number_of_parameters=None,
     min_value=-np.pi * 0.5,
     max_value=np.pi * 0.5,
+    seed=None,
 ):
     if ansatz_specs is not None:
         ansatz_specs_dict = loads(ansatz_specs)

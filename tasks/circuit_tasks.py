@@ -25,7 +25,7 @@ def generate_random_ansatz_params(
     # number_of_parameters=None,
     min_value=-np.pi * 0.5,
     max_value=np.pi * 0.5,
-    seed=None,
+    seed="None",
 ):
     if ansatz_specs is not None:
         ansatz_specs_dict = loads(ansatz_specs)

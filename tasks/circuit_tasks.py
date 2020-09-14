@@ -135,4 +135,4 @@ def create_circuit_set_from_circuit_artifacts(
         if object is not None:
             circuit_set_object.append(load_circuit(object))
 
-    save_circuit_set(circuit_set, "circuit_set.json")
+    save_circuit_set(circuit_set, "circuit-set.json")

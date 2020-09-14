@@ -25,7 +25,7 @@ def generate_random_ansatz_params_task(
     number_of_parameters="None",
     min_value=-np.pi * 0.5,
     max_value=np.pi * 0.5,
-    seed=None,
+    seed="None",
 ):
     if ansatz_specs != "None":  # TODO None issue in workflow v1
         ansatz_specs_dict = loads(ansatz_specs)

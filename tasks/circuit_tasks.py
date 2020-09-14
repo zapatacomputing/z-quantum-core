@@ -21,7 +21,7 @@ def generate_random_ansatz_params(ansatz_specs, min_value, max_value, seed=None)
 
 # Combine two sets of ansatz parameters
 def combine_ansatz_params(params_1, params_2):
-    params1 = load_circuit_template_param(loads(params_1))
-    params2 = load_circuit_template_param(loads(params_2))
+    params1 = load_circuit_template_params(loads(params_1))
+    params2 = load_circuit_template_params(loads(params_2))
     combined_params = combine_ansatz_params(params1, params2)
     save_circuit_template_params(combined_params, "combined_params.json")

@@ -41,12 +41,12 @@ def generate_random_ansatz_params(
 
 # Combine two sets of ansatz parameters
 def combine_ansatz_params(params1, params2):
-    print(f"params1: {params1}", flush=True)
-    print(f"params2: {params2}", flush=True)
-    params1_dict = loads(params1)
-    params2_dict = loads(params2)
-    print(f"params1_dict: {params1_dict}", flush=True)
-    print(f"params2_dict: {params2_dict}", flush=True)
+    # print(f"params1: {params1}", flush=True)
+    # print(f"params2: {params2}", flush=True)
+    # params1_dict = loads(params1)
+    # params2_dict = loads(params2)
+    # print(f"params1_dict: {params1_dict}", flush=True)
+    # print(f"params2_dict: {params2_dict}", flush=True)
     parameters1 = load_circuit_template_params(params1_dict)
     parameters2 = load_circuit_template_params(params2_dict)
     print(f"parameters1: {parameters1}", flush=True)

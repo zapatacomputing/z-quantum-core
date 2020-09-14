@@ -35,5 +35,6 @@ def generate_complete_graph(number_of_nodes, random_weights=False, seed="None"):
 
 
 def generate_custom_graph(graph_specs):
-    graph = generate_graph_from_specs(graph_specs)
+    graph_specs_dict = loads(graph_specs)
+    graph = generate_graph_from_specs(graph_specs_dict)
     save_graph(graph, "graph.json")

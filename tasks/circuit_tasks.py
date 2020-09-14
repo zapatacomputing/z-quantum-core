@@ -27,7 +27,7 @@ def generate_random_ansatz_params(
     max_value=np.pi * 0.5,
     seed=None,
 ):
-    if ansatz_specs is not None:
+    if ansatz_specs is not None:  # TODO None issue in workflow v1
         ansatz_specs_dict = loads(ansatz_specs)
         ansatz = create_object(ansatz_specs_dict)
         number_of_params = ansatz.number_of_params
@@ -50,7 +50,7 @@ def combine_ansatz_parameters(params1, params2):
 # Build circuit from ansatz
 def build_ansatz_circuit(ansatz_specs, params=None):
     ansatz = create_object(loads(ansatz_specs))
-    if params is not None:
+    if params is not None:  # TODO Non issue in worklow v1
         parameters = load_circuit_template_params(params)
         circuit = ansatz.get_executable_circuit(parameters)
     elif ansatz.support_parametrized_circuits:
@@ -67,7 +67,7 @@ def build_ansatz_circuit(ansatz_specs, params=None):
 # Build uniform parameter grid
 def build_uniform_parameter_grid(
     ansatz_specs,
-    number_of_params_per_layers=None,
+    # number_of_params_per_layers=None,
     number_of_layers=1,
     min_value=0,
     max_value=2 * np.pi,
@@ -76,8 +76,8 @@ def build_uniform_parameter_grid(
     if ansatz_specs is not None:
         ansatz = create_object(loads(ansatz_specs))
         number_of_params = ansatz.number_of_params
-    elif number_of_params_per_layers is not None:
-        number_of_params = number_of_params_per_layers
+    # elif number_of_params_per_layers is not None:
+    #     number_of_params = number_of_params_per_layers
 
     grid = build_uniform_param_grid(
         number_of_params, number_of_layers, min_value, max_value, step

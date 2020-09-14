@@ -42,10 +42,9 @@ def combine_ansatz_params(params_1, params_2):
 # Build circuit from ansatz
 def build_ansatz_circuit(ansatz_specs, params=None):
     ansatz = create_object(loads(ansatz_specs))
-    assert params == None
     if params is not None:
-        parameters = load_circuit_template_params(loads(params))
-        circuit = ansatz.get_executable_circuit(paramters)
+        parameters = load_circuit_template_params(params)
+        circuit = ansatz.get_executable_circuit(parameters)
     elif ansatz.support_parametrized_circuits:
         circuit = ansatz.parametrized_circuit
     else:

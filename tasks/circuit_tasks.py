@@ -27,14 +27,17 @@ def generate_random_ansatz_params(
     max_value=np.pi * 0.5,
     seed="None",
 ):
-
+    print(f"Start", flush=True)
     if ansatz_specs is not "None":
+        print(f"aaa", flush=True)
         ansatz_specs_dict = loads(ansatz_specs)
         ansatz = create_object(ansatz_specs_dict)
         number_of_params = ansatz.number_of_params
     elif number_of_parameters is not "None":
+        print(f"bbb", flush=True)
         number_of_params = number_of_parameters
     if seed is not "None":
+        print(f"seed", flush=True)
         np.random.seed(seed)
     print("number_of_parameters:", number_of_parameters)
     print("min_value:", min_value)

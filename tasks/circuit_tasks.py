@@ -7,7 +7,7 @@ from zquantum.core.circuit import (
     load_circuit_template_params,
     save_circuit,
     save_parameter_grid,
-    build_uniform_parameter_grid,
+    build_uniform_param_grid,
 )
 from zquantum.core.utils import create_object
 
@@ -63,7 +63,7 @@ def build_uniform_parameter_grid(
     elif number_of_params_per_layers is not None:
         number_of_params = number_of_params_per_layers
 
-    grid = build_uniform_parameter_grid(
+    grid = build_uniform_param_grid(
         number_of_params, number_of_layers, min_value, max_value, step
     )
     save_parameter_grid(grid, "parameter_grid.json")

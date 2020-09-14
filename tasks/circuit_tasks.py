@@ -20,7 +20,7 @@ from zquantum.core.utils import create_object
 from zquantum.core.testing import create_random_circuit
 
 # Generate random parameters for an ansatz
-def generate_random_ansatz_params_task(
+def generate_random_ansatz_params(
     ansatz_specs,
     number_of_parameters="None",
     min_value=-np.pi * 0.5,
@@ -40,7 +40,7 @@ def generate_random_ansatz_params_task(
 
 
 # Combine two sets of ansatz parameters
-def combine_ansatz_params_task(params1, params2):
+def combine_ansatz_parameters(params1, params2):
     parameters1 = load_circuit_template_params(params1)
     parameters2 = load_circuit_template_params(params2)
     combined_params = combine_ansatz_params(parameters1, parameters2)
@@ -48,7 +48,7 @@ def combine_ansatz_params_task(params1, params2):
 
 
 # Build circuit from ansatz
-def build_ansatz_circuit_task(ansatz_specs, params="None"):
+def build_ansatz_circuit(ansatz_specs, params="None"):
     ansatz = create_object(loads(ansatz_specs))
     if params != "None":  # TODO Non issue in worklow v1
         parameters = load_circuit_template_params(params)
@@ -65,7 +65,7 @@ def build_ansatz_circuit_task(ansatz_specs, params="None"):
 
 
 # Build uniform parameter grid
-def build_uniform_param_grid_task(
+def build_uniform_parameter_grid(
     ansatz_specs,
     number_of_params_per_layers="None",
     number_of_layers=1,
@@ -86,7 +86,7 @@ def build_uniform_param_grid_task(
 
 
 # Build circuit layers and connectivity
-def build_circuit_layers_and_connectivity_task(
+def build_layers_and_connectivity(
     x_dimension, y_dimension="None", layer_type="nearest-neighbor"
 ):
     # TODO None issue in workflow v1
@@ -98,13 +98,13 @@ def build_circuit_layers_and_connectivity_task(
 
 
 # Create random circuit
-def create_random_circuit_task(number_of_qubits, number_of_gates, seed="None"):
+def build_random_circuit(number_of_qubits, number_of_gates, seed="None"):
     circuit = create_random_circuit(number_of_qubits, number_of_gates, seed=seed)
     save_circuit(circuit, "circuit.json")
 
 
 # Add register of ancilla qubits to circuit
-def add_ancilla_register_to_circuit_task(number_of_ancilla_qubits, circuit):
+def add_ancilla_qubits_register_to_circuit(number_of_ancilla_qubits, circuit):
     circuit_object = load_circuit(circuit)
     extended_circuit = add_ancilla_register_to_circuit(
         circuit_object, number_of_ancilla_qubits
@@ -113,7 +113,7 @@ def add_ancilla_register_to_circuit_task(number_of_ancilla_qubits, circuit):
 
 
 # Concatenate circuits in a circuitset to create a composite circuit
-def concatenate_circuits_task(circuit_set):
+def concatenate_circuits(circuit_set):
     circuit_set_object = load_circuit_set(circuit_set)
     result_circuit = Circuit()
     for circuit in circuit_set_object:
@@ -122,7 +122,7 @@ def concatenate_circuits_task(circuit_set):
 
 
 # Create circuitset from circuit artifacts
-def create_circuit_set_from_circuit_artifacts_task(
+def create_circuit_set_from_circuit_artifacts(
     circuit1, circuit2="None", circuit3="None", circuit4="None", circuit_set="None"
 ):
     if circuit_set != "None":  # TODO None isse in workflow v1

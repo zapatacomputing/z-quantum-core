@@ -38,7 +38,7 @@ def combine_ansatz_params(params1, params2):
     parameters1 = load_circuit_template_params(params1_dict)
     parameters2 = load_circuit_template_params(params2_dict)
     combined_params = combine_ansatz_params(parameters1, parameters2)
-    save_circuit_template_params(combined_params, "combined-params.json")
+    save_circuit_template_params(combined_params, "params.json")
 
 
 # Build circuit from ansatz

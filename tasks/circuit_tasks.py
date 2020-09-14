@@ -86,7 +86,7 @@ def build_uniform_parameter_grid(
 
 
 # Build circuit layers and connectivity
-def build_circuit_layers_and_connectivity(
+def build_layers_and_connectivity(
     x_dimension, y_dimension="None", layer_type="nearest-neighbor"
 ):
     connectivity, layers = build_circuit_layers_and_connectivity(

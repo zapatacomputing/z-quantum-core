@@ -1,9 +1,11 @@
 import numpy as np
 from json import loads
+import os
 from zquantum.core.circuit import (
     save_circuit_template_params,
     combine_ansatz_params,
     load_circuit_template_params,
+    save_circuit,
 )
 from zquantum.core.utils import create_object
 
@@ -25,3 +27,20 @@ def combine_ansatz_params(params_1, params_2):
     params2 = load_circuit_template_params(loads(params_2))
     combined_params = combine_ansatz_params(params1, params2)
     save_circuit_template_params(combined_params, "combined_params.json")
+
+
+# Build circuit from ansatz
+def build_ansatz_circuit(ansatz_specs, params=None):
+    ansatz = create_object(loads(ansatz_specs))
+    if params is not None:
+        parameters = load_circuit_template_params(loads(params))
+        circuit = ansatz.get_executable_circuit(paramters)
+    elif ansatz.support_parametrized_circuits:
+        circuit = ansatz.parametrized_circuit
+    else:
+        raise (
+            Exception(
+                "Ansatz is not parametrizable and no parameters has been provided."
+            )
+        )
+    save_circuit(circuit, "circuit.json")

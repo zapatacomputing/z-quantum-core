@@ -28,6 +28,7 @@ def generate_random_ansatz_params(
     seed=None,
 ):
     if ansatz_specs is not None:
+        print("I am here", flush=True)
         ansatz_specs_dict = loads(ansatz_specs)
         ansatz = create_object(ansatz_specs_dict)
         number_of_params = ansatz.number_of_params

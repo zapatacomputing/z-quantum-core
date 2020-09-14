@@ -73,7 +73,7 @@ def build_uniform_parameter_grid(
     max_value=2 * np.pi,
     step=np.pi / 5,
 ):
-    if ansatz_specs is not None:
+    if ansatz_specs is not None:  # TODO None issue in workflow v1
         ansatz = create_object(loads(ansatz_specs))
         number_of_params = ansatz.number_of_params
     # elif number_of_params_per_layers is not None:
@@ -82,7 +82,7 @@ def build_uniform_parameter_grid(
     grid = build_uniform_param_grid(
         number_of_params, number_of_layers, min_value, max_value, step
     )
-    save_parameter_grid(grid, "parameter_grid.json")
+    save_parameter_grid(grid, "parameter-grid.json")
 
 
 # Build circuit layers and connectivity

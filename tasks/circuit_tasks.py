@@ -20,7 +20,8 @@ def generate_random_ansatz_params(
     max_value=np.pi * 0.5,
 ):
     if ansatz_specs is not None:
-        ansatz = create_object(loads(ansatz_specs))
+        ansatz_specs_dict = loads(ansatz_specs)
+        ansatz = create_object(ansatz_specs_dict)
         number_of_params = ansatz.number_of_params
     elif number_of_parameters is not None:
         number_of_params = number_of_parameters

@@ -123,16 +123,16 @@ def concatenate_circuits(circuit_set):
 
 # Create circuitset from circuit artifacts
 def create_circuit_set_from_circuit_artifacts(
-    circuit1, circuit2=None, circuit3=None, circuit4=None, circuit_set=None
+    circuit1, circuit2="None", circuit3="None", circuit4="None", circuit_set="None"
 ):
-    if circuit_set is not None:
+    if circuit_set != "None":  # TODO None isse in workflow v1
         circuit_set_object = load_circuit_set(circuit_set)
     else:
         circuit_set_object = []
 
     object_names = [circuit1, circuit2, circuit3, circuit4]
     for object in object_names:
-        if object is not None:
+        if object != "None":
             circuit_set_object.append(load_circuit(object))
 
     save_circuit_set(circuit_set, "circuit-set.json")

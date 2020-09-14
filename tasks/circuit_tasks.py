@@ -12,11 +12,18 @@ from zquantum.core.circuit import (
 from zquantum.core.utils import create_object
 
 # Generate random parameters for an ansatz
-def generate_random_ansatz_params(ansatz_specs, min_value, max_value, seed=None):
+def generate_random_ansatz_params(
+    ansatz_specs=None,
+    number_of_parameters=None,
+    seed=None,
+    min_value=-np.pi * 0.5,
+    max_value=np.pi * 0.5,
+):
     if ansatz_specs is not None:
-        ansatz_specs_dict = loads(ansatz_specs)
-        ansatz = create_object(ansatz_specs_dict)
+        ansatz = create_object(loads(ansatz_specs))
         number_of_params = ansatz.number_of_params
+    elif number_of_parameters is not None:
+        number_of_params = number_of_parameters
     if seed is not None:
         np.random.seed(seed)
     params = np.random.uniform(min_value, max_value, number_of_params)
@@ -50,12 +57,12 @@ def build_ansatz_circuit(ansatz_specs, params=None):
 
 # Build uniform parameter grid
 def build_uniform_parameter_grid(
-    ansatz_specs,
-    number_of_layers,
-    min_value,
-    max_value,
-    step,
+    ansatz_specs=None,
     number_of_params_per_layers=None,
+    number_of_layers=1,
+    min_value=0,
+    max_value=2 * np.pi,
+    step=np.pi / 5,
 ):
     if ansatz_specs is not None:
         ansatz = create_object(loads(ansatz_specs))

@@ -104,12 +104,12 @@ def build_random_circuit(number_of_qubits, number_of_gates, seed=None):
 
 
 # Add register of ancilla qubits to circuit
-def add_ancilla_qubits_register_to_circuit(number_of_ancilla_qubits, circuit):
+def add_ancilla_qubits_register_to_circuit_task(number_of_ancilla_qubits, circuit):
     circuit_object = load_circuit(circuit)
     extended_circuit = add_ancilla_qubits_register_to_circuit(
         circuit, number_of_ancilla_qubits
     )
-    save_circuit(extended_circuit, "extended_circuit.json")
+    save_circuit(extended_circuit, "extended-circuit.json")
 
 
 # Concatenate circuits in a circuitset to create a composite circuit
@@ -118,7 +118,7 @@ def concatenate_circuits(circuit_set):
     result_circuit = Circuit()
     for circuit in circuit_set_object:
         result_circuit += circuit
-    save_circuit(result_circuit, "result_circuit.json")
+    save_circuit(result_circuit, "result-circuit.json")
 
 
 # Create circuitset from circuit artifacts

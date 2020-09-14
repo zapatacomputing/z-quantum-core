@@ -59,6 +59,7 @@ class QuantumBackendTests(object):
             expectation_values = backend.get_expectation_values(circuit, operator)
             # Then
             self.assertIsInstance(expectation_values, ExpectationValues)
+            self.assertIsInstance(expectation_values.values, np.ndarray)
             np.testing.assert_array_almost_equal(
                 expectation_values.values, target_expectation_values, decimal=15
             )
@@ -95,6 +96,7 @@ class QuantumBackendTests(object):
 
             for expectation_values in expectation_values_set:
                 self.assertIsInstance(expectation_values, ExpectationValues)
+                self.assertIsInstance(expectation_values.values, np.ndarray)
                 np.testing.assert_array_almost_equal(
                     expectation_values.values, target_expectation_values, decimal=15
                 )
@@ -151,6 +153,7 @@ class QuantumSimulatorTests(QuantumBackendTests):
             np.testing.assert_array_almost_equal(
                 expectation_values.values, target_values
             )
+            self.assertIsInstance(expectation_values.values, np.ndarray)
 
     def test_get_exact_expectation_values_empty_op(self):
         # Given

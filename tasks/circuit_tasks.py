@@ -22,19 +22,19 @@ from zquantum.core.testing import create_random_circuit
 # Generate random parameters for an ansatz
 def generate_random_ansatz_params(
     ansatz_specs,
-    number_of_parameters=None,
+    number_of_parameters="None",
     min_value=-np.pi * 0.5,
     max_value=np.pi * 0.5,
-    seed=None,
+    seed="None",
 ):
 
-    if ansatz_specs is not None:
+    if ansatz_specs is not "None":
         ansatz_specs_dict = loads(ansatz_specs)
         ansatz = create_object(ansatz_specs_dict)
         number_of_params = ansatz.number_of_params
-    elif number_of_parameters is not None:
+    elif number_of_parameters is not "None":
         number_of_params = number_of_parameters
-    if seed is not None:
+    if seed is not "None":
         np.random.seed(seed)
     print("number_of_parameters:", number_of_parameters)
     print("min_value:", min_value)

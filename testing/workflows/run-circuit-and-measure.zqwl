@@ -1,0 +1,40 @@
+# Workflow API version
+apiVersion: io.orquestra.workflow/1.0.0
+
+# Prefix for workflow ID
+name: run-circuit-and-measure
+
+imports:
+- name: z-quantum-core
+  type: git
+  parameters:
+    repository: "git@github.com:zapatacomputing/z-quantum-core.git"
+    branch: "workflow-v1"
+
+steps:
+- name: run-circuit
+  config:
+    runtime:
+      type: python3
+      imports: [z-quantum-core]
+      parameters:
+        file: z-quantum-core/tasks/measure_tasks.py
+        function: run_circuit_and_measure
+    resources:
+      cpu: "1000m"
+      memory: "1Gi"
+      disk: "10Gi"
+  inputs:
+    - backend-specs: '{}'
+      type: string
+    - circuit: ((.circuit))
+      type: circ
+    - noise_model: "None"
+      type: string
+    - device_connectivity: "None"
+      type: string
+  outputs:
+    - name: measurements
+      type: circuit-measurements
+types:
+  - circuit-measurements

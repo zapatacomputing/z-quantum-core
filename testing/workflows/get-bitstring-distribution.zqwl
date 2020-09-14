@@ -1,0 +1,40 @@
+# Workflow API version
+apiVersion: io.orquestra.workflow/1.0.0
+
+# Prefix for workflow ID
+name: get-bitstring-distribution
+
+imports:
+- name: z-quantum-core
+  type: git
+  parameters:
+    repository: "git@github.com:zapatacomputing/z-quantum-core.git"
+    branch: "workflow-v1"
+
+steps:
+- name: get-distribution
+  config:
+    runtime:
+      type: python3
+      imports: [z-quantum-core]
+      parameters:
+        file: z-quantum-core/tasks/measure_tasks.py
+        function: get_bitstring_distribution
+    resources:
+      cpu: "1000m"
+      memory: "1Gi"
+      disk: "10Gi"
+  inputs:
+    - backend-specs: '{}'
+      type: string
+    - circuit: ((.circuit))
+      type: circ
+    - noise_model: "None"
+      type: string
+    - device_connectivity: "None"
+      type: string
+  outputs:
+    - name: bistrings-distribution
+      type: circuit-distribution
+types:
+  - circuit-distribution

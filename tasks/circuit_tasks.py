@@ -23,8 +23,8 @@ def generate_random_ansatz_params(
         ansatz_specs_dict = loads(ansatz_specs)
         ansatz = create_object(ansatz_specs_dict)
         number_of_params = ansatz.number_of_params
-    elif number_of_parameters is not None:
-        number_of_params = number_of_parameters
+    # elif number_of_parameters is not None:
+    #     number_of_params = number_of_parameters
     if seed is not None:
         np.random.seed(seed)
     params = np.random.uniform(min_value, max_value, number_of_params)

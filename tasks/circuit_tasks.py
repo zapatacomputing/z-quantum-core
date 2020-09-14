@@ -89,6 +89,7 @@ def build_uniform_parameter_grid(
 def build_layers_and_connectivity(
     x_dimension, y_dimension="None", layer_type="nearest-neighbor"
 ):
+    # TODO None issue in workflow v1
     connectivity, layers = build_circuit_layers_and_connectivity(
         x_dimension, y_dimension, layer_type
     )
@@ -97,7 +98,7 @@ def build_layers_and_connectivity(
 
 
 # Create random circuit
-def create_random_circuit(number_of_qubits, number_of_gates, seed=None):
+def build_random_circuit(number_of_qubits, number_of_gates, seed=None):
     circuit = create_random_circuit(number_of_qubits, number_of_gates, seed=seed)
     save_circuit(circuit, "circuit.json")
 

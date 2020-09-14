@@ -1,5 +1,6 @@
 import json
 import sys
+import numpy as np
 
 with open(sys.argv[1], "r") as f:
     workflowresult = json.loads(f.read())
@@ -50,8 +51,7 @@ for key in workflowresult.keys():
             ][bitstring]
 
         print(total_probability)
-        assert total_probability <= 1.0000000000000002
-        assert total_probability >= 0.9999999999999998
+        assert np.isclose(total_probability, 1.0)
 
 assert found_template == True
 print("Workflow result is as expected")

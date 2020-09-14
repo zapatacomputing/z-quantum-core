@@ -6,6 +6,8 @@ from zquantum.core.circuit import (
     combine_ansatz_params,
     load_circuit_template_params,
     save_circuit,
+    save_parameter_grid,
+    build_uniform_parameter_grid,
 )
 from zquantum.core.utils import create_object
 
@@ -44,3 +46,24 @@ def build_ansatz_circuit(ansatz_specs, params=None):
             )
         )
     save_circuit(circuit, "circuit.json")
+
+
+# Build uniform parameter grid
+def build_uniform_parameter_grid(
+    ansatz_specs,
+    number_of_layers,
+    min_value,
+    max_value,
+    step,
+    number_of_params_per_layers=None,
+):
+    if ansatz_specs is not None:
+        ansatz = create_object(loads(ansatz_specs))
+        number_of_params = ansatz.number_of_params
+    elif number_of_params_per_layers is not None:
+        number_of_params = number_of_params_per_layers
+
+    grid = build_uniform_parameter_grid(
+        number_of_params, number_of_layers, min_value, max_value, step
+    )
+    save_parameter_grid(grid, "parameter_grid.json")

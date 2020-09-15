@@ -12,7 +12,55 @@ imports:
     branch: "workflow-v1"
 
 steps:
-- name: get-distribution
+- name: get-initial-parameters
+  config:
+    runtime:
+      type: python3
+      imports: [z-quantum-core]
+      parameters:
+        file: z-quantum-core/tasks/circuit_tasks.py
+        function: generate_random_ansatz_params
+    resources:
+      cpu: "1000m"
+      memory: "1Gi"
+      disk: "10Gi"
+  inputs:
+    - ansatz_specs: '{"module_name": "zquantum.core.interfaces.mock_objects", "function_name": "MockAnsatz", "number_of_layers": 4, "problem_size": 4}'
+      type: string
+    - min_value: 0.1
+      type: float
+    - max_value: 0.5
+      type: float
+    - seed: 9
+      type: int
+    - number_of_parameters: "None"
+      type: string
+  outputs:
+    - name: params
+      type: ansatz-params
+- name: build-circuit
+  passed: [get-initial-parameters]
+  config:
+    runtime:
+      type: python3
+      imports: [z-quantum-core]
+      parameters:
+        file: z-quantum-core/tasks/circuit_tasks.py
+        function: build_ansatz_circuit
+    resources:
+      cpu: "1000m"
+      memory: "1Gi"
+      disk: "10Gi"
+  inputs:
+    - ansatz_specs: '{"module_name": "zquantum.core.interfaces.mock_objects", "function_name": "MockAnsatz", "number_of_layers": 4, "problem_size": 4}'
+      type: string
+    - params: ((get-initial-parameters.params))
+      type: ansatz-params
+  outputs:
+    - name: circuit
+      type: ansatz-circuit
+- name: test
+  passed: [build-circuit]
   config:
     runtime:
       type: python3
@@ -25,16 +73,18 @@ steps:
       memory: "1Gi"
       disk: "10Gi"
   inputs:
-    - backend-specs: '{}'
+    - backend_specs: '{"module_name": "zquantum.core.interfaces.mock_objects", "function_name": "MockQuantumSimulator", "n_samples": 8192}'
       type: string
-    - circuit: ((.circuit))
-      type: circ
+    - circuit: ((build-circuit.circuit))
+      type: ansatz-circuit
     - noise_model: "None"
       type: string
     - device_connectivity: "None"
       type: string
   outputs:
-    - name: bistrings-distribution
+    - name: bitstring-distribution
       type: circuit-distribution
 types:
   - circuit-distribution
+  - ansatz-circuit
+  - ansatz-params

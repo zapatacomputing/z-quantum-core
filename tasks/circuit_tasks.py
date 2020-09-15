@@ -67,7 +67,7 @@ def build_ansatz_circuit(ansatz_specs, params="None"):
 # Build uniform parameter grid
 def build_uniform_parameter_grid(
     ansatz_specs,
-    number_of_params_per_layers="None",
+    number_of_params_per_layer="None",
     number_of_layers=1,
     min_value=0,
     max_value=2 * np.pi,
@@ -76,8 +76,8 @@ def build_uniform_parameter_grid(
     if ansatz_specs != "None":  # TODO None issue in workflow v1
         ansatz = create_object(loads(ansatz_specs))
         number_of_params = ansatz.number_of_params
-    elif number_of_params_per_layers != "None":
-        number_of_params = number_of_params_per_layers
+    elif number_of_params_per_layer != "None":
+        number_of_params = number_of_params_per_layer
 
     grid = build_uniform_param_grid(
         number_of_params, number_of_layers, min_value, max_value, step

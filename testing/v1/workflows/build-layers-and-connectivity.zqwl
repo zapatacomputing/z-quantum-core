@@ -12,7 +12,7 @@ imports:
     branch: "workflow-v1"
 
 steps:
-- name: build-layers-and-connectivity
+- name: test
   config:
     runtime:
       type: python3
@@ -29,6 +29,30 @@ steps:
       type: int
     - y_dimension: 1
       type: int
+    - layer_type: "nearest-neighbor"
+      type: string
+  outputs:
+    - name: circuit-layers
+      type: layers
+    - name: circuit-connectivity
+      type: connectivity
+- name: test-without-y-dimension
+  config:
+    runtime:
+      type: python3
+      imports: [z-quantum-core]
+      parameters:
+        file: z-quantum-core/tasks/circuit_tasks.py
+        function: build_layers_and_connectivity
+    resources:
+      cpu: "1000m"
+      memory: "1Gi"
+      disk: "10Gi"
+  inputs:
+    - x_dimension: 2
+      type: int
+    - y_dimension: "None"
+      type: string
     - layer_type: "nearest-neighbor"
       type: string
   outputs:

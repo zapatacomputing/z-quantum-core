@@ -10,11 +10,6 @@ imports:
   parameters:
     repository: "git@github.com:zapatacomputing/z-quantum-core.git"
     branch: "workflow-v1"
-- name: z-quantum-qcbm
-  type: git
-  parameters:
-    repository: "git@github.com:zapatacomputing/z-quantum-qcbm.git"
-    branch: "workflow-v1"
 
 steps:
 
@@ -22,7 +17,7 @@ steps:
   config:
     runtime:
       type: python3
-      imports: [z-quantum-core, z-quantum-qcbm]
+      imports: [z-quantum-core]
       parameters:
         file: z-quantum-core/tasks/circuit_tasks.py
         function: generate_random_ansatz_params
@@ -31,7 +26,7 @@ steps:
       memory: "1Gi"
       disk: "10Gi"
   inputs:
-    - ansatz_specs: '{"module_name": "zquantum.qcbm.ansatz", "function_name": "QCBMAnsatz", "number_of_layers": 4, "number_of_qubits": 4, "topology": "all"}'
+    - ansatz_specs: '{"module_name": "zquantum.core.interfaces.mock_objects", "function_name": "MockAnsatz", "number_of_layers": 2, "problem_size": 4}'
       type: string
     - min_value: -1.57
       type: float
@@ -48,7 +43,7 @@ steps:
   config:
     runtime:
       type: python3
-      imports: [z-quantum-core, z-quantum-qcbm]
+      imports: [z-quantum-core]
       parameters:
         file: z-quantum-core/tasks/circuit_tasks.py
         function: generate_random_ansatz_params
@@ -57,20 +52,20 @@ steps:
       memory: "1Gi"
       disk: "10Gi"
   inputs:
-    - ansatz_specs: '{"module_name": "zquantum.qcbm.ansatz", "function_name": "QCBMAnsatz", "number_of_layers": 4, "number_of_qubits": 4, "topology": "all"}'
+    - ansatz_specs: "None"
       type: string
     - min_value: -2.02
       type: float
     - max_value: 2.02
       type: float
-    - seed: 10
-      type: int
-    - number_of_parameters: "None"
+    - seed: "None"
       type: string
+    - number_of_parameters: 10
+      type: int
   outputs:
     - name: params
       type: ansatz-params
-- name: combine-params
+- name: test
   passed: [get-initial-parameters, get-other-parameters]
   config:
     runtime:

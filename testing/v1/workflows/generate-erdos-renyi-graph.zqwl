@@ -12,7 +12,7 @@ imports:
     branch: "workflow-v1"
 
 steps:
-- name: generate-erdos-renyi-graph
+- name: test
   config:
     runtime:
       type: python3
@@ -33,6 +33,30 @@ steps:
       type: bool
     - seed: 24
       type: int
+  outputs:
+    - name: graph
+      type: erdos-renyi-graph
+- name: test-without-seed
+  config:
+    runtime:
+      type: python3
+      imports: [z-quantum-core]
+      parameters:
+        file: z-quantum-core/tasks/graph_tasks.py
+        function: generate_erdos_renyi_graph
+    resources:
+      cpu: "1000m"
+      memory: "1Gi"
+      disk: "10Gi"
+  inputs:
+    - number_of_nodes: 42
+      type: int
+    - edge_probability: 0.8
+      type: float
+    - random_weights: True
+      type: bool
+    - seed: "None"
+      type: string
   outputs:
     - name: graph
       type: erdos-renyi-graph

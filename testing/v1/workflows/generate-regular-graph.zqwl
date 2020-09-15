@@ -12,7 +12,7 @@ imports:
     branch: "workflow-v1"
 
 steps:
-- name: generate-regular-graph
+- name: test
   config:
     runtime:
       type: python3
@@ -30,6 +30,30 @@ steps:
     - degree: 2
       type: int
     - random_weights: True
+      type: bool
+    - seed: 1234
+      type: int
+  outputs:
+    - name: graph
+      type: regular-graph
+- name: test-without-seed
+  config:
+    runtime:
+      type: python3
+      imports: [z-quantum-core]
+      parameters:
+        file: z-quantum-core/tasks/graph_tasks.py
+        function: generate_regular_graph
+    resources:
+      cpu: "1000m"
+      memory: "1Gi"
+      disk: "10Gi"
+  inputs:
+    - number_of_nodes: 20
+      type: int
+    - degree: 3
+      type: int
+    - random_weights: False
       type: bool
     - seed: "None"
       type: string

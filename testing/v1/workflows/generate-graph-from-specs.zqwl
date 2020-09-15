@@ -12,7 +12,7 @@ imports:
     branch: "workflow-v1"
 
 steps:
-- name: generate-specs-graph
+- name: test
   config:
     runtime:
       type: python3

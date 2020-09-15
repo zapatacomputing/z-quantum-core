@@ -10,18 +10,13 @@ imports:
   parameters:
     repository: "git@github.com:zapatacomputing/z-quantum-core.git"
     branch: "workflow-v1"
-- name: z-quantum-qcbm
-  type: git
-  parameters:
-    repository: "git@github.com:zapatacomputing/z-quantum-qcbm.git"
-    branch: "workflow-v1"
 
 steps:
-- name: build-uniform-parameter-grid
+- name: test-with-ansatz-specs
   config:
     runtime:
       type: python3
-      imports: [z-quantum-core, z-quantum-qcbm]
+      imports: [z-quantum-core]
       parameters:
         file: z-quantum-core/tasks/circuit_tasks.py
         function: build_uniform_parameter_grid
@@ -30,7 +25,7 @@ steps:
       memory: "1Gi"
       disk: "10Gi"
   inputs:
-    - ansatz_specs: '{"module_name": "zquantum.qcbm.ansatz", "function_name": "QCBMAnsatz", "number_of_layers": 4, "number_of_qubits": 4, "topology": "all"}'
+    - ansatz_specs: '{"module_name": "zquantum.core.interfaces.mock_objects", "function_name": "MockAnsatz", "number_of_layers": 2, "problem_size": 2}'
       type: string
     - number_of_layers: 1
       type: int
@@ -40,8 +35,36 @@ steps:
       type: float
     - step: 0.62832
       type: float
-    - number_of_params_per_layers: "None"
+    - number_of_params_per_layer: "None"
       type: string
+  outputs:
+    - name: parameter-grid
+      type: grid
+- name: test
+  config:
+    runtime:
+      type: python3
+      imports: [z-quantum-core]
+      parameters:
+        file: z-quantum-core/tasks/circuit_tasks.py
+        function: build_uniform_parameter_grid
+    resources:
+      cpu: "1000m"
+      memory: "1Gi"
+      disk: "10Gi"
+  inputs:
+    - ansatz_specs: "None"
+      type: string
+    - number_of_layers: 2
+      type: int
+    - min_value: 0.01
+      type: float
+    - max_value: 6.2832
+      type: float
+    - step: 0.62832
+      type: float
+    - number_of_params_per_layer: 3
+      type: int
   outputs:
     - name: parameter-grid
       type: grid

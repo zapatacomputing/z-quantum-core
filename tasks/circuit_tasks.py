@@ -53,7 +53,7 @@ def build_ansatz_circuit(ansatz_specs, params="None"):
     if params != "None":  # TODO Non issue in worklow v1
         parameters = load_circuit_template_params(params)
         circuit = ansatz.get_executable_circuit(parameters)
-    elif ansatz.support_parametrized_circuits:
+    elif ansatz.supports_parametrized_circuits:
         circuit = ansatz.parametrized_circuit
     else:
         raise (

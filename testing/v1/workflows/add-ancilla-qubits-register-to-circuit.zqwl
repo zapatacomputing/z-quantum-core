@@ -2,7 +2,7 @@
 apiVersion: io.orquestra.workflow/1.0.0
 
 # Prefix for workflow ID
-name: build-ansatz
+name: add-ancilla-register
 
 imports:
 - name: z-quantum-core
@@ -10,18 +10,13 @@ imports:
   parameters:
     repository: "git@github.com:zapatacomputing/z-quantum-core.git"
     branch: "workflow-v1"
-- name: z-quantum-qcbm
-  type: git
-  parameters:
-    repository: "git@github.com:zapatacomputing/z-quantum-qcbm.git"
-    branch: "workflow-v1"
 
 steps:
 - name: get-initial-parameters
   config:
     runtime:
       type: python3
-      imports: [z-quantum-core, z-quantum-qcbm]
+      imports: [z-quantum-core]
       parameters:
         file: z-quantum-core/tasks/circuit_tasks.py
         function: generate_random_ansatz_params
@@ -30,7 +25,7 @@ steps:
       memory: "1Gi"
       disk: "10Gi"
   inputs:
-    - ansatz_specs: '{"module_name": "zquantum.qcbm.ansatz", "function_name": "QCBMAnsatz", "number_of_layers": 4, "number_of_qubits": 4, "topology": "all"}'
+    - ansatz_specs: '{"module_name": "zquantum.core.interfaces.mock_objects", "function_name": "MockAnsatz", "number_of_layers": 4, "problem_size": 3}'
       type: string
     - min_value: -1.57
       type: float
@@ -48,7 +43,7 @@ steps:
   config:
     runtime:
       type: python3
-      imports: [z-quantum-core, z-quantum-qcbm]
+      imports: [z-quantum-core]
       parameters:
         file: z-quantum-core/tasks/circuit_tasks.py
         function: build_ansatz_circuit
@@ -57,14 +52,35 @@ steps:
       memory: "1Gi"
       disk: "10Gi"
   inputs:
-    - ansatz_specs: '{"module_name": "zquantum.qcbm.ansatz", "function_name": "QCBMAnsatz", "number_of_layers": 4, "number_of_qubits": 4, "topology": "all"}'
+    - ansatz_specs: '{"module_name": "zquantum.core.interfaces.mock_objects", "function_name": "MockAnsatz", "number_of_layers": 4, "problem_size": 3}'
       type: string
     - params: ((get-initial-parameters.params))
       type: ansatz-params
   outputs:
     - name: circuit
       type: ansatz-circuit
+- name: test
+  passed: [get-initial-parameters, build-ansatz]
+  config:
+    runtime:
+      type: python3
+      imports: [z-quantum-core]
+      parameters:
+        file: z-quantum-core/tasks/circuit_tasks.py
+        function: add_ancilla_qubits_register_to_circuit
+    resources:
+      cpu: "1000m"
+      memory: "1Gi"
+      disk: "10Gi"
+  inputs:
+    - number_of_ancilla_qubits: 1
+      type: int
+    - circuit: ((build-ansatz.circuit))
+      type: ansatz-circuit
+  outputs:
+    - name: extended-circuit
+      type: ansatz-circuit
 
 types:
-  - ansatz-params
   - ansatz-circuit
+  - ansatz-params

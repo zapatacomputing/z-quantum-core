@@ -2,7 +2,7 @@
 apiVersion: io.orquestra.workflow/1.0.0
 
 # Prefix for workflow ID
-name: generate-regular-graph
+name: generate-complete-graph
 
 imports:
 - name: z-quantum-core
@@ -12,14 +12,36 @@ imports:
     branch: "workflow-v1"
 
 steps:
-- name: generate-regular-graph
+- name: test
   config:
     runtime:
       type: python3
       imports: [z-quantum-core]
       parameters:
         file: z-quantum-core/tasks/graph_tasks.py
-        function: generate_regular_graph
+        function: generate_complete_graph
+    resources:
+      cpu: "1000m"
+      memory: "1Gi"
+      disk: "10Gi"
+  inputs:
+    - number_of_nodes: 25
+      type: int
+    - random_weights: False
+      type: bool
+    - seed: 12456
+      type: int
+  outputs:
+    - name: graph
+      type: complete-graph
+- name: test-without-seed
+  config:
+    runtime:
+      type: python3
+      imports: [z-quantum-core]
+      parameters:
+        file: z-quantum-core/tasks/graph_tasks.py
+        function: generate_complete_graph
     resources:
       cpu: "1000m"
       memory: "1Gi"
@@ -27,14 +49,12 @@ steps:
   inputs:
     - number_of_nodes: 10
       type: int
-    - degree: 2
-      type: int
     - random_weights: True
       type: bool
     - seed: "None"
       type: string
   outputs:
     - name: graph
-      type: regular-graph
+      type: complete-graph
 types:
-  - regular-graph
+  - complete-graph

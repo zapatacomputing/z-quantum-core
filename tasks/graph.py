@@ -4,7 +4,7 @@ from zquantum.core.graph import (
     generate_graph_from_specs,
     save_graph,
 )
-from json import loads
+import json
 
 
 def generate_erdos_renyi_graph(
@@ -35,6 +35,6 @@ def generate_complete_graph(number_of_nodes, random_weights=False, seed="None"):
 
 
 def generate_custom_graph(graph_specs):
-    graph_specs_dict = loads(graph_specs)
+    graph_specs_dict = json.loads(graph_specs)
     graph = generate_graph_from_specs(graph_specs_dict)
     save_graph(graph, "graph.json")

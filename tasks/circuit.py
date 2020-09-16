@@ -1,5 +1,5 @@
 import numpy as np
-from json import loads
+import json
 from zquantum.core.circuit import (
     save_circuit_template_params,
     combine_ansatz_params,
@@ -28,7 +28,7 @@ def generate_random_ansatz_params(
     seed="None",
 ):
     if ansatz_specs != "None":  # TODO None issue in workflow v1
-        ansatz_specs_dict = loads(ansatz_specs)
+        ansatz_specs_dict = json.loads(ansatz_specs)
         ansatz = create_object(ansatz_specs_dict)
         number_of_params = ansatz.number_of_params
     elif number_of_parameters != "None":
@@ -49,7 +49,7 @@ def combine_ansatz_parameters(params1, params2):
 
 # Build circuit from ansatz
 def build_ansatz_circuit(ansatz_specs, params="None"):
-    ansatz = create_object(loads(ansatz_specs))
+    ansatz = create_object(json.loads(ansatz_specs))
     if params != "None":  # TODO Non issue in worklow v1
         parameters = load_circuit_template_params(params)
         circuit = ansatz.get_executable_circuit(parameters)
@@ -74,7 +74,7 @@ def build_uniform_parameter_grid(
     step=np.pi / 5,
 ):
     if ansatz_specs != "None":  # TODO None issue in workflow v1
-        ansatz = create_object(loads(ansatz_specs))
+        ansatz = create_object(json.loads(ansatz_specs))
         number_of_params = ansatz.number_of_params
     elif number_of_params_per_layers != "None":
         number_of_params = number_of_params_per_layers

@@ -1,2 +1,0 @@
-/Users/marta/orquestra/z-quantum-core/testing/workflows/build-ansatz-circuit.yaml
-Workflow ID: z-quantum-core-acceptance-test-build-ansatz-circuit-8tzwb

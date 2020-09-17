@@ -18,7 +18,7 @@ steps:
       type: python3
       imports: [z-quantum-core]
       parameters:
-        file: z-quantum-core/tasks/graph_tasks.py
+        file: z-quantum-core/tasks/graph.py
         function: generate_complete_graph
     resources:
       cpu: "1000m"
@@ -40,7 +40,7 @@ steps:
       type: python3
       imports: [z-quantum-core]
       parameters:
-        file: z-quantum-core/tasks/graph_tasks.py
+        file: z-quantum-core/tasks/graph.py
         function: generate_complete_graph
     resources:
       cpu: "1000m"

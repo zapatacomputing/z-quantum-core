@@ -10,26 +10,6 @@ imports:
   parameters:
     repository: "git@github.com:zapatacomputing/z-quantum-core.git"
     branch: "workflow-v1"
-- name: qe-forest
-  type: git
-  parameters:
-    repository: "git@github.com:zapatacomputing/qe-forest.git"
-    branch: "workflow-v1"
-- name: qe-qhipster
-  type: git
-  parameters:
-    repository: "git@github.com:zapatacomputing/qe-qhipster.git"
-    branch: "workflow-v1"
-- name: qe-openfermion
-  type: git
-  parameters:
-    repository: "git@github.com:zapatacomputing/qe-openfermion.git"
-    branch: "workflow-v1"
-- name: qe-qiskit
-  type: git
-  parameters:
-    repository: "git@github.com:zapatacomputing/qe-qiskit.git"
-    branch: "dev"
 
 steps:
 - name: get-initial-parameters
@@ -38,7 +18,7 @@ steps:
       type: python3
       imports: [z-quantum-core]
       parameters:
-        file: z-quantum-core/tasks/circuit_tasks.py
+        file: z-quantum-core/tasks/circuit.py
         function: generate_random_ansatz_params
     resources:
       cpu: "1000m"
@@ -65,7 +45,7 @@ steps:
       type: python3
       imports: [z-quantum-core]
       parameters:
-        file: z-quantum-core/tasks/circuit_tasks.py
+        file: z-quantum-core/tasks/circuit.py
         function: build_ansatz_circuit
     resources:
       cpu: "1000m"
@@ -79,21 +59,21 @@ steps:
   outputs:
     - name: circuit
       type: ansatz-circuit
-- name: test-with-qeforest
+- name: test-with-mock
   passed: [build-circuit]
   config:
     runtime:
       type: python3
-      imports: [z-quantum-core, qe-forest]
+      imports: [z-quantum-core]
       parameters:
-        file: z-quantum-core/tasks/measure_tasks.py
+        file: z-quantum-core/tasks/measure.py
         function: get_bitstring_distribution
     resources:
       cpu: "1000m"
       memory: "1Gi"
       disk: "10Gi"
   inputs:
-    - backend_specs: '{"module_name": "qeforest.simulator", "function_name": "ForestSimulator", "device_name": "wavefunction-simulator", "n_samples": 8192}'
+    - backend_specs: '{"module_name": "zquantum.core.interfaces.mock_objects", "function_name": "MockQuantumBackend", "n_samples": 8192}'
       type: string
     - circuit: ((build-circuit.circuit))
       type: ansatz-circuit
@@ -104,56 +84,7 @@ steps:
   outputs:
     - name: bitstring-distribution
       type: circuit-distribution
-- name: test-with-qhipster
-  passed: [build-circuit]
-  config:
-    runtime:
-      type: python3
-      imports: [z-quantum-core, qe-qhipster]
-      parameters:
-        file: z-quantum-core/tasks/measure_tasks.py
-        function: get_bitstring_distribution
-    resources:
-      cpu: "1000m"
-      memory: "1Gi"
-      disk: "10Gi"
-  inputs:
-    - backend_specs: '{"module_name": "qeqhipster.simulator", "function_name": "QHipsterSimulator"}'
-      type: string
-    - circuit: ((build-circuit.circuit))
-      type: ansatz-circuit
-    - noise_model: "None"
-      type: string
-    - device_connectivity: "None"
-      type: string
-  outputs:
-    - name: bitstring-distribution
-      type: circuit-distribution
-- name: test-with-qeqiskit
-  passed: [build-circuit]
-  config:
-    runtime:
-      type: python3
-      imports: [z-quantum-core, qe-openfermion, qe-qiskit]
-      parameters:
-        file: z-quantum-core/tasks/measure_tasks.py
-        function: get_bitstring_distribution
-    resources:
-      cpu: "1000m"
-      memory: "1Gi"
-      disk: "10Gi"
-  inputs:
-    - backend_specs: '{"module_name": "qeqiskit.simulator", "function_name": "QiskitSimulator", "device_name": "qasm_simulator", "n_samples": 8192}'
-      type: string
-    - circuit: ((build-circuit.circuit))
-      type: ansatz-circuit
-    - noise_model: "None"
-      type: string
-    - device_connectivity: "None"
-      type: string
-  outputs:
-    - name: bitstring-distribution
-      type: circuit-distribution
+
 types:
   - circuit-distribution
   - ansatz-circuit

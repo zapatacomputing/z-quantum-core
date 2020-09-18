@@ -337,11 +337,11 @@ class Gate(object):
         if self.name == "T":  # T gate
             return cirq.T(cirq_qubits[0])
         if self.name == "Rx":  # Single-qubit X rotation
-            return cirq.Rx(params[0])(cirq_qubits[0])
+            return cirq.rx(params[0])(cirq_qubits[0])
         if self.name == "Ry":  # Single-qubit Y rotation
-            return cirq.Ry(params[0])(cirq_qubits[0])
+            return cirq.ry(params[0])(cirq_qubits[0])
         if self.name == "Rz":  # Single-qubit Z rotation
-            return cirq.Rz(params[0])(cirq_qubits[0])
+            return cirq.rz(params[0])(cirq_qubits[0])
         if self.name == "PHASE":  # Phase gate
             return cirq.Z(cirq_qubits[0]) ** (params[0] / pi)
         if self.name == "ZXZ":  # PhasedXPowGate gate

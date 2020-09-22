@@ -2,7 +2,7 @@
 apiVersion: io.orquestra.workflow/1.0.0
 
 # Prefix for workflow ID
-name: run-circuit-and-measure
+name: get-bitstring-distribution
 
 imports:
 - name: z-quantum-core
@@ -15,10 +15,10 @@ steps:
 - name: get-initial-parameters
   config:
     runtime:
-      type: python3
+      language: python3
       imports: [z-quantum-core]
       parameters:
-        file: z-quantum-core/tasks/circuit.py
+        file: z-quantum-core/steps/circuit.py
         function: generate_random_ansatz_params
     resources:
       cpu: "1000m"
@@ -42,10 +42,10 @@ steps:
   passed: [get-initial-parameters]
   config:
     runtime:
-      type: python3
+      language: python3
       imports: [z-quantum-core]
       parameters:
-        file: z-quantum-core/tasks/circuit.py
+        file: z-quantum-core/steps/circuit.py
         function: build_ansatz_circuit
     resources:
       cpu: "1000m"
@@ -59,22 +59,21 @@ steps:
   outputs:
     - name: circuit
       type: ansatz-circuit
-
 - name: test-with-mock
   passed: [build-circuit]
   config:
     runtime:
-      type: python3
+      language: python3
       imports: [z-quantum-core]
       parameters:
-        file: z-quantum-core/tasks/measure.py
-        function: run_circuit_and_measure
+        file: z-quantum-core/steps/measure.py
+        function: get_bitstring_distribution
     resources:
       cpu: "1000m"
       memory: "1Gi"
       disk: "10Gi"
   inputs:
-    - backend_specs: '{"module_name": "zquantum.core.interfaces.mock_objects", "function_name": "MockQuantumBackend", "n_samples": 10}'
+    - backend_specs: '{"module_name": "zquantum.core.interfaces.mock_objects", "function_name": "MockQuantumBackend", "n_samples": 8192}'
       type: string
     - circuit: ((build-circuit.circuit))
       type: ansatz-circuit
@@ -83,10 +82,10 @@ steps:
     - device_connectivity: "None"
       type: string
   outputs:
-    - name: measurements
-      type: circuit-measurements
+    - name: bitstring-distribution
+      type: circuit-distribution
 
 types:
-  - circuit-measurements
+  - circuit-distribution
   - ansatz-circuit
   - ansatz-params

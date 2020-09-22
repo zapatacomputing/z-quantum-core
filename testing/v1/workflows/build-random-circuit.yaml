@@ -2,7 +2,7 @@
 apiVersion: io.orquestra.workflow/1.0.0
 
 # Prefix for workflow ID
-name: generate-regular-graph
+name: create-random-circ
 
 imports:
 - name: z-quantum-core
@@ -15,50 +15,47 @@ steps:
 - name: test
   config:
     runtime:
-      type: python3
+      language: python3
       imports: [z-quantum-core]
       parameters:
-        file: z-quantum-core/tasks/graph.py
-        function: generate_regular_graph
+        file: z-quantum-core/steps/circuit.py
+        function: build_random_circuit
     resources:
       cpu: "1000m"
       memory: "1Gi"
       disk: "10Gi"
   inputs:
-    - number_of_nodes: 10
+    - number_of_qubits: 4
       type: int
-    - degree: 2
+    - number_of_gates: 5
       type: int
-    - random_weights: True
-      type: bool
-    - seed: 1234
+    - seed: 3
       type: int
   outputs:
-    - name: graph
-      type: regular-graph
+    - name: circuit
+      type: random-circuit
 - name: test-without-seed
   config:
     runtime:
-      type: python3
+      language: python3
       imports: [z-quantum-core]
       parameters:
-        file: z-quantum-core/tasks/graph.py
-        function: generate_regular_graph
+        file: z-quantum-core/steps/circuit.py
+        function: build_random_circuit
     resources:
       cpu: "1000m"
       memory: "1Gi"
       disk: "10Gi"
   inputs:
-    - number_of_nodes: 20
+    - number_of_qubits: 5
       type: int
-    - degree: 3
+    - number_of_gates: 20
       type: int
-    - random_weights: False
-      type: bool
     - seed: "None"
       type: string
   outputs:
-    - name: graph
-      type: regular-graph
+    - name: circuit
+      type: random-circuit
+
 types:
-  - regular-graph
+  - random-circuit

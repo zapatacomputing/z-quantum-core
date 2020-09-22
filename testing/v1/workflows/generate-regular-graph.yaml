@@ -2,7 +2,7 @@
 apiVersion: io.orquestra.workflow/1.0.0
 
 # Prefix for workflow ID
-name: generate-erdos-renyi-graph
+name: generate-regular-graph
 
 imports:
 - name: z-quantum-core
@@ -15,11 +15,11 @@ steps:
 - name: test
   config:
     runtime:
-      type: python3
+      language: python3
       imports: [z-quantum-core]
       parameters:
-        file: z-quantum-core/tasks/graph.py
-        function: generate_erdos_renyi_graph
+        file: z-quantum-core/steps/graph.py
+        function: generate_regular_graph
     resources:
       cpu: "1000m"
       memory: "1Gi"
@@ -27,38 +27,38 @@ steps:
   inputs:
     - number_of_nodes: 10
       type: int
-    - edge_probability: 0.3
-      type: float
-    - random_weights: False
+    - degree: 2
+      type: int
+    - random_weights: True
       type: bool
-    - seed: 24
+    - seed: 1234
       type: int
   outputs:
     - name: graph
-      type: erdos-renyi-graph
+      type: regular-graph
 - name: test-without-seed
   config:
     runtime:
-      type: python3
+      language: python3
       imports: [z-quantum-core]
       parameters:
-        file: z-quantum-core/tasks/graph.py
-        function: generate_erdos_renyi_graph
+        file: z-quantum-core/steps/graph.py
+        function: generate_regular_graph
     resources:
       cpu: "1000m"
       memory: "1Gi"
       disk: "10Gi"
   inputs:
-    - number_of_nodes: 42
+    - number_of_nodes: 20
       type: int
-    - edge_probability: 0.8
-      type: float
-    - random_weights: True
+    - degree: 3
+      type: int
+    - random_weights: False
       type: bool
     - seed: "None"
       type: string
   outputs:
     - name: graph
-      type: erdos-renyi-graph
+      type: regular-graph
 types:
-  - erdos-renyi-graph
+  - regular-graph

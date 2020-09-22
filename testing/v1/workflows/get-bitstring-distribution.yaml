@@ -15,7 +15,7 @@ steps:
 - name: get-initial-parameters
   config:
     runtime:
-      type: python3
+      language: python3
       imports: [z-quantum-core]
       parameters:
         file: z-quantum-core/tasks/circuit.py
@@ -42,7 +42,7 @@ steps:
   passed: [get-initial-parameters]
   config:
     runtime:
-      type: python3
+      language: python3
       imports: [z-quantum-core]
       parameters:
         file: z-quantum-core/tasks/circuit.py
@@ -63,7 +63,7 @@ steps:
   passed: [build-circuit]
   config:
     runtime:
-      type: python3
+      language: python3
       imports: [z-quantum-core]
       parameters:
         file: z-quantum-core/tasks/measure.py

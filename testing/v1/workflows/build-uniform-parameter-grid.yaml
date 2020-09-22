@@ -15,7 +15,7 @@ steps:
 - name: test-with-ansatz-specs
   config:
     runtime:
-      type: python3
+      language: python3
       imports: [z-quantum-core]
       parameters:
         file: z-quantum-core/tasks/circuit.py
@@ -43,7 +43,7 @@ steps:
 - name: test
   config:
     runtime:
-      type: python3
+      language: python3
       imports: [z-quantum-core]
       parameters:
         file: z-quantum-core/tasks/circuit.py

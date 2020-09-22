@@ -18,7 +18,7 @@ steps:
       language: python3
       imports: [z-quantum-core]
       parameters:
-        file: z-quantum-core/tasks/graph.py
+        file: z-quantum-core/steps/graph.py
         function: generate_regular_graph
     resources:
       cpu: "1000m"
@@ -42,7 +42,7 @@ steps:
       language: python3
       imports: [z-quantum-core]
       parameters:
-        file: z-quantum-core/tasks/graph.py
+        file: z-quantum-core/steps/graph.py
         function: generate_regular_graph
     resources:
       cpu: "1000m"

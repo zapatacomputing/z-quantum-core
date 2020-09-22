@@ -18,7 +18,7 @@ steps:
       language: python3
       imports: [z-quantum-core]
       parameters:
-        file: z-quantum-core/tasks/circuit.py
+        file: z-quantum-core/steps/circuit.py
         function: generate_random_ansatz_params
     resources:
       cpu: "1000m"
@@ -44,7 +44,7 @@ steps:
       language: python3
       imports: [z-quantum-core]
       parameters:
-        file: z-quantum-core/tasks/circuit.py
+        file: z-quantum-core/steps/circuit.py
         function: generate_random_ansatz_params
     resources:
       cpu: "1000m"
@@ -71,7 +71,7 @@ steps:
       language: python3
       imports: [z-quantum-core]
       parameters:
-        file: z-quantum-core/tasks/circuit.py
+        file: z-quantum-core/steps/circuit.py
         function: build_ansatz_circuit
     resources:
       cpu: "1000m"
@@ -92,7 +92,7 @@ steps:
       language: python3
       imports: [z-quantum-core]
       parameters:
-        file: z-quantum-core/tasks/circuit.py
+        file: z-quantum-core/steps/circuit.py
         function: build_ansatz_circuit
     resources:
       cpu: "1000m"
@@ -113,7 +113,7 @@ steps:
       language: python3
       imports: [z-quantum-core]
       parameters:
-        file: z-quantum-core/tasks/circuit.py
+        file: z-quantum-core/steps/circuit.py
         function: create_circuit_set_from_circuit_artifacts
     resources:
       cpu: "1000m"
@@ -140,7 +140,7 @@ steps:
       language: python3
       imports: [z-quantum-core]
       parameters:
-        file: z-quantum-core/tasks/circuit.py
+        file: z-quantum-core/steps/circuit.py
         function: create_circuit_set_from_circuit_artifacts
     resources:
       cpu: "1000m"

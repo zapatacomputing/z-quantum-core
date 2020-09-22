@@ -18,7 +18,7 @@ steps:
       language: python3
       imports: [z-quantum-core]
       parameters:
-        file: z-quantum-core/tasks/circuit.py
+        file: z-quantum-core/steps/circuit.py
         function: build_layers_and_connectivity
     resources:
       cpu: "1000m"
@@ -42,7 +42,7 @@ steps:
       language: python3
       imports: [z-quantum-core]
       parameters:
-        file: z-quantum-core/tasks/circuit.py
+        file: z-quantum-core/steps/circuit.py
         function: build_layers_and_connectivity
     resources:
       cpu: "1000m"

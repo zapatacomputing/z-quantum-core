@@ -37,14 +37,14 @@ and then add it in the `imports` argument of your `step`:
 Once that is done you can:
 - use any `z-quantum-core` function by specifying its name and path as follows:
 ```yaml
-- - name: generate-parameters
-    config:
-      runtime:
-        language: python3
-        imports: [z-quantum-core]
-        parameters:
-          file: z-quantum-core/steps/circuit.py
-          function: generate_random_ansatz_params
+- name: generate-parameters
+  config:
+    runtime:
+      language: python3
+      imports: [z-quantum-core]
+      parameters:
+        file: z-quantum-core/steps/circuit.py
+        function: generate_random_ansatz_params
 ```
 - use tasks which import `zquantum.core` in the python code (see below)
 

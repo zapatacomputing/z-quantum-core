@@ -32,7 +32,7 @@ def generate_random_regular_graph(
 def generate_complete_graph(number_of_nodes, random_weights=False, seed="None"):
     if seed == "None":
         seed = None
-    graph = generate_random_graph_erdos_renyi(
+    graph = _generate_random_graph_erdos_renyi(
         number_of_nodes, 1.0, random_weights, seed
     )
     save_graph(graph, "graph.json")

@@ -2,7 +2,7 @@
 apiVersion: io.orquestra.workflow/1.0.0
 
 # Prefix for workflow ID
-name: generate-erdos-renyi-graph
+name: build-layers-and-conn
 
 imports:
 - name: z-quantum-core
@@ -18,47 +18,49 @@ steps:
       language: python3
       imports: [z-quantum-core]
       parameters:
-        file: z-quantum-core/steps/graph.py
-        function: generate_erdos_renyi_graph
+        file: z-quantum-core/steps/circuit.py
+        function: build_circuit_layers_and_connectivity
     resources:
       cpu: "1000m"
       memory: "1Gi"
       disk: "10Gi"
   inputs:
-    - number_of_nodes: 10
+    - x_dimension: 2
       type: int
-    - edge_probability: 0.3
-      type: float
-    - random_weights: False
-      type: bool
-    - seed: 24
+    - y_dimension: 1
       type: int
+    - layer_type: "nearest-neighbor"
+      type: string
   outputs:
-    - name: graph
-      type: erdos-renyi-graph
-- name: test-without-seed
+    - name: circuit-layers
+      type: layers
+    - name: circuit-connectivity
+      type: connectivity
+- name: test-without-y-dimension
   config:
     runtime:
       language: python3
       imports: [z-quantum-core]
       parameters:
-        file: z-quantum-core/steps/graph.py
-        function: generate_erdos_renyi_graph
+        file: z-quantum-core/steps/circuit.py
+        function: build_circuit_layers_and_connectivity
     resources:
       cpu: "1000m"
       memory: "1Gi"
       disk: "10Gi"
   inputs:
-    - number_of_nodes: 42
+    - x_dimension: 2
       type: int
-    - edge_probability: 0.8
-      type: float
-    - random_weights: True
-      type: bool
-    - seed: "None"
+    - y_dimension: "None"
+      type: string
+    - layer_type: "nearest-neighbor"
       type: string
   outputs:
-    - name: graph
-      type: erdos-renyi-graph
+    - name: circuit-layers
+      type: layers
+    - name: circuit-connectivity
+      type: connectivity
+
 types:
-  - erdos-renyi-graph
+  - layers
+  - connectivity

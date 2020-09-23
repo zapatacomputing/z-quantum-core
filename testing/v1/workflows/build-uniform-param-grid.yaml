@@ -19,7 +19,7 @@ steps:
       imports: [z-quantum-core]
       parameters:
         file: z-quantum-core/steps/circuit.py
-        function: build_uniform_parameter_grid
+        function: build_uniform_param_grid
     resources:
       cpu: "1000m"
       memory: "1Gi"
@@ -47,7 +47,7 @@ steps:
       imports: [z-quantum-core]
       parameters:
         file: z-quantum-core/steps/circuit.py
-        function: build_uniform_parameter_grid
+        function: build_uniform_param_grid
     resources:
       cpu: "1000m"
       memory: "1Gi"

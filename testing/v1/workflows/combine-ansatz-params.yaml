@@ -73,7 +73,7 @@ steps:
       imports: [z-quantum-core]
       parameters:
         file: z-quantum-core/steps/circuit.py
-        function: combine_ansatz_parameters
+        function: combine_ansatz_params
     resources:
       cpu: "1000m"
       memory: "1Gi"

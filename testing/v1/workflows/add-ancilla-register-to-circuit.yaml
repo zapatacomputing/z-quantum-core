@@ -9,7 +9,7 @@ imports:
   type: git
   parameters:
     repository: "git@github.com:zapatacomputing/z-quantum-core.git"
-    branch: "workflow-v1"
+    branch: "dev"
 
 steps:
 - name: get-initial-parameters

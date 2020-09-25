@@ -2,30 +2,30 @@
 apiVersion: io.orquestra.workflow/1.0.0
 
 # Prefix for workflow ID
-name: concatenate-circuits
+name: create-circuit-set
 
 imports:
 - name: z-quantum-core
   type: git
   parameters:
     repository: "git@github.com:zapatacomputing/z-quantum-core.git"
-    branch: "workflow-v1"
+    branch: "dev"
 
 steps:
 - name: get-initial-parameters
   config:
     runtime:
-      type: python3
+      language: python3
       imports: [z-quantum-core]
       parameters:
-        file: z-quantum-core/tasks/circuit.py
+        file: z-quantum-core/steps/circuit.py
         function: generate_random_ansatz_params
     resources:
       cpu: "1000m"
       memory: "1Gi"
       disk: "10Gi"
   inputs:
-    - ansatz_specs: '{"module_name": "zquantum.core.interfaces.mock_objects", "function_name": "MockAnsatz", "number_of_layers": 4, "problem_size": 4}'
+    - ansatz_specs: '{"module_name": "zquantum.core.interfaces.mock_objects", "function_name": "MockAnsatz", "number_of_layers": 4, "problem_size": 3}'
       type: string
     - min_value: -1.57
       type: float
@@ -41,17 +41,17 @@ steps:
 - name: get-other-parameters
   config:
     runtime:
-      type: python3
+      language: python3
       imports: [z-quantum-core]
       parameters:
-        file: z-quantum-core/tasks/circuit.py
+        file: z-quantum-core/steps/circuit.py
         function: generate_random_ansatz_params
     resources:
       cpu: "1000m"
       memory: "1Gi"
       disk: "10Gi"
   inputs:
-    - ansatz_specs: '{"module_name": "zquantum.core.interfaces.mock_objects", "function_name": "MockAnsatz", "number_of_layers": 2, "problem_size": 4}'
+    - ansatz_specs: '{"module_name": "zquantum.core.interfaces.mock_objects", "function_name": "MockAnsatz", "number_of_layers": 4, "problem_size": 3}'
       type: string
     - min_value: -3.14
       type: float
@@ -68,17 +68,17 @@ steps:
   passed: [get-initial-parameters]
   config:
     runtime:
-      type: python3
+      language: python3
       imports: [z-quantum-core]
       parameters:
-        file: z-quantum-core/tasks/circuit.py
+        file: z-quantum-core/steps/circuit.py
         function: build_ansatz_circuit
     resources:
       cpu: "1000m"
       memory: "1Gi"
       disk: "10Gi"
   inputs:
-    - ansatz_specs: '{"module_name": "zquantum.core.interfaces.mock_objects", "function_name": "MockAnsatz", "number_of_layers": 4, "problem_size": 4}'
+    - ansatz_specs: '{"module_name": "zquantum.core.interfaces.mock_objects", "function_name": "MockAnsatz", "number_of_layers": 4, "problem_size": 3}'
       type: string
     - params: ((get-initial-parameters.params))
       type: ansatz-params
@@ -89,31 +89,31 @@ steps:
   passed: [get-other-parameters]
   config:
     runtime:
-      type: python3
+      language: python3
       imports: [z-quantum-core]
       parameters:
-        file: z-quantum-core/tasks/circuit.py
+        file: z-quantum-core/steps/circuit.py
         function: build_ansatz_circuit
     resources:
       cpu: "1000m"
       memory: "1Gi"
       disk: "10Gi"
   inputs:
-    - ansatz_specs: '{"module_name": "zquantum.core.interfaces.mock_objects", "function_name": "MockAnsatz", "number_of_layers": 2, "problem_size": 4}'
+    - ansatz_specs: '{"module_name": "zquantum.core.interfaces.mock_objects", "function_name": "MockAnsatz", "number_of_layers": 4, "problem_size": 3}'
       type: string
     - params: ((get-other-parameters.params))
       type: ansatz-params
   outputs:
     - name: circuit
       type: ansatz-circuit
-- name: add-circuits
+- name: test
   passed: [build-circuit, build-other-circuit]
   config:
     runtime:
-      type: python3
+      language: python3
       imports: [z-quantum-core]
       parameters:
-        file: z-quantum-core/tasks/circuit.py
+        file: z-quantum-core/steps/circuit.py
         function: create_circuit_set_from_circuit_artifacts
     resources:
       cpu: "1000m"
@@ -133,25 +133,33 @@ steps:
   outputs:
     - name: circuit-set
       type: circuitset
-- name: test
-  passed: [add-circuits]
+- name: test-with-four-circuits
+  passed: [build-circuit, build-other-circuit, test]
   config:
     runtime:
-      type: python3
+      language: python3
       imports: [z-quantum-core]
       parameters:
-        file: z-quantum-core/tasks/circuit.py
-        function: concatenate_circuits
+        file: z-quantum-core/steps/circuit.py
+        function: create_circuit_set_from_circuit_artifacts
     resources:
       cpu: "1000m"
       memory: "1Gi"
       disk: "10Gi"
   inputs:
-    - circuit_set: ((add-circuits.circuit-set))
+    - circuit1: ((build-circuit.circuit))
+      type: ansatz-circuit
+    - circuit2: ((build-other-circuit.circuit))
+      type: ansatz-circuit
+    - circuit3: ((build-circuit.circuit))
+      type: ansatz-circuit
+    - circuit4: ((build-other-circuit.circuit))
+      type: ansatz-circuit
+    - circuit_set: ((test.circuit-set))
       type: circuitset
-outputs:
-  - name: result-circuit
-    type: ansatz-circuit
+  outputs:
+    - name: circuit-set
+      type: circuitset
 
 types:
   - ansatz-circuit

@@ -2,63 +2,60 @@
 apiVersion: io.orquestra.workflow/1.0.0
 
 # Prefix for workflow ID
-name: generate-erdos-renyi-graph
+name: create-random-circ
 
 imports:
 - name: z-quantum-core
   type: git
   parameters:
     repository: "git@github.com:zapatacomputing/z-quantum-core.git"
-    branch: "workflow-v1"
+    branch: "dev"
 
 steps:
 - name: test
   config:
     runtime:
-      type: python3
+      language: python3
       imports: [z-quantum-core]
       parameters:
-        file: z-quantum-core/tasks/graph.py
-        function: generate_erdos_renyi_graph
+        file: z-quantum-core/steps/circuit.py
+        function: create_random_circuit
     resources:
       cpu: "1000m"
       memory: "1Gi"
       disk: "10Gi"
   inputs:
-    - number_of_nodes: 10
+    - number_of_qubits: 4
       type: int
-    - edge_probability: 0.3
-      type: float
-    - random_weights: False
-      type: bool
-    - seed: 24
+    - number_of_gates: 5
+      type: int
+    - seed: 3
       type: int
   outputs:
-    - name: graph
-      type: erdos-renyi-graph
+    - name: circuit
+      type: random-circuit
 - name: test-without-seed
   config:
     runtime:
-      type: python3
+      language: python3
       imports: [z-quantum-core]
       parameters:
-        file: z-quantum-core/tasks/graph.py
-        function: generate_erdos_renyi_graph
+        file: z-quantum-core/steps/circuit.py
+        function: create_random_circuit
     resources:
       cpu: "1000m"
       memory: "1Gi"
       disk: "10Gi"
   inputs:
-    - number_of_nodes: 42
+    - number_of_qubits: 5
       type: int
-    - edge_probability: 0.8
-      type: float
-    - random_weights: True
-      type: bool
+    - number_of_gates: 20
+      type: int
     - seed: "None"
       type: string
   outputs:
-    - name: graph
-      type: erdos-renyi-graph
+    - name: circuit
+      type: random-circuit
+
 types:
-  - erdos-renyi-graph
+  - random-circuit

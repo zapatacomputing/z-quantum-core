@@ -2,46 +2,24 @@
 apiVersion: io.orquestra.workflow/1.0.0
 
 # Prefix for workflow ID
-name: generate-complete-graph
+name: generate-erdos-renyi-graph
 
 imports:
 - name: z-quantum-core
   type: git
   parameters:
     repository: "git@github.com:zapatacomputing/z-quantum-core.git"
-    branch: "workflow-v1"
+    branch: "dev"
 
 steps:
 - name: test
   config:
     runtime:
-      type: python3
+      language: python3
       imports: [z-quantum-core]
       parameters:
-        file: z-quantum-core/tasks/graph.py
-        function: generate_complete_graph
-    resources:
-      cpu: "1000m"
-      memory: "1Gi"
-      disk: "10Gi"
-  inputs:
-    - number_of_nodes: 25
-      type: int
-    - random_weights: False
-      type: bool
-    - seed: 12456
-      type: int
-  outputs:
-    - name: graph
-      type: complete-graph
-- name: test-without-seed
-  config:
-    runtime:
-      type: python3
-      imports: [z-quantum-core]
-      parameters:
-        file: z-quantum-core/tasks/graph.py
-        function: generate_complete_graph
+        file: z-quantum-core/steps/graph.py
+        function: generate_random_graph_erdos_renyi
     resources:
       cpu: "1000m"
       memory: "1Gi"
@@ -49,12 +27,38 @@ steps:
   inputs:
     - number_of_nodes: 10
       type: int
+    - edge_probability: 0.3
+      type: float
+    - random_weights: False
+      type: bool
+    - seed: 24
+      type: int
+  outputs:
+    - name: graph
+      type: erdos-renyi-graph
+- name: test-without-seed
+  config:
+    runtime:
+      language: python3
+      imports: [z-quantum-core]
+      parameters:
+        file: z-quantum-core/steps/graph.py
+        function: generate_random_graph_erdos_renyi
+    resources:
+      cpu: "1000m"
+      memory: "1Gi"
+      disk: "10Gi"
+  inputs:
+    - number_of_nodes: 42
+      type: int
+    - edge_probability: 0.8
+      type: float
     - random_weights: True
       type: bool
     - seed: "None"
       type: string
   outputs:
     - name: graph
-      type: complete-graph
+      type: erdos-renyi-graph
 types:
-  - complete-graph
+  - erdos-renyi-graph

@@ -2,23 +2,23 @@
 apiVersion: io.orquestra.workflow/1.0.0
 
 # Prefix for workflow ID
-name: get-bitstring-distribution
+name: run-circuit-and-measure
 
 imports:
 - name: z-quantum-core
   type: git
   parameters:
     repository: "git@github.com:zapatacomputing/z-quantum-core.git"
-    branch: "workflow-v1"
+    branch: "dev"
 
 steps:
 - name: get-initial-parameters
   config:
     runtime:
-      type: python3
+      language: python3
       imports: [z-quantum-core]
       parameters:
-        file: z-quantum-core/tasks/circuit.py
+        file: z-quantum-core/steps/circuit.py
         function: generate_random_ansatz_params
     resources:
       cpu: "1000m"
@@ -42,10 +42,10 @@ steps:
   passed: [get-initial-parameters]
   config:
     runtime:
-      type: python3
+      language: python3
       imports: [z-quantum-core]
       parameters:
-        file: z-quantum-core/tasks/circuit.py
+        file: z-quantum-core/steps/circuit.py
         function: build_ansatz_circuit
     resources:
       cpu: "1000m"
@@ -63,17 +63,17 @@ steps:
   passed: [build-circuit]
   config:
     runtime:
-      type: python3
+      language: python3
       imports: [z-quantum-core]
       parameters:
-        file: z-quantum-core/tasks/measure.py
-        function: get_bitstring_distribution
+        file: z-quantum-core/steps/measure.py
+        function: run_circuit_and_measure
     resources:
       cpu: "1000m"
       memory: "1Gi"
       disk: "10Gi"
   inputs:
-    - backend_specs: '{"module_name": "zquantum.core.interfaces.mock_objects", "function_name": "MockQuantumBackend", "n_samples": 8192}'
+    - backend_specs: '{"module_name": "zquantum.core.interfaces.mock_objects", "function_name": "MockQuantumBackend", "n_samples": 10}'
       type: string
     - circuit: ((build-circuit.circuit))
       type: ansatz-circuit
@@ -82,10 +82,10 @@ steps:
     - device_connectivity: "None"
       type: string
   outputs:
-    - name: bitstring-distribution
-      type: circuit-distribution
+    - name: measurements
+      type: circuit-measurements
 
 types:
-  - circuit-distribution
+  - circuit-measurements
   - ansatz-circuit
   - ansatz-params

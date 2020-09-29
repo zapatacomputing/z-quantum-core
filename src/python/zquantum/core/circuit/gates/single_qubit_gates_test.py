@@ -174,6 +174,34 @@ def test_creating_Rx_gate(qubit, theta):
     assert gate == Rxgate
 
 
+def test_Rx_Gate_when_parameter_is_zero():
+    gate = Rx(0, 0)
+    expected_gate = I(0)
+    assert gate == expected_gate
+
+
+def test_Rx_Gate_when_parameter_is_pi():
+    gate = Rx(0, np.pi)
+    expected_gate = Gate(
+        matrix=sympy.Matrix([[0, complex(0, -1)], [complex(0, -1), 0]]), qubits=(0,)
+    )
+    assert gate == expected_gate
+
+
+def test_Rx_Gate_when_parameter_is_half_pi():
+    gate = Rx(0, np.pi / 2)
+    expected_gate = Gate(
+        matrix=sympy.Matrix(
+            [
+                [(1 / np.sqrt(2)), complex(0, -1 * (1 / np.sqrt(2)))],
+                [complex(0, -1 * (1 / np.sqrt(2))), (1 / np.sqrt(2))],
+            ]
+        ),
+        qubits=(0,),
+    )
+    assert gate == expected_gate
+
+
 @pytest.mark.parametrize("qubit, theta", rotation_gate_test_data)
 def test_creating_Ry_gate(qubit, theta):
     if theta is not None:
@@ -213,6 +241,32 @@ def test_creating_Ry_gate(qubit, theta):
     assert gate == Rygate
 
 
+def test_Ry_Gate_when_parameter_is_zero():
+    gate = Ry(0, 0)
+    expected_gate = I(0)
+    assert gate == expected_gate
+
+
+def test_Ry_Gate_when_parameter_is_pi():
+    gate = Ry(0, np.pi)
+    expected_gate = Gate(matrix=sympy.Matrix([[0, -1], [1, 0]]), qubits=(0,))
+    assert gate == expected_gate
+
+
+def test_Ry_Gate_when_parameter_is_half_pi():
+    gate = Ry(0, np.pi / 2)
+    expected_gate = Gate(
+        matrix=sympy.Matrix(
+            [
+                [(1 / np.sqrt(2)), -1 * (1 / np.sqrt(2))],
+                [(1 / np.sqrt(2)), (1 / np.sqrt(2))],
+            ]
+        ),
+        qubits=(0,),
+    )
+    assert gate == expected_gate
+
+
 @pytest.mark.parametrize("qubit, theta", rotation_gate_test_data)
 def test_creating_Rz_gate(qubit, theta):
     if theta is not None:
@@ -238,3 +292,31 @@ def test_creating_Rz_gate(qubit, theta):
             (qubit,),
         )
     assert gate == Rzgate
+
+
+def test_Rz_Gate_when_parameter_is_zero():
+    gate = Rz(0, 0)
+    expected_gate = I(0)
+    assert gate == expected_gate
+
+
+def test_Rz_Gate_when_parameter_is_pi():
+    gate = Rz(0, np.pi)
+    expected_gate = Gate(
+        matrix=sympy.Matrix([[complex(0, -1), 0], [0, complex(0, 1)]]), qubits=(0,)
+    )
+    assert gate == expected_gate
+
+
+def test_Rz_Gate_when_parameter_is_half_pi():
+    gate = Rz(0, np.pi / 2)
+    expected_gate = Gate(
+        matrix=sympy.Matrix(
+            [
+                [complex((1 / np.sqrt(2)), -(1 / np.sqrt(2))), 0],
+                [0, complex((1 / np.sqrt(2)), (1 / np.sqrt(2)))],
+            ]
+        ),
+        qubits=(0,),
+    )
+    assert gate == expected_gate

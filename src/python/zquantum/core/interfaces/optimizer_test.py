@@ -1,9 +1,11 @@
 import unittest
 import numpy as np
 import pytest
+from zquantum.core.interfaces.functions import FunctionWithGradient
 
 from .optimizer import optimization_result
 from ..cost_function import BasicCostFunction
+from ..gradients import finite_differences_gradient
 
 
 def rosenbrock_function(x):
@@ -19,11 +21,10 @@ class OptimizerTests(object):
     # To run tests with this base class, the following variables need to be properly initialized in the child class:
     # self.optimizers
 
-    def test_optimization(self):
+    def test_optimizer_succeeds_with_optimizing_rosenbrock_function(self):
         for optimizer in self.optimizers:
-            cost_function = BasicCostFunction(
-                rosenbrock_function, gradient_type="finite_difference"
-            )
+            cost_function = FunctionWithGradient(rosenbrock_function, finite_differences_gradient(rosenbrock_function))
+
             results = optimizer.minimize(cost_function, initial_params=np.array([0, 0]))
             self.assertAlmostEqual(results.opt_value, 0, places=4)
             self.assertAlmostEqual(results.opt_params[0], 1, places=3)
@@ -35,11 +36,10 @@ class OptimizerTests(object):
             self.assertIn("opt_params", results.keys())
             self.assertIn("history", results.keys())
 
-    def test_optimization_simple_function(self):
+    def test_optimizer_succeeds_with_optimizing_simple_function(self):
         for optimizer in self.optimizers:
-            cost_function = BasicCostFunction(
-                sum_x_squared, gradient_type="finite_difference"
-            )
+            cost_function = FunctionWithGradient(sum_x_squared, finite_differences_gradient(sum_x_squared))
+
             results = optimizer.minimize(
                 cost_function, initial_params=np.array([1, -1])
             )

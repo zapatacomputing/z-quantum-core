@@ -36,7 +36,7 @@ class OptimizerTests(object):
             self.assertIn("opt_params", results.keys())
             self.assertIn("history", results.keys())
 
-    def test_optimizer_succeeds_with_optimizing_simple_function(self):
+    def test_optimizer_succeeds_with_optimizing_sum_of_squares_function(self):
         for optimizer in self.optimizers:
             cost_function = FunctionWithGradient(sum_x_squared, finite_differences_gradient(sum_x_squared))
 

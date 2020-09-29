@@ -1,2 +1,2 @@
 from ._gate import Gate
-from .single_qubit_gates import *
+from ._single_qubit_gates import *

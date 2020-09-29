@@ -72,7 +72,7 @@ class I(Gate):
         super().__init__(matrix=matrix, qubits=(qubit,))
 
 
-class Phase(Gate):
+class PHASE(Gate):
     """Quantum Phase gate
 
     Inputs:
@@ -110,7 +110,7 @@ class T(Gate):
         super().__init__(matrix=matrix, qubits=(qubit,))
 
 
-class Rx(Gate):
+class RX(Gate):
     """Quantum Rx gate
 
     Inputs:
@@ -137,7 +137,7 @@ class Rx(Gate):
         super().__init__(matrix=matrix, qubits=(qubit,))
 
 
-class Ry(Gate):
+class RY(Gate):
     """Quantum Ry gate
 
     Inputs:
@@ -164,7 +164,7 @@ class Ry(Gate):
         super().__init__(matrix=matrix, qubits=(qubit,))
 
 
-class Rz(Gate):
+class RZ(Gate):
     """Quantum Rz gate
 
     Inputs:

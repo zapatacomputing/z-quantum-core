@@ -1,5 +1,5 @@
-from .single_qubit_gates import X, Y, Z, H, I, Phase, T, Rx, Ry, Rz
-from ._gate import Gate
+from . import X, Y, Z, H, I, PHASE, T, RX, RY, RZ
+from . import Gate
 import pytest
 import numpy as np
 import sympy
@@ -81,9 +81,9 @@ def test_creating_I_gate(qubit):
     "qubit",
     [0, 1, 2, 3, 4, 5, 10, 11, 12, 99, 100, 101],
 )
-def test_creating_Phase_gate(qubit):
-    gate = Phase(qubit)
-    Phasegate = Gate(
+def test_creating_PHASE_gate(qubit):
+    gate = PHASE(qubit)
+    PHASEgate = Gate(
         sympy.Matrix(
             [
                 [1, 0],
@@ -92,7 +92,7 @@ def test_creating_Phase_gate(qubit):
         ),
         (qubit,),
     )
-    assert gate == Phasegate
+    assert gate == PHASEgate
 
 
 @pytest.mark.parametrize(
@@ -136,10 +136,10 @@ rotation_gate_test_data = [
 
 
 @pytest.mark.parametrize("qubit, theta", rotation_gate_test_data)
-def test_creating_Rx_gate(qubit, theta):
+def test_creating_RX_gate(qubit, theta):
     if theta is not None:
-        gate = Rx(qubit, theta)
-        Rxgate = Gate(
+        gate = RX(qubit, theta)
+        RXgate = Gate(
             sympy.Matrix(
                 [
                     [
@@ -155,8 +155,8 @@ def test_creating_Rx_gate(qubit, theta):
             (qubit,),
         )
     else:
-        gate = Rx(qubit)
-        Rxgate = Gate(
+        gate = RX(qubit)
+        RXgate = Gate(
             sympy.Matrix(
                 [
                     [
@@ -171,25 +171,25 @@ def test_creating_Rx_gate(qubit, theta):
             ),
             (qubit,),
         )
-    assert gate == Rxgate
+    assert gate == RXgate
 
 
-def test_Rx_Gate_when_parameter_is_zero():
-    gate = Rx(0, 0)
+def test_RX_Gate_when_parameter_is_zero():
+    gate = RX(0, 0)
     expected_gate = I(0)
     assert gate == expected_gate
 
 
-def test_Rx_Gate_when_parameter_is_pi():
-    gate = Rx(0, np.pi)
+def test_RX_Gate_when_parameter_is_pi():
+    gate = RX(0, np.pi)
     expected_gate = Gate(
         matrix=sympy.Matrix([[0, complex(0, -1)], [complex(0, -1), 0]]), qubits=(0,)
     )
     assert gate == expected_gate
 
 
-def test_Rx_Gate_when_parameter_is_half_pi():
-    gate = Rx(0, np.pi / 2)
+def test_RX_Gate_when_parameter_is_half_pi():
+    gate = RX(0, np.pi / 2)
     expected_gate = Gate(
         matrix=sympy.Matrix(
             [
@@ -203,10 +203,10 @@ def test_Rx_Gate_when_parameter_is_half_pi():
 
 
 @pytest.mark.parametrize("qubit, theta", rotation_gate_test_data)
-def test_creating_Ry_gate(qubit, theta):
+def test_creating_RY_gate(qubit, theta):
     if theta is not None:
-        gate = Ry(qubit, theta)
-        Rygate = Gate(
+        gate = RY(qubit, theta)
+        RYgate = Gate(
             sympy.Matrix(
                 [
                     [
@@ -222,8 +222,8 @@ def test_creating_Ry_gate(qubit, theta):
             (qubit,),
         )
     else:
-        gate = Ry(qubit)
-        Rygate = Gate(
+        gate = RY(qubit)
+        RYgate = Gate(
             sympy.Matrix(
                 [
                     [
@@ -238,23 +238,23 @@ def test_creating_Ry_gate(qubit, theta):
             ),
             (qubit,),
         )
-    assert gate == Rygate
+    assert gate == RYgate
 
 
-def test_Ry_Gate_when_parameter_is_zero():
-    gate = Ry(0, 0)
+def test_RY_Gate_when_parameter_is_zero():
+    gate = RY(0, 0)
     expected_gate = I(0)
     assert gate == expected_gate
 
 
-def test_Ry_Gate_when_parameter_is_pi():
-    gate = Ry(0, np.pi)
+def test_RY_Gate_when_parameter_is_pi():
+    gate = RY(0, np.pi)
     expected_gate = Gate(matrix=sympy.Matrix([[0, -1], [1, 0]]), qubits=(0,))
     assert gate == expected_gate
 
 
-def test_Ry_Gate_when_parameter_is_half_pi():
-    gate = Ry(0, np.pi / 2)
+def test_RY_Gate_when_parameter_is_half_pi():
+    gate = RY(0, np.pi / 2)
     expected_gate = Gate(
         matrix=sympy.Matrix(
             [
@@ -268,10 +268,10 @@ def test_Ry_Gate_when_parameter_is_half_pi():
 
 
 @pytest.mark.parametrize("qubit, theta", rotation_gate_test_data)
-def test_creating_Rz_gate(qubit, theta):
+def test_creating_RZ_gate(qubit, theta):
     if theta is not None:
-        gate = Rz(qubit, theta)
-        Rzgate = Gate(
+        gate = RZ(qubit, theta)
+        RZgate = Gate(
             sympy.Matrix(
                 [
                     [sympy.exp(-1 * sympy.I * theta / 2), 0],
@@ -281,8 +281,8 @@ def test_creating_Rz_gate(qubit, theta):
             (qubit,),
         )
     else:
-        gate = Rz(qubit)
-        Rzgate = Gate(
+        gate = RZ(qubit)
+        RZgate = Gate(
             sympy.Matrix(
                 [
                     [sympy.exp(-1 * sympy.I * sympy.Symbol("theta") / 2), 0],
@@ -291,25 +291,25 @@ def test_creating_Rz_gate(qubit, theta):
             ),
             (qubit,),
         )
-    assert gate == Rzgate
+    assert gate == RZgate
 
 
-def test_Rz_Gate_when_parameter_is_zero():
-    gate = Rz(0, 0)
+def test_RZ_Gate_when_parameter_is_zero():
+    gate = RZ(0, 0)
     expected_gate = I(0)
     assert gate == expected_gate
 
 
-def test_Rz_Gate_when_parameter_is_pi():
-    gate = Rz(0, np.pi)
+def test_RZ_Gate_when_parameter_is_pi():
+    gate = RZ(0, np.pi)
     expected_gate = Gate(
         matrix=sympy.Matrix([[complex(0, -1), 0], [0, complex(0, 1)]]), qubits=(0,)
     )
     assert gate == expected_gate
 
 
-def test_Rz_Gate_when_parameter_is_half_pi():
-    gate = Rz(0, np.pi / 2)
+def test_RZ_Gate_when_parameter_is_half_pi():
+    gate = RZ(0, np.pi / 2)
     expected_gate = Gate(
         matrix=sympy.Matrix(
             [

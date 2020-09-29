@@ -15,6 +15,7 @@ setuptools.setup(
         "zquantum.core.history",
         "zquantum.core.interfaces",
         "zquantum.core.bitstring_distribution.distance_measures",
+        "zquantum.core.testing",
     ],
     package_dir={"": "python"},
     classifiers=(

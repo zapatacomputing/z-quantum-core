@@ -2,6 +2,8 @@ from abc import ABC, abstractmethod
 
 import scipy
 from scipy.optimize import OptimizeResult
+from zquantum.core.interfaces.functions import CallableWithGradient
+
 from .cost_function import CostFunction
 from typing import Callable, Optional, Dict
 import numpy as np
@@ -25,14 +27,13 @@ class Optimizer(ABC):
 
     @abstractmethod
     def minimize(
-        self, cost_function: CostFunction, initial_params: np.ndarray, **kwargs
+        self, cost_function: CallableWithGradient, initial_params: np.ndarray, **kwargs
     ) -> OptimizeResult:
-        """
-        Finds the parameters which minimize given cost function.
+        """Finds the parameters which minimize given cost function.
 
         Args:
-            cost_function (zquantu.core.interfaces.CostFunction): an object representing the cost function.
-            inital_params (np.ndarray): initial parameters for the cost function
+            cost_function: an object representing the cost function.
+            initial_params: initial parameters for the cost function.
 
         Returns:
             OptimizeResults

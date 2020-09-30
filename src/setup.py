@@ -17,7 +17,7 @@ setuptools.setup(
         "zquantum.core.interfaces",
         "zquantum.core.testing",
     ],
-    package_dir={"": "src/python"},
+    package_dir={"": "python"},
     classifiers=(
         "Programming Language :: Python :: 3",
         "Operating System :: OS Independent",

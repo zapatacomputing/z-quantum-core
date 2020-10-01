@@ -4,7 +4,6 @@ import pytest
 from zquantum.core.interfaces.functions import FunctionWithGradient
 
 from .optimizer import optimization_result
-from ..cost_function import BasicCostFunction
 from ..gradients import finite_differences_gradient
 
 

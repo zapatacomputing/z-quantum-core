@@ -7,15 +7,16 @@ from zquantum.core.bitstring_distribution import save_bitstring_distribution
 def run_circuit_and_measure(
     backend_specs, circuit, noise_model="None", device_connectivity="None"
 ):
+    if noise_model != "None":
+        backend_specs["noise_model"] = load_noise_model(noise_model)
+    if device_connectivity != "None":
+        backend_specs["device_connectivity"] = load_circuit_connectivity(
+            device_connectivity
+        )
+
     backend = create_object(json.loads(backend_specs))
     circuit = load_circuit(circuit)
 
-    if noise_model != "None":
-        backend_specs_dict["noise_model"] = load_noise_model(noise_model)
-    if device_connectivity != "None":
-        backend_specs_dict["device_connectivity"] = load_circuit_connectivity(
-            device_connectivity
-        )
     measurements = backend.run_circuit_and_measure(circuit)
     measurements.save("measurements.json")
 
@@ -23,14 +24,15 @@ def run_circuit_and_measure(
 def get_bitstring_distribution(
     backend_specs, circuit, noise_model="None", device_connectivity="None"
 ):
+    if noise_model != "None":
+        backend_specs["noise_model"] = load_noise_model(noise_model)
+    if device_connectivity != "None":
+        backend_specs["device_connectivity"] = load_circuit_connectivity(
+            device_connectivity
+        )
+
     backend = create_object(json.loads(backend_specs))
     circuit = load_circuit(circuit)
 
-    if noise_model != "None":
-        backend_specs_dict["noise_model"] = load_noise_model(noise_model)
-    if device_connectivity != "None":
-        backend_specs_dict["device_connectivity"] = load_circuit_connectivity(
-            device_connectivity
-        )
     bitstring_distribution = backend.get_bitstring_distribution(circuit)
     save_bitstring_distribution(bitstring_distribution, "bitstring-distribution.json")

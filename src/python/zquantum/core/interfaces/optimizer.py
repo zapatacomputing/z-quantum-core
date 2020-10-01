@@ -1,11 +1,8 @@
 from abc import ABC, abstractmethod
-
 import scipy
 from scipy.optimize import OptimizeResult
 from zquantum.core.interfaces.functions import CallableWithGradient
-
-from .cost_function import CostFunction
-from typing import Callable, Optional, Dict
+from typing import Optional, Dict
 import numpy as np
 
 

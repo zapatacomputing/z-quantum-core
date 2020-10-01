@@ -7,6 +7,7 @@ from zquantum.core.bitstring_distribution import save_bitstring_distribution
 def run_circuit_and_measure(
     backend_specs, circuit, noise_model="None", device_connectivity="None"
 ):
+    backend_specs = json.loads(backend_specs)
     if noise_model != "None":
         backend_specs["noise_model"] = load_noise_model(noise_model)
     if device_connectivity != "None":
@@ -14,7 +15,7 @@ def run_circuit_and_measure(
             device_connectivity
         )
 
-    backend = create_object(json.loads(backend_specs))
+    backend = create_object(backend_specs)
     circuit = load_circuit(circuit)
 
     measurements = backend.run_circuit_and_measure(circuit)
@@ -24,6 +25,7 @@ def run_circuit_and_measure(
 def get_bitstring_distribution(
     backend_specs, circuit, noise_model="None", device_connectivity="None"
 ):
+    backend_specs = json.loads(backend_specs)
     if noise_model != "None":
         backend_specs["noise_model"] = load_noise_model(noise_model)
     if device_connectivity != "None":
@@ -31,7 +33,7 @@ def get_bitstring_distribution(
             device_connectivity
         )
 
-    backend = create_object(json.loads(backend_specs))
+    backend = create_object(backend_specs)
     circuit = load_circuit(circuit)
 
     bitstring_distribution = backend.get_bitstring_distribution(circuit)

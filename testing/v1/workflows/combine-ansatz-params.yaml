@@ -1,0 +1,91 @@
+# Workflow API version
+apiVersion: io.orquestra.workflow/1.0.0
+
+# Prefix for workflow ID
+name: combine-params
+
+imports:
+- name: z-quantum-core
+  type: git
+  parameters:
+    repository: "git@github.com:zapatacomputing/z-quantum-core.git"
+    branch: "dev"
+
+steps:
+
+- name: get-initial-parameters
+  config:
+    runtime:
+      language: python3
+      imports: [z-quantum-core]
+      parameters:
+        file: z-quantum-core/steps/circuit.py
+        function: generate_random_ansatz_params
+    resources:
+      cpu: "1000m"
+      memory: "1Gi"
+      disk: "10Gi"
+  inputs:
+    - ansatz_specs: '{"module_name": "zquantum.core.interfaces.mock_objects", "function_name": "MockAnsatz", "number_of_layers": 2, "problem_size": 4}'
+      type: string
+    - min_value: -1.57
+      type: float
+    - max_value: 1.57
+      type: float
+    - seed: 9
+      type: int
+    - number_of_parameters: "None"
+      type: string
+  outputs:
+    - name: params
+      type: ansatz-params
+- name: get-other-parameters
+  config:
+    runtime:
+      language: python3
+      imports: [z-quantum-core]
+      parameters:
+        file: z-quantum-core/steps/circuit.py
+        function: generate_random_ansatz_params
+    resources:
+      cpu: "1000m"
+      memory: "1Gi"
+      disk: "10Gi"
+  inputs:
+    - ansatz_specs: "None"
+      type: string
+    - min_value: -2.02
+      type: float
+    - max_value: 2.02
+      type: float
+    - seed: "None"
+      type: string
+    - number_of_parameters: 10
+      type: int
+  outputs:
+    - name: params
+      type: ansatz-params
+- name: test
+  passed: [get-initial-parameters, get-other-parameters]
+  config:
+    runtime:
+      language: python3
+      imports: [z-quantum-core]
+      parameters:
+        file: z-quantum-core/steps/circuit.py
+        function: combine_ansatz_params
+    resources:
+      cpu: "1000m"
+      memory: "1Gi"
+      disk: "10Gi"
+  inputs:
+    - params1: ((get-initial-parameters.params))
+      type: ansatz-params
+    - params2: ((get-other-parameters.params))
+      type: ansatz-params
+  outputs:
+    - name: combined-params
+      type: ansatz-params
+
+types:
+  - ansatz-params

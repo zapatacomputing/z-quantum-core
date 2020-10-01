@@ -89,6 +89,27 @@ def test_creating_identity_gate_succeeds(number_of_qubits):
     )
 
 
+def test_creating_hadamard_gate_succeeds():
+    """The Gate class should be able to handle the hadamard gate"""
+    # Given
+    matrix = sympy.Matrix(
+        [
+            [(1 / np.sqrt(2)) * complex(1, 0), (1 / np.sqrt(2)) * complex(1, 0)],
+            [(1 / np.sqrt(2)) * complex(1, 0), (1 / np.sqrt(2)) * complex(-1, 0)],
+        ]
+    )
+    qubits = (0,)
+
+    # When
+    gate = Gate(matrix, qubits)
+
+    # Then
+    assert gate.qubits == qubits
+    assert all(
+        element_gate == element for element_gate, element in zip(gate.matrix, matrix)
+    )
+
+
 def test_creating_complex_gate():
     """The Gate class should be able to handle complex matrices"""
     # Given
@@ -428,6 +449,7 @@ def test_gate_is_successfully_converted_to_dict_form(matrix, qubits):
     assert gate_dict["schema"] == SCHEMA_VERSION + "-gate"
     assert gate_dict["qubits"] == qubits
     assert gate_dict["matrix"] == matrix
+    assert gate_dict["symbolic_params"] == gate.symbolic_params
 
 
 @pytest.mark.parametrize(
@@ -499,6 +521,9 @@ def test_gate_is_successfully_converted_to_serializable_dict_form(matrix, qubits
     for row_index, row in enumerate(gate_dict["matrix"]):
         for col_index, element in enumerate(row["elements"]):
             assert sympy.sympify(element) == matrix[row_index, col_index]
+    assert gate_dict["symbolic_params"] == [
+        str(param) for param in gate.symbolic_params
+    ]
 
 
 #### save ####
@@ -562,6 +587,9 @@ def test_gate_is_successfully_saved_to_a_file(qubits, matrix):
     for row_index, row in enumerate(saved_data["matrix"]):
         for col_index, element in enumerate(row["elements"]):
             assert sympy.sympify(element) == matrix[row_index, col_index]
+    assert saved_data["symbolic_params"] == [
+        str(param) for param in gate.symbolic_params
+    ]
 
     os.remove("gate.json")
 
@@ -684,16 +712,17 @@ def test_gate_is_successfully_loaded_from_a_file(matrix, qubits):
 )
 def test_gate_is_successfully_loaded_from_a_dict(matrix, qubits):
     """The Gate class should be able to be loaded from a dict"""
-    # Given
-    gate = Gate(matrix, qubits)
+    for serializable in [True, False]:
+        # Given
+        gate = Gate(matrix, qubits)
 
-    gate_dict = gate.to_dict(serializable=True)
+        gate_dict = gate.to_dict(serializable=serializable)
 
-    # When
-    new_gate = Gate.load(gate_dict)
+        # When
+        new_gate = Gate.load(gate_dict)
 
-    # Then
-    assert gate == new_gate
+        # Then
+        assert gate == new_gate
 
 
 #### evaluate ####
@@ -781,17 +810,48 @@ def test_gate_is_evaluated_successfully_with_multiple_parameters_only_some_set()
     assert new_gate == expected_new_gate
 
 
+def test_gate_evaluated_raises_warning_when_extra_symbols_are_in_symbols_map():
+    """The Gate class should raise a warning when evaluated with a symbols map containing symbols not present in
+    the gate's matrix"""
+    # Given
+    qubits = (0, 2)
+    matrix = sympy.Matrix(
+        [
+            [sympy.Symbol("theta"), 0, 0, 0],
+            [0, sympy.Symbol("theta"), 0, 0],
+            [0, 0, 0, complex(0, -1) * sympy.Symbol("gamma")],
+            [0, 0, complex(0, -1) * sympy.Symbol("gamma"), 0],
+        ]
+    )
+    gate = Gate(matrix, qubits)
+    symbols_map = {"theta": 1, "lambda": 0.2}
+    evaluated_matrix = sympy.Matrix(
+        [
+            [1, 0, 0, 0],
+            [0, 1, 0, 0],
+            [0, 0, 0, complex(0, -1) * sympy.Symbol("gamma")],
+            [0, 0, complex(0, -1) * sympy.Symbol("gamma"), 0],
+        ]
+    )
+    expected_new_gate = Gate(evaluated_matrix, qubits)
+
+    # When/Then
+    with pytest.warns(Warning):
+        new_gate = gate.evaluate(symbols_map)
+    assert new_gate == expected_new_gate
+
+
 @pytest.mark.parametrize(
     "theta, evaluated_matrix",
     [
-        [np.pi, sympy.Matrix([[0, -1], [-1, 0],])],
+        [np.pi, sympy.Matrix([[0, complex(0, -1)], [complex(0, -1), 0],])],
         [2 * np.pi, sympy.Matrix([[-1, 0], [0, -1],])],
         [
             np.pi / 2,
             sympy.Matrix(
                 [
-                    [0.7071067811865476, -0.7071067811865475],
-                    [-0.7071067811865475, 0.7071067811865476],
+                    [0.7071067811865476, complex(0, -0.7071067811865475)],
+                    [complex(0, -0.7071067811865475), 0.7071067811865476],
                 ]
             ),
         ],
@@ -805,10 +865,10 @@ def test_rx_gate_is_as_expected_when_evaluated(theta, evaluated_matrix):
         [
             [
                 sympy.cos(sympy.Symbol("theta") / 2),
-                -1 * sympy.sin(sympy.Symbol("theta") / 2),
+                complex(0, -1) * sympy.sin(sympy.Symbol("theta") / 2),
             ],
             [
-                -1 * sympy.sin(sympy.Symbol("theta") / 2),
+                complex(0, -1) * sympy.sin(sympy.Symbol("theta") / 2),
                 sympy.cos(sympy.Symbol("theta") / 2),
             ],
         ]

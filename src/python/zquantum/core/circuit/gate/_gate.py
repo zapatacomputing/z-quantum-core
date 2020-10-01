@@ -2,6 +2,7 @@ import numpy as np
 import sympy
 import json
 import copy
+import warnings
 from typing import Tuple, Union, Dict, TextIO
 from collections import Counter
 from ...utils import SCHEMA_VERSION, convert_array_to_dict, convert_dict_to_array
@@ -88,8 +89,8 @@ class Gate(object):
             return False
         for element, another_element in zip(self.matrix, another_gate.matrix):
             if element != another_element:
-                if isinstance(element, sympy.Number) and isinstance(
-                    another_element, sympy.Number
+                if isinstance(element, (sympy.Number, sympy.Mul)) and isinstance(
+                    another_element, (sympy.Number, sympy.Mul)
                 ):
                     if not np.isclose(
                         complex(sympy.re(element), sympy.im(element)),
@@ -120,7 +121,7 @@ class Gate(object):
                 in JSON format
 
         Returns:
-            Dict: keys are schema, qubits, and matrix
+            Dict: keys are schema, qubits, matrix, and symbolic_params
         """
         gate_dict = {"schema": SCHEMA_VERSION + "-gate"}
         if serializable:
@@ -130,9 +131,13 @@ class Gate(object):
                 gate_dict["matrix"].append({"elements": []})
                 for element in self.matrix.row(i):
                     gate_dict["matrix"][-1]["elements"].append(str(element))
+            gate_dict["symbolic_params"] = [
+                str(param) for param in self.symbolic_params
+            ]
         else:
             gate_dict["qubits"] = self.qubits
             gate_dict["matrix"] = self.matrix
+            gate_dict["symbolic_params"] = self.symbolic_params
         return gate_dict
 
     def save(self, filename: str):
@@ -185,6 +190,19 @@ class Gate(object):
         Returns:
             Gate
         """
+        for symbol in symbols_map.keys():
+            if symbol not in self.symbolic_params:
+                warnings.warn(
+                    """
+                Trying to evaluate gate with symbols not existing in the gate:
+                Symbols in circuit: {0}
+                Symbols in the map: {1}
+                """.format(
+                        self.symbolic_params, symbols_map.keys()
+                    ),
+                    Warning,
+                )
+
         gate_class = type(self)
 
         evaluated_matrix = copy.deepcopy(self.matrix)

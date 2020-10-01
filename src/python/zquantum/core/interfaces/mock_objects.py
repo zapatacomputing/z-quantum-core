@@ -2,11 +2,10 @@ from .ansatz import Ansatz
 from .ansatz_utils import ansatz_property
 from .backend import QuantumBackend, QuantumSimulator
 from .optimizer import Optimizer, optimization_result
-from .cost_function import CostFunction
 from .estimator import Estimator
 from ..measurement import ExpectationValues, Measurements
 from ..circuit import Circuit
-from ..utils import ValueEstimate, create_symbols_map
+from ..utils import create_symbols_map
 import random
 from scipy.optimize import OptimizeResult
 import numpy as np
@@ -105,15 +104,8 @@ class MockOptimizer(Optimizer):
         )
 
 
-class MockCostFunction(CostFunction):
-    def _evaluate(self, parameters: np.ndarray):
-        return ValueEstimate(np.sum(np.power(parameters, 2)))
-
-    def get_gradient(self, parameters: np.ndarray):
-        if self.gradient_type == "custom":
-            return np.asarray(2 * parameters)
-        else:
-            return self.get_gradients_finite_difference(parameters)
+def mock_cost_function(parameters: np.ndarray):
+    return np.sum(parameters ** 2)
 
 
 class MockAnsatz(Ansatz):

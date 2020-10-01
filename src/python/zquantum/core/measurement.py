@@ -17,7 +17,9 @@ from collections import Counter
 from .bitstring_distribution import BitstringDistribution
 
 
-def save_expectation_values(expectation_values: ExpectationValues, filename: str) -> None:
+def save_expectation_values(
+    expectation_values: ExpectationValues, filename: str
+) -> None:
     """Save expectation values to a file.
 
     Args:
@@ -151,39 +153,22 @@ class ExpectationValues:
 def sample_from_wavefunction(
     wavefunction: Wavefunction, n_samples: int
 ) -> List[Tuple[int]]:
-    """Sample bitstrings from a wavefunction
+    """Sample bitstrings from a wavefunction. 
+
     Args:
-        wavefunction (pyquil.wavefunction.Wavefunction): the wavefunction to
-            sample from
-        n_samples (int): the number of samples
+        wavefunction (Wavefunction): the wavefunction to sample from. 
+        n_samples (int): the number of samples taken.
+
     Returns:
-        A list of bitstrings in tuple format
+        List[Tuple[int]]: A list of tuples where the each tuple is a sampled bitstring. 
     """
-    # Get probabilities from pyquil
-    probabilities = wavefunction.probabilities()
-
-    # Create dictionary of bitstring tuples as keys with probability as value
-    prob_dict = {}
-    for state in range(len(probabilities)):
-        # Convert state to bitstring
-        bitstring = format(state, "b")
-        while len(bitstring) < len(wavefunction):
-            bitstring = "0" + bitstring
-        # Reverse bitstring
-        bitstring = bitstring[::-1]
-        # Convert bitstring to tuple
-        bitstring_tuple = convert_bitstrings_to_tuples([bitstring])[0]
-        # Add to dict
-        prob_dict[bitstring_tuple] = probabilities[state]
-
-    # Sample from dict
-    samples_dict = sample_from_probability_distribution(prob_dict, n_samples)
-
-    # Convert returned dict to tuples
-    samples = []
-    for key in samples_dict.keys():
-        for _ in range(samples_dict[key]):
-            samples.append(key)
+    rng = np.random.default_rng()
+    outcomes_str, probabilities_np = zip(*wavefunction.get_outcome_probs().items())
+    probabilities = [
+        x[0] if isinstance(x, (list, np.ndarray)) else x for x in list(probabilities_np)
+    ]
+    samples_ndarray = rng.choice(a=outcomes_str, size=n_samples, p=probabilities)
+    samples = [tuple(int(y) for y in list(x)) for x in list(samples_ndarray)]
     return samples
 
 
@@ -514,6 +499,7 @@ class Measurements:
                 expectation += np.real(coefficient) * value
             expectation_values.append(np.real(expectation))
         return ExpectationValues(np.array(expectation_values))
+
 
 def concatenate_expectation_values(
     expectation_values_set: Iterable[ExpectationValues],

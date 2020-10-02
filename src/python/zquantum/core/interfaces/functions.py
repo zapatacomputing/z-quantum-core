@@ -74,7 +74,7 @@ class FunctionWithGradientStoringArtifacts(NamedTuple):
     function: CallableStoringArtifacts
     gradient: Callable[[np.ndarray], np.ndarray]
 
-    def __call__(self, params: np.ndarray, store_artifact: StoreArtifact):
+    def __call__(self, params: np.ndarray, store_artifact: StoreArtifact = None):
         return self.function(params, store_artifact)
 
 

@@ -3,7 +3,7 @@ from zquantum.core.utils import ValueEstimate
 from .interfaces.backend import QuantumBackend
 from .interfaces.ansatz import Ansatz
 from .interfaces.estimator import Estimator
-from .interfaces.functions import function_with_gradient
+from .interfaces.functions import function_with_gradient, StoreArtifact
 from .circuit import combine_ansatz_params, Circuit
 from .gradients import finite_differences_gradient
 from .estimator import BasicEstimator
@@ -44,7 +44,9 @@ def get_ground_state_cost_function(
 
     circuit_symbols = list(parameterized_circuit.symbolic_params)
 
-    def ground_state_cost_function(parameters: np.ndarray) -> ValueEstimate:
+    def ground_state_cost_function(
+        parameters: np.ndarray, store_artifact: StoreArtifact = None
+    ) -> ValueEstimate:
         """Evaluates the expectation value of the op
 
         Args:

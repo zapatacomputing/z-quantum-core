@@ -1,8 +1,9 @@
 """Protocols describing different kinds of functions."""
+from inspect import signature
 from typing import NamedTuple, Callable, Any, TypeVar, Optional, Union
 from typing_extensions import Protocol, runtime_checkable
 import numpy as np
-from zquantum.core.history.recorder import has_store_artifact_param
+
 
 T = TypeVar("T", covariant=True)
 S = TypeVar("S", contravariant=True)
@@ -42,6 +43,21 @@ class CallableWithGradientStoringArtifacts(
     """A callable with gradient that stored artifacts."""
     def gradient(self, params: np.ndarray) -> np.ndarray:
         pass
+
+
+def has_store_artifact_param(function) -> bool:
+    """Determine if given callable is capable of storing artifacts.
+
+    :param function: a callable to be checked.
+    :return: True, if `function` has store_artifact parameter and False otherwise.
+    """
+    try:
+        return "store_artifact" in signature(function, follow_wrapped=True).parameters
+    except ValueError:
+        # Rationale: the only callables that are of interest to us that aren't supported by
+        # signature that I am aware of are numpy ufunc's. Obviously, they don't have
+        # store_artifact parameter.
+        return False
 
 
 class FunctionWithGradient(NamedTuple):

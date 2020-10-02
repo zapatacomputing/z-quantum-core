@@ -1,6 +1,6 @@
 from .functions import function_with_gradient
-from ..history.recorder import has_store_artifact_param
-from ..gradients import finite_differences_gradient
+from zquantum.core.history.recorder import has_store_artifact_param
+from zquantum.core.gradients import finite_differences_gradient
 
 
 def test_adding_gradient_to_function_storing_artifacts_makes_a_callable_that_stores_artifacts():

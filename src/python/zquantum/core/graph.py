@@ -144,8 +144,8 @@ def weight_graph_edges(
         A networkx.Graph object
     """
     assert not(graph.is_multigraph()), "Cannot deal with multigraphs"
-    
-    random.seed(seed)
+    if seed is not None:
+        random.seed(seed)
     if random_weights == True:
         weighted_edges = [(e[0], e[1], uniform(0, 1)) for e in graph.edges]
     elif random_weights == False:

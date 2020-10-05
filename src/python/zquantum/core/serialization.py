@@ -18,8 +18,7 @@ def preprocess(tree):
         return {k: preprocess(v) for k, v in tree.items()}
     elif isinstance(tree, tuple) and hasattr(tree, "_asdict"):
         return preprocess(tree._asdict())
-    # Note: isinstance check with ValueEstimate is broken, that's why we compare types here
-    elif type(tree) == ValueEstimate:
+    elif isinstance(tree, ValueEstimate):
         return tree.to_dict()
     elif isinstance(tree, (list, tuple)):
         return list(map(preprocess, tree))

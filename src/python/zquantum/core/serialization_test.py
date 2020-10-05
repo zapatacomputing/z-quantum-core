@@ -1,6 +1,7 @@
 """Test cases for serialization module."""
 import json
 import numpy as np
+import os
 from .history.recorder import HistoryEntry, HistoryEntryWithArtifacts
 from .utils import convert_array_to_dict, ValueEstimate, SCHEMA_VERSION
 from .interfaces.optimizer import optimization_result
@@ -155,6 +156,8 @@ def test_optimization_result_serialization_io():
 
     # Then
     with open(optimization_result_filename, "r") as f:
-        loaded_data = json.load(f.read())
+        loaded_data = json.load(f)
 
     assert loaded_data == expected_deserialized_result
+
+    os.remove(optimization_result_filename)

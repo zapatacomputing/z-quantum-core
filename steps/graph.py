@@ -5,10 +5,14 @@ from zquantum.core.graph import (
     save_graph,
 )
 import json
+from typing import Union, Dict
 
 
 def generate_random_graph_erdos_renyi(
-    number_of_nodes, edge_probability, random_weights=False, seed="None"
+    number_of_nodes: int,
+    edge_probability: float,
+    random_weights: bool = False,
+    seed: Union[str, int] = "None",
 ):
     if seed == "None":
         seed = None
@@ -19,7 +23,10 @@ def generate_random_graph_erdos_renyi(
 
 
 def generate_random_regular_graph(
-    number_of_nodes, degree, random_weights=False, seed="None"
+    number_of_nodes: int,
+    degree: int,
+    random_weights: bool = False,
+    seed: Union[str, int] = "None",
 ):
     if seed == "None":
         seed = None
@@ -29,7 +36,9 @@ def generate_random_regular_graph(
     save_graph(graph, "graph.json")
 
 
-def generate_complete_graph(number_of_nodes, random_weights=False, seed="None"):
+def generate_complete_graph(
+    number_of_nodes: int, random_weights: bool = False, seed: Union[str, int] = "None"
+):
     if seed == "None":
         seed = None
     graph = _generate_random_graph_erdos_renyi(
@@ -38,7 +47,7 @@ def generate_complete_graph(number_of_nodes, random_weights=False, seed="None"):
     save_graph(graph, "graph.json")
 
 
-def generate_graph_from_specs(graph_specs):
+def generate_graph_from_specs(graph_specs: Dict):
     graph_specs_dict = json.loads(graph_specs)
     graph = _generate_graph_from_specs(graph_specs_dict)
     save_graph(graph, "graph.json")

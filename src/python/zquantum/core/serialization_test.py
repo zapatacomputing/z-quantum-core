@@ -5,6 +5,7 @@ from zquantum.core.history.recorder import HistoryEntry, HistoryEntryWithArtifac
 from .utils import convert_array_to_dict, ValueEstimate
 from .interfaces.optimizer import optimization_result
 from .serialization import ZapataEncoder
+from .bitstring_distribution import BitstringDistribution
 
 
 def test_zapata_encoder_can_handle_numpy_arrays():
@@ -47,7 +48,7 @@ def test_zapata_encoder_can_handle_optimization_result():
                 value=-20.0,
                 artifacts={
                     "bitstring": "0111",
-                    "bitstring_distribution": {"111": 0.25, "010": 0.75},
+                    "bitstring_distribution": BitstringDistribution({"111": 0.25, "010": 0.75}),
                 },
             ),
         ],

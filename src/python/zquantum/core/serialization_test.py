@@ -155,6 +155,6 @@ def test_optimization_result_serialization_io():
 
     # Then
     with open(optimization_result_filename, "r") as f:
-        loaded_data = json.loads(f.read())
+        loaded_data = json.load(f.read())
 
     assert loaded_data == expected_deserialized_result

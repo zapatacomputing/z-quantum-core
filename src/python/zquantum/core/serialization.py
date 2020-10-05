@@ -1,7 +1,10 @@
 """Serialization module."""
 import json
-from typing import Any, NamedTuple, Iterator
+from operator import attrgetter
+from typing import Any, Iterator
 import numpy as np
+from .bitstring_distribution import BitstringDistribution
+
 from .utils import convert_array_to_dict, ValueEstimate
 
 
@@ -27,6 +30,7 @@ class ZapataEncoder(json.JSONEncoder):
     ENCODERS_TABLE = {
         np.ndarray: convert_array_to_dict,
         ValueEstimate: ValueEstimate.to_dict,
+        BitstringDistribution: attrgetter("distribution_dict")
     }
 
     def default(self, o: Any):

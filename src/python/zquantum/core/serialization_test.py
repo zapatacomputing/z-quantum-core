@@ -1,7 +1,7 @@
 """Test cases for serialization module."""
 import json
 import numpy as np
-from zquantum.core.history.recorder import HistoryEntry, HistoryEntryWithArtifacts
+from .history.recorder import HistoryEntry, HistoryEntryWithArtifacts
 from .utils import convert_array_to_dict, ValueEstimate
 from .interfaces.optimizer import optimization_result
 from .serialization import ZapataEncoder

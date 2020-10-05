@@ -4,7 +4,6 @@ from operator import attrgetter
 from typing import Any, Iterator
 import numpy as np
 from .bitstring_distribution import BitstringDistribution
-
 from .utils import convert_array_to_dict, ValueEstimate
 
 

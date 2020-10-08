@@ -30,9 +30,7 @@ class Y(SingleQubitGate):
     """Quantum Y gate."""
 
     def _create_matrix(self) -> sympy.Matrix:
-        return sympy.Matrix(
-            [[complex(0, 0), complex(0, -1)], [complex(0, 1), complex(0, 0)]]
-        )
+        return sympy.Matrix([[0, -1.0j], [1.0j, 0.0]])
 
 
 class Z(SingleQubitGate):
@@ -80,7 +78,7 @@ class T(SingleQubitGate):
         return sympy.Matrix(
             [
                 [1, 0],
-                [0, sympy.exp(complex(0, np.pi / 4))],
+                [0, sympy.exp(-1j * np.pi / 4)],
             ]
         )
 

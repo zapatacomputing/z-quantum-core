@@ -1,191 +1,157 @@
-from typing import Tuple, Union, Dict, TextIO
+from abc import ABC
+from typing import Union
 import sympy
-import warnings
 import numpy as np
-from ._gate import Gate
+from ._gate import SpecializedGate
 
 
-class X(Gate):
-    """Quantum X gate
+class SingleQubitGate(SpecializedGate, ABC):
+    """Base class for single qubit gates.
 
-    Inputs:
-        qubit (int): The qubit on which to apply the quantum gate
+    Attributes:
+        qubit: index of qubit this gate acts on.
+    Args:
+        qubit: index of qubit this gate acts on.
     """
 
     def __init__(self, qubit: int):
-        matrix = sympy.Matrix([[0, 1], [1, 0]])
-        super().__init__(matrix=matrix, qubits=(qubit,))
+        self.qubit = qubit
+        super().__init__((qubit,))
 
 
-class Y(Gate):
-    """Quantum Y gate
+class X(SingleQubitGate):
+    """Quantum X gate."""
 
-    Inputs:
-        qubit (int): The qubit on which to apply the quantum gate
-    """
+    def _create_matrix(self) -> sympy.Matrix:
+        return sympy.Matrix([[0, 1], [1, 0]])
 
-    def __init__(self, qubit: int):
-        matrix = sympy.Matrix(
+
+class Y(SingleQubitGate):
+    """Quantum Y gate."""
+
+    def _create_matrix(self) -> sympy.Matrix:
+        return sympy.Matrix(
             [[complex(0, 0), complex(0, -1)], [complex(0, 1), complex(0, 0)]]
         )
-        super().__init__(matrix=matrix, qubits=(qubit,))
 
 
-class Z(Gate):
-    """Quantum Z gate
+class Z(SingleQubitGate):
+    """Quantum Z gate."""
 
-    Inputs:
-        qubit (int): The qubit on which to apply the quantum gate
-    """
-
-    def __init__(self, qubit: int):
-        matrix = sympy.Matrix([[1, 0], [0, -1]])
-        super().__init__(matrix=matrix, qubits=(qubit,))
+    def _create_matrix(self) -> sympy.Matrix:
+        return sympy.Matrix([[1, 0], [0, -1]])
 
 
-class H(Gate):
-    """Quantum Hadamard gate
+class H(SingleQubitGate):
+    """Quantum Hadamard gate."""
 
-    Inputs:
-        qubit (int): The qubit on which to apply the quantum gate
-    """
-
-    def __init__(self, qubit: int):
-        matrix = sympy.Matrix(
+    def _create_matrix(self) -> sympy.Matrix:
+        return sympy.Matrix(
             [
                 [(1 / np.sqrt(2)), (1 / np.sqrt(2))],
                 [(1 / np.sqrt(2)), (-1 / np.sqrt(2))],
             ]
         )
-        super().__init__(matrix=matrix, qubits=(qubit,))
 
 
-class I(Gate):
-    """Quantum Identity gate
+class I(SingleQubitGate):
+    """Quantum Identity gate."""
 
-    Inputs:
-        qubit (int): The qubit on which to apply the quantum gate
-    """
-
-    def __init__(self, qubit: int):
-        matrix = sympy.Matrix([[1, 0], [0, 1]])
-        super().__init__(matrix=matrix, qubits=(qubit,))
+    def _create_matrix(self) -> sympy.Matrix:
+        return sympy.Matrix([[1, 0], [0, 1]])
 
 
-class PHASE(Gate):
-    """Quantum Phase gate
+class PHASE(SingleQubitGate):
+    """Quantum Phase gate."""
 
-    Inputs:
-        qubits (tuple[int]): A list of qubit indices that the operator acts on
-        parameter (Union[float, sympy.Symbol]): The value of the parameter used in the Phase Gate. If a float is
-            passed, the returned Gate is evaluated to the specified parameter value
-    """
-
-    def __init__(self, qubit: int):
-        matrix = sympy.Matrix(
+    def _create_matrix(self) -> sympy.Matrix:
+        return sympy.Matrix(
             [
                 [1, 0],
                 [0, complex(0, 1)],
             ]
         )
-        super().__init__(matrix=matrix, qubits=(qubit,))
 
 
-class T(Gate):
-    """Quantum T gate
+class T(SingleQubitGate):
+    """Quantum T gate."""
 
-    Inputs:
-        qubits (tuple[int]): A list of qubit indices that the operator acts on
-        parameter (Union[float, sympy.Symbol]): The value of the parameter used in the T Gate. If a float is
-            passed, the returned Gate is evaluated to the specified parameter value
-    """
-
-    def __init__(self, qubit: int):
-        matrix = sympy.Matrix(
+    def _create_matrix(self) -> sympy.Matrix:
+        return sympy.Matrix(
             [
                 [1, 0],
                 [0, sympy.exp(complex(0, np.pi / 4))],
             ]
         )
-        super().__init__(matrix=matrix, qubits=(qubit,))
 
 
-class RX(Gate):
-    """Quantum Rx gate
-
-    Inputs:
-        qubits (tuple[int]): A list of qubit indices that the operator acts on
-        parameter (Union[float, sympy.Symbol]): The value of the parameter used in the Rx Gate. If a float is
-            passed, the returned Gate is evaluated to the specified parameter value
-    """
+class RX(SingleQubitGate):
+    """Quantum Rx gate."""
 
     def __init__(
         self, qubit: int, parameter: Union[float, sympy.Symbol] = sympy.Symbol("theta")
     ):
-        matrix = sympy.Matrix(
+        super().__init__(qubit)
+        self.parameter = parameter
+
+    def _create_matrix(self) -> sympy.Matrix:
+        return sympy.Matrix(
             [
                 [
-                    sympy.cos(parameter / 2),
-                    -sympy.I * sympy.sin(parameter / 2),
+                    sympy.cos(self.parameter / 2),
+                    -sympy.I * sympy.sin(self.parameter / 2),
                 ],
                 [
-                    -sympy.I * sympy.sin(parameter / 2),
-                    sympy.cos(parameter / 2),
+                    -sympy.I * sympy.sin(self.parameter / 2),
+                    sympy.cos(self.parameter / 2),
                 ],
             ]
         )
-        super().__init__(matrix=matrix, qubits=(qubit,))
 
 
-class RY(Gate):
-    """Quantum Ry gate
-
-    Inputs:
-        qubits (tuple[int]): A list of qubit indices that the operator acts on
-        parameter (Union[float, sympy.Symbol]): The value of the parameter used in the Ry Gate. If a float is
-            passed, the returned Gate is evaluated to the specified parameter value
-    """
+class RY(SingleQubitGate):
+    """Quantum Ry gate."""
 
     def __init__(
         self, qubit: int, parameter: Union[float, sympy.Symbol] = sympy.Symbol("theta")
     ):
-        matrix = sympy.Matrix(
+        super().__init__(qubit)
+        self.parameter = parameter
+
+    def _create_matrix(self) -> sympy.Matrix:
+        return sympy.Matrix(
             [
                 [
-                    sympy.cos(parameter / 2),
-                    -1 * sympy.sin(parameter / 2),
+                    sympy.cos(self.parameter / 2),
+                    -1 * sympy.sin(self.parameter / 2),
                 ],
                 [
-                    sympy.sin(parameter / 2),
-                    sympy.cos(parameter / 2),
+                    sympy.sin(self.parameter / 2),
+                    sympy.cos(self.parameter / 2),
                 ],
             ]
         )
-        super().__init__(matrix=matrix, qubits=(qubit,))
 
 
-class RZ(Gate):
-    """Quantum Rz gate
-
-    Inputs:
-        qubits (tuple[int]): A list of qubit indices that the operator acts on
-        parameter (Union[float, sympy.Symbol]): The value of the parameter used in the Rz Gate. If a float is
-            passed, the returned Gate is evaluated to the specified parameter value
-    """
+class RZ(SingleQubitGate):
+    """Quantum Rz gate."""
 
     def __init__(
         self, qubit: int, parameter: Union[float, sympy.Symbol] = sympy.Symbol("theta")
     ):
-        matrix = sympy.Matrix(
+        super().__init__(qubit)
+        self.parameter = parameter
+
+    def _create_matrix(self) -> sympy.Matrix:
+        return sympy.Matrix(
             [
                 [
-                    sympy.exp(-1 * sympy.I * parameter / 2),
+                    sympy.exp(-1 * sympy.I * self.parameter / 2),
                     0,
                 ],
                 [
                     0,
-                    sympy.exp(sympy.I * parameter / 2),
+                    sympy.exp(sympy.I * self.parameter / 2),
                 ],
             ]
         )
-        super().__init__(matrix=matrix, qubits=(qubit,))

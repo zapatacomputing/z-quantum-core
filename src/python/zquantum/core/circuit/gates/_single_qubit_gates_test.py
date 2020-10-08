@@ -57,7 +57,7 @@ def test_identity_gate_has_correct_matrix(qubit):
     "qubit",
     [0, 1, 2, 3, 4, 5, 10, 11, 12, 99, 100, 101],
 )
-def test_PHASE_gate_has_corret_matrix(qubit):
+def test_PHASE_gate_has_correct_matrix(qubit):
     assert PHASE(qubit) == CustomGate(sympy.Matrix([[1, 0], [0, 1j]]), (qubit,))
 
 

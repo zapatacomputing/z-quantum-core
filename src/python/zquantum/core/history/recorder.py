@@ -1,11 +1,12 @@
 """Main implementation of recorder."""
-from inspect import signature
 from typing import TypeVar, Callable, Generic, List, Any, NamedTuple, Dict
 from typing_extensions import overload
 from ..interfaces.functions import (
     CallableWithGradient,
     CallableStoringArtifacts,
-    CallableWithGradientStoringArtifacts, StoreArtifact,
+    CallableWithGradientStoringArtifacts,
+    StoreArtifact,
+    has_store_artifact_param
 )
 from .save_conditions import always, SaveCondition
 
@@ -123,21 +124,6 @@ def store_artifact(artifacts) -> StoreArtifact:
         if force:
             artifacts.forced = True
     return _store
-
-
-def has_store_artifact_param(function) -> bool:
-    """Determine if given callable is capable of storing artifacts.
-
-    :param function: a callable to be checked.
-    :return: True, if `function` has store_artifact parameter and False otherwise.
-    """
-    try:
-        return "store_artifact" in signature(function, follow_wrapped=True).parameters
-    except ValueError:
-        # Rationale: the only callables that are of interest to us that aren't supported by
-        # signature that I am aware of are numpy ufunc's. Obviously, they don't have
-        # store_artifact parameter.
-        return False
 
 
 @overload

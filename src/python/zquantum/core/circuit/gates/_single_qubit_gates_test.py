@@ -1,7 +1,7 @@
 from . import X, Y, Z, H, I, PHASE, T, RX, RY, RZ
-from . import Gate
-import pytest
+from . import CustomGate
 import numpy as np
+import pytest
 import sympy
 
 
@@ -9,45 +9,32 @@ import sympy
     "qubit",
     [0, 1, 2, 3, 4, 5, 10, 11, 12, 99, 100, 101],
 )
-def test_creating_X_gate(qubit):
-    gate = X(qubit)
-    Xgate = Gate(sympy.Matrix([[0, 1], [1, 0]]), (qubit,))
-    assert gate == Xgate
+def test_X_gate_has_correct_matrix(qubit):
+    assert X(qubit) == CustomGate(sympy.Matrix([[0, 1], [1, 0]]), (qubit,))
 
 
 @pytest.mark.parametrize(
     "qubit",
     [0, 1, 2, 3, 4, 5, 10, 11, 12, 99, 100, 101],
 )
-def test_creating_Y_gate(qubit):
-    gate = Y(qubit)
-    Ygate = Gate(
-        sympy.Matrix([[complex(0, 0), complex(0, -1)], [complex(0, 1), complex(0, 0)]]),
-        (qubit,),
-    )
-    assert gate == Ygate
+def test_Y_gate_has_correct_matrix(qubit):
+    assert Y(qubit) == CustomGate(sympy.Matrix([[0, -1.0j], [1j, 0]]), (qubit,))
 
 
 @pytest.mark.parametrize(
     "qubit",
     [0, 1, 2, 3, 4, 5, 10, 11, 12, 99, 100, 101],
 )
-def test_creating_Z_gate(qubit):
-    gate = Z(qubit)
-    Zgate = Gate(
-        sympy.Matrix([[1, 0], [0, -1]]),
-        (qubit,),
-    )
-    assert gate == Zgate
+def test_Z_gate_has_correct_matrix(qubit):
+    assert Z(qubit) == CustomGate(sympy.Matrix([[1, 0], [0, -1]]), (qubit,))
 
 
 @pytest.mark.parametrize(
     "qubit",
     [0, 1, 2, 3, 4, 5, 10, 11, 12, 99, 100, 101],
 )
-def test_creating_H_gate(qubit):
-    gate = H(qubit)
-    Hgate = Gate(
+def test_hadamard_gate_has_correct_matrix(qubit):
+    assert H(qubit) == CustomGate(
         sympy.Matrix(
             [
                 [(1 / np.sqrt(2)), (1 / np.sqrt(2))],
@@ -56,61 +43,32 @@ def test_creating_H_gate(qubit):
         ),
         (qubit,),
     )
-    assert gate == Hgate
 
 
 @pytest.mark.parametrize(
     "qubit",
     [0, 1, 2, 3, 4, 5, 10, 11, 12, 99, 100, 101],
 )
-def test_creating_I_gate(qubit):
-    gate = I(qubit)
-    Igate = Gate(
-        sympy.Matrix(
-            [
-                [1, 0],
-                [0, 1],
-            ]
-        ),
-        (qubit,),
-    )
-    assert gate == Igate
+def test_identity_gate_has_correct_matrix(qubit):
+    assert I(qubit) == CustomGate(sympy.Matrix([[1, 0], [0, 1]]), (qubit,))
 
 
 @pytest.mark.parametrize(
     "qubit",
     [0, 1, 2, 3, 4, 5, 10, 11, 12, 99, 100, 101],
 )
-def test_creating_PHASE_gate(qubit):
-    gate = PHASE(qubit)
-    PHASEgate = Gate(
-        sympy.Matrix(
-            [
-                [1, 0],
-                [0, complex(0, 1)],
-            ]
-        ),
-        (qubit,),
-    )
-    assert gate == PHASEgate
+def test_PHASE_gate_has_corret_matrix(qubit):
+    assert PHASE(qubit) == CustomGate(sympy.Matrix([[1, 0], [0, 1j]]), (qubit,))
 
 
 @pytest.mark.parametrize(
     "qubit",
     [0, 1, 2, 3, 4, 5, 10, 11, 12, 99, 100, 101],
 )
-def test_creating_T_gate(qubit):
-    gate = T(qubit)
-    Tgate = Gate(
-        sympy.Matrix(
-            [
-                [1, 0],
-                [0, sympy.exp(complex(0, np.pi / 4))],
-            ]
-        ),
-        (qubit,),
+def test_T_gate_has_correct_matrix(qubit):
+    assert T(qubit) == CustomGate(
+        sympy.Matrix([[1, 0], [0, sympy.exp(-1j * np.pi / 4)]]), (qubit,)
     )
-    assert gate == Tgate
 
 
 rotation_gate_test_data = [
@@ -136,142 +94,34 @@ rotation_gate_test_data = [
 
 
 @pytest.mark.parametrize("qubit, theta", rotation_gate_test_data)
-def test_creating_RX_gate(qubit, theta):
-    if theta is not None:
-        gate = RX(qubit, theta)
-        RXgate = Gate(
+class TestCreatingRotationGates:
+    def test_RX_gate_has_correct_matrix(self, qubit, theta):
+        theta = theta if theta is not None else sympy.Symbol("theta")
+        assert RX(qubit, theta) == CustomGate(
             sympy.Matrix(
                 [
-                    [
-                        sympy.cos(theta / 2),
-                        -sympy.I * sympy.sin(theta / 2),
-                    ],
-                    [
-                        -sympy.I * sympy.sin(theta / 2),
-                        sympy.cos(theta / 2),
-                    ],
+                    [sympy.cos(theta / 2), -sympy.I * sympy.sin(theta / 2)],
+                    [-sympy.I * sympy.sin(theta / 2), sympy.cos(theta / 2)],
                 ]
             ),
             (qubit,),
         )
-    else:
-        gate = RX(qubit)
-        RXgate = Gate(
+
+    def test_RY_gate_has_correct_matrix(self, qubit, theta):
+        theta = theta if theta is not None else sympy.Symbol("theta")
+        assert RY(qubit, theta) == CustomGate(
             sympy.Matrix(
                 [
-                    [
-                        sympy.cos(sympy.Symbol("theta") / 2),
-                        -sympy.I * sympy.sin(sympy.Symbol("theta") / 2),
-                    ],
-                    [
-                        -sympy.I * sympy.sin(sympy.Symbol("theta") / 2),
-                        sympy.cos(sympy.Symbol("theta") / 2),
-                    ],
+                    [sympy.cos(theta / 2), -1 * sympy.sin(theta / 2)],
+                    [sympy.sin(theta / 2), sympy.cos(theta / 2)],
                 ]
             ),
             (qubit,),
         )
-    assert gate == RXgate
 
-
-def test_RX_Gate_when_parameter_is_zero():
-    gate = RX(0, 0)
-    expected_gate = I(0)
-    assert gate == expected_gate
-
-
-def test_RX_Gate_when_parameter_is_pi():
-    gate = RX(0, np.pi)
-    expected_gate = Gate(
-        matrix=sympy.Matrix([[0, complex(0, -1)], [complex(0, -1), 0]]), qubits=(0,)
-    )
-    assert gate == expected_gate
-
-
-def test_RX_Gate_when_parameter_is_half_pi():
-    gate = RX(0, np.pi / 2)
-    expected_gate = Gate(
-        matrix=sympy.Matrix(
-            [
-                [(1 / np.sqrt(2)), complex(0, -1 * (1 / np.sqrt(2)))],
-                [complex(0, -1 * (1 / np.sqrt(2))), (1 / np.sqrt(2))],
-            ]
-        ),
-        qubits=(0,),
-    )
-    assert gate == expected_gate
-
-
-@pytest.mark.parametrize("qubit, theta", rotation_gate_test_data)
-def test_creating_RY_gate(qubit, theta):
-    if theta is not None:
-        gate = RY(qubit, theta)
-        RYgate = Gate(
-            sympy.Matrix(
-                [
-                    [
-                        sympy.cos(theta / 2),
-                        -1 * sympy.sin(theta / 2),
-                    ],
-                    [
-                        sympy.sin(theta / 2),
-                        sympy.cos(theta / 2),
-                    ],
-                ]
-            ),
-            (qubit,),
-        )
-    else:
-        gate = RY(qubit)
-        RYgate = Gate(
-            sympy.Matrix(
-                [
-                    [
-                        sympy.cos(sympy.Symbol("theta") / 2),
-                        -1 * sympy.sin(sympy.Symbol("theta") / 2),
-                    ],
-                    [
-                        sympy.sin(sympy.Symbol("theta") / 2),
-                        sympy.cos(sympy.Symbol("theta") / 2),
-                    ],
-                ]
-            ),
-            (qubit,),
-        )
-    assert gate == RYgate
-
-
-def test_RY_Gate_when_parameter_is_zero():
-    gate = RY(0, 0)
-    expected_gate = I(0)
-    assert gate == expected_gate
-
-
-def test_RY_Gate_when_parameter_is_pi():
-    gate = RY(0, np.pi)
-    expected_gate = Gate(matrix=sympy.Matrix([[0, -1], [1, 0]]), qubits=(0,))
-    assert gate == expected_gate
-
-
-def test_RY_Gate_when_parameter_is_half_pi():
-    gate = RY(0, np.pi / 2)
-    expected_gate = Gate(
-        matrix=sympy.Matrix(
-            [
-                [(1 / np.sqrt(2)), -1 * (1 / np.sqrt(2))],
-                [(1 / np.sqrt(2)), (1 / np.sqrt(2))],
-            ]
-        ),
-        qubits=(0,),
-    )
-    assert gate == expected_gate
-
-
-@pytest.mark.parametrize("qubit, theta", rotation_gate_test_data)
-def test_creating_RZ_gate(qubit, theta):
-    if theta is not None:
-        gate = RZ(qubit, theta)
-        RZgate = Gate(
+    def test_RZ_gate_has_correct_matrix(self, qubit, theta):
+        theta = theta if theta is not None else sympy.Symbol("theta")
+        assert RZ(qubit, theta) == CustomGate(
             sympy.Matrix(
                 [
                     [sympy.exp(-1 * sympy.I * theta / 2), 0],
@@ -280,43 +130,67 @@ def test_creating_RZ_gate(qubit, theta):
             ),
             (qubit,),
         )
-    else:
-        gate = RZ(qubit)
-        RZgate = Gate(
+
+
+@pytest.mark.parametrize("rotation_gate", [RX, RY, RZ])
+def test_rotation_gate_with_parameter_equal_to_zero_is_equivalent_to_identity_matrix(
+    rotation_gate,
+):
+    assert rotation_gate(0, 0) == I(0)
+
+
+@pytest.mark.parametrize(
+    "theta, evaluated_matrix",
+    [
+        (
+            np.pi,
             sympy.Matrix(
                 [
-                    [sympy.exp(-1 * sympy.I * sympy.Symbol("theta") / 2), 0],
-                    [0, sympy.exp(sympy.I * sympy.Symbol("theta") / 2)],
+                    [0, complex(0, -1)],
+                    [complex(0, -1), 0],
                 ]
             ),
-            (qubit,),
-        )
-    assert gate == RZgate
-
-
-def test_RZ_Gate_when_parameter_is_zero():
-    gate = RZ(0, 0)
-    expected_gate = I(0)
-    assert gate == expected_gate
-
-
-def test_RZ_Gate_when_parameter_is_pi():
-    gate = RZ(0, np.pi)
-    expected_gate = Gate(
-        matrix=sympy.Matrix([[complex(0, -1), 0], [0, complex(0, 1)]]), qubits=(0,)
-    )
-    assert gate == expected_gate
-
-
-def test_RZ_Gate_when_parameter_is_half_pi():
-    gate = RZ(0, np.pi / 2)
-    expected_gate = Gate(
-        matrix=sympy.Matrix(
-            [
-                [complex((1 / np.sqrt(2)), -(1 / np.sqrt(2))), 0],
-                [0, complex((1 / np.sqrt(2)), (1 / np.sqrt(2)))],
-            ]
         ),
-        qubits=(0,),
+        (
+            2 * np.pi,
+            sympy.Matrix(
+                [
+                    [-1, 0],
+                    [0, -1],
+                ]
+            ),
+        ),
+        (
+            np.pi / 2,
+            sympy.Matrix(
+                [
+                    [0.7071067811865476, complex(0, -0.7071067811865475)],
+                    [complex(0, -0.7071067811865475), 0.7071067811865476],
+                ]
+            ),
+        ),
+    ],
+)
+def test_evaluating_rx_gate_results_in_matrix_with_correct_entries(
+    theta, evaluated_matrix
+):
+    qubits = (0,)
+    matrix = sympy.Matrix(
+        [
+            [
+                sympy.cos(sympy.Symbol("theta") / 2),
+                -1j * sympy.sin(sympy.Symbol("theta") / 2),
+            ],
+            [
+                -1j * sympy.sin(sympy.Symbol("theta") / 2),
+                sympy.cos(sympy.Symbol("theta") / 2),
+            ],
+        ]
     )
-    assert gate == expected_gate
+    gate = CustomGate(matrix, qubits)
+    symbols_map = {"theta": theta}
+    expected_new_gate = CustomGate(evaluated_matrix, qubits)
+
+    new_gate = gate.evaluate(symbols_map)
+
+    assert new_gate == expected_new_gate

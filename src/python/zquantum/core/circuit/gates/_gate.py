@@ -239,7 +239,7 @@ class Gate(ABC):
 class CustomGate(Gate):
     """Gate class with custom matrix."""
 
-    def __init__(self, matrix: sympy.Matrix, qubits: Tuple[int]):
+    def __init__(self, matrix: sympy.Matrix, qubits: Tuple[int, ...]):
         """Initialize a gate
 
         Args:

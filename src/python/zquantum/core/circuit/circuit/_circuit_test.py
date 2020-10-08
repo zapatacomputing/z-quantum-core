@@ -6,7 +6,7 @@ import copy
 import sympy
 import random
 from ...utils import SCHEMA_VERSION
-from ..gate import Gate
+from ..gates import Gate
 from ._circuit import Circuit
 
 XGateQubit0 = Gate(

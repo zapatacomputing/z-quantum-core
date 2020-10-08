@@ -5,40 +5,43 @@ import copy
 import warnings
 from typing import Tuple, Union, Dict, TextIO
 from collections import Counter
-from ...utils import SCHEMA_VERSION, convert_array_to_dict, convert_dict_to_array
+from ...utils import SCHEMA_VERSION
 
 
 class Gate(object):
     """Class for storing information associated with a quantum gate.
- 
+
     Attributes:
         matrix (sympy.Matrix): two-dimensional array defining the matrix representing the quantum operator
-        qubits (tuple[int]): A list of qubit indices that the operator acts on 
+        qubits (tuple[int]): A list of qubit indices that the operator acts on
         symbolic_params (set(sympy.Symbol)): A set of the parameter names used in the gate. If the gate is not
             parameterized, this value is the empty set.
     """
 
     def __init__(self, matrix: sympy.Matrix, qubits: Tuple[int]):
-        """ Initialize a gate
+        """Initialize a gate
 
         Args:
             matrix (sympy.Matrix): See class definition
-            qubits (tuple(int)): See class definition 
+            qubits (tuple(int)): See class definition
         """
         self._assert_is_valid_operator(matrix, qubits)
         self._assert_qubits_are_unique(qubits)
-        self.matrix = matrix
+
+        copied_matrix = copy.deepcopy(matrix)
+        for index, element in enumerate(copied_matrix):
+            copied_matrix[index] = element.evalf()
+        self.matrix = copied_matrix
         self.qubits = qubits
-        self.symbolic_params = self._get_symbolic_params()
 
     def _assert_is_valid_operator(self, matrix: sympy.Matrix, qubits: Tuple[int]):
-        """ Check to make sure the the given operator is a valid Gate. This function asserts that
+        """Check to make sure the the given operator is a valid Gate. This function asserts that
         the shape of the matrix is a 2**N by 2**N matrix and that the operator is a unitary (if the operator
         has parameters, the assertion that the operator is unitary is skipped).
 
         Args:
             matrix (sympy.Matrix): See class definition
-            qubits (tuple(int)): See class definition 
+            qubits (tuple(int)): See class definition
         """
         # Make sure matrix is square
         is_square = True
@@ -50,19 +53,24 @@ class Gate(object):
         assert 2 ** len(qubits) == shape[0]
 
     def _assert_qubits_are_unique(self, qubits: Tuple[int]):
-        """ Check to make sure the the qubits used in the gate are unique.
+        """Check to make sure the the qubits used in the gate are unique.
 
         Args:
-            qubits (tuple(int)): See class definition 
+            qubits (tuple(int)): See class definition
         """
         assert len(set(qubits)) == len(qubits)
 
-    def _get_symbolic_params(self):
-        """ Returns a list of symbolic parameters used in the gate
+    @property
+    def is_parameterized(self):
+        """Boolean indicating if any symbolic parameters used in the gate"""
+        for element in self.matrix:
+            if isinstance(element, sympy.Expr):
+                return True
+        return False
 
-        Returns:
-            set: set containing all the sympy symbols used in gate params
-        """
+    @property
+    def symbolic_params(self):
+        """A set containing all the sympy symbols used in the gate"""
         all_symbols = []
         for element in self.matrix:
             if isinstance(element, sympy.Expr):
@@ -71,7 +79,7 @@ class Gate(object):
         return set(all_symbols)
 
     def __eq__(self, another_gate):
-        """ Determine if two gates are equivalent.
+        """Determine if two gates are equivalent.
 
         Args:
             another_gate (Gate): The gate with which to compare
@@ -89,12 +97,15 @@ class Gate(object):
             return False
         for element, another_element in zip(self.matrix, another_gate.matrix):
             if element != another_element:
-                if isinstance(element, (sympy.Number, sympy.Mul)) and isinstance(
-                    another_element, (sympy.Number, sympy.Mul)
-                ):
+                if isinstance(
+                    element, (sympy.Number, sympy.Mul, sympy.Add)
+                ) and isinstance(another_element, (sympy.Number, sympy.Mul, sympy.Add)):
                     if not np.isclose(
                         complex(sympy.re(element), sympy.im(element)),
-                        complex(sympy.re(another_element), sympy.im(another_element),),
+                        complex(
+                            sympy.re(another_element),
+                            sympy.im(another_element),
+                        ),
                     ):
                         return False
                 else:
@@ -106,7 +117,7 @@ class Gate(object):
         return True
 
     def __repr__(self):
-        """ String representation of the Gate object
+        """String representation of the Gate object
 
         Returns:
             string
@@ -114,7 +125,7 @@ class Gate(object):
         return f"zquantum.core.circuit.gate.Gate(matrix={self.matrix}, qubits={self.qubits})"
 
     def to_dict(self, serializable: bool = True):
-        """ Convert the Gate object into a dictionary
+        """Convert the Gate object into a dictionary
 
         Args:
             serializable (bool): If true, the returned dictionary is serializable so that it can be stored
@@ -141,7 +152,7 @@ class Gate(object):
         return gate_dict
 
     def save(self, filename: str):
-        """ Save the Gate object to file in JSON format
+        """Save the Gate object to file in JSON format
 
         Args:
             filename (str): The path to the file to store the Gate
@@ -151,7 +162,7 @@ class Gate(object):
 
     @classmethod
     def load(cls, data: Union[Dict, TextIO]):
-        """ Load a Gate object from either a file/file-like object or a dictionary
+        """Load a Gate object from either a file/file-like object or a dictionary
 
         Args:
             data (Union[Dict, TextIO]): The data to load into the gate object
@@ -181,7 +192,7 @@ class Gate(object):
         return cls(matrix, qubits)
 
     def evaluate(self, symbols_map: Dict):
-        """ Create a copy of the current Gate with the parameters in the gate evaluated to the values 
+        """Create a copy of the current Gate with the parameters in the gate evaluated to the values
         provided in the input symbols map
 
         Args:
@@ -190,6 +201,12 @@ class Gate(object):
         Returns:
             Gate
         """
+        if not self.is_parameterized:
+            warnings.warn(
+                """Gate is not parameterized. evaluate will return a copy of the current gate"""
+            )
+            return copy.deepcopy(self)
+
         for symbol in symbols_map.keys():
             if symbol not in self.symbolic_params:
                 warnings.warn(

@@ -20,6 +20,8 @@ class Gate(ABC):
     """
 
     def __init__(self, qubits: Tuple[int, ...]):
+        if not self.are_qubits_unique(qubits):
+            raise ValueError("Qubits need to be unique.")
         self.qubits = qubits
 
     @property
@@ -251,8 +253,6 @@ class CustomGate(Gate):
                 f"Passed matrix has shape {matrix.shape} and cannot act on "
                 f"{len(qubits)} qubits."
             )
-        if not self.are_qubits_unique(qubits):
-            raise ValueError("Qubits need to be unique.")
 
         super().__init__(qubits)
         copied_matrix = copy.deepcopy(matrix)

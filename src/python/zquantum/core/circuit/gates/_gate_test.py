@@ -404,11 +404,27 @@ def test_representation_of_custom_gate_contains_class_path_matrix_and_qubits(
             ),
             (0, 2),
         ),
+        (
+            sympy.Matrix(
+                [
+                    [
+                        sympy.cos(sympy.Symbol("gamma") / 2),
+                        -sympy.I * sympy.sin(sympy.Symbol("gamma") / 2),
+                    ],
+                    [
+                        -sympy.I * sympy.sin(sympy.Symbol("gamma") / 2),
+                        sympy.cos(sympy.Symbol("gamma") / 2),
+                    ],
+                ]
+            ),
+            (0,),
+        ),
     ],
 )
 class TestGateSerialization:
-
-    def test_dictionary_created_from_gate_contains_all_necessary_items(self, matrix, qubits):
+    def test_dictionary_created_from_gate_contains_all_necessary_items(
+        self, matrix, qubits
+    ):
         gate = CustomGate(matrix, qubits)
 
         gate_dict = gate.to_dict(serializable=False)
@@ -418,7 +434,9 @@ class TestGateSerialization:
         assert gate_dict["matrix"] == matrix
         assert gate_dict["symbolic_params"] == gate.symbolic_params
 
-    def test_gates_matrix_is_expanded_if_serializable_is_set_to_true(self, matrix, qubits):
+    def test_gates_matrix_is_expanded_if_serializable_is_set_to_true(
+        self, matrix, qubits
+    ):
         gate = CustomGate(matrix, qubits)
 
         gate_dict = gate.to_dict(serializable=True)

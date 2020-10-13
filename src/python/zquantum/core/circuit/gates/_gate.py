@@ -281,6 +281,7 @@ class SpecializedGate(Gate):
     @abstractmethod
     def _create_matrix(self) -> sympy.Matrix:
         """Create matrix of this gate."""
+        pass
 
     @property
     def matrix(self) -> sympy.Matrix:

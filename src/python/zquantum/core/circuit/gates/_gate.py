@@ -67,7 +67,7 @@ class Gate(ABC):
         if element == another_element:
             return True
         elif isinstance(
-            another_element, (sympy.Number, sympy.Mul, sympy.Add)
+            element, (sympy.Number, sympy.Mul, sympy.Add)
         ) and isinstance(another_element, (sympy.Number, sympy.Mul, sympy.Add)):
             # Below we use noqa to suppress type checker warnings. The problem
             # with typing here is that sympy.re, sympy.im and np.allclose are

@@ -34,6 +34,9 @@ def test_equal_or_close_elements_are_considered_to_be_equal_in_gate_matrix(first
     assert Gate.are_elements_equal(second, first)
 
 
+def test_different_symbolic_expressions_are_not_considered_to_be_equal_in_gate_matrix():
+    assert not Gate.are_elements_equal(sympy.Symbol("theta"), sympy.Symbol("sigma"))
+
 @pytest.mark.parametrize(
     "matrix",
     [

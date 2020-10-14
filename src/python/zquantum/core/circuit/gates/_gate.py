@@ -68,9 +68,12 @@ class Gate(ABC):
         """
         difference = sympy.N(sympy.expand(element) - sympy.expand(another_element))
 
-        return np.allclose(
-            float(sympy.re(difference)) + 1j * float(sympy.im(difference)), 0
-        )
+        try:
+            return np.allclose(
+                float(sympy.re(difference)) + 1j * float(sympy.im(difference)), 0
+            )
+        except TypeError:
+            return False
 
     @staticmethod
     def are_qubits_unique(qubits: Tuple[int, ...]):

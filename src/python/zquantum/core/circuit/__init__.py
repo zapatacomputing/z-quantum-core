@@ -1,1 +1,1 @@
-from .gate import Gate
+from .gates import Gate

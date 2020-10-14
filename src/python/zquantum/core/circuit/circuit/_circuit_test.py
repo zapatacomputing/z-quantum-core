@@ -6,31 +6,10 @@ import copy
 import sympy
 import random
 from ...utils import SCHEMA_VERSION
-from ..gates import Gate
+from ..gates import Gate, X, Y, Z, H, I, RX, RY, RZ, PHASE, T, CustomGate
 from ._circuit import Circuit
 
-XGateQubit0 = Gate(
-    matrix=sympy.Matrix(
-        [[complex(0, 0), complex(1, 0)], [complex(1, 0), complex(0, 0)],]
-    ),
-    qubits=(0,),
-)
-HGateQubit0 = Gate(
-    matrix=sympy.Matrix(
-        [
-            [(1 / np.sqrt(2)) * complex(1, 0), (1 / np.sqrt(2)) * complex(1, 0)],
-            [(1 / np.sqrt(2)) * complex(1, 0), (1 / np.sqrt(2)) * complex(-1, 0)],
-        ]
-    ),
-    qubits=(0,),
-)
-XGateQubit1 = Gate(
-    matrix=sympy.Matrix(
-        [[complex(0, 0), complex(1, 0)], [complex(1, 0), complex(0, 0)],]
-    ),
-    qubits=(1,),
-)
-CNOTGateQubits01 = Gate(
+CNOTGateQubits01 = CustomGate(
     matrix=sympy.Matrix(
         [
             [complex(1, 0), complex(0, 0), complex(0, 0), complex(0, 0)],
@@ -39,11 +18,26 @@ CNOTGateQubits01 = Gate(
             [complex(0, 0), complex(0, 0), complex(1, 0), complex(0, 0)],
         ]
     ),
-    qubits=(0, 1,),
+    qubits=(
+        0,
+        1,
+    ),
 )
-IGateQubit0 = Gate(matrix=sympy.Matrix(np.eye(2)), qubits=(0,))
-IGateQubit1 = Gate(matrix=sympy.Matrix(np.eye(2)), qubits=(1,))
-ParameterizedGateQubits02 = Gate(
+CNOTGateQubits09 = CustomGate(
+    matrix=sympy.Matrix(
+        [
+            [complex(1, 0), complex(0, 0), complex(0, 0), complex(0, 0)],
+            [complex(0, 0), complex(1, 0), complex(0, 0), complex(0, 0)],
+            [complex(0, 0), complex(0, 0), complex(0, 0), complex(1, 0)],
+            [complex(0, 0), complex(0, 0), complex(1, 0), complex(0, 0)],
+        ]
+    ),
+    qubits=(
+        0,
+        9,
+    ),
+)
+CustomParameterizedGate = CustomGate(
     matrix=sympy.Matrix(
         [
             [1, 0, sympy.Symbol("theta_0"), 0],
@@ -54,57 +48,124 @@ ParameterizedGateQubits02 = Gate(
     ),
     qubits=(0, 2),
 )
-ParameterizedRXGateQubit0 = Gate(
-    matrix=sympy.Matrix(
-        [
-            [
-                sympy.cos(sympy.Symbol("theta_0") / 2),
-                complex(0, -1) * sympy.sin(sympy.Symbol("theta_0") / 2),
-            ],
-            [
-                complex(0, -1) * sympy.sin(sympy.Symbol("theta_0") / 2),
-                sympy.cos(sympy.Symbol("theta_0") / 2),
-            ],
-        ]
-    ),
-    qubits=(0,),
-)
-ParameterizedRYGateQubit0 = Gate(
-    matrix=sympy.Matrix(
-        [
-            [
-                sympy.cos(sympy.Symbol("theta_0") / 2),
-                -1 * sympy.sin(sympy.Symbol("theta_0") / 2),
-            ],
-            [
-                sympy.sin(sympy.Symbol("theta_0") / 2),
-                sympy.cos(sympy.Symbol("theta_0") / 2),
-            ],
-        ]
-    ),
-    qubits=(0,),
-)
-ParameterizedRZGateQubit0 = Gate(
-    matrix=sympy.Matrix(
-        [
-            [sympy.exp(complex(0, -1) * sympy.Symbol("theta_1") / 2), complex(0, 0),],
-            [complex(0, 0), sympy.exp(complex(0, 1) * sympy.Symbol("theta_1") / 2)],
-        ]
-    ),
-    qubits=(0,),
-)
+
 
 RandomGateList = [
-    XGateQubit0,
-    XGateQubit1,
-    HGateQubit0,
-    CNOTGateQubits01,
-    IGateQubit0,
-    IGateQubit1,
-    ParameterizedGateQubits02,
-    ParameterizedRXGateQubit0,
-    ParameterizedRYGateQubit0,
-    ParameterizedRZGateQubit0,
+    X(0),
+    X(1),
+    X(2),
+    X(3),
+    Y(0),
+    Y(1),
+    Y(2),
+    Y(3),
+    Z(0),
+    Z(1),
+    Z(2),
+    Z(3),
+    H(0),
+    H(1),
+    H(2),
+    H(3),
+    I(0),
+    I(1),
+    I(2),
+    I(3),
+    PHASE(0),
+    PHASE(1),
+    PHASE(2),
+    PHASE(3),
+    T(0),
+    T(1),
+    T(2),
+    T(3),
+    RX(0),
+    RX(1),
+    RX(2),
+    RX(3),
+    RX(0, sympy.Symbol("gamma")),
+    RX(1, sympy.Symbol("gamma")),
+    RX(2, sympy.Symbol("gamma")),
+    RX(3, sympy.Symbol("gamma")),
+    RX(0, 0),
+    RX(1, 0),
+    RX(2, 0),
+    RX(3, 0),
+    RX(0, 0.5),
+    RX(1, 0.5),
+    RX(2, 0.5),
+    RX(3, 0.5),
+    RX(0, np.pi / 2),
+    RX(1, np.pi / 2),
+    RX(2, np.pi / 2),
+    RX(3, np.pi / 2),
+    RX(0, np.pi),
+    RX(1, np.pi),
+    RX(2, np.pi),
+    RX(3, np.pi),
+    RX(0, 2 * np.pi),
+    RX(1, 2 * np.pi),
+    RX(2, 2 * np.pi),
+    RX(3, 2 * np.pi),
+    RY(0),
+    RY(1),
+    RY(2),
+    RY(3),
+    RY(0, sympy.Symbol("gamma")),
+    RY(1, sympy.Symbol("gamma")),
+    RY(2, sympy.Symbol("gamma")),
+    RY(3, sympy.Symbol("gamma")),
+    RY(0, 0),
+    RY(1, 0),
+    RY(2, 0),
+    RY(3, 0),
+    RY(0, 0.5),
+    RY(1, 0.5),
+    RY(2, 0.5),
+    RY(3, 0.5),
+    RY(0, np.pi / 2),
+    RY(1, np.pi / 2),
+    RY(2, np.pi / 2),
+    RY(3, np.pi / 2),
+    RY(0, np.pi),
+    RY(1, np.pi),
+    RY(2, np.pi),
+    RY(3, np.pi),
+    RY(0, 2 * np.pi),
+    RY(1, 2 * np.pi),
+    RY(2, 2 * np.pi),
+    RY(3, 2 * np.pi),
+    RZ(0),
+    RZ(1),
+    RZ(2),
+    RZ(3),
+    RZ(0, sympy.Symbol("gamma")),
+    RZ(1, sympy.Symbol("gamma")),
+    RZ(2, sympy.Symbol("gamma")),
+    RZ(3, sympy.Symbol("gamma")),
+    RZ(0, 0),
+    RZ(1, 0),
+    RZ(2, 0),
+    RZ(3, 0),
+    RZ(0, 0.5),
+    RZ(1, 0.5),
+    RZ(2, 0.5),
+    RZ(3, 0.5),
+    RZ(0, np.pi / 2),
+    RZ(1, np.pi / 2),
+    RZ(2, np.pi / 2),
+    RZ(3, np.pi / 2),
+    RZ(0, np.pi),
+    RZ(1, np.pi),
+    RZ(2, np.pi),
+    RZ(3, np.pi),
+    RZ(0, 2 * np.pi),
+    RZ(1, 2 * np.pi),
+    RZ(2, 2 * np.pi),
+    RZ(3, 2 * np.pi),
+    CNOTGateQubits01,  # TODO: Replace after two qubit gates are completed
+    CNOTGateQubits09,  # TODO: Replace after two qubit gates are completed
+    CustomParameterizedGate,
 ]
 
 #### __init__ ####
@@ -112,11 +173,12 @@ RandomGateList = [
     "gates",
     [
         [],
-        [XGateQubit0],
-        [HGateQubit0],
-        [XGateQubit0, XGateQubit0],
+        [X(0)],
+        [H(0)],
+        [X(0), X(0)],
         [CNOTGateQubits01],
-        [XGateQubit0, XGateQubit0, CNOTGateQubits01, XGateQubit0],
+        [X(0), X(0), CNOTGateQubits01, X(0)],
+        [random.choice(RandomGateList) for _ in range(100)],
     ],
 )
 def test_creating_circuit_has_correct_gates(gates):
@@ -130,10 +192,10 @@ def test_creating_circuit_has_correct_gates(gates):
 def test_appending_to_circuit_works():
     """The Circuit class should have the correct gates that are passed in"""
     # Given
-    expected_circuit = Circuit(gates=[HGateQubit0, CNOTGateQubits01])
+    expected_circuit = Circuit(gates=[H(0), CNOTGateQubits01])
     # When
     circuit = Circuit(gates=[])
-    circuit.gates.append(HGateQubit0)
+    circuit.gates.append(H(0))
     circuit.gates.append(CNOTGateQubits01)
     # Then
     assert circuit.gates == expected_circuit.gates
@@ -145,11 +207,17 @@ def test_appending_to_circuit_works():
     "gates, qubits",
     [
         [[], tuple()],
-        [[XGateQubit0], (0,)],
-        [[XGateQubit1], (1,)],
-        [[XGateQubit0, XGateQubit1], (0, 1,)],
+        [[X(0)], (0,)],
+        [[X(1)], (1,)],
+        [
+            [X(0), X(1)],
+            (
+                0,
+                1,
+            ),
+        ],
         [[CNOTGateQubits01], (0, 1)],
-        [[XGateQubit0, XGateQubit0, CNOTGateQubits01, XGateQubit0], (0, 1)],
+        [[X(0), X(0), CNOTGateQubits01, X(0)], (0, 1)],
     ],
 )
 def test_creating_circuit_has_correct_qubits(gates, qubits):
@@ -163,9 +231,7 @@ def test_creating_circuit_has_correct_qubits(gates, qubits):
 def test_creating_circuit_has_correct_qubits_with_gaps():
     """The Circuit class should have the correct qubits even if there is a gap in the qubit indices"""
     # Given/When
-    CNOTGateQubits01_0_9 = copy.deepcopy(CNOTGateQubits01)
-    CNOTGateQubits01_0_9.qubits = (0, 9)
-    circuit = Circuit(gates=[XGateQubit0, CNOTGateQubits01, CNOTGateQubits01_0_9])
+    circuit = Circuit(gates=[X(0), CNOTGateQubits01, CNOTGateQubits09])
 
     # Then
     assert circuit.qubits == (0, 1, 9)
@@ -176,10 +242,10 @@ def test_symbolic_params_are_empty_with_no_parameterized_gates():
     # Given
     circuit = Circuit(
         gates=[
-            XGateQubit0,
+            X(0),
             CNOTGateQubits01,
-            XGateQubit0,
-            HGateQubit0,
+            X(0),
+            H(0),
             CNOTGateQubits01,
         ]
     )
@@ -198,7 +264,7 @@ def test_symbolic_params_are_correct_for_one_gate_one_parameter():
             [0, sympy.Symbol("theta_0"), 1, 0],
         ]
     )
-    gate = Gate(matrix=matrix, qubits=(0, 2))
+    gate = CustomGate(matrix=matrix, qubits=(0, 2))
     circuit = Circuit(gates=[gate])
 
     # When/Then
@@ -207,7 +273,7 @@ def test_symbolic_params_are_correct_for_one_gate_one_parameter():
 
 def test_symbolic_params_are_correct_for_one_gate_two_parameters():
     # Given
-    gate = Gate(
+    gate = CustomGate(
         matrix=sympy.Matrix(
             [
                 [1, 0, sympy.Symbol("theta_0"), 0],
@@ -228,7 +294,7 @@ def test_symbolic_params_are_correct_for_one_gate_two_parameters():
 
 def test_symbolic_params_are_correct_for_multiple_gates_with_overlapping_parameters():
     # Given
-    gate1 = Gate(
+    gate1 = CustomGate(
         matrix=sympy.Matrix(
             [
                 [1, 0, sympy.Symbol("theta_0"), 0],
@@ -239,21 +305,30 @@ def test_symbolic_params_are_correct_for_multiple_gates_with_overlapping_paramet
         ),
         qubits=(0, 2),
     )
-    gate2 = Gate(
+    gate2 = CustomGate(
         matrix=sympy.Matrix(
-            [[sympy.Symbol("theta_0"), 0], [0, sympy.Symbol("theta_1")],]
+            [
+                [sympy.Symbol("theta_0"), 0],
+                [0, sympy.Symbol("theta_1")],
+            ]
         ),
         qubits=(1,),
     )
-    gate3 = Gate(
+    gate3 = CustomGate(
         matrix=sympy.Matrix(
-            [[sympy.Symbol("theta_0"), 0], [0, sympy.Symbol("theta_0")],]
+            [
+                [sympy.Symbol("theta_0"), 0],
+                [0, sympy.Symbol("theta_0")],
+            ]
         ),
         qubits=(1,),
     )
-    gate4 = Gate(
+    gate4 = CustomGate(
         matrix=sympy.Matrix(
-            [[sympy.Symbol("gamma_0"), 0], [0, sympy.Symbol("gamma_1")],]
+            [
+                [sympy.Symbol("gamma_0"), 0],
+                [0, sympy.Symbol("gamma_1")],
+            ]
         ),
         qubits=(1,),
     )
@@ -276,30 +351,33 @@ def test_symbolic_params_are_correct_for_multiple_gates_with_overlapping_paramet
 @pytest.mark.parametrize(
     "circuit1, circuit2",
     [
-        [Circuit(gates=[]), Circuit(gates=[]),],
         [
-            Circuit(gates=[XGateQubit0, HGateQubit0, CNOTGateQubits01]),
-            Circuit(gates=[XGateQubit0, HGateQubit0, CNOTGateQubits01]),
+            Circuit(gates=[]),
+            Circuit(gates=[]),
         ],
         [
-            Circuit(gates=[XGateQubit0, HGateQubit0, CNOTGateQubits01]),
-            Circuit(gates=[copy.deepcopy(XGateQubit0), HGateQubit0, CNOTGateQubits01]),
+            Circuit(gates=[X(0), H(0), CNOTGateQubits01]),
+            Circuit(gates=[X(0), H(0), CNOTGateQubits01]),
+        ],
+        [
+            Circuit(gates=[X(0), H(0), CNOTGateQubits01]),
+            Circuit(gates=[copy.deepcopy(X(0)), H(0), CNOTGateQubits01]),
         ],
         [
             Circuit(
                 gates=[
-                    XGateQubit0,
-                    HGateQubit0,
+                    X(0),
+                    H(0),
                     CNOTGateQubits01,
-                    ParameterizedGateQubits02,
+                    CustomParameterizedGate,
                 ]
             ),
             Circuit(
                 gates=[
-                    XGateQubit0,
-                    HGateQubit0,
+                    X(0),
+                    H(0),
                     CNOTGateQubits01,
-                    ParameterizedGateQubits02,
+                    CustomParameterizedGate,
                 ]
             ),
         ],
@@ -317,38 +395,44 @@ def test_circuit_eq_same_gates(circuit1, circuit2):
 @pytest.mark.parametrize(
     "circuit1, circuit2",
     [
-        [Circuit(gates=[]), Circuit(gates=[HGateQubit0]),],
-        [Circuit(gates=[HGateQubit0]), Circuit(gates=[]),],
+        [
+            Circuit(gates=[]),
+            Circuit(gates=[H(0)]),
+        ],
+        [
+            Circuit(gates=[H(0)]),
+            Circuit(gates=[]),
+        ],
         [
             Circuit(
                 gates=[
-                    XGateQubit0,
-                    HGateQubit0,
+                    X(0),
+                    H(0),
                     CNOTGateQubits01,
-                    ParameterizedGateQubits02,
+                    CustomParameterizedGate,
                 ]
             ),
-            Circuit(gates=[XGateQubit0, HGateQubit0, CNOTGateQubits01]),
+            Circuit(gates=[X(0), H(0), CNOTGateQubits01]),
         ],
         [
-            Circuit(gates=[XGateQubit0, HGateQubit0, CNOTGateQubits01]),
+            Circuit(gates=[X(0), H(0), CNOTGateQubits01]),
             Circuit(
                 gates=[
-                    XGateQubit0,
-                    HGateQubit0,
+                    X(0),
+                    H(0),
                     CNOTGateQubits01,
-                    ParameterizedGateQubits02,
+                    CustomParameterizedGate,
                 ]
             ),
         ],
         [
-            Circuit(gates=[HGateQubit0, XGateQubit1, CNOTGateQubits01]),
-            Circuit(gates=[XGateQubit1, HGateQubit0, CNOTGateQubits01]),
+            Circuit(gates=[H(0), X(1), CNOTGateQubits01]),
+            Circuit(gates=[X(1), H(0), CNOTGateQubits01]),
         ],
         [
             Circuit(
                 gates=[
-                    Gate(
+                    CustomGate(
                         matrix=sympy.Matrix(
                             [
                                 [sympy.Symbol("theta_0"), 0],
@@ -361,7 +445,7 @@ def test_circuit_eq_same_gates(circuit1, circuit2):
             ),
             Circuit(
                 gates=[
-                    Gate(
+                    CustomGate(
                         matrix=sympy.Matrix(
                             [
                                 [sympy.Symbol("theta_1"), 0],
@@ -376,7 +460,7 @@ def test_circuit_eq_same_gates(circuit1, circuit2):
         [
             Circuit(
                 gates=[
-                    Gate(
+                    CustomGate(
                         matrix=sympy.Matrix(
                             [
                                 [sympy.Symbol("theta_0"), 0],
@@ -389,7 +473,7 @@ def test_circuit_eq_same_gates(circuit1, circuit2):
             ),
             Circuit(
                 gates=[
-                    Gate(
+                    CustomGate(
                         matrix=sympy.Matrix(
                             [
                                 [sympy.Symbol("gamma_0"), 0],
@@ -418,32 +502,34 @@ def test_gate_eq_not_same_gates(circuit1, circuit2):
     [
         [
             Circuit(gates=[]),
-            Circuit(gates=[HGateQubit0]),
-            Circuit(gates=[HGateQubit0]),
+            Circuit(gates=[H(0)]),
+            Circuit(gates=[H(0)]),
         ],
-        [Circuit(gates=[]), Circuit(gates=[]), Circuit(gates=[]),],
         [
-            Circuit(gates=[HGateQubit0]),
             Circuit(gates=[]),
-            Circuit(gates=[HGateQubit0]),
+            Circuit(gates=[]),
+            Circuit(gates=[]),
         ],
         [
-            Circuit(gates=[HGateQubit0, CNOTGateQubits01]),
-            Circuit(gates=[CNOTGateQubits01, HGateQubit0]),
-            Circuit(
-                gates=[HGateQubit0, CNOTGateQubits01, CNOTGateQubits01, HGateQubit0]
-            ),
+            Circuit(gates=[H(0)]),
+            Circuit(gates=[]),
+            Circuit(gates=[H(0)]),
         ],
         [
-            Circuit(gates=[HGateQubit0, CNOTGateQubits01, ParameterizedGateQubits02]),
-            Circuit(gates=[CNOTGateQubits01, HGateQubit0]),
+            Circuit(gates=[H(0), CNOTGateQubits01]),
+            Circuit(gates=[CNOTGateQubits01, H(0)]),
+            Circuit(gates=[H(0), CNOTGateQubits01, CNOTGateQubits01, H(0)]),
+        ],
+        [
+            Circuit(gates=[H(0), CNOTGateQubits01, CustomParameterizedGate]),
+            Circuit(gates=[CNOTGateQubits01, H(0)]),
             Circuit(
                 gates=[
-                    HGateQubit0,
+                    H(0),
                     CNOTGateQubits01,
-                    ParameterizedGateQubits02,
+                    CustomParameterizedGate,
                     CNOTGateQubits01,
-                    HGateQubit0,
+                    H(0),
                 ]
             ),
         ],
@@ -462,21 +548,20 @@ def test_add_circuits(circuit1, circuit2, expected_circuit):
 def test_circuit_evaluate_with_all_params_specified():
     # Given
     symbols_map = {"theta_0": 0.5, "theta_1": 0.6}
-    RXGateQubit0 = ParameterizedRXGateQubit0.evaluate(symbols_map)
-    RYGateQubit0 = ParameterizedRYGateQubit0.evaluate(symbols_map)
-    RZGateQubit0 = ParameterizedRZGateQubit0.evaluate(symbols_map)
-    RZGateQubit0DifferentAngle = ParameterizedRZGateQubit0.evaluate({"theta_1": 0.4})
+    RYGateQubit0 = RY(0).evaluate(symbols_map)
+    RZGateQubit0 = RZ(0).evaluate(symbols_map)
+    RZGateQubit0DifferentAngle = RZ(0).evaluate({"theta_1": 0.4})
     circuit = Circuit(
         gates=[
-            ParameterizedRXGateQubit0,
-            ParameterizedRYGateQubit0,
-            ParameterizedRZGateQubit0,
+            RX(0),
+            RYGateQubit0,
+            RZGateQubit0,
             RZGateQubit0DifferentAngle,
         ]
     )
 
     target_circuit = Circuit(
-        gates=[RXGateQubit0, RYGateQubit0, RZGateQubit0, RZGateQubit0DifferentAngle]
+        gates=[RX(0), RYGateQubit0, RZGateQubit0, RZGateQubit0DifferentAngle]
     )
 
     # When
@@ -489,20 +574,24 @@ def test_circuit_evaluate_with_all_params_specified():
 def test_circuit_evaluate_with_too_many_params_specified():
     # Given
     symbols_map = {"theta_0": 0.5, "theta_1": 0.6, "theta_2": 0.7}
-    RXGateQubit0 = ParameterizedRXGateQubit0.evaluate(symbols_map)
-    RYGateQubit0 = ParameterizedRYGateQubit0.evaluate(symbols_map)
-    RZGateQubit0 = ParameterizedRZGateQubit0.evaluate(symbols_map)
-    RZGateQubit0DifferentAngle = ParameterizedRZGateQubit0.evaluate({"theta_1": 0.4})
+    RYGateQubit0 = RY(0).evaluate(symbols_map)
+    RZGateQubit0 = RZ(0).evaluate(symbols_map)
+    RZGateQubit0DifferentAngle = RZ(0).evaluate({"theta_1": 0.4})
     circuit = Circuit(
         gates=[
-            ParameterizedRXGateQubit0,
-            ParameterizedRYGateQubit0,
-            ParameterizedRZGateQubit0,
+            RX(0),
+            RY(0),
+            RZ(0),
             RZGateQubit0DifferentAngle,
         ]
     )
     target_circuit = Circuit(
-        gates=[RXGateQubit0, RYGateQubit0, RZGateQubit0, RZGateQubit0DifferentAngle,]
+        gates=[
+            RX(0),
+            RYGateQubit0,
+            RZGateQubit0,
+            RZGateQubit0DifferentAngle,
+        ]
     )
 
     # When/Then
@@ -514,20 +603,24 @@ def test_circuit_evaluate_with_too_many_params_specified():
 def test_circuit_evaluate_with_some_params_specified():
     # Given
     symbols_map = {"theta_0": 0.5}
-    RXGateQubit0 = ParameterizedRXGateQubit0.evaluate(symbols_map)
-    RYGateQubit0 = ParameterizedRYGateQubit0.evaluate(symbols_map)
-    RZGateQubit0 = ParameterizedRZGateQubit0.evaluate(symbols_map)
-    RZGateQubit0DifferentAngle = ParameterizedRZGateQubit0.evaluate({"theta_1": 0.4})
+    RYGateQubit0 = RY(0).evaluate(symbols_map)
+    RZGateQubit0 = RZ(0).evaluate(symbols_map)
+    RZGateQubit0DifferentAngle = RZ(0).evaluate({"theta_1": 0.4})
     circuit = Circuit(
         gates=[
-            ParameterizedRXGateQubit0,
-            ParameterizedRYGateQubit0,
-            ParameterizedRZGateQubit0,
+            RX(0),
+            RY(0),
+            RZ(0),
             RZGateQubit0DifferentAngle,
         ]
     )
     target_circuit = Circuit(
-        gates=[RXGateQubit0, RYGateQubit0, RZGateQubit0, RZGateQubit0DifferentAngle,]
+        gates=[
+            RX(0),
+            RYGateQubit0,
+            RZGateQubit0,
+            RZGateQubit0DifferentAngle,
+        ]
     )
 
     # When
@@ -540,23 +633,22 @@ def test_circuit_evaluate_with_some_params_specified():
 def test_circuit_evaluate_with_wrong_params():
     # Given
     symbols_map = {"theta_2": 0.7}
-    RXGateQubit0 = ParameterizedRXGateQubit0.evaluate(symbols_map)
-    RYGateQubit0 = ParameterizedRYGateQubit0.evaluate(symbols_map)
-    RZGateQubit0 = ParameterizedRZGateQubit0.evaluate(symbols_map)
-    RZGateQubit0DifferentAngle = ParameterizedRZGateQubit0.evaluate({"theta_1": 0.4})
+    RYGateQubit0 = RY(0).evaluate(symbols_map)
+    RZGateQubit0 = RZ(0).evaluate(symbols_map)
+    RZGateQubit0DifferentAngle = RZ(0).evaluate({"theta_1": 0.4})
     circuit = Circuit(
         gates=[
-            ParameterizedRXGateQubit0,
-            ParameterizedRYGateQubit0,
-            ParameterizedRZGateQubit0,
+            RX(0),
+            RY(0),
+            RZ(0),
             RZGateQubit0DifferentAngle,
         ]
     )
     target_circuit = Circuit(
         gates=[
-            ParameterizedRXGateQubit0,
-            ParameterizedRYGateQubit0,
-            ParameterizedRZGateQubit0,
+            RX(0),
+            RY(0),
+            RZ(0),
             RZGateQubit0DifferentAngle,
         ]
     )
@@ -573,28 +665,28 @@ def test_circuit_evaluate_with_wrong_params():
     "circuit",
     [
         Circuit(gates=[]),
-        Circuit(gates=[XGateQubit0]),
-        Circuit(gates=[XGateQubit1]),
-        Circuit(gates=[XGateQubit0, XGateQubit1]),
+        Circuit(gates=[X(0)]),
+        Circuit(gates=[X(1)]),
+        Circuit(gates=[X(0), X(1)]),
         Circuit(
             gates=[
-                HGateQubit0,
+                H(0),
                 CNOTGateQubits01,
-                ParameterizedRXGateQubit0,
+                RX(0),
                 CNOTGateQubits01,
-                HGateQubit0,
+                H(0),
             ]
         ),
-        Circuit(gates=[ParameterizedGateQubits02]),
+        Circuit(gates=[CustomParameterizedGate]),
         Circuit(
             gates=[
-                ParameterizedRXGateQubit0,
-                ParameterizedRYGateQubit0,
-                ParameterizedRZGateQubit0,
-                ParameterizedGateQubits02,
+                RX(0),
+                RY(0),
+                RZ(0),
+                CustomParameterizedGate,
             ]
         ),
-        Circuit(gates=[IGateQubit0 for _ in range(100)]),
+        Circuit(gates=[I(0) for _ in range(100)]),
         Circuit(gates=[random.choice(RandomGateList) for _ in range(100)]),
         Circuit(gates=[random.choice(RandomGateList) for _ in range(1000)]),
         Circuit(gates=[random.choice(RandomGateList) for _ in range(10000)]),
@@ -619,28 +711,28 @@ def test_circuit_is_successfully_converted_to_dict_form(circuit):
     "circuit",
     [
         Circuit(gates=[]),
-        Circuit(gates=[XGateQubit0]),
-        Circuit(gates=[XGateQubit1]),
-        Circuit(gates=[XGateQubit0, XGateQubit1]),
+        Circuit(gates=[X(0)]),
+        Circuit(gates=[X(1)]),
+        Circuit(gates=[X(0), X(1)]),
         Circuit(
             gates=[
-                HGateQubit0,
+                H(0),
                 CNOTGateQubits01,
-                ParameterizedRXGateQubit0,
+                RX(0),
                 CNOTGateQubits01,
-                HGateQubit0,
+                H(0),
             ]
         ),
-        Circuit(gates=[ParameterizedGateQubits02]),
+        Circuit(gates=[CustomParameterizedGate]),
         Circuit(
             gates=[
-                ParameterizedRXGateQubit0,
-                ParameterizedRYGateQubit0,
-                ParameterizedRZGateQubit0,
-                ParameterizedGateQubits02,
+                RX(0),
+                RY(0),
+                RZ(0),
+                CustomParameterizedGate,
             ]
         ),
-        Circuit(gates=[IGateQubit0 for _ in range(100)]),
+        Circuit(gates=[I(0) for _ in range(100)]),
         Circuit(gates=[random.choice(RandomGateList) for _ in range(100)]),
         Circuit(gates=[random.choice(RandomGateList) for _ in range(1000)]),
         Circuit(gates=[random.choice(RandomGateList) for _ in range(10000)]),
@@ -668,28 +760,28 @@ def test_gate_is_successfully_converted_to_serializable_dict_form(circuit):
     "circuit",
     [
         Circuit(gates=[]),
-        Circuit(gates=[XGateQubit0]),
-        Circuit(gates=[XGateQubit1]),
-        Circuit(gates=[XGateQubit0, XGateQubit1]),
+        Circuit(gates=[X(0)]),
+        Circuit(gates=[X(1)]),
+        Circuit(gates=[X(0), X(1)]),
         Circuit(
             gates=[
-                HGateQubit0,
+                H(0),
                 CNOTGateQubits01,
-                ParameterizedRXGateQubit0,
+                RX(0),
                 CNOTGateQubits01,
-                HGateQubit0,
+                H(0),
             ]
         ),
-        Circuit(gates=[ParameterizedGateQubits02]),
+        Circuit(gates=[CustomParameterizedGate]),
         Circuit(
             gates=[
-                ParameterizedRXGateQubit0,
-                ParameterizedRYGateQubit0,
-                ParameterizedRZGateQubit0,
-                ParameterizedGateQubits02,
+                RX(0),
+                RY(0),
+                RZ(0),
+                CustomParameterizedGate,
             ]
         ),
-        Circuit(gates=[IGateQubit0 for _ in range(100)]),
+        Circuit(gates=[I(0) for _ in range(100)]),
         Circuit(gates=[random.choice(RandomGateList) for _ in range(100)]),
         Circuit(gates=[random.choice(RandomGateList) for _ in range(1000)]),
         Circuit(gates=[random.choice(RandomGateList) for _ in range(10000)]),
@@ -719,28 +811,28 @@ def test_circuit_is_successfully_saved_to_a_file(circuit):
     "circuit",
     [
         Circuit(gates=[]),
-        Circuit(gates=[XGateQubit0]),
-        Circuit(gates=[XGateQubit1]),
-        Circuit(gates=[XGateQubit0, XGateQubit1]),
+        Circuit(gates=[X(0)]),
+        Circuit(gates=[X(1)]),
+        Circuit(gates=[X(0), X(1)]),
         Circuit(
             gates=[
-                HGateQubit0,
+                H(0),
                 CNOTGateQubits01,
-                ParameterizedRXGateQubit0,
+                RX(0),
                 CNOTGateQubits01,
-                HGateQubit0,
+                H(0),
             ]
         ),
-        Circuit(gates=[ParameterizedGateQubits02]),
+        Circuit(gates=[CustomParameterizedGate]),
         Circuit(
             gates=[
-                ParameterizedRXGateQubit0,
-                ParameterizedRYGateQubit0,
-                ParameterizedRZGateQubit0,
-                ParameterizedGateQubits02,
+                RX(0),
+                RY(0),
+                RZ(0),
+                CustomParameterizedGate,
             ]
         ),
-        Circuit(gates=[IGateQubit0 for _ in range(100)]),
+        Circuit(gates=[I(0) for _ in range(100)]),
         Circuit(gates=[random.choice(RandomGateList) for _ in range(100)]),
         Circuit(gates=[random.choice(RandomGateList) for _ in range(1000)]),
         Circuit(gates=[random.choice(RandomGateList) for _ in range(10000)]),
@@ -763,28 +855,28 @@ def test_circuit_is_successfully_loaded_from_a_file(circuit):
     "circuit",
     [
         Circuit(gates=[]),
-        Circuit(gates=[XGateQubit0]),
-        Circuit(gates=[XGateQubit1]),
-        Circuit(gates=[XGateQubit0, XGateQubit1]),
+        Circuit(gates=[X(0)]),
+        Circuit(gates=[X(1)]),
+        Circuit(gates=[X(0), X(1)]),
         Circuit(
             gates=[
-                HGateQubit0,
+                H(0),
                 CNOTGateQubits01,
-                ParameterizedRXGateQubit0,
+                RX(0),
                 CNOTGateQubits01,
-                HGateQubit0,
+                H(0),
             ]
         ),
-        Circuit(gates=[ParameterizedGateQubits02]),
+        Circuit(gates=[CustomParameterizedGate]),
         Circuit(
             gates=[
-                ParameterizedRXGateQubit0,
-                ParameterizedRYGateQubit0,
-                ParameterizedRZGateQubit0,
-                ParameterizedGateQubits02,
+                RX(0),
+                RY(0),
+                RZ(0),
+                CustomParameterizedGate,
             ]
         ),
-        Circuit(gates=[IGateQubit0 for _ in range(100)]),
+        Circuit(gates=[I(0) for _ in range(100)]),
         Circuit(gates=[random.choice(RandomGateList) for _ in range(100)]),
         Circuit(gates=[random.choice(RandomGateList) for _ in range(1000)]),
         Circuit(gates=[random.choice(RandomGateList) for _ in range(10000)]),

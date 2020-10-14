@@ -173,15 +173,14 @@ class Gate(ABC):
             data = json.load(data)
 
         qubits = tuple(data["qubits"])
-
+        symbols = {
+            name: sympy.Symbol(name) for name in data["symbolic_params"]
+        }
         if not isinstance(data["matrix"], sympy.Matrix):
-            matrix = []
-            for row_index, row in enumerate(data["matrix"]):
-                new_row = []
-                for element_index in range(len(row["elements"])):
-                    new_row.append(sympy.sympify(row["elements"][element_index]))
-                matrix.append(new_row)
-            matrix = sympy.Matrix(matrix)
+            matrix = sympy.Matrix([
+                [sympy.sympify(element, locals=symbols) for element in row["elements"]]
+                for row in data["matrix"]
+            ])
         else:
             matrix = data["matrix"]
 

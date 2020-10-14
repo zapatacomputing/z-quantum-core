@@ -66,20 +66,11 @@ class Gate(ABC):
             element: first value to compare. It can be float, complex or some sympy expression.
             another_element: second value to compare.
         """
-        if element == another_element:
-            return True
-        elif isinstance(
-            element, (sympy.Number, sympy.Mul, sympy.Add)
-        ) and isinstance(another_element, (sympy.Number, sympy.Mul, sympy.Add)):
-            # Below we use noqa to suppress type checker warnings. The problem
-            # with typing here is that sympy.re, sympy.im and np.allclose are
-            # typed incorrectly and we can't do anything about it.
-            return np.allclose(
-                complex(sympy.re(element), sympy.im(element)),  # noqa
-                complex(sympy.re(another_element), sympy.im(another_element)),  # noqa
-            )
-        else:
-            return False
+        difference = sympy.N(sympy.expand(element) - sympy.expand(another_element))
+
+        return np.allclose(
+            float(sympy.re(difference)) + 1j * float(sympy.im(difference)), 0
+        )
 
     @staticmethod
     def are_qubits_unique(qubits: Tuple[int, ...]):

@@ -37,6 +37,7 @@ def test_equal_or_close_elements_are_considered_to_be_equal_in_gate_matrix(first
 def test_different_symbolic_expressions_are_not_considered_to_be_equal_in_gate_matrix():
     assert not Gate.are_elements_equal(sympy.Symbol("theta"), sympy.Symbol("sigma"))
 
+
 @pytest.mark.parametrize(
     "matrix",
     [
@@ -473,9 +474,12 @@ class TestGateSerialization:
 
         assert gate_dict["schema"] == SCHEMA_VERSION + "-gate"
         assert gate_dict["qubits"] == list(qubits)
+
+        symbols = {symbol: sympy.Symbol(symbol) for symbol in gate_dict["symbolic_params"]}
+
         for row_index, row in enumerate(gate_dict["matrix"]):
             for col_index, element in enumerate(row["elements"]):
-                assert sympy.sympify(element) == matrix[row_index, col_index]
+                assert sympy.sympify(element, locals=symbols) == matrix[row_index, col_index]
         assert gate_dict["symbolic_params"] == [
             str(param) for param in gate.symbolic_params
         ]

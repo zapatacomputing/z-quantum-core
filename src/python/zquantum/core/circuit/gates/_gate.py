@@ -135,11 +135,10 @@ class Gate(ABC):
         gate_dict = {"schema": SCHEMA_VERSION + "-gate"}
         if serializable:
             gate_dict["qubits"] = list(self.qubits)
-            gate_dict["matrix"] = []
-            for i in range(self.matrix.shape[0]):
-                gate_dict["matrix"].append({"elements": []})
-                for element in self.matrix.row(i):
-                    gate_dict["matrix"][-1]["elements"].append(str(element))
+            gate_dict["matrix"] = [
+                {"elements": [str(element) for element in self.matrix.row(i)]}
+                for i in range(self.matrix.shape[0])
+            ]
             gate_dict["symbolic_params"] = [
                 str(param) for param in self.symbolic_params
             ]
@@ -177,7 +176,8 @@ class Gate(ABC):
 
         qubits = tuple(data["qubits"])
         symbols = {
-            name: sympy.Symbol(name) for name in data["symbolic_params"]
+            symbol: sympy.Symbol(symbol) if isinstance(symbol, str) else symbol
+            for symbol in data["symbolic_params"]
         }
         if not isinstance(data["matrix"], sympy.Matrix):
             matrix = sympy.Matrix([

@@ -16,7 +16,7 @@ THETA = sympy.Symbol("theta")
         (0.25, 0.25),
         (THETA, THETA),
         (sympy.I, sympy.I),
-        (sympy.cos(sympy.sin(THETA + 1)), sympy.cos(sympy.sin(THETA+1))),
+        (sympy.cos(sympy.sin(THETA + 1)), sympy.cos(sympy.sin(THETA + 1))),
         (2.0, 2),
         (sympy.Number(2), 2.0),
         (1j, sympy.I),
@@ -25,11 +25,16 @@ THETA = sympy.Symbol("theta")
         (sympy.exp(1j * sympy.pi / 4), sympy.exp(1j * np.pi / 4)),
         (sympy.exp(sympy.I * sympy.pi / 4), sympy.exp(1j * np.pi / 4)),
         (sympy.exp(1j * sympy.pi / 4), sympy.exp(sympy.I * np.pi / 4)),
-        (sympy.exp(1j * sympy.pi / 3), sympy.cos(sympy.pi / 3) + 1j * sympy.sin(sympy.pi / 3)),
-        (sympy.exp(1j * sympy.pi / 5), np.cos(np.pi / 5) + 1j * np.sin(np.pi / 5))
-    ]
+        (
+            sympy.exp(1j * sympy.pi / 3),
+            sympy.cos(sympy.pi / 3) + 1j * sympy.sin(sympy.pi / 3),
+        ),
+        (sympy.exp(1j * sympy.pi / 5), np.cos(np.pi / 5) + 1j * np.sin(np.pi / 5)),
+    ],
 )
-def test_equal_or_close_elements_are_considered_to_be_equal_in_gate_matrix(first, second):
+def test_equal_or_close_elements_are_considered_to_be_equal_in_gate_matrix(
+    first, second
+):
     assert Gate.are_elements_equal(first, second)
     assert Gate.are_elements_equal(second, first)
 
@@ -475,11 +480,16 @@ class TestGateSerialization:
         assert gate_dict["schema"] == SCHEMA_VERSION + "-gate"
         assert gate_dict["qubits"] == list(qubits)
 
-        symbols = {symbol: sympy.Symbol(symbol) for symbol in gate_dict["symbolic_params"]}
+        symbols = {
+            symbol: sympy.Symbol(symbol) for symbol in gate_dict["symbolic_params"]
+        }
 
         for row_index, row in enumerate(gate_dict["matrix"]):
             for col_index, element in enumerate(row["elements"]):
-                assert sympy.sympify(element, locals=symbols) == matrix[row_index, col_index]
+                assert (
+                    sympy.sympify(element, locals=symbols)
+                    == matrix[row_index, col_index]
+                )
         assert gate_dict["symbolic_params"] == [
             str(param) for param in gate.symbolic_params
         ]

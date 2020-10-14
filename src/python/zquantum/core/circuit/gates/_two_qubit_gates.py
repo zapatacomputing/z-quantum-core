@@ -13,9 +13,7 @@ class ControlledGate(SpecializedGate, ABC):
         super().__init__((control, target))
 
     def _create_matrix(self) -> sympy.Matrix:
-        return sympy.Matrix.diag(
-            sympy.eye(2), self.gate_factory(self.qubits[1]).matrix
-        )
+        return sympy.Matrix.diag(sympy.eye(2), self.gate_factory(self.qubits[1]).matrix)
 
 
 class CNOT(ControlledGate):
@@ -43,59 +41,72 @@ class SWAP(SpecializedGate):
         super().__init__(qubits)
 
     def _create_matrix(self) -> sympy.Matrix:
-        return sympy.Matrix([
-            [1, 0, 0, 0],
-            [0, 0, 1, 0],
-            [0, 1, 0, 0],
-            [0, 0, 0, 1]
-        ])
+        return sympy.Matrix([[1, 0, 0, 0], [0, 0, 1, 0], [0, 1, 0, 0], [0, 0, 0, 1]])
 
 
 class XX(SpecializedGate):
     """Quantum XX gate."""
 
-    def __init__(self, qubits: (int, int), angle: Union[float, sympy.Symbol] = sympy.Symbol("theta")):
+    def __init__(
+        self,
+        qubits: (int, int),
+        angle: Union[float, sympy.Symbol] = sympy.Symbol("theta"),
+    ):
         super().__init__(qubits)
         self.angle = angle
 
     def _create_matrix(self) -> sympy.Matrix:
-        return sympy.Matrix([
-            [sympy.cos(self.angle / 2), 0, 0, -1j * sympy.sin(self.angle / 2)],
-            [0, sympy.cos(self.angle / 2), -1j * sympy.sin(self.angle / 2), 0],
-            [0, -1j * sympy.sin(self.angle / 2), sympy.cos(self.angle / 2), 0],
-            [-1j * sympy.sin(self.angle / 2), 0, 0, sympy.cos(self.angle / 2)]
-        ])
+        return sympy.Matrix(
+            [
+                [sympy.cos(self.angle / 2), 0, 0, -1j * sympy.sin(self.angle / 2)],
+                [0, sympy.cos(self.angle / 2), -1j * sympy.sin(self.angle / 2), 0],
+                [0, -1j * sympy.sin(self.angle / 2), sympy.cos(self.angle / 2), 0],
+                [-1j * sympy.sin(self.angle / 2), 0, 0, sympy.cos(self.angle / 2)],
+            ]
+        )
 
 
 class YY(SpecializedGate):
     """Quantum YY gate."""
 
-    def __init__(self, qubits: (int, int), angle: Union[float, sympy.Symbol] = sympy.Symbol("theta")):
+    def __init__(
+        self,
+        qubits: (int, int),
+        angle: Union[float, sympy.Symbol] = sympy.Symbol("theta"),
+    ):
         super().__init__(qubits)
         self.angle = angle
 
     def _create_matrix(self) -> sympy.Matrix:
-        return sympy.Matrix([
-            [sympy.cos(self.angle / 2), 0, 0, 1j * sympy.sin(self.angle / 2)],
-            [0, sympy.cos(self.angle / 2), -1j * sympy.sin(self.angle / 2), 0],
-            [0, -1j * sympy.sin(self.angle / 2), sympy.cos(self.angle / 2), 0],
-            [1j * sympy.sin(self.angle / 2), 0, 0, sympy.cos(self.angle / 2)]
-        ])
+        return sympy.Matrix(
+            [
+                [sympy.cos(self.angle / 2), 0, 0, 1j * sympy.sin(self.angle / 2)],
+                [0, sympy.cos(self.angle / 2), -1j * sympy.sin(self.angle / 2), 0],
+                [0, -1j * sympy.sin(self.angle / 2), sympy.cos(self.angle / 2), 0],
+                [1j * sympy.sin(self.angle / 2), 0, 0, sympy.cos(self.angle / 2)],
+            ]
+        )
 
 
 class ZZ(SpecializedGate):
     """Quantum ZZ gate"""
 
-    def __init__(self, qubits: (int, int), angle: Union[float, sympy.Symbol] = sympy.Symbol("theta")):
+    def __init__(
+        self,
+        qubits: (int, int),
+        angle: Union[float, sympy.Symbol] = sympy.Symbol("theta"),
+    ):
         super().__init__(qubits)
         self.angle = angle
 
     def _create_matrix(self) -> sympy.Matrix:
         arg = self.angle / 2
 
-        return sympy.Matrix([
-            [sympy.cos(arg) - 1j * sympy.sin(arg), 0, 0, 0],
-            [0, sympy.cos(arg) + 1j * sympy.sin(arg), 0, 0],
-            [0, 0, sympy.cos(arg) + 1j * sympy.sin(arg), 0],
-            [0, 0, 0, sympy.cos(arg) - 1j * sympy.sin(arg)],
-        ])
+        return sympy.Matrix(
+            [
+                [sympy.cos(arg) - 1j * sympy.sin(arg), 0, 0, 0],
+                [0, sympy.cos(arg) + 1j * sympy.sin(arg), 0, 0],
+                [0, 0, sympy.cos(arg) + 1j * sympy.sin(arg), 0],
+                [0, 0, 0, sympy.cos(arg) - 1j * sympy.sin(arg)],
+            ]
+        )

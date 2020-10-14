@@ -180,10 +180,15 @@ class Gate(ABC):
             for symbol in data["symbolic_params"]
         }
         if not isinstance(data["matrix"], sympy.Matrix):
-            matrix = sympy.Matrix([
-                [sympy.sympify(element, locals=symbols) for element in row["elements"]]
-                for row in data["matrix"]
-            ])
+            matrix = sympy.Matrix(
+                [
+                    [
+                        sympy.sympify(element, locals=symbols)
+                        for element in row["elements"]
+                    ]
+                    for row in data["matrix"]
+                ]
+            )
         else:
             matrix = data["matrix"]
 

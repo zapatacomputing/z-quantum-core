@@ -143,33 +143,33 @@ RandomGateList = [
 ]
 
 CIRCUITS = [
-        Circuit(gates=[]),
-        Circuit(gates=[X(0)]),
-        Circuit(gates=[X(1)]),
-        Circuit(gates=[X(0), X(1)]),
-        Circuit(
-            gates=[
-                H(0),
-                CNOT(0, 1),
-                RX(0),
-                CNOT(0, 1),
-                H(0),
-            ]
-        ),
-        Circuit(gates=[CustomParameterizedGate]),
-        Circuit(
-            gates=[
-                RX(0),
-                RY(0),
-                RZ(0),
-                CustomParameterizedGate,
-            ]
-        ),
-        Circuit(gates=[I(0) for _ in range(100)]),
-        Circuit(gates=[random.choice(RandomGateList) for _ in range(100)]),
-        Circuit(gates=[random.choice(RandomGateList) for _ in range(1000)]),
-        Circuit(gates=[random.choice(RandomGateList) for _ in range(10000)]),
-    ]
+    Circuit(gates=[]),
+    Circuit(gates=[X(0)]),
+    Circuit(gates=[X(1)]),
+    Circuit(gates=[X(0), X(1)]),
+    Circuit(
+        gates=[
+            H(0),
+            CNOT(0, 1),
+            RX(0),
+            CNOT(0, 1),
+            H(0),
+        ]
+    ),
+    Circuit(gates=[CustomParameterizedGate]),
+    Circuit(
+        gates=[
+            RX(0),
+            RY(0),
+            RZ(0),
+            CustomParameterizedGate,
+        ]
+    ),
+    Circuit(gates=[I(0) for _ in range(100)]),
+    Circuit(gates=[random.choice(RandomGateList) for _ in range(100)]),
+    Circuit(gates=[random.choice(RandomGateList) for _ in range(1000)]),
+    Circuit(gates=[random.choice(RandomGateList) for _ in range(10000)]),
+]
 
 
 #### __init__ ####
@@ -291,9 +291,7 @@ def test_symbolic_params_are_correct_for_one_gate_two_parameters():
     circuit = Circuit(gates=[gate])
 
     # When/Then
-    assert circuit.symbolic_params == {
-        sympy.Symbol("theta_0"), sympy.Symbol("theta_1")
-    }
+    assert circuit.symbolic_params == {sympy.Symbol("theta_0"), sympy.Symbol("theta_1")}
 
 
 def test_symbolic_params_are_correct_for_multiple_gates_with_overlapping_parameters():
@@ -345,7 +343,7 @@ def test_symbolic_params_are_correct_for_multiple_gates_with_overlapping_paramet
         sympy.Symbol("theta_0"),
         sympy.Symbol("theta_1"),
         sympy.Symbol("gamma_0"),
-        sympy.Symbol("gamma_1")
+        sympy.Symbol("gamma_1"),
     }
 
 

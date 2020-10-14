@@ -67,7 +67,7 @@ class PHASE(SingleQubitGate):
         return sympy.Matrix(
             [
                 [1, 0],
-                [0, complex(0, 1)],
+                [0, 1j],
             ]
         )
 

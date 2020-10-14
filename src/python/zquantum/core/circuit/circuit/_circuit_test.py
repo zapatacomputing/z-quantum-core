@@ -264,7 +264,7 @@ def test_symbolic_params_are_correct_for_one_gate_one_parameter():
             [0, sympy.Symbol("theta_0"), 1, 0],
         ]
     )
-    gate = Gate(matrix=matrix, qubits=(0, 2))
+    gate = CustomGate(matrix=matrix, qubits=(0, 2))
     circuit = Circuit(gates=[gate])
 
     # When/Then
@@ -273,7 +273,7 @@ def test_symbolic_params_are_correct_for_one_gate_one_parameter():
 
 def test_symbolic_params_are_correct_for_one_gate_two_parameters():
     # Given
-    gate = Gate(
+    gate = CustomGate(
         matrix=sympy.Matrix(
             [
                 [1, 0, sympy.Symbol("theta_0"), 0],
@@ -294,7 +294,7 @@ def test_symbolic_params_are_correct_for_one_gate_two_parameters():
 
 def test_symbolic_params_are_correct_for_multiple_gates_with_overlapping_parameters():
     # Given
-    gate1 = Gate(
+    gate1 = CustomGate(
         matrix=sympy.Matrix(
             [
                 [1, 0, sympy.Symbol("theta_0"), 0],
@@ -305,7 +305,7 @@ def test_symbolic_params_are_correct_for_multiple_gates_with_overlapping_paramet
         ),
         qubits=(0, 2),
     )
-    gate2 = Gate(
+    gate2 = CustomGate(
         matrix=sympy.Matrix(
             [
                 [sympy.Symbol("theta_0"), 0],
@@ -314,7 +314,7 @@ def test_symbolic_params_are_correct_for_multiple_gates_with_overlapping_paramet
         ),
         qubits=(1,),
     )
-    gate3 = Gate(
+    gate3 = CustomGate(
         matrix=sympy.Matrix(
             [
                 [sympy.Symbol("theta_0"), 0],
@@ -323,7 +323,7 @@ def test_symbolic_params_are_correct_for_multiple_gates_with_overlapping_paramet
         ),
         qubits=(1,),
     )
-    gate4 = Gate(
+    gate4 = CustomGate(
         matrix=sympy.Matrix(
             [
                 [sympy.Symbol("gamma_0"), 0],

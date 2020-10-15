@@ -2,6 +2,7 @@ import unittest
 import os
 import random
 import numpy as np
+import pytest
 from scipy.linalg import expm
 from scipy.stats import unitary_group
 import sympy
@@ -256,3 +257,47 @@ class TestUtils(unittest.TestCase):
         self.assertEqual(timing["walltime"], walltime)
         self.assertTrue("schema" in timing)
 
+
+def test_arithmetic_on_value_estimate_and_float_gives_the_same_result_as_arithmetic_on_two_floats():
+    value = 5.1
+    estimate = ValueEstimate(value, precision=None)
+    other = 3.4
+
+    assert estimate + other == value + other
+    assert estimate - other == value - other
+    assert estimate * other == value * other
+    assert estimate / other == value / other
+
+
+def test_value_estimate_with_no_precision_is_equivalent_to_its_raw_value():
+    value = 6.193
+    estimate = ValueEstimate(value)
+
+    # Note that it is not that obvious that this comparison is symmetric, since we override
+    # the __eq__ method in ValueEstimate. The same goes about __ne__ method in the next test.
+    assert value == estimate
+    assert estimate == value
+
+
+def test_value_estimate_with_specified_precision_is_not_equal_to_its_raw_value():
+    value = 6.193
+    estimate = ValueEstimate(value, precision=4)
+
+    assert value != estimate
+    assert estimate != value
+
+
+@pytest.mark.parametrize(
+    "estimate_1,estimate_2,expected_result",
+    [
+        (ValueEstimate(14.1), ValueEstimate(14.1), True),
+        (ValueEstimate(12.3, 3), ValueEstimate(12.3, 3), True),
+        (ValueEstimate(14.1, 5), ValueEstimate(14.1, 4), False),
+        (ValueEstimate(2.5, 3), ValueEstimate(2.5), False),
+        (ValueEstimate(0.15, 3), ValueEstimate(1.1, 3), False),
+    ],
+)
+def test_two_value_estimates_are_equal_iff_their_values_and_precisions_are_equal(
+    estimate_1, estimate_2, expected_result
+):
+    assert (estimate_1 == estimate_2) == expected_result

@@ -328,3 +328,36 @@ spec:
         artifacts:
           - name: circuit
             path: /app/circuit.json
+
+    - name: create-two-qubit-molecular-hydrogen-circuit
+      parent: generic-task
+      inputs:
+        parameters:
+          - name: rz-parameter
+          - name: command
+            value: python3 main_script.py
+        artifacts:
+          - name: main-script
+            path: /app/main_script.py
+            raw:
+              data: |
+                from zquantum.core.circuit import Gate, Qubit, Circuit
+
+                # Two-qubit ansatz
+                ansatz_circuit2Q = Circuit()
+                ansatz_circuit2Q.qubits = [Qubit(0), Qubit(1)]
+                # Ansatz from Chem Review paper
+                rz_parameter = float({{inputs.parameters.rz-parameter}})
+                ansatz_circuit2Q.gates = [Gate('Rx', qubits=[Qubit(0)], params = [np.pi]),
+                                        Gate('Rx', qubits=[Qubit(0)], params = [-np.pi/2]),
+                                        Gate('Ry', qubits=[Qubit(1)], params = [np.pi/2]),
+                                        Gate("CNOT", qubits=[Qubit(1), Qubit(0)]),
+                                        Gate('Rz', qubits=[Qubit(0)], params = [rz_parameter]),
+                                        Gate("CNOT", qubits=[Qubit(1), Qubit(0)]),
+                                        Gate('Rx', qubits=[Qubit(0)], params = [np.pi/2]),
+                                        Gate('Ry', qubits=[Qubit(1)], params = [-np.pi/2]),]
+                save_circuit(circuit, 'circuit.json')
+      outputs:
+        artifacts:
+          - name: circuit
+            path: /app/circuit.json

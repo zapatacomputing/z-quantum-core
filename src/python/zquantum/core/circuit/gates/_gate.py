@@ -1,6 +1,7 @@
 """Base classes for implementing quantum gates."""
 from abc import abstractmethod, ABC
 import numpy as np
+import pyquil.gates
 import sympy
 import json
 import copy
@@ -234,6 +235,16 @@ class Gate(ABC):
 
         evaluated_gate = CustomGate(evaluated_matrix, self.qubits)
         return evaluated_gate
+
+    def _to_pyquil(self) -> pyquil.gates.Gate:
+        raise NotImplementedError("Conversion to PyQuil is not supported for this gate.")
+
+    def to_pyquil(self) -> pyquil.gates.Gate:
+        """Convert this gate to an equivalent PyQuil gate."""
+        if self.symbolic_params:
+            raise TypeError("Gates with symbolic parameters cannot be converted to PyQuil.")
+
+        return self._to_pyquil()
 
 
 class CustomGate(Gate):

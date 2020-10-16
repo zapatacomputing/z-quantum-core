@@ -357,7 +357,7 @@ spec:
                                         Gate("CNOT", qubits=[Qubit(1), Qubit(0)]),
                                         Gate('Rx', qubits=[Qubit(0)], params = [np.pi/2]),
                                         Gate('Ry', qubits=[Qubit(1)], params = [-np.pi/2]),]
-                save_circuit(circuit, 'circuit.json')
+                save_circuit(ansatz_circuit2Q, 'circuit.json')
       outputs:
         artifacts:
           - name: circuit

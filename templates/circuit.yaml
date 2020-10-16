@@ -341,7 +341,7 @@ spec:
             path: /app/main_script.py
             raw:
               data: |
-                from zquantum.core.circuit import Gate, Qubit, Circuit
+                from zquantum.core.circuit import Gate, Qubit, Circuit,  save_circuit
                 import numpy as np
 
                 # Two-qubit ansatz

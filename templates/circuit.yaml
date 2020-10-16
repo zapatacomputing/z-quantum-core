@@ -342,6 +342,7 @@ spec:
             raw:
               data: |
                 from zquantum.core.circuit import Gate, Qubit, Circuit
+                import numpy as np
 
                 # Two-qubit ansatz
                 ansatz_circuit2Q = Circuit()

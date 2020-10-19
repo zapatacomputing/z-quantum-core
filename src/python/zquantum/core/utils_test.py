@@ -217,7 +217,10 @@ class TestUtils(unittest.TestCase):
 
         # When
         save_noise_model(
-            noise_model_data, module_name, function_name, "noise_model.json",
+            noise_model_data,
+            module_name,
+            function_name,
+            "noise_model.json",
         )
         noise_model = load_noise_model("noise_model.json")
 
@@ -256,6 +259,8 @@ class TestUtils(unittest.TestCase):
             timing = json.load(f)
         self.assertEqual(timing["walltime"], walltime)
         self.assertTrue("schema" in timing)
+
+        os.remove("timing.json")
 
 
 def test_arithmetic_on_value_estimate_and_float_gives_the_same_result_as_arithmetic_on_two_floats():

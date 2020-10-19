@@ -105,15 +105,51 @@ class TestMeasurement(unittest.TestCase):
             bitstring = format(num, "b")
             while len(bitstring) < len(wavefunction):
                 bitstring = "0" + bitstring
+            # NOTE: our indexing places the state of qubit i at the ith index of the tuple. Hence |01> will result in
+            # the tuple (1, 0)
             bitstring = bitstring[::-1]
-
             measurement = convert_bitstrings_to_tuples([bitstring])[0]
-
             sampled_probabilities.append(sampled_dict[measurement] / 100000)
 
         probabilities = wavefunction.probabilities()
         for sampled_prob, exact_prob in zip(sampled_probabilities, probabilities):
             self.assertAlmostEqual(sampled_prob, exact_prob, 2)
+
+    def test_sample_from_wavefunction_column_vector(self):
+        n_qubits = 4
+        # NOTE: our indexing places the state of qubit i at the ith index of the tuple. Hence |01> will result in
+        # the tuple (1, 0)
+        expected_bitstring = (1, 0, 0, 0)
+        amplitudes = np.array([0] * (2 ** n_qubits)).reshape(2 ** n_qubits, 1)
+        amplitudes[1] = 1  # |0001> will be measured in all cases.
+        wavefunction = Wavefunction(amplitudes)
+        sample = set(sample_from_wavefunction(wavefunction, 500))
+        self.assertEqual(len(sample), 1)
+        self.assertEqual(sample.pop(), expected_bitstring)
+
+    def test_sample_from_wavefunction_row_vector(self):
+        n_qubits = 4
+        # NOTE: our indexing places the state of qubit i at the ith index of the tuple. Hence |01> will result in
+        # the tuple (1, 0)
+        expected_bitstring = (1, 0, 0, 0)
+        amplitudes = np.array([0] * (2 ** n_qubits))
+        amplitudes[1] = 1  # |0001> will be measured in all cases.
+        wavefunction = Wavefunction(amplitudes)
+        sample = set(sample_from_wavefunction(wavefunction, 500))
+        self.assertEqual(len(sample), 1)
+        self.assertEqual(sample.pop(), expected_bitstring)
+
+    def test_sample_from_wavefunction_list(self):
+        n_qubits = 4
+        # NOTE: our indexing places the state of qubit i at the ith index of the tuple. Hence |01> will result in
+        # the tuple (1, 0)
+        expected_bitstring = (1, 0, 0, 0)
+        amplitudes = [0] * (2 ** n_qubits)
+        amplitudes[1] = 1  # |0001> will be measured in all cases.
+        wavefunction = Wavefunction(amplitudes)
+        sample = set(sample_from_wavefunction(wavefunction, 500))
+        self.assertEqual(len(sample), 1)
+        self.assertEqual(sample.pop(), expected_bitstring)
 
     def test_parities_io(self):
         measurements = [(1, 0), (1, 0), (0, 1), (0, 0)]

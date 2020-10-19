@@ -153,14 +153,14 @@ class ExpectationValues:
 def sample_from_wavefunction(
     wavefunction: Wavefunction, n_samples: int
 ) -> List[Tuple[int]]:
-    """Sample bitstrings from a wavefunction. 
+    """Sample bitstrings from a wavefunction.
 
     Args:
-        wavefunction (Wavefunction): the wavefunction to sample from. 
+        wavefunction (Wavefunction): the wavefunction to sample from.
         n_samples (int): the number of samples taken.
 
     Returns:
-        List[Tuple[int]]: A list of tuples where the each tuple is a sampled bitstring. 
+        List[Tuple[int]]: A list of tuples where the each tuple is a sampled bitstring.
     """
     rng = np.random.default_rng()
     outcomes_str, probabilities_np = zip(*wavefunction.get_outcome_probs().items())
@@ -168,7 +168,7 @@ def sample_from_wavefunction(
         x[0] if isinstance(x, (list, np.ndarray)) else x for x in list(probabilities_np)
     ]
     samples_ndarray = rng.choice(a=outcomes_str, size=n_samples, p=probabilities)
-    samples = [tuple(int(y) for y in list(x)) for x in list(samples_ndarray)]
+    samples = [tuple(int(y) for y in list(x)[::-1]) for x in list(samples_ndarray)]
     return samples
 
 
@@ -371,9 +371,9 @@ def convert_bitstring_to_int(bitstring: Iterable[int]) -> int:
 
 
 class Measurements:
-    """ A class representing measurements from a quantum circuit. The bitstrings variable represents the internal
+    """A class representing measurements from a quantum circuit. The bitstrings variable represents the internal
     data structure of the Measurements class. It is expressed as a list of tuples wherein each tuple is a measurement
-    and the value of the tuple at a given index is the measured bit-value of the qubit (indexed from 0 -> N-1) """
+    and the value of the tuple at a given index is the measured bit-value of the qubit (indexed from 0 -> N-1)"""
 
     def __init__(self, bitstrings: Optional[List[Tuple[int]]] = None):
         if bitstrings is None:
@@ -383,8 +383,8 @@ class Measurements:
 
     @classmethod
     def from_counts(cls, counts: Dict[str, int]):
-        """ Create an instance of the Measurements class from a dictionary
-        
+        """Create an instance of the Measurements class from a dictionary
+
         Args:
             counts (dict): mapping of bitstrings to integers representing the number of times the bitstring was measured
         """
@@ -394,8 +394,8 @@ class Measurements:
 
     @classmethod
     def load_from_file(cls, file: TextIO):
-        """ Load a set of measurements from file 
-        
+        """Load a set of measurements from file
+
         Args:
             file (str or file-like object): the name of the file, or a file-like object
         """
@@ -412,10 +412,10 @@ class Measurements:
         return cls(bitstrings=bitstrings)
 
     def save(self, filename: str):
-        """ Serialize the Measurements object into a file in JSON format.
-        
+        """Serialize the Measurements object into a file in JSON format.
+
         Args:
-            filename (string): filename to save the data to 
+            filename (string): filename to save the data to
         """
         data = {
             "schema": SCHEMA_VERSION + "-measurements",
@@ -426,7 +426,7 @@ class Measurements:
             f.write(json.dumps(data, indent=2))
 
     def get_counts(self):
-        """ Get the measurements as a histogram
+        """Get the measurements as a histogram
 
         Returns:
             A dictionary mapping bitstrings to integers representing the number of times the bitstring was measured
@@ -435,11 +435,11 @@ class Measurements:
         return dict(Counter(bitstrings))
 
     def add_counts(self, counts: Dict[str, int]):
-        """ Add measurements from a histogram
+        """Add measurements from a histogram
 
         Args:
             counts (dict): mapping of bitstrings to integers representing the number of times the bitstring was measured
-                NOTE: bitstrings are also indexed from 0 -> N-1, where the "001" bitstring represents a measurement of 
+                NOTE: bitstrings are also indexed from 0 -> N-1, where the "001" bitstring represents a measurement of
                     qubit 2 in the 1 state
         """
         for bitstring in counts.keys():
@@ -450,10 +450,10 @@ class Measurements:
             self.bitstrings += [tuple(measurement)] * counts[bitstring]
 
     def get_distribution(self):
-        """ Get the normalized probability distribution representing the measurements
+        """Get the normalized probability distribution representing the measurements
 
         Returns:
-            distribution (BitstringDistribution): bitstring distribution based on the frequency of measurements 
+            distribution (BitstringDistribution): bitstring distribution based on the frequency of measurements
         """
         counts = self.get_counts()
         num_measurements = len(self.bitstrings)
@@ -508,12 +508,16 @@ def concatenate_expectation_values(
 
     Args:
         expectation_values_set: The expectation values objects to be concatenated.
-    
+
     Returns:
         The combined expectation values.
     """
 
-    combined_expectation_values = ExpectationValues(np.zeros(0,))
+    combined_expectation_values = ExpectationValues(
+        np.zeros(
+            0,
+        )
+    )
 
     for expectation_values in expectation_values_set:
         combined_expectation_values.values = np.concatenate(

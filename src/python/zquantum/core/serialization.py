@@ -4,8 +4,7 @@ from operator import attrgetter
 from typing import Any, Iterator
 import numpy as np
 from .bitstring_distribution import BitstringDistribution
-
-from .utils import convert_array_to_dict, ValueEstimate
+from .utils import convert_array_to_dict, ValueEstimate, SCHEMA_VERSION
 
 
 def preprocess(tree):
@@ -18,8 +17,7 @@ def preprocess(tree):
         return {k: preprocess(v) for k, v in tree.items()}
     elif isinstance(tree, tuple) and hasattr(tree, "_asdict"):
         return preprocess(tree._asdict())
-    # Note: isinstance check with ValueEstimate is broken, that's why we compare types here
-    elif type(tree) == ValueEstimate:
+    elif isinstance(tree, ValueEstimate):
         return tree.to_dict()
     elif isinstance(tree, (list, tuple)):
         return list(map(preprocess, tree))
@@ -30,7 +28,7 @@ class ZapataEncoder(json.JSONEncoder):
     ENCODERS_TABLE = {
         np.ndarray: convert_array_to_dict,
         ValueEstimate: ValueEstimate.to_dict,
-        BitstringDistribution: attrgetter("distribution_dict")
+        BitstringDistribution: attrgetter("distribution_dict"),
     }
 
     def default(self, o: Any):
@@ -46,5 +44,6 @@ class ZapataEncoder(json.JSONEncoder):
 
 
 def save_optimization_results(optimization_results, filename):
+    optimization_results["schema"] = SCHEMA_VERSION + "-optimization_result"
     with open(filename, "wt") as target_file:
         json.dump(optimization_results, target_file, cls=ZapataEncoder)

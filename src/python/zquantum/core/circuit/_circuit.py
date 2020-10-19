@@ -80,8 +80,7 @@ class Circuit(object):
 
     @property
     def n_multiqubit_gates(self):
-        """The number of multiqubit gates in the circuit.
-        """
+        """The number of multiqubit gates in the circuit."""
 
         n_mq_gates = 0
         for gate in self.gates:
@@ -106,8 +105,7 @@ class Circuit(object):
         return set(symbolic_params)
 
     def __eq__(self, anotherCircuit):
-        """Comparison between two Circuit objects.
-        """
+        """Comparison between two Circuit objects."""
         if self.name != anotherCircuit.name:
             return False
         if len(self.qubits) != len(anotherCircuit.qubits):
@@ -125,8 +123,7 @@ class Circuit(object):
         return True
 
     def __add__(self, other_circuit):
-        """Add two circuits.
-        """
+        """Add two circuits."""
 
         qubit_indices = set(
             [qubit.index for qubit in self.qubits]
@@ -143,8 +140,7 @@ class Circuit(object):
         return new_circuit
 
     def get_qubits(self):
-        """Returns a list of qubit indices (ints).
-        """
+        """Returns a list of qubit indices (ints)."""
 
         return [q.index for q in self.qubits]
 
@@ -181,8 +177,7 @@ class Circuit(object):
         return new_circuit
 
     def to_pyquil(self):
-        """Converts the circuit to a pyquil Program object.
-        """
+        """Converts the circuit to a pyquil Program object."""
 
         output = Program()
         if self.gates != None:
@@ -231,8 +226,7 @@ class Circuit(object):
         return cirq_circuit
 
     def to_qiskit(self):
-        """Converts the circuit to a qiskit QuantumCircuit object.
-        """
+        """Converts the circuit to a qiskit QuantumCircuit object."""
         qiskit_circuit = qiskit.QuantumCircuit()  # New qiskit circuit object
         list_qregs = []  # list of QuantumRegister objects
         qreg = []

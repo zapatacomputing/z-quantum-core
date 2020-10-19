@@ -60,7 +60,7 @@ class MockQuantumSimulator(QuantumSimulator):
         self, circuit: Circuit, operator: SymbolicOperator, **kwargs
     ):
         n_qubits = len(circuit.qubits)
-        if hasattr(operator, 'terms'):
+        if hasattr(operator, "terms"):
             n_operator = len(operator.terms.keys())
             constant_position = None
             for index, term in enumerate(operator.terms):
@@ -89,17 +89,15 @@ class MockQuantumSimulator(QuantumSimulator):
 
 
 class MockOptimizer(Optimizer):
-    def minimize(
-        self, cost_function, initial_params: np.ndarray, **kwargs
-    ):
+    def minimize(self, cost_function, initial_params: np.ndarray, **kwargs):
         new_parameters = initial_params
         for i in range(len(initial_params)):
             new_parameters[i] += random.random()
         new_parameters = np.array(new_parameters)
         return optimization_result(
             opt_value=cost_function(new_parameters),
-            opt_params= new_parameters,
-            history=[]
+            opt_params=new_parameters,
+            history=[],
         )
 
 

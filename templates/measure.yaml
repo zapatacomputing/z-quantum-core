@@ -103,3 +103,76 @@ spec:
         artifacts:
           - name: bitstring-distribution
             path: /app/bitstring_distribution.json
+
+    - name: evaluate-ansatz-based-cost-function
+      parent: generic-task
+      inputs:
+        parameters:
+        - name: ansatz-specs
+        - name: backend-specs
+        - name: cost-function-specs
+        - name: command
+          value: bash main_script.sh
+        artifacts:
+        - name: ansatz-parameters
+          path: /app/ansatz_parameters.json
+        - name: qubit-operator
+          path: /app/qubitop.json
+        - name: noise-model
+          path: /app/noise_model.json
+          optional: True
+        - name: device-connectivity
+          path: /app/device_connectivity.json
+          optional: True
+        - name: main-script
+          path: /app/main_script.sh
+          raw:
+            data: |
+              qvm -S &
+              quilc -S &
+              source /app/usr/local/bin/compilers_and_libraries.sh
+              python3 python_script.py
+        - name: python-script
+          path: /app/python_script.py
+          raw:
+            data: |
+              import os
+              from zquantum.core.circuit import load_circuit_template_params, load_circuit_connectivity
+              from qeopenfermion import load_qubit_operator
+              from zquantum.core.utils import create_object, load_noise_model, save_value_estimate
+              import json
+              
+              ansatz_parameters = load_circuit_template_params('ansatz_parameters.json')
+
+              # Load qubit op
+              operator = load_qubit_operator('qubitop.json')
+              ansatz_specs = {{inputs.parameters.ansatz-specs}}
+              if ansatz_specs['function_name'] == 'QAOAFarhiAnsatz':
+                ansatz = create_object(ansatz_specs, cost_hamiltonian=operator)
+              else:
+                ansatz = create_object(ansatz_specs)
+                
+              backend_specs = {{inputs.parameters.backend-specs}}
+              if os.path.isfile('noise_model.json'):
+                backend_specs["noise_model"] = load_noise_model("noise_model.json")
+              if os.path.isfile("device_connectivity.json"):
+                  backend_specs["device_connectivity"] = load_circuit_connectivity(
+                      "device_connectivity.json"
+                  )
+              backend = create_object(backend_specs)
+              cost_function_specs = {{inputs.parameters.cost-function-specs}}
+              estimator_specs = cost_function_specs.pop("estimator-specs", None)
+              if estimator_specs is not None:
+                cost_function_specs["estimator"] = create_object(estimator_specs)
+              cost_function_specs["target_operator"] = operator
+              cost_function_specs["ansatz"] = ansatz
+              cost_function_specs["backend"] = backend
+              cost_function = create_object(cost_function_specs)
+              
+              value_estimate = cost_function.evaluate(ansatz_parameters)
+              
+              save_value_estimate(value_estimate, 'value_estimate.json')
+      outputs:
+        artifacts:
+        - name: value-estimate
+          path: /app/value_estimate.json

@@ -97,7 +97,6 @@ class BasicEstimator(Estimator):
                     measurements.get_expectation_values(frame_operator)
                 )
             )
-            print(f"Expectation values for {frame_operator}: {expectation_values_set[-1].values}")
 
         return expectation_values_to_real(
             concatenate_expectation_values(expectation_values_set)

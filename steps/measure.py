@@ -88,6 +88,6 @@ def evaluate_ansatz_based_cost_function(
     cost_function_specs["backend"] = backend
     cost_function = create_object(cost_function_specs)
 
-    value_estimate = cost_function.evaluate(ansatz_parameters)
+    value_estimate = cost_function(ansatz_parameters)
 
     save_value_estimate(value_estimate, "value_estimate.json")

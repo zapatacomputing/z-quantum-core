@@ -92,21 +92,21 @@ class RX(SingleQubitGate):
     """Quantum Rx gate."""
 
     def __init__(
-        self, qubit: int, parameter: Union[float, sympy.Symbol] = sympy.Symbol("theta")
+        self, qubit: int, angle: Union[float, sympy.Symbol] = sympy.Symbol("theta")
     ):
         super().__init__(qubit)
-        self.parameter = parameter
+        self.angle = angle
 
     def _create_matrix(self) -> sympy.Matrix:
         return sympy.Matrix(
             [
                 [
-                    sympy.cos(self.parameter / 2),
-                    -sympy.I * sympy.sin(self.parameter / 2),
+                    sympy.cos(self.angle / 2),
+                    -sympy.I * sympy.sin(self.angle / 2),
                 ],
                 [
-                    -sympy.I * sympy.sin(self.parameter / 2),
-                    sympy.cos(self.parameter / 2),
+                    -sympy.I * sympy.sin(self.angle / 2),
+                    sympy.cos(self.angle / 2),
                 ],
             ]
         )
@@ -116,21 +116,21 @@ class RY(SingleQubitGate):
     """Quantum Ry gate."""
 
     def __init__(
-        self, qubit: int, parameter: Union[float, sympy.Symbol] = sympy.Symbol("theta")
+        self, qubit: int, angle: Union[float, sympy.Symbol] = sympy.Symbol("theta")
     ):
         super().__init__(qubit)
-        self.parameter = parameter
+        self.angle = angle
 
     def _create_matrix(self) -> sympy.Matrix:
         return sympy.Matrix(
             [
                 [
-                    sympy.cos(self.parameter / 2),
-                    -1 * sympy.sin(self.parameter / 2),
+                    sympy.cos(self.angle / 2),
+                    -1 * sympy.sin(self.angle / 2),
                 ],
                 [
-                    sympy.sin(self.parameter / 2),
-                    sympy.cos(self.parameter / 2),
+                    sympy.sin(self.angle / 2),
+                    sympy.cos(self.angle / 2),
                 ],
             ]
         )
@@ -140,21 +140,21 @@ class RZ(SingleQubitGate):
     """Quantum Rz gate."""
 
     def __init__(
-        self, qubit: int, parameter: Union[float, sympy.Symbol] = sympy.Symbol("theta")
+        self, qubit: int, angle: Union[float, sympy.Symbol] = sympy.Symbol("theta")
     ):
         super().__init__(qubit)
-        self.parameter = parameter
+        self.angle = angle
 
     def _create_matrix(self) -> sympy.Matrix:
         return sympy.Matrix(
             [
                 [
-                    sympy.exp(-1 * sympy.I * self.parameter / 2),
+                    sympy.exp(-1 * sympy.I * self.angle / 2),
                     0,
                 ],
                 [
                     0,
-                    sympy.exp(sympy.I * self.parameter / 2),
+                    sympy.exp(sympy.I * self.angle / 2),
                 ],
             ]
         )

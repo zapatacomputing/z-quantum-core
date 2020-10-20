@@ -63,11 +63,15 @@ class I(SingleQubitGate):
 class PHASE(SingleQubitGate):
     """Quantum Phase gate."""
 
+    def __init__(self, qubit: int, angle: Union[float, sympy.Symbol]):
+        self.angle = angle
+        super().__init__(qubit)
+
     def _create_matrix(self) -> sympy.Matrix:
         return sympy.Matrix(
             [
                 [1, 0],
-                [0, 1j],
+                [0, sympy.exp(1j * self.angle)],
             ]
         )
 

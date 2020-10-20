@@ -1,4 +1,5 @@
 from abc import ABC
+from functools import partial
 from typing import Tuple, Union, Dict, TextIO, Callable
 import sympy
 from . import Gate, SpecializedGate, X, Z, PHASE
@@ -31,7 +32,19 @@ class CZ(ControlledGate):
 class CPHASE(ControlledGate):
     """Controlled PHASE gate."""
 
-    gate_factory = PHASE
+    def __init__(
+        self,
+        control: int,
+        target: int,
+        angle: Union[float, sympy.Symbol] = sympy.Symbol("theta")
+    ):
+        super().__init__(control, target)
+        self.angle = angle
+
+        def _phase_gate_factory(qubit: int):
+            return PHASE(qubit, self.angle)
+
+        self.gate_factory = _phase_gate_factory
 
 
 class SWAP(SpecializedGate):

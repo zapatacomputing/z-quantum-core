@@ -5,7 +5,7 @@ import os
 from .history.recorder import HistoryEntry, HistoryEntryWithArtifacts
 from .utils import convert_array_to_dict, ValueEstimate, SCHEMA_VERSION
 from .interfaces.optimizer import optimization_result
-from .serialization import ZapataEncoder, save_optimization_results
+from .serialization import ZapataEncoder, ZapataDecoder, save_optimization_results
 from .bitstring_distribution import BitstringDistribution
 
 
@@ -161,3 +161,21 @@ def test_optimization_result_serialization_io():
     assert loaded_data == expected_deserialized_result
 
     os.remove(optimization_result_filename)
+
+
+def test_zapata_decoder_can_load_numpy_arrays():
+    dict_of_arrays = {
+        "array_1": {"real": [1, 2, 3, 4]},
+        "array_2": {"real": [0.5, 0.25, 0], "imag": [0, 0.25, 0.5]},
+        "array_3": {"real": [[1.5, 2.5], [0.5, 0.5]], "imag": [[0.5, -0.5], [1.0, 2.0]]}
+    }
+
+    expected_deserialized_object = {
+        "array_1": np.array([1, 2, 3, 4]),
+        "array_2": np.array([0.5, 0.25 + 0.25j, 0.5j]),
+        "array_3": np.array([[1.5 + 0.5j, 2.5 - 0.5j], [0.5 + 1.0j, 0.5 + 2.0j]])
+    }
+    deserialized_object = json.loads(json.dumps(dict_of_arrays), cls=ZapataDecoder)
+
+    for key in dict_of_arrays:
+        assert np.array_equal(deserialized_object[key], expected_deserialized_object[key])

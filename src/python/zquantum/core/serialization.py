@@ -43,6 +43,24 @@ class ZapataEncoder(json.JSONEncoder):
         return super().iterencode(preprocess(o))
 
 
+class ZapataDecoder(json.JSONDecoder):
+    """Custom decoder for loading data dumped by ZapataEncoder."""
+
+    def __init__(self, *args, **kwargs):
+        json.JSONDecoder.__init__(
+            self, object_hook=self.object_hook, *args, **kwargs
+        )
+
+    def object_hook(self, obj):
+        if "real" in obj:
+            array = np.array(obj["real"])
+            if "imag" in obj:
+                array = array + 1j * np.array(obj["imag"])
+            return array
+        else:
+            return obj
+
+
 def save_optimization_results(optimization_results, filename):
     optimization_results["schema"] = SCHEMA_VERSION + "-optimization_result"
     with open(filename, "wt") as target_file:

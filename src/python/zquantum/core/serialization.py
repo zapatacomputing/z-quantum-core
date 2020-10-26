@@ -40,7 +40,7 @@ def preprocess(tree):
     return tree
 
 
-class ZapataEncoder(json.JSONEncoder):
+class OrquestraEncoder(json.JSONEncoder):
     ENCODERS_TABLE = {
         np.ndarray: convert_array_to_dict,
         ValueEstimate: ValueEstimate.to_dict,
@@ -59,7 +59,7 @@ class ZapataEncoder(json.JSONEncoder):
         return super().iterencode(preprocess(o))
 
 
-class ZapataDecoder(json.JSONDecoder):
+class OrquestraDecoder(json.JSONDecoder):
     """Custom decoder for loading data dumped by ZapataEncoder."""
 
     SCHEMA_MAP = {
@@ -95,9 +95,9 @@ class ZapataDecoder(json.JSONDecoder):
 def save_optimization_results(optimization_results, filename):
     optimization_results["schema"] = SCHEMA_VERSION + "-optimization_result"
     with open(filename, "wt") as target_file:
-        json.dump(optimization_results, target_file, cls=ZapataEncoder)
+        json.dump(optimization_results, target_file, cls=OrquestraEncoder)
 
 
 def load_optimization_result(filename):
     with open(filename, "rt") as source_file:
-        return json.load(source_file, cls=ZapataDecoder)
+        return json.load(source_file, cls=OrquestraDecoder)

@@ -9,10 +9,13 @@ from scipy.optimize import OptimizeResult
 from .history.recorder import HistoryEntry, HistoryEntryWithArtifacts
 from .utils import convert_array_to_dict, ValueEstimate
 from .interfaces.optimizer import optimization_result
-from .serialization import ZapataEncoder, ZapataDecoder, save_optimization_results
+from .serialization import OrquestraEncoder, OrquestraDecoder, save_optimization_results
 from .bitstring_distribution import BitstringDistribution
 
 
+# The result constructed below does not make sense.
+# It does not matter though, as we are only testing serialization and it contains variety
+# of data to be serialized.
 EXAMPLE_OPTIMIZATION_RESULT = optimization_result(
         opt_value=0.5,
         opt_params=np.array([0, 0.5, 2.5]),
@@ -110,14 +113,14 @@ def optimization_results_equal(result_1, result_2):
         return True
 
 
-def test_zapata_encoder_can_handle_numpy_arrays():
+def test_orquestra_encoder_can_handle_numpy_arrays():
     dict_to_serialize = {
         "array_1": np.array([1, 2, 3]),
         "array_2": np.array([0.5 + 1j, 0.5 - 0.25j]),
         "list_of_arrays": [np.array([0.5, 0.4, 0.3]), np.array([1, 2, 3])],
     }
 
-    deserialized_dict = json.loads(json.dumps(dict_to_serialize, cls=ZapataEncoder))
+    deserialized_dict = json.loads(json.dumps(dict_to_serialize, cls=OrquestraEncoder))
     expected_deserialized_dict = {
         "array_1": convert_array_to_dict(dict_to_serialize["array_1"]),
         "array_2": convert_array_to_dict(dict_to_serialize["array_2"]),
@@ -128,22 +131,16 @@ def test_zapata_encoder_can_handle_numpy_arrays():
     assert deserialized_dict == expected_deserialized_dict
 
 
-def test_zapata_encoder_can_handle_optimization_result():
-    # The result constructed below does not make sense.
-    # It does not matter though, as we are only testing serialization and it contains variety
-    # of data to be serialized.
+def test_orquestra_encoder_can_handle_optimization_result():
     result_to_serialize = EXAMPLE_OPTIMIZATION_RESULT
     expected_deserialized_result = EXPECTED_DESERIALIZED_RESULT
 
-    deserialized_result = json.loads(json.dumps(result_to_serialize, cls=ZapataEncoder))
+    deserialized_result = json.loads(json.dumps(result_to_serialize, cls=OrquestraEncoder))
 
     assert deserialized_result == expected_deserialized_result
 
 
-def test_optimization_result_serialization_io():
-    # The result constructed below does not make sense.
-    # It does not matter though, as we are only testing serialization and it contains variety
-    # of data to be serialized.
+def test_save_optimization_results_successfully_saves_optimization_result():
     result_to_serialize = EXAMPLE_OPTIMIZATION_RESULT
 
     expected_deserialized_result = EXPECTED_DESERIALIZED_RESULT
@@ -162,7 +159,7 @@ def test_optimization_result_serialization_io():
     os.remove(optimization_result_filename)
 
 
-def test_zapata_decoder_can_load_numpy_arrays():
+def test_orquestra_decoder_can_load_numpy_arrays():
     dict_of_arrays = {
         "array_1": {"real": [1, 2, 3, 4]},
         "array_2": {"real": [0.5, 0.25, 0], "imag": [0, 0.25, 0.5]},
@@ -174,7 +171,7 @@ def test_zapata_decoder_can_load_numpy_arrays():
         "array_2": np.array([0.5, 0.25 + 0.25j, 0.5j]),
         "array_3": np.array([[1.5 + 0.5j, 2.5 - 0.5j], [0.5 + 1.0j, 0.5 + 2.0j]])
     }
-    deserialized_object = json.loads(json.dumps(dict_of_arrays), cls=ZapataDecoder)
+    deserialized_object = json.loads(json.dumps(dict_of_arrays), cls=OrquestraDecoder)
 
     for key in dict_of_arrays:
         assert np.array_equal(deserialized_object[key], expected_deserialized_object[key])
@@ -187,9 +184,9 @@ def test_zapata_decoder_can_load_numpy_arrays():
         ValueEstimate(0.5)
     ]
 )
-def test_zapata_decoder_can_load_value_estimate(value_estimate):
+def test_orquestra_decoder_can_load_value_estimate(value_estimate):
     serialized_value_estimate = json.dumps(value_estimate.to_dict())
-    assert value_estimate == json.loads(serialized_value_estimate, cls=ZapataDecoder)
+    assert value_estimate == json.loads(serialized_value_estimate, cls=OrquestraDecoder)
 
 
 @pytest.mark.parametrize(
@@ -208,20 +205,20 @@ def test_zapata_decoder_can_load_value_estimate(value_estimate):
         )
     ]
 )
-def test_zapata_decoder_successfully_loads_history_entry_objects(history_entry):
-    serialized_history_entry = json.dumps(history_entry, cls=ZapataEncoder)
-    deserialized_history_entry = json.loads(serialized_history_entry, cls=ZapataDecoder)
+def test_orquestra_decoder_successfully_loads_history_entry_objects(history_entry):
+    serialized_history_entry = json.dumps(history_entry, cls=OrquestraEncoder)
+    deserialized_history_entry = json.loads(serialized_history_entry, cls=OrquestraDecoder)
     assert history_entry.call_number == deserialized_history_entry.call_number
     assert history_entry.value == deserialized_history_entry.value
     assert np.array_equal(history_entry.params, deserialized_history_entry.params)
     assert history_entries_equal(history_entry, deserialized_history_entry)
 
 
-def test_zapata_decoder_successfully_loads_optimization_result():
+def test_orquestra_decoder_successfully_loads_optimization_result():
     result_to_serialize = EXAMPLE_OPTIMIZATION_RESULT
 
-    serialized_result = json.dumps(result_to_serialize, cls=ZapataEncoder)
-    deserialized_result = json.loads(serialized_result, cls=ZapataDecoder)
+    serialized_result = json.dumps(result_to_serialize, cls=OrquestraEncoder)
+    deserialized_result = json.loads(serialized_result, cls=OrquestraDecoder)
 
     assert isinstance(deserialized_result, OptimizeResult)
     assert optimization_results_equal(result_to_serialize, deserialized_result)
@@ -235,7 +232,7 @@ def test_load_optimization_results_successfully_loads_optimization_result_from_f
     save_optimization_results(result_to_serialize, optimization_result_filename)
 
     with open(optimization_result_filename, "r") as f:
-        loaded_data = json.load(f, cls=ZapataDecoder)
+        loaded_data = json.load(f, cls=OrquestraDecoder)
 
     assert optimization_results_equal(result_to_serialize, loaded_data)
 

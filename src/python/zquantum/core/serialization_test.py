@@ -93,6 +93,23 @@ def history_entries_equal(entry_1, entry_2):
         return True
 
 
+def optimization_results_equal(result_1, result_2):
+    if any(
+        result_1[key] != result_2[key]
+        for key in ("opt_value", "nit", "fev",)
+    ):
+        return False
+    elif not np.array_equal(result_1.opt_params, result_2.opt_params):
+        return False
+    elif len(result_1.history) != len(result_2.history)  or any(
+        not history_entries_equal(entry_1, entry_2)
+        for entry_1, entry_2 in zip(result_1.history, result_2.history)
+    ):
+        return False
+    else:
+        return True
+
+
 def test_zapata_encoder_can_handle_numpy_arrays():
     dict_to_serialize = {
         "array_1": np.array([1, 2, 3]),
@@ -207,12 +224,4 @@ def test_zapata_decoder_successfully_loads_optimization_result():
     deserialized_result = json.loads(serialized_result, cls=ZapataDecoder)
 
     assert isinstance(deserialized_result, OptimizeResult)
-    assert all(
-        result_to_serialize[key] == deserialized_result[key]
-        for key in ("opt_value", "nit", "fev",)
-    )
-    assert np.array_equal(result_to_serialize.opt_params, deserialized_result.opt_params)
-    assert all(
-        history_entries_equal(entry_1, entry_2)
-        for entry_1, entry_2 in zip(result_to_serialize.history, deserialized_result.history)
-    )
+    assert optimization_results_equal(result_to_serialize, deserialized_result)

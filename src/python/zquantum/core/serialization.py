@@ -96,3 +96,8 @@ def save_optimization_results(optimization_results, filename):
     optimization_results["schema"] = SCHEMA_VERSION + "-optimization_result"
     with open(filename, "wt") as target_file:
         json.dump(optimization_results, target_file, cls=ZapataEncoder)
+
+
+def load_optimization_result(filename):
+    with open(filename, "rt") as source_file:
+        return json.load(source_file, cls=ZapataDecoder)

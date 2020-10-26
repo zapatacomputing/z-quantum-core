@@ -225,3 +225,18 @@ def test_zapata_decoder_successfully_loads_optimization_result():
 
     assert isinstance(deserialized_result, OptimizeResult)
     assert optimization_results_equal(result_to_serialize, deserialized_result)
+
+
+def test_load_optimization_results_successfully_loads_optimization_result_from_file():
+    result_to_serialize = EXAMPLE_OPTIMIZATION_RESULT
+
+    optimization_result_filename = "test-optimization-result-io.json"
+
+    save_optimization_results(result_to_serialize, optimization_result_filename)
+
+    with open(optimization_result_filename, "r") as f:
+        loaded_data = json.load(f, cls=ZapataDecoder)
+
+    assert optimization_results_equal(result_to_serialize, loaded_data)
+
+    os.remove(optimization_result_filename)

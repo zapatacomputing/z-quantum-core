@@ -12,6 +12,20 @@ from .serialization import ZapataEncoder, ZapataDecoder, save_optimization_resul
 from .bitstring_distribution import BitstringDistribution
 
 
+def history_entries_equal(entry_1, entry_2):
+    """Compare entry_1 and entry_2 assuming theyir params are of np.array type."""
+    if entry_1.call_number != entry_2.call_number:
+        return False
+    elif entry_1.value != entry_2.value:
+        return False
+    elif not np.array_equal(entry_1.params, entry_2.params):
+        return False
+    elif hasattr(entry_1, "artifacts") != hasattr(entry_2, "artifacts"):
+        return False
+    else:
+        return getattr(entry_1, "artifacts", None) == getattr(entry_2, "artifacts", None)
+
+
 def test_zapata_encoder_can_handle_numpy_arrays():
     dict_to_serialize = {
         "array_1": np.array([1, 2, 3]),
@@ -218,6 +232,4 @@ def test_zapata_decoder_successfully_loads_history_entry_objects(history_entry):
     assert history_entry.call_number == deserialized_history_entry.call_number
     assert history_entry.value == deserialized_history_entry.value
     assert np.array_equal(history_entry.params, deserialized_history_entry.params)
-
-    if hasattr(history_entry, "artifacts"):
-        assert history_entry.artifacts == deserialized_history_entry.artifacts
+    assert history_entries_equal(history_entry, deserialized_history_entry)

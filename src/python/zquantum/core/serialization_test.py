@@ -9,7 +9,7 @@ from scipy.optimize import OptimizeResult
 from .history.recorder import HistoryEntry, HistoryEntryWithArtifacts
 from .utils import convert_array_to_dict, ValueEstimate
 from .interfaces.optimizer import optimization_result
-from .serialization import OrquestraEncoder, OrquestraDecoder, save_optimization_results
+from .serialization import OrquestraEncoder, OrquestraDecoder, save_optimization_results, load_optimization_results
 from .bitstring_distribution import BitstringDistribution
 
 
@@ -231,8 +231,7 @@ def test_load_optimization_results_successfully_loads_optimization_result_from_f
 
     save_optimization_results(result_to_serialize, optimization_result_filename)
 
-    with open(optimization_result_filename, "r") as f:
-        loaded_data = json.load(f, cls=OrquestraDecoder)
+    loaded_data = load_optimization_results(optimization_result_filename)
 
     assert optimization_results_equal(result_to_serialize, loaded_data)
 

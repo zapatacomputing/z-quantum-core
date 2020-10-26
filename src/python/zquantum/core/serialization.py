@@ -98,6 +98,6 @@ def save_optimization_results(optimization_results, filename):
         json.dump(optimization_results, target_file, cls=OrquestraEncoder)
 
 
-def load_optimization_result(filename):
+def load_optimization_results(filename):
     with open(filename, "rt") as source_file:
         return json.load(source_file, cls=OrquestraDecoder)

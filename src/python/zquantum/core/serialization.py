@@ -72,6 +72,8 @@ class OrquestraDecoder(json.JSONDecoder):
         # Parts of the below if-elif-else are sketchy, because for some objects there is
         # no defined schema and we are matching object's type based on deserialized
         # dict's contents.
+        # TODO: reimplement this when we agree on some common serialization mechanism.
+        # See: https://www.pivotaltracker.com/story/show/175446541
         if "real" in obj:
             array = np.array(obj["real"])
             if "imag" in obj:

@@ -5,6 +5,7 @@ from .estimator import (
     BasicEstimator,
     ExactEstimator,
     get_context_selection_circuit,
+    get_context_selection_circuit_for_group,
 )
 from .circuit import Circuit
 from pyquil import Program
@@ -39,6 +40,29 @@ class TestEstimatorUtils(unittest.TestCase):
         circuit, ising_operator = get_context_selection_circuit(term)
         self.assertEqual(len(circuit.gates), 0)
         self.assertEqual(ising_operator, IsingOperator(term))
+
+    def test_get_context_selection_circuit_for_group(self):
+        group = QubitOperator(((0, "X"), (1, "Y"))) - 0.5 * QubitOperator(((1, "Y"),))
+        circuit, ising_operator = get_context_selection_circuit_for_group(group)
+
+        # Need to convert to QubitOperator in order to get matrix representation
+        qubit_operator = QubitOperator()
+        for ising_term in ising_operator.terms:
+            qubit_operator += QubitOperator(
+                ising_term, ising_operator.terms[ising_term]
+            )
+
+        target_unitary = qubit_operator_sparse(group)
+        transformed_unitary = (
+            circuit.to_unitary().conj().T
+            @ qubit_operator_sparse(qubit_operator)
+            @ circuit.to_unitary()
+        )
+        print(target_unitary)
+        print(transformed_unitary)
+        print(circuit.to_cirq())
+        print(ising_operator)
+        self.assertTrue(np.allclose(target_unitary.todense(), transformed_unitary))
 
 
 class TestBasicEstimator(unittest.TestCase, EstimatorTests):

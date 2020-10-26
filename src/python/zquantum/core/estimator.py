@@ -6,14 +6,40 @@ from .measurement import (
     expectation_values_to_real,
     concatenate_expectation_values,
 )
-from openfermion import SymbolicOperator, IsingOperator
+from .hamiltonian import group_comeasureable_terms_greedy
+from openfermion import SymbolicOperator, IsingOperator, QubitOperator
 from overrides import overrides
 import logging
 import numpy as np
 import pyquil
-from typing import Tuple, Optional
+from typing import Tuple, Optional, Callable
 
 logger = logging.getLogger(__name__)
+
+DECOMPOSITION_METHODS = {
+    "greedy": group_comeasureable_terms_greedy,
+    "greedy-sorted": lambda qubit_operator: group_comeasureable_terms_greedy(
+        qubit_operator, True
+    ),
+}
+
+
+def get_decomposition_function(decomposition_method: str) -> Callable:
+    """Get a function for Hamiltonian decomposition from it's name.
+
+    Args:
+        decomposition_method: The name of the Hamiltonian decomposition method.
+    
+    Returns:
+        A callable that performs the decomposition.
+    """
+
+    decomposition_function = DECOMPOSITION_METHODS.get(decomposition_method)
+    if decomposition_function is None:
+        raise ValueError(
+            f"Unrecognized decomposition method {decomposition_method}. Allowed values are {DECOMPOSITION_METHODS.keys()}"
+        )
+    return decomposition_function
 
 
 def get_context_selection_circuit(
@@ -43,6 +69,44 @@ def get_context_selection_circuit(
     return context_selection_circuit, operator
 
 
+def get_context_selection_circuit_for_group(
+    qubit_operator: QubitOperator,
+) -> Tuple[Circuit, IsingOperator]:
+    """Get the context selection circuit for measuring the expectation value
+    of a group of co-measurable Pauli terms.
+
+    Args:
+        term: The Pauli term, expressed using the OpenFermion convention.
+    
+    Returns:
+        Tuple containing:
+        - The context selection circuit.
+        - The frame operator
+    """
+
+    context_selection_circuit = Circuit()
+    operator = IsingOperator()
+    context = []
+    for term in qubit_operator.terms:
+        term_operator = IsingOperator(())
+        for factor in term:
+            for existing_factor in context:
+                if existing_factor[0] == factor[0] and existing_factor[1] != factor[1]:
+                    raise ValueError("Terms are not co-measurable")
+            if not factor in context:
+                context.append(factor)
+            term_operator *= IsingOperator((factor[0], "Z"))
+        operator += term_operator*qubit_operator.terms[term]
+
+    for factor in context:
+        if factor[1] == "X":
+            context_selection_circuit += Circuit(pyquil.gates.RY(-np.pi / 2, factor[0]))
+        elif factor[1] == "Y":
+            context_selection_circuit += Circuit(pyquil.gates.RX(np.pi / 2, factor[0]))
+
+    return context_selection_circuit, operator
+
+
 class BasicEstimator(Estimator):
     """An estimator that uses the standard approach to computing expectation values of an operator.
     """
@@ -56,6 +120,7 @@ class BasicEstimator(Estimator):
         n_samples: Optional[int] = None,
         epsilon: Optional[float] = None,
         delta: Optional[float] = None,
+        decomposition_method: str = "greedy-sorted",
     ) -> ExpectationValues:
         """Given a circuit, backend, and target operators, this method produces expectation values 
         for each target operator using the get_expectation_values method built into the provided QuantumBackend. 
@@ -67,16 +132,20 @@ class BasicEstimator(Estimator):
             n_samples (int): Number of measurements done. 
             epsilon (float): an error term.
             delta (float): a confidence term.
+            decomposition_method (str): Which Hamiltonian decomposition method to use. Available options: 'greedy-sorted' (default), 'greedy'
 
         Returns:
             ExpectationValues: expectation values for each term in the target operator.
         """
         frame_operators = []
         frame_circuits = []
-        for term in target_operator.terms:
-            frame_circuit, frame_operator = get_context_selection_circuit(term)
+        groups = get_decomposition_function(decomposition_method)(target_operator)
+        for group in groups:
+            frame_circuit, frame_operator = get_context_selection_circuit_for_group(
+                group
+            )
             frame_circuits.append(circuit + frame_circuit)
-            frame_operators.append(target_operator.terms[term] * frame_operator)
+            frame_operators.append(frame_operator)
 
         if n_samples is not None:
             logger.warning(

@@ -1,5 +1,6 @@
 """Serialization module."""
 import json
+from numbers import Number
 from operator import attrgetter
 from typing import Any, Iterator
 import numpy as np
@@ -12,12 +13,7 @@ from .utils import convert_array_to_dict, ValueEstimate, SCHEMA_VERSION
 
 
 def has_numerical_keys(dictionary):
-    try:
-        for val in dictionary.values():
-            float(val)
-        return True
-    except (ValueError, TypeError):
-        return False
+    return all(isinstance(value, Number) for value in dictionary.values())
 
 
 def preprocess(tree):

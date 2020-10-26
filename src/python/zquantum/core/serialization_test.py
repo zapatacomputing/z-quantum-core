@@ -2,6 +2,9 @@
 import json
 import numpy as np
 import os
+
+import pytest
+
 from .history.recorder import HistoryEntry, HistoryEntryWithArtifacts
 from .utils import convert_array_to_dict, ValueEstimate, SCHEMA_VERSION
 from .interfaces.optimizer import optimization_result
@@ -179,3 +182,42 @@ def test_zapata_decoder_can_load_numpy_arrays():
 
     for key in dict_of_arrays:
         assert np.array_equal(deserialized_object[key], expected_deserialized_object[key])
+
+
+@pytest.mark.parametrize(
+    "value_estimate",
+    [
+        ValueEstimate(-2.5, 0.125),
+        ValueEstimate(0.5)
+    ]
+)
+def test_zapata_decoder_can_load_value_estimate(value_estimate):
+    serialized_value_estimate = json.dumps(value_estimate.to_dict())
+    assert value_estimate == json.loads(serialized_value_estimate, cls=ZapataDecoder)
+
+
+@pytest.mark.parametrize(
+    "history_entry",
+    [
+        HistoryEntry(call_number=9, value=-20.0, params=np.array([0.2, 0.3])),
+        HistoryEntry(call_number=1, value=-15.5, params=np.array([0.5, 0.4, 0.1])),
+        HistoryEntryWithArtifacts(
+            call_number=10,
+            value=0.25,
+            params=np.array([-0.1, 0.2, -1.2]),
+            artifacts={
+                "bitstring": "111010",
+                "bitstring_distribution": {"111": 0.25, "010": 0.75}
+            }
+        )
+    ]
+)
+def test_zapata_decoder_successfully_loads_history_entry_objects(history_entry):
+    serialized_history_entry = json.dumps(history_entry, cls=ZapataEncoder)
+    deserialized_history_entry = json.loads(serialized_history_entry, cls=ZapataDecoder)
+    assert history_entry.call_number == deserialized_history_entry.call_number
+    assert history_entry.value == deserialized_history_entry.value
+    assert np.array_equal(history_entry.params, deserialized_history_entry.params)
+
+    if hasattr(history_entry, "artifacts"):
+        assert history_entry.artifacts == deserialized_history_entry.artifacts

@@ -4,12 +4,69 @@ import numpy as np
 import os
 
 import pytest
+from scipy.optimize import OptimizeResult
 
 from .history.recorder import HistoryEntry, HistoryEntryWithArtifacts
-from .utils import convert_array_to_dict, ValueEstimate, SCHEMA_VERSION
+from .utils import convert_array_to_dict, ValueEstimate
 from .interfaces.optimizer import optimization_result
 from .serialization import ZapataEncoder, ZapataDecoder, save_optimization_results
 from .bitstring_distribution import BitstringDistribution
+
+
+EXAMPLE_OPTIMIZATION_RESULT = optimization_result(
+        opt_value=0.5,
+        opt_params=np.array([0, 0.5, 2.5]),
+        nit=3,
+        fev=10,
+        history=[
+            HistoryEntry(
+                call_number=0,
+                params=np.array([0.1, 0.2, 0.3j]),
+                value=ValueEstimate(0.5, precision=6),
+            ),
+            HistoryEntry(call_number=1, params=np.array([1, 2, 3]), value=-10.0),
+            HistoryEntryWithArtifacts(
+                call_number=2,
+                params=np.array([-1, -0.5, -0.6]),
+                value=-20.0,
+                artifacts={
+                    "bitstring": "0111",
+                    "bitstring_distribution": BitstringDistribution(
+                        {"111": 0.25, "010": 0.75}
+                    ),
+                },
+            ),
+        ],
+    )
+
+EXPECTED_DESERIALIZED_RESULT = {
+    "schema": "zapata-v1-optimization_result",
+        "opt_value": 0.5,
+        "opt_params": convert_array_to_dict(np.array([0, 0.5, 2.5])),
+        "nit": 3,
+        "fev": 10,
+        "history": [
+            {
+                "call_number": 0,
+                "params": convert_array_to_dict(np.array([0.1, 0.2, 0.3j])),
+                "value": ValueEstimate(0.5, precision=6).to_dict(),
+            },
+            {
+                "call_number": 1,
+                "params": convert_array_to_dict(np.array([1, 2, 3])),
+                "value": -10.0,
+            },
+            {
+                "call_number": 2,
+                "params": convert_array_to_dict(np.array([-1, -0.5, -0.6])),
+                "value": -20.0,
+                "artifacts": {
+                    "bitstring": "0111",
+                    "bitstring_distribution": {"111": 0.25, "010": 0.75},
+                },
+            },
+        ],
+    }
 
 
 def history_entries_equal(entry_1, entry_2):
@@ -23,7 +80,17 @@ def history_entries_equal(entry_1, entry_2):
     elif hasattr(entry_1, "artifacts") != hasattr(entry_2, "artifacts"):
         return False
     else:
-        return getattr(entry_1, "artifacts", None) == getattr(entry_2, "artifacts", None)
+        artifacts_1 = getattr(entry_1, "artifacts", [])
+        artifacts_2 = getattr(entry_2, "artifacts", [])
+        if len(artifacts_1) != len(artifacts_2):
+            return False
+        for entry_1, entry_2 in zip(artifacts_1, artifacts_2):
+            if isinstance(entry_1, BitstringDistribution) and isinstance(entry_2, BitstringDistribution):
+                if entry_1.distribution_dict != entry_2.distribution_dict:
+                    return False
+            elif entry_1 != entry_2:
+                return False
+        return True
 
 
 def test_zapata_encoder_can_handle_numpy_arrays():
@@ -48,59 +115,8 @@ def test_zapata_encoder_can_handle_optimization_result():
     # The result constructed below does not make sense.
     # It does not matter though, as we are only testing serialization and it contains variety
     # of data to be serialized.
-    result_to_serialize = optimization_result(
-        opt_value=0.5,
-        opt_params=np.array([0, 0.5, 2.5]),
-        nit=3,
-        fev=10,
-        history=[
-            HistoryEntry(
-                call_number=0,
-                params=np.array([0.1, 0.2, 0.3j]),
-                value=ValueEstimate(0.5, precision=6),
-            ),
-            HistoryEntry(call_number=1, params=np.array([1, 2, 3]), value=-10.0),
-            HistoryEntryWithArtifacts(
-                call_number=2,
-                params=np.array([-1, -0.5, -0.6]),
-                value=-20.0,
-                artifacts={
-                    "bitstring": "0111",
-                    "bitstring_distribution": BitstringDistribution(
-                        {"111": 0.25, "010": 0.75}
-                    ),
-                },
-            ),
-        ],
-    )
-
-    expected_deserialized_result = {
-        "opt_value": 0.5,
-        "opt_params": convert_array_to_dict(np.array([0, 0.5, 2.5])),
-        "nit": 3,
-        "fev": 10,
-        "history": [
-            {
-                "call_number": 0,
-                "params": convert_array_to_dict(np.array([0.1, 0.2, 0.3j])),
-                "value": ValueEstimate(0.5, precision=6).to_dict(),
-            },
-            {
-                "call_number": 1,
-                "params": convert_array_to_dict(np.array([1, 2, 3])),
-                "value": -10.0,
-            },
-            {
-                "call_number": 2,
-                "params": convert_array_to_dict(np.array([-1, -0.5, -0.6])),
-                "value": -20.0,
-                "artifacts": {
-                    "bitstring": "0111",
-                    "bitstring_distribution": {"111": 0.25, "010": 0.75},
-                },
-            },
-        ],
-    }
+    result_to_serialize = EXAMPLE_OPTIMIZATION_RESULT
+    expected_deserialized_result = EXPECTED_DESERIALIZED_RESULT
 
     deserialized_result = json.loads(json.dumps(result_to_serialize, cls=ZapataEncoder))
 
@@ -111,60 +127,9 @@ def test_optimization_result_serialization_io():
     # The result constructed below does not make sense.
     # It does not matter though, as we are only testing serialization and it contains variety
     # of data to be serialized.
-    result_to_serialize = optimization_result(
-        opt_value=0.5,
-        opt_params=np.array([0, 0.5, 2.5]),
-        nit=3,
-        fev=10,
-        history=[
-            HistoryEntry(
-                call_number=0,
-                params=np.array([0.1, 0.2, 0.3j]),
-                value=ValueEstimate(0.5, precision=6),
-            ),
-            HistoryEntry(call_number=1, params=np.array([1, 2, 3]), value=-10.0),
-            HistoryEntryWithArtifacts(
-                call_number=2,
-                params=np.array([-1, -0.5, -0.6]),
-                value=-20.0,
-                artifacts={
-                    "bitstring": "0111",
-                    "bitstring_distribution": BitstringDistribution(
-                        {"111": 0.25, "010": 0.75}
-                    ),
-                },
-            ),
-        ],
-    )
+    result_to_serialize = EXAMPLE_OPTIMIZATION_RESULT
 
-    expected_deserialized_result = {
-        "schema": SCHEMA_VERSION + "-optimization_result",
-        "opt_value": 0.5,
-        "opt_params": convert_array_to_dict(np.array([0, 0.5, 2.5])),
-        "nit": 3,
-        "fev": 10,
-        "history": [
-            {
-                "call_number": 0,
-                "params": convert_array_to_dict(np.array([0.1, 0.2, 0.3j])),
-                "value": ValueEstimate(0.5, precision=6).to_dict(),
-            },
-            {
-                "call_number": 1,
-                "params": convert_array_to_dict(np.array([1, 2, 3])),
-                "value": -10.0,
-            },
-            {
-                "call_number": 2,
-                "params": convert_array_to_dict(np.array([-1, -0.5, -0.6])),
-                "value": -20.0,
-                "artifacts": {
-                    "bitstring": "0111",
-                    "bitstring_distribution": {"111": 0.25, "010": 0.75},
-                },
-            },
-        ],
-    }
+    expected_deserialized_result = EXPECTED_DESERIALIZED_RESULT
 
     optimization_result_filename = "test-optimization-result-io.json"
 
@@ -233,3 +198,21 @@ def test_zapata_decoder_successfully_loads_history_entry_objects(history_entry):
     assert history_entry.value == deserialized_history_entry.value
     assert np.array_equal(history_entry.params, deserialized_history_entry.params)
     assert history_entries_equal(history_entry, deserialized_history_entry)
+
+
+def test_zapata_decoder_successfully_loads_optimization_result():
+    result_to_serialize = EXAMPLE_OPTIMIZATION_RESULT
+
+    serialized_result = json.dumps(result_to_serialize, cls=ZapataEncoder)
+    deserialized_result = json.loads(serialized_result, cls=ZapataDecoder)
+
+    assert isinstance(deserialized_result, OptimizeResult)
+    assert all(
+        result_to_serialize[key] == deserialized_result[key]
+        for key in ("opt_value", "nit", "fev",)
+    )
+    assert np.array_equal(result_to_serialize.opt_params, deserialized_result.opt_params)
+    assert all(
+        history_entries_equal(entry_1, entry_2)
+        for entry_1, entry_2 in zip(result_to_serialize.history, deserialized_result.history)
+    )

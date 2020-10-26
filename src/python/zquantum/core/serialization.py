@@ -3,9 +3,21 @@ import json
 from operator import attrgetter
 from typing import Any, Iterator
 import numpy as np
+from scipy.optimize import OptimizeResult
+
+from .interfaces.optimizer import optimization_result
 from .history.recorder import HistoryEntry, HistoryEntryWithArtifacts
-from .bitstring_distribution import BitstringDistribution
+from .bitstring_distribution import BitstringDistribution, is_bitstring_distribution
 from .utils import convert_array_to_dict, ValueEstimate, SCHEMA_VERSION
+
+
+def has_numerical_keys(dictionary):
+    try:
+        for val in dictionary.values():
+            float(val)
+        return True
+    except (ValueError, TypeError):
+        return False
 
 
 def preprocess(tree):
@@ -15,7 +27,10 @@ def preprocess(tree):
     https://stackoverflow.com/questions/43913256/understanding-subclassing-of-jsonencoder
     """
     if isinstance(tree, dict):
-        return {k: preprocess(v) for k, v in tree.items()}
+        preprocessed = {k: preprocess(v) for k, v in tree.items()}
+        if isinstance(tree, OptimizeResult):
+            preprocessed["schema"] = SCHEMA_VERSION + "-optimization_result"
+        return preprocessed
     elif isinstance(tree, tuple) and hasattr(tree, "_asdict"):
         return preprocess(tree._asdict())
     elif isinstance(tree, ValueEstimate):
@@ -48,7 +63,8 @@ class ZapataDecoder(json.JSONDecoder):
     """Custom decoder for loading data dumped by ZapataEncoder."""
 
     SCHEMA_MAP = {
-        "zapata-v1-value_estimate": ValueEstimate.from_dict
+        "zapata-v1-value_estimate": ValueEstimate.from_dict,
+        "zapata-v1-optimization_result": lambda obj: optimization_result(**obj)
     }
 
     def __init__(self, *args, **kwargs):
@@ -68,6 +84,8 @@ class ZapataDecoder(json.JSONDecoder):
         elif "call_number" in obj and "value" in obj:
             cls = HistoryEntry if "artifacts" not in obj else HistoryEntryWithArtifacts
             return cls(**obj)
+        elif has_numerical_keys(obj) and is_bitstring_distribution(obj):
+            return BitstringDistribution(obj, normalize=False)
         elif "schema" in obj and obj["schema"] in self.SCHEMA_MAP:
             return self.SCHEMA_MAP[obj.pop("schema")](obj)
         else:

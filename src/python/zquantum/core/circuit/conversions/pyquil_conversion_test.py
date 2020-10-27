@@ -7,6 +7,24 @@ import numpy as np
 import pytest
 
 
+ORQUESTRA_GATE_TYPE_TO_PYQUIL_NAME = {
+    X: "X",
+    Y: "Y",
+    Z: "Z",
+    H: "H",
+    PHASE: "PHASE",
+    T: "T",
+    I: "I",
+    RX: "RX",
+    RY: "RY",
+    RZ: "RZ",
+    CNOT: "CNOT",
+    CZ: "CZ",
+    SWAP: "SWAP",
+    CPHASE: "CPHASE"
+}
+
+
 @pytest.mark.parametrize("qubit", [0, 1, 5, 13])
 @pytest.mark.parametrize("gate_cls", [X, Y, Z, T, I, H])
 def test_converting_single_qubit_nonparametric_gate_to_pyquil_preserves_qubit_index(
@@ -69,28 +87,28 @@ def test_converting_two_qubit_controlled_gate_to_pyquil_preserves_qubit_indices(
 
 
 @pytest.mark.parametrize(
-    "gate, expected_pyquil_name",
+    "gate",
     [
-        (X(2), "X"),
-        (Y(0), "Y"),
-        (Z(1), "Z"),
-        (H(0), "H"),
-        (PHASE(0, np.pi), "PHASE"),
-        (T(2), "T"),
-        (I(10), "I"),
-        (RX(0, np.pi), "RX"),
-        (RY(0, np.pi / 2), "RY"),
-        (RZ(0, 0.0), "RZ"),
-        (CNOT(0, 1), "CNOT"),
-        (CZ(2, 12), "CZ"),
-        (SWAP((2, 4)), "SWAP"),
-        (CPHASE(2, 4, np.pi / 4), "CPHASE")
+        X(2),
+        Y(0),
+        Z(1),
+        H(0),
+        PHASE(0, np.pi),
+        T(2),
+        I(10),
+        RX(0, np.pi),
+        RY(0, np.pi / 2),
+        RZ(0, 0.0),
+        CNOT(0, 1),
+        CZ(2, 12),
+        SWAP((2, 4)),
+        CPHASE(2, 4, np.pi / 4),
     ]
 )
-def test_converting_gate_to_pyquil_preserves_its_type(gate, expected_pyquil_name):
+def test_converting_gate_to_pyquil_preserves_its_type(gate):
     pyquil_gate = convert_to_pyquil(gate)
 
-    assert pyquil_gate.name == expected_pyquil_name
+    assert pyquil_gate.name == ORQUESTRA_GATE_TYPE_TO_PYQUIL_NAME[type(gate)]
 
 
 @pytest.mark.parametrize(

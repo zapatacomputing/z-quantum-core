@@ -58,10 +58,7 @@ class TestEstimatorUtils(unittest.TestCase):
             @ qubit_operator_sparse(qubit_operator)
             @ circuit.to_unitary()
         )
-        print(target_unitary)
-        print(transformed_unitary)
-        print(circuit.to_cirq())
-        print(ising_operator)
+
         self.assertTrue(np.allclose(target_unitary.todense(), transformed_unitary))
 
 

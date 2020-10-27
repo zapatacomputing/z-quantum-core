@@ -12,7 +12,7 @@ from overrides import overrides
 import logging
 import numpy as np
 import pyquil
-from typing import Tuple, Optional, Callable
+from typing import Tuple, Optional, Callable, List
 
 logger = logging.getLogger(__name__)
 
@@ -24,8 +24,10 @@ DECOMPOSITION_METHODS = {
 }
 
 
-def get_decomposition_function(decomposition_method: str) -> Callable:
-    """Get a function for Hamiltonian decomposition from it's name.
+def get_decomposition_function(
+    decomposition_method: str,
+) -> Callable[[QubitOperator], List[QubitOperator]]:
+    """Get a function for Hamiltonian decomposition from its name.
 
     Args:
         decomposition_method: The name of the Hamiltonian decomposition method.

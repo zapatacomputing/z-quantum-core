@@ -1,4 +1,6 @@
 """Test cases for pyquil conversion."""
+from ...circuit.gates import ControlledGate
+
 from ...circuit.conversions.pyquil_conversions import convert_to_pyquil
 from ...circuit.gates import X, Y, Z, RX, RY, RZ, PHASE, T, I, H, CZ, CNOT, CPHASE, SWAP
 import numpy as np
@@ -89,3 +91,25 @@ def test_converting_gate_to_pyquil_preserves_its_type(gate, expected_pyquil_name
     pyquil_gate = convert_to_pyquil(gate)
 
     assert pyquil_gate.name == expected_pyquil_name
+
+
+@pytest.mark.parametrize(
+    "target_gate, control_qubit",
+    [
+        (X(2), 0),
+        (Y(1), 0),
+        (PHASE(4, np.pi), 1),
+        (CZ(2, 12), 3)
+    ]
+)
+def test_converting_controlled_gate_to_pyquil_gives_gate_with_controlled_modifier_and_correct_order_of_qubits(
+    target_gate, control_qubit
+):
+    controlled_gate = ControlledGate(target_gate, control_qubit)
+    pyquil_gate = convert_to_pyquil(controlled_gate)
+
+    assert pyquil_gate.modifiers == ["CONTROLLED"]
+    assert all(
+        pyquil_qubit.index == qubit
+        for pyquil_qubit, qubit in zip(pyquil_gate.qubits, controlled_gate.qubits)
+    )

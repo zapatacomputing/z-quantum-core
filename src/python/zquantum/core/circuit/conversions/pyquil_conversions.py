@@ -4,7 +4,7 @@ from typing import Union
 import numpy as np
 import pyquil
 import pyquil.gates
-from ...circuit import Gate
+from ...circuit import Gate, ControlledGate
 from ...circuit.gates._single_qubit_gates import X, Y, Z, RX, RY, RZ, PHASE, T, I, H
 from ...circuit.gates._two_qubit_gates import CZ, CNOT, CPHASE, SWAP
 
@@ -84,3 +84,8 @@ def convert_CPHASE_to_pyquil(gate: CPHASE) -> pyquil.gates.Gate:
 @_convert_gate_to_pyquil.register(SWAP)
 def convert_SWAP_gate_to_pyquil(gate: SWAP) -> pyquil.gates.Gate:
     return pyquil.gates.SWAP(*gate.qubits)
+
+
+@_convert_gate_to_pyquil.register(ControlledGate)
+def convert_controlled_gate_to_pyquil(gate: ControlledGate) -> pyquil.gates.Gate:
+    return convert_to_pyquil(gate.target_gate).controlled(gate.control)

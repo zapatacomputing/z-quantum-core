@@ -1,3 +1,3 @@
-from ._gate import Gate, CustomGate, SpecializedGate
+from ._gate import Gate, CustomGate, SpecializedGate, ControlledGate
 from ._single_qubit_gates import X, Y, Z, RX, RY, RZ, PHASE, T, H, I
 from ._two_qubit_gates import CNOT, CZ, CPHASE, SWAP, XX, YY, ZZ

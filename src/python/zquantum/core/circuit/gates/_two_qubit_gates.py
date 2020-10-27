@@ -2,31 +2,21 @@ from abc import ABC
 from functools import partial
 from typing import Tuple, Union, Dict, TextIO, Callable
 import sympy
-from . import Gate, SpecializedGate, X, Z, PHASE
-
-
-class ControlledGate(SpecializedGate, ABC):
-    """Controlled gate."""
-
-    gate_factory: Callable[[int], Gate]
-
-    def __init__(self, control: int, target: int):
-        super().__init__((control, target))
-
-    def _create_matrix(self) -> sympy.Matrix:
-        return sympy.Matrix.diag(sympy.eye(2), self.gate_factory(self.qubits[1]).matrix)
+from . import Gate, SpecializedGate, X, Z, PHASE, ControlledGate
 
 
 class CNOT(ControlledGate):
     """Controlled NOT (Controlled X) gate."""
 
-    gate_factory = X
+    def __init__(self, control: int, target: int):
+        super().__init__(X(target), control)
 
 
 class CZ(ControlledGate):
     """"Controlled Z gate."""
 
-    gate_factory = Z
+    def __init__(self, control: int, target: int):
+        super().__init__(Z(target), control)
 
 
 class CPHASE(ControlledGate):
@@ -38,13 +28,8 @@ class CPHASE(ControlledGate):
         target: int,
         angle: Union[float, sympy.Symbol] = sympy.Symbol("theta")
     ):
-        super().__init__(control, target)
+        super().__init__(PHASE(target, angle), control)
         self.angle = angle
-
-        def _phase_gate_factory(qubit: int):
-            return PHASE(qubit, self.angle)
-
-        self.gate_factory = _phase_gate_factory
 
 
 class SWAP(SpecializedGate):

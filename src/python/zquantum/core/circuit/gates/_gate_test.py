@@ -4,8 +4,7 @@ import json
 import os
 import sympy
 from ...utils import SCHEMA_VERSION
-from ._gate import Gate, CustomGate
-
+from ._gate import Gate, CustomGate, ControlledGate
 
 THETA = sympy.Symbol("theta")
 

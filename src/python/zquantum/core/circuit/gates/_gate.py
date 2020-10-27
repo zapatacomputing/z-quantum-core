@@ -286,3 +286,19 @@ class SpecializedGate(Gate):
         if self._matrix is None:
             self._matrix = self._create_matrix()
         return self._matrix
+
+
+class ControlledGate(SpecializedGate):
+    """Controlled quantum gate."""
+
+    def __init__(self, target_gate: Gate, control: int):
+        super().__init__((control,) + target_gate.qubits)
+        self.control = control
+        self.target_gate = target_gate
+
+    def _create_matrix(self) -> sympy.Matrix:
+        target_matrix = self.target_gate.matrix
+        return sympy.Matrix.diag(
+            sympy.eye(target_matrix.shape[0]),
+            target_matrix
+        )

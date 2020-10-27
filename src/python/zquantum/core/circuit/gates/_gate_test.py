@@ -616,18 +616,3 @@ def test_evaluating_gate_raises_warnings_when_extra_params_are_present_in_symbol
 
     with pytest.warns(Warning):
         gate.evaluate(symbols_map)
-
-
-def test_converting_custom_gate_to_pyquil_raises_not_implemented_error():
-    gate = CustomGate(sympy.Matrix(
-        [
-            [0, 1, 0, 0],
-            [1, 0, 0, 0],
-            [0, 0, 0, 1],
-            [0, 0, 1, 0],
-        ]),
-        (0, 2)
-    )
-
-    with pytest.raises(NotImplementedError):
-        gate.to_pyquil()

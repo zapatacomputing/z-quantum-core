@@ -37,7 +37,7 @@ def get_decomposition_function(decomposition_method: str) -> Callable:
     decomposition_function = DECOMPOSITION_METHODS.get(decomposition_method)
     if decomposition_function is None:
         raise ValueError(
-            f"Unrecognized decomposition method {decomposition_method}. Allowed values are {DECOMPOSITION_METHODS.keys()}"
+            f"Unrecognized decomposition method {decomposition_method}. Allowed values are {list(DECOMPOSITION_METHODS.keys())}"
         )
     return decomposition_function
 

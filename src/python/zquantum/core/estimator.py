@@ -96,7 +96,7 @@ def get_context_selection_circuit_for_group(
             if not factor in context:
                 context.append(factor)
             term_operator *= IsingOperator((factor[0], "Z"))
-        operator += term_operator*qubit_operator.terms[term]
+        operator += term_operator * qubit_operator.terms[term]
 
     for factor in context:
         if factor[1] == "X":
@@ -109,7 +109,15 @@ def get_context_selection_circuit_for_group(
 
 class BasicEstimator(Estimator):
     """An estimator that uses the standard approach to computing expectation values of an operator.
+    
+        Attributes:
+            decomposition_method (str): Which Hamiltonian decomposition method
+                to use. Available options are: 'greedy-sorted' (default) and
+                'greedy'.
     """
+
+    def __init__(self, decomposition_method: str = "greedy-sorted"):
+        self.decomposition_method = decomposition_method
 
     @overrides
     def get_estimated_expectation_values(
@@ -120,7 +128,6 @@ class BasicEstimator(Estimator):
         n_samples: Optional[int] = None,
         epsilon: Optional[float] = None,
         delta: Optional[float] = None,
-        decomposition_method: str = "greedy-sorted",
     ) -> ExpectationValues:
         """Given a circuit, backend, and target operators, this method produces expectation values 
         for each target operator using the get_expectation_values method built into the provided QuantumBackend. 
@@ -132,14 +139,13 @@ class BasicEstimator(Estimator):
             n_samples (int): Number of measurements done. 
             epsilon (float): an error term.
             delta (float): a confidence term.
-            decomposition_method (str): Which Hamiltonian decomposition method to use. Available options: 'greedy-sorted' (default), 'greedy'
 
         Returns:
             ExpectationValues: expectation values for each term in the target operator.
         """
         frame_operators = []
         frame_circuits = []
-        groups = get_decomposition_function(decomposition_method)(target_operator)
+        groups = get_decomposition_function(self.decomposition_method)(target_operator)
         for group in groups:
             frame_circuit, frame_operator = get_context_selection_circuit_for_group(
                 group

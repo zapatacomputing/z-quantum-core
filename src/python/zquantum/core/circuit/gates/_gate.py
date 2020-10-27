@@ -194,6 +194,15 @@ class Gate(ABC):
 
         return CustomGate(matrix, qubits)
 
+    @property
+    def dagger(self) -> "Gate":
+        """Return inverse of this gate.
+
+        Note that different subclasses of Gate can implement dagger differently.
+        For instance, for Pauli X, Y, Z operators this is an identity operation.
+        """
+        return Dagger(self)
+
     def evaluate(self, symbols_map: Dict[str, Any]) -> "Gate":
         """Return a copy of self with symbolic parameters substituted according to provided map.
 
@@ -296,9 +305,27 @@ class ControlledGate(SpecializedGate):
         self.control = control
         self.target_gate = target_gate
 
+    @property
+    def dagger(self) -> "Gate":
+        return ControlledGate(self.target_gate.dagger, self.control)
+
     def _create_matrix(self) -> sympy.Matrix:
         target_matrix = self.target_gate.matrix
         return sympy.Matrix.diag(
             sympy.eye(target_matrix.shape[0]),
             target_matrix
         )
+
+
+class Dagger(SpecializedGate):
+
+    def __init__(self, gate: Gate):
+        super().__init__(gate.qubits)
+        self.gate = gate
+
+    @property
+    def dagger(self) -> "Gate":
+        return self.gate
+
+    def _create_matrix(self) -> sympy.Matrix:
+        return self.gate.matrix

@@ -1,0 +1,53 @@
+"""Test cases for dagger operator."""
+import pytest
+import sympy
+from . import X, Y, Z, CustomGate, ControlledGate
+
+THETA = sympy.Symbol("theta")
+PHI = sympy.Symbol("phi")
+EXAMPLE_CUSTOM_GATE = CustomGate(
+    sympy.Matrix(
+    [
+    [THETA, 0, 0, 0],
+    [0, THETA, 0, 0],
+    [0, 0, 0, -1j * PHI],
+    [0, 0, -1j * PHI, 0],
+    ]
+    ),
+    (2, 3),
+)
+
+
+@pytest.mark.parametrize(
+    "gate",
+    [
+        X(0),
+        Y(1),
+        Z(2),
+        EXAMPLE_CUSTOM_GATE,
+        ControlledGate(
+            EXAMPLE_CUSTOM_GATE,
+            0
+        )
+    ]
+)
+class TestDaggerOperationIsInverseOfItself:
+
+    def test_applying_dagger_twice_gives_gate_equivalent_to_the_original_gate(
+        self, gate
+    ):
+        second_gate = gate.dagger.dagger
+        assert second_gate == gate
+
+    def test_applying_dagger_twice_preserves_type_of_the_original_gate(
+        self, gate
+    ):
+        second_gate = gate.dagger.dagger
+        assert type(second_gate) == type(gate)
+
+
+def test_applying_dagger_to_controlled_gate_gives_controlled_gate_of_target_gates_dagger():
+    dagger = ControlledGate(EXAMPLE_CUSTOM_GATE, 0)
+    assert isinstance(dagger,  ControlledGate)
+    assert dagger.target_gate == EXAMPLE_CUSTOM_GATE.dagger
+

@@ -111,23 +111,55 @@ def test_converting_gate_to_pyquil_preserves_its_type(gate):
     assert pyquil_gate.name == ORQUESTRA_GATE_TYPE_TO_PYQUIL_NAME[type(gate)]
 
 
+# Below we use multiple control qubits. What we mean is that we construct
+# controlled gate from controlled gate iteratively, e, g.
+# X(2), (0, 1) -> ControlledGate(ControlledGate(X(2), 0), 1)
+# This is to test whether pyquil CONTROLLED modifier gets applied correct
+# of times.
 @pytest.mark.parametrize(
-    "target_gate, control_qubit",
+    "target_gate, control_qubits",
     [
-        (X(2), 0),
-        (Y(1), 0),
-        (PHASE(4, np.pi), 1),
-        (CZ(2, 12), 3)
+        (X(2), (1,)),
+        (Y(1), (0,)),
+        (PHASE(4, np.pi), (1, 2, 3)),
+        (CZ(2, 12), (0, 3))
     ]
 )
-def test_converting_controlled_gate_to_pyquil_gives_gate_with_controlled_modifier_and_correct_order_of_qubits(
-    target_gate, control_qubit
-):
-    controlled_gate = ControlledGate(target_gate, control_qubit)
-    pyquil_gate = convert_to_pyquil(controlled_gate)
+class TestControlledGateConversion:
 
-    assert pyquil_gate.modifiers == ["CONTROLLED"]
-    assert all(
-        pyquil_qubit.index == qubit
-        for pyquil_qubit, qubit in zip(pyquil_gate.qubits, controlled_gate.qubits)
-    )
+    def make_controlled_gate(self, target_gate, control_qubits):
+        if control_qubits:
+            return self.make_controlled_gate(
+                ControlledGate(target_gate, control_qubits[0]), control_qubits[1:]
+            )
+        return target_gate
+
+    def test_converting_controlled_gate_to_pyquil_gives_gate_with_appropriate_name(
+        self, target_gate, control_qubits
+    ):
+        controlled_gate = self.make_controlled_gate(target_gate, control_qubits)
+
+        pyquil_gate = convert_to_pyquil(controlled_gate)
+
+        assert pyquil_gate.name == ORQUESTRA_GATE_TYPE_TO_PYQUIL_NAME[type(target_gate)]
+
+    def test_converting_controlled_gate_to_pyquil_gives_gate_with_correct_qubits(
+        self, target_gate, control_qubits
+    ):
+        controlled_gate = self.make_controlled_gate(target_gate, control_qubits)
+
+        pyquil_gate = convert_to_pyquil(controlled_gate)
+
+        assert all(
+            pyquil_qubit.index == qubit
+            for pyquil_qubit, qubit in zip(pyquil_gate.qubits, controlled_gate.qubits)
+        )
+
+    def test_converting_controlled_gate_to_pyquil_gives_gate_with_controlled_modifier(
+        self, target_gate, control_qubits
+    ):
+        controlled_gate = self.make_controlled_gate(target_gate, control_qubits)
+
+        pyquil_gate = convert_to_pyquil(controlled_gate)
+
+        assert pyquil_gate.modifiers == len(control_qubits) * ["CONTROLLED"]

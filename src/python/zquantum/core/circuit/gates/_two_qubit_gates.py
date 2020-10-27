@@ -1,8 +1,6 @@
-from abc import ABC
-from functools import partial
-from typing import Tuple, Union, Dict, TextIO, Callable
+from typing import Tuple, Union
 import sympy
-from . import Gate, SpecializedGate, X, Z, PHASE, ControlledGate
+from . import SpecializedGate, X, Z, PHASE, ControlledGate
 
 
 class CNOT(ControlledGate):

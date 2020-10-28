@@ -329,3 +329,11 @@ class Dagger(SpecializedGate):
 
     def _create_matrix(self) -> sympy.Matrix:
         return self.gate.matrix
+
+
+class HermitianMixin:
+    """At this to inheritance hierarchy of your class to make dagger behave as identity."""
+
+    @property
+    def dagger(self):
+        return self

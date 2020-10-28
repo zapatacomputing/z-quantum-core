@@ -3,11 +3,12 @@ from typing import Tuple, List
 
 
 def is_comeasureable(
-    term1: Tuple[Tuple[int, str], ...], term2: Tuple[Tuple[int, str], ...]
+    term_1: Tuple[Tuple[int, str], ...], term_2: Tuple[Tuple[int, str], ...]
 ) -> bool:
     """Determine if two Pauli terms are co-measureable. Co-measureable means that
-       for each qubit: both terms apply the same Pauli operator, or at least one term
-        applies the identity.
+       for each qubit: if one term contains a Pauli operator acting on a qubit,
+       then the other term cannot have a different Pauli operator acting on that
+       qubit.
     Args:
         term1: a product of Pauli operators represented in openfermion style
         term2: a product of Pauli operators represented in openfermion style
@@ -15,14 +16,14 @@ def is_comeasureable(
         bool: True if the terms are co-measureable.
     """
 
-    for op1 in term1:
-        for op2 in term2:
+    for qubit_1, operator_1 in term_1:
+        for qubit_2, operator_2 in term_2:
 
             # Check if the two Pauli operators act on the same qubit
-            if op1[0] == op2[0]:
+            if qubit_1 == qubit_2:
 
                 # Check if the two Pauli operators are different
-                if op1[1] != op2[1]:
+                if operator_1 != operator_2:
                     return False
 
     return True
@@ -54,12 +55,10 @@ def group_comeasureable_terms_greedy(
         if term == ():
             continue
         for group in groups:
-            commeasureable_with_group = True  # True if the current term is co-measureable with the current group
-            for term_to_compare in group.terms:
-                if not is_comeasureable(term, term_to_compare):
-                    commeasureable_with_group = False
-                    break
-            if commeasureable_with_group:
+            if all(
+                is_comeasureable(term, term_to_compare)
+                for term_to_compare in group.terms
+            ):
                 # Add the term to the group
                 group += QubitOperator(term, coefficient)
                 assigned = True

@@ -1,7 +1,7 @@
 """Test cases for dagger operator."""
 import pytest
 import sympy
-from . import H, X, Y, Z, I, CustomGate, ControlledGate
+from . import H, X, Y, Z, I, CustomGate, ControlledGate, CNOT, CZ, SWAP
 
 THETA = sympy.Symbol("theta")
 PHI = sympy.Symbol("phi")
@@ -63,3 +63,18 @@ def test_dagger_of_hermitian_single_qubit_gates_is_the_same_as_the_original_gate
 ):
     gate = gate_cls(0)
     assert gate is gate.dagger  # Notice that this is stronger than equality
+
+
+@pytest.mark.parametrize("gate_cls", [CNOT, CZ])
+def test_dagger_of_hermitian_controlled_two_qubit_gates_is_the_same_as_original_gate(
+    gate_cls
+):
+    gate = gate_cls(0, 1)
+
+    assert gate is gate.dagger
+
+
+def test_dagger_of_swap_gate_is_the_same_as_the_original_gate():
+    swap = SWAP((0, 2))
+
+    assert swap.dagger is swap

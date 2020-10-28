@@ -1,16 +1,16 @@
 from typing import Tuple, Union
 import sympy
-from . import SpecializedGate, X, Z, PHASE, ControlledGate
+from . import SpecializedGate, X, Z, PHASE, ControlledGate, HermitianMixin
 
 
-class CNOT(ControlledGate):
+class CNOT(HermitianMixin, ControlledGate):
     """Controlled NOT (Controlled X) gate."""
 
     def __init__(self, control: int, target: int):
         super().__init__(X(target), control)
 
 
-class CZ(ControlledGate):
+class CZ(HermitianMixin, ControlledGate):
     """"Controlled Z gate."""
 
     def __init__(self, control: int, target: int):
@@ -30,7 +30,7 @@ class CPHASE(ControlledGate):
         self.angle = angle
 
 
-class SWAP(SpecializedGate):
+class SWAP(HermitianMixin, SpecializedGate):
     """Quantum SWAP gate."""
 
     def __init__(self, qubits: Tuple[int, int]):

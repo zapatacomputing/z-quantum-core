@@ -3,7 +3,7 @@ from abc import ABC
 from typing import Union
 import sympy
 import numpy as np
-from ._gate import SpecializedGate
+from ._gate import SpecializedGate, HermitianMixin
 
 
 class SingleQubitGate(SpecializedGate, ABC):
@@ -20,28 +20,28 @@ class SingleQubitGate(SpecializedGate, ABC):
         super().__init__((qubit,))
 
 
-class X(SingleQubitGate):
+class X(HermitianMixin, SingleQubitGate):
     """Quantum X gate."""
 
     def _create_matrix(self) -> sympy.Matrix:
         return sympy.Matrix([[0, 1], [1, 0]])
 
 
-class Y(SingleQubitGate):
+class Y(HermitianMixin, SingleQubitGate):
     """Quantum Y gate."""
 
     def _create_matrix(self) -> sympy.Matrix:
         return sympy.Matrix([[0, -1.0j], [1.0j, 0.0]])
 
 
-class Z(SingleQubitGate):
+class Z(HermitianMixin, SingleQubitGate):
     """Quantum Z gate."""
 
     def _create_matrix(self) -> sympy.Matrix:
         return sympy.Matrix([[1, 0], [0, -1]])
 
 
-class H(SingleQubitGate):
+class H(HermitianMixin, SingleQubitGate):
     """Quantum Hadamard gate."""
 
     def _create_matrix(self) -> sympy.Matrix:
@@ -53,7 +53,7 @@ class H(SingleQubitGate):
         )
 
 
-class I(SingleQubitGate):
+class I(HermitianMixin, SingleQubitGate):
     """Quantum Identity gate."""
 
     def _create_matrix(self) -> sympy.Matrix:

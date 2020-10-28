@@ -56,3 +56,10 @@ def test_applying_dagger_to_controlled_gate_gives_controlled_gate_of_target_gate
     assert isinstance(dagger,  ControlledGate)
     assert dagger.target_gate == EXAMPLE_CUSTOM_GATE.dagger
 
+
+@pytest.mark.parametrize("gate_cls", [X, Y, Z, H, I])
+def test_dagger_of_hermitian_single_qubit_gates_is_the_same_as_the_original_gate(
+    gate_cls
+):
+    gate = gate_cls(0)
+    assert gate is gate.dagger  # Notice that this is stronger than equality

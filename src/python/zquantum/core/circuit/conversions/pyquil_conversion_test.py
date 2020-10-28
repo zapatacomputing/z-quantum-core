@@ -2,7 +2,7 @@
 from ...circuit.gates import ControlledGate
 
 from ...circuit.conversions.pyquil_conversions import convert_to_pyquil
-from ...circuit.gates import X, Y, Z, RX, RY, RZ, PHASE, T, I, H, CZ, CNOT, CPHASE, SWAP
+from ...circuit.gates import X, Y, Z, RX, RY, RZ, PHASE, T, I, H, CZ, CNOT, CPHASE, SWAP, Dagger
 import numpy as np
 import pytest
 
@@ -163,3 +163,8 @@ class TestControlledGateConversion:
         pyquil_gate = convert_to_pyquil(controlled_gate)
 
         assert pyquil_gate.modifiers == len(control_qubits) * ["CONTROLLED"]
+
+
+def test_converting_dagger_object_to_pyquil_gives_gate_with_dagger_modifier():
+    gate = Dagger(X(1))
+    assert convert_to_pyquil(gate).modifiers == ["DAGGER"]

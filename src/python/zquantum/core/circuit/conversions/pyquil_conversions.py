@@ -5,8 +5,7 @@ import numpy as np
 import pyquil
 import pyquil.gates
 from ...circuit import Gate, ControlledGate
-from ...circuit.gates._single_qubit_gates import X, Y, Z, RX, RY, RZ, PHASE, T, I, H
-from ...circuit.gates._two_qubit_gates import CZ, CNOT, CPHASE, SWAP
+from ...circuit.gates import X, Y, Z, RX, RY, RZ, PHASE, T, I, H, Dagger, CZ, CNOT, CPHASE, SWAP
 
 SINGLE_QUBIT_NONPARAMETRIC_GATES = {
     X: pyquil.gates.X,
@@ -34,7 +33,7 @@ def convert_to_pyquil(obj):
 
 
 @convert_to_pyquil.register
-def convert_gate_to_pyquil(gate: Gate) -> pyquil.gates.Gate:
+def convert_gate_to_pyquil(gate: Gate, program: Optional[pyquil.Program] = None) -> pyquil.gates.Gate:
     if gate.symbolic_params:
         raise NotImplementedError(f"Cannot convert gate with symbolic params to PyQuil object.")
     return _convert_gate_to_pyquil(gate)
@@ -89,3 +88,8 @@ def convert_SWAP_gate_to_pyquil(gate: SWAP) -> pyquil.gates.Gate:
 @_convert_gate_to_pyquil.register(ControlledGate)
 def convert_controlled_gate_to_pyquil(gate: ControlledGate) -> pyquil.gates.Gate:
     return convert_to_pyquil(gate.target_gate).controlled(gate.control)
+
+
+@_convert_gate_to_pyquil.register(Dagger)
+def convert_dagger_to_pyquil(gate: Dagger) -> pyquil.gates.Gate:
+    return convert_to_pyquil(gate.gate).dagger()

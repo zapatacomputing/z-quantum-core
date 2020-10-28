@@ -87,18 +87,19 @@ def get_context_selection_circuit_for_group(
     """
 
     context_selection_circuit = Circuit()
-    operator = IsingOperator()
+    transformed_operator = IsingOperator()
     context = []
+
     for term in qubit_operator.terms:
         term_operator = IsingOperator(())
-        for factor in term:
-            for existing_factor in context:
-                if existing_factor[0] == factor[0] and existing_factor[1] != factor[1]:
+        for qubit, operator in term:
+            for existing_qubit, existing_operator in context:
+                if existing_qubit == qubit and existing_operator != operator:
                     raise ValueError("Terms are not co-measurable")
-            if not factor in context:
-                context.append(factor)
-            term_operator *= IsingOperator((factor[0], "Z"))
-        operator += term_operator * qubit_operator.terms[term]
+            if not (qubit, operator) in context:
+                context.append((qubit, operator))
+            term_operator *= IsingOperator((qubit, "Z"))
+        transformed_operator += term_operator * qubit_operator.terms[term]
 
     for factor in context:
         if factor[1] == "X":
@@ -106,7 +107,7 @@ def get_context_selection_circuit_for_group(
         elif factor[1] == "Y":
             context_selection_circuit += Circuit(pyquil.gates.RX(np.pi / 2, factor[0]))
 
-    return context_selection_circuit, operator
+    return context_selection_circuit, transformed_operator
 
 
 class BasicEstimator(Estimator):

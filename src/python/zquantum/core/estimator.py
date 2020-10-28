@@ -12,36 +12,17 @@ from overrides import overrides
 import logging
 import numpy as np
 import pyquil
-from typing import Tuple, Optional, Callable, List
+from typing import Tuple, Optional, Callable, List, Union
+from enum import Enum
 
 logger = logging.getLogger(__name__)
 
-DECOMPOSITION_METHODS = {
-    "greedy": group_comeasureable_terms_greedy,
-    "greedy-sorted": lambda qubit_operator: group_comeasureable_terms_greedy(
+
+class DecompositionMethods(Enum):
+    greedy = group_comeasureable_terms_greedy
+    greedy_sorted = lambda qubit_operator: group_comeasureable_terms_greedy(
         qubit_operator, True
-    ),
-}
-
-
-def get_decomposition_function(
-    decomposition_method: str,
-) -> Callable[[QubitOperator], List[QubitOperator]]:
-    """Get a function for Hamiltonian decomposition from its name.
-
-    Args:
-        decomposition_method: The name of the Hamiltonian decomposition method.
-    
-    Returns:
-        A callable that performs the decomposition.
-    """
-
-    decomposition_function = DECOMPOSITION_METHODS.get(decomposition_method)
-    if decomposition_function is None:
-        raise ValueError(
-            f"Unrecognized decomposition method {decomposition_method}. Allowed values are {list(DECOMPOSITION_METHODS.keys())}"
-        )
-    return decomposition_function
+    )
 
 
 def get_context_selection_circuit(
@@ -112,15 +93,24 @@ def get_context_selection_circuit_for_group(
 
 class BasicEstimator(Estimator):
     """An estimator that uses the standard approach to computing expectation values of an operator.
-    
-        Attributes:
-            decomposition_method (str): Which Hamiltonian decomposition method
-                to use. Available options are: 'greedy-sorted' (default) and
-                'greedy'.
     """
 
-    def __init__(self, decomposition_method: str = "greedy-sorted"):
-        self.decomposition_method = decomposition_method
+    def __init__(
+        self,
+        decomposition_method: Union[
+            str, Callable[[QubitOperator], List[QubitOperator]]
+        ] = "greedy-sorted",
+    ):
+        """Arguments:
+            decomposition_method: Which Hamiltonian decomposition method
+                to use. Available options are: 'greedy-sorted' (default) and
+                'greedy'.
+        """
+
+        if isinstance(decomposition_method, str):
+            decomposition_method = DecompositionMethods[decomposition_method]
+        else:
+            self.decomposition_function = decomposition_method
 
     @overrides
     def get_estimated_expectation_values(
@@ -148,7 +138,8 @@ class BasicEstimator(Estimator):
         """
         frame_operators = []
         frame_circuits = []
-        groups = get_decomposition_function(self.decomposition_method)(target_operator)
+
+        groups = self.decomposition_method(target_operator)
         for group in groups:
             frame_circuit, frame_operator = get_context_selection_circuit_for_group(
                 group

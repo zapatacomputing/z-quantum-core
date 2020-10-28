@@ -1,7 +1,7 @@
 """Test cases for dagger operator."""
 import pytest
 import sympy
-from . import X, Y, Z, CustomGate, ControlledGate
+from . import H, X, Y, Z, I, CustomGate, ControlledGate
 
 THETA = sympy.Symbol("theta")
 PHI = sympy.Symbol("phi")
@@ -31,7 +31,7 @@ EXAMPLE_CUSTOM_GATE = CustomGate(
         )
     ]
 )
-class TestDaggerOperationIsInverseOfItself:
+class TestBasicPropertiesOfDaggerOperations:
 
     def test_applying_dagger_twice_gives_gate_equivalent_to_the_original_gate(
         self, gate
@@ -44,6 +44,11 @@ class TestDaggerOperationIsInverseOfItself:
     ):
         second_gate = gate.dagger.dagger
         assert type(second_gate) == type(gate)
+
+    def test_applying_dagger_gives_gate_with_the_same_qubits_as_the_original_one(
+        self, gate
+    ):
+        assert gate.dagger.qubits == gate.qubits
 
 
 def test_applying_dagger_to_controlled_gate_gives_controlled_gate_of_target_gates_dagger():

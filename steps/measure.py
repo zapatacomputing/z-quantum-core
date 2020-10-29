@@ -90,4 +90,6 @@ def evaluate_ansatz_based_cost_function(
 
     value_estimate = cost_function(ansatz_parameters)
 
+    print("Estimated cost function {}".format(value_estimate.value))
+
     save_value_estimate(value_estimate, "value_estimate.json")

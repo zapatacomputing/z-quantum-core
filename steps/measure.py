@@ -92,4 +92,4 @@ def evaluate_ansatz_based_cost_function(
 
     print("Estimated cost function {}".format(value_estimate.value))
 
-    save_value_estimate(value_estimate, "value_estimate.json")
+    save_value_estimate(value_estimate, "value-estimate.json")

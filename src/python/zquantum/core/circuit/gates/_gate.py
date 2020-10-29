@@ -5,7 +5,7 @@ import sympy
 import json
 import copy
 import warnings
-from typing import Tuple, Union, Dict, TextIO, Set, Any
+from typing import Tuple, Union, Dict, TextIO, Set, Any, Optional
 from ...utils import SCHEMA_VERSION
 
 
@@ -248,7 +248,7 @@ class Gate(ABC):
 class CustomGate(Gate):
     """Gate class with custom matrix."""
 
-    def __init__(self, matrix: sympy.Matrix, qubits: Tuple[int, ...]):
+    def __init__(self, matrix: sympy.Matrix, qubits: Tuple[int, ...], name: Optional[str] = None):
         """Initialize a gate
 
         Args:
@@ -263,6 +263,8 @@ class CustomGate(Gate):
 
         super().__init__(qubits)
         copied_matrix = copy.deepcopy(matrix)
+
+        self.name = name
 
         for index, element in enumerate(copied_matrix):
             copied_matrix[index] = element.evalf()

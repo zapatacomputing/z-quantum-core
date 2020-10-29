@@ -13,35 +13,44 @@
 ## Usage
 
 ### Workflow
-In order to use `z-quantum-core` in your workflow, you need to add it as a `resource` in your Orquestra workflow:
+In order to use `z-quantum-core` in your workflow, you need to add it as an `import` in your Orquestra workflow:
 
 ```yaml
-resources:
+imports:
 - name: z-quantum-core
   type: git
   parameters:
-    url: "git@github.com:zapatacomputing/z-quantum-core.git"
+    repository: "git@github.com:zapatacomputing/z-quantum-core.git"
     branch: "master"
 ```
 
-and then import in the `resources` argument of your `task`:
+and then add it in the `imports` argument of your `step`:
 
 ```yaml
-- - name: my-task
-    template: template-1
-    arguments:
-      parameters:
-      - param_1: 1
-      - resources: [z-quantum-core]
+- name: my-step
+  config:
+    runtime:
+      language: python3
+      imports: [z-quantum-core]
 ```
 
 Once that is done you can:
-- use any template from the `templates/` directory
+- use any `z-quantum-core` function by specifying its name and path as follows:
+```yaml
+- name: generate-parameters
+  config:
+    runtime:
+      language: python3
+      imports: [z-quantum-core]
+      parameters:
+        file: z-quantum-core/steps/circuit.py
+        function: generate_random_ansatz_params
+```
 - use tasks which import `zquantum.core` in the python code (see below)
 
 ### Python
 
-Here's an example how to use methods from `z-quantum-core` in a task:
+Here's an example of how to use methods from `z-quantum-core` in a python task:
 
 ```python
 from zquantum.core.circuit import (build_ansatz_circuit,
@@ -55,7 +64,7 @@ circuit = build_ansatz_circuit(ansatz, params);
 save_circuit(circuit, 'circuit.json')
 ```
 
-Even though it's intended to be used with Orquestra, `z-quantum-core` can be used as a standalone Python module.
+Even though it's intended to be used with Orquestra, `z-quantum-core` can be also used as a standalone Python module.
 This can be done by running `pip install .` from the `src/` directory.
 
 ## Development and Contribution

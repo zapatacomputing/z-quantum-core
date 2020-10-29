@@ -24,7 +24,7 @@ from openfermion.ops import FermionOperator
 
 class Circuit(object):
     """Base class for quantum circuits.
-    
+
     Attributes:
         name: string
             Name of the Circuit object. By default this is called 'Unnamed'.
@@ -375,7 +375,7 @@ class Circuit(object):
         """Gets a text diagram representing the circuit.
 
         transpose (bool): if true, arrange qubit wires vertically instead of horizontally
-        
+
         Returns:
             str: a string containing the text diagram
         """
@@ -442,7 +442,7 @@ class Circuit(object):
         """Converts a pyquil Program object to a core.Circuit object.
 
         Args:
-            pyquil_circuit: Program object(pyquil) 
+            pyquil_circuit: Program object(pyquil)
             name: string
                 Name of the converted core.Circuit object.
 
@@ -653,7 +653,7 @@ def load_circuit(file):
 
     Args:
         file (str or file-like object): the name of the file, or a file-like object.
-    
+
     Returns:
         circuit (core.Circuit): the circuit
     """
@@ -666,25 +666,26 @@ def load_circuit(file):
 
     return Circuit.from_dict(data)
 
+
 def save_circuit_set(circuit_set, filename):
     """Save a circuit set to a file.
-    
+
     Args:
         circuit_set (list): a list of core.Circuit objects
         file (str or file-like object): the name of the file, or a file-like object
     """
     dictionary = {}
-    dictionary['schema'] = SCHEMA_VERSION+'-circuit_set'
-    dictionary['circuits'] = []
+    dictionary["schema"] = SCHEMA_VERSION + "-circuit_set"
+    dictionary["circuits"] = []
     for circuit in circuit_set:
-        dictionary['circuits'].append(circuit.to_dict(serialize_gate_params=True))
-    with open(filename, 'w') as f:
+        dictionary["circuits"].append(circuit.to_dict(serialize_gate_params=True))
+    with open(filename, "w") as f:
         f.write(json.dumps(dictionary, indent=2))
-     
-        
+
+
 def load_circuit_set(file):
     """Load a set of circuits from a file.
-    
+
     Args:
         file (str or file-like object): the name of the file, or a file-like object.
 
@@ -692,21 +693,22 @@ def load_circuit_set(file):
         circuit_set (list): a list of core.Circuit objects
     """
     if isinstance(file, str):
-        with open(file, 'r') as f:
+        with open(file, "r") as f:
             data = json.load(f)
     else:
         data = json.load(file)
-    
+
     circuit_set = []
-    for circuit_dict in data['circuits']:
+    for circuit_dict in data["circuits"]:
         circuit_set.append(Circuit.from_dict(circuit_dict))
     return circuit_set
 
+
 def pyquil2cirq(qprog):
     """Convert a pyquil Program to a cirq Circuit.
-    
+
     Currently supports only common single- and two-qubit gates.
-    
+
     Args:
         qprog (pyquil.quil.Program): the program to be converted.
 
@@ -768,9 +770,9 @@ def pyquil2cirq(qprog):
 
 def cirq2pyquil(circuit):
     """Convert a cirq Circuit to a pyquil Program.
-    
+
     Currently supports only common single- and two-qubit gates.
-    
+
     Args:
         circuit (cirq.Cirquit): the converted circuit.
 
@@ -900,7 +902,7 @@ def add_gate_to_pyquil_program(pyquil_program, gate):
             The input Program object to which the gate is going to be added.
         gate: Gate (core.circuit)
             The Gate object describing the gate to be added.
-    
+
     Returns:
         A new pyquil.Program object with the definition of the new gate being added.
     """
@@ -1049,3 +1051,22 @@ def add_gate_to_pyquil_program(pyquil_program, gate):
             return pyquil_program + MEASURE(gate.qubits[0].index, ro[0])
         if gate.name == "BARRIER":
             return pyquil_program
+
+
+def add_ancilla_register_to_circuit(circuit, n_qubits_ancilla_register):
+    """Add a register of ancilla qubits (qubit + identity gate) to an existing circuit.
+
+    Args:
+        circuit (core.Circuit): circuit to be extended
+        n_qubits_ancilla_register (int): number of ancilla qubits to add
+    Returns:
+        core.Circuit: extended circuit
+
+    """
+    extended_circuit = Circuit()
+    n_qubits = len(circuit.qubits)
+    pyquil_circuit = circuit.to_pyquil()
+    for i in range(n_qubits_ancilla_register):
+        pyquil_circuit += I(n_qubits + i)
+    extended_circuit.from_pyquil(pyquil_circuit)
+    return extended_circuit

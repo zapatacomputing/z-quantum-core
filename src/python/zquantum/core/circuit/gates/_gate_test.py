@@ -615,3 +615,15 @@ def test_evaluating_gate_raises_warnings_when_extra_params_are_present_in_symbol
 
     with pytest.warns(Warning):
         gate.evaluate(symbols_map)
+
+
+def test_custom_gate_created_without_name_has_name_equal_to_its_stringified_matrix():
+    matrix = sympy.Matrix(
+        [
+            [THETA, 0, 0, 0],
+            [0, THETA, 0, 0],
+            [0, 0, 0, -1j * THETA],
+            [0, 0, -1j * THETA , 0],
+        ]
+    )
+    assert CustomGate(matrix, (0, 1)).name == str(matrix)

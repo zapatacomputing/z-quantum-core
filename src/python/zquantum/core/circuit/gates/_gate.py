@@ -264,7 +264,7 @@ class CustomGate(Gate):
         super().__init__(qubits)
         copied_matrix = copy.deepcopy(matrix)
 
-        self.name = name
+        self.name = name if name is not None else str(matrix)
 
         for index, element in enumerate(copied_matrix):
             copied_matrix[index] = element.evalf()

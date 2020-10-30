@@ -184,3 +184,43 @@ class TestControlledGateConversion:
 def test_converting_dagger_object_to_pyquil_gives_gate_with_dagger_modifier():
     gate = Dagger(X(1))
     assert convert_to_pyquil(gate).modifiers == ["DAGGER"]
+
+
+@pytest.mark.parametrize(
+    "custom_gate",
+    [
+        CustomGate(0.5 * sympy.Matrix([[1 + 1j, 1 - 1j], [1 - 1j, 1 + 1j]]), (0,), name="my_gate"),
+        CustomGate(sympy.Matrix(
+            [
+            [1, 0, 0, 0],
+            [0, 1, 0, 0],
+            [0, 0, 0, -1j],
+            [0, 0, -1j, 0]
+            ]
+        ), (0, 1))
+    ]
+)
+def test_converting_custom_gate_to_pyquil_adds_its_definition_to_program(
+    custom_gate
+):
+    program = pyquil.Program()
+    convert_to_pyquil(custom_gate, program)
+    assert program.defined_gates == [
+        pyquil.quil.DefGate(custom_gate.name, np.array(custom_gate.matrix, dtype=complex))
+    ]
+
+
+@pytest.mark.parametrize(
+    "times_to_convert", [2, 3, 5, 6]
+)
+def test_converting_gate_with_the_same_name_multiple_times_adds_only_a_single_definition_to_pyquil_program(
+    times_to_convert
+):
+    program = pyquil.Program()
+    gate = CustomGate(0.5 * sympy.Matrix([[1 + 1j, 1 - 1j], [1 - 1j, 1 + 1j]]), (0,), name="my_gate")
+    for _ in range(times_to_convert):
+        convert_to_pyquil(gate, program)
+
+    assert program.defined_gates == [
+        pyquil.quil.DefGate(gate.name, np.array(gate.matrix, dtype=complex))
+    ]

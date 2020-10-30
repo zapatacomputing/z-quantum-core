@@ -83,7 +83,7 @@ class T(SingleQubitGate):
         return sympy.Matrix(
             [
                 [1, 0],
-                [0, sympy.exp(-1j * np.pi / 4)],
+                [0, sympy.exp(1j * np.pi / 4)],
             ]
         )
 

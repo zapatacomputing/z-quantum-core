@@ -70,7 +70,7 @@ def test_PHASE_gate_has_correct_matrix(qubit, angle):
 )
 def test_T_gate_has_correct_matrix(qubit):
     assert T(qubit) == CustomGate(
-        sympy.Matrix([[1, 0], [0, sympy.exp(-1j * np.pi / 4)]]), (qubit,)
+        sympy.Matrix([[1, 0], [0, sympy.exp(1j * np.pi / 4)]]), (qubit,)
     )
 
 

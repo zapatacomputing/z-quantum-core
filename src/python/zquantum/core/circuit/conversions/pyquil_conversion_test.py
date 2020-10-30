@@ -1,6 +1,10 @@
 """Test cases for pyquil conversion."""
-from ...circuit.gates import ControlledGate
-
+import pyquil
+import pyquil.gates
+import sympy
+from pyquil.simulation.matrices import QUANTUM_GATES
+from pyquil.simulation.tools import lifted_gate
+from ...circuit.gates import ControlledGate, CustomGate
 from ...circuit.conversions.pyquil_conversions import convert_to_pyquil
 from ...circuit.gates import X, Y, Z, RX, RY, RZ, PHASE, T, I, H, CZ, CNOT, CPHASE, SWAP, Dagger
 import numpy as np
@@ -23,6 +27,17 @@ ORQUESTRA_GATE_TYPE_TO_PYQUIL_NAME = {
     SWAP: "SWAP",
     CPHASE: "CPHASE"
 }
+
+
+def pyquil_gate_matrix(gate: pyquil.gates.Gate) -> np.ndarray:
+    """Get numpy matrix corresponding to pyquil Gate.
+
+    This is based on PyQuil's source code in pyquil.simulation.tools.
+    """
+    if len(gate.params) > 0:
+        return QUANTUM_GATES[gate.name](*gate.params)
+    else:
+        return QUANTUM_GATES[gate.name]
 
 
 @pytest.mark.parametrize("qubit", [0, 1, 5, 13])
@@ -105,10 +120,11 @@ def test_converting_two_qubit_controlled_gate_to_pyquil_preserves_qubit_indices(
         CPHASE(2, 4, np.pi / 4),
     ]
 )
-def test_converting_gate_to_pyquil_preserves_its_type(gate):
+def test_converting_gate_to_pyquil_preserves_its_type_and_matrix(gate):
     pyquil_gate = convert_to_pyquil(gate)
 
     assert pyquil_gate.name == ORQUESTRA_GATE_TYPE_TO_PYQUIL_NAME[type(gate)]
+    assert np.allclose(pyquil_gate_matrix(pyquil_gate), np.array(gate.matrix.tolist(), dtype=complex))
 
 
 # Below we use multiple control qubits. What we mean is that we construct

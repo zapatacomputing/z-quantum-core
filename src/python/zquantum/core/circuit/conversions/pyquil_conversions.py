@@ -5,6 +5,7 @@ import numpy as np
 import pyquil
 import pyquil.gates
 from ...circuit import Gate, ControlledGate
+from ..circuit import Circuit
 from ...circuit.gates import X, Y, Z, RX, RY, RZ, PHASE, T, I, H, Dagger, CZ, CNOT, CPHASE, SWAP, CustomGate
 
 SINGLE_QUBIT_NONPARAMETRIC_GATES = {
@@ -90,12 +91,12 @@ def convert_SWAP_gate_to_pyquil(gate: SWAP, _program: Optional[pyquil.Program]) 
 
 @_convert_gate_to_pyquil.register(ControlledGate)
 def convert_controlled_gate_to_pyquil(gate: ControlledGate, _program: Optional[pyquil.Program]) -> pyquil.gates.Gate:
-    return convert_to_pyquil(gate.target_gate).controlled(gate.control)
+    return convert_to_pyquil(gate.target_gate, _program).controlled(gate.control)
 
 
 @_convert_gate_to_pyquil.register(Dagger)
 def convert_dagger_to_pyquil(gate: Dagger, _program: Optional[pyquil.Program]) -> pyquil.gates.Gate:
-    return convert_to_pyquil(gate.gate).dagger()
+    return convert_to_pyquil(gate.gate, _program).dagger()
 
 
 @_convert_gate_to_pyquil.register(CustomGate)
@@ -112,3 +113,12 @@ def convert_custom_gate_to_pyquil(gate: CustomGate, program: Optional[pyquil.Pro
         program += gate_definition
 
     return gate_definition.get_constructor()(*gate.qubits)
+
+
+@convert_to_pyquil.register(Circuit)
+def convert_circuit_to_pyquil(circuit: Circuit, _program: Optional[pyquil.Program] = None) -> pyquil.Program:
+    program = pyquil.Program()
+    for gate in circuit.gates:
+        program += convert_to_pyquil(gate, program)
+
+    return program

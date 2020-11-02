@@ -1,9 +1,10 @@
 """Test cases for pyquil conversion."""
+from itertools import zip_longest
 import pyquil
 import pyquil.gates
 import sympy
 from pyquil.simulation.matrices import QUANTUM_GATES
-from pyquil.simulation.tools import lifted_gate
+from ..circuit import Circuit
 from ...circuit.gates import ControlledGate, CustomGate
 from ...circuit.conversions.pyquil_conversions import convert_to_pyquil
 from ...circuit.gates import X, Y, Z, RX, RY, RZ, PHASE, T, I, H, CZ, CNOT, CPHASE, SWAP, Dagger
@@ -224,3 +225,57 @@ def test_converting_gate_with_the_same_name_multiple_times_adds_only_a_single_de
     assert program.defined_gates == [
         pyquil.quil.DefGate(gate.name, np.array(gate.matrix, dtype=complex))
     ]
+
+
+def test_converting_circuit_to_pyquil_gives_program_with_the_same_gates():
+    # The goal of the program constructed below is to include a diverse range
+    # of gates.
+    circuit = Circuit(
+        [
+            X(0),
+            Y(1).dagger,
+            Z(3),
+            ControlledGate(SWAP((0, 2)), 1),
+            CustomGate(
+                sympy.Matrix(
+                    [
+                        [1, 0, 0, 0],
+                        [0, 1, 0, 0],
+                        [0, 0, 0, -1j],
+                        [0, 0, -1j, 0]
+                    ]
+                ),
+                (1, 3),
+                name="U"
+            ).dagger,
+            RX(2, np.pi),
+            CNOT(1, 3),
+        ]
+    )
+
+    converted_program = convert_to_pyquil(circuit)
+
+    custom_gate_definition = pyquil.quil.DefGate(
+        "U",
+        [
+            [1, 0, 0, 0],
+            [0, 1, 0, 0],
+            [0, 0, 0, -1j],
+            [0, 0, -1j, 0]
+        ]
+    )
+
+    custom_gate_constructor = custom_gate_definition.get_constructor()
+
+    expected_program = pyquil.Program(
+        custom_gate_definition,
+        pyquil.gates.X(0),
+        pyquil.gates.Y(1),
+        pyquil.gates.Z(3),
+        pyquil.gates.SWAP(0, 2).controlled(1),
+        custom_gate_constructor(1, 3).dagger(),
+        pyquil.gates.RX(np.pi, 2),
+        pyquil.gates.CNOT(1, 3)
+    )
+
+    assert expected_program == converted_program

@@ -1,40 +1,36 @@
-from abc import ABC
-from typing import Tuple, Union, Dict, TextIO, Callable
+from typing import Tuple, Union
 import sympy
-from . import Gate, SpecializedGate, X, Z, PHASE
+from . import SpecializedGate, X, Z, PHASE, ControlledGate, HermitianMixin
 
 
-class ControlledGate(SpecializedGate, ABC):
-    """Controlled gate."""
-
-    gate_factory: Callable[[int], Gate]
-
-    def __init__(self, control: int, target: int):
-        super().__init__((control, target))
-
-    def _create_matrix(self) -> sympy.Matrix:
-        return sympy.Matrix.diag(sympy.eye(2), self.gate_factory(self.qubits[1]).matrix)
-
-
-class CNOT(ControlledGate):
+class CNOT(HermitianMixin, ControlledGate):
     """Controlled NOT (Controlled X) gate."""
 
-    gate_factory = X
+    def __init__(self, control: int, target: int):
+        super().__init__(X(target), control)
 
 
-class CZ(ControlledGate):
+class CZ(HermitianMixin, ControlledGate):
     """"Controlled Z gate."""
 
-    gate_factory = Z
+    def __init__(self, control: int, target: int):
+        super().__init__(Z(target), control)
 
 
 class CPHASE(ControlledGate):
     """Controlled PHASE gate."""
 
-    gate_factory = PHASE
+    def __init__(
+        self,
+        control: int,
+        target: int,
+        angle: Union[float, sympy.Symbol] = sympy.Symbol("theta")
+    ):
+        super().__init__(PHASE(target, angle), control)
+        self.angle = angle
 
 
-class SWAP(SpecializedGate):
+class SWAP(HermitianMixin, SpecializedGate):
     """Quantum SWAP gate."""
 
     def __init__(self, qubits: Tuple[int, int]):

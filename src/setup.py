@@ -23,7 +23,7 @@ setuptools.setup(
         "openfermion>=0.11.0",
         "lea>=3.2.0",
         "pyquil>=2.17.0",
-        "cirq==0.7.0",
+        "cirq>=0.8.0",
         "qiskit==0.18.3",
         "quantum-grove>=1.0.0",
         "overrides>=3.1.0",

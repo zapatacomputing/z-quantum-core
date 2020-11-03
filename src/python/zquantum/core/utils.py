@@ -275,7 +275,10 @@ class ValueEstimate(float):
         return float(self)
 
     def __eq__(self, other):
-        return super().__eq__(other) and self.precision == getattr(
+        super_eq = super().__eq__(other)
+        if super_eq is NotImplemented:
+            return super_eq
+        return super_eq and self.precision == getattr(
             other, "precision", None
         )
 

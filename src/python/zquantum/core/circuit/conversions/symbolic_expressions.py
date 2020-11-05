@@ -37,3 +37,8 @@ def symbol_from_sympy(symbol: sympy.Symbol):
 @expression_tree_from_sympy.register
 def native_number_from_sympy_number(number: sympy.Number):
     return number.n()
+
+
+@expression_tree_from_sympy.register
+def native_imaginary_unit_from_sympy_imaginary_unit(_unit: sympy.numbers.ImaginaryUnit):
+    return 1j

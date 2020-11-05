@@ -30,3 +30,6 @@ class TestBuildingTreeFromSympyExpression:
         self, sympy_number, expected_number
     ):
         assert expression_tree_from_sympy(sympy_number) == expected_number
+
+    def test_imaginary_unit_is_converted_to_1j(self):
+        assert expression_tree_from_sympy(sympy.I) == 1j

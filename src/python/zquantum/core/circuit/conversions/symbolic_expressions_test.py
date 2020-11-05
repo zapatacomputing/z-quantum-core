@@ -209,3 +209,16 @@ class TestBuildingTreeFromSympyExpression:
         assert expression_from_sympy(sympy_power) == FunctionCall(
             "div", (1, expected_denominator)
         )
+
+    @pytest.mark.parametrize(
+        "sympy_function_call, expected_function_call",
+        [
+            (sympy.cos(2), FunctionCall("cos", (2,))),
+            (sympy.sin(sympy.Symbol("theta")), FunctionCall("sin", (Symbol("theta"),))),
+            (sympy.exp(sympy.Symbol("x")), FunctionCall("exp", (Symbol("x"),))),
+        ],
+    )
+    def test_sympy_function_calls_are_converted_to_function_call_object_with_appropriate_function_name(
+        self, sympy_function_call, expected_function_call
+    ):
+        assert expression_from_sympy(sympy_function_call) == expected_function_call

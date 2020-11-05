@@ -90,3 +90,10 @@ def power_from_sympy_pow(power: sympy.Pow):
     if power.args[1] == -1:
         return FunctionCall("div", (1, expression_from_sympy(power.args[0])))
     return FunctionCall("pow", tuple(expression_from_sympy(arg) for arg in power.args))
+
+
+@expression_from_sympy.register
+def function_call_from_sympy_function(function: sympy.Function):
+    return FunctionCall(
+        str(function.func), tuple(expression_from_sympy(arg) for arg in function.args)
+    )

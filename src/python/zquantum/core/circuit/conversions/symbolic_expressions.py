@@ -66,7 +66,7 @@ def addition_from_sympy_add(add: sympy.Add):
                 expression_from_sympy(add.args[1].args[1]),
             ),
         )
-    return FunctionCall("add", tuple(expression_from_sympy(arg) for arg in add.args))
+    return FunctionCall("add", expression_from_sympy(add.args))
 
 
 @expression_from_sympy.register
@@ -80,20 +80,21 @@ def multiplication_from_sympy_mul(mul: sympy.Mul):
             ),
         )
     else:
-        return FunctionCall(
-            "mul", tuple(expression_from_sympy(arg) for arg in mul.args)
-        )
+        return FunctionCall("mul", expression_from_sympy(mul.args))
 
 
 @expression_from_sympy.register
 def power_from_sympy_pow(power: sympy.Pow):
     if power.args[1] == -1:
         return FunctionCall("div", (1, expression_from_sympy(power.args[0])))
-    return FunctionCall("pow", tuple(expression_from_sympy(arg) for arg in power.args))
+    return FunctionCall("pow", expression_from_sympy(power.args))
 
 
 @expression_from_sympy.register
 def function_call_from_sympy_function(function: sympy.Function):
-    return FunctionCall(
-        str(function.func), tuple(expression_from_sympy(arg) for arg in function.args)
-    )
+    return FunctionCall(str(function.func), expression_from_sympy(function.args))
+
+
+@expression_from_sympy.register
+def expression_tuple_from_tuple_of_sympy_args(args: tuple):
+    return tuple(expression_from_sympy(arg) for arg in args)

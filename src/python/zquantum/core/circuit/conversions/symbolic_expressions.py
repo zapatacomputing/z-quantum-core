@@ -42,3 +42,10 @@ def native_number_from_sympy_number(number: sympy.Number):
 @expression_tree_from_sympy.register
 def native_imaginary_unit_from_sympy_imaginary_unit(_unit: sympy.numbers.ImaginaryUnit):
     return 1j
+
+
+@expression_tree_from_sympy.register
+def addition_from_sympy_add(add: sympy.Add):
+    return FunctionCall(
+        "add", tuple(expression_tree_from_sympy(arg) for arg in add.args)
+    )

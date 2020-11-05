@@ -1,7 +1,7 @@
 """Test cases for symbolic_expressions module."""
 import sympy
 import pytest
-from .symbolic_expressions import expression_tree_from_sympy, Symbol
+from .symbolic_expressions import expression_tree_from_sympy, Symbol, FunctionCall
 
 
 class TestBuildingTreeFromSympyExpression:
@@ -33,3 +33,29 @@ class TestBuildingTreeFromSympyExpression:
 
     def test_imaginary_unit_is_converted_to_1j(self):
         assert expression_tree_from_sympy(sympy.I) == 1j
+
+    # In below methods we explicitly construct Add and Mul objects
+    # because arithmetic operations on sympy expressions may perform
+    # additional evaluation which may circumvent our expectations.
+    @pytest.mark.parametrize(
+        "sympy_add, expected_args",
+        [
+            (sympy.Add(1, 2, 3, evaluate=False), (1, 2, 3)),
+            (sympy.Add(sympy.Symbol("x"), 1, evaluate=False), (Symbol("x"), 1)),
+            (
+                sympy.Add(
+                    sympy.Symbol("x"),
+                    sympy.Symbol("y"),
+                    sympy.Symbol("z"),
+                    evaluate=False,
+                ),
+                (Symbol("x"), Symbol("y"), Symbol("z")),
+            ),
+        ],
+    )
+    def test_sympy_add_is_converted_to_function_call_with_add_operation(
+        self, sympy_add, expected_args
+    ):
+        assert expression_tree_from_sympy(sympy_add) == FunctionCall(
+            "add", expected_args
+        )

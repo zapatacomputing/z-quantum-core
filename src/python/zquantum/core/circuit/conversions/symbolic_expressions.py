@@ -32,3 +32,8 @@ def expression_tree_from_sympy(expression):
 @expression_tree_from_sympy.register
 def symbol_from_sympy(symbol: sympy.Symbol):
     return Symbol(str(symbol))
+
+
+@expression_tree_from_sympy.register
+def native_number_from_sympy_number(number: sympy.Number):
+    return number.n()

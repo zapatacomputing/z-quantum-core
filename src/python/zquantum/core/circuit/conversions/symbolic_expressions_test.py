@@ -1,7 +1,13 @@
 """Test cases for symbolic_expressions module."""
 import sympy
 import pytest
-from .symbolic_expressions import expression_tree_from_sympy, Symbol, FunctionCall
+from .symbolic_expressions import (
+    expression_tree_from_sympy,
+    Symbol,
+    FunctionCall,
+    is_multiplication_by_reciprocal,
+    is_addition_of_negation,
+)
 
 
 class TestBuildingTreeFromSympyExpression:
@@ -66,13 +72,13 @@ class TestBuildingTreeFromSympyExpression:
             (sympy.Mul(4, 2, 3, evaluate=False), (4, 2, 3)),
             (sympy.Mul(sympy.Symbol("x"), 2, evaluate=False), (Symbol("x"), 2)),
             (
-                    sympy.Mul(
-                        sympy.Symbol("x"),
-                        sympy.Symbol("y"),
-                        sympy.Symbol("z"),
-                        evaluate=False,
-                    ),
-                    (Symbol("x"), Symbol("y"), Symbol("z")),
+                sympy.Mul(
+                    sympy.Symbol("x"),
+                    sympy.Symbol("y"),
+                    sympy.Symbol("z"),
+                    evaluate=False,
+                ),
+                (Symbol("x"), Symbol("y"), Symbol("z")),
             ),
         ],
     )
@@ -81,4 +87,94 @@ class TestBuildingTreeFromSympyExpression:
     ):
         assert expression_tree_from_sympy(sympy_mul) == FunctionCall(
             "mul", expected_args
+        )
+
+    @pytest.mark.parametrize(
+        "sympy_multiplication",
+        [
+            sympy.Symbol("x") / sympy.Symbol("y"),
+            sympy.Symbol("x") / (sympy.Symbol("z") + 1),
+        ],
+    )
+    def test_mul_resulting_from_division_is_classified_as_multiplication_by_reciprocal(
+        self, sympy_multiplication
+    ):
+        assert is_multiplication_by_reciprocal(sympy_multiplication)
+
+    @pytest.mark.parametrize(
+        "sympy_multiplication",
+        [
+            sympy.Symbol("x") * sympy.Symbol("y"),
+            2 * sympy.Symbol("theta"),
+            sympy.Symbol("x") * sympy.Symbol("y") * sympy.Symbol("z"),
+        ],
+    )
+    def test_mul_not_resulting_from_division_is_not_classified_as_multiplication_by_reciprocal(
+        self, sympy_multiplication
+    ):
+        # Note: obviously you can manually construct multiplication that would
+        # be classified as multiplication by reciprocal. The bottom line of this
+        # test is: usual, simple multiplications are multiplications, not divisions.
+        assert not is_multiplication_by_reciprocal(sympy_multiplication)
+
+    @pytest.mark.parametrize(
+        "sympy_multiplication, expected_args",
+        [
+            (sympy.Symbol("x") / sympy.Symbol("y"), (Symbol("x"), Symbol("y"))),
+            (
+                sympy.Symbol("x") / (sympy.Add(sympy.Symbol("z"), 1, evaluate=False)),
+                (Symbol("x"), FunctionCall("add", (Symbol("z"), 1))),
+            ),
+        ],
+    )
+    def test_division_is_converted_into_div_function_call_instead_of_multiplication_by_reciprocal(
+        self, sympy_multiplication, expected_args
+    ):
+        # Important note about sympy: there is no Div operator (as opposed to
+        # e.g. Mul). The division on sympy expressions actually produces Mul
+        # objects, in which second operand is a reciprocal of the original one.
+        # We need to deal with this case, otherwise converting anything that
+        # contains division will result in very confusing expressions.
+        assert expression_tree_from_sympy(sympy_multiplication) == FunctionCall(
+            "div", expected_args
+        )
+
+    @pytest.mark.parametrize(
+        "sympy_addition",
+        [
+            sympy.Symbol("x") - sympy.Symbol("y"),
+            sympy.Symbol("x") - 1 / sympy.Symbol("y"),
+            1 - sympy.Symbol("x")
+            # Note: negation of previous case would fail, since in that case
+            # sympy would make Add(-1, Symbol("x")) out of it, unlike in other
+            # cases where it produces e.g.
+            # Add(Symbol("x", Mul(Symbol("y"), -1))).
+        ],
+    )
+    def test_add_resulting_from_subtraction_is_classified_as_addition_of_negation(
+        self, sympy_addition
+    ):
+        assert is_addition_of_negation(sympy_addition)
+
+    @pytest.mark.parametrize(
+        "sympy_addition",
+        [sympy.Symbol("x") + sympy.Symbol("y"), sympy.Symbol("x") + 10],
+    )
+    def test_add_not_resulting_from_subtraction_is_not_classified_as_addition_of_negation(
+        self, sympy_addition
+    ):
+        assert not is_addition_of_negation(sympy_addition)
+
+    @pytest.mark.parametrize(
+        "sympy_addition, expected_args",
+        [
+            (sympy.Symbol("x") - sympy.Symbol("y"), (Symbol("x"), Symbol("y"))),
+            (1 - sympy.Symbol("x"), (1, Symbol("x"))),
+        ],
+    )
+    def test_add_resulting_from_subtraction_is_converted_to_sub_function_call(
+        self, sympy_addition, expected_args
+    ):
+        assert expression_tree_from_sympy(sympy_addition) == FunctionCall(
+            "sub", expected_args
         )

@@ -22,6 +22,18 @@ class FunctionCall(NamedTuple):
 Expression = Union[Symbol, FunctionCall, Number]
 
 
+def is_multiplication_by_reciprocal(sympy_mul: sympy.Mul) -> bool:
+    """Check if given sympy multiplication is of the form x * (1 / y)."""
+    args = sympy_mul.args
+    return len(args) == 2 and isinstance(args[1], sympy.Pow) and args[1].args[1] == -1
+
+
+def is_addition_of_negation(sympy_add: sympy.Add) -> bool:
+    """Check if given sympy addition os of the form x + (-y)."""
+    args = sympy_add.args
+    return len(args) == 2 and isinstance(args[1], sympy.Mul) and args[1].args[0] == -1
+
+
 @singledispatch
 def expression_tree_from_sympy(expression):
     raise NotImplementedError(
@@ -46,6 +58,14 @@ def native_imaginary_unit_from_sympy_imaginary_unit(_unit: sympy.numbers.Imagina
 
 @expression_tree_from_sympy.register
 def addition_from_sympy_add(add: sympy.Add):
+    if is_addition_of_negation(add):
+        return FunctionCall(
+            "sub",
+            (
+                expression_tree_from_sympy(add.args[0]),
+                expression_tree_from_sympy(add.args[1].args[1]),
+            ),
+        )
     return FunctionCall(
         "add", tuple(expression_tree_from_sympy(arg) for arg in add.args)
     )
@@ -53,6 +73,15 @@ def addition_from_sympy_add(add: sympy.Add):
 
 @expression_tree_from_sympy.register
 def multiplication_from_sympy_mul(mul: sympy.Mul):
-    return FunctionCall(
-        "mul", tuple(expression_tree_from_sympy(arg) for arg in mul.args)
-    )
+    if is_multiplication_by_reciprocal(mul):
+        return FunctionCall(
+            "div",
+            (
+                expression_tree_from_sympy(mul.args[0]),
+                expression_tree_from_sympy(mul.args[1].args[0]),
+            ),
+        )
+    else:
+        return FunctionCall(
+            "mul", tuple(expression_tree_from_sympy(arg) for arg in mul.args)
+        )

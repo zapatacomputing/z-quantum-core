@@ -178,3 +178,40 @@ class TestBuildingTreeFromSympyExpression:
         assert expression_tree_from_sympy(sympy_addition) == FunctionCall(
             "sub", expected_args
         )
+
+    @pytest.mark.parametrize(
+        "sympy_power, expected_args",
+        [
+            (sympy.Pow(sympy.Symbol("x"), 2), (Symbol("x"), 2)),
+            (sympy.Pow(2, sympy.Symbol("x")), (2, Symbol("x"))),
+            (
+                sympy.Pow(sympy.Symbol("x"), sympy.Symbol("y")),
+                (Symbol("x"), Symbol("y")),
+            ),
+        ],
+    )
+    def test_sympy_pow_is_converted_to_pow_function_call(
+        self, sympy_power, expected_args
+    ):
+        assert expression_tree_from_sympy(sympy_power) == FunctionCall(
+            "pow", expected_args
+        )
+
+    @pytest.mark.parametrize(
+        "sympy_power, expected_denominator",
+        [
+            (sympy.Pow(sympy.Symbol("x"), -1), Symbol("x")),
+            (
+                sympy.Pow(
+                    sympy.Add(sympy.Symbol("x"), sympy.Symbol("y"), evaluate=False), -1
+                ),
+                FunctionCall("add", (Symbol("x"), Symbol("y"))),
+            ),
+        ],
+    )
+    def test_sympy_power_with_negative_one_exponent_gets_converted_to_division(
+        self, sympy_power, expected_denominator
+    ):
+        assert expression_tree_from_sympy(sympy_power) == FunctionCall(
+            "div", (1, expected_denominator)
+        )

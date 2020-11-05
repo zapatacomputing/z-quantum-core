@@ -85,3 +85,12 @@ def multiplication_from_sympy_mul(mul: sympy.Mul):
         return FunctionCall(
             "mul", tuple(expression_tree_from_sympy(arg) for arg in mul.args)
         )
+
+
+@expression_tree_from_sympy.register
+def power_from_sympy_pow(power: sympy.Pow):
+    if power.args[1] == -1:
+        return FunctionCall("div", (1, expression_tree_from_sympy(power.args[0])))
+    return FunctionCall(
+        "pow", tuple(expression_tree_from_sympy(arg) for arg in power.args)
+    )

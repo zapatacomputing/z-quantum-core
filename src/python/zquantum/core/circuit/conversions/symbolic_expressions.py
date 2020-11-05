@@ -27,3 +27,8 @@ def expression_tree_from_sympy(expression):
     raise NotImplementedError(
         f"Expression {expression} of type {type(expression)} is currentlyl not supported"
     )
+
+
+@expression_tree_from_sympy.register
+def symbol_from_sympy(symbol: sympy.Symbol):
+    return Symbol(str(symbol))

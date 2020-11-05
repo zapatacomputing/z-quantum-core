@@ -59,3 +59,26 @@ class TestBuildingTreeFromSympyExpression:
         assert expression_tree_from_sympy(sympy_add) == FunctionCall(
             "add", expected_args
         )
+
+    @pytest.mark.parametrize(
+        "sympy_mul, expected_args",
+        [
+            (sympy.Mul(4, 2, 3, evaluate=False), (4, 2, 3)),
+            (sympy.Mul(sympy.Symbol("x"), 2, evaluate=False), (Symbol("x"), 2)),
+            (
+                    sympy.Mul(
+                        sympy.Symbol("x"),
+                        sympy.Symbol("y"),
+                        sympy.Symbol("z"),
+                        evaluate=False,
+                    ),
+                    (Symbol("x"), Symbol("y"), Symbol("z")),
+            ),
+        ],
+    )
+    def test_sympy_mul_is_converted_to_function_call_with_mul_operation(
+        self, sympy_mul, expected_args
+    ):
+        assert expression_tree_from_sympy(sympy_mul) == FunctionCall(
+            "mul", expected_args
+        )

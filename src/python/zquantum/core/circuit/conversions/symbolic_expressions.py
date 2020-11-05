@@ -49,3 +49,10 @@ def addition_from_sympy_add(add: sympy.Add):
     return FunctionCall(
         "add", tuple(expression_tree_from_sympy(arg) for arg in add.args)
     )
+
+
+@expression_tree_from_sympy.register
+def multiplication_from_sympy_mul(mul: sympy.Mul):
+    return FunctionCall(
+        "mul", tuple(expression_tree_from_sympy(arg) for arg in mul.args)
+    )

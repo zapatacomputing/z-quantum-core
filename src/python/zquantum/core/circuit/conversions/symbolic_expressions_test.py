@@ -2,7 +2,7 @@
 import sympy
 import pytest
 from .symbolic_expressions import (
-    expression_tree_from_sympy,
+    expression_from_sympy,
     Symbol,
     FunctionCall,
     is_multiplication_by_reciprocal,
@@ -22,7 +22,7 @@ class TestBuildingTreeFromSympyExpression:
     def test_symbols_are_converted_to_instance_of_symbol_class(
         self, sympy_symbol, expected_symbol
     ):
-        assert expression_tree_from_sympy(sympy_symbol) == expected_symbol
+        assert expression_from_sympy(sympy_symbol) == expected_symbol
 
     @pytest.mark.parametrize(
         "sympy_number, expected_number",
@@ -35,10 +35,10 @@ class TestBuildingTreeFromSympyExpression:
     def test_sympy_numbers_are_converted_to_corresponding_native_number(
         self, sympy_number, expected_number
     ):
-        assert expression_tree_from_sympy(sympy_number) == expected_number
+        assert expression_from_sympy(sympy_number) == expected_number
 
     def test_imaginary_unit_is_converted_to_1j(self):
-        assert expression_tree_from_sympy(sympy.I) == 1j
+        assert expression_from_sympy(sympy.I) == 1j
 
     # In below methods we explicitly construct Add and Mul objects
     # because arithmetic operations on sympy expressions may perform
@@ -62,9 +62,7 @@ class TestBuildingTreeFromSympyExpression:
     def test_sympy_add_is_converted_to_function_call_with_add_operation(
         self, sympy_add, expected_args
     ):
-        assert expression_tree_from_sympy(sympy_add) == FunctionCall(
-            "add", expected_args
-        )
+        assert expression_from_sympy(sympy_add) == FunctionCall("add", expected_args)
 
     @pytest.mark.parametrize(
         "sympy_mul, expected_args",
@@ -85,9 +83,7 @@ class TestBuildingTreeFromSympyExpression:
     def test_sympy_mul_is_converted_to_function_call_with_mul_operation(
         self, sympy_mul, expected_args
     ):
-        assert expression_tree_from_sympy(sympy_mul) == FunctionCall(
-            "mul", expected_args
-        )
+        assert expression_from_sympy(sympy_mul) == FunctionCall("mul", expected_args)
 
     @pytest.mark.parametrize(
         "sympy_multiplication",
@@ -135,7 +131,7 @@ class TestBuildingTreeFromSympyExpression:
         # objects, in which second operand is a reciprocal of the original one.
         # We need to deal with this case, otherwise converting anything that
         # contains division will result in very confusing expressions.
-        assert expression_tree_from_sympy(sympy_multiplication) == FunctionCall(
+        assert expression_from_sympy(sympy_multiplication) == FunctionCall(
             "div", expected_args
         )
 
@@ -175,7 +171,7 @@ class TestBuildingTreeFromSympyExpression:
     def test_add_resulting_from_subtraction_is_converted_to_sub_function_call(
         self, sympy_addition, expected_args
     ):
-        assert expression_tree_from_sympy(sympy_addition) == FunctionCall(
+        assert expression_from_sympy(sympy_addition) == FunctionCall(
             "sub", expected_args
         )
 
@@ -193,9 +189,7 @@ class TestBuildingTreeFromSympyExpression:
     def test_sympy_pow_is_converted_to_pow_function_call(
         self, sympy_power, expected_args
     ):
-        assert expression_tree_from_sympy(sympy_power) == FunctionCall(
-            "pow", expected_args
-        )
+        assert expression_from_sympy(sympy_power) == FunctionCall("pow", expected_args)
 
     @pytest.mark.parametrize(
         "sympy_power, expected_denominator",
@@ -212,6 +206,6 @@ class TestBuildingTreeFromSympyExpression:
     def test_sympy_power_with_negative_one_exponent_gets_converted_to_division(
         self, sympy_power, expected_denominator
     ):
-        assert expression_tree_from_sympy(sympy_power) == FunctionCall(
+        assert expression_from_sympy(sympy_power) == FunctionCall(
             "div", (1, expected_denominator)
         )

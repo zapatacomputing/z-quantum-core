@@ -35,62 +35,58 @@ def is_addition_of_negation(sympy_add: sympy.Add) -> bool:
 
 
 @singledispatch
-def expression_tree_from_sympy(expression):
+def expression_from_sympy(expression):
     raise NotImplementedError(
         f"Expression {expression} of type {type(expression)} is currentlyl not supported"
     )
 
 
-@expression_tree_from_sympy.register
+@expression_from_sympy.register
 def symbol_from_sympy(symbol: sympy.Symbol):
     return Symbol(str(symbol))
 
 
-@expression_tree_from_sympy.register
+@expression_from_sympy.register
 def native_number_from_sympy_number(number: sympy.Number):
     return number.n()
 
 
-@expression_tree_from_sympy.register
+@expression_from_sympy.register
 def native_imaginary_unit_from_sympy_imaginary_unit(_unit: sympy.numbers.ImaginaryUnit):
     return 1j
 
 
-@expression_tree_from_sympy.register
+@expression_from_sympy.register
 def addition_from_sympy_add(add: sympy.Add):
     if is_addition_of_negation(add):
         return FunctionCall(
             "sub",
             (
-                expression_tree_from_sympy(add.args[0]),
-                expression_tree_from_sympy(add.args[1].args[1]),
+                expression_from_sympy(add.args[0]),
+                expression_from_sympy(add.args[1].args[1]),
             ),
         )
-    return FunctionCall(
-        "add", tuple(expression_tree_from_sympy(arg) for arg in add.args)
-    )
+    return FunctionCall("add", tuple(expression_from_sympy(arg) for arg in add.args))
 
 
-@expression_tree_from_sympy.register
+@expression_from_sympy.register
 def multiplication_from_sympy_mul(mul: sympy.Mul):
     if is_multiplication_by_reciprocal(mul):
         return FunctionCall(
             "div",
             (
-                expression_tree_from_sympy(mul.args[0]),
-                expression_tree_from_sympy(mul.args[1].args[0]),
+                expression_from_sympy(mul.args[0]),
+                expression_from_sympy(mul.args[1].args[0]),
             ),
         )
     else:
         return FunctionCall(
-            "mul", tuple(expression_tree_from_sympy(arg) for arg in mul.args)
+            "mul", tuple(expression_from_sympy(arg) for arg in mul.args)
         )
 
 
-@expression_tree_from_sympy.register
+@expression_from_sympy.register
 def power_from_sympy_pow(power: sympy.Pow):
     if power.args[1] == -1:
-        return FunctionCall("div", (1, expression_tree_from_sympy(power.args[0])))
-    return FunctionCall(
-        "pow", tuple(expression_tree_from_sympy(arg) for arg in power.args)
-    )
+        return FunctionCall("div", (1, expression_from_sympy(power.args[0])))
+    return FunctionCall("pow", tuple(expression_from_sympy(arg) for arg in power.args))

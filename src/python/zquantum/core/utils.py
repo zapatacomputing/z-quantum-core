@@ -1,4 +1,5 @@
 """General-purpose utilities."""
+import warnings
 
 import numpy as np
 from scipy.linalg import expm
@@ -15,7 +16,7 @@ from networkx.readwrite import json_graph
 import lea
 import collections
 import scipy
-from typing import List, Tuple
+from typing import List, Tuple, Optional
 import importlib
 
 
@@ -245,12 +246,12 @@ def convert_tuples_to_bitstrings(tuples):
     return bitstrings
 
 
-class ValueEstimate:
+class ValueEstimate(float):
     """A class representing a numerical value and its precision corresponding
         to an observable or an objective function
 
     Args:
-        value (np.float): the numerical value
+        value (np.float): the numerical value or a value that can be converted to float
         precision (np.float): its precision
 
     Attributes:
@@ -258,18 +259,38 @@ class ValueEstimate:
         precision (np.float): its precision
     """
 
-    def __init__(self, value, precision=None):
-        self.value = value
+    def __init__(self, value, precision: Optional[float] = None):
+        super().__init__()
         self.precision = precision
 
+    def __new__(cls, value, precision=None):
+        return super().__new__(cls, value)
+
+    @property
+    def value(self):
+        warnings.warn(
+            "The value attribute is deprecated. Use ValueEstimate object directly instead.",
+            DeprecationWarning,
+        )
+        return float(self)
+
     def __eq__(self, other):
-        return self.value == other.value and self.precision == other.precision
+        super_eq = super().__eq__(other)
+        if super_eq is NotImplemented:
+            return super_eq
+        return super_eq and self.precision == getattr(
+            other, "precision", None
+        )
+
+    def __ne__(self, other):
+        return not self == other
 
     def __str__(self):
+        value_str = super().__str__()
         if self.precision is not None:
-            return f'{self.value} ± {self.precision}'
+            return f"{value_str} ± {self.precision}"
         else:
-            return f'{self.value}'
+            return f"{value_str}"
 
     def to_dict(self):
         """Convert to a dictionary"""
@@ -365,6 +386,19 @@ def save_list(array, filename, artifact_name=""):
 
     with open(filename, "w") as f:
         f.write(json.dumps(dictionary, indent=2))
+
+def save_generic_dict(dictionary, filename):
+    """Save dictionary as json
+
+    Args:
+        dictionary (dict): the dict containing the data
+    """
+    dictionary_stored = {}
+    dictionary_stored['schema'] = SCHEMA_VERSION + '-dict'
+    dictionary_stored['dict'] = dictionary
+    
+    with open(filename, 'w') as f:
+        f.write(json.dumps(dictionary_stored, indent=2))
 
 
 def get_func_from_specs(specs):
@@ -483,4 +517,3 @@ def save_timing(walltime: float, filename: str) -> None:
         f.write(
             json.dumps({"schema": SCHEMA_VERSION + "-timing", "walltime": walltime})
         )
-

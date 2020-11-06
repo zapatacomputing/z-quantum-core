@@ -15,6 +15,7 @@ from math import pi, sin, cos
 
 from qiskit.aqua.circuits.gates import mcu1, mcry
 
+from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister
 from . import (
     load_circuit,
     save_circuit,
@@ -33,6 +34,8 @@ from . import (
 
 from ..utils import compare_unitary, is_identity, is_unitary, RNDSEED
 from ..testing import create_random_circuit
+from qiskit.quantum_info import Operator
+import numpy.linalg as linalg
 
 
 class TestCircuit(unittest.TestCase):
@@ -1632,6 +1635,32 @@ class TestCircuit(unittest.TestCase):
         translated_ibm_circuit_1 = circuit_1.to_qiskit()
         self.assertEqual(qiskit_gates == translated_ibm_circuit_1, True)
 
+    def test_control_rotation_gates(self):
+        '''Test addition of crx, cry and crz from qiskit
+
+        '''
+        qr = QuantumRegister(2, name='q')
+        cr = ClassicalRegister(2, name='c')
+        qc = QuantumCircuit(qr, cr)
+        angle = [np.pi/2, np.pi/4, np.pi/8]
+        qc.crx(angle[0], 0, 1)
+        qc.cry(angle[1], 0, 1)
+        qc.crz(angle[2], 0, 1)
+
+        circuit = Circuit('test')
+        qubits = [Qubit(0), Qubit(1)]
+        gates = [Gate('CRX', qubits=qubits, params=[angle[0]]), 
+            Gate('CRY', qubits=qubits, params=[angle[1]]), 
+            Gate('CRZ', qubits=qubits, params=[angle[2]])
+          ]
+        circuit.qubits = qubits
+        circuit.gates =gates
+
+        ibm_circuit = circuit.to_qiskit()
+        ibm_circuit_unitary = Operator(ibm_circuit).data
+        qc_unitary = Operator(qc).data
+        self.assertLessEqual(np.linalg.norm(ibm_circuit_unitary - qc_unitary), pow(10, -15))
+        
     def test_add_ancilla_register_to_circuit(self):
         n_qubits = 6
         n_ancilla_qubits = 2

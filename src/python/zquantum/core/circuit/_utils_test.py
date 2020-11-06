@@ -1,7 +1,8 @@
 import unittest
 import os
 from openfermion import QubitOperator
-from . import create_circuits_from_qubit_operator
+from . import (create_circuits_from_qubit_operator,
+                create_list_of_full_weight_paulis,)
 
 from . import (
     Circuit,
@@ -49,4 +50,12 @@ class TestUtils(unittest.TestCase):
         self.assertEqual(pauli_circuits[1].gates, target_circuits_list[1].gates)
         self.assertEqual(str(pauli_circuits[0].qubits), str(target_circuits_list[0].qubits))
         self.assertEqual(str(pauli_circuits[1].qubits), str(target_circuits_list[1].qubits))
+
+    def test_create_list_of_full_weight_paulis(self):
+
+        number_of_qubits = 4
+        pauli_strings = create_list_of_full_weight_paulis(number_of_qubits)
+        print(pauli_strings)
+        self.assertEqual(len(pauli_strings), 256)
+
 

@@ -1,8 +1,11 @@
 """Utilities for converting symbolic expressions between different dialects."""
+import operator
 from functools import singledispatch
 from numbers import Number
-from typing import NamedTuple, Any, Iterable, Union, Dict, Callable
+from typing import NamedTuple, Any, Iterable, Union, Dict, Callable, Tuple
 
+import pyquil
+from pyquil import quilatom
 import sympy
 
 
@@ -47,8 +50,18 @@ def symbol_from_sympy(symbol: sympy.Symbol):
 
 
 @expression_from_sympy.register
-def native_number_from_sympy_number(number: sympy.Number):
-    return number.n()
+def native_integer_from_sympy_integer(number: sympy.Integer):
+    return int(number)
+
+
+@expression_from_sympy.register
+def native_float_from_sympy_float(number: sympy.Float):
+    return float(number)
+
+
+@expression_from_sympy.register
+def native_float_from_sympy_rational(number: sympy.Rational):
+    return float(number)
 
 
 @expression_from_sympy.register

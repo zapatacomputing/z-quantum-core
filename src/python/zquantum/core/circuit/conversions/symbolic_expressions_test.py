@@ -25,17 +25,19 @@ class TestBuildingTreeFromSympyExpression:
         assert expression_from_sympy(sympy_symbol) == expected_symbol
 
     @pytest.mark.parametrize(
-        "sympy_number, expected_number",
+        "sympy_number, expected_number, expected_class",
         [
-            (sympy.sympify(2), 2),
-            (sympy.sympify(-2.5), -2.5),
-            (sympy.Rational(3, 8), 0.375),
+            (sympy.sympify(2), 2, int),
+            (sympy.sympify(-2.5), -2.5, float),
+            (sympy.Rational(3, 8), 0.375, float),
         ],
     )
     def test_sympy_numbers_are_converted_to_corresponding_native_number(
-        self, sympy_number, expected_number
+        self, sympy_number, expected_number, expected_class
     ):
-        assert expression_from_sympy(sympy_number) == expected_number
+        native_number = expression_from_sympy(sympy_number)
+        assert native_number == expected_number
+        assert isinstance(native_number, expected_class)
 
     def test_imaginary_unit_is_converted_to_1j(self):
         assert expression_from_sympy(sympy.I) == 1j

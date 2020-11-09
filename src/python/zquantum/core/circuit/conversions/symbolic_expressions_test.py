@@ -1,4 +1,5 @@
 """Test cases for symbolic_expressions module."""
+from pyquil import quil, quilatom
 import sympy
 import pytest
 from .symbolic_expressions import (
@@ -6,7 +7,7 @@ from .symbolic_expressions import (
     Symbol,
     FunctionCall,
     is_multiplication_by_reciprocal,
-    is_addition_of_negation,
+    is_addition_of_negation, translate_expression, QUIL_DIALECT,
 )
 
 
@@ -224,3 +225,22 @@ class TestBuildingTreeFromSympyExpression:
         self, sympy_function_call, expected_function_call
     ):
         assert expression_from_sympy(sympy_function_call) == expected_function_call
+
+
+@pytest.mark.parametrize(
+    "sympy_expression, quil_expression",
+    [
+        (sympy.Symbol("theta"), quil.Parameter("theta")),
+        (
+            sympy.Mul(sympy.Symbol("theta"), sympy.Symbol("gamma"), evaluate=False),
+            quil.Parameter("theta") * quil.Parameter("gamma"),
+        ),
+        (sympy.cos(sympy.Symbol("theta")), quilatom.quil_cos(quil.Parameter("theta"))),
+        (sympy.cos(2 * sympy.Symbol("theta")), quilatom.quil_cos(2 * quil.Parameter("theta")))
+    ]
+)
+def test_translating_tree_from_sympy_to_quil_gives_expected_result(
+    sympy_expression, quil_expression
+):
+    expression = expression_from_sympy(sympy_expression)
+    assert translate_expression(expression, QUIL_DIALECT) == quil_expression

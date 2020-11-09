@@ -25,6 +25,18 @@ class FunctionCall(NamedTuple):
 Expression = Union[Symbol, FunctionCall, Number]
 
 
+class ExpressionDialect(NamedTuple):
+    """Dialect of arithmetic expression.
+
+    This is to group information on how to transform expression given in
+    our native representation into some representation in external
+    library (e.g. PyQuil or Sympy).
+    """
+    symbol_factory: Callable[[Symbol], Any]
+    number_factory: Callable[[Number], Any]
+    known_functions: Dict[str, Callable[..., Any]]
+
+
 def is_multiplication_by_reciprocal(sympy_mul: sympy.Mul) -> bool:
     """Check if given sympy multiplication is of the form x * (1 / y)."""
     args = sympy_mul.args
@@ -111,3 +123,56 @@ def function_call_from_sympy_function(function: sympy.Function):
 @expression_from_sympy.register
 def expression_tuple_from_tuple_of_sympy_args(args: tuple):
     return tuple(expression_from_sympy(arg) for arg in args)
+
+
+@singledispatch
+def translate_expression(
+    expression: Union[Expression, Tuple[Expression, ...]],
+    dialect: ExpressionDialect
+):
+    pass
+
+
+@translate_expression.register
+def translate_number(number: Number, dialect: ExpressionDialect):
+    return dialect.number_factory(number)
+
+
+@translate_expression.register
+def translate_symbol(symbol: Symbol, dialect: ExpressionDialect):
+    return dialect.symbol_factory(symbol)
+
+
+@translate_expression.register
+def translate_function_call(
+    function_call: FunctionCall, dialect: ExpressionDialect
+):
+    if function_call.name not in dialect.known_functions:
+        raise ValueError(f"Function {function_call.name} not know in this dialect.")
+
+    return dialect.known_functions[function_call.name](
+        *translate_tuple(function_call.args, dialect)
+    )
+
+
+def translate_tuple(expression_tuple: Iterable[Expression], dialect: ExpressionDialect):
+    return tuple(
+        translate_expression(element, dialect)
+        for element in expression_tuple
+    )
+
+
+QUIL_DIALECT = ExpressionDialect(
+    symbol_factory=lambda symbol: pyquil.quil.Parameter(symbol.name),
+    number_factory=lambda number: number,
+    known_functions={
+        "add": operator.add,
+        "mul": operator.mul,
+        "div": operator.truediv,
+        "sub": operator.sub,
+        "cos": quilatom.quil_cos,
+        "sin": quilatom.quil_cos,
+        "exp": quilatom.quil_exp,
+        "sqrt": quilatom.quil_sqrt
+    }
+)

@@ -268,6 +268,22 @@ class TestBuildingTreeFromSympyExpression:
         (
             sympy.tan(sympy.Symbol("theta")),
             quilatom.quil_sin(quil.Parameter("theta")) / quilatom.quil_cos(quil.Parameter("theta"))
+        ),
+        (
+            2 ** sympy.Symbol("x"),
+            2 ** quil.Parameter("x")
+        ),
+        (
+            sympy.Symbol("y") ** sympy.Symbol("x"),
+            quil.Parameter("y") ** quil.Parameter("x")
+        ),
+        (
+            sympy.Symbol("x") ** 2,
+            quil.Parameter("x") ** 2
+        ),
+        (
+            2 ** sympy.Symbol("x"),
+            2 ** quil.Parameter("x")
         )
     ]
 )

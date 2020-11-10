@@ -170,6 +170,7 @@ QUIL_DIALECT = ExpressionDialect(
         "mul": operator.mul,
         "div": operator.truediv,
         "sub": operator.sub,
+        "pow": operator.pow,
         "cos": quilatom.quil_cos,
         "sin": quilatom.quil_sin,
         "exp": quilatom.quil_exp,

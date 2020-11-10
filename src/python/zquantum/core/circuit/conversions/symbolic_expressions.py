@@ -165,6 +165,9 @@ def translate_tuple(expression_tuple: Iterable[Expression], dialect: ExpressionD
     )
 
 
+# Dialect defining conversion of intermediate expression tree to
+# the expression based on quil functions/parameters.
+# This is intended to be passed by a `dialect` argument of `translate_expression`.
 QUIL_DIALECT = ExpressionDialect(
     symbol_factory=lambda symbol: pyquil.quil.Parameter(symbol.name),
     number_factory=lambda number: number,

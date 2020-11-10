@@ -112,7 +112,10 @@ def multiplication_from_sympy_mul(mul: sympy.Mul):
 def power_from_sympy_pow(power: sympy.Pow):
     if power.args[1] == -1:
         return FunctionCall("div", (1, expression_from_sympy(power.args[0])))
-    return FunctionCall("pow", expression_from_sympy(power.args))
+    elif power.args[1] == 0.5:
+        return FunctionCall("sqrt", (expression_from_sympy(power.args[0]),))
+    else:
+        return FunctionCall("pow", expression_from_sympy(power.args))
 
 
 @expression_from_sympy.register

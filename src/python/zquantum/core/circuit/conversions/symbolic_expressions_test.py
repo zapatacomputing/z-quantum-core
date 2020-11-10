@@ -284,6 +284,10 @@ class TestBuildingTreeFromSympyExpression:
         (
             2 ** sympy.Symbol("x"),
             2 ** quil.Parameter("x")
+        ),
+        (
+            sympy.sqrt(sympy.Symbol("x") - sympy.Symbol("y")),
+            quilatom.quil_sqrt(quil.Parameter("x") - quil.Parameter("y"))
         )
     ]
 )

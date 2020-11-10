@@ -173,6 +173,7 @@ QUIL_DIALECT = ExpressionDialect(
         "cos": quilatom.quil_cos,
         "sin": quilatom.quil_sin,
         "exp": quilatom.quil_exp,
-        "sqrt": quilatom.quil_sqrt
+        "sqrt": quilatom.quil_sqrt,
+        "tan": lambda arg: quilatom.quil_sin(arg) / quilatom.quil_cos(arg)
     }
 )

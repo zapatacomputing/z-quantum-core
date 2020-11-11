@@ -65,7 +65,7 @@ save_circuit(circuit, 'circuit.json')
 ```
 
 Even though it's intended to be used with Orquestra, `z-quantum-core` can be also used as a standalone Python module.
-This can be done by running `pip install .` from the `src/` directory.
+This can be done by running `pip install -e .` from the `src/` directory.
 
 ## Development and Contribution
 

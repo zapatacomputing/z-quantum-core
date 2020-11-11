@@ -23,6 +23,7 @@ class AnsatzBasedCostFunction:
         delta (float): a confidence term. If theoretical upper bounds are known for the estimation technique, 
             the final estimate should be within the epsilon term, with probability 1 - delta.
         fixed_parameters (np.ndarray): values for the circuit parameters that should be fixed. 
+        parameter_precision (float): the standard deviation of the Gaussian noise to add to each parameter, if any.
 
     Params:
         target_operator (openfermion.QubitOperator): see Args
@@ -33,6 +34,7 @@ class AnsatzBasedCostFunction:
         epsilon (float): see Args
         delta (float): see Args
         fixed_parameters (np.ndarray): see Args
+        parameter_precision (float): see Args
     """
 
     def __init__(
@@ -45,6 +47,7 @@ class AnsatzBasedCostFunction:
         epsilon: Optional[float] = None,
         delta: Optional[float] = None,
         fixed_parameters: Optional[np.ndarray] = None,
+        parameter_precision: Optional[float] = None,
     ):
         self.target_operator = target_operator
         self.ansatz = ansatz
@@ -57,6 +60,7 @@ class AnsatzBasedCostFunction:
         self.epsilon = epsilon
         self.delta = delta
         self.fixed_parameters = fixed_parameters
+        self.parameter_precision = parameter_precision
 
     def __call__(self, parameters: np.ndarray) -> ValueEstimate:
         """Evaluates the value of the cost function for given parameters.
@@ -69,6 +73,11 @@ class AnsatzBasedCostFunction:
         """
         if self.fixed_parameters is not None:
             parameters = combine_ansatz_params(self.fixed_parameters, parameters)
+        if self.parameter_precision is not None:
+            rng = np.random.default_rng()
+            noise_array = rng.normal(0.0, self.parameter_precision, len(parameters))
+            parameters += noise_array
+
         circuit = self.ansatz.get_executable_circuit(parameters)
         expectation_values = self.estimator.get_estimated_expectation_values(
             self.backend,

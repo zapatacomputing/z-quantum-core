@@ -119,6 +119,26 @@ class TestBasicEstimator(unittest.TestCase, EstimatorTests):
             # Then
             self.assertEqual(self.backend.n_samples, 5)
 
+    def test_get_estimated_expectation_values(self):
+        for estimator in self.estimators:
+            # Given
+            coefficient = -2
+            constant_qubit_operator = QubitOperator((), coefficient)
+
+            # When
+            values = estimator.get_estimated_expectation_values(
+                self.backend,
+                self.circuit,
+                constant_qubit_operator,
+                n_samples=self.n_samples,
+                epsilon=self.epsilon,
+                delta=self.delta,
+            ).values
+            value = values[0]
+            # Then
+            self.assertTrue(len(values) == 1)
+            self.assertEqual(value, coefficient)
+
 
 class TestExactEstimator(unittest.TestCase, EstimatorTests):
     def setUp(self):

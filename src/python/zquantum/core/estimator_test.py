@@ -119,11 +119,13 @@ class TestBasicEstimator(unittest.TestCase, EstimatorTests):
             # Then
             self.assertEqual(self.backend.n_samples, 5)
 
-    def test_get_estimated_expectation_values(self):
+    def test_get_estimated_expectation_values_with_constant(self):
         for estimator in self.estimators:
             # Given
             coefficient = -2
-            constant_qubit_operator = QubitOperator((), coefficient)
+            constant_qubit_operator = QubitOperator((), coefficient) + QubitOperator(
+                (0, "X")
+            )
 
             # When
             values = estimator.get_estimated_expectation_values(
@@ -134,10 +136,10 @@ class TestBasicEstimator(unittest.TestCase, EstimatorTests):
                 epsilon=self.epsilon,
                 delta=self.delta,
             ).values
-            value = values[0]
+            value = values[1]
             # Then
-            self.assertTrue(len(values) == 1)
-            self.assertEqual(value, coefficient)
+            self.assertTrue(len(values) == 2)
+            self.assertEqual(coefficient, value)
 
 
 class TestExactEstimator(unittest.TestCase, EstimatorTests):

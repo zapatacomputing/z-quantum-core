@@ -1,8 +1,8 @@
 """Test cases for sympy_expressions module."""
 import pytest
 import sympy
-from .symbolic_expressions import Symbol, FunctionCall
-from .sympy_expressions import (
+from zquantum.core.circuit.conversions.symbolic.expressions import Symbol, FunctionCall
+from zquantum.core.circuit.conversions.symbolic.sympy_expressions import (
     expression_from_sympy,
     is_addition_of_negation,
     is_multiplication_by_reciprocal,

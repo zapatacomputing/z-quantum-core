@@ -2,7 +2,7 @@
 import operator
 import pyquil
 from pyquil import quilatom
-from .symbolic_expressions import ExpressionDialect
+from zquantum.core.circuit.conversions.symbolic.expressions import ExpressionDialect
 
 # Dialect defining conversion of intermediate expression tree to
 # the expression based on quil functions/parameters.

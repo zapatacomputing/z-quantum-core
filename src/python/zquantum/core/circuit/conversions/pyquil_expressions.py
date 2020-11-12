@@ -20,6 +20,6 @@ QUIL_DIALECT = ExpressionDialect(
         "sin": quilatom.quil_sin,
         "exp": quilatom.quil_exp,
         "sqrt": quilatom.quil_sqrt,
-        "tan": lambda arg: quilatom.quil_sin(arg) / quilatom.quil_cos(arg)
-    }
+        "tan": lambda arg: quilatom.quil_sin(arg) / quilatom.quil_cos(arg),
+    },
 )

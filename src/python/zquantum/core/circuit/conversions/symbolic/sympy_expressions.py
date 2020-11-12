@@ -1,7 +1,7 @@
 """Utilities for converting sympy expressions to our native Expression format."""
 from functools import singledispatch
 import sympy
-from zquantum.core.circuit.conversions.symbolic.expressions import Symbol, FunctionCall
+from .expressions import Symbol, FunctionCall
 
 
 def is_multiplication_by_reciprocal(sympy_mul: sympy.Mul) -> bool:

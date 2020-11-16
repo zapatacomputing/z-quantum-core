@@ -176,6 +176,11 @@ class BasicEstimator(Estimator):
                 )
             )
 
+        if target_operator.terms.get(()) is not None:
+            expectation_values_set.append(
+                ExpectationValues(np.array([target_operator.terms.get(())]))
+            )
+
         return expectation_values_to_real(
             concatenate_expectation_values(expectation_values_set)
         )

@@ -266,7 +266,7 @@ def test_converting_parametrized_custom_gate_to_pyquil_adds_its_definition_to_pr
         [sympy.cos(x + y), sympy.sin(theta), 0, 0],
         [-sympy.sin(theta), sympy.cos(x + y), 0, 0],
         [0, 0, sympy.sqrt(x), sympy.exp(y)],
-        [0, 0, 1, sympy.I]
+        [0, 0, 1.0, sympy.I]
     ]),
         (0, 2),
         "my_gate"
@@ -287,9 +287,13 @@ def test_converting_parametrized_custom_gate_to_pyquil_adds_its_definition_to_pr
     ]
     )
 
-    assert program.defined_gates == [
-        pyquil.quil.DefGate(custom_gate.name, expected_pyquil_matrix, [quil_x, quil_y, quil_theta])
-    ]
+    # Note: we cannot replace this with a single assertion. This is because
+    # the order of custom_gate.symbolic_params is not known.
+    gate_definition = program.defined_gates[0]
+    assert len(program.defined_gates) == 1
+    assert len(gate_definition.parameters) == 3
+    assert set(gate_definition.parameters) == {quil_x, quil_y, quil_theta}
+    assert np.array_equal(gate_definition.matrix, expected_pyquil_matrix)
 
 
 @pytest.mark.parametrize("times_to_convert", [2, 3, 5, 6])

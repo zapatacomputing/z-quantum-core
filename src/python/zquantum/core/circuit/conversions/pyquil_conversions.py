@@ -7,6 +7,10 @@ import pyquil.gates
 from ...circuit import Gate, ControlledGate
 from ..circuit import Circuit
 from ...circuit.gates import X, Y, Z, RX, RY, RZ, PHASE, T, I, H, Dagger, CZ, CNOT, CPHASE, SWAP, CustomGate
+from .symbolic.sympy_expressions import expression_from_sympy
+from .symbolic.translations import translate_expression
+from .symbolic.pyquil_expressions import QUIL_DIALECT
+
 
 SINGLE_QUBIT_NONPARAMETRIC_GATES = {
     X: pyquil.gates.X,
@@ -35,8 +39,6 @@ def convert_to_pyquil(obj, program: Optional[pyquil.Program] = None):
 
 @convert_to_pyquil.register
 def convert_gate_to_pyquil(gate: Gate, program: Optional[pyquil.Program] = None) -> pyquil.gates.Gate:
-    if gate.symbolic_params:
-        raise NotImplementedError(f"Cannot convert gate with symbolic params to PyQuil object.")
     return _convert_gate_to_pyquil(gate, program)
 
 
@@ -66,7 +68,10 @@ def convert_single_qubit_rotation_gate_to_pyquil(
     gate: Union[RX, RY, RZ, PHASE],
     _program: Optional[pyquil.Program] = None
 ) -> pyquil.gates.Gate:
-    return ROTATION_GATES[type(gate)](gate.angle, gate.qubit)
+    return ROTATION_GATES[type(gate)](
+        translate_expression(expression_from_sympy(gate.angle), QUIL_DIALECT),
+        gate.qubit
+    )
 
 
 @_convert_gate_to_pyquil.register(CNOT)

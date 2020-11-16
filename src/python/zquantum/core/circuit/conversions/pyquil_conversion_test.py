@@ -67,6 +67,23 @@ def test_converting_rotation_gate_to_pyquil_preserves_qubit_index_and_angle(
     assert pyquil_gate.params[0] == angle
 
 
+@pytest.mark.parametrize("qubit", [0, 4, 10, 11])
+@pytest.mark.parametrize(
+    "native_angle, pyquil_angle",
+    [
+        (sympy.Symbol("theta"), pyquil.quil.Parameter("theta")),
+        (sympy.Symbol("x") + sympy.Symbol("y"), pyquil.quil.Parameter("x") + pyquil.quil.Parameter("y")),
+        (2 * sympy.Symbol("phi"), 2 * pyquil.quil.Parameter("phi"))
+    ]
+)
+@pytest.mark.parametrize("gate_cls", [RX, RY, RZ, PHASE])
+def test_converting_parametrized_rotation_gate_to_pyquil_translates_angle_expression(
+    qubit, native_angle, pyquil_angle, gate_cls
+):
+    pyquil_gate = convert_to_pyquil(gate_cls(qubit, native_angle))
+    assert pyquil_gate.params[0] == pyquil_angle
+
+
 @pytest.mark.parametrize("qubits", [[0, 1], [2, 10], [4, 7]])
 @pytest.mark.parametrize("angle", [0, np.pi / 4, np.pi / 2, np.pi, 2 * np.pi])
 def test_pyquil_gate_created_from_zquantum_cphase_gate_has_the_same_qubits_and_angle_as_the_original_one(

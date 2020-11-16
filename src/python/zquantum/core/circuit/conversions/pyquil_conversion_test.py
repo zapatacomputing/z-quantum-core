@@ -7,7 +7,23 @@ from pyquil.simulation.matrices import QUANTUM_GATES
 from ..circuit import Circuit
 from ...circuit.gates import ControlledGate, CustomGate
 from ...circuit.conversions.pyquil_conversions import convert_to_pyquil
-from ...circuit.gates import X, Y, Z, RX, RY, RZ, PHASE, T, I, H, CZ, CNOT, CPHASE, SWAP, Dagger
+from ...circuit.gates import (
+    X,
+    Y,
+    Z,
+    RX,
+    RY,
+    RZ,
+    PHASE,
+    T,
+    I,
+    H,
+    CZ,
+    CNOT,
+    CPHASE,
+    SWAP,
+    Dagger,
+)
 import numpy as np
 import pytest
 
@@ -26,7 +42,7 @@ ORQUESTRA_GATE_TYPE_TO_PYQUIL_NAME = {
     CNOT: "CNOT",
     CZ: "CZ",
     SWAP: "SWAP",
-    CPHASE: "CPHASE"
+    CPHASE: "CPHASE",
 }
 
 
@@ -53,7 +69,7 @@ def test_converting_single_qubit_nonparametric_gate_to_pyquil_preserves_qubit_in
 
 
 @pytest.mark.parametrize("qubit", [0, 4, 10, 11])
-@pytest.mark.parametrize("angle", [np.pi, np.pi/2, 0.4])
+@pytest.mark.parametrize("angle", [np.pi, np.pi / 2, 0.4])
 @pytest.mark.parametrize("gate_cls", [RX, RY, RZ, PHASE])
 def test_converting_rotation_gate_to_pyquil_preserves_qubit_index_and_angle(
     qubit, angle, gate_cls
@@ -72,9 +88,12 @@ def test_converting_rotation_gate_to_pyquil_preserves_qubit_index_and_angle(
     "native_angle, pyquil_angle",
     [
         (sympy.Symbol("theta"), pyquil.quil.Parameter("theta")),
-        (sympy.Symbol("x") + sympy.Symbol("y"), pyquil.quil.Parameter("x") + pyquil.quil.Parameter("y")),
-        (2 * sympy.Symbol("phi"), 2 * pyquil.quil.Parameter("phi"))
-    ]
+        (
+            sympy.Symbol("x") + sympy.Symbol("y"),
+            pyquil.quil.Parameter("x") + pyquil.quil.Parameter("y"),
+        ),
+        (2 * sympy.Symbol("phi"), 2 * pyquil.quil.Parameter("phi")),
+    ],
 )
 @pytest.mark.parametrize("gate_cls", [RX, RY, RZ, PHASE])
 def test_converting_parametrized_rotation_gate_to_pyquil_translates_angle_expression(
@@ -136,13 +155,15 @@ def test_converting_two_qubit_controlled_gate_to_pyquil_preserves_qubit_indices(
         CZ(2, 12),
         SWAP((2, 4)),
         CPHASE(2, 4, np.pi / 4),
-    ]
+    ],
 )
 def test_converting_gate_to_pyquil_preserves_its_type_and_matrix(gate):
     pyquil_gate = convert_to_pyquil(gate)
 
     assert pyquil_gate.name == ORQUESTRA_GATE_TYPE_TO_PYQUIL_NAME[type(gate)]
-    assert np.allclose(pyquil_gate_matrix(pyquil_gate), np.array(gate.matrix.tolist(), dtype=complex))
+    assert np.allclose(
+        pyquil_gate_matrix(pyquil_gate), np.array(gate.matrix.tolist(), dtype=complex)
+    )
 
 
 # Below we use multiple control qubits. What we mean is that we construct
@@ -152,15 +173,9 @@ def test_converting_gate_to_pyquil_preserves_its_type_and_matrix(gate):
 # of times.
 @pytest.mark.parametrize(
     "target_gate, control_qubits",
-    [
-        (X(2), (1,)),
-        (Y(1), (0,)),
-        (PHASE(4, np.pi), (1, 2, 3)),
-        (CZ(2, 12), (0, 3))
-    ]
+    [(X(2), (1,)), (Y(1), (0,)), (PHASE(4, np.pi), (1, 2, 3)), (CZ(2, 12), (0, 3))],
 )
 class TestControlledGateConversion:
-
     def make_controlled_gate(self, target_gate, control_qubits):
         if control_qubits:
             return self.make_controlled_gate(
@@ -207,35 +222,35 @@ def test_converting_dagger_object_to_pyquil_gives_gate_with_dagger_modifier():
 @pytest.mark.parametrize(
     "custom_gate",
     [
-        CustomGate(0.5 * sympy.Matrix([[1 + 1j, 1 - 1j], [1 - 1j, 1 + 1j]]), (0,), name="my_gate"),
-        CustomGate(sympy.Matrix(
-            [
-            [1, 0, 0, 0],
-            [0, 1, 0, 0],
-            [0, 0, 0, -1j],
-            [0, 0, -1j, 0]
-            ]
-        ), (0, 1))
-    ]
+        CustomGate(
+            0.5 * sympy.Matrix([[1 + 1j, 1 - 1j], [1 - 1j, 1 + 1j]]),
+            (0,),
+            name="my_gate",
+        ),
+        CustomGate(
+            sympy.Matrix([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, -1j], [0, 0, -1j, 0]]),
+            (0, 1),
+        ),
+    ],
 )
-def test_converting_custom_gate_to_pyquil_adds_its_definition_to_program(
-    custom_gate
-):
+def test_converting_custom_gate_to_pyquil_adds_its_definition_to_program(custom_gate):
     program = pyquil.Program()
     convert_to_pyquil(custom_gate, program)
     assert program.defined_gates == [
-        pyquil.quil.DefGate(custom_gate.name, np.array(custom_gate.matrix, dtype=complex))
+        pyquil.quil.DefGate(
+            custom_gate.name, np.array(custom_gate.matrix, dtype=complex)
+        )
     ]
 
 
-@pytest.mark.parametrize(
-    "times_to_convert", [2, 3, 5, 6]
-)
+@pytest.mark.parametrize("times_to_convert", [2, 3, 5, 6])
 def test_converting_gate_with_the_same_name_multiple_times_adds_only_a_single_definition_to_pyquil_program(
-    times_to_convert
+    times_to_convert,
 ):
     program = pyquil.Program()
-    gate = CustomGate(0.5 * sympy.Matrix([[1 + 1j, 1 - 1j], [1 - 1j, 1 + 1j]]), (0,), name="my_gate")
+    gate = CustomGate(
+        0.5 * sympy.Matrix([[1 + 1j, 1 - 1j], [1 - 1j, 1 + 1j]]), (0,), name="my_gate"
+    )
     for _ in range(times_to_convert):
         convert_to_pyquil(gate, program)
 
@@ -255,15 +270,10 @@ def test_converting_circuit_to_pyquil_gives_program_with_the_same_gates():
             ControlledGate(SWAP((0, 2)), 1),
             CustomGate(
                 sympy.Matrix(
-                    [
-                        [1, 0, 0, 0],
-                        [0, 1, 0, 0],
-                        [0, 0, 0, -1j],
-                        [0, 0, -1j, 0]
-                    ]
+                    [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, -1j], [0, 0, -1j, 0]]
                 ),
                 (1, 3),
-                name="U"
+                name="U",
             ).dagger,
             RX(2, np.pi),
             CNOT(1, 3),
@@ -273,13 +283,7 @@ def test_converting_circuit_to_pyquil_gives_program_with_the_same_gates():
     converted_program = convert_to_pyquil(circuit)
 
     custom_gate_definition = pyquil.quil.DefGate(
-        "U",
-        [
-            [1, 0, 0, 0],
-            [0, 1, 0, 0],
-            [0, 0, 0, -1j],
-            [0, 0, -1j, 0]
-        ]
+        "U", [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, -1j], [0, 0, -1j, 0]]
     )
 
     custom_gate_constructor = custom_gate_definition.get_constructor()
@@ -292,7 +296,7 @@ def test_converting_circuit_to_pyquil_gives_program_with_the_same_gates():
         pyquil.gates.SWAP(0, 2).controlled(1),
         custom_gate_constructor(1, 3).dagger(),
         pyquil.gates.RX(np.pi, 2),
-        pyquil.gates.CNOT(1, 3)
+        pyquil.gates.CNOT(1, 3),
     )
 
     assert expected_program == converted_program

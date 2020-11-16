@@ -119,6 +119,25 @@ def test_pyquil_gate_created_from_zquantum_cphase_gate_has_the_same_qubits_and_a
 
 
 @pytest.mark.parametrize("qubits", [[0, 1], [2, 10], [4, 7]])
+@pytest.mark.parametrize(
+    "zquantum_angle, pyquil_angle",
+    [
+        (sympy.Symbol("theta"), pyquil.quil.Parameter("theta")),
+        (
+            sympy.Symbol("x") + sympy.Symbol("y"),
+            pyquil.quil.Parameter("x") + pyquil.quil.Parameter("y"),
+        ),
+        (2 * sympy.Symbol("phi"), 2 * pyquil.quil.Parameter("phi")),
+    ],
+)
+def test_angle_of_parametrized_cphase_gate_is_translated_when_converting_to_pyquil(
+    qubits, zquantum_angle, pyquil_angle
+):
+    pyquil_gate = convert_to_pyquil(CPHASE(*qubits, zquantum_angle))
+    assert pyquil_gate.params[0] == pyquil_angle
+
+
+@pytest.mark.parametrize("qubits", [[0, 1], [2, 10], [4, 7]])
 def test_converting_swap_gate_to_pyquil_preserves_qubits(qubits):
     pyquil_gate = convert_to_pyquil(SWAP(qubits))
 

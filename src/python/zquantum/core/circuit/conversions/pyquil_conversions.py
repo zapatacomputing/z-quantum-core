@@ -111,7 +111,10 @@ def convert_two_qubit_nonparametric_gate_to_pyquil(
 def convert_CPHASE_to_pyquil(
     gate: CPHASE, _program: Optional[pyquil.Program]
 ) -> pyquil.gates.Gate:
-    return pyquil.gates.CPHASE(gate.angle, *gate.qubits)
+    return pyquil.gates.CPHASE(
+        translate_expression(expression_from_sympy(gate.angle), QUIL_DIALECT),
+        *gate.qubits,
+    )
 
 
 @_convert_gate_to_pyquil.register(SWAP)

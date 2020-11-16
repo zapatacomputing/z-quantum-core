@@ -2,6 +2,7 @@
 from itertools import zip_longest
 import pyquil
 import pyquil.gates
+from pyquil import quilatom
 import sympy
 from pyquil.simulation.matrices import QUANTUM_GATES
 from ..circuit import Circuit
@@ -254,6 +255,40 @@ def test_converting_custom_gate_to_pyquil_adds_its_definition_to_program(custom_
         pyquil.quil.DefGate(
             custom_gate.name, np.array(custom_gate.matrix, dtype=complex)
         )
+    ]
+
+
+def test_converting_parametrized_custom_gate_to_pyquil_adds_its_definition_to_program():
+    x, y, theta = sympy.symbols("x, y, theta")
+    # Clearly, the below gate is not unitary. For the purpose of this test
+    # it does not matter though.
+    custom_gate = CustomGate(sympy.Matrix([
+        [sympy.cos(x + y), sympy.sin(theta), 0, 0],
+        [-sympy.sin(theta), sympy.cos(x + y), 0, 0],
+        [0, 0, sympy.sqrt(x), sympy.exp(y)],
+        [0, 0, 1, sympy.I]
+    ]),
+        (0, 2),
+        "my_gate"
+    )
+
+    program = pyquil.Program()
+    convert_to_pyquil(custom_gate, program)
+
+    quil_x = pyquil.quil.Parameter("x")
+    quil_y = pyquil.quil.Parameter("y")
+    quil_theta = pyquil.quil.Parameter("theta")
+
+    expected_pyquil_matrix = np.array([
+        [quilatom.quil_cos(quil_x + quil_y), quilatom.quil_sin(quil_theta), 0, 0],
+        [-quilatom.quil_sin(quil_theta), quilatom.quil_cos(quil_x + quil_y), 0, 0],
+        [0, 0, quilatom.quil_sqrt(quil_x), quilatom.quil_exp(quil_y)],
+        [0, 0, 1.0, 1j]
+    ]
+    )
+
+    assert program.defined_gates == [
+        pyquil.quil.DefGate(custom_gate.name, expected_pyquil_matrix, [quil_x, quil_y, quil_theta])
     ]
 
 

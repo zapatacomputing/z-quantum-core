@@ -150,8 +150,20 @@ def convert_custom_gate_to_pyquil(
             break
 
     if gate_definition is None:
+        converted_matrix = [
+            [
+                translate_expression(expression_from_sympy(element), QUIL_DIALECT)
+                for element in row
+            ]
+            for row in gate.matrix.tolist()
+        ]
         gate_definition = pyquil.quil.DefGate(
-            gate.name, np.array(gate.matrix.tolist(), dtype=complex)
+            gate.name,
+            np.array(converted_matrix),
+            [
+                translate_expression(expression_from_sympy(param), QUIL_DIALECT)
+                for param in gate.symbolic_params
+            ]
         )
         program += gate_definition
 

@@ -1,5 +1,7 @@
 """Utilities for converting sympy expressions to our native Expression format."""
 from functools import singledispatch
+from numbers import Number
+
 import sympy
 from .expressions import Symbol, FunctionCall
 
@@ -21,6 +23,11 @@ def expression_from_sympy(expression):
     raise NotImplementedError(
         f"Expression {expression} of type {type(expression)} is currentlyl not supported"
     )
+
+
+@expression_from_sympy.register
+def identity(number: Number):
+    return number
 
 
 @expression_from_sympy.register

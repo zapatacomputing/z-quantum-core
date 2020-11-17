@@ -157,17 +157,25 @@ def convert_custom_gate_to_pyquil(
             ]
             for row in gate.matrix.tolist()
         ]
+        params = [
+            translate_expression(expression_from_sympy(param), QUIL_DIALECT)
+            for param in gate.symbolic_params
+        ]
         gate_definition = pyquil.quil.DefGate(
-            gate.name,
-            np.array(converted_matrix),
-            [
-                translate_expression(expression_from_sympy(param), QUIL_DIALECT)
-                for param in gate.symbolic_params
-            ]
+            gate.name, np.array(converted_matrix), params
         )
         program += gate_definition
 
-    return gate_definition.get_constructor()(*gate.qubits)
+    # Custom defined gates' constructors behave differently depending on
+    # whether the gate has parameters or not, hence the below condition.
+    if gate_definition.parameters:
+        new_gate = gate_definition.get_constructor()(*gate_definition.parameters)(
+            *gate.qubits
+        )
+    else:
+        new_gate = gate_definition.get_constructor()(*gate.qubits)
+
+    return new_gate
 
 
 @convert_to_pyquil.register(Circuit)

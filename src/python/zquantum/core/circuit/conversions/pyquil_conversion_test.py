@@ -1,5 +1,4 @@
 """Test cases for pyquil conversion."""
-from itertools import zip_longest
 import pyquil
 import pyquil.gates
 from pyquil import quilatom
@@ -99,8 +98,24 @@ def test_converting_rotation_gate_to_pyquil_preserves_qubit_index_and_angle(
 def test_converting_parametrized_rotation_gate_to_pyquil_translates_angle_expression(
     qubit, zquantum_angle, pyquil_angle, gate_cls
 ):
-    pyquil_gate = convert_to_pyquil(gate_cls(qubit, zquantum_angle))
+    program = pyquil.Program()
+    pyquil_gate = convert_to_pyquil(gate_cls(qubit, zquantum_angle), program)
     assert pyquil_gate.params[0] == pyquil_angle
+
+
+@pytest.mark.parametrize("qubit", [0, 4, 10, 11])
+@pytest.mark.parametrize("zquantum_angle, pyquil_angle", EXAMPLE_PARAMETRIZED_ANGLES)
+@pytest.mark.parametrize("gate_cls", [RX, RY, RZ, PHASE])
+def test_converting_parametrized_rotation_gate_to_pyquil_adds_its_symbolic_params_to_program(
+    qubit, zquantum_angle, pyquil_angle, gate_cls
+):
+    program = pyquil.Program()
+    zquantum_gate = gate_cls(qubit, zquantum_angle)
+    convert_to_pyquil(zquantum_gate, program)
+    assert program.instructions == [
+        pyquil.quil.Declare(str(param), "REAL")
+        for param in zquantum_gate.symbolic_params
+    ]
 
 
 @pytest.mark.parametrize("qubits", [[0, 1], [2, 10], [4, 7]])
@@ -108,7 +123,9 @@ def test_converting_parametrized_rotation_gate_to_pyquil_translates_angle_expres
 def test_pyquil_gate_created_from_zquantum_cphase_gate_has_the_same_qubits_and_angle_as_the_original_one(
     qubits, angle
 ):
-    pyquil_gate = convert_to_pyquil(CPHASE(*qubits, angle))
+    program = pyquil.Program()
+
+    pyquil_gate = convert_to_pyquil(CPHASE(*qubits, angle), program)
 
     assert len(pyquil_gate.qubits) == 2
     assert pyquil_gate.qubits[0].index == qubits[0]
@@ -123,8 +140,24 @@ def test_pyquil_gate_created_from_zquantum_cphase_gate_has_the_same_qubits_and_a
 def test_angle_of_parametrized_cphase_gate_is_translated_when_converting_to_pyquil(
     qubits, zquantum_angle, pyquil_angle
 ):
-    pyquil_gate = convert_to_pyquil(CPHASE(*qubits, zquantum_angle))
+    program = pyquil.Program()
+    pyquil_gate = convert_to_pyquil(CPHASE(*qubits, zquantum_angle), program)
     assert pyquil_gate.params[0] == pyquil_angle
+
+
+@pytest.mark.parametrize("qubits", [[0, 1], [2, 10], [4, 7]])
+@pytest.mark.parametrize("zquantum_angle, pyquil_angle", EXAMPLE_PARAMETRIZED_ANGLES)
+def test_converting_parametrized_cphase_gate_to_pyquil_adds_its_symbolic_params_to_program(
+    qubits, zquantum_angle, pyquil_angle
+):
+    zquantum_gate = CPHASE(*qubits, zquantum_angle)
+    program = pyquil.Program()
+    convert_to_pyquil(zquantum_gate, program)
+
+    assert program.instructions == [
+        pyquil.quil.Declare(str(param), "REAL")
+        for param in zquantum_gate.symbolic_params
+    ]
 
 
 @pytest.mark.parametrize("qubits", [[0, 1], [2, 10], [4, 7]])
@@ -366,6 +399,7 @@ def test_converting_circuit_to_pyquil_gives_program_with_the_same_gates():
     v_gate_constructor = v_gate_definition.get_constructor()(quil_theta)
 
     expected_program = pyquil.Program(
+        pyquil.quil.Declare("theta", "REAL"),
         v_gate_definition,
         u_gate_definition,
         v_gate_constructor(0),

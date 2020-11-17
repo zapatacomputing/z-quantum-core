@@ -63,6 +63,10 @@ def convert_to_pyquil(obj, program: Optional[pyquil.Program] = None):
 def convert_gate_to_pyquil(
     gate: Gate, program: Optional[pyquil.Program] = None
 ) -> pyquil.gates.Gate:
+    required_declarations = (pyquil.quil.Declare(str(param), "REAL") for param in gate.symbolic_params)
+    for declaration in required_declarations:
+        if declaration not in program.instructions:
+            program += declaration
     return _convert_gate_to_pyquil(gate, program)
 
 

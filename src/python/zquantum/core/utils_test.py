@@ -308,7 +308,7 @@ def test_two_value_estimates_are_equal_iff_their_values_and_precisions_are_equal
 
 
 @pytest.mark.parametrize(
-    "estimate", [ValueEstimate(2.0), ValueEstimate(5.0, precision=1e5)]
+    "estimate", [ValueEstimate(2.0), ValueEstimate(5.0, precision=1e-5)]
 )
 @pytest.mark.parametrize("other_obj", ["test-string", {"foo": 5, "bar": 10}, [1, 2, 3]])
 def test_value_estimate_is_not_equivalent_to_an_object_of_non_numeric_type(

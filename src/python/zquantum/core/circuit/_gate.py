@@ -34,7 +34,7 @@ class Gate(object):
         params: list[any]
             List of parameters associated with the gate.
         The above three attributes follow a standard convention that is enforced throughout
-        Zap OS.
+        z-quantum-core
 
         (optional attribute)
         info: dictionary

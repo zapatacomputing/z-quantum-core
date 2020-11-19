@@ -107,7 +107,7 @@ def expression_tuple_from_tuple_of_sympy_args(args: tuple):
 # the expression based on Sympy functions/Symbols
 # This is intended to be passed by a `dialect` argument of `translate_expression`.
 SYMPY_DIALECT = ExpressionDialect(
-    symbol_factory=sympy.Symbol,
+    symbol_factory=lambda symbol: sympy.Symbol(symbol.name),
     number_factory=lambda number: number,
     known_functions={
         "add": operator.add,

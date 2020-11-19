@@ -217,7 +217,10 @@ class TestUtils(unittest.TestCase):
 
         # When
         save_noise_model(
-            noise_model_data, module_name, function_name, "noise_model.json",
+            noise_model_data,
+            module_name,
+            function_name,
+            "noise_model.json",
         )
         noise_model = load_noise_model("noise_model.json")
 
@@ -256,6 +259,7 @@ class TestUtils(unittest.TestCase):
             timing = json.load(f)
         self.assertEqual(timing["walltime"], walltime)
         self.assertTrue("schema" in timing)
+        os.remove("timing.json")
 
 
 def test_arithmetic_on_value_estimate_and_float_gives_the_same_result_as_arithmetic_on_two_floats():
@@ -304,19 +308,10 @@ def test_two_value_estimates_are_equal_iff_their_values_and_precisions_are_equal
 
 
 @pytest.mark.parametrize(
-    "estimate",
-    [
-        ValueEstimate(2.0),
-        ValueEstimate(5.0, precision=1e5)
-    ]
+    "estimate", [ValueEstimate(2.0), ValueEstimate(5.0, precision=1e-5)]
 )
-@pytest.mark.parametrize(
-    "other_obj",
-    [
-        "test-string",
-        {"foo": 5, "bar": 10},
-        [1, 2, 3]
-    ]
-)
-def test_value_estimate_is_not_equivalent_to_an_object_of_non_numeric_type(estimate, other_obj):
+@pytest.mark.parametrize("other_obj", ["test-string", {"foo": 5, "bar": 10}, [1, 2, 3]])
+def test_value_estimate_is_not_equivalent_to_an_object_of_non_numeric_type(
+    estimate, other_obj
+):
     assert estimate != other_obj

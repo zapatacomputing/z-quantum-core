@@ -4,7 +4,7 @@ import operator
 from numbers import Number
 import pyquil
 from pyquil import quilatom
-from .expressions import ExpressionDialect, Symbol
+from .expressions import ExpressionDialect, Symbol, FunctionCall
 
 
 @singledispatch
@@ -22,6 +22,14 @@ def identity(number: Number):
 @expression_from_pyquil.register
 def symbol_from_quil_parameter(parameter: pyquil.quil.Parameter):
     return Symbol(parameter.name)
+
+
+@expression_from_pyquil.register
+def function_call_from_pyquil_function(function: pyquil.quilatom.Function):
+    return FunctionCall(
+        function.name.lower(),
+        (expression_from_pyquil(function.expression),)
+    )
 
 
 # Dialect defining conversion of intermediate expression tree to

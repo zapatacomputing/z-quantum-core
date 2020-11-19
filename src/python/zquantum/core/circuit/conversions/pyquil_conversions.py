@@ -1,6 +1,6 @@
 """Utilities for converting gates and circuits to and from Pyquil objects."""
 from functools import singledispatch
-from typing import Union, Optional
+from typing import Union, Optional, overload
 import numpy as np
 import pyquil
 import pyquil.gates
@@ -52,6 +52,18 @@ TWO_QUBIT_CONTROLLED_GATES = {
     CNOT: pyquil.gates.CNOT,
     SWAP: pyquil.gates.SWAP,
 }
+
+
+@overload
+def convert_to_pyquil(obj: Circuit) -> pyquil.Program:
+    pass
+
+
+@overload
+def convert_to_pyquil(
+    obj: Gate, program: Optional[pyquil.Program]
+) -> pyquil.quil.Gate:
+    pass
 
 
 @singledispatch

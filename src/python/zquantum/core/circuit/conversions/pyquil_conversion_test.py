@@ -413,3 +413,11 @@ def test_converting_circuit_to_pyquil_gives_program_with_the_same_gates():
     )
 
     assert expected_program == converted_program
+
+
+def test_pyquil_circuit_obtained_from_empty_circuit_is_also_empty():
+    circuit = Circuit()
+
+    pyquil_circuit = convert_to_pyquil(circuit)
+
+    assert not pyquil_circuit.instructions

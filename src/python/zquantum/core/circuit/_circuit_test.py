@@ -13,8 +13,6 @@ from pyquil.gates import *
 from pyquil.gates import QUANTUM_GATES
 from math import pi, sin, cos
 
-from qiskit.aqua.circuits.gates import mcu1, mcry
-
 from . import (
     load_circuit,
     save_circuit,
@@ -1238,19 +1236,19 @@ class TestCircuit(unittest.TestCase):
         ngates = random.randint(1, ngates_max + 1)  # number of gates
 
         op_map = {
-            "X": qiskit.extensions.standard.XGate,
-            "Y": qiskit.extensions.standard.YGate,
-            "Z": qiskit.extensions.standard.ZGate,
-            "T": qiskit.extensions.standard.TGate,
-            "H": qiskit.extensions.standard.HGate,
-            "S": qiskit.extensions.standard.SGate,
-            "Rx": qiskit.extensions.standard.RXGate,
-            "Ry": qiskit.extensions.standard.RYGate,
-            "Rz": qiskit.extensions.standard.RZGate,
-            "PHASE": qiskit.extensions.standard.RZGate,
-            "CNOT": qiskit.extensions.standard.CnotGate,
-            "SWAP": qiskit.extensions.standard.SwapGate,
-            "CZ": qiskit.extensions.standard.CzGate,
+            "X": qiskit.circuit.library.XGate,
+            "Y": qiskit.circuit.library.YGate,
+            "Z": qiskit.circuit.library.ZGate,
+            "T": qiskit.circuit.library.TGate,
+            "H": qiskit.circuit.library.HGate,
+            "S": qiskit.circuit.library.SGate,
+            "Rx": qiskit.circuit.library.RXGate,
+            "Ry": qiskit.circuit.library.RYGate,
+            "Rz": qiskit.circuit.library.RZGate,
+            "PHASE": qiskit.circuit.library.RZGate,
+            "CNOT": qiskit.circuit.library.CXGate,
+            "SWAP": qiskit.circuit.library.SwapGate,
+            "CZ": qiskit.circuit.library.CZGate,
             #'CPHASE' : cirq.ops.common_gates.CZPowGate
         }
 

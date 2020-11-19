@@ -1,8 +1,23 @@
 """Utilities related to Quil based symbolic expressions."""
+from functools import singledispatch
 import operator
+from numbers import Number
 import pyquil
 from pyquil import quilatom
 from .expressions import ExpressionDialect
+
+
+@singledispatch
+def expression_from_pyquil(expression):
+    raise NotImplementedError(
+        f"Expression {expression} of type {type(expression)} is currently not supported"
+    )
+
+
+@expression_from_pyquil.register
+def identity(number: Number):
+    return number
+
 
 # Dialect defining conversion of intermediate expression tree to
 # the expression based on quil functions/parameters.

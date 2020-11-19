@@ -7,6 +7,15 @@ from pyquil import quilatom
 from .expressions import ExpressionDialect, Symbol, FunctionCall
 
 
+QUIL_BINARY_EXPRESSION_NAMES = {
+    quilatom.Add: "add",
+    quilatom.Sub: "sub",
+    quilatom.Mul: "mul",
+    quilatom.Div: "div",
+    quilatom.Pow: "pow"
+}
+
+
 @singledispatch
 def expression_from_pyquil(expression):
     raise NotImplementedError(
@@ -29,6 +38,21 @@ def function_call_from_pyquil_function(function: pyquil.quilatom.Function):
     return FunctionCall(
         function.name.lower(),
         (expression_from_pyquil(function.expression),)
+    )
+
+
+@expression_from_pyquil.register(quilatom.Add)
+@expression_from_pyquil.register(quilatom.Sub)
+@expression_from_pyquil.register(quilatom.Mul)
+@expression_from_pyquil.register(quilatom.Div)
+@expression_from_pyquil.register(quilatom.Pow)
+def function_call_from_pyquil_binary_expression(expression):
+    return FunctionCall(
+        QUIL_BINARY_EXPRESSION_NAMES[type(expression)],
+        (
+            expression_from_pyquil(expression.op1),
+            expression_from_pyquil(expression.op2)
+        )
     )
 
 

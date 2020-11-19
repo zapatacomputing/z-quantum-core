@@ -39,3 +39,31 @@ def test_pyquil_function_calls_are_converted_to_equivalent_function_call(
     pyquil_function_call, expected_function_call
 ):
     assert expression_from_pyquil(pyquil_function_call) == expected_function_call
+
+
+@pytest.mark.parametrize(
+    "pyquil_expression, expected_function_call",
+    [
+        (
+            quil.Parameter("x") + quil.Parameter("y"),
+            FunctionCall("add", (Symbol("x"), Symbol("y")))
+        ),
+        (
+            quilatom.quil_cos(quil.Parameter("theta")) * 2,
+            FunctionCall("mul", (FunctionCall("cos", (Symbol("theta"),)), 2))
+        ),
+        (
+            quilatom.quil_sqrt(quil.Parameter("phi")) / quil.Parameter("psi"),
+            FunctionCall("div", (FunctionCall("sqrt", (Symbol("phi"),)), Symbol("psi")))
+        ),
+        (
+            quil.Parameter("a") - quil.Parameter("b"),
+            FunctionCall("sub", (Symbol("a"), Symbol("b")))
+        ),
+        (2 ** quil.Parameter("N"), FunctionCall("pow", (2, Symbol("N"))))
+    ]
+)
+def test_pyquil_binary_expressions_are_converted_to_appropriate_function_call(
+    pyquil_expression, expected_function_call
+):
+    assert expression_from_pyquil(pyquil_expression) == expected_function_call

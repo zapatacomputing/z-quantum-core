@@ -1,4 +1,4 @@
-"""Test cases for storing artifacts."""
+"""Test cases for storing artifacts and recording functions that store them."""
 import numpy as np
 import pytest
 from ..interfaces.functions import CallableStoringArtifacts

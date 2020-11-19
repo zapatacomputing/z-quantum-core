@@ -79,9 +79,12 @@ def test_translating_tree_from_sympy_to_quil_gives_expected_result(
         (quil.Parameter("theta"), sympy.Symbol("theta")),
         (
             quil.Parameter("theta") * quil.Parameter("gamma"),
-            sympy.Symbol("theta") * sympy.Symbol("gamma")
+            sympy.Symbol("theta") * sympy.Symbol("gamma"),
         ),
-        (quilatom.quil_cos(quil.Parameter("theta")), sympy.cos(sympy.Symbol("theta")), ),
+        (
+            quilatom.quil_cos(quil.Parameter("theta")),
+            sympy.cos(sympy.Symbol("theta")),
+        ),
         (
             quilatom.quil_cos(2 * quil.Parameter("theta")),
             sympy.cos(2 * sympy.Symbol("theta")),
@@ -93,10 +96,7 @@ def test_translating_tree_from_sympy_to_quil_gives_expected_result(
         (
             quilatom.quil_cos(quil.Parameter("phi"))
             + 1j * quilatom.quil_sin(quil.Parameter("phi")),
-            (
-                    sympy.cos(sympy.Symbol("phi")) +
-                    sympy.I * sympy.sin(sympy.Symbol("phi"))
-            )
+            (sympy.cos(sympy.Symbol("phi")) + sympy.I * sympy.sin(sympy.Symbol("phi"))),
         ),
         (
             quil.Parameter("x") + quil.Parameter("y") * (2 + 3j),

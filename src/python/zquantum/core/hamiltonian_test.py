@@ -1,4 +1,6 @@
-from .hamiltonian import is_comeasureable, group_comeasureable_terms_greedy
+from .hamiltonian import is_comeasureable, group_comeasureable_terms_greedy, compute_group_variances
+from .measurement import ExpectationValues
+import numpy as np
 import pytest
 from openfermion.ops import QubitOperator
 
@@ -54,3 +56,18 @@ def test_group_comeasureable_terms_greedy_sorted(
 ):
     groups = group_comeasureable_terms_greedy(qubit_operator, sort_terms=sort_terms)
     assert groups == expected_groups
+
+@pytest.mark.parametrize(
+    "groups, expecval, variances",
+    [
+        (
+            [QubitOperator("[Z0 Z1] + [Z0]"), QubitOperator("[X0 X1] + [X0]")], None, np.array([ 2., 2. ]),
+        ),
+        (
+            [QubitOperator("[Z0 Z1] + [Z0]"), QubitOperator("[X0 X1] + [X0]")], ExpectationValues([0., 0., 0., 0.]), np.array([ 2., 2. ]),
+        ),
+    ],
+)
+def test_compute_group_variances(groups, expecval, variances):
+    test_variances = compute_group_variances(groups, expecval)
+    assert np.allclose(test_variances, variances)

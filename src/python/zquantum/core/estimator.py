@@ -110,6 +110,116 @@ def get_context_selection_circuit_for_group(
     return context_selection_circuit, transformed_operator
 
 
+def compute_frame_variances(groups, expecval=None):
+    """Computes the variances of each frame in a grouped operator. 
+        If expectation values are provided, use variances from there, 
+        otherwise assume variances are 1 (upper bound). Correlation information
+        is ignored in the current implementation, covariances are assumed to be 0.
+    Args:
+        groups:  A list of QubitOperators that defines a (grouped) objective function
+        expecval (zquantum.core.measurement.ExpectationValues): 
+                  An ExpectationValues object containing the expectation
+                  values of the operators and their squares. Optionally, contains
+                  values of operator products to compute covariances.
+    Returns:
+        frame_variances (list): A list of the computed variances for each frame
+    """
+
+    if expecval is None:
+        frame_variances = [ np.sum(np.array(x.terms.values())**2) for x in groups ] # Covariances are ignored; Variances are set to 1
+    else:
+        pauli_variances = 1. - np.real(expecval.values)**2
+        pauli_variances[pauli_variances < -1.0] = -1.0
+        pauli_variances[pauli_variances >  1.0] =  1.0
+        group_sizes = np.array([ len(g.keys()) for g in groups ])
+        frame_variances = []
+        for i, group  in enumerate(groups):
+            coeffs = np.array(group.terms.values())
+            offset = 0 if i == 0 else np.sum(group_sizes[:i-1])
+            frame_variances.append(np.sum(coeffs**2 * pauli_variances[offset : offset + group_sizes[i]]))
+
+    return np.array(frame_variances)
+
+def get_expectation_values_from_rdms(interactionrdm, qubitoperator, sort_terms=False):
+    """ Computes expectation values of a qubitOperator
+        given a fermionic interactionRDM operator from
+        OpenFermion.
+
+        Args:
+            interactionrdm (openfermion.ops.InteractionRDM): interaction RDM to use for the expectation values
+                computation, as an OF InteractionRDM object
+            qubitoperator (openfermion.QubitOperator): qubit operator to compute the expectation values for
+                in the form of an OF QubittOperator object
+            sort_terms (bool): whether or not the input qubit operator needs to be sorted before calculating expectations
+        Returns:
+            expectations (zquantum.core.measurement.ExpectationValues): expectation values of Pauli strings in the qubit operator
+    """
+    if sort_terms:
+        terms_iterator = sorted(
+            qubit_operator.terms.items(), key=lambda x: abs(x[1]), reverse=True
+        )
+    else:
+        terms_iterator = qubit_operator.terms.items()
+    reordered_qubit_operator = QubitOperator((), 0.0)
+    for term, coefficient in terms_iterator:
+        reordered_qubit_operator += QubitOperator(term, coefficient)
+
+    expectations_packed = interactionrdm.get_qubit_expectations(reordered_qubit_operator)
+
+    expectations = np.real(np.array(expectations_packed.values())) # should we added an assert to catch large Im parts
+    # Clip expectations if they fell out of [-1 , 1] due to numerical errors
+    expectations[expectations < -1.0] = -1.0
+    expectations[expectations >  1.0] =  1.0
+
+    return ExpectationValues(expectations)
+
+
+def estimate_nmeas(
+    target_operator: QubitOperator,
+    decomposition_method: Optional[str] = "greedy-sorted",
+    expecval: Optional[ExpectationValues] = None,
+) -> Tuple[float, int, np.array]:
+    """Calculates the number of measurements required for computing
+        the expectation value of a qubit hamiltonian, where co-measurable terms
+        are grouped. We're assuming the exact expectation values are provided
+        (i.e. infinite number of measurements or simulations without noise)
+        M ~ (\sum_{i} prec(H_i)) ** 2.0 / (epsilon ** 2.0)
+        where prec(H_i) is the precision (square root of the variance)
+        for each group of co-measurable terms H_{i}. It is computed as
+        prec(H_{i}) = \sum{ab} |h_{a}^{i}||h_{b}^{i}| cov(O_{a}^{i}, O_{b}^{i})
+        where h_{a}^{i} is the coefficient of the a-th operator, O_{a}^{i}, in the
+        i-th group. Covariances are assumed to be zero for a != b:
+        cov(O_{a}^{i}, O_{b}^{i}) = <O_{a}^{i} O_{b}^{i}> - <O_{a}^{i}> <O_{b}^{i}> = 0
+    Args:
+        target_operator (openfermion.ops.QubitOperator): A QubitOperator to measure
+        expecval (ExpectationValues): An ExpectationValues object containing the expectation
+                  values of the operators and their squares. Optionally, contains
+                  values of operator products to compute covariances.
+                  If absent, covariances are assumed to be 0 and variances are
+                  assumed to be maximal, i.e. 1.
+                  NOTE: IN THE CURRENT IMPLEMENTATION WE HAVE TO MAKE SURE THAT THE ORDER
+                  OF EXPECTATION VALUES IS CONSISTENT WITH THE ORDER OF THE TERMS IN THE
+                  TARGET QUBIT OPERATOR, OTHERWISE THIS FUNCTION WILL NOT WORK CORRECTLY
+    Returns:
+        K2 (float): number of measurements for epsilon = 1.0
+        nterms (int): number of groups of QWC terms in the target_operator
+        frame_meas (array): Number of optimal measurements per group 
+    """
+
+    frame_variances = None
+    groups = get_decomposition_function(self.decomposition_method)(target_operator)
+    frame_variances = compute_frame_variances(groups, expecval)
+    # Here we have our current best estimate for frame variances.
+    # We first compute the measurement estimate for each frame
+
+    sqrt_lambda = sum(np.sqrt(frame_variances))
+    frame_meas = np.asarray([sqrt_lambda * np.sqrt(x) for x in frame_variances])
+    K2 = sum(frame_meas)
+    nterms = sum([len(group.terms) for group in groups])
+
+    return K2, nterms, frame_meas
+
+
 class BasicEstimator(Estimator):
     """An estimator that uses the standard approach to computing expectation values of an operator.
     

@@ -118,17 +118,17 @@ def get_expectation_values_from_rdms(interactionrdm, qubitoperator, sort_terms=F
     """
     if sort_terms:
         terms_iterator = sorted(
-            qubit_operator.terms.items(), key=lambda x: abs(x[1]), reverse=True
+            qubitoperator.terms.items(), key=lambda x: abs(x[1]), reverse=True
         )
     else:
-        terms_iterator = qubit_operator.terms.items()
-    reordered_qubit_operator = QubitOperator((), 0.0)
+        terms_iterator = qubitoperator.terms.items()
+    reordered_qubitoperator = QubitOperator((), 0.0)
     for term, coefficient in terms_iterator:
-        reordered_qubit_operator += QubitOperator(term, coefficient)
+        reordered_qubitoperator += QubitOperator(term, coefficient)
 
-    expectations_packed = interactionrdm.get_qubit_expectations(reordered_qubit_operator)
+    expectations_packed = interactionrdm.get_qubit_expectations(reordered_qubitoperator)
 
-    expectations = np.real(np.array(expectations_packed.values())) # should we added an assert to catch large Im parts
+    expectations = np.real(np.array(list(expectations_packed.terms.values()))) # should we added an assert to catch large Im parts
     # Clip expectations if they fell out of [-1 , 1] due to numerical errors
     expectations[expectations < -1.0] = -1.0
     expectations[expectations >  1.0] =  1.0

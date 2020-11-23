@@ -10,6 +10,10 @@ from .sympy_expressions import (
 
 
 class TestBuildingTreeFromSympyExpression:
+    @pytest.mark.parametrize("number", [3, 4.0, 1j, 3.0 - 2j])
+    def test_native_numbers_are_preserved(self, number):
+        assert expression_from_sympy(number) == number
+
     @pytest.mark.parametrize(
         "sympy_symbol, expected_symbol",
         [

@@ -48,6 +48,7 @@ class AnsatzBasedCostFunction:
         delta: Optional[float] = None,
         fixed_parameters: Optional[np.ndarray] = None,
         parameter_precision: Optional[float] = None,
+        parameter_precision_seed: Optional[int] = None
     ):
         self.target_operator = target_operator
         self.ansatz = ansatz
@@ -61,6 +62,7 @@ class AnsatzBasedCostFunction:
         self.delta = delta
         self.fixed_parameters = fixed_parameters
         self.parameter_precision = parameter_precision
+        self.parameter_precision_seed = parameter_precision_seed
 
     def __call__(self, parameters: np.ndarray) -> ValueEstimate:
         """Evaluates the value of the cost function for given parameters.
@@ -74,7 +76,7 @@ class AnsatzBasedCostFunction:
         if self.fixed_parameters is not None:
             parameters = combine_ansatz_params(self.fixed_parameters, parameters)
         if self.parameter_precision is not None:
-            rng = np.random.default_rng()
+            rng = np.random.default_rng(self.parameter_precision_seed)
             noise_array = rng.normal(0.0, self.parameter_precision, len(parameters))
             parameters += noise_array
 

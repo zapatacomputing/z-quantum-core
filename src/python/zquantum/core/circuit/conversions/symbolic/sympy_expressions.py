@@ -1,9 +1,10 @@
 """Utilities for converting sympy expressions to our native Expression format."""
+import operator
 from functools import singledispatch
 from numbers import Number
 
 import sympy
-from .expressions import Symbol, FunctionCall
+from .expressions import Symbol, FunctionCall, ExpressionDialect
 
 
 def is_multiplication_by_reciprocal(sympy_mul: sympy.Mul) -> bool:
@@ -21,7 +22,7 @@ def is_addition_of_negation(sympy_add: sympy.Add) -> bool:
 @singledispatch
 def expression_from_sympy(expression):
     raise NotImplementedError(
-        f"Expression {expression} of type {type(expression)} is currentlyl not supported"
+        f"Expression {expression} of type {type(expression)} is currently not supported"
     )
 
 
@@ -100,3 +101,24 @@ def function_call_from_sympy_function(function: sympy.Function):
 @expression_from_sympy.register
 def expression_tuple_from_tuple_of_sympy_args(args: tuple):
     return tuple(expression_from_sympy(arg) for arg in args)
+
+
+# Dialect defining conversion of intermediate expression tree to
+# the expression based on Sympy functions/Symbols
+# This is intended to be passed by a `dialect` argument of `translate_expression`.
+SYMPY_DIALECT = ExpressionDialect(
+    symbol_factory=lambda symbol: sympy.Symbol(symbol.name),
+    number_factory=lambda number: number,
+    known_functions={
+        "add": operator.add,
+        "mul": operator.mul,
+        "div": operator.truediv,
+        "sub": operator.sub,
+        "pow": operator.pow,
+        "cos": sympy.cos,
+        "sin": sympy.sin,
+        "exp": sympy.exp,
+        "sqrt": sympy.sqrt,
+        "tan": sympy.tan,
+    },
+)

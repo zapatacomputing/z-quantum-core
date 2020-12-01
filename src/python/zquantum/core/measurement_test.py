@@ -250,6 +250,24 @@ class TestMeasurement(unittest.TestCase):
             output_data = json.load(f)
         self.assertEqual(measurements_data, output_data)
 
+    def test_measurement_class_save_for_numpy_integers(self):
+        # Given
+        target_bitstrings = [(0, 0, 0)]
+        input_bitstrings = [(np.int8(0), np.int8(0), np.int8(0))]
+
+        filename = "measurementstest.json"
+        measurements = Measurements(input_bitstrings)
+        target_measurements = Measurements(target_bitstrings)
+
+        # When
+        measurements.save(filename)
+
+        # Then
+        recreated_measurements = Measurements.load_from_file(filename)
+        self.assertEqual(
+            target_measurements.bitstrings, recreated_measurements.bitstrings
+        )
+
     def test_measurement_class_intialize_with_bitstrings(self):
         # Given
         bitstrings = [

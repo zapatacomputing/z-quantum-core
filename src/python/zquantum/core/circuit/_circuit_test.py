@@ -793,7 +793,7 @@ class TestCircuit(unittest.TestCase):
         gates = [
             cirq.X(qubits[0]),
             cirq.T(qubits[1]),
-            cirq.Rz(rads=0.1)(qubits[2]),
+            cirq.rz(rads=0.1)(qubits[2]),
             cirq.CNOT(qubits[0], qubits[1]),
             cirq.SWAP(qubits[0], qubits[1]),
             cirq.CZ(qubits[1], qubits[0]),
@@ -1040,9 +1040,9 @@ class TestCircuit(unittest.TestCase):
             "T": cirq.T,
             "H": cirq.H,
             "S": cirq.S,
-            "Rx": cirq.Rx,
-            "Ry": cirq.Ry,
-            "Rz": cirq.Rz,
+            "Rx": cirq.rx,
+            "Ry": cirq.ry,
+            "Rz": cirq.rz,
             "PHASE": cirq.Z,
             "ZXZ": cirq.PhasedXPowGate,
             "RH": cirq.H,
@@ -1271,7 +1271,7 @@ class TestCircuit(unittest.TestCase):
 
     def test_cirq2pyquil_RZ(self):
         circuit = cirq.Circuit()
-        circuit.append(cirq.Rz(rads=0.1)(cirq.GridQubit(0, 0)))
+        circuit.append(cirq.rz(rads=0.1)(cirq.GridQubit(0, 0)))
         qprog = cirq2pyquil(circuit)
         self.assertEqual(qprog[0].name, "RZ")
         self.assertAlmostEqual(qprog[0].params[0], 0.1)

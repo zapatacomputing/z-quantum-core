@@ -778,7 +778,7 @@ def cirq2pyquil(circuit):
                 cirq.H(q1),
                 cirq.H(q2),
                 cirq.CNOT(q1, q2),
-                cirq.Rz(op.gate.exponent * pi)(q2),
+                cirq.rz(op.gate.exponent * pi)(q2),
                 cirq.CNOT(q1, q2),
                 cirq.H(q1),
                 cirq.H(q2),
@@ -794,7 +794,7 @@ def cirq2pyquil(circuit):
                 cirq.H(q1),
                 cirq.H(q2),
                 cirq.CNOT(q1, q2),
-                cirq.Rz(op.gate.exponent * pi)(q2),
+                cirq.rz(op.gate.exponent * pi)(q2),
                 cirq.CNOT(q1, q2),
                 cirq.H(q1),
                 cirq.H(q2),
@@ -808,7 +808,7 @@ def cirq2pyquil(circuit):
             q1, q2 = op.qubits
             ops = [
                 cirq.CNOT(q1, q2),
-                cirq.Rz(op.gate.exponent * pi)(q2),
+                cirq.rz(op.gate.exponent * pi)(q2),
                 cirq.CNOT(q1, q2),
             ]
             for op in ops:

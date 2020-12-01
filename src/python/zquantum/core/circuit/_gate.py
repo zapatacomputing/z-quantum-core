@@ -90,7 +90,8 @@ class Gate(object):
             return False
         for i in range(len(self.params)):
             if self.params[i] != another_gate.params[i]:
-                return False
+                if sympy.simplify(self.params[i] - another_gate.params[i]) != 0:
+                    return False
         return True
 
     def __repr__(self):

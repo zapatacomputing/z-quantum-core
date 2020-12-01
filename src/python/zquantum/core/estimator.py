@@ -6,7 +6,7 @@ from .measurement import (
     expectation_values_to_real,
     concatenate_expectation_values,
 )
-from .hamiltonian import group_comeasureable_terms_greedy, compute_group_variances
+from .hamiltonian import group_comeasureable_terms_greedy
 from openfermion import SymbolicOperator, IsingOperator, QubitOperator
 from overrides import overrides
 import logging
@@ -109,50 +109,6 @@ def get_context_selection_circuit_for_group(
 
     return context_selection_circuit, transformed_operator
 
-def estimate_nmeas(
-    target_operator: QubitOperator,
-    decomposition_method: Optional[str] = "greedy-sorted",
-    expecval: Optional[ExpectationValues] = None,
-) -> Tuple[float, int, np.array]:
-    """Calculates the number of measurements required for computing
-        the expectation value of a qubit hamiltonian, where co-measurable terms
-        are grouped. We're assuming the exact expectation values are provided
-        (i.e. infinite number of measurements or simulations without noise)
-        M ~ (\sum_{i} prec(H_i)) ** 2.0 / (epsilon ** 2.0)
-        where prec(H_i) is the precision (square root of the variance)
-        for each group of co-measurable terms H_{i}. It is computed as
-        prec(H_{i}) = \sum{ab} |h_{a}^{i}||h_{b}^{i}| cov(O_{a}^{i}, O_{b}^{i})
-        where h_{a}^{i} is the coefficient of the a-th operator, O_{a}^{i}, in the
-        i-th group. Covariances are assumed to be zero for a != b:
-        cov(O_{a}^{i}, O_{b}^{i}) = <O_{a}^{i} O_{b}^{i}> - <O_{a}^{i}> <O_{b}^{i}> = 0
-    Args:
-        target_operator (openfermion.ops.QubitOperator): A QubitOperator to measure
-        expecval (ExpectationValues): An ExpectationValues object containing the expectation
-                  values of the operators and their squares. Optionally, contains
-                  values of operator products to compute covariances.
-                  If absent, covariances are assumed to be 0 and variances are
-                  assumed to be maximal, i.e. 1.
-                  NOTE: IN THE CURRENT IMPLEMENTATION WE HAVE TO MAKE SURE THAT THE ORDER
-                  OF EXPECTATION VALUES IS CONSISTENT WITH THE ORDER OF THE TERMS IN THE
-                  TARGET QUBIT OPERATOR, OTHERWISE THIS FUNCTION WILL NOT WORK CORRECTLY
-    Returns:
-        K2 (float): number of measurements for epsilon = 1.0
-        nterms (int): number of groups of QWC terms in the target_operator
-        frame_meas (array): Number of optimal measurements per group 
-    """
-
-    frame_variances = None
-    groups = get_decomposition_function(self.decomposition_method)(target_operator)
-    frame_variances = compute_group_variances(groups, expecval)
-    # Here we have our current best estimate for frame variances.
-    # We first compute the measurement estimate for each frame
-
-    sqrt_lambda = sum(np.sqrt(frame_variances))
-    frame_meas = np.asarray([sqrt_lambda * np.sqrt(x) for x in frame_variances])
-    K2 = sum(frame_meas)
-    nterms = sum([len(group.terms) for group in groups])
-
-    return K2, nterms, frame_meas
 
 class BasicEstimator(Estimator):
     """An estimator that uses the standard approach to computing expectation values of an operator.

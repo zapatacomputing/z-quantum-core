@@ -1,4 +1,8 @@
-from .hamiltonian import is_comeasureable, group_comeasureable_terms_greedy, compute_group_variances, get_expectation_values_from_rdms
+from .hamiltonian import (is_comeasureable, 
+                          group_comeasureable_terms_greedy, 
+                          compute_group_variances, 
+                          get_expectation_values_from_rdms,
+                          estimate_nmeas)
 from .measurement import ExpectationValues
 import numpy as np
 import math
@@ -169,6 +173,10 @@ def test_group_comeasureable_terms_greedy_sorted(
         (
             rdms, h2_hamiltonian, False,
         ),
+        (
+            rdms, h2_hamiltonian, True,
+        ),
+
     ],
 )
 
@@ -176,7 +184,22 @@ def test_get_expectation_values_from_rdms(interactionrdm,
     qubitoperator, sort_terms
 ):
     expecval = get_expectation_values_from_rdms(interactionrdm, qubitoperator, sort_terms)
-    energy_test = np.sum(np.array(list(qubitoperator.terms.values())) * expecval.values)
+    assert len(expecval.values) == len(qubitoperator.terms) - 1
+    if not sort_terms:
+        coeff = np.array(list(qubitoperator.terms.values()))
+        coeff = coeff[1:]
+    else:
+        sorted_qubitoperator = QubitOperator((), 0.0)
+        terms_iterator = sorted(
+            qubitoperator.terms.items(), key=lambda x: abs(x[1]), reverse=True
+        )
+        coeff = []
+        for term, coefficient in terms_iterator:
+            if not term == ():
+                coeff.append(coefficient)
+        coeff = np.array(coeff)
+
+    energy_test = np.sum(coeff * expecval.values) + qubitoperator.terms.get((), 0.0)
     energy_ref = np.real(interactionrdm.expectation(qubitoperator))
     assert math.isclose(energy_test, energy_ref)
 
@@ -187,10 +210,71 @@ def test_get_expectation_values_from_rdms(interactionrdm,
             [QubitOperator("[Z0 Z1] + [Z0]"), QubitOperator("[X0 X1] + [X0]")], None, np.array([ 2., 2. ]),
         ),
         (
-            [QubitOperator("[Z0 Z1] + [Z0]"), QubitOperator("[X0 X1] + [X0]")], ExpectationValues([0., 0., 0., 0.]), np.array([ 2., 2. ]),
+            [QubitOperator("[Z0 Z1] + [Z0]"), QubitOperator("[X0 X1] + [X0]")], ExpectationValues(np.zeros(4)), np.array([ 2., 2. ]),
+        ),
+        (
+            [QubitOperator("2 [Z0 Z1] + 3 [Z0]"), QubitOperator("[X0 X1] + [X0]")], ExpectationValues(np.zeros(4)), np.array([ 13., 2. ]),
         ),
     ],
 )
-def test_compute_group_variances(groups, expecval, variances):
+def test_compute_group_variances_with_ref(groups, expecval, variances):
     test_variances = compute_group_variances(groups, expecval)
     assert np.allclose(test_variances, variances)
+
+@pytest.mark.parametrize(
+    "groups, expecval",
+    [
+        (
+            group_comeasureable_terms_greedy(h2_hamiltonian, False), ExpectationValues(np.ones(14)),
+        ),
+        (
+            group_comeasureable_terms_greedy(h2_hamiltonian, False), ExpectationValues(np.zeros(14)),
+        ),
+        (
+            group_comeasureable_terms_greedy(h2_hamiltonian, False), ExpectationValues(np.repeat(0.5, 14)),
+        ),
+        (
+            group_comeasureable_terms_greedy(h2_hamiltonian, False), get_expectation_values_from_rdms(rdms, h2_hamiltonian, False),
+        ),
+        (
+            group_comeasureable_terms_greedy(h2_hamiltonian, True), get_expectation_values_from_rdms(rdms, h2_hamiltonian, True),
+        ),
+    ],
+)
+
+def test_compute_group_variances_without_ref(groups, expecval):
+    test_variances = compute_group_variances(groups, expecval)
+    test_ham_variance = np.sum(test_variances)
+    # Assemble H and compute its variances independently
+    ham = QubitOperator()
+    for g in groups:
+        ham += g
+    ham_coeff = np.array(list(ham.terms.values()))
+    pauli_var = 1. - expecval.values**2
+    ref_ham_variance = np.sum(ham_coeff**2 * pauli_var)
+    assert math.isclose(test_ham_variance, ref_ham_variance) # this is true as long as the groups do not overlap
+
+@pytest.mark.parametrize(
+    "target_operator, decomposition_method, expecval, expected_result",
+    [
+        (
+            h2_hamiltonian, "greedy", None, (0.5646124437984263, 14, np.array([0.03362557, 0.03362557, 0.03362557, 0.03362557, 0.43011016])  ),
+        ),
+        (
+            h2_hamiltonian, "greedy", get_expectation_values_from_rdms(rdms, h2_hamiltonian, False), (0.06951544260278607, 14, np.array([0.01154017, 0.01154017, 0.01154017, 0.01154017, 0.02335476])),
+        ),
+        (
+            h2_hamiltonian, "greedy-sorted", None, (0.5646124437984262, 14, np.array([0.43011016, 0.03362557, 0.03362557, 0.03362557, 0.03362557])),
+        ),
+        (
+            h2_hamiltonian, "greedy-sorted", get_expectation_values_from_rdms(rdms, h2_hamiltonian, True), (0.06951544260278607, 14, np.array([0.02335476, 0.01154017, 0.01154017, 0.01154017, 0.01154017])),
+        ),
+
+    ],
+)
+def test_estimate_nmeas(target_operator, decomposition_method, expecval, expected_result):
+    K2_ref, nterms_ref, frame_meas_ref = expected_result
+    K2, nterms, frame_meas = estimate_nmeas(target_operator, decomposition_method, expecval)
+    assert np.allclose(frame_meas, frame_meas_ref)
+    assert math.isclose(K2_ref, K2)
+    assert nterms_ref == nterms

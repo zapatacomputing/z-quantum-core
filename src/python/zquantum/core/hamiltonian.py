@@ -1,8 +1,8 @@
 from openfermion.ops import QubitOperator
 import numpy as np
-from typing import Tuple, List
+from typing import Tuple, List, Optional
 
-from .measurement import ExpectationValues
+from .measurement import ExpectationValues, expectation_values_to_real
 
 def is_comeasureable(
     term_1: Tuple[Tuple[int, str], ...], term_2: Tuple[Tuple[int, str], ...]
@@ -90,15 +90,16 @@ def compute_group_variances(groups, expecval=None):
     if expecval is None:
         frame_variances = [ np.sum(np.array(list(x.terms.values()))**2) for x in groups ] # Covariances are ignored; Variances are set to 1
     else:
-        pauli_variances = 1. - np.real(expecval.values)**2
-        pauli_variances[pauli_variances < -1.0] = -1.0
-        pauli_variances[pauli_variances >  1.0] =  1.0
         group_sizes = np.array([ len(g.terms.keys()) for g in groups ])
+        assert np.sum(group_sizes) == len(expecval.values)
+        real_expecval = expectation_values_to_real(expecval)
+        pauli_variances = 1. - real_expecval.values**2
         frame_variances = []
         for i, group  in enumerate(groups):
             coeffs = np.array(list(group.terms.values()))
-            offset = 0 if i == 0 else np.sum(group_sizes[:i-1])
-            frame_variances.append(np.sum(coeffs**2 * pauli_variances[offset : offset + group_sizes[i]]))
+            offset = 0 if i == 0 else np.sum(group_sizes[:i])
+            pauli_variances_for_group = pauli_variances[offset : offset + group_sizes[i]]
+            frame_variances.append(np.sum(coeffs**2 * pauli_variances_for_group))
 
     return np.array(frame_variances)
 
@@ -128,10 +129,68 @@ def get_expectation_values_from_rdms(interactionrdm, qubitoperator, sort_terms=F
 
     expectations_packed = interactionrdm.get_qubit_expectations(reordered_qubitoperator)
 
-    expectations = np.real(np.array(list(expectations_packed.terms.values()))) # should we added an assert to catch large Im parts
+    if () in expectations_packed.terms:
+        del expectations_packed.terms[()]
+
+    expectations = np.real(np.array(list(expectations_packed.terms.values()))) # should we add an assert to catch large Im parts
     # Clip expectations if they fell out of [-1 , 1] due to numerical errors
     expectations[expectations < -1.0] = -1.0
     expectations[expectations >  1.0] =  1.0
 
     return ExpectationValues(expectations)
 
+def estimate_nmeas(
+    target_operator: QubitOperator,
+    decomposition_method: Optional[str] = "greedy-sorted",
+    expecval: Optional[ExpectationValues] = None,
+) -> Tuple[float, int, np.array]:
+    """Calculates the number of measurements required for computing
+        the expectation value of a qubit hamiltonian, where co-measurable terms
+        are grouped. We're assuming the exact expectation values are provided
+        (i.e. infinite number of measurements or simulations without noise)
+        M ~ (\sum_{i} prec(H_i)) ** 2.0 / (epsilon ** 2.0)
+        where prec(H_i) is the precision (square root of the variance)
+        for each group of co-measurable terms H_{i}. It is computed as
+        prec(H_{i}) = \sum{ab} |h_{a}^{i}||h_{b}^{i}| cov(O_{a}^{i}, O_{b}^{i})
+        where h_{a}^{i} is the coefficient of the a-th operator, O_{a}^{i}, in the
+        i-th group. Covariances are assumed to be zero for a != b:
+        cov(O_{a}^{i}, O_{b}^{i}) = <O_{a}^{i} O_{b}^{i}> - <O_{a}^{i}> <O_{b}^{i}> = 0
+    Args:
+        target_operator (openfermion.ops.QubitOperator): A QubitOperator to measure
+        expecval (ExpectationValues): An ExpectationValues object containing the expectation
+                  values of the operators and their squares. Optionally, contains
+                  values of operator products to compute covariances.
+                  If absent, covariances are assumed to be 0 and variances are
+                  assumed to be maximal, i.e. 1. It is assumed that the first expectation
+                  value corresponds to the constant term in the target operator in line 
+                  with the conventions used in the BasicEstimator
+                  NOTE: IN THE CURRENT IMPLEMENTATION WE HAVE TO MAKE SURE THAT THE ORDER
+                  OF EXPECTATION VALUES IS CONSISTENT WITH THE ORDER OF THE TERMS IN THE
+                  TARGET QUBIT OPERATOR, OTHERWISE THIS FUNCTION WILL NOT WORK CORRECTLY
+    Returns:
+        K2 (float): number of measurements for epsilon = 1.0
+        nterms (int): number of groups of QWC terms in the target_operator
+        frame_meas (array): Number of optimal measurements per group 
+    """
+
+    frame_variances = None
+    if decomposition_method == 'greedy-sorted':
+        decomposition_function = lambda qubit_operator: group_comeasureable_terms_greedy(
+        qubit_operator, True) 
+    elif decomposition_method == 'greedy':
+        decomposition_function = lambda qubit_operator: group_comeasureable_terms_greedy(
+        qubit_operator, False)
+    else:
+        raise Exception(f'{decomposition_method} grouping is not implemented')
+
+    groups = decomposition_function(target_operator)
+    frame_variances = compute_group_variances(groups, expecval)
+    # Here we have our current best estimate for frame variances.
+    # We first compute the measurement estimate for each frame
+
+    sqrt_lambda = sum(np.sqrt(frame_variances))
+    frame_meas = np.asarray([sqrt_lambda * np.sqrt(x) for x in frame_variances])
+    K2 = sum(frame_meas)
+    nterms = sum([len(group.terms) for group in groups])
+
+    return K2, nterms, frame_meas

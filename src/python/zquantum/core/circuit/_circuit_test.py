@@ -28,6 +28,7 @@ from . import (
     MCTGate,
     PhaseOracle,
     MCRY,
+    add_ancilla_register_to_circuit,
 )
 
 from ..utils import compare_unitary, is_identity, is_unitary, RNDSEED
@@ -36,8 +37,7 @@ from ..testing import create_random_circuit
 
 class TestCircuit(unittest.TestCase):
     def test_circuit_eq(self):
-        """Test equality operation between Circuit objects.
-        """
+        """Test equality operation between Circuit objects."""
 
         qubits = [Qubit(i) for i in range(0, 3)]
         gate_H0 = Gate("H", [qubits[0]])
@@ -61,8 +61,7 @@ class TestCircuit(unittest.TestCase):
         self.assertEqual(circ1 == circ3, True)
 
     def test_circuit_eq_with_symbolic_params(self):
-        """Test equality operation between Circuit objects when some of the parameters are symbolical.
-        """
+        """Test equality operation between Circuit objects when some of the parameters are symbolical."""
 
         # Given
         qubits = [Qubit(i) for i in range(0, 3)]
@@ -88,8 +87,7 @@ class TestCircuit(unittest.TestCase):
         self.assertEqual(circ1 == circ3, True)
 
     def test_circuit_add(self):
-        """Test addition operation between Circuit objects.
-        """
+        """Test addition operation between Circuit objects."""
 
         qubits = [Qubit(i) for i in range(0, 3)]
         gate_H0 = Gate("H", [qubits[0]])
@@ -281,12 +279,18 @@ class TestCircuit(unittest.TestCase):
         circuit1 = Circuit(Program().inst(X(0), Y(1), Z(0)))
         circuit2 = Circuit(Program().inst(Z(2)))
         circuit_set = [circuit1, circuit2]
-        save_circuit_set(circuit_set, 'circuit_set.json')
-        loaded_circuit_set = load_circuit_set('circuit_set.json')
+        save_circuit_set(circuit_set, "circuit_set.json")
+        loaded_circuit_set = load_circuit_set("circuit_set.json")
         for i in range(len(circuit_set)):
-            self.assertTrue(circuit_set[i] == loaded_circuit_set[i], 
-                msg=str([circuit_set[i].to_pyquil().out(), 
-                         loaded_circuit_set[i].to_pyquil().out()]))
+            self.assertTrue(
+                circuit_set[i] == loaded_circuit_set[i],
+                msg=str(
+                    [
+                        circuit_set[i].to_pyquil().out(),
+                        loaded_circuit_set[i].to_pyquil().out(),
+                    ]
+                ),
+            )
         os.remove("circuit_set.json")
 
     def test_circuit_io_with_symbolic_params(self):
@@ -301,8 +305,7 @@ class TestCircuit(unittest.TestCase):
         os.remove("circuit.json")
 
     def test_zxz_cirq(self):
-        """Test the special gate ZXZ (from cirq PhasedXPowGate)
-        """
+        """Test the special gate ZXZ (from cirq PhasedXPowGate)"""
 
         random.seed(RNDSEED)
         beta = random.uniform(-1, 1)
@@ -343,8 +346,7 @@ class TestCircuit(unittest.TestCase):
         self.assertTrue(compare_unitary(u, U1, tol=1e-10))
 
     def test_zxz_pyquil(self):
-        """Test the special gate ZXZ (from cirq PhasedXPowGate) for pyquil
-        """
+        """Test the special gate ZXZ (from cirq PhasedXPowGate) for pyquil"""
 
         # random.seed(RNDSEED)
         beta = random.uniform(-1, 1)  # rotation angles (in multiples of pi)
@@ -395,8 +397,7 @@ class TestCircuit(unittest.TestCase):
         self.assertTrue(compare_unitary(u3, u, tol=1e-10))
 
     def test_zxz_qiskit(self):
-        """Test the special gate ZXZ (from cirq PhasedXPowGate) for qiskit
-        """
+        """Test the special gate ZXZ (from cirq PhasedXPowGate) for qiskit"""
 
         # random.seed(RNDSEED)
         beta = random.uniform(-1, 1)  # rotation angles (in multiples of pi)
@@ -415,8 +416,7 @@ class TestCircuit(unittest.TestCase):
         self.assertTrue(compare_unitary(u1, u2, tol=1e-10))
 
     def test_rh_cirq(self):
-        """Test the special RH (from cirq HPowGate) for cirq
-        """
+        """Test the special RH (from cirq HPowGate) for cirq"""
 
         # random.seed(RNDSEED)
         beta = random.uniform(-1, 1)
@@ -446,8 +446,7 @@ class TestCircuit(unittest.TestCase):
         self.assertTrue(compare_unitary(u, U1, tol=1e-10), True)
 
     def test_rh_pyquil(self):
-        """Test the special RH (from cirq HPowGate) for pyquil
-        """
+        """Test the special RH (from cirq HPowGate) for pyquil"""
 
         # random.seed(RNDSEED)
         beta = random.uniform(-1, 1)  # rotation angles (in multiples of pi)
@@ -478,8 +477,7 @@ class TestCircuit(unittest.TestCase):
         self.assertTrue(compare_unitary(u3, u, tol=1e-10))
 
     def test_rh_qiskit(self):
-        """Test the special RH (from cirq HPowGate) for qiskit
-        """
+        """Test the special RH (from cirq HPowGate) for qiskit"""
 
         # random.seed(RNDSEED)
         beta = random.uniform(-1, 1)  # rotation angles (in multiples of pi)
@@ -497,8 +495,7 @@ class TestCircuit(unittest.TestCase):
         self.assertTrue(compare_unitary(u1, u2, tol=1e-10))
 
     def test_xx_cirq(self):
-        """Test the special XX (modified from cirq XXPowGate) for cirq
-        """
+        """Test the special XX (modified from cirq XXPowGate) for cirq"""
 
         # random.seed(RNDSEED)
         beta = random.uniform(-1, 1)  # we want to evolve under XX for time beta*pi
@@ -529,8 +526,7 @@ class TestCircuit(unittest.TestCase):
         self.assertTrue(compare_unitary(U2, U3, tol=1e-10), True)
 
     def test_xx_pyquil(self):
-        """Test the special XX (modified from cirq XXPowGate) for pyquil
-        """
+        """Test the special XX (modified from cirq XXPowGate) for pyquil"""
 
         # random.seed(RNDSEED)
         beta = random.uniform(-1, 1)  # rotation angles (in multiples of pi)
@@ -561,8 +557,7 @@ class TestCircuit(unittest.TestCase):
         self.assertTrue(compare_unitary(u3, u4, tol=1e-10))
 
     def test_xx_qiskit(self):
-        """Test the special XX (modified from cirq XXPowGate) for qiskit
-        """
+        """Test the special XX (modified from cirq XXPowGate) for qiskit"""
 
         # random.seed(RNDSEED)
         beta = random.uniform(-1, 1)  # rotation angles (in multiples of pi)
@@ -591,8 +586,7 @@ class TestCircuit(unittest.TestCase):
         self.assertTrue(compare_unitary(u2, u3, tol=1e-10))
 
     def test_yy_cirq(self):
-        """Test the special YY (modified from cirq YYPowGate) for cirq
-        """
+        """Test the special YY (modified from cirq YYPowGate) for cirq"""
 
         # random.seed(RNDSEED)
         beta = random.uniform(-1, 1)  # we want to evolve under XX for time beta*pi
@@ -623,8 +617,7 @@ class TestCircuit(unittest.TestCase):
         self.assertTrue(compare_unitary(U2, U3, tol=1e-10), True)
 
     def test_yy_pyquil(self):
-        """Test the special YY (modified from cirq YYPowGate) for pyquil
-        """
+        """Test the special YY (modified from cirq YYPowGate) for pyquil"""
 
         # random.seed(RNDSEED)
         beta = random.uniform(-1, 1)  # rotation angles (in multiples of pi)
@@ -665,8 +658,7 @@ class TestCircuit(unittest.TestCase):
         self.assertTrue(compare_unitary(u3, u4, tol=1e-10))
 
     def test_yy_qiskit(self):
-        """Test the special YY (modified from cirq YYPowGate) for qiskit
-        """
+        """Test the special YY (modified from cirq YYPowGate) for qiskit"""
 
         # random.seed(RNDSEED)
         beta = random.uniform(-1, 1)  # rotation angles (in multiples of pi)
@@ -699,8 +691,7 @@ class TestCircuit(unittest.TestCase):
         self.assertTrue(compare_unitary(u2, u3, tol=1e-10))
 
     def test_zz_cirq(self):
-        """Test the special ZZ (modified from cirq ZZPowGate) for cirq
-        """
+        """Test the special ZZ (modified from cirq ZZPowGate) for cirq"""
 
         # random.seed(RNDSEED)
         beta = random.uniform(-1, 1)  # we want to evolve under ZZ for time beta*pi
@@ -731,8 +722,7 @@ class TestCircuit(unittest.TestCase):
         self.assertTrue(compare_unitary(U2, U3, tol=1e-10), True)
 
     def test_zz_pyquil(self):
-        """Test the special ZZ (modified from cirq ZZPowGate) for pyquil
-        """
+        """Test the special ZZ (modified from cirq ZZPowGate) for pyquil"""
 
         # random.seed(RNDSEED)
         beta = random.uniform(-1, 1)  # rotation angles (in multiples of pi)
@@ -761,8 +751,7 @@ class TestCircuit(unittest.TestCase):
         self.assertTrue(compare_unitary(u3, u4, tol=1e-10))
 
     def test_zz_qiskit(self):
-        """Test the special ZZ (modified from cirq ZZPowGate) for qiskit
-        """
+        """Test the special ZZ (modified from cirq ZZPowGate) for qiskit"""
 
         # random.seed(RNDSEED)
         beta = random.uniform(-1, 1)  # rotation angles (in multiples of pi)
@@ -823,8 +812,7 @@ class TestCircuit(unittest.TestCase):
         self.assertTrue(compare_unitary(U, U_ref))
 
     def test_pyquil_empty(self):
-        """Convert empty pyquil Program object to Circuit object and back.
-        """
+        """Convert empty pyquil Program object to Circuit object and back."""
 
         prog = pyquil.Program()
         p = Circuit(prog)
@@ -832,10 +820,10 @@ class TestCircuit(unittest.TestCase):
         self.assertEqual(prog, prog2)
 
     def test_pyquil_conversion_specific(self):
-        """The goal of this test is to probe if the conversion between core.circuit.Circuit 
+        """The goal of this test is to probe if the conversion between core.circuit.Circuit
         and pyquil Program object is seamless, restricted to the gate set hard coded in pyquil. The
-        test program will build a specific quantum circuit. At the end the assertion compares 
-        the original pyquil Program with the pyquil Program produced by converting to QCircuit 
+        test program will build a specific quantum circuit. At the end the assertion compares
+        the original pyquil Program with the pyquil Program produced by converting to QCircuit
         and back to pyquil.
         """
 
@@ -849,7 +837,7 @@ class TestCircuit(unittest.TestCase):
     def test_pyquil_conversion_general(self):
         """The goal of this test is to probe if the conversion between core.circuit.Circuit
         and pyquil Program object is seamless, restricted to the gate set hard coded in pyquil. The
-        test program will randomly choose a number of qubits and a number of gates from 
+        test program will randomly choose a number of qubits and a number of gates from
         specified ranges, and proceed to generate a circuit where at each step a gate is
         uniformly randomly drawn from the set of all one-qubit, two-qubit and three-qubit
         gates specified in pyquil. At the end the assertion compares the original pyquil
@@ -952,8 +940,7 @@ class TestCircuit(unittest.TestCase):
             self.assertEqual(prog, prog2)
 
     def test_cirq_empty(self):
-        """Convert empty cirq Circuit object to core.circuit.Circuit object.
-        """
+        """Convert empty cirq Circuit object to core.circuit.Circuit object."""
 
         cirq_circuit = cirq.Circuit()
         p = Circuit(cirq_circuit)
@@ -962,9 +949,9 @@ class TestCircuit(unittest.TestCase):
 
     def test_cirq_conversion_specific(self):
         """The goal of this test is to probe if the conversion between core.circuit.Circuit
-        and cirq Circuit object is seamless, restricted to the gate set. 
-        The test program will build a specific quantum circuit. At the end the assertion compares 
-        the original cirq Circuit with the cirq Circuit produced by converting to Zap OS Circuit 
+        and cirq Circuit object is seamless, restricted to the gate set.
+        The test program will build a specific quantum circuit. At the end the assertion compares
+        the original cirq Circuit with the cirq Circuit produced by converting to Zap OS Circuit
         and back to cirq.
         """
 
@@ -987,8 +974,7 @@ class TestCircuit(unittest.TestCase):
         self.assertEqual(cirq_circuit, cirq_circuit2)
 
     def test_cirq_conversion_on_qubits(self):
-        """For testing conversion to cirq circuits acting on a given set of cirq qubits.
-        """
+        """For testing conversion to cirq circuits acting on a given set of cirq qubits."""
 
         qubits = [cirq.LineQubit(x) for x in range(0, 4)]
         gates = [cirq.H(qubits[0]), cirq.CNOT(qubits[0], qubits[2]), cirq.H(qubits[2])]
@@ -1007,7 +993,7 @@ class TestCircuit(unittest.TestCase):
     def test_cirq_conversion_general(self):
         """The goal of this test is to probe if the conversion between core.circuit.Circuit
         and cirq Circuit object is seamless, restricted to the gate set hard coded in cirq. The
-        test program will randomly choose a number of qubits and a number of gates from 
+        test program will randomly choose a number of qubits and a number of gates from
         specified ranges, and proceed to generate a circuit where at each step a gate is
         uniformly randomly drawn from the set of all one-qubit, two-qubit and three-qubit
         gates specified in cirq. At the end the assertion compares the original cirq
@@ -1134,33 +1120,19 @@ class TestCircuit(unittest.TestCase):
             self.assertEqual(compare_unitary(U1, U2, tol=1e-10), True)
 
     def test_qiskit_empty(self):
-        """Converting empty qiskit QuantumCircuit to and from core.circuit.Circuit objects.
-        """
+        """Converting empty qiskit QuantumCircuit to and from core.circuit.Circuit objects."""
         qubits = qiskit.QuantumRegister(3)
         circ = qiskit.QuantumCircuit(qubits)
 
-        # test if two qiskit QuantumCircuit objects are equal
-        def test_equal_qiskit(circ, circ2):
-            if len(circ.data) != len(circ2.data):
-                return False
-            for gate, gate2 in zip(circ.data, circ2.data):
-                if gate != gate2:
-                    return False
-                else:
-                    for qubit, qubit2 in zip(gate.qargs, gate2.qargs):
-                        if qubit != qubit2:
-                            return False
-            return True
-
         p = Circuit(circ)
         circ2 = p.to_qiskit()
-        self.assertEqual(test_equal_qiskit(circ, circ2), True)
+        self.assertEqual(are_equal_qiskit(circ, circ2), True)
 
     def test_qiskit_conversion_specific(self):
         """The goal of this test is to probe if the conversion between core.circuit.Circuit
-        and qiskit QuantumCircuit object is seamless, restricted to the gate set. 
-        The test program will build a specific quantum circuit. At the end the assertion compares 
-        the original qiskit QuantumCircuit with the qiskit QuantumCircuit produced by converting to Zap OS Circuit 
+        and qiskit QuantumCircuit object is seamless, restricted to the gate set.
+        The test program will build a specific quantum circuit. At the end the assertion compares
+        the original qiskit QuantumCircuit with the qiskit QuantumCircuit produced by converting to Zap OS Circuit
         and back to qiskit.
         """
 
@@ -1177,25 +1149,12 @@ class TestCircuit(unittest.TestCase):
         p = Circuit(circ)
         circ2 = p.to_qiskit()
 
-        # test if two qiskit QuantumCircuit objects are equal
-        def test_equal_qiskit(circ, circ2):
-            if len(circ.data) != len(circ2.data):
-                return False
-            for gate, gate2 in zip(circ.data, circ2.data):
-                if gate != gate2:
-                    return False
-                else:
-                    for qubit, qubit2 in zip(gate[1], gate2[1]):
-                        if qubit != qubit2:
-                            return False
-            return True
-
-        self.assertEqual(test_equal_qiskit(circ, circ2), True)
+        self.assertEqual(are_equal_qiskit(circ, circ2), True)
 
     def test_qiskit_conversion_general(self):
         """The goal of this test is to probe if the conversion between core.circuit.Circuit
         and qiskit QuantumCircuit object is seamless, restricted to the gate set hard coded in qiskit. The
-        test program will randomly choose a number of qubits and a number of gates from 
+        test program will randomly choose a number of qubits and a number of gates from
         specified ranges, and proceed to generate a circuit where at each step a gate is
         uniformly randomly drawn from the set of all one-qubit, two-qubit and three-qubit
         gates specified in qiskit. At the end the assertion compares the original qiskit
@@ -1283,20 +1242,7 @@ class TestCircuit(unittest.TestCase):
             p = Circuit(circ)
             circ2 = p.to_qiskit()
 
-            # test if two qiskit QuantumCircuit objects are equal
-            def test_equal_qiskit(circ, circ2):
-                if len(circ.data) != len(circ2.data):
-                    return False
-                for gate, gate2 in zip(circ.data, circ2.data):
-                    if gate != gate2:
-                        return False
-                    else:
-                        for qubit, qubit2 in zip(gate[1], gate2[1]):
-                            if qubit != qubit2:
-                                return False
-                return True
-
-            self.assertEqual(test_equal_qiskit(circ, circ2), True)
+            self.assertEqual(are_equal_qiskit(circ, circ2), True)
 
     def test_cirq2pyquil(self):
         ref_qprog = pyquil.quil.Program().inst(
@@ -1398,7 +1344,7 @@ class TestCircuit(unittest.TestCase):
             """w0 W 0
         w1 W 1
         w2 W 2
-        w0 G {H} 
+        w0 G {H}
         w1 C w0
         w2 N
         w1 Z w2
@@ -1512,7 +1458,8 @@ class TestCircuit(unittest.TestCase):
 
         # Create Orquestra circuit from qiskit
         circuit = Circuit(input_object=ibm_circuit, name="test ccx")
-        self.assertEqual(ibm_circuit == circuit.to_qiskit(), True)
+
+        self.assertTrue(are_equal_qiskit(ibm_circuit, circuit.to_qiskit()))
 
     def test_mct(self):
         ctrl = [0, 1, 2, 3, 5]
@@ -1625,6 +1572,56 @@ class TestCircuit(unittest.TestCase):
         translated_ibm_circuit_1 = circuit_1.to_qiskit()
         self.assertEqual(qiskit_gates == translated_ibm_circuit_1, True)
 
+    def test_add_ancilla_register_to_circuit(self):
+        n_qubits = 6
+        n_ancilla_qubits = 2
+        expected_circuit = Circuit()
+        partial_circuit = Circuit()
+
+        expected_circuit.qubits = [
+            Qubit(qubit_index) for qubit_index in range(n_qubits)
+        ]
+        partial_circuit.qubits = [
+            Qubit(qubit_index) for qubit_index in range(n_qubits - n_ancilla_qubits)
+        ]
+
+        expected_circuit.gates.append(Gate("Rx", [expected_circuit.qubits[0]], [np.pi]))
+        partial_circuit.gates.append(Gate("Rx", [partial_circuit.qubits[0]], [np.pi]))
+        expected_circuit.gates.append(Gate("Y", [expected_circuit.qubits[1]]))
+        partial_circuit.gates.append(Gate("Y", [partial_circuit.qubits[1]]))
+        expected_circuit.gates.append(Gate("H", [expected_circuit.qubits[2]]))
+        partial_circuit.gates.append(Gate("H", [partial_circuit.qubits[2]]))
+        expected_circuit.gates.append(
+            Gate("Rz", [expected_circuit.qubits[3]], [np.pi / 2])
+        )
+        partial_circuit.gates.append(
+            Gate("Rz", [partial_circuit.qubits[3]], [np.pi / 2])
+        )
+
+        expected_circuit.gates.append(Gate("I", [expected_circuit.qubits[4]]))
+        expected_circuit.gates.append(Gate("I", [expected_circuit.qubits[5]]))
+
+        extended_circuit = add_ancilla_register_to_circuit(
+            partial_circuit, n_ancilla_qubits
+        )
+        self.assertEqual(extended_circuit == expected_circuit, True)
+
 
 if __name__ == "__main__":
     unittest.main()
+
+
+# test if two qiskit QuantumCircuit objects are equal
+def are_equal_qiskit(circ, circ2):
+    if len(circ.data) != len(circ2.data):
+        return False
+    for gate, gate2 in zip(circ.data, circ2.data):
+        if gate[0].name != gate2[0].name:
+            return False
+        elif [qubit.index for qubit in gate[1]] != [qubit.index for qubit in gate2[1]]:
+            return False
+        else:
+            for qubit, qubit2 in zip(gate[1], gate2[1]):
+                if qubit.index != qubit2.index:
+                    return False
+    return True

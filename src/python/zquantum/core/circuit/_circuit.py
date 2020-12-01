@@ -24,7 +24,7 @@ from openfermion.ops import FermionOperator
 
 class Circuit(object):
     """Base class for quantum circuits.
-    
+
     Attributes:
         name: string
             Name of the Circuit object. By default this is called 'Unnamed'.
@@ -80,8 +80,7 @@ class Circuit(object):
 
     @property
     def n_multiqubit_gates(self):
-        """The number of multiqubit gates in the circuit.
-        """
+        """The number of multiqubit gates in the circuit."""
 
         n_mq_gates = 0
         for gate in self.gates:
@@ -106,8 +105,7 @@ class Circuit(object):
         return set(symbolic_params)
 
     def __eq__(self, anotherCircuit):
-        """Comparison between two Circuit objects.
-        """
+        """Comparison between two Circuit objects."""
         if self.name != anotherCircuit.name:
             return False
         if len(self.qubits) != len(anotherCircuit.qubits):
@@ -125,8 +123,7 @@ class Circuit(object):
         return True
 
     def __add__(self, other_circuit):
-        """Add two circuits.
-        """
+        """Add two circuits."""
 
         qubit_indices = set(
             [qubit.index for qubit in self.qubits]
@@ -143,8 +140,7 @@ class Circuit(object):
         return new_circuit
 
     def get_qubits(self):
-        """Returns a list of qubit indices (ints).
-        """
+        """Returns a list of qubit indices (ints)."""
 
         return [q.index for q in self.qubits]
 
@@ -181,8 +177,7 @@ class Circuit(object):
         return new_circuit
 
     def to_pyquil(self):
-        """Converts the circuit to a pyquil Program object.
-        """
+        """Converts the circuit to a pyquil Program object."""
 
         output = Program()
         if self.gates != None:
@@ -231,86 +226,25 @@ class Circuit(object):
         return cirq_circuit
 
     def to_qiskit(self):
-        """Converts the circuit to a qiskit QuantumCircuit object.
-        """
+        """Converts the circuit to a qiskit QuantumCircuit object."""
         qiskit_circuit = qiskit.QuantumCircuit()  # New qiskit circuit object
-        list_qregs = []  # list of QuantumRegister objects
-        qreg = []
-
-        list_cregs = []
-        creg = []
+        qreg = None
+        creg = None
 
         if (
-            self.qubits != None
+            self.qubits != None and self.qubits != []
         ):  # If there are qubits in the circuit, add them to the new qiskit circuit
-            if (
-                self.info["label"] == "qiskit"
-            ):  # If the circuit originally was a qiskit circuit, create and add the quantum registers
-                collected_qregs = (
-                    {}
-                )  # dictionary of entries 'qreg name':list of collected qubit indices
-                collected_cregs = {}
-                for q in self.qubits:  # For every qubit in the circuit...
-                    # Quantum Register is stored as a string, so must parse for info and recreate qreg
-                    q_qreg_num = int(
-                        q.info["qreg"][
-                            q.info["qreg"].find("(") + 1 : q.info["qreg"].find(",")
-                        ]
-                    )
-                    q_qreg_label = q.info["qreg"][
-                        q.info["qreg"].find("'") + 1 : q.info["qreg"].rfind("'")
-                    ]
-
-                    q_qreg = QuantumRegister(q_qreg_num, q_qreg_label)
-                    if q_qreg.name in collected_qregs:
-                        # If the qubit register has already been collected, do nothing
-                        pass
-                    else:
-                        # If qubit register has not been collected, add to lists
-                        collected_qregs[q_qreg.name] = [q.index]
-                        list_qregs.append(q_qreg)
-                    # Quantum Register is stored as a string, so must parse for info and recreate qreg
-                    if "creg" in q.info.keys():
-                        q_creg_num = int(
-                            q.info["creg"][
-                                q.info["creg"].find("(") + 1 : q.info["creg"].find(",")
-                            ]
-                        )
-                        q_creg_label = q.info["creg"][
-                            q.info["creg"].find("'") + 1 : q.info["creg"].rfind("'")
-                        ]
-
-                        q_creg = ClassicalRegister(q_creg_num, q_creg_label)
-                        if q_creg.name in collected_cregs:
-                            # If the qubit register has already been collected, do nothing
-                            pass
-                        else:
-                            # If qubit register has not been collected, add to lists
-                            collected_cregs[q_creg.name] = [q.index]
-                            list_cregs.append(q_creg)
-                for qreg in list_qregs:
-                    qiskit_circuit.add_register(qreg)
-                for creg in list_cregs:
-                    qiskit_circuit.add_register(creg)
-            else:  # If not from a qiskit circuit, add all of the qubits to one register
-                max_qindex = max([q.index for q in self.qubits])
-                qreg = qiskit.QuantumRegister(max_qindex + 1, "q")
-                creg = qiskit.ClassicalRegister(max_qindex + 1, "c")
-                qiskit_circuit.add_register(qreg)
-                qiskit_circuit.add_register(creg)
+            max_qindex = max([q.index for q in self.qubits])
+            qreg = qiskit.QuantumRegister(max_qindex + 1, "q")
+            creg = qiskit.ClassicalRegister(max_qindex + 1, "c")
+            qiskit_circuit.add_register(qreg)
+            qiskit_circuit.add_register(creg)
 
         if self.gates != None:
             for gate in self.gates:
-                if (
-                    gate.info["label"] == "qiskit"
-                ):  # if the original circuit is a qiskit circuit
-                    qiskit_gate_data = (
-                        gate.to_qiskit()
-                    )  # assume that the underlying QuantumRegister is already provided
-                else:  # if the original state is not a qiskit circuit
-                    qiskit_gate_data = gate.to_qiskit(
-                        qreg
-                    )  # provide the gate conversion with the associated QuantumRegister
+                qiskit_gate_data = gate.to_qiskit(
+                    qreg, creg
+                )  # provide the gate conversion with the associated QuantumRegister
                 N = len(
                     qiskit_gate_data
                 )  # total number of entries in the list (which is 3x the number of elementary gates)
@@ -375,7 +309,7 @@ class Circuit(object):
         """Gets a text diagram representing the circuit.
 
         transpose (bool): if true, arrange qubit wires vertically instead of horizontally
-        
+
         Returns:
             str: a string containing the text diagram
         """
@@ -442,7 +376,7 @@ class Circuit(object):
         """Converts a pyquil Program object to a core.Circuit object.
 
         Args:
-            pyquil_circuit: Program object(pyquil) 
+            pyquil_circuit: Program object(pyquil)
             name: string
                 Name of the converted core.Circuit object.
 
@@ -620,10 +554,7 @@ class Circuit(object):
                     for (
                         q
                     ) in _qubits:  # search for the old Qubit object in the _qubits list
-                        if (
-                            q.info["qreg"] == str(qubit.register)
-                            and q.info["num"] == qubit.index
-                        ):
+                        if q.info["num"] == qubit.index:
                             _old_Qubit = q
                             break
                     _gatequbits.append(_old_Qubit)
@@ -653,7 +584,7 @@ def load_circuit(file):
 
     Args:
         file (str or file-like object): the name of the file, or a file-like object.
-    
+
     Returns:
         circuit (core.Circuit): the circuit
     """
@@ -666,25 +597,26 @@ def load_circuit(file):
 
     return Circuit.from_dict(data)
 
+
 def save_circuit_set(circuit_set, filename):
     """Save a circuit set to a file.
-    
+
     Args:
         circuit_set (list): a list of core.Circuit objects
         file (str or file-like object): the name of the file, or a file-like object
     """
     dictionary = {}
-    dictionary['schema'] = SCHEMA_VERSION+'-circuit_set'
-    dictionary['circuits'] = []
+    dictionary["schema"] = SCHEMA_VERSION + "-circuit_set"
+    dictionary["circuits"] = []
     for circuit in circuit_set:
-        dictionary['circuits'].append(circuit.to_dict(serialize_gate_params=True))
-    with open(filename, 'w') as f:
+        dictionary["circuits"].append(circuit.to_dict(serialize_gate_params=True))
+    with open(filename, "w") as f:
         f.write(json.dumps(dictionary, indent=2))
-     
-        
+
+
 def load_circuit_set(file):
     """Load a set of circuits from a file.
-    
+
     Args:
         file (str or file-like object): the name of the file, or a file-like object.
 
@@ -692,21 +624,22 @@ def load_circuit_set(file):
         circuit_set (list): a list of core.Circuit objects
     """
     if isinstance(file, str):
-        with open(file, 'r') as f:
+        with open(file, "r") as f:
             data = json.load(f)
     else:
         data = json.load(file)
-    
+
     circuit_set = []
-    for circuit_dict in data['circuits']:
+    for circuit_dict in data["circuits"]:
         circuit_set.append(Circuit.from_dict(circuit_dict))
     return circuit_set
 
+
 def pyquil2cirq(qprog):
     """Convert a pyquil Program to a cirq Circuit.
-    
+
     Currently supports only common single- and two-qubit gates.
-    
+
     Args:
         qprog (pyquil.quil.Program): the program to be converted.
 
@@ -768,9 +701,9 @@ def pyquil2cirq(qprog):
 
 def cirq2pyquil(circuit):
     """Convert a cirq Circuit to a pyquil Program.
-    
+
     Currently supports only common single- and two-qubit gates.
-    
+
     Args:
         circuit (cirq.Cirquit): the converted circuit.
 
@@ -900,7 +833,7 @@ def add_gate_to_pyquil_program(pyquil_program, gate):
             The input Program object to which the gate is going to be added.
         gate: Gate (core.circuit)
             The Gate object describing the gate to be added.
-    
+
     Returns:
         A new pyquil.Program object with the definition of the new gate being added.
     """
@@ -1049,3 +982,22 @@ def add_gate_to_pyquil_program(pyquil_program, gate):
             return pyquil_program + MEASURE(gate.qubits[0].index, ro[0])
         if gate.name == "BARRIER":
             return pyquil_program
+
+
+def add_ancilla_register_to_circuit(circuit, n_qubits_ancilla_register):
+    """Add a register of ancilla qubits (qubit + identity gate) to an existing circuit.
+
+    Args:
+        circuit (core.Circuit): circuit to be extended
+        n_qubits_ancilla_register (int): number of ancilla qubits to add
+    Returns:
+        core.Circuit: extended circuit
+
+    """
+    extended_circuit = Circuit()
+    n_qubits = len(circuit.qubits)
+    pyquil_circuit = circuit.to_pyquil()
+    for i in range(n_qubits_ancilla_register):
+        pyquil_circuit += I(n_qubits + i)
+    extended_circuit.from_pyquil(pyquil_circuit)
+    return extended_circuit

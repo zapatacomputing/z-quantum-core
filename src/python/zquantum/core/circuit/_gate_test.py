@@ -146,6 +146,7 @@ class TestGate(unittest.TestCase):
             # Given
             gate = self.create_gate(gate_name)
             qreg = qiskit.QuantumRegister(2, "q")
+            creg = qiskit.ClassicalRegister(2, "c")
             cphase_targets = [
                 ("Rx", [pi / 2]),
                 ("Ry", [pi - 0.5]),
@@ -159,7 +160,7 @@ class TestGate(unittest.TestCase):
 
             # When
             if gate_name == "CPHASE":
-                cphase_decomposition = gate.to_qiskit(qreg=qreg)
+                cphase_decomposition = gate.to_qiskit(qreg, creg)
                 for i in range(int(len(cphase_decomposition) / 3)):
                     current_gate = cphase_decomposition[3 * i]
                     current_qreg = cphase_decomposition[3 * i + 1]
@@ -174,7 +175,7 @@ class TestGate(unittest.TestCase):
                 continue
 
             else:
-                qiskit_gate, qreg, creg = gate.to_qiskit(qreg=qreg)
+                qiskit_gate, qreg, creg = gate.to_qiskit(qreg, creg)
                 recreated_gate = Gate.from_qiskit(qiskit_gate, gate.qubits)
 
             # Then
@@ -244,6 +245,7 @@ class TestGate(unittest.TestCase):
             # Given
             gate, params = self.create_gate_with_symbolic_params(gate_name)
             qreg = qiskit.QuantumRegister(2, "q")
+            creg = qiskit.ClassicalRegister(2, "c")
             cphase_targets = [
                 ("Rx", [pi / 2]),
                 ("Ry", [pi - params[0] / 2]),
@@ -257,7 +259,7 @@ class TestGate(unittest.TestCase):
 
             # When
             if gate_name == "CPHASE":
-                cphase_decomposition = gate.to_qiskit(qreg=qreg)
+                cphase_decomposition = gate.to_qiskit(qreg, creg)
                 for i in range(int(len(cphase_decomposition) / 3)):
                     current_gate = cphase_decomposition[3 * i]
                     current_qreg = cphase_decomposition[3 * i + 1]
@@ -272,7 +274,7 @@ class TestGate(unittest.TestCase):
                 continue
 
             else:
-                qiskit_gate, qreg, creg = gate.to_qiskit(qreg=qreg)
+                qiskit_gate, qreg, creg = gate.to_qiskit(qreg, creg)
                 recreated_gate = Gate.from_qiskit(qiskit_gate, gate.qubits)
 
             # Then

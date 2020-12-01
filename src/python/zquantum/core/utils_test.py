@@ -2,6 +2,7 @@ import unittest
 import os
 import random
 import numpy as np
+import pytest
 from scipy.linalg import expm
 from scipy.stats import unitary_group
 import sympy
@@ -28,9 +29,10 @@ from .utils import (
     save_noise_model,
     create_symbols_map,
     save_timing,
-    SCHEMA_VERSION
+    SCHEMA_VERSION,
 )
 from .interfaces.mock_objects import MockQuantumSimulator
+
 
 class TestUtils(unittest.TestCase):
     def test_real_array_conversion(self):
@@ -140,10 +142,10 @@ class TestUtils(unittest.TestCase):
         value = -1.0
         precision = 0.1
         value_estimate = ValueEstimate(value, precision)
-        self.assertEqual(str(value_estimate), f'{value} ± {precision}')
+        self.assertEqual(str(value_estimate), f"{value} ± {precision}")
 
         value_estimate_no_precision = ValueEstimate(value)
-        self.assertEqual(str(value_estimate_no_precision), f'{value}')
+        self.assertEqual(str(value_estimate_no_precision), f"{value}")
 
     def test_list_io(self):
         # Given
@@ -164,12 +166,12 @@ class TestUtils(unittest.TestCase):
         # Then
         self.assertListEqual(initial_list, loaded_list)
         # And
-        # After manually loading json        
+        # After manually loading json
         if isinstance("list.json", str):
             with open("list.json", "r") as f:
                 data = json.load(f)
         else:
-            data = json.load("list.json")        
+            data = json.load("list.json")
         # Check that
         self.assertEqual(data["schema"], SCHEMA_VERSION + "-number-list")
         os.remove("list.json")
@@ -215,7 +217,10 @@ class TestUtils(unittest.TestCase):
 
         # When
         save_noise_model(
-            noise_model_data, module_name, function_name, "noise_model.json",
+            noise_model_data,
+            module_name,
+            function_name,
+            "noise_model.json",
         )
         noise_model = load_noise_model("noise_model.json")
 
@@ -254,4 +259,59 @@ class TestUtils(unittest.TestCase):
             timing = json.load(f)
         self.assertEqual(timing["walltime"], walltime)
         self.assertTrue("schema" in timing)
+        os.remove("timing.json")
 
+
+def test_arithmetic_on_value_estimate_and_float_gives_the_same_result_as_arithmetic_on_two_floats():
+    value = 5.1
+    estimate = ValueEstimate(value, precision=None)
+    other = 3.4
+
+    assert estimate + other == value + other
+    assert estimate - other == value - other
+    assert estimate * other == value * other
+    assert estimate / other == value / other
+
+
+def test_value_estimate_with_no_precision_is_equivalent_to_its_raw_value():
+    value = 6.193
+    estimate = ValueEstimate(value)
+
+    # Note that it is not that obvious that this comparison is symmetric, since we override
+    # the __eq__ method in ValueEstimate. The same goes about __ne__ method in the next test.
+    assert value == estimate
+    assert estimate == value
+
+
+def test_value_estimate_with_specified_precision_is_not_equal_to_its_raw_value():
+    value = 6.193
+    estimate = ValueEstimate(value, precision=4)
+
+    assert value != estimate
+    assert estimate != value
+
+
+@pytest.mark.parametrize(
+    "estimate_1,estimate_2,expected_result",
+    [
+        (ValueEstimate(14.1), ValueEstimate(14.1), True),
+        (ValueEstimate(12.3, 3), ValueEstimate(12.3, 3), True),
+        (ValueEstimate(14.1, 5), ValueEstimate(14.1, 4), False),
+        (ValueEstimate(2.5, 3), ValueEstimate(2.5), False),
+        (ValueEstimate(0.15, 3), ValueEstimate(1.1, 3), False),
+    ],
+)
+def test_two_value_estimates_are_equal_iff_their_values_and_precisions_are_equal(
+    estimate_1, estimate_2, expected_result
+):
+    assert (estimate_1 == estimate_2) == expected_result
+
+
+@pytest.mark.parametrize(
+    "estimate", [ValueEstimate(2.0), ValueEstimate(5.0, precision=1e-5)]
+)
+@pytest.mark.parametrize("other_obj", ["test-string", {"foo": 5, "bar": 10}, [1, 2, 3]])
+def test_value_estimate_is_not_equivalent_to_an_object_of_non_numeric_type(
+    estimate, other_obj
+):
+    assert estimate != other_obj

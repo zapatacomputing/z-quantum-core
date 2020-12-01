@@ -304,7 +304,7 @@ class TestCircuitLayers(unittest.TestCase):
             test = cirq.Circuit()
             qubits = [cirq.LineQubit(x) for x in range(0, n_qubits)]
             for i in range(0, n_qubits):
-                test.append(cirq.Ry(params[i]).on(qubits[i]))
+                test.append(cirq.ry(params[i]).on(qubits[i]))
             u_cirq = test._unitary_()
 
             # When

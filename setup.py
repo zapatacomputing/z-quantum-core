@@ -24,7 +24,7 @@ setuptools.setup(
     ),
     install_requires=[
         "pytest>=5.3.5",
-        "networkx==2.3",
+        "networkx==2.4",
         "numpy>=1.18.1",
         "scipy>=1.4.1",
         "sympy>=1.5",

@@ -9,7 +9,7 @@ imports:
   type: git
   parameters:
     repository: "git@github.com:zapatacomputing/z-quantum-core.git"
-    branch: 172548582-envelop-qe-openfermion
+    branch: dev
 
 steps:
 - name: get-operator

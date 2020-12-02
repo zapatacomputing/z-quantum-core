@@ -15,6 +15,7 @@ setuptools.setup(
         "zquantum.core.circuit",
         "zquantum.core.history",
         "zquantum.core.interfaces",
+        "zquantum.core.openfermion",
         "zquantum.core.testing",
     ],
     package_dir={"": "src/python"},

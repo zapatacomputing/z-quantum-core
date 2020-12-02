@@ -1,6 +1,7 @@
 import json
 from zquantum.core.utils import create_object, load_noise_model, save_value_estimate, save_nmeas_estimate
 from zquantum.core.measurement import load_expectation_values, save_expectation_values
+from zquantum.core.hamiltonian import estimate_nmeas
 from zquantum.core.circuit import (
     load_circuit,
     load_circuit_connectivity,
@@ -93,11 +94,13 @@ def evaluate_ansatz_based_cost_function(
 
     save_value_estimate(value_estimate, "value_estimate.json")
 
-def estimate_nmeas(
+def measurement_analysis(
     qubit_operator: str,
     decomposition_method: str = "greedy",
     expectation_values: str = "None",
 ):
+    assert isinstance(qubit_operator, str)
+
     operator = load_qubit_operator(qubit_operator)
     if decomposition_method != "greedy-sorted" and decomposition_method != "greedy":
         raise Exception(f'Decomposition method {decomposition_method} is not supported')
@@ -107,5 +110,5 @@ def estimate_nmeas(
         expecval = None
 
     K_coeff, nterms, frame_meas = estimate_nmeas(operator, decomposition_method, expecval)
-    save_nmeas_estimate(nmeas=K_coeff, nterms=nterms, expecval=expecval, filename='hamiltonian_analysis.json')
+    save_nmeas_estimate(nmeas=K_coeff, nterms=nterms, frame_meas=frame_meas, filename='hamiltonian_analysis.json')
     

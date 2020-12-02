@@ -509,9 +509,9 @@ def save_nmeas_estimate(nmeas: float, nterms: int, filename: str, frame_meas: np
     """ Save an estimate of the number of measurements to a file
 
     Args:
-        nmeas (float): total number of measurements for epsilon = 1.0
-        nterms (int): number of terms (groups) in the objective function
-        frame_meas (numpy.array): A list of the number of measurements per frame for epsilon = 1.0
+        nmeas: total number of measurements for epsilon = 1.0
+        nterms: number of terms (groups) in the objective function
+        frame_meas: A list of the number of measurements per frame for epsilon = 1.0
     """
 
     data = {}
@@ -528,12 +528,12 @@ def load_nmeas_estimate(filename: str) -> Tuple[float, int, np.ndarray]:
     """Load an estimate of the number of measurements from a file.
 
     Args:
-        filename (str): the name of the file
+        filename: the name of the file
 
     Returns:
-        nmeas (float): number of measurements for epsilon = 1.0
-        nterms (int): number of terms in the hamiltonian
-        frame_meas (numpy.ndarray): frame measurements (number of measurements per group)
+        nmeas: number of measurements for epsilon = 1.0
+        nterms: number of terms in the hamiltonian
+        frame_meas: frame measurements (number of measurements per group)
     """
 
     with open(filename, 'r') as f:

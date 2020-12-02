@@ -1,4 +1,4 @@
-from openfermion.ops import QubitOperator
+from openfermion.ops import QubitOperator, InteractionRDM
 import numpy as np
 from typing import Tuple, List, Optional
 
@@ -72,19 +72,18 @@ def group_comeasureable_terms_greedy(
 
     return groups
 
-def compute_group_variances(groups, expecval=None):
+def compute_group_variances(groups: List[QubitOperator], expecval: ExpectationValues=None) -> np.array:
     """Computes the variances of each frame in a grouped operator. 
         If expectation values are provided, use variances from there, 
         otherwise assume variances are 1 (upper bound). Correlation information
         is ignored in the current implementation, covariances are assumed to be 0.
     Args:
         groups:  A list of QubitOperators that defines a (grouped) objective function
-        expecval (zquantum.core.measurement.ExpectationValues): 
-                  An ExpectationValues object containing the expectation
+        expecval: An ExpectationValues object containing the expectation
                   values of the operators and their squares. Optionally, contains
                   values of operator products to compute covariances.
     Returns:
-        frame_variances (list): A list of the computed variances for each frame
+        frame_variances: A Numpy array of the computed variances for each frame
     """
 
     if expecval is None:
@@ -103,19 +102,21 @@ def compute_group_variances(groups, expecval=None):
 
     return np.array(frame_variances)
 
-def get_expectation_values_from_rdms(interactionrdm, qubitoperator, sort_terms=False):
+def get_expectation_values_from_rdms(interactionrdm: InteractionRDM, 
+        qubitoperator: QubitOperator, 
+        sort_terms: bool = False) -> ExpectationValues:
     """ Computes expectation values of a qubitOperator
         given a fermionic interactionRDM operator from
         OpenFermion.
 
         Args:
-            interactionrdm (openfermion.ops.InteractionRDM): interaction RDM to use for the expectation values
+            interactionrdm: interaction RDM to use for the expectation values
                 computation, as an OF InteractionRDM object
-            qubitoperator (openfermion.ops.QubitOperator): qubit operator to compute the expectation values for
+            qubitoperator: qubit operator to compute the expectation values for
                 in the form of an OF QubittOperator object
-            sort_terms (bool): whether or not the input qubit operator needs to be sorted before calculating expectations
+            sort_terms: whether or not the input qubit operator needs to be sorted before calculating expectations
         Returns:
-            expectations (zquantum.core.measurement.ExpectationValues): expectation values of Pauli strings in the qubit operator
+            expectations: expectation values of Pauli strings in the qubit operator
     """
     if sort_terms:
         terms_iterator = sorted(
@@ -123,14 +124,14 @@ def get_expectation_values_from_rdms(interactionrdm, qubitoperator, sort_terms=F
         )
     else:
         terms_iterator = qubitoperator.terms.items()
-    reordered_qubitoperator = QubitOperator((), 0.0)
+    reordered_qubitoperator = QubitOperator()
     for term, coefficient in terms_iterator:
         reordered_qubitoperator += QubitOperator(term, coefficient)
 
     expectations_packed = interactionrdm.get_qubit_expectations(reordered_qubitoperator)
 
     if () in expectations_packed.terms:
-        del expectations_packed.terms[()]
+        del expectations_packed.terms[()] # Expectation of the constant term is excluded from expectation values
 
     expectations = np.real(np.array(list(expectations_packed.terms.values()))) # should we add an assert to catch large Im parts
     # Clip expectations if they fell out of [-1 , 1] due to numerical errors
@@ -156,21 +157,21 @@ def estimate_nmeas(
         i-th group. Covariances are assumed to be zero for a != b:
         cov(O_{a}^{i}, O_{b}^{i}) = <O_{a}^{i} O_{b}^{i}> - <O_{a}^{i}> <O_{b}^{i}> = 0
     Args:
-        target_operator (openfermion.ops.QubitOperator): A QubitOperator to measure
-        expecval (ExpectationValues): An ExpectationValues object containing the expectation
+        target_operator: A QubitOperator to measure
+        expecval: An ExpectationValues object containing the expectation
                   values of the operators and their squares. Optionally, contains
                   values of operator products to compute covariances.
                   If absent, covariances are assumed to be 0 and variances are
                   assumed to be maximal, i.e. 1. It is assumed that the first expectation
                   value corresponds to the constant term in the target operator in line 
                   with the conventions used in the BasicEstimator
-                  NOTE: IN THE CURRENT IMPLEMENTATION WE HAVE TO MAKE SURE THAT THE ORDER
-                  OF EXPECTATION VALUES IS CONSISTENT WITH THE ORDER OF THE TERMS IN THE
+                  NOTE: WE HAVE TO MAKE SURE THAT THE ORDER
+                  OF EXPECTATION VALUES MATCHES THE ORDER OF THE TERMS IN THE
                   TARGET QUBIT OPERATOR, OTHERWISE THIS FUNCTION WILL NOT WORK CORRECTLY
     Returns:
-        K2 (float): number of measurements for epsilon = 1.0
-        nterms (int): number of groups of QWC terms in the target_operator
-        frame_meas (array): Number of optimal measurements per group 
+        K2: number of measurements for epsilon = 1.0
+        nterms: number of groups of QWC terms in the target_operator
+        frame_meas: Number of optimal measurements per group 
     """
 
     frame_variances = None
@@ -185,9 +186,6 @@ def estimate_nmeas(
 
     groups = decomposition_function(target_operator)
     frame_variances = compute_group_variances(groups, expecval)
-    # Here we have our current best estimate for frame variances.
-    # We first compute the measurement estimate for each frame
-
     sqrt_lambda = sum(np.sqrt(frame_variances))
     frame_meas = np.asarray([sqrt_lambda * np.sqrt(x) for x in frame_variances])
     K2 = sum(frame_meas)

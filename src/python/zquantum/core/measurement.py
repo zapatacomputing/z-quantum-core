@@ -419,7 +419,10 @@ class Measurements:
         data = {
             "schema": SCHEMA_VERSION + "-measurements",
             "counts": self.get_counts(),
-            "bitstrings": self.bitstrings,
+            # This step is required if bistrings contain np.int8 instead of regular int.
+            "bitstrings": [
+                list(map(int, list(bitstring))) for bitstring in self.bitstrings
+            ],
         }
         with open(filename, "w") as f:
             f.write(json.dumps(data, indent=2))

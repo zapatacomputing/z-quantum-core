@@ -149,7 +149,6 @@ class ExpectationValues:
 
         return cls(expectation_values, correlations, covariances)
 
-
 def sample_from_wavefunction(
     wavefunction: Wavefunction, n_samples: int
 ) -> List[Tuple[int]]:

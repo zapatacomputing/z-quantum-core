@@ -114,7 +114,7 @@ class ExpectationValues:
     def to_dict(self) -> dict:
         """Convert to a dictionary"""
 
-        data = {"schema": SCHEMA_VERSION + "-expectation_values", "frames": []}
+        data = {"schema": SCHEMA_VERSION + "-expectation_values", "frames": []} # what is "frames" for?
 
         data["expectation_values"] = convert_array_to_dict(self.values)
 

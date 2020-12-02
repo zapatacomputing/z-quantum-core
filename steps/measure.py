@@ -1,14 +1,14 @@
 import json
 from zquantum.core.utils import create_object, load_noise_model, save_value_estimate, save_nmeas_estimate
 from zquantum.core.measurement import load_expectation_values, save_expectation_values
-from zquantum.core.hamiltonian import estimate_nmeas
+from zquantum.core.hamiltonian import estimate_nmeas, get_expectation_values_from_rdms
 from zquantum.core.circuit import (
     load_circuit,
     load_circuit_connectivity,
     load_circuit_template_params,
 )
 from zquantum.core.bitstring_distribution import save_bitstring_distribution
-from qeopenfermion import load_qubit_operator
+from qeopenfermion import load_qubit_operator, load_interaction_rdm
 from typing import Dict
 
 
@@ -94,13 +94,11 @@ def evaluate_ansatz_based_cost_function(
 
     save_value_estimate(value_estimate, "value_estimate.json")
 
-def measurement_analysis(
+def hamiltonian_analysis(
     qubit_operator: str,
     decomposition_method: str = "greedy",
     expectation_values: str = "None",
 ):
-    assert isinstance(qubit_operator, str)
-
     operator = load_qubit_operator(qubit_operator)
     if decomposition_method != "greedy-sorted" and decomposition_method != "greedy":
         raise Exception(f'Decomposition method {decomposition_method} is not supported')
@@ -111,4 +109,13 @@ def measurement_analysis(
 
     K_coeff, nterms, frame_meas = estimate_nmeas(operator, decomposition_method, expecval)
     save_nmeas_estimate(nmeas=K_coeff, nterms=nterms, frame_meas=frame_meas, filename='hamiltonian_analysis.json')
-    
+   
+def expectation_values_from_rdms(
+    interactionrdm: str,
+    qubit_operator: str,
+    sort_terms: bool = False,
+):
+    operator = load_qubit_operator(qubit_operator)
+    rdms = load_interaction_rdm(interactionrdm)
+    expecval = get_expectation_values_from_rdms(rdms, operator, sort_terms=sort_terms)
+    save_expectation_values(expecval, 'expectation_values.json')

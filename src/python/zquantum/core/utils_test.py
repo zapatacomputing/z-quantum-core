@@ -29,6 +29,8 @@ from .utils import (
     save_noise_model,
     create_symbols_map,
     save_timing,
+    save_nmeas_estimate,
+    load_nmeas_estimate,
     SCHEMA_VERSION,
 )
 from .interfaces.mock_objects import MockQuantumSimulator
@@ -260,6 +262,17 @@ class TestUtils(unittest.TestCase):
         self.assertEqual(timing["walltime"], walltime)
         self.assertTrue("schema" in timing)
         os.remove("timing.json")
+
+    def test_save_nmeas_estimate(self):
+        K_coeff = 0.5646124437984263
+        nterms = 14
+        frame_meas = np.array([0.03362557, 0.03362557, 0.03362557, 0.03362557, 0.43011016])
+        save_nmeas_estimate(nmeas=K_coeff, nterms=nterms, filename="hamiltonian_analysis.json", frame_meas=frame_meas)
+        K_coeff_, nterms_, frame_meas_ = load_nmeas_estimate("hamiltonian_analysis.json")
+        self.assertEqual(K_coeff, K_coeff_)
+        self.assertEqual(nterms, nterms_)
+        self.assertListEqual(frame_meas.tolist(), frame_meas_.tolist())
+        os.remove("hamiltonian_analysis.json")
 
 
 def test_arithmetic_on_value_estimate_and_float_gives_the_same_result_as_arithmetic_on_two_floats():

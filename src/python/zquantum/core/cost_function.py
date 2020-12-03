@@ -73,14 +73,15 @@ class AnsatzBasedCostFunction:
         Returns:
             value: cost function value for given parameters.
         """
+        full_parameters = parameters.copy()
         if self.fixed_parameters is not None:
-            parameters = combine_ansatz_params(self.fixed_parameters, parameters)
+            full_parameters = combine_ansatz_params(self.fixed_parameters, parameters)
         if self.parameter_precision is not None:
             rng = np.random.default_rng(self.parameter_precision_seed)
-            noise_array = rng.normal(0.0, self.parameter_precision, len(parameters))
-            parameters += noise_array
+            noise_array = rng.normal(0.0, self.parameter_precision, len(full_parameters))
+            full_parameters += noise_array
 
-        circuit = self.ansatz.get_executable_circuit(parameters)
+        circuit = self.ansatz.get_executable_circuit(full_parameters)
         expectation_values = self.estimator.get_estimated_expectation_values(
             self.backend,
             circuit,

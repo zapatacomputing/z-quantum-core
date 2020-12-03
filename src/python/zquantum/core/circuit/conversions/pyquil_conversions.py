@@ -52,11 +52,10 @@ ROTATION_GATES = {
 TWO_QUBIT_CONTROLLED_GATES = {
     CZ: pyquil.gates.CZ,
     CNOT: pyquil.gates.CNOT,
-    SWAP: pyquil.gates.SWAP,
 }
 
 
-PYQUIL_NAME_TO_ORQUESTRA_NAME = {
+PYQUIL_NAME_TO_ORQUESTRA_CLS = {
     cls.__name__: cls
     for cls in chain(
         SINGLE_QUBIT_NONPARAMETRIC_GATES,
@@ -64,6 +63,9 @@ PYQUIL_NAME_TO_ORQUESTRA_NAME = {
         ROTATION_GATES
     )
 }
+
+PYQUIL_NAME_TO_ORQUESTRA_CLS["CPHASE"] = CPHASE
+PYQUIL_NAME_TO_ORQUESTRA_CLS["SWAP"] = SWAP
 
 
 def pyquil_qubits_to_numbers(qubits: Iterable[pyquil.quil.Qubit]):
@@ -229,7 +231,7 @@ def convert_from_pyquil(obj: Union[pyquil.Program, pyquil.quil.Gate]):
 @convert_from_pyquil.register
 def convert_gate_from_pyquil(gate: pyquil.quil.Gate) -> Gate:
     try:
-        gate_cls = PYQUIL_NAME_TO_ORQUESTRA_NAME[gate.name]
+        gate_cls = PYQUIL_NAME_TO_ORQUESTRA_CLS[gate.name]
         if (
             gate_cls in SINGLE_QUBIT_NONPARAMETRIC_GATES
             or gate_cls in TWO_QUBIT_CONTROLLED_GATES
@@ -243,6 +245,9 @@ def convert_gate_from_pyquil(gate: pyquil.quil.Gate) -> Gate:
                     SYMPY_DIALECT
                 )
             )
+        elif gate_cls == SWAP:
+            return gate_cls(pyquil_qubits_to_numbers(gate.qubits))
+
     except KeyError:
         raise ValueError(
             f"Conversion to Orquestra is not supported for {gate.name} gate"

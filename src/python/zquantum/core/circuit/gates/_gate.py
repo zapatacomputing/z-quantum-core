@@ -330,7 +330,7 @@ class Dagger(SpecializedGate):
         return self.gate
 
     def _create_matrix(self) -> sympy.Matrix:
-        return self.gate.matrix
+        return self.gate.matrix.conjugate().T
 
 
 class HermitianMixin:

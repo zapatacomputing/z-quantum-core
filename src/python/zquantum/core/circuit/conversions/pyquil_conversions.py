@@ -230,24 +230,43 @@ def convert_from_pyquil(obj: Union[pyquil.Program, pyquil.quil.Gate]):
 
 @convert_from_pyquil.register
 def convert_gate_from_pyquil(gate: pyquil.quil.Gate) -> Gate:
+    number_of_control_modifiers = gate.modifiers.count("CONTROLLED")
+
+    all_qubits = pyquil_qubits_to_numbers(gate.qubits)
+
+    control_qubits = all_qubits[:number_of_control_modifiers]
+    original_qubits = all_qubits[number_of_control_modifiers:]
+
     try:
         gate_cls = PYQUIL_NAME_TO_ORQUESTRA_CLS[gate.name]
         if (
             gate_cls in SINGLE_QUBIT_NONPARAMETRIC_GATES
             or gate_cls in TWO_QUBIT_CONTROLLED_GATES
         ):
-            return gate_cls(*pyquil_qubits_to_numbers(gate.qubits))
+            result = gate_cls(*original_qubits)
         elif gate_cls in ROTATION_GATES or gate_cls == CPHASE:
-            return gate_cls(
-                *pyquil_qubits_to_numbers(gate.qubits),
+            result = gate_cls(
+                *original_qubits,
                 translate_expression(
                     expression_from_pyquil(gate.params[0]),
                     SYMPY_DIALECT
                 )
             )
         elif gate_cls == SWAP:
-            return gate_cls(pyquil_qubits_to_numbers(gate.qubits))
+            result = gate_cls(original_qubits)
+        else:
+            raise RuntimeError(
+                f"Error converting gate {gate}. If you see this message, "
+                "please file a bugreport."
+            )
 
+        for qubit in reversed(control_qubits):
+            result = ControlledGate(result, qubit)
+
+        if gate.modifiers.count("DAGGER") % 2 == 1:
+            result = result.dagger
+
+        return result
     except KeyError:
         raise ValueError(
             f"Conversion to Orquestra is not supported for {gate.name} gate"

@@ -1,4 +1,5 @@
 """Test cases for pyquil conversion."""
+from copy import deepcopy
 import pyquil
 import pyquil.gates
 from pyquil import quilatom
@@ -299,32 +300,36 @@ class TestTwoQubitPredefinedControlledGatesConversion:
         assert orquestra_gate.qubits == (control, target)
 
 
-@pytest.mark.parametrize(
-    "gate",
-    [
-        X(2),
-        Y(0),
-        Z(1),
-        H(0),
-        PHASE(0, np.pi),
-        T(2),
-        I(10),
-        RX(0, np.pi),
-        RY(0, np.pi / 2),
-        RZ(0, 0.0),
-        CNOT(0, 1),
-        CZ(2, 12),
-        SWAP((2, 4)),
-        CPHASE(2, 4, np.pi / 4),
-    ],
-)
-def test_converting_gate_to_pyquil_preserves_its_type_and_matrix(gate):
-    pyquil_gate = convert_to_pyquil(gate)
+class TestCorrectnessOfGateTypeAndMatrix:
 
-    assert pyquil_gate.name == ORQUESTRA_GATE_TYPE_TO_PYQUIL_NAME[type(gate)]
-    assert np.allclose(
-        pyquil_gate_matrix(pyquil_gate), np.array(gate.matrix.tolist(), dtype=complex)
+    @pytest.mark.parametrize(
+        "gate",
+        [
+            X(2),
+            Y(0),
+            Z(1),
+            H(0),
+            PHASE(0, np.pi),
+            T(2),
+            I(10),
+            RX(0, np.pi),
+            RY(0, np.pi / 2),
+            RZ(0, 0.0),
+            CNOT(0, 1),
+            CZ(2, 12),
+            SWAP((2, 4)),
+            CPHASE(2, 4, np.pi / 4),
+        ],
     )
+    def test_conversion_from_orquestra_to_pyquil_preserves_gate_type_and_matrix(
+        self, gate
+    ):
+        pyquil_gate = convert_to_pyquil(gate)
+
+        assert pyquil_gate.name == ORQUESTRA_GATE_TYPE_TO_PYQUIL_NAME[type(gate)]
+        assert np.allclose(
+            pyquil_gate_matrix(pyquil_gate), np.array(gate.matrix.tolist(), dtype=complex)
+        )
 
 
 # Below we use multiple control qubits. What we mean is that we construct
@@ -333,51 +338,76 @@ def test_converting_gate_to_pyquil_preserves_its_type_and_matrix(gate):
 # This is to test whether pyquil CONTROLLED modifier gets applied correct
 # of times.
 @pytest.mark.parametrize(
-    "target_gate, control_qubits",
-    [(X(2), (1,)), (Y(1), (0,)), (PHASE(4, np.pi), (1, 2, 3)), (CZ(2, 12), (0, 3))],
+    "orquestra_gate, pyquil_gate, control_qubits",
+    [
+        (X(2), pyquil.gates.X(2), (1,)),
+        (Y(1), pyquil.gates.Y(1), (0,)),
+        (PHASE(4, np.pi), pyquil.gates.PHASE(np.pi, 4), (1, 2, 3)),
+        (CZ(2, 12), pyquil.gates.CZ(2, 12), (0, 3))
+    ],
+    scope="function"
 )
 class TestControlledGateConversion:
-    def make_controlled_gate(self, target_gate, control_qubits):
+    def make_orquestra_controlled_gate(self, gate, control_qubits):
         if control_qubits:
-            return self.make_controlled_gate(
-                ControlledGate(target_gate, control_qubits[0]), control_qubits[1:]
+            return self.make_orquestra_controlled_gate(
+                ControlledGate(gate, control_qubits[0]), control_qubits[1:]
             )
-        return target_gate
+        return gate
 
-    def test_converting_controlled_gate_to_pyquil_gives_gate_with_appropriate_name(
-        self, target_gate, control_qubits
+    def make_pyquil_controlled_gate(self, gate, control_qubits):
+        # Copy below is extremely important, because pyquil applies modifiers
+        # in place, meaning that only a first function would get intended
+        # params.
+        gate = deepcopy(gate)
+        if control_qubits:
+            return self.make_pyquil_controlled_gate(
+                gate.controlled(control_qubits[0]), control_qubits[1:]
+            )
+        return gate
+
+    def test_converting_nested_controlled_gate_gives_pyquil_gate_with_applied_controlled_modifiers(
+        self, orquestra_gate, pyquil_gate, control_qubits
     ):
-        controlled_gate = self.make_controlled_gate(target_gate, control_qubits)
-
-        pyquil_gate = convert_to_pyquil(controlled_gate)
-
-        assert pyquil_gate.name == ORQUESTRA_GATE_TYPE_TO_PYQUIL_NAME[type(target_gate)]
-
-    def test_converting_controlled_gate_to_pyquil_gives_gate_with_correct_qubits(
-        self, target_gate, control_qubits
-    ):
-        controlled_gate = self.make_controlled_gate(target_gate, control_qubits)
-
-        pyquil_gate = convert_to_pyquil(controlled_gate)
-
-        assert all(
-            pyquil_qubit.index == qubit
-            for pyquil_qubit, qubit in zip(pyquil_gate.qubits, controlled_gate.qubits)
+        assert (
+            self.make_pyquil_controlled_gate(pyquil_gate, control_qubits) ==
+            convert_to_pyquil(
+                self.make_orquestra_controlled_gate(orquestra_gate, control_qubits)
+            )
         )
 
-    def test_converting_controlled_gate_to_pyquil_gives_gate_with_controlled_modifier(
-        self, target_gate, control_qubits
+    def test_converting_pyquil_gate_with_controlled_modifiers_gives_nested_controlled_gate(
+        self, orquestra_gate, pyquil_gate, control_qubits
     ):
-        controlled_gate = self.make_controlled_gate(target_gate, control_qubits)
+        assert (
+            self.make_orquestra_controlled_gate(orquestra_gate, control_qubits) ==
+            convert_from_pyquil(
+                self.make_pyquil_controlled_gate(pyquil_gate, control_qubits)
+            )
+        )
 
-        pyquil_gate = convert_to_pyquil(controlled_gate)
 
-        assert pyquil_gate.modifiers == len(control_qubits) * ["CONTROLLED"]
+class TestGatesWithDaggerConversion:
 
+    def test_dagger_object_gets_converted_to_gate_with_dagger_modifier(self):
+        assert convert_to_pyquil(Dagger(X(1))) == pyquil.gates.X(1).dagger()
 
-def test_converting_dagger_object_to_pyquil_gives_gate_with_dagger_modifier():
-    gate = Dagger(X(1))
-    assert convert_to_pyquil(gate).modifiers == ["DAGGER"]
+    @pytest.mark.parametrize(
+        "pyquil_gate",
+        [
+            pyquil.gates.RX(np.pi / 4, 0),
+            pyquil.gates.PHASE(0.5, 2),
+            pyquil.gates.RX(0.5, 1).controlled(3),
+        ]
+    )
+    def test_dagger_of_orquestra_gate_is_taken_when_converting_gate_with_dagger_modifier(
+        self, pyquil_gate
+    ):
+        pyquil_dagger = deepcopy(pyquil_gate).dagger()
+        assert (
+            convert_from_pyquil(pyquil_dagger) ==
+            convert_from_pyquil(pyquil_gate).dagger
+        )
 
 
 @pytest.mark.parametrize(

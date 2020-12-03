@@ -58,9 +58,7 @@ TWO_QUBIT_CONTROLLED_GATES = {
 PYQUIL_NAME_TO_ORQUESTRA_CLS = {
     cls.__name__: cls
     for cls in chain(
-        SINGLE_QUBIT_NONPARAMETRIC_GATES,
-        TWO_QUBIT_CONTROLLED_GATES,
-        ROTATION_GATES
+        SINGLE_QUBIT_NONPARAMETRIC_GATES, TWO_QUBIT_CONTROLLED_GATES, ROTATION_GATES
     )
 }
 
@@ -93,7 +91,9 @@ def convert_to_pyquil(obj, program: Optional[pyquil.Program] = None):
 def convert_gate_to_pyquil(
     gate: Gate, program: Optional[pyquil.Program] = None
 ) -> pyquil.gates.Gate:
-    required_declarations = (pyquil.quil.Declare(str(param), "REAL") for param in gate.symbolic_params)
+    required_declarations = (
+        pyquil.quil.Declare(str(param), "REAL") for param in gate.symbolic_params
+    )
     for declaration in required_declarations:
         if declaration not in program.instructions:
             program += declaration
@@ -233,7 +233,6 @@ def convert_gate_from_pyquil(gate: pyquil.quil.Gate) -> Gate:
     number_of_control_modifiers = gate.modifiers.count("CONTROLLED")
 
     all_qubits = pyquil_qubits_to_numbers(gate.qubits)
-
     control_qubits = all_qubits[:number_of_control_modifiers]
     original_qubits = all_qubits[number_of_control_modifiers:]
 
@@ -248,9 +247,8 @@ def convert_gate_from_pyquil(gate: pyquil.quil.Gate) -> Gate:
             result = gate_cls(
                 *original_qubits,
                 translate_expression(
-                    expression_from_pyquil(gate.params[0]),
-                    SYMPY_DIALECT
-                )
+                    expression_from_pyquil(gate.params[0]), SYMPY_DIALECT
+                ),
             )
         elif gate_cls == SWAP:
             result = gate_cls(original_qubits)

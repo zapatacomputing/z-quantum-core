@@ -77,7 +77,7 @@ def convert_to_pyquil(obj: Circuit) -> pyquil.Program:
 
 @overload
 def convert_to_pyquil(
-    obj: Gate, program: Optional[pyquil.Program]
+    obj: Gate, program: Optional[pyquil.Program] = None
 ) -> pyquil.quil.Gate:
     pass
 

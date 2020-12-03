@@ -1,6 +1,7 @@
 """Utilities for converting gates and circuits to and from Pyquil objects."""
 from functools import singledispatch
-from typing import Union, Optional, overload
+from itertools import chain
+from typing import Union, Optional, overload, Iterable
 import numpy as np
 import pyquil
 import pyquil.gates
@@ -26,7 +27,8 @@ from ...circuit.gates import (
 )
 from .symbolic.sympy_expressions import expression_from_sympy
 from .symbolic.translations import translate_expression
-from .symbolic.pyquil_expressions import QUIL_DIALECT
+from .symbolic.pyquil_expressions import QUIL_DIALECT, expression_from_pyquil
+from .symbolic.sympy_expressions import SYMPY_DIALECT
 
 
 SINGLE_QUBIT_NONPARAMETRIC_GATES = {
@@ -52,6 +54,20 @@ TWO_QUBIT_CONTROLLED_GATES = {
     CNOT: pyquil.gates.CNOT,
     SWAP: pyquil.gates.SWAP,
 }
+
+
+PYQUIL_NAME_TO_ORQUESTRA_NAME = {
+    cls.__name__: cls
+    for cls in chain(
+        SINGLE_QUBIT_NONPARAMETRIC_GATES,
+        TWO_QUBIT_CONTROLLED_GATES,
+        ROTATION_GATES
+    )
+}
+
+
+def pyquil_qubits_to_numbers(qubits: Iterable[pyquil.quil.Qubit]):
+    return tuple(qubit.index for qubit in qubits)
 
 
 @overload
@@ -203,3 +219,31 @@ def convert_circuit_to_pyquil(
         program += convert_to_pyquil(gate, program)
 
     return program
+
+
+@singledispatch
+def convert_from_pyquil(obj: Union[pyquil.Program, pyquil.quil.Gate]):
+    pass
+
+
+@convert_from_pyquil.register
+def convert_gate_from_pyquil(gate: pyquil.quil.Gate) -> Gate:
+    try:
+        gate_cls = PYQUIL_NAME_TO_ORQUESTRA_NAME[gate.name]
+        if (
+            gate_cls in SINGLE_QUBIT_NONPARAMETRIC_GATES
+            or gate_cls in TWO_QUBIT_CONTROLLED_GATES
+        ):
+            return gate_cls(*pyquil_qubits_to_numbers(gate.qubits))
+        elif gate_cls in ROTATION_GATES or gate_cls == CPHASE:
+            return gate_cls(
+                *pyquil_qubits_to_numbers(gate.qubits),
+                translate_expression(
+                    expression_from_pyquil(gate.params[0]),
+                    SYMPY_DIALECT
+                )
+            )
+    except KeyError:
+        raise ValueError(
+            f"Conversion to Orquestra is not supported for {gate.name} gate"
+        )

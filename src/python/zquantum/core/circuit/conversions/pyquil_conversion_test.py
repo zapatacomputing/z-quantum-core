@@ -46,14 +46,6 @@ ORQUESTRA_GATE_TYPE_TO_PYQUIL_NAME = {
     CPHASE: "CPHASE",
 }
 
-ORQUESTRA_SINGLE_QUBIT_ROTATION_GATES = [RX, RY, RZ, PHASE]
-
-PYQUIL_SINGLE_QUBIT_ROTATION_GATES = [
-    pyquil.gates.RX,
-    pyquil.gates.RY,
-    pyquil.gates.RZ,
-    pyquil.gates.PHASE
-]
 
 EXAMPLE_PARAMETRIZED_ANGLES = [
     (sympy.Symbol("theta"), pyquil.quil.Parameter("theta")),
@@ -265,25 +257,29 @@ class TestSWAPGateConversion:
 
 
 @pytest.mark.parametrize("control, target", [(0, 1), (2, 3), (0, 10)])
+@pytest.mark.parametrize(
+    "orquestra_gate_cls, pyquil_gate_func", [
+        (CZ, pyquil.gates.CZ),
+        (CNOT, pyquil.gates.CNOT)
+    ]
+)
 class TestTwoQubitPredefinedControlledGatesConversion:
 
-    @pytest.mark.parametrize("orquestra_gate_cls", [CZ, CNOT])
-    def test_conversion_from_orquestra_to_qubit_preserves_qubit_indices(
-        self, control, target, orquestra_gate_cls
+    def test_conversion_from_orquestra_to_pyquil_gives_correct_gate(
+        self, control, target, orquestra_gate_cls, pyquil_gate_func
     ):
-        pyquil_gate = convert_to_pyquil(orquestra_gate_cls(control, target))
+        assert (
+            pyquil_gate_func(control, target) ==
+            convert_to_pyquil(orquestra_gate_cls(control, target))
+        )
 
-        assert pyquil_gate.qubits == [
-            pyquil.quil.Qubit(control), pyquil.quil.Qubit(target)
-        ]
-
-    @pytest.mark.parametrize("pyquil_gate_func", [pyquil.gates.CZ, pyquil.gates.CNOT])
-    def test_conversion_from_pyquil_to_orquestra_preserves_qubit_indices(
-        self, control, target, pyquil_gate_func
+    def test_conversion_from_pyquil_to_orquestra_gives_correct_gate(
+        self, control, target, orquestra_gate_cls, pyquil_gate_func
     ):
-        orquestra_gate = convert_from_pyquil(pyquil_gate_func(control, target))
-
-        assert orquestra_gate.qubits == (control, target)
+        assert (
+            orquestra_gate_cls(control, target) ==
+            convert_from_pyquil(pyquil_gate_func(control, target))
+        )
 
 
 class TestCorrectnessOfGateTypeAndMatrix:

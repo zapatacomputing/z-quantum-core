@@ -6,7 +6,7 @@ import sympy
 from pyquil.simulation.matrices import QUANTUM_GATES
 from ..circuit import Circuit
 from ...circuit.gates import ControlledGate, CustomGate
-from ...circuit.conversions.pyquil_conversions import convert_to_pyquil
+from ...circuit.conversions.pyquil_conversions import convert_to_pyquil, convert_from_pyquil
 from ...circuit.gates import (
     X,
     Y,
@@ -66,15 +66,34 @@ def pyquil_gate_matrix(gate: pyquil.gates.Gate) -> np.ndarray:
         return QUANTUM_GATES[gate.name]
 
 
-@pytest.mark.parametrize("qubit", [0, 1, 5, 13])
-@pytest.mark.parametrize("gate_cls", [X, Y, Z, T, I, H])
-def test_converting_single_qubit_nonparametric_gate_to_pyquil_preserves_qubit_index(
-    qubit, gate_cls
-):
-    pyquil_gate = convert_to_pyquil(gate_cls(qubit))
+@pytest.mark.parametrize("qubit_index", [0, 1, 5, 13])
+class TestSingleQubitNonParametricGatesConversion:
 
-    assert len(pyquil_gate.qubits) == 1
-    assert pyquil_gate.qubits[0].index == qubit
+    @pytest.mark.parametrize("orquestra_gate_cls", [X, Y, Z, T, I, H])
+    def test_conversion_from_orquestra_to_pyquil_preserves_qubit_index(
+        self, qubit_index, orquestra_gate_cls
+    ):
+        pyquil_gate = convert_to_pyquil(orquestra_gate_cls(qubit_index))
+
+        assert pyquil_gate.qubits == [pyquil.quil.Qubit(qubit_index)]
+
+    @pytest.mark.parametrize(
+        "pyquil_gate_func",
+        [
+            pyquil.gates.X,
+            pyquil.gates.Y,
+            pyquil.gates.Z,
+            pyquil.gates.T,
+            pyquil.gates.I,
+            pyquil.gates.H
+        ]
+    )
+    def test_converting_single_qubit_nonparametric_gate_from_pyquil_preserves_qubit_index(
+        self, qubit_index, pyquil_gate_func
+    ):
+        orquestra_gate = convert_from_pyquil(pyquil_gate_func(qubit_index))
+
+        assert orquestra_gate.qubits == (qubit_index,)
 
 
 @pytest.mark.parametrize("qubit", [0, 4, 10, 11])

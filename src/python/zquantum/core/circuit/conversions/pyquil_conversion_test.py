@@ -77,166 +77,151 @@ def pyquil_gate_matrix(gate: pyquil.gates.Gate) -> np.ndarray:
 
 
 @pytest.mark.parametrize("qubit_index", [0, 1, 5, 13])
+@pytest.mark.parametrize(
+    "orquestra_gate_cls, pyquil_gate_func",
+    [
+        (X, pyquil.gates.X),
+        (Y, pyquil.gates.Y),
+        (Z, pyquil.gates.Z),
+        (T, pyquil.gates.T),
+        (I, pyquil.gates.I),
+        (H, pyquil.gates.H)
+    ]
+)
 class TestSingleQubitNonParametricGatesConversion:
 
-    @pytest.mark.parametrize("orquestra_gate_cls", [X, Y, Z, T, I, H])
-    def test_conversion_from_orquestra_to_pyquil_preserves_qubit_index(
-        self, qubit_index, orquestra_gate_cls
+    def test_conversion_from_orquestra_to_pyquil_gives_correct_gate(
+        self, qubit_index, orquestra_gate_cls, pyquil_gate_func
     ):
-        pyquil_gate = convert_to_pyquil(orquestra_gate_cls(qubit_index))
+        assert (
+            convert_to_pyquil(orquestra_gate_cls(qubit_index)) ==
+            pyquil_gate_func(qubit_index)
+        )
 
-        assert pyquil_gate.qubits == [pyquil.quil.Qubit(qubit_index)]
-
-    @pytest.mark.parametrize(
-        "pyquil_gate_func",
-        [
-            pyquil.gates.X,
-            pyquil.gates.Y,
-            pyquil.gates.Z,
-            pyquil.gates.T,
-            pyquil.gates.I,
-            pyquil.gates.H
-        ]
-    )
-    def test_converting_single_qubit_nonparametric_gate_from_pyquil_preserves_qubit_index(
-        self, qubit_index, pyquil_gate_func
+    def test_conversion_from_pyquil_to_orquestra_gives_correct_gate(
+        self, qubit_index, orquestra_gate_cls, pyquil_gate_func
     ):
-        orquestra_gate = convert_from_pyquil(pyquil_gate_func(qubit_index))
-
-        assert orquestra_gate.qubits == (qubit_index,)
+        assert (
+            convert_from_pyquil(pyquil_gate_func(qubit_index)) ==
+            orquestra_gate_cls(qubit_index)
+        )
 
 
 @pytest.mark.parametrize("qubit_index", [0, 4, 10, 11])
 @pytest.mark.parametrize("angle", [np.pi, np.pi / 2, 0.4])
+@pytest.mark.parametrize(
+    "orquestra_gate_cls, pyquil_gate_func",
+    [
+        (RX, pyquil.gates.RX),
+        (RY, pyquil.gates.RY),
+        (RZ, pyquil.gates.RZ),
+        (PHASE, pyquil.gates.PHASE)
+    ]
+)
 class TestSingleQubitRotationGatesConversion:
 
-    @pytest.mark.parametrize("orquestra_gate_cls", [RX, RY, RZ, PHASE])
-    def test_conversion_from_orquestra_to_pyquil_preserves_qubit_index(
-        self, qubit_index, angle, orquestra_gate_cls
+    def test_conversion_from_orquestra_to_pyquil_gives_correct_gate(
+        self, qubit_index, angle, orquestra_gate_cls, pyquil_gate_func
     ):
-        pyquil_gate = convert_to_pyquil(orquestra_gate_cls(qubit_index, angle))
+        assert (
+            pyquil_gate_func(angle, qubit_index) ==
+            convert_to_pyquil(orquestra_gate_cls(qubit_index, angle))
+        )
 
-        assert pyquil_gate.qubits == [pyquil.quil.Qubit(qubit_index)]
-
-    @pytest.mark.parametrize(
-        "orquestra_gate_cls", ORQUESTRA_SINGLE_QUBIT_ROTATION_GATES
-    )
-    def test_conversion_from_orquestra_to_pyquil_preserves_angle(
-        self, qubit_index, angle, orquestra_gate_cls
+    def test_conversion_from_pyquil_to_orquestra_gives_correct_gate(
+        self, qubit_index, angle, orquestra_gate_cls, pyquil_gate_func
     ):
-        pyquil_gate = convert_to_pyquil(orquestra_gate_cls(qubit_index, angle))
-
-        assert pyquil_gate.params == [angle]
-
-    @pytest.mark.parametrize(
-        "pyquil_gate_func", PYQUIL_SINGLE_QUBIT_ROTATION_GATES
-    )
-    def test_conversion_from_pyquil_to_orquestra_preserves_qubit_index(
-        self, qubit_index, angle, pyquil_gate_func
-    ):
-        orquestra_gate = convert_from_pyquil(pyquil_gate_func(angle, qubit_index))
-
-        assert orquestra_gate.qubits == (qubit_index,)
-
-    @pytest.mark.parametrize(
-        "pyquil_gate_func", PYQUIL_SINGLE_QUBIT_ROTATION_GATES
-    )
-    def test_conversion_from_pyquil_to_orquestra_preserves_angle(
-        self, qubit_index, angle, pyquil_gate_func
-    ):
-        orquestra_gate = convert_from_pyquil(pyquil_gate_func(angle, qubit_index))
-
-        assert orquestra_gate.angle == angle
-
+        assert (
+            orquestra_gate_cls(qubit_index, angle) ==
+            convert_from_pyquil(pyquil_gate_func(angle, qubit_index))
+        )
 
 @pytest.mark.parametrize("qubit_index", [0, 4, 10, 11])
 @pytest.mark.parametrize("orquestra_angle, pyquil_angle", EXAMPLE_PARAMETRIZED_ANGLES)
+@pytest.mark.parametrize(
+    "orquestra_gate_cls, pyquil_gate_func",
+    [
+        (RX, pyquil.gates.RX),
+        (RY, pyquil.gates.RY),
+        (RZ, pyquil.gates.RZ),
+        (PHASE, pyquil.gates.PHASE)
+    ]
+)
 class TestSingleQubitRotationGatesWithSymbolicParamsConversion:
 
-    @pytest.mark.parametrize(
-        "orquestra_gate_cls",
-        ORQUESTRA_SINGLE_QUBIT_ROTATION_GATES
-    )
-    def test_angle_expression_is_translated_when_converting_from_orquestra_to_pyquil(
-        self, qubit_index, orquestra_angle, pyquil_angle, orquestra_gate_cls
+    def test_conversion_from_orquestra_to_pyquil_gives_correct_gate(
+        self,
+        qubit_index,
+        orquestra_angle,
+        pyquil_angle,
+        orquestra_gate_cls,
+        pyquil_gate_func
     ):
         program = pyquil.Program()
-        pyquil_gate = convert_to_pyquil(orquestra_gate_cls(qubit_index, orquestra_angle), program)
-        assert pyquil_gate.params == [pyquil_angle]
 
-    @pytest.mark.parametrize(
-        "orquestra_gate_cls",
-        ORQUESTRA_SINGLE_QUBIT_ROTATION_GATES
-    )
-    def test_translated_angle_expression_is_added_to_program(
-        self, qubit_index, orquestra_angle, pyquil_angle, orquestra_gate_cls
+        assert (
+            pyquil_gate_func(pyquil_angle, qubit_index) ==
+            convert_to_pyquil(orquestra_gate_cls(qubit_index, orquestra_angle), program)
+        )
+
+    def test_translated_angle_expression_from_orquestra_gate_is_added_to_program(
+        self, qubit_index, orquestra_angle, pyquil_angle, orquestra_gate_cls, pyquil_gate_func
     ):
         program = pyquil.Program()
-        zquantum_gate = orquestra_gate_cls(qubit_index, orquestra_angle)
-        convert_to_pyquil(zquantum_gate, program)
+        orquestra_gate = orquestra_gate_cls(qubit_index, orquestra_angle)
+        convert_to_pyquil(orquestra_gate, program)
 
         assert program.instructions == [
             pyquil.quil.Declare(str(param), "REAL")
-            for param in zquantum_gate.symbolic_params
+            for param in orquestra_gate.symbolic_params
         ]
 
-    @pytest.mark.parametrize("pyquil_gate_func", PYQUIL_SINGLE_QUBIT_ROTATION_GATES)
-    def test_angle_expression_is_translated_when_converting_from_pyquil_to_orquestra(
-        self, qubit_index, orquestra_angle, pyquil_angle, pyquil_gate_func
+    def test_conversion_from_pyquil_to_orquestra_gives_correct_gate(
+        self, qubit_index, orquestra_angle, pyquil_angle, orquestra_gate_cls, pyquil_gate_func
     ):
-        orquestra_gate = convert_from_pyquil(
-            pyquil_gate_func(pyquil_angle, qubit_index)
+        assert (
+            orquestra_gate_cls(qubit_index, orquestra_angle) ==
+            convert_from_pyquil(
+                pyquil_gate_func(pyquil_angle, qubit_index)
+            )
         )
-
-        assert orquestra_gate.angle == orquestra_angle
 
 
 @pytest.mark.parametrize("qubit_indices", [[0, 1], [2, 10], [4, 7]])
 @pytest.mark.parametrize("angle", [0, np.pi / 4, np.pi / 2, np.pi, 2 * np.pi])
 class TestCPHASEGateConversion:
 
-    def test_conversion_from_orquestra_to_pyquil_preserves_qubit_indices(
+    def test_conversion_from_orquestra_to_pyquil_gives_correct_gate(
         self, qubit_indices, angle
     ):
-        pyquil_gate = convert_to_pyquil(CPHASE(*qubit_indices, angle))
+        assert (
+            pyquil.gates.CPHASE(angle, *qubit_indices) ==
+            convert_to_pyquil(CPHASE(*qubit_indices, angle))
+        )
 
-        assert pyquil_gate.qubits == [pyquil.quil.Qubit(i) for i in qubit_indices]
-
-    def test_conversion_from_orquestra_to_pyquil_preserves_angle(
+    def test_conversion_from_pyquil_to_orquestra_gives_correct_gate(
         self, qubit_indices, angle
     ):
-        pyquil_gate = convert_to_pyquil(CPHASE(*qubit_indices, angle))
-
-        assert pyquil_gate.params == [angle]
-
-    def test_conversion_from_pyquil_to_orquestra_preserves_qubit_indices(
-        self, qubit_indices, angle
-    ):
-        orquestra_gate = convert_from_pyquil(pyquil.gates.CPHASE(angle, *qubit_indices))
-
-        assert orquestra_gate.qubits == tuple(qubit_indices)
-
-    def test_conversion_from_pyquil_to_orquestra_preserves_angle(
-        self, qubit_indices, angle
-    ):
-        orquestra_gate = convert_from_pyquil(pyquil.gates.CPHASE(angle, *qubit_indices))
-
-        assert orquestra_gate.angle == angle
+        assert (
+            CPHASE(*qubit_indices, angle) ==
+            convert_from_pyquil(pyquil.gates.CPHASE(angle, *qubit_indices))
+        )
 
 
 @pytest.mark.parametrize("qubit_indices", [[0, 1], [2, 10], [4, 7]])
 @pytest.mark.parametrize("orquestra_angle, pyquil_angle", EXAMPLE_PARAMETRIZED_ANGLES)
 class TestCPHASEGateWithSymbolicParamsConversion:
 
-    def test_angle_is_translated_when_converting_from_orquestra_to_pyquil(
+    def test_conversion_from_orquestra_to_pyquil_gives_correct_gate(
         self, qubit_indices, orquestra_angle, pyquil_angle
     ):
         program = pyquil.Program()
-        pyquil_gate = convert_to_pyquil(CPHASE(*qubit_indices, orquestra_angle), program)
+        assert (
+            pyquil.gates.CPHASE(pyquil_angle, *qubit_indices) ==
+            convert_to_pyquil(CPHASE(*qubit_indices, orquestra_angle), program)
+        )
 
-        assert pyquil_gate.params == [pyquil_angle]
-
-    def test_translated_angle_is_added_to_program(
+    def test_translated_angle_from_orquestra_gate_is_added_to_program(
         self, qubit_indices, orquestra_angle, pyquil_angle
     ):
         program = pyquil.Program()
@@ -248,34 +233,35 @@ class TestCPHASEGateWithSymbolicParamsConversion:
             for param in orquestra_gate.symbolic_params
         ]
 
-    def test_angle_is_translated_when_converting_from_pyquil_to_orquestra(
+    def test_conversion_from_pyquil_to_orquestra_gives_correct_gate(
         self, qubit_indices, orquestra_angle, pyquil_angle
     ):
-        orquestra_gate = convert_from_pyquil(
-            pyquil.gates.CPHASE(pyquil_angle, *qubit_indices)
+        assert(
+            CPHASE(*qubit_indices, orquestra_angle) ==
+            convert_from_pyquil(
+                pyquil.gates.CPHASE(pyquil_angle, *qubit_indices)
+            )
         )
-
-        assert orquestra_gate.angle == orquestra_angle
 
 
 @pytest.mark.parametrize("qubit_indices", [[0, 1], [2, 10], [4, 7]])
 class TestSWAPGateConversion:
 
-    def test_conversion_from_pyquil_to_orquestra_preserves_qubit_indices(
+    def test_conversion_from_pyquil_to_orquestra_gives_correct_gate(
         self, qubit_indices
     ):
-        pyquil_gate = convert_to_pyquil(SWAP(qubit_indices))
+        assert (
+            pyquil.gates.SWAP(*qubit_indices) ==
+            convert_to_pyquil(SWAP(qubit_indices))
+        )
 
-        assert pyquil_gate.qubits == [
-            pyquil.quil.Qubit(i) for i in qubit_indices
-        ]
-
-    def test_conversion_from_orquestra_to_pyquil_preserves_qubit_indices(
+    def test_conversion_from_orquestra_to_pyquil_gives_correct_gate(
         self, qubit_indices
     ):
-        orquestra_gate = convert_from_pyquil(pyquil.gates.SWAP(*qubit_indices))
-
-        assert orquestra_gate.qubits == tuple(qubit_indices)
+        assert (
+            SWAP(qubit_indices) ==
+            convert_from_pyquil(pyquil.gates.SWAP(*qubit_indices))
+        )
 
 
 @pytest.mark.parametrize("control, target", [(0, 1), (2, 3), (0, 10)])

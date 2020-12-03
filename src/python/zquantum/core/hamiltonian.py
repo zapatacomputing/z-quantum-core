@@ -74,14 +74,16 @@ def group_comeasureable_terms_greedy(
 
 def compute_group_variances(groups: List[QubitOperator], expecval: ExpectationValues=None) -> np.array:
     """Computes the variances of each frame in a grouped operator. 
-        If expectation values are provided, use variances from there, 
-        otherwise assume variances are 1 (upper bound). Correlation information
-        is ignored in the current implementation, covariances are assumed to be 0.
+
+    If expectation values are provided, use variances from there, 
+    otherwise assume variances are 1 (upper bound). Correlation information
+    is ignored in the current implementation, covariances are assumed to be 0.
+
     Args:
         groups:  A list of QubitOperators that defines a (grouped) objective function
         expecval: An ExpectationValues object containing the expectation
-                  values of the operators and their squares. Optionally, contains
-                  values of operator products to compute covariances.
+            values of the operators and their squares. Optionally, contains
+            values of operator products to compute covariances.
     Returns:
         frame_variances: A Numpy array of the computed variances for each frame
     """
@@ -102,21 +104,19 @@ def compute_group_variances(groups: List[QubitOperator], expecval: ExpectationVa
 
     return np.array(frame_variances)
 
-def get_expectation_values_from_rdms(interactionrdm: InteractionRDM, 
-        qubitoperator: QubitOperator, 
-        sort_terms: bool = False) -> ExpectationValues:
-    """ Computes expectation values of a qubitOperator
-        given a fermionic interactionRDM operator from
-        OpenFermion.
+def get_expectation_values_from_rdms(interactionrdm: InteractionRDM, qubitoperator: QubitOperator, 
+    sort_terms: bool = False) -> ExpectationValues:
+    """Computes expectation values of Pauli strings in a QubitOperator given a fermionic InteractionRDM from
+       OpenFermion.
 
-        Args:
-            interactionrdm: interaction RDM to use for the expectation values
-                computation, as an OF InteractionRDM object
-            qubitoperator: qubit operator to compute the expectation values for
-                in the form of an OF QubittOperator object
-            sort_terms: whether or not the input qubit operator needs to be sorted before calculating expectations
-        Returns:
-            expectations: expectation values of Pauli strings in the qubit operator
+    Args:
+        interactionrdm: interaction RDM to use for the expectation values
+            computation, as an OF InteractionRDM object
+        qubitoperator: qubit operator to compute the expectation values for
+            in the form of an OF QubittOperator object
+        sort_terms: whether or not the input qubit operator needs to be sorted before calculating expectations
+    Returns:
+        expectation values of Pauli strings in the qubit operator as an ExpectationValues object
     """
     if sort_terms:
         terms_iterator = sorted(
@@ -134,9 +134,7 @@ def get_expectation_values_from_rdms(interactionrdm: InteractionRDM,
         del expectations_packed.terms[()] # Expectation of the constant term is excluded from expectation values
 
     expectations = np.real(np.array(list(expectations_packed.terms.values()))) # should we add an assert to catch large Im parts
-    # Clip expectations if they fell out of [-1 , 1] due to numerical errors
-    expectations[expectations < -1.0] = -1.0
-    expectations[expectations >  1.0] =  1.0
+    np.clip(expectations, -1, 1, out=expectations)
 
     return ExpectationValues(expectations)
 
@@ -147,27 +145,30 @@ def estimate_nmeas(
 ) -> Tuple[float, int, np.array]:
     """Calculates the number of measurements required for computing
         the expectation value of a qubit hamiltonian, where co-measurable terms
-        are grouped. We're assuming the exact expectation values are provided
-        (i.e. infinite number of measurements or simulations without noise)
-        M ~ (\sum_{i} prec(H_i)) ** 2.0 / (epsilon ** 2.0)
-        where prec(H_i) is the precision (square root of the variance)
-        for each group of co-measurable terms H_{i}. It is computed as
-        prec(H_{i}) = \sum{ab} |h_{a}^{i}||h_{b}^{i}| cov(O_{a}^{i}, O_{b}^{i})
-        where h_{a}^{i} is the coefficient of the a-th operator, O_{a}^{i}, in the
-        i-th group. Covariances are assumed to be zero for a != b:
-        cov(O_{a}^{i}, O_{b}^{i}) = <O_{a}^{i} O_{b}^{i}> - <O_{a}^{i}> <O_{b}^{i}> = 0
+        are grouped. 
+
+    We are assuming the exact expectation values are provided
+    (i.e. infinite number of measurements or simulations without noise)
+    M ~ (\sum_{i} prec(H_i)) ** 2.0 / (epsilon ** 2.0)
+    where prec(H_i) is the precision (square root of the variance)
+    for each group of co-measurable terms H_{i}. It is computed as
+    prec(H_{i}) = \sum{ab} |h_{a}^{i}||h_{b}^{i}| cov(O_{a}^{i}, O_{b}^{i})
+    where h_{a}^{i} is the coefficient of the a-th operator, O_{a}^{i}, in the
+    i-th group. Covariances are assumed to be zero for a != b:
+    cov(O_{a}^{i}, O_{b}^{i}) = <O_{a}^{i} O_{b}^{i}> - <O_{a}^{i}> <O_{b}^{i}> = 0
+
     Args:
         target_operator: A QubitOperator to measure
         expecval: An ExpectationValues object containing the expectation
-                  values of the operators and their squares. Optionally, contains
-                  values of operator products to compute covariances.
-                  If absent, covariances are assumed to be 0 and variances are
-                  assumed to be maximal, i.e. 1. It is assumed that the first expectation
-                  value corresponds to the constant term in the target operator in line 
-                  with the conventions used in the BasicEstimator
-                  NOTE: WE HAVE TO MAKE SURE THAT THE ORDER
-                  OF EXPECTATION VALUES MATCHES THE ORDER OF THE TERMS IN THE
-                  TARGET QUBIT OPERATOR, OTHERWISE THIS FUNCTION WILL NOT WORK CORRECTLY
+            values of the operators and their squares. Optionally, contains
+            values of operator products to compute covariances.
+            If absent, covariances are assumed to be 0 and variances are
+            assumed to be maximal, i.e. 1. It is assumed that the first expectation
+            value corresponds to the constant term in the target operator in line 
+            with the conventions used in the BasicEstimator
+            NOTE: WE HAVE TO MAKE SURE THAT THE ORDER
+            OF EXPECTATION VALUES MATCHES THE ORDER OF THE TERMS IN THE
+            TARGET QUBIT OPERATOR, OTHERWISE THIS FUNCTION WILL NOT WORK CORRECTLY
     Returns:
         K2: number of measurements for epsilon = 1.0
         nterms: number of groups of QWC terms in the target_operator
@@ -182,12 +183,12 @@ def estimate_nmeas(
         decomposition_function = lambda qubit_operator: group_comeasureable_terms_greedy(
         qubit_operator, False)
     else:
-        raise Exception(f'{decomposition_method} grouping is not implemented')
+        raise ValueError(f'{decomposition_method} grouping is not implemented')
 
     groups = decomposition_function(target_operator)
     frame_variances = compute_group_variances(groups, expecval)
     sqrt_lambda = sum(np.sqrt(frame_variances))
-    frame_meas = np.asarray([sqrt_lambda * np.sqrt(x) for x in frame_variances])
+    frame_meas = sqrt_lambda * np.sqrt(frame_variances)
     K2 = sum(frame_meas)
     nterms = sum([len(group.terms) for group in groups])
 

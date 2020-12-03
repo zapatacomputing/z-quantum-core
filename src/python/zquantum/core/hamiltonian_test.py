@@ -195,7 +195,7 @@ def test_get_expectation_values_from_rdms(interactionrdm,
         )
         coeff = []
         for term, coefficient in terms_iterator:
-            if not term == ():
+            if term != ():
                 coeff.append(coefficient)
         coeff = np.array(coeff)
 

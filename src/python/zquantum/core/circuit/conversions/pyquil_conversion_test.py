@@ -278,15 +278,25 @@ class TestSWAPGateConversion:
 
 
 @pytest.mark.parametrize("control, target", [(0, 1), (2, 3), (0, 10)])
-@pytest.mark.parametrize("gate_cls", [CZ, CNOT])
-def test_converting_two_qubit_controlled_gate_to_pyquil_preserves_qubit_indices(
-    control, target, gate_cls
-):
-    pyquil_gate = convert_to_pyquil(gate_cls(control, target))
+class TestTwoQubitPredefinedControlledGatesConversion:
 
-    assert len(pyquil_gate.qubits) == 2
-    assert pyquil_gate.qubits[0].index == control
-    assert pyquil_gate.qubits[1].index == target
+    @pytest.mark.parametrize("orquestra_gate_cls", [CZ, CNOT])
+    def test_conversion_from_orquestra_to_qubit_preserves_qubit_indices(
+        self, control, target, orquestra_gate_cls
+    ):
+        pyquil_gate = convert_to_pyquil(orquestra_gate_cls(control, target))
+
+        assert pyquil_gate.qubits == [
+            pyquil.quil.Qubit(control), pyquil.quil.Qubit(target)
+        ]
+
+    @pytest.mark.parametrize("pyquil_gate_func", [pyquil.gates.CZ, pyquil.gates.CNOT])
+    def test_conversion_from_pyquil_to_orquestra_preserves_qubit_indices(
+        self, control, target, pyquil_gate_func
+    ):
+        orquestra_gate = convert_from_pyquil(pyquil_gate_func(control, target))
+
+        assert orquestra_gate.qubits == (control, target)
 
 
 @pytest.mark.parametrize(

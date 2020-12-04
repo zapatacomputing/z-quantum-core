@@ -49,7 +49,7 @@ ROTATION_GATES = {
 }
 
 
-TWO_QUBIT_CONTROLLED_GATES = {
+TWO_QUBIT_CONTROLLED_NONPARAMETRIC_GATES = {
     CZ: pyquil.gates.CZ,
     CNOT: pyquil.gates.CNOT,
 }
@@ -58,7 +58,7 @@ TWO_QUBIT_CONTROLLED_GATES = {
 PYQUIL_NAME_TO_ORQUESTRA_CLS = {
     cls.__name__: cls
     for cls in chain(
-        SINGLE_QUBIT_NONPARAMETRIC_GATES, TWO_QUBIT_CONTROLLED_GATES, ROTATION_GATES
+        SINGLE_QUBIT_NONPARAMETRIC_GATES, TWO_QUBIT_CONTROLLED_NONPARAMETRIC_GATES, ROTATION_GATES
     )
 }
 
@@ -138,7 +138,7 @@ def convert_single_qubit_rotation_gate_to_pyquil(
 def convert_two_qubit_nonparametric_gate_to_pyquil(
     gate: Union[CZ], _program: Optional[pyquil.Program] = None
 ) -> pyquil.gates.Gate:
-    return TWO_QUBIT_CONTROLLED_GATES[type(gate)](*gate.qubits)
+    return TWO_QUBIT_CONTROLLED_NONPARAMETRIC_GATES[type(gate)](*gate.qubits)
 
 
 @_convert_gate_to_pyquil.register(CPHASE)
@@ -242,7 +242,7 @@ def convert_gate_from_pyquil(gate: pyquil.quil.Gate) -> Gate:
         gate_cls = PYQUIL_NAME_TO_ORQUESTRA_CLS[gate.name]
         if (
             gate_cls in SINGLE_QUBIT_NONPARAMETRIC_GATES
-            or gate_cls in TWO_QUBIT_CONTROLLED_GATES
+            or gate_cls in TWO_QUBIT_CONTROLLED_NONPARAMETRIC_GATES
         ):
             result = gate_cls(*target_qubits)
         elif gate_cls in ROTATION_GATES or gate_cls == CPHASE:

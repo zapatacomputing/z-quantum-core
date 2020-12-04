@@ -225,7 +225,9 @@ def convert_circuit_to_pyquil(
 
 @singledispatch
 def convert_from_pyquil(obj: Union[pyquil.Program, pyquil.quil.Gate]):
-    pass
+    raise NotImplementedError(
+        f"Conversion from pyquil to orquestra not implemented for {obj}"
+    )
 
 
 @convert_from_pyquil.register

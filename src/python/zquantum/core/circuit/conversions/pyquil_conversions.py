@@ -267,6 +267,9 @@ def convert_gate_from_pyquil(gate: pyquil.quil.Gate) -> Gate:
         for qubit in reversed(control_qubits):
             result = ControlledGate(result, qubit)
 
+        # PyQuil allows multiple DAGGER modifiers in gate's definition.
+        # Since two daggers cancel out, we only need to apply it if
+        # the total number of DAGGER modifiers is odd.
         if gate.modifiers.count("DAGGER") % 2 == 1:
             result = result.dagger
 

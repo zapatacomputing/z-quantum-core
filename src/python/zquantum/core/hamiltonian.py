@@ -4,6 +4,7 @@ from typing import Tuple, List, Optional
 
 from .measurement import ExpectationValues, expectation_values_to_real
 
+
 def is_comeasureable(
     term_1: Tuple[Tuple[int, str], ...], term_2: Tuple[Tuple[int, str], ...]
 ) -> bool:
@@ -72,7 +73,10 @@ def group_comeasureable_terms_greedy(
 
     return groups
 
-def compute_group_variances(groups: List[QubitOperator], expecval: ExpectationValues=None) -> np.array:
+
+def compute_group_variances(
+    groups: List[QubitOperator], expecval: ExpectationValues = None
+) -> np.array:
     """Computes the variances of each frame in a grouped operator. 
 
     If expectation values are provided, use variances from there, 
@@ -89,23 +93,31 @@ def compute_group_variances(groups: List[QubitOperator], expecval: ExpectationVa
     """
 
     if expecval is None:
-        frame_variances = [ np.sum(np.array(list(x.terms.values()))**2) for x in groups ] # Covariances are ignored; Variances are set to 1
+        frame_variances = [
+            np.sum(np.array(list(x.terms.values())) ** 2) for x in groups
+        ]  # Covariances are ignored; Variances are set to 1
     else:
-        group_sizes = np.array([ len(g.terms.keys()) for g in groups ])
+        group_sizes = np.array([len(g.terms.keys()) for g in groups])
         assert np.sum(group_sizes) == len(expecval.values)
         real_expecval = expectation_values_to_real(expecval)
-        pauli_variances = 1. - real_expecval.values**2
+        pauli_variances = 1.0 - real_expecval.values ** 2
         frame_variances = []
-        for i, group  in enumerate(groups):
+        for i, group in enumerate(groups):
             coeffs = np.array(list(group.terms.values()))
             offset = 0 if i == 0 else np.sum(group_sizes[:i])
-            pauli_variances_for_group = pauli_variances[offset : offset + group_sizes[i]]
-            frame_variances.append(np.sum(coeffs**2 * pauli_variances_for_group))
+            pauli_variances_for_group = pauli_variances[
+                offset : offset + group_sizes[i]
+            ]
+            frame_variances.append(np.sum(coeffs ** 2 * pauli_variances_for_group))
 
     return np.array(frame_variances)
 
-def get_expectation_values_from_rdms(interactionrdm: InteractionRDM, qubitoperator: QubitOperator, 
-    sort_terms: bool = False) -> ExpectationValues:
+
+def get_expectation_values_from_rdms(
+    interactionrdm: InteractionRDM,
+    qubitoperator: QubitOperator,
+    sort_terms: bool = False,
+) -> ExpectationValues:
     """Computes expectation values of Pauli strings in a QubitOperator given a fermionic InteractionRDM from
        OpenFermion.
 
@@ -113,7 +125,7 @@ def get_expectation_values_from_rdms(interactionrdm: InteractionRDM, qubitoperat
         interactionrdm: interaction RDM to use for the expectation values
             computation, as an OF InteractionRDM object
         qubitoperator: qubit operator to compute the expectation values for
-            in the form of an OF QubittOperator object
+            in the form of an OpenFermion QubitOperator object
         sort_terms: whether or not the input qubit operator needs to be sorted before calculating expectations
     Returns:
         expectation values of Pauli strings in the qubit operator as an ExpectationValues object
@@ -131,12 +143,20 @@ def get_expectation_values_from_rdms(interactionrdm: InteractionRDM, qubitoperat
     expectations_packed = interactionrdm.get_qubit_expectations(reordered_qubitoperator)
 
     if () in expectations_packed.terms:
-        del expectations_packed.terms[()] # Expectation of the constant term is excluded from expectation values
+        del expectations_packed.terms[
+            ()
+        ]  # Expectation of the constant term is excluded from expectation values
 
-    expectations = np.real(np.array(list(expectations_packed.terms.values()))) # should we add an assert to catch large Im parts
+    expectations = np.array(list(expectations_packed.terms.values()))
+    if np.any(np.abs(np.imag(expectations)) > 1e-3):
+        raise RuntimeWarning(
+            f"Expectation values extracted from rdms inside get_expectation_values_from_rdms are complex!"
+        )
+    expectations = np.real(expectations)
     np.clip(expectations, -1, 1, out=expectations)
 
     return ExpectationValues(expectations)
+
 
 def estimate_nmeas(
     target_operator: QubitOperator,
@@ -176,14 +196,16 @@ def estimate_nmeas(
     """
 
     frame_variances = None
-    if decomposition_method == 'greedy-sorted':
+    if decomposition_method == "greedy-sorted":
         decomposition_function = lambda qubit_operator: group_comeasureable_terms_greedy(
-        qubit_operator, True) 
-    elif decomposition_method == 'greedy':
+            qubit_operator, True
+        )
+    elif decomposition_method == "greedy":
         decomposition_function = lambda qubit_operator: group_comeasureable_terms_greedy(
-        qubit_operator, False)
+            qubit_operator, False
+        )
     else:
-        raise ValueError(f'{decomposition_method} grouping is not implemented')
+        raise ValueError(f"{decomposition_method} grouping is not implemented")
 
     groups = decomposition_function(target_operator)
     frame_variances = compute_group_variances(groups, expecval)

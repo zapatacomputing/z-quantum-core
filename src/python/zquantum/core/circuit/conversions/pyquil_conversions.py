@@ -1,6 +1,6 @@
 """Utilities for converting gates and circuits to and from Pyquil objects."""
 from functools import singledispatch
-from typing import Union, Optional, overload
+from typing import Union, Optional, overload, Iterable
 import numpy as np
 import pyquil
 import pyquil.gates
@@ -26,7 +26,8 @@ from ...circuit.gates import (
 )
 from .symbolic.sympy_expressions import expression_from_sympy
 from .symbolic.translations import translate_expression
-from .symbolic.pyquil_expressions import QUIL_DIALECT
+from .symbolic.pyquil_expressions import QUIL_DIALECT, expression_from_pyquil
+from .symbolic.sympy_expressions import SYMPY_DIALECT
 
 
 SINGLE_QUBIT_NONPARAMETRIC_GATES = {
@@ -47,11 +48,33 @@ ROTATION_GATES = {
 }
 
 
-TWO_QUBIT_CONTROLLED_GATES = {
+TWO_QUBIT_CONTROLLED_NONPARAMETRIC_GATES = {
     CZ: pyquil.gates.CZ,
     CNOT: pyquil.gates.CNOT,
-    SWAP: pyquil.gates.SWAP,
 }
+
+
+# A Mapping from PyQuil gate names to the Orquestra classes.
+PYQUIL_NAME_TO_ORQUESTRA_CLS = {
+    "X": X,
+    "Y": Y,
+    "Z": Z,
+    "T": T,
+    "I": I,
+    "H": H,
+    "RX": RX,
+    "RY": RY,
+    "RZ": RZ,
+    "PHASE": PHASE,
+    "CZ": CZ,
+    "CNOT": CNOT,
+    "CPHASE": CPHASE,
+    "SWAP": SWAP
+}
+
+
+def pyquil_qubits_to_numbers(qubits: Iterable[pyquil.quil.Qubit]):
+    return tuple(qubit.index for qubit in qubits)
 
 
 @overload
@@ -61,7 +84,7 @@ def convert_to_pyquil(obj: Circuit) -> pyquil.Program:
 
 @overload
 def convert_to_pyquil(
-    obj: Gate, program: Optional[pyquil.Program]
+    obj: Gate, program: Optional[pyquil.Program] = None
 ) -> pyquil.quil.Gate:
     pass
 
@@ -75,7 +98,9 @@ def convert_to_pyquil(obj, program: Optional[pyquil.Program] = None):
 def convert_gate_to_pyquil(
     gate: Gate, program: Optional[pyquil.Program] = None
 ) -> pyquil.gates.Gate:
-    required_declarations = (pyquil.quil.Declare(str(param), "REAL") for param in gate.symbolic_params)
+    required_declarations = (
+        pyquil.quil.Declare(str(param), "REAL") for param in gate.symbolic_params
+    )
     for declaration in required_declarations:
         if declaration not in program.instructions:
             program += declaration
@@ -120,7 +145,7 @@ def convert_single_qubit_rotation_gate_to_pyquil(
 def convert_two_qubit_nonparametric_gate_to_pyquil(
     gate: Union[CZ], _program: Optional[pyquil.Program] = None
 ) -> pyquil.gates.Gate:
-    return TWO_QUBIT_CONTROLLED_GATES[type(gate)](*gate.qubits)
+    return TWO_QUBIT_CONTROLLED_NONPARAMETRIC_GATES[type(gate)](*gate.qubits)
 
 
 @_convert_gate_to_pyquil.register(CPHASE)
@@ -203,3 +228,53 @@ def convert_circuit_to_pyquil(
         program += convert_to_pyquil(gate, program)
 
     return program
+
+
+@singledispatch
+def convert_from_pyquil(obj: Union[pyquil.Program, pyquil.quil.Gate]):
+    raise NotImplementedError(
+        f"Conversion from pyquil to orquestra not implemented for {obj}"
+    )
+
+
+@convert_from_pyquil.register
+def convert_gate_from_pyquil(gate: pyquil.quil.Gate) -> Gate:
+    number_of_control_modifiers = gate.modifiers.count("CONTROLLED")
+
+    all_qubits = pyquil_qubits_to_numbers(gate.qubits)
+    control_qubits = all_qubits[:number_of_control_modifiers]
+    target_qubits = all_qubits[number_of_control_modifiers:]
+
+    orquestra_params = tuple(
+        translate_expression(
+            expression_from_pyquil(param),
+            SYMPY_DIALECT
+        )
+        for param in gate.params
+    )
+
+    try:
+        gate_cls = PYQUIL_NAME_TO_ORQUESTRA_CLS[gate.name]
+        result = gate_cls(*target_qubits, *orquestra_params)
+
+        # Control qubits need to be applied in reverse because in PyQuil they
+        # are prepended to the list when applying control modifier.
+        for qubit in reversed(control_qubits):
+            result = ControlledGate(result, qubit)
+
+        # PyQuil allows multiple DAGGER modifiers in gate's definition.
+        # Since two daggers cancel out, we only need to apply it if
+        # the total number of DAGGER modifiers is odd.
+        if gate.modifiers.count("DAGGER") % 2 == 1:
+            result = result.dagger
+
+        return result
+    except TypeError:
+        raise ValueError(
+            f"Cannot convert {gate}. Please check that you haven't reimplemented "
+            "predefined gate. If this is not the case, contact Orquestra support."
+        )
+    except KeyError:
+        raise ValueError(
+            f"Conversion to Orquestra is not supported for {gate.name} gate"
+        )

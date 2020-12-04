@@ -52,7 +52,7 @@ class TestBasicPropertiesOfDaggerOperations:
 
 
 def test_applying_dagger_to_controlled_gate_gives_controlled_gate_of_target_gates_dagger():
-    dagger = ControlledGate(EXAMPLE_CUSTOM_GATE, 0)
+    dagger = ControlledGate(EXAMPLE_CUSTOM_GATE, 0).dagger
     assert isinstance(dagger,  ControlledGate)
     assert dagger.target_gate == EXAMPLE_CUSTOM_GATE.dagger
 
@@ -75,6 +75,6 @@ def test_dagger_of_hermitian_controlled_two_qubit_gates_is_the_same_as_original_
 
 
 def test_dagger_of_swap_gate_is_the_same_as_the_original_gate():
-    swap = SWAP((0, 2))
+    swap = SWAP(0, 2)
 
     assert swap.dagger is swap

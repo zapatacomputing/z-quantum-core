@@ -54,7 +54,9 @@ TWO_QUBIT_CONTROLLED_NONPARAMETRIC_GATES = {
     CNOT: pyquil.gates.CNOT,
 }
 
-
+# This is basically a reverse mapping of dictionaries defined above.
+# The following works because name of Orquestra classes for
+# predefined gates correspond to gate names used by PyQuil.
 PYQUIL_NAME_TO_ORQUESTRA_CLS = {
     cls.__name__: cls
     for cls in chain(

@@ -52,7 +52,7 @@ class TestBasicPropertiesOfDaggerOperations:
 
 
 def test_applying_dagger_to_controlled_gate_gives_controlled_gate_of_target_gates_dagger():
-    dagger = ControlledGate(EXAMPLE_CUSTOM_GATE, 0)
+    dagger = ControlledGate(EXAMPLE_CUSTOM_GATE, 0).dagger
     assert isinstance(dagger,  ControlledGate)
     assert dagger.target_gate == EXAMPLE_CUSTOM_GATE.dagger
 

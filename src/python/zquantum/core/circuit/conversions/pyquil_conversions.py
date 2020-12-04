@@ -262,6 +262,8 @@ def convert_gate_from_pyquil(gate: pyquil.quil.Gate) -> Gate:
                 "please file a bugreport."
             )
 
+        # Control qubits need to be applied in reverse because in PyQuil they
+        # are prepended to the list when applying control modifier.
         for qubit in reversed(control_qubits):
             result = ControlledGate(result, qubit)
 

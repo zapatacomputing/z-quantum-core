@@ -1,6 +1,5 @@
 """Utilities for converting gates and circuits to and from Pyquil objects."""
 from functools import singledispatch
-from itertools import chain
 from typing import Union, Optional, overload, Iterable
 import numpy as np
 import pyquil

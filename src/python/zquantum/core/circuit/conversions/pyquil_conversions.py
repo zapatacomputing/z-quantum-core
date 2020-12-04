@@ -240,6 +240,14 @@ def convert_gate_from_pyquil(gate: pyquil.quil.Gate) -> Gate:
     control_qubits = all_qubits[:number_of_control_modifiers]
     target_qubits = all_qubits[number_of_control_modifiers:]
 
+    orquestra_params = tuple(
+        translate_expression(
+            expression_from_pyquil(param),
+            SYMPY_DIALECT
+        )
+        for param in gate.params
+    )
+
     try:
         gate_cls = PYQUIL_NAME_TO_ORQUESTRA_CLS[gate.name]
         if (
@@ -247,15 +255,11 @@ def convert_gate_from_pyquil(gate: pyquil.quil.Gate) -> Gate:
             or gate_cls in TWO_QUBIT_CONTROLLED_NONPARAMETRIC_GATES
         ):
             result = gate_cls(*target_qubits)
-        elif gate_cls in ROTATION_GATES or gate_cls == CPHASE:
+        elif gate_cls in ROTATION_GATES or gate_cls == CPHASE or gate_cls == SWAP:
             result = gate_cls(
                 *target_qubits,
-                translate_expression(
-                    expression_from_pyquil(gate.params[0]), SYMPY_DIALECT
-                ),
+                *orquestra_params
             )
-        elif gate_cls == SWAP:
-            result = gate_cls(target_qubits)
         else:
             raise RuntimeError(
                 f"Error converting gate {gate}. If you see this message, "

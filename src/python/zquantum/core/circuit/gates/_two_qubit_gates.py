@@ -33,8 +33,8 @@ class CPHASE(ControlledGate):
 class SWAP(HermitianMixin, SpecializedGate):
     """Quantum SWAP gate."""
 
-    def __init__(self, qubits: Tuple[int, int]):
-        super().__init__(qubits)
+    def __init__(self, first_qubit: int, second_qubit: int):
+        super().__init__((first_qubit, second_qubit))
 
     def _create_matrix(self) -> sympy.Matrix:
         return sympy.Matrix([[1, 0, 0, 0], [0, 0, 1, 0], [0, 1, 0, 0], [0, 0, 0, 1]])

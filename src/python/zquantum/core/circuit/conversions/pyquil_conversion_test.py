@@ -237,13 +237,13 @@ class TestSWAPGateConversion:
         self, qubit_indices
     ):
         assert pyquil.gates.SWAP(*qubit_indices) == convert_to_pyquil(
-            SWAP(qubit_indices)
+            SWAP(*qubit_indices)
         )
 
     def test_conversion_from_orquestra_to_pyquil_gives_correct_gate(
         self, qubit_indices
     ):
-        assert SWAP(qubit_indices) == convert_from_pyquil(
+        assert SWAP(*qubit_indices) == convert_from_pyquil(
             pyquil.gates.SWAP(*qubit_indices)
         )
 
@@ -285,7 +285,7 @@ class TestCorrectnessOfGateTypeAndMatrix:
             RZ(0, 0.0),
             CNOT(0, 1),
             CZ(2, 12),
-            SWAP((2, 4)),
+            SWAP(2, 4),
             CPHASE(2, 4, np.pi / 4),
         ],
     )
@@ -479,7 +479,7 @@ def test_converting_circuit_to_pyquil_gives_program_with_the_same_gates():
             X(0),
             Y(1).dagger,
             Z(3),
-            ControlledGate(SWAP((0, 2)), 1),
+            ControlledGate(SWAP(0, 2), 1),
             CustomGate(
                 sympy.Matrix(
                     [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, -1j], [0, 0, -1j, 0]]

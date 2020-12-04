@@ -75,6 +75,6 @@ def test_dagger_of_hermitian_controlled_two_qubit_gates_is_the_same_as_original_
 
 
 def test_dagger_of_swap_gate_is_the_same_as_the_original_gate():
-    swap = SWAP((0, 2))
+    swap = SWAP(0, 2)
 
     assert swap.dagger is swap

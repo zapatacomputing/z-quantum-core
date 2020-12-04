@@ -458,6 +458,20 @@ def test_converting_gate_with_the_same_name_multiple_times_adds_only_a_single_de
     ]
 
 
+@pytest.mark.parametrize(
+    "gate",
+    [
+        pyquil.gates.Gate("X", (0.5, 0.2), (pyquil.quil.Qubit(0),)),
+        pyquil.gates.Gate("SWAP", (), (pyquil.quil.Qubit(1),))
+    ]
+)
+def test_passing_manually_constructed_gate_with_mismatching_properties_raises_value_error(gate):
+    with pytest.raises(ValueError) as error_info:
+        convert_from_pyquil(gate)
+
+    assert str(gate) in str(error_info.value)
+
+
 def test_converting_circuit_to_pyquil_gives_program_with_the_same_gates():
     # The goal of the program constructed below is to include a diverse range
     # of gates.

@@ -250,21 +250,7 @@ def convert_gate_from_pyquil(gate: pyquil.quil.Gate) -> Gate:
 
     try:
         gate_cls = PYQUIL_NAME_TO_ORQUESTRA_CLS[gate.name]
-        if (
-            gate_cls in SINGLE_QUBIT_NONPARAMETRIC_GATES
-            or gate_cls in TWO_QUBIT_CONTROLLED_NONPARAMETRIC_GATES
-        ):
-            result = gate_cls(*target_qubits)
-        elif gate_cls in ROTATION_GATES or gate_cls == CPHASE or gate_cls == SWAP:
-            result = gate_cls(
-                *target_qubits,
-                *orquestra_params
-            )
-        else:
-            raise RuntimeError(
-                f"Error converting gate {gate}. If you see this message, "
-                "please file a bugreport."
-            )
+        result = gate_cls(*target_qubits, *orquestra_params)
 
         # Control qubits need to be applied in reverse because in PyQuil they
         # are prepended to the list when applying control modifier.
@@ -278,6 +264,11 @@ def convert_gate_from_pyquil(gate: pyquil.quil.Gate) -> Gate:
             result = result.dagger
 
         return result
+    except TypeError:
+        raise ValueError(
+            f"Cannot convert {gate}. Please check that you haven't reimplemented "
+            "predefined gate. If this is not the case, contact Orquestra support."
+        )
     except KeyError:
         raise ValueError(
             f"Conversion to Orquestra is not supported for {gate.name} gate"

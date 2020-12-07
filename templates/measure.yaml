@@ -212,7 +212,7 @@ spec:
               save_expectation_values(expecval, 'expectation_values.json')
       outputs:
         artifacts:
-        - name: expectaion-values
+        - name: expectation-values
           path: /app/expectation_values.json
 
     - name: hamiltonian-analysis

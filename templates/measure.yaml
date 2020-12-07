@@ -252,7 +252,7 @@ spec:
                 expecval = None
 
               K, nterms, frame_meas = estimate_nmeas(target_operator=operator,
-                         decomposition_method = {{inputs.parameters.decomposition-method}},
+                         decomposition_method = '{{inputs.parameters.decomposition-method}}',
                          expecval=expecval)
                 
               save_nmeas_estimate(nmeas=K, nterms=nterms, frame_meas=frame_meas, filename='hamiltonian_analysis.json')

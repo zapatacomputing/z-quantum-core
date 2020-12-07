@@ -9,7 +9,7 @@ from ..circuit import Circuit
 from ...circuit.gates import ControlledGate, CustomGate
 from ...circuit.conversions.pyquil_conversions import (
     convert_to_pyquil,
-    convert_from_pyquil,
+    convert_from_pyquil, custom_gate_factory_from_pyquil_defgate,
 )
 from ...circuit.gates import (
     X,
@@ -374,6 +374,75 @@ class TestGatesWithDaggerConversion:
             convert_from_pyquil(pyquil_dagger)
             == convert_from_pyquil(pyquil_gate).dagger
         )
+
+
+class TestCustomGateFactoryFromPyquilDefgate:
+    @pytest.mark.parametrize(
+        "name, matrix, qubits",
+        [
+            (
+                "U",
+                [[0.5 + 0.5j, 0.5 - 0.5j], [0.5 - 0.5j, 0.5 + 0.5j]],
+                (3,)
+            ),
+            (
+                "V",
+                [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, -1j], [0, 0, -1j, 0]],
+                (1, 4)
+            )
+        ]
+    )
+    def test_factory_created_form_nonparametrized_pyquil_defgate_produces_correct_gates(
+        self, name, matrix, qubits
+    ):
+        gate_definition = pyquil.quil.DefGate(name, matrix)
+
+        gate_factory = custom_gate_factory_from_pyquil_defgate(gate_definition)
+
+        expected_custom_gate = CustomGate(
+            sympy.Matrix(matrix),
+            qubits,
+            name
+        )
+
+        assert gate_factory(*qubits) == expected_custom_gate
+
+    def test_factory_created_from_parametrized_pyquil_defgate_correctly_sets_gate_parameters(self):
+        quil_parameters = [
+            pyquil.quil.Parameter(name)
+            for name in ("alpha", "beta", "gamma", "delta")
+        ]
+
+        pyquil_matrix = [
+            [pyquil.quil.Parameter("alpha"), 0, 0, 0],
+            [0, pyquil.quil.Parameter("beta"), 0, 0],
+            [0, 0, pyquil.quil.Parameter("gamma"), 0],
+            [0, 0, 0, pyquil.quil.Parameter("delta")]
+        ]
+
+        gate_definition = pyquil.quil.DefGate("U", pyquil_matrix, quil_parameters)
+
+        gate_factory = custom_gate_factory_from_pyquil_defgate(gate_definition)
+
+        expected_orquestra_matrix = sympy.Matrix(
+            [
+                [1.0, 0, 0, 0],
+                [0, sympy.Symbol("theta"), 0, 0],
+                [0, 0, sympy.Symbol("x") + sympy.Symbol("y"), 0],
+                [0, 0, 0, sympy.cos(sympy.Symbol("theta"))]
+            ]
+        )
+
+        expected_orquestra_gate = CustomGate(expected_orquestra_matrix, (0, 3), "U")
+
+        assert gate_factory(
+            0,
+            3,
+            1.0,
+            pyquil.quil.Parameter("theta"),
+            pyquil.quil.Parameter('x') + pyquil.quil.Parameter("y"),
+            pyquil.quilatom.quil_cos(pyquil.quil.Parameter("theta"))
+        ) == expected_orquestra_gate
 
 
 @pytest.mark.parametrize(

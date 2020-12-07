@@ -1,9 +1,12 @@
 """Utilities for converting gates and circuits to and from Pyquil objects."""
 from functools import singledispatch
+import math
 from typing import Union, Optional, overload, Iterable
 import numpy as np
 import pyquil
 import pyquil.gates
+import sympy
+
 from ...circuit import Gate, ControlledGate
 from ..circuit import Circuit
 from ...circuit.gates import (
@@ -235,6 +238,51 @@ def convert_from_pyquil(obj: Union[pyquil.Program, pyquil.quil.Gate]):
     raise NotImplementedError(
         f"Conversion from pyquil to orquestra not implemented for {obj}"
     )
+
+
+def custom_gate_factory_from_pyquil_defgate(gate: pyquil.quil.DefGate):
+    num_qubits = int(math.log(gate.matrix.shape[0], 2))
+    assert 2 ** num_qubits == gate.matrix.shape[0]
+
+    sympy_matrix = sympy.Matrix(
+        [
+            [
+                translate_expression(expression_from_pyquil(element), SYMPY_DIALECT)
+                for element in row
+            ]
+            for row in gate.matrix.tolist()
+        ]
+    )
+
+    # Order of parameters in our CustomGates may vary. On the contrary,
+    # order of parameters in pyquil is fixed.
+    # Therefore we remember this order so we can later correctly evaluate
+    # our custom gate.
+
+    symbols = (
+        [param.name for param in gate.parameters]
+        if gate.parameters
+        else None
+    )
+
+    def _factory(*args):
+        qubits = args[:num_qubits]
+        orquestra_gate = CustomGate(
+            sympy_matrix, qubits=tuple(qubits), name=gate.name
+        )
+        if len(args) != num_qubits:
+            parameters = [
+                translate_expression(
+                    expression_from_pyquil(arg),
+                    SYMPY_DIALECT
+                )
+                for arg in args[num_qubits:]
+            ]
+            orquestra_gate = orquestra_gate.evaluate(
+                {symbol: value for symbol, value in zip(symbols, parameters)}
+            )
+        return orquestra_gate
+    return _factory
 
 
 @convert_from_pyquil.register

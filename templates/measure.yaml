@@ -226,7 +226,7 @@ spec:
         artifacts:
         - name: qubit-operator
           path: /app/qubitop.json
-        - name: expectaion-values
+        - name: expectation-values
           path: /app/expectation_values.json
           optional: True
         - name: main-script

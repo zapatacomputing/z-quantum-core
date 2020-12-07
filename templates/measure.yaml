@@ -224,6 +224,8 @@ spec:
         - name: command
           value: bash main_script.sh
         artifacts:
+        - name: qubit-operator
+          path: /app/qubitop.json
         - name: expectaion-values
           path: /app/expectation_values.json
           optional: True

@@ -253,7 +253,7 @@ spec:
                          decomposition_method = {{inputs.parameters.decomposition-method}},
                          expecval=expecval)
                 
-              save_nmeas_estimate(nmeas=K, nterms=nterms, frame_meas=frame_meas, 'hamiltonian_analysis.json')
+              save_nmeas_estimate(nmeas=K, nterms=nterms, frame_meas=frame_meas, filename='hamiltonian_analysis.json')
       outputs:
         artifacts:
         - name: hamiltonian-analysis

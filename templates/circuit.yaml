@@ -273,6 +273,18 @@ spec:
           - name: circuit-4
             path: /app/circuit4.json
             optional: true
+          - name: circuit-5
+            path: /app/circuit5.json
+            optional: true
+          - name: circuit-6
+            path: /app/circuit6.json
+            optional: true
+          - name: circuit-7
+            path: /app/circuit7.json
+            optional: true
+          - name: circuit-8
+            path: /app/circuit8.json
+            optional: true
           - name: circuit-set
             path: /app/circuit_set_in.json
             optional: true
@@ -288,7 +300,7 @@ spec:
                 else:
                   circuit_set = []
 
-                filenames = ["circuit1.json", "circuit2.json", "circuit3.json", "circuit4.json"]
+                filenames = ["circuit1.json", "circuit2.json", "circuit3.json", "circuit4.json", "circuit5.json", "circuit6.json", "circuit7.json", "circuit8.json"]
                 for file in filenames:
                   if os.path.exists(file):
                     circuit_set.append(load_circuit(file))

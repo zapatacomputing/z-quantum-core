@@ -71,6 +71,83 @@ def pyquil_gate_matrix(gate: pyquil.gates.Gate) -> np.ndarray:
         return QUANTUM_GATES[gate.name]
 
 
+@pytest.fixture
+def example_orquestra_circuit():
+    """Constructs an example_orquestra_circuit.
+
+    This circuit should be equivalent to the the one constructed by
+    the example_pyquil_circuit. This equivalence is used in
+    conversion tests in both ways.
+    """
+    theta = sympy.Symbol("theta")
+
+    return Circuit(
+        [
+            CustomGate(
+                sympy.Matrix(
+                    [
+                        [sympy.cos(theta), sympy.sin(theta)],
+                        [-sympy.sin(theta), sympy.cos(theta)],
+                    ]
+                ),
+                (0,),
+                name="V",
+            ),
+            X(0),
+            Y(1).dagger,
+            Z(3),
+            ControlledGate(SWAP(0, 2), 1),
+            CustomGate(
+                sympy.Matrix(
+                    [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, -1j], [0, 0, -1j, 0]]
+                ),
+                (1, 3),
+                name="U",
+            ).dagger,
+            RX(2, np.pi),
+            CNOT(1, 3),
+        ]
+    )
+
+
+@pytest.fixture
+def example_pyquil_program():
+    quil_theta = pyquil.quil.Parameter("theta")
+
+    u_gate_definition = pyquil.quil.DefGate(
+        "U", [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, -1j], [0, 0, -1j, 0]]
+    )
+
+    v_gate_definition = pyquil.quil.DefGate(
+        "V",
+        [
+            [quilatom.quil_cos(quil_theta), quilatom.quil_sin(quil_theta)],
+            [-quilatom.quil_sin(quil_theta), quilatom.quil_cos(quil_theta)],
+        ],
+        [quil_theta],
+    )
+
+    # The below methods for getting constructors differ, because behaviours of
+    # get_constructors differs depending on whether custom gate has
+    # parameters or not.
+    u_gate_constructor = u_gate_definition.get_constructor()
+    v_gate_constructor = v_gate_definition.get_constructor()(quil_theta)
+
+    return pyquil.Program(
+        pyquil.quil.Declare("theta", "REAL"),
+        v_gate_definition,
+        u_gate_definition,
+        v_gate_constructor(0),
+        pyquil.gates.X(0),
+        pyquil.gates.Y(1),
+        pyquil.gates.Z(3),
+        pyquil.gates.SWAP(0, 2).controlled(1),
+        u_gate_constructor(1, 3).dagger(),
+        pyquil.gates.RX(np.pi, 2),
+        pyquil.gates.CNOT(1, 3),
+    )
+
+
 @pytest.mark.parametrize("qubit_index", [0, 1, 5, 13])
 @pytest.mark.parametrize(
     "orquestra_gate_cls, pyquil_gate_func",
@@ -541,76 +618,12 @@ def test_passing_manually_constructed_gate_with_mismatching_properties_raises_va
     assert str(gate) in str(error_info.value)
 
 
-def test_converting_circuit_to_pyquil_gives_program_with_the_same_gates():
-    # The goal of the program constructed below is to include a diverse range
-    # of gates.
-    theta = sympy.Symbol("theta")
-    quil_theta = pyquil.quil.Parameter("theta")
+def test_converting_circuit_to_pyquil_gives_program_with_the_same_gates(
+    example_orquestra_circuit, example_pyquil_program
+):
+    converted_program = convert_to_pyquil(example_orquestra_circuit)
 
-    circuit = Circuit(
-        [
-            CustomGate(
-                sympy.Matrix(
-                    [
-                        [sympy.cos(theta), sympy.sin(theta)],
-                        [-sympy.sin(theta), sympy.cos(theta)],
-                    ]
-                ),
-                (0,),
-                name="V",
-            ),
-            X(0),
-            Y(1).dagger,
-            Z(3),
-            ControlledGate(SWAP(0, 2), 1),
-            CustomGate(
-                sympy.Matrix(
-                    [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, -1j], [0, 0, -1j, 0]]
-                ),
-                (1, 3),
-                name="U",
-            ).dagger,
-            RX(2, np.pi),
-            CNOT(1, 3),
-        ]
-    )
-
-    converted_program = convert_to_pyquil(circuit)
-
-    u_gate_definition = pyquil.quil.DefGate(
-        "U", [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, -1j], [0, 0, -1j, 0]]
-    )
-
-    v_gate_definition = pyquil.quil.DefGate(
-        "V",
-        [
-            [quilatom.quil_cos(quil_theta), quilatom.quil_sin(quil_theta)],
-            [-quilatom.quil_sin(quil_theta), quilatom.quil_cos(quil_theta)],
-        ],
-        [quil_theta],
-    )
-
-    # The below methods for getting constructors differ, because behaviours of
-    # get_constructors differs depending on whether custom gate has
-    # parameters or not.
-    u_gate_constructor = u_gate_definition.get_constructor()
-    v_gate_constructor = v_gate_definition.get_constructor()(quil_theta)
-
-    expected_program = pyquil.Program(
-        pyquil.quil.Declare("theta", "REAL"),
-        v_gate_definition,
-        u_gate_definition,
-        v_gate_constructor(0),
-        pyquil.gates.X(0),
-        pyquil.gates.Y(1),
-        pyquil.gates.Z(3),
-        pyquil.gates.SWAP(0, 2).controlled(1),
-        u_gate_constructor(1, 3).dagger(),
-        pyquil.gates.RX(np.pi, 2),
-        pyquil.gates.CNOT(1, 3),
-    )
-
-    assert expected_program == converted_program
+    assert converted_program == example_pyquil_program
 
 
 def test_pyquil_circuit_obtained_from_empty_circuit_is_also_empty():

@@ -516,9 +516,9 @@ class TestCustomGateFactoryFromPyquilDefgate:
             0,
             3,
             1.0,
-            pyquil.quil.Parameter("theta"),
-            pyquil.quil.Parameter('x') + pyquil.quil.Parameter("y"),
-            pyquil.quilatom.quil_cos(pyquil.quil.Parameter("theta"))
+            sympy.Symbol("theta"),
+            sympy.Symbol('x') + sympy.Symbol("y"),
+            sympy.cos(sympy.Symbol("theta"))
         ) == expected_orquestra_gate
 
 

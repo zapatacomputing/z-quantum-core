@@ -234,7 +234,7 @@ def convert_circuit_to_pyquil(
 
 
 @singledispatch
-def convert_from_pyquil(obj: Union[pyquil.Program, pyquil.quil.Gate]):
+def convert_from_pyquil(obj: Union[pyquil.Program, pyquil.quil.Gate], custom_gates=None):
     raise NotImplementedError(
         f"Conversion from pyquil to orquestra not implemented for {obj}"
     )
@@ -271,13 +271,8 @@ def custom_gate_factory_from_pyquil_defgate(gate: pyquil.quil.DefGate):
             sympy_matrix, qubits=tuple(qubits), name=gate.name
         )
         if len(args) != num_qubits:
-            parameters = [
-                translate_expression(
-                    expression_from_pyquil(arg),
-                    SYMPY_DIALECT
-                )
-                for arg in args[num_qubits:]
-            ]
+            parameters = args[num_qubits:]
+
             orquestra_gate = orquestra_gate.evaluate(
                 {symbol: value for symbol, value in zip(symbols, parameters)}
             )

@@ -504,3 +504,43 @@ def save_timing(walltime: float, filename: str) -> None:
         f.write(
             json.dumps({"schema": SCHEMA_VERSION + "-timing", "walltime": walltime})
         )
+
+def save_nmeas_estimate(nmeas: float, nterms: int, filename: str, frame_meas: np.ndarray = None) -> None:
+    """ Save an estimate of the number of measurements to a file
+
+    Args:
+        nmeas: total number of measurements for epsilon = 1.0
+        nterms: number of terms (groups) in the objective function
+        frame_meas: A list of the number of measurements per frame for epsilon = 1.0
+    """
+
+    data = {}
+    data['schema'] = SCHEMA_VERSION + '-hamiltonian_analysis'
+    data['K'] = nmeas
+    data['nterms'] = nterms
+    if frame_meas is not None:
+        data['frame_meas'] = convert_array_to_dict(frame_meas)
+
+    with open(filename, 'w') as f:
+        f.write(json.dumps(data, indent=2))
+
+def load_nmeas_estimate(filename: str) -> Tuple[float, int, np.ndarray]:
+    """Load an estimate of the number of measurements from a file.
+
+    Args:
+        filename: the name of the file
+
+    Returns:
+        nmeas: number of measurements for epsilon = 1.0
+        nterms: number of terms in the hamiltonian
+        frame_meas: frame measurements (number of measurements per group)
+    """
+
+    with open(filename, 'r') as f:
+        data = json.load(f)
+
+    frame_meas = convert_dict_to_array(data['frame_meas'])
+    K_coeff = data['K']
+    nterms = data['nterms']
+
+    return K_coeff, nterms, frame_meas

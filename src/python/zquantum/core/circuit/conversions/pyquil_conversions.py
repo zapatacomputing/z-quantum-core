@@ -1,4 +1,5 @@
 """Utilities for converting gates and circuits to and from Pyquil objects."""
+from copy import copy
 from functools import singledispatch
 import math
 from typing import Union, Optional, overload, Iterable
@@ -281,7 +282,7 @@ def custom_gate_factory_from_pyquil_defgate(gate: pyquil.quil.DefGate):
 
 
 @convert_from_pyquil.register
-def convert_gate_from_pyquil(gate: pyquil.quil.Gate) -> Gate:
+def convert_gate_from_pyquil(gate: pyquil.quil.Gate, custom_gates=None) -> Gate:
     number_of_control_modifiers = gate.modifiers.count("CONTROLLED")
 
     all_qubits = pyquil_qubits_to_numbers(gate.qubits)
@@ -296,8 +297,13 @@ def convert_gate_from_pyquil(gate: pyquil.quil.Gate) -> Gate:
         for param in gate.params
     )
 
+    pyquil_name_to_orquestra_cls = copy(PYQUIL_NAME_TO_ORQUESTRA_CLS)
+
+    if custom_gates is not None:
+        pyquil_name_to_orquestra_cls.update(custom_gates)
+
     try:
-        gate_cls = PYQUIL_NAME_TO_ORQUESTRA_CLS[gate.name]
+        gate_cls = pyquil_name_to_orquestra_cls[gate.name]
         result = gate_cls(*target_qubits, *orquestra_params)
 
         # Control qubits need to be applied in reverse because in PyQuil they
@@ -319,5 +325,25 @@ def convert_gate_from_pyquil(gate: pyquil.quil.Gate) -> Gate:
         )
     except KeyError:
         raise ValueError(
-            f"Conversion to Orquestra is not supported for {gate.name} gate"
+            f"Conversion to Orquestra is not supported for {gate.name} gate. "
+            "If this is a custom gate, make sure to convert it together with "
+            "a corresponding PyQuil program."
         )
+
+
+@convert_from_pyquil.register
+def convert_pyquil_program_to_orquestra(program: pyquil.Program, custom_gates=None):
+    custom_gates = {
+        definition.name: custom_gate_factory_from_pyquil_defgate(definition)
+        for definition in program.defined_gates
+    }
+
+    gates_in_program = [
+        instruction
+        for instruction in program.instructions
+        if isinstance(instruction, pyquil.quil.Gate)
+    ]
+
+    return Circuit(
+        [convert_from_pyquil(gate, custom_gates) for gate in gates_in_program]
+    )

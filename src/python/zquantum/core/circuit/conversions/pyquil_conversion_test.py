@@ -521,6 +521,28 @@ class TestCustomGateFactoryFromPyquilDefgate:
             sympy.cos(sympy.Symbol("theta"))
         ) == expected_orquestra_gate
 
+    def test_passing_custom_gate_dict_allows_for_converting_custom_pyquil_gates(self):
+        gate_matrix = [[1, 0], [0, -1]]
+        gate_definition = pyquil.quil.DefGate("U", gate_matrix)
+        custom_gates_mapping = {
+            "U": custom_gate_factory_from_pyquil_defgate(gate_definition)
+        }
+
+        pyquil_gate = gate_definition.get_constructor()(2)
+
+        with pytest.raises(ValueError):
+            convert_from_pyquil(pyquil_gate)
+
+        expected_orquestra_gate = CustomGate(
+            sympy.Matrix(gate_matrix),
+            (2,),
+            "U"
+        )
+
+        orquestra_gate = convert_from_pyquil(pyquil_gate, custom_gates_mapping)
+
+        assert orquestra_gate == expected_orquestra_gate
+
 
 @pytest.mark.parametrize(
     "custom_gate",
@@ -632,3 +654,17 @@ def test_pyquil_circuit_obtained_from_empty_circuit_is_also_empty():
     pyquil_circuit = convert_to_pyquil(circuit)
 
     assert not pyquil_circuit.instructions
+
+
+def test_converting_pyquil_program_gives_circuit_with_the_same_gates(
+    example_orquestra_circuit, example_pyquil_program
+):
+    converted_circuit = convert_from_pyquil(example_pyquil_program)
+
+    assert converted_circuit == example_orquestra_circuit
+
+
+def test_orquestra_circuit_obtained_from_empty_program_is_also_empty():
+    program = pyquil.Program()
+
+    assert not convert_from_pyquil(program).gates

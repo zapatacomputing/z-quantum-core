@@ -159,9 +159,10 @@ def get_expectation_values_from_rdms(
 
 
 def estimate_nmeas(
-    target_operator: QubitOperator,
+    target_operator: Optional[QubitOperator] = None,
     decomposition_method: Optional[str] = "greedy-sorted",
     expecval: Optional[ExpectationValues] = None,
+    operator_list: Optional[List[QubitOperator]] = None,
 ) -> Tuple[float, int, np.array]:
     """Calculates the number of measurements required for computing
         the expectation value of a qubit hamiltonian, where co-measurable terms
@@ -178,8 +179,15 @@ def estimate_nmeas(
     cov(O_{a}^{i}, O_{b}^{i}) = <O_{a}^{i} O_{b}^{i}> - <O_{a}^{i}> <O_{b}^{i}> = 0
 
     Args:
-        target_operator: A QubitOperator to measure
-        expecval: An ExpectationValues object containing the expectation
+        target_operator (Optional): A QubitOperator to measure. One and only one of 
+            target_operator or operator_list must be given.
+        decomposition_method (Optional): A method to group the terms of the QubitOperator 
+            to measure. Possibilities are:
+            - "greedy" groups terms that are mutually qubit-wise commuting with 
+              a greedy algorithm
+            - "greedy-sorted" does the same but sorts the operator terms by decreasing
+              coefficients, so terms with large coefficients are prioritized.
+        expecval (Optional): An ExpectationValues object containing the expectation
             values of the operators and their squares. Optionally, contains
             values of operator products to compute covariances.
             If absent, covariances are assumed to be 0 and variances are
@@ -189,25 +197,40 @@ def estimate_nmeas(
             NOTE: WE HAVE TO MAKE SURE THAT THE ORDER
             OF EXPECTATION VALUES MATCHES THE ORDER OF THE TERMS IN THE
             TARGET QUBIT OPERATOR, OTHERWISE THIS FUNCTION WILL NOT WORK CORRECTLY
+        operator_list (Optional): A list of QubitOperator, where each element in the list
+            is a group of co-measurable terms. If this is given, decomposition_method 
+            is ignored. One and only one of target_operator or operator_list must be given.
     Returns:
         K2: number of measurements for epsilon = 1.0
         nterms: number of groups of QWC terms in the target_operator
         frame_meas: Number of optimal measurements per group 
     """
 
-    frame_variances = None
-    if decomposition_method == "greedy-sorted":
-        decomposition_function = lambda qubit_operator: group_comeasureable_terms_greedy(
-            qubit_operator, True
+    if target_operator is None and operator_list is None:
+        raise ValueError(
+            "target_operator and operator_list arguments are both None, one and only one must be provided"
         )
-    elif decomposition_method == "greedy":
-        decomposition_function = lambda qubit_operator: group_comeasureable_terms_greedy(
-            qubit_operator, False
+    if target_operator is not None and operator_list is not None:
+        raise ValueError(
+            "target_operator and operator_list arguments are both provided, one and only one must be present"
         )
-    else:
-        raise ValueError(f"{decomposition_method} grouping is not implemented")
 
-    groups = decomposition_function(target_operator)
+    frame_variances = None
+    if target_operator is not None:
+        if decomposition_method == "greedy-sorted":
+            decomposition_function = lambda qubit_operator: group_comeasureable_terms_greedy(
+                qubit_operator, True
+            )
+        elif decomposition_method == "greedy":
+            decomposition_function = lambda qubit_operator: group_comeasureable_terms_greedy(
+                qubit_operator, False
+            )
+        else:
+            raise ValueError(f"{decomposition_method} grouping is not implemented")
+
+        groups = decomposition_function(target_operator)
+    else:
+        groups = operator_list
     frame_variances = compute_group_variances(groups, expecval)
     sqrt_lambda = sum(np.sqrt(frame_variances))
     frame_meas = sqrt_lambda * np.sqrt(frame_variances)

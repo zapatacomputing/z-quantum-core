@@ -123,15 +123,16 @@ class Gate(object):
         Returns a list of symbolic parameters used in the gate
 
         Returns:
-            set: set containing all the sympy symbols used in gate params
+            list: list containing all the sympy symbols used in gate params
         """
         all_symbols = []
         for param in self.params:
             if isinstance(param, sympy.Basic):
                 for symbol in param.free_symbols:
-                    all_symbols.append(symbol)
+                    if symbol not in all_symbols:
+                        all_symbols.append(symbol)
 
-        return set(all_symbols)
+        return all_symbols
 
     def get_param_string(self):
         r"""Get a string containing the parameters, e.g.

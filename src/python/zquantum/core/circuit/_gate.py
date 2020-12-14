@@ -129,10 +129,10 @@ class Gate(object):
         for param in self.params:
             if isinstance(param, sympy.Basic):
                 for symbol in param.free_symbols:
-                    if symbol not in all_symbols:
-                        all_symbols.append(symbol)
+                    all_symbols.append(symbol)
 
-        return all_symbols
+        unique_symbols = sorted(list(set(all_symbols)),key=str)
+        return unique_symbols
 
     def get_param_string(self):
         r"""Get a string containing the parameters, e.g.

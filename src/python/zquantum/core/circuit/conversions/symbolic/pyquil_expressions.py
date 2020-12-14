@@ -5,7 +5,7 @@ from numbers import Number
 import pyquil
 from pyquil import quilatom
 from .expressions import ExpressionDialect, Symbol, FunctionCall
-
+from .helpers import reduction
 
 QUIL_BINARY_EXPRESSION_NAMES = {
     quilatom.Add: "add",
@@ -63,8 +63,8 @@ QUIL_DIALECT = ExpressionDialect(
     symbol_factory=lambda symbol: pyquil.quil.Parameter(symbol.name),
     number_factory=lambda number: number,
     known_functions={
-        "add": operator.add,
-        "mul": operator.mul,
+        "add": reduction(operator.add),
+        "mul": reduction(operator.mul),
         "div": operator.truediv,
         "sub": operator.sub,
         "pow": operator.pow,

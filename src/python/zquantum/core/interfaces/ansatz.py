@@ -23,7 +23,7 @@ class Ansatz(ABC, EnforceOverrides):
         
         Attributes:
             number_of_layers (int): see Args
-            parametrized_circuit (zquantum.core.circuit.Circuit): parameterized circuit representation of the ansatz. Might not be supported for given ansatz, see supports_parametrized_circuits. 
+            parametrized_circuit (zquantum.core.circuit.Circuit): parametrized circuit representation of the ansatz. Might not be supported for given ansatz, see supports_parametrized_circuits. 
             supports_parametrized_circuits(bool): flag indicating whether given ansatz supports parametrized circuits.
         
         """

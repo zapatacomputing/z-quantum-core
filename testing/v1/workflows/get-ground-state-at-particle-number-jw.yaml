@@ -1,0 +1,87 @@
+# Workflow API version
+apiVersion: io.orquestra.workflow/1.0.0
+
+# Prefix for workflow ID
+name: get-ground-state
+
+imports:
+- name: z-quantum-core
+  type: git
+  parameters:
+    repository: "git@github.com:zapatacomputing/z-quantum-core.git"
+    branch: dev
+
+steps:
+- name: get-operator
+  config:
+    runtime:
+      language: python3
+      imports: [z-quantum-core]
+      parameters:
+        file: z-quantum-core/steps/operators.py
+        function: get_fermion_number_operator
+    resources:
+      cpu: "1000m"
+      memory: "1Gi"
+      disk: "10Gi"
+  inputs:
+  - number_of_qubits: 4
+    type: int
+  - number_of_particles: null
+    type: null_type
+  outputs:
+  - name: number-operator
+    type: interaction-operator
+
+- name: transform-operator
+  passed: [get-operator]
+  config:
+    runtime:
+      language: python3
+      imports: [z-quantum-core]
+      parameters:
+        file: z-quantum-core/steps/transforms.py
+        function: transform_interaction_operator
+    resources:
+      cpu: "1000m"
+      memory: "1Gi"
+      disk: "10Gi"
+  inputs:
+  - transformation: "Jordan-Wigner"
+    type: string
+  - input_operator: ((get-operator.number-operator))
+    type: interaction-operator
+  outputs:
+  - name: transformed-operator
+    type: qubit-operator
+
+- name: get-ground-state-at-particle-number-jw
+  passed: [transform-operator]
+  config:
+    runtime:
+      language: python3
+      imports: [z-quantum-core]
+      parameters:
+        file: z-quantum-core/steps/evaluation.py
+        function: jw_get_ground_state_at_particle_number
+    resources:
+      cpu: "1000m"
+      memory: "1Gi"
+      disk: "10Gi"
+  inputs:
+  - particle_number: 2
+    type: int
+  - qubit_operator: ((transform-operator.transformed-operator))
+    type: qubit-operator
+  outputs:
+  - name: ground-state
+    type: ground-state
+  - name: value-estimate
+    type: value-estimate
+
+types:
+- interaction-operator
+- qubit-operator
+- ground-state
+- value-estimate
+- null_type

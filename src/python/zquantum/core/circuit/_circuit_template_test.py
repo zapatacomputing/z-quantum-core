@@ -274,7 +274,7 @@ class TestCircuitLayers(unittest.TestCase):
         for row, test_row in zip(connectivity.connectivity, test_connectivity):
             self.assertEqual(row, test_row)
 
-    def test_create_layer_of_gates_not_parameterized(self):
+    def test_create_layer_of_gates_not_parametrized(self):
         # Given
         number_of_qubits = 4
         gate_name = "X"
@@ -293,7 +293,7 @@ class TestCircuitLayers(unittest.TestCase):
         # Then
         self.assertEqual(layer_of_x, target_circuit)
 
-    def test_create_layer_of_gates_parameterized(self):
+    def test_create_layer_of_gates_parametrized(self):
         # Given
         single_qubit_gate = "Ry"
         n_qubits_list = [2, 3, 4, 10]

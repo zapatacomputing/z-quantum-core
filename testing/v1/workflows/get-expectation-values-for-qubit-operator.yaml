@@ -1,0 +1,110 @@
+# Workflow API version
+apiVersion: io.orquestra.workflow/1.0.0
+
+# Prefix for workflow ID
+name: get-expectation-values
+
+imports:
+- name: z-quantum-core
+  type: git
+  parameters:
+    repository: "git@github.com:zapatacomputing/z-quantum-core.git"
+    branch: dev
+
+steps:
+- name: get-operator
+  config:
+    runtime:
+      language: python3
+      imports: [z-quantum-core]
+      parameters:
+        file: z-quantum-core/steps/operators.py
+        function: get_fermion_number_operator
+    resources:
+      cpu: "1000m"
+      memory: "1Gi"
+      disk: "10Gi"
+  inputs:
+  - number_of_qubits: 4
+    type: int
+  - number_of_particles: null
+    type: null_type
+  outputs:
+  - name: number-operator
+    type: interaction-operator
+
+- name: transform-operator
+  passed: [get-operator]
+  config:
+    runtime:
+      language: python3
+      imports: [z-quantum-core]
+      parameters:
+        file: z-quantum-core/steps/transforms.py
+        function: transform_interaction_operator
+    resources:
+      cpu: "1000m"
+      memory: "1Gi"
+      disk: "10Gi"
+  inputs:
+  - transformation: "Jordan-Wigner"
+    type: string
+  - input_operator: ((get-operator.number-operator))
+    type: interaction-operator
+  outputs:
+  - name: transformed-operator
+    type: qubit-operator
+
+- name: get-circuit
+  config:
+    runtime:
+      language: python3
+      imports: [z-quantum-core]
+      parameters:
+        file: z-quantum-core/steps/circuit.py
+        function: create_random_circuit
+    resources:
+      cpu: "1000m"
+      memory: "1Gi"
+      disk: "10Gi"
+  inputs:
+  - number_of_qubits: 4
+    type: int
+  - number_of_gates: 20
+    type: int
+  - seed: 1234
+    type: int
+  outputs:
+  - name: circuit
+    type: circuit
+
+- name: get-expectation-values-for-qubit-operator
+  passed: [transform-operator, get-circuit]
+  config:
+    runtime:
+      language: python3
+      imports: [z-quantum-core]
+      parameters:
+        file: z-quantum-core/steps/evaluation.py
+        function: get_expectation_values_for_qubit_operator
+    resources:
+      cpu: "1000m"
+      memory: "1Gi"
+      disk: "10Gi"
+  inputs:
+  - backend_specs: "{\"module_name\": \"zquantum.core.interfaces.mock_objects\", \"function_name\": \"MockQuantumBackend\", \"n_samples\": 1000}"
+    type: string
+  - circuit: ((get-circuit.circuit))
+    type: circuit
+  - qubit_operator: ((transform-operator.transformed-operator))
+    type: qubit-operator
+  outputs:
+  - name: expectation-values
+    type: expectation-values
+
+types:
+- interaction-operator
+- qubit-operator
+- circuit
+- expectation-values
+- null_type

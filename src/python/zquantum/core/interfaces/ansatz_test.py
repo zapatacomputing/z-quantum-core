@@ -62,10 +62,3 @@ class AnsatzTests(object):
         # Then
         for gate in circuit.gates:
             self.assertEqual(len(gate.symbolic_params), 0)
-
-    def test_order_of_symbols_is_the_same_for_generated_circuitget_symbols(self):
-        # Given
-        circuit_symbols = self.ansatz.parametrized_circuit.symbolic_params
-        ansatz_symbols = self.ansatz.get_symbols
-
-        self.assertEqual(circuit_symbols, ansatz_symbols)

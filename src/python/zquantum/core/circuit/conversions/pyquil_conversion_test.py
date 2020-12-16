@@ -469,7 +469,7 @@ class TestCustomGateFactoryFromPyquilDefgate:
             )
         ]
     )
-    def test_factory_created_form_nonparametrized_pyquil_defgate_produces_correct_gates(
+    def test_factory_created_from_nonparametrized_pyquil_defgate_produces_correct_gates(
         self, name, matrix, qubits
     ):
         gate_definition = pyquil.quil.DefGate(name, matrix)

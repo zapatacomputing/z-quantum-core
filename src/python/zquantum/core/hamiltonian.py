@@ -1,4 +1,4 @@
-from openfermion.ops import QubitOperator, InteractionRDM
+from openfermion.ops import QubitOperator, InteractionRDM, InteractionOperator
 import numpy as np
 from typing import Tuple, List, Optional
 
@@ -215,3 +215,33 @@ def estimate_nmeas(
     nterms = sum([len(group.terms) for group in groups])
 
     return K2, nterms, frame_meas
+
+def reorder_fermionic_modes(
+    interaction_op: InteractionOperator, ordering: List
+) -> InteractionOperator:
+    """Reorder the fermionic modes from interleaved to blocks.
+    Args:
+        interaction_op: an interaction operator in which
+            the spin-up and spin-down fermionic modes are interleaved
+        ordering: list of spin orbital indexes, indicating the new ordering with respect to 
+            previous ordering. The ordering by default in interaction operators from OpenFermion is
+            interleaved ([0a, 0b, 1a, 1b, ...] where a indicates spin-up and b spin-down)
+    Returns:
+        An interaction operator with the modes reordered to have the desired ordering.
+    """
+
+    one_body_tensor = interaction_op.one_body_tensor[:, :]
+    one_body_tensor = one_body_tensor[ordering, :]
+    one_body_tensor = one_body_tensor[:, ordering]
+
+    two_body_tensor = interaction_op.two_body_tensor[:, :, :, :]
+    two_body_tensor = two_body_tensor[ordering, :, :, :]
+    two_body_tensor = two_body_tensor[:, ordering, :, :]
+    two_body_tensor = two_body_tensor[:, :, ordering, :]
+    two_body_tensor = two_body_tensor[:, :, :, ordering]
+
+    reordered_interaction_op = InteractionOperator(
+        interaction_op.constant, one_body_tensor, two_body_tensor
+    )
+
+    return reordered_interaction_op

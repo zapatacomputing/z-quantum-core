@@ -1,4 +1,4 @@
-from typing import Union, Optional
+from typing import Union, Optional, List
 from numpy.lib.arraysetops import isin
 from openfermion import InteractionOperator
 
@@ -9,6 +9,10 @@ from zquantum.core.openfermion import (
     load_interaction_operator,
     load_qubit_operator,
     save_qubit_operator,
+)
+
+from zquantum.core.hamiltonian import (
+    reorder_fermionic_modes as _reorder_fermionic_modes,
 )
 
 
@@ -68,3 +72,11 @@ def interpolate_qubit_operators(
     )
 
     save_qubit_operator(output_qubit_operator, "qubit-operator.json")
+
+
+def reorder_fermionic_modes(interaction_operator: str, ordering: List) -> InteractionOperator:
+
+    interaction_operator = load_interaction_operator(interaction_operator)
+
+    reordered_operator = _reorder_fermionic_modes(interaction_operator, ordering)
+    save_interaction_operator(reordered_operator, "reordered-operator.json")

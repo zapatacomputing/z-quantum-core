@@ -26,8 +26,6 @@ class OptimizerTests(object):
         results = optimizer.minimize(cost_function, initial_params=np.array([0, 0]))
         assert results.opt_value == pytest.approx(0, abs=1e-4)
         assert results.opt_params == pytest.approx(np.ones(2), abs=1e-3)
-        assert results.opt_params[0] == pytest.approx(1, abs=1e-3)
-        assert results.opt_params[1] == pytest.approx(1, abs=1e-3)
 
         assert "nfev" in results
         assert "nit" in results

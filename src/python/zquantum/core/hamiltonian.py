@@ -219,13 +219,14 @@ def estimate_nmeas(
 def reorder_fermionic_modes(
     interaction_op: InteractionOperator, ordering: List
 ) -> InteractionOperator:
-    """Reorder the fermionic modes from interleaved to blocks.
+    """Reorder the fermionic modes according to a specified ordering.
+
     Args:
-        interaction_op: an interaction operator in which
-            the spin-up and spin-down fermionic modes are interleaved
-        ordering: list of spin orbital indexes, indicating the new ordering with respect to 
-            previous ordering. The ordering by default in interaction operators from OpenFermion is
-            interleaved ([0a, 0b, 1a, 1b, ...] where a indicates spin-up and b spin-down)
+        interaction_op: The input interaction operator.
+        ordering: List containing the mode indexes from the input
+            operator. For example, an ordering of [0, 2, 1, 3] will
+            map mode 2 of the input operator to mode 1.
+
     Returns:
         An interaction operator with the modes reordered to have the desired ordering.
     """

@@ -60,7 +60,7 @@ class MockQuantumSimulator(QuantumSimulator):
         self, circuit: Circuit, operator: SymbolicOperator, **kwargs
     ):
         n_qubits = len(circuit.qubits)
-        if hasattr(operator, 'terms'):
+        if hasattr(operator, "terms"):
             n_operator = len(operator.terms.keys())
             constant_position = None
             for index, term in enumerate(operator.terms):
@@ -89,17 +89,15 @@ class MockQuantumSimulator(QuantumSimulator):
 
 
 class MockOptimizer(Optimizer):
-    def minimize(
-        self, cost_function, initial_params: np.ndarray, **kwargs
-    ):
+    def minimize(self, cost_function, initial_params: np.ndarray, **kwargs):
         new_parameters = initial_params
         for i in range(len(initial_params)):
             new_parameters[i] += random.random()
         new_parameters = np.array(new_parameters)
         return optimization_result(
             opt_value=cost_function(new_parameters),
-            opt_params= new_parameters,
-            history=[]
+            opt_params=new_parameters,
+            history=[],
         )
 
 
@@ -124,20 +122,17 @@ class MockAnsatz(Ansatz):
     @overrides
     def _generate_circuit(self, parameters: Optional[np.ndarray] = None):
         circuit = Circuit()
-        for theta in self.get_symbols():
-            for qubit_index in range(self.number_of_qubits):
-                circuit += Circuit(Program(RX(theta, qubit_index)))
-        if parameters is not None:
-            symbols_map = create_symbols_map(self.get_symbols(), parameters)
-            circuit = circuit.evaluate(symbols_map)
-        return circuit
-
-    @overrides
-    def get_symbols(self):
-        return [
+        symbols = [
             sympy.Symbol(f"theta_{layer_index}")
             for layer_index in range(self._number_of_layers)
         ]
+        for theta in symbols:
+            for qubit_index in range(self.number_of_qubits):
+                circuit += Circuit(Program(RX(theta, qubit_index)))
+        if parameters is not None:
+            symbols_map = create_symbols_map(symbols, parameters)
+            circuit = circuit.evaluate(symbols_map)
+        return circuit
 
 
 class MockEstimator(Estimator):

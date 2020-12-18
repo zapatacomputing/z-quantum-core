@@ -4,12 +4,21 @@ from .hamiltonian import (
     compute_group_variances,
     get_expectation_values_from_rdms,
     estimate_nmeas,
+    reorder_fermionic_modes,
 )
 from .measurement import ExpectationValues
 import numpy as np
 import math
 import pytest
-from openfermion.ops import QubitOperator, InteractionRDM
+from openfermion import (
+    QubitOperator,
+    FermionOperator,
+    InteractionRDM,
+    jordan_wigner,
+    eigenspectrum,
+    get_interaction_operator,
+)
+
 
 h2_hamiltonian = QubitOperator(
     """-0.0420789769629383 [] +
@@ -351,3 +360,35 @@ def test_estimate_nmeas(
     assert np.allclose(frame_meas, frame_meas_ref)
     assert math.isclose(K2_ref, K2)
     assert nterms_ref == nterms
+
+
+def test_reorder_fermionic_modes():
+    ref_op = get_interaction_operator(
+        FermionOperator(
+            """
+    0.0 [] +
+    1.0 [0^ 0] +
+    1.0 [1^ 1] +
+    1.0 [0^ 1^ 2 3] +
+    1.0 [1^ 1^ 2 2]
+    """
+        )
+    )
+    reordered_op = get_interaction_operator(
+        FermionOperator(
+            """
+    0.0 [] +
+    1.0 [0^ 0] +
+    1.0 [2^ 2] +
+    1.0 [0^ 2^ 1 3] +
+    1.0 [2^ 2^ 1 1]
+    """
+        )
+    )
+    spin_block_op = reorder_fermionic_modes(ref_op, [0, 2, 1, 3])
+    assert reordered_op == spin_block_op
+    spin_block_qubit_op = jordan_wigner(spin_block_op)
+    interleaved_qubit_op = jordan_wigner(ref_op)
+    spin_block_spectrum = eigenspectrum(spin_block_qubit_op)
+    interleaved_spectrum = eigenspectrum(interleaved_qubit_op)
+    assert np.allclose(spin_block_spectrum, interleaved_spectrum)

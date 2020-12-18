@@ -131,7 +131,7 @@ class Gate(object):
                 for symbol in param.free_symbols:
                     all_symbols.append(symbol)
 
-        unique_symbols = sorted(list(set(all_symbols)),key=str)
+        unique_symbols = sorted(list(set(all_symbols)), key=str)
         return unique_symbols
 
     def get_param_string(self):

@@ -1,12 +1,13 @@
 from abc import ABC, abstractmethod
-from ..circuit import Circuit
-from .ansatz_utils import ansatz_property
-from ..utils import create_symbols_map
+import numpy as np
 import copy
 import sympy
 from typing import List, Optional
 from overrides import EnforceOverrides
-import numpy as np
+import warnings
+from ..circuit import Circuit
+from .ansatz_utils import ansatz_property
+from ..utils import create_symbols_map
 
 
 class Ansatz(ABC, EnforceOverrides):
@@ -20,20 +21,19 @@ class Ansatz(ABC, EnforceOverrides):
 
         Args:
             number_of_layers: number of layers of the ansatz
-        
+
         Attributes:
             number_of_layers (int): see Args
-            parametrized_circuit (zquantum.core.circuit.Circuit): parametrized circuit representation of the ansatz. Might not be supported for given ansatz, see supports_parametrized_circuits. 
+            parametrized_circuit (zquantum.core.circuit.Circuit): parametrized circuit representation of the ansatz. Might not be supported for given ansatz, see supports_parametrized_circuits.
             supports_parametrized_circuits(bool): flag indicating whether given ansatz supports parametrized circuits.
-        
+
         """
         self.number_of_layers = number_of_layers
         self._parametrized_circuit = None
 
     @property
     def parametrized_circuit(self) -> Circuit:
-        """Returns a parametrized circuit if given ansatz supports it.
-        """
+        """Returns a parametrized circuit if given ansatz supports it."""
         if self._parametrized_circuit is None:
             if self.supports_parametrized_circuits:
                 self._parametrized_circuit = self._generate_circuit()
@@ -85,8 +85,7 @@ class Ansatz(ABC, EnforceOverrides):
         raise NotImplementedError
 
     def get_symbols(self) -> List[sympy.Symbol]:
-        """Returns a list of symbolic parameters used for creating the ansatz.
-        """
+        """Returns a list of symbolic parameters used for creating the ansatz."""
         warnings.warn(
             """`Ansatz.get_symbols()` will be deprecated in future releases of z-quantumcore.\
                 Please use `self.parametrized_circuit.symbolic_params` instead.""",

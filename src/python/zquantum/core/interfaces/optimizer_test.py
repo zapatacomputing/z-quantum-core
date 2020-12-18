@@ -5,6 +5,7 @@ from zquantum.core.interfaces.functions import FunctionWithGradient
 
 from .optimizer import optimization_result
 from ..gradients import finite_differences_gradient
+from ..history.recorder import recorder
 
 
 def rosenbrock_function(x):
@@ -49,6 +50,51 @@ class OptimizerTests(object):
         assert "opt_params" in results
         assert "history" in results
 
+
+    def test_optimizer_succeeds_on_cost_function_without_gradient(self, optimizer):
+        cost_function = sum_x_squared
+
+        results = optimizer.minimize(
+            cost_function, initial_params=np.array([1, -1])
+        )
+        assert results.opt_value == pytest.approx(0, abs=1e-5)
+        assert results.opt_params == pytest.approx(np.zeros(2), abs=1e-4)
+
+        assert "nfev" in results
+        assert "nit" in results
+        assert "opt_value" in results
+        assert "opt_params" in results
+        assert "history" in results
+
+    def test_optimizer_records_history_if_keep_value_history_is_added_as_option(self, optimizer):
+        optimizer.keep_value_history = True
+
+        # To check that history is recorded correctly, we wrap cost_function
+        # with a recorder. Optimizer should wrap it a second time and
+        # therefore we can compare two histories to see if they agree.
+        cost_function = recorder(sum_x_squared)
+
+        result = optimizer.minimize(cost_function, np.array([-1, 1]))
+
+        assert result.history == cost_function.history
+
+    def test_optimizier_does_not_record_history_if_keep_value_history_is_set_to_false(self, optimizer):
+        if getattr(self, "always_records_history", False):
+            return
+
+        optimizer.keep_value_history = False
+
+        result = optimizer.minimize(sum_x_squared, np.array([-2, 0.5]))
+
+        assert result.history == []
+
+    def test_optimizer_does_not_record_history_if_keep_value_history_by_default(self, optimizer):
+        if getattr(self, "always_records_history", False):
+            return
+
+        result = optimizer.minimize(sum_x_squared, np.array([-2, 0.5]))
+
+        assert result.history == []
 
 def test_optimization_result_contains_opt_value_and_opt_params():
     opt_value = 2.0

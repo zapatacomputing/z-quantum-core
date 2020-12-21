@@ -5,7 +5,7 @@ from pyquil.gates import X, CNOT, H
 from pyquil.wavefunction import Wavefunction
 from openfermion import QubitOperator, IsingOperator
 
-from ..circuit import Circuit
+from ..circuit import Circuit, Qubit, Gate
 from ..measurement import Measurements, ExpectationValues
 from ..bitstring_distribution import BitstringDistribution
 
@@ -175,3 +175,46 @@ class QuantumSimulatorTests(QuantumBackendTests):
         assert bitstring_distribution.distribution_dict["111"] == pytest.approx(
             0.5, abs=1e-7
         )
+
+    @pytest.mark.parametrize(
+        "initial_gate,gate_name,target_amplitudes",
+        [
+            ["I", "I", [1.0, 0.0]],
+            ["H", "I", [1 / np.sqrt(2), 1 / np.sqrt(2)]],
+            ["X", "I", [0.0, 1.0]],
+            ["I", "X", [0.0, 1.0]],
+            ["H", "X", [1 / np.sqrt(2), 1 / np.sqrt(2)]],
+            ["X", "X", [1.0, 0.0]],
+            ["I", "Y", [0.0, 1.0j]],
+            ["H", "Y", [-1j / np.sqrt(2), 1j / np.sqrt(2)]],
+            ["X", "Y", [-1.0j, 0.0]],
+            ["I", "Z", [1.0, 0.0]],
+            ["H", "Z", [1 / np.sqrt(2), -1 / np.sqrt(2)]],
+            ["X", "Z", [0.0, -1.0]],
+            ["I", "H", [1 / np.sqrt(2), 1 / np.sqrt(2)]],
+            ["H", "H", [1.0, 0.0]],
+            ["X", "H", [1 / np.sqrt(2), -1 / np.sqrt(2)]],
+            ["I", "S", [1.0, 0.0]],
+            ["H", "S", [1 / np.sqrt(2), 1j / np.sqrt(2)]],
+            ["X", "S", [0.0, 1.0j]],
+            ["I", "T", [1.0, 0.0]],
+            ["H", "T", [1 / np.sqrt(2), 0.5 + 0.5j]],
+            ["X", "T", [0.0, 1 / np.sqrt(2) + 1j / np.sqrt(2)]],
+        ],
+    )
+    def test_1_qubit_basic_gates(
+        self, wf_simulator, initial_gate, gate_name, target_amplitudes
+    ):
+        # Given
+        qubit_list = [Qubit(0)]
+        gate_1 = Gate(initial_gate, qubits=qubit_list)
+        gate_2 = Gate(gate_name, qubits=qubit_list)
+
+        circuit = Circuit()
+        circuit.gates = [gate_1, gate_2]
+
+        # When
+        wavefunction = wf_simulator.get_wavefunction(circuit)
+
+        # Then
+        assert np.allclose(wavefunction.amplitudes, target_amplitudes)

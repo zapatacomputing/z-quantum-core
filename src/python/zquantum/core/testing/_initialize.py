@@ -22,12 +22,14 @@ def create_random_circuit(nqubits, ngates, seed=None):
         *** OPTIONAL ***
         seed: integer
             The see for the random number generator
-    
+
     Returns:
         None, a Circuit (core.circuit) object is saved under 'circuit.json'
     """
     # Initialize all gates in set, not including RH or ZXZ
-    SING_ZERO = [X, Y, Z, H, S, T]
+    # Following line replaced so that all gates can be inverted in qiskit
+    # SING_ZERO = [X, Y, Z, H, S, T]
+    SING_ZERO = [X, Y, Z, H]
     SING_ONE = [RX, RY, RZ, PHASE]
     TWO_ZERO = [CNOT, CZ, SWAP]
     TWO_ONE = [CPHASE]
@@ -89,7 +91,7 @@ def create_random_qubitop(nqubits, nterms, seed=None):
         *** OPTIONAL ***
         seed: integer
             The see for the random number generator
-    
+
     Returns:
         None, a Qubit Operator (openfermion.QubitOperator) object is saved under 'qubitop.json'
     """
@@ -143,7 +145,7 @@ def create_random_isingop(nqubits, nterms, seed=None):
         *** OPTIONAL ***
         seed: integer
             The see for the random number generator
-    
+
     Returns:
         an Ising Operator (openfermion.IsingOperator) object
     """

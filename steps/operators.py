@@ -15,6 +15,8 @@ from zquantum.core.hamiltonian import (
     reorder_fermionic_modes as _reorder_fermionic_modes,
 )
 
+from zquantum.core.testing import create_random_qubitop as _create_random_qubitop
+
 
 def get_fermion_number_operator(
     number_of_qubits: int, number_of_particles: Optional[int] = None
@@ -74,9 +76,18 @@ def interpolate_qubit_operators(
     save_qubit_operator(output_qubit_operator, "qubit-operator.json")
 
 
-def reorder_fermionic_modes(interaction_operator: str, ordering: List) -> InteractionOperator:
+def reorder_fermionic_modes(
+    interaction_operator: str, ordering: List
+) -> InteractionOperator:
 
     interaction_operator = load_interaction_operator(interaction_operator)
 
     reordered_operator = _reorder_fermionic_modes(interaction_operator, ordering)
     save_interaction_operator(reordered_operator, "reordered-operator.json")
+
+
+def create_random_qubitop(nqubits: int, nterms: int):
+
+    output_qubit_operator = _create_random_qubitop(nqubits, nterms)
+
+    save_qubit_operator(output_qubit_operator, "qubit-operator.json")

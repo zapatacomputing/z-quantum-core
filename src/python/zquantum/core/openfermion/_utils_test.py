@@ -1,34 +1,24 @@
 import unittest
 import random
 import numpy as np
-import os
-
 import pyquil
-from pyquil.paulis import sX, sY, sZ, sI
 
 from cirq import GridQubit, LineQubit, X, Y, Z, PauliSum, PauliString
-
 from openfermion import (
     QubitOperator,
     IsingOperator,
     FermionOperator,
-    InteractionOperator,
-    PolynomialTensor,
-)
-from openfermion.transforms import (
+    qubit_operator_sparse,
     get_interaction_operator,
     get_fermion_operator,
     jordan_wigner,
 )
-from openfermion.utils import qubit_operator_sparse
 
-from zquantum.core.circuit import (
-    Circuit,
-    Gate,
-    Qubit,
-)
+from ..circuit import Circuit, Gate, Qubit, build_uniform_param_grid
+from ..measurement import ExpectationValues
+from ..utils import RNDSEED, create_object
+from ..interfaces.mock_objects import MockAnsatz
 
-from ._io import convert_qubitop_to_dict, save_qubit_operator, load_qubit_operator
 from ._utils import (
     generate_random_qubitop,
     get_qubitop_from_coeffs_and_labels,
@@ -44,13 +34,6 @@ from ._utils import (
     qubitop_to_paulisum,
     create_circuits_from_qubit_operator,
 )
-
-
-from zquantum.core.measurement import ExpectationValues
-from zquantum.core.utils import RNDSEED, create_object
-from zquantum.core.interfaces.mock_objects import MockAnsatz
-from zquantum.core.testing import create_random_qubitop, create_random_isingop
-from zquantum.core.circuit import build_uniform_param_grid
 
 
 class TestQubitOperator(unittest.TestCase):

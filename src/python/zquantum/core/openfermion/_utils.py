@@ -1,30 +1,29 @@
+import numpy as np
+import random
+import itertools
+import cirq
+
 from openfermion import (
     FermionOperator,
     QubitOperator,
     count_qubits,
     InteractionOperator,
     PolynomialTensor,
+    number_operator,
+    normal_ordered,
+    get_sparse_operator,
+    get_interaction_operator,
 )
-from openfermion.utils import expectation as openfermion_expectation
-from openfermion.utils import number_operator, normal_ordered
-from openfermion.transforms import get_sparse_operator, get_interaction_operator
-import numpy as np
-import random
-import copy
+from openfermion import expectation as openfermion_expectation
 from typing import List, Union, Optional
 
-from zquantum.core.circuit import (
-    build_ansatz_circuit,
+from ..circuit import (
     Circuit,
     Gate,
     Qubit,
 )
-
-from zquantum.core.utils import bin2dec, dec2bin, ValueEstimate
-from zquantum.core.measurement import ExpectationValues, expectation_values_to_real
-from openfermion import count_qubits
-import itertools
-import cirq
+from ..utils import bin2dec, dec2bin, ValueEstimate
+from ..measurement import ExpectationValues, expectation_values_to_real
 
 
 def get_qubitop_from_matrix(operator: List[List]) -> QubitOperator:

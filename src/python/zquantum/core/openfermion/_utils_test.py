@@ -22,6 +22,12 @@ from openfermion.transforms import (
 )
 from openfermion.utils import qubit_operator_sparse
 
+from zquantum.core.circuit import (
+    Circuit,
+    Gate,
+    Qubit,
+)
+
 from ._io import convert_qubitop_to_dict, save_qubit_operator, load_qubit_operator
 from ._utils import (
     generate_random_qubitop,
@@ -36,6 +42,7 @@ from ._utils import (
     get_diagonal_component,
     get_polynomial_tensor,
     qubitop_to_paulisum,
+    create_circuits_from_qubit_operator,
 )
 
 
@@ -244,6 +251,42 @@ class TestQubitOperator(unittest.TestCase):
 
         # Then
         self.assertEqual(number_operator, correct_operator)
+
+    def test_create_circuits_from_qubit_operator(self):
+        # Initialize target
+        qubits = [Qubit(i) for i in range(0, 2)]
+
+        gate_Z0 = Gate("Z", [qubits[0]])
+        gate_X1 = Gate("X", [qubits[1]])
+
+        gate_Y0 = Gate("Y", [qubits[0]])
+        gate_Z1 = Gate("Z", [qubits[1]])
+
+        circuit1 = Circuit()
+        circuit1.qubits = qubits
+        circuit1.gates = [gate_Z0, gate_X1]
+
+        circuit2 = Circuit()
+        circuit2.qubits = qubits
+        circuit2.gates = [gate_Y0, gate_Z1]
+
+        target_circuits_list = [circuit1, circuit2]
+
+        # Given
+        qubit_op = QubitOperator("Z0 X1") + QubitOperator("Y0 Z1")
+
+        # When
+        pauli_circuits = create_circuits_from_qubit_operator(qubit_op)
+
+        # Then
+        self.assertEqual(pauli_circuits[0].gates, target_circuits_list[0].gates)
+        self.assertEqual(pauli_circuits[1].gates, target_circuits_list[1].gates)
+        self.assertEqual(
+            str(pauli_circuits[0].qubits), str(target_circuits_list[0].qubits)
+        )
+        self.assertEqual(
+            str(pauli_circuits[1].qubits), str(target_circuits_list[1].qubits)
+        )
 
 
 class TestOtherUtils(unittest.TestCase):

@@ -1,0 +1,154 @@
+# Workflow API version
+apiVersion: io.orquestra.workflow/1.0.0
+
+# Prefix for workflow ID
+name: get-param-grid-evaluation
+
+imports:
+- name: z-quantum-core
+  type: git
+  parameters:
+    repository: "git@github.com:zapatacomputing/z-quantum-core.git"
+    branch: dev
+
+steps:
+- name: get-operator
+  config:
+    runtime:
+      language: python3
+      imports: [z-quantum-core]
+      parameters:
+        file: z-quantum-core/steps/operators.py
+        function: get_fermion_number_operator
+    resources:
+      cpu: "1000m"
+      memory: "1Gi"
+      disk: "10Gi"
+  inputs:
+  - number_of_qubits: 4
+    type: int
+  - number_of_particles: null
+    type: null_type
+  outputs:
+  - name: number-operator
+    type: interaction-operator
+
+- name: transform-operator
+  passed: [get-operator]
+  config:
+    runtime:
+      language: python3
+      imports: [z-quantum-core]
+      parameters:
+        file: z-quantum-core/steps/transforms.py
+        function: transform_interaction_operator
+    resources:
+      cpu: "1000m"
+      memory: "1Gi"
+      disk: "10Gi"
+  inputs:
+  - transformation: "Jordan-Wigner"
+    type: string
+  - input_operator: ((get-operator.number-operator))
+    type: interaction-operator
+  outputs:
+  - name: transformed-operator
+    type: qubit-operator
+
+- name: get-grid
+  config:
+    runtime:
+      language: python3
+      imports: [z-quantum-core]
+      parameters:
+        file: z-quantum-core/steps/circuit.py
+        function: build_uniform_param_grid
+    resources:
+      cpu: "1000m"
+      memory: "1Gi"
+      disk: "10Gi"
+  inputs:
+  - ansatz_specs: "{\"module_name\": \"zquantum.core.interfaces.mock_objects\", \"function_name\": \"MockAnsatz\", \"number_of_layers\": 1, \"problem_size\": 2}"
+    type: string
+  - number_of_params_per_layer: "None"
+    type: string
+  - number_of_layers: 2
+    type: int
+  - min_value: -3.14
+    type: float
+  - max_value: 3.14
+    type: float
+  - step: .314
+    type: float
+  outputs:
+  - name: parameter-grid
+    type: grid
+
+- name: get-parameter-grid-evaluation-for-qubit-operator-params-are-None
+  passed: [transform-operator, get-grid]
+  config:
+    runtime:
+      language: python3
+      imports: [z-quantum-core]
+      parameters:
+        file: z-quantum-core/steps/evaluation.py
+        function: evaluate_operator_for_parameter_grid
+    resources:
+      cpu: "1000m"
+      memory: "1Gi"
+      disk: "10Gi"
+  inputs:
+  - ansatz_specs: "{\"module_name\": \"zquantum.core.interfaces.mock_objects\", \"function_name\": \"MockAnsatz\", \"number_of_layers\": 2, \"problem_size\": 2}"
+    type: string
+  - backend_specs: "{\"module_name\": \"zquantum.core.interfaces.mock_objects\", \"function_name\": \"MockQuantumBackend\", \"n_samples\": 1000}"
+    type: string
+  - grid: ((get-grid.parameter-grid))
+    type: grid
+  - operator: ((transform-operator.transformed-operator))
+    type: qubit-operator
+  - fixed_parameters: null
+    type: null_type
+  outputs:
+  - name: parameter-grid-evaluation
+    type: parameter-grid-evaluation
+  - name: optimal-parameters
+    type: optimal-parameters
+
+- name: get-parameter-grid-evaluation-for-qubit-operator-params-are-list
+  passed: [transform-operator, get-grid]
+  config:
+    runtime:
+      language: python3
+      imports: [z-quantum-core]
+      parameters:
+        file: z-quantum-core/steps/evaluation.py
+        function: evaluate_operator_for_parameter_grid
+    resources:
+      cpu: "1000m"
+      memory: "1Gi"
+      disk: "10Gi"
+  inputs:
+  - ansatz_specs: "{\"module_name\": \"zquantum.core.interfaces.mock_objects\", \"function_name\": \"MockAnsatz\", \"number_of_layers\": 4, \"problem_size\": 2}"
+    type: string
+  - backend_specs: "{\"module_name\": \"zquantum.core.interfaces.mock_objects\", \"function_name\": \"MockQuantumBackend\", \"n_samples\": 1000}"
+    type: string
+  - grid: ((get-grid.parameter-grid))
+    type: grid
+  - operator: ((transform-operator.transformed-operator))
+    type: qubit-operator
+  - fixed_parameters: [1.0, 1.5]
+    type: parameters
+  outputs:
+  - name: parameter-grid-evaluation
+    type: parameter-grid-evaluation
+  - name: optimal-parameters
+    type: optimal-parameters
+
+types:
+- interaction-operator
+- qubit-operator
+- grid
+- parameter-grid-evaluation
+- optimal-parameters
+- parameters
+- null_type

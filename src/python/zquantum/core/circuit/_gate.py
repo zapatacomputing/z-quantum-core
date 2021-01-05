@@ -23,18 +23,18 @@ from ._qubit import Qubit
 
 class Gate(object):
     """Class for storing information associated with a quantum gate.
- 
+
     Attributes:
         name: string
             Name of the gate. Examples include 'H', 'CNOT' etc.
             The validity of the name goes hand in hand with the specific package
             for quantum computation, as described in 'label'.
         qubits: list[Qubit]
-            List of core.qubit.Qubit object that the gate operates on. 
+            List of core.qubit.Qubit object that the gate operates on.
         params: list[any]
-            List of parameters associated with the gate. 
+            List of parameters associated with the gate.
         The above three attributes follow a standard convention that is enforced throughout
-        Zap OS. 
+        z-quantum-core
 
         (optional attribute)
         info: dictionary
@@ -50,7 +50,15 @@ class Gate(object):
                 as pyquil Program object or cirq GateOperation object.
     """
 
-    def __init__(self, name="none", qubits=None, params=None, control_qubits=None, target_qubits=None,  all_circuit_qubits = None):
+    def __init__(
+        self,
+        name="none",
+        qubits=None,
+        params=None,
+        control_qubits=None,
+        target_qubits=None,
+        all_circuit_qubits=None,
+    ):
 
         if qubits is None:
             qubits = []
@@ -82,7 +90,8 @@ class Gate(object):
             return False
         for i in range(len(self.params)):
             if self.params[i] != another_gate.params[i]:
-                return False
+                if sympy.simplify(self.params[i] - another_gate.params[i]) != 0:
+                    return False
         return True
 
     def __repr__(self):
@@ -114,7 +123,7 @@ class Gate(object):
         Returns a list of symbolic parameters used in the gate
 
         Returns:
-            set: set containing all the sympy symbols used in gate params
+            list: list containing all the sympy symbols used in gate params
         """
         all_symbols = []
         for param in self.params:
@@ -122,13 +131,14 @@ class Gate(object):
                 for symbol in param.free_symbols:
                     all_symbols.append(symbol)
 
-        return set(all_symbols)
+        unique_symbols = sorted(list(set(all_symbols)), key=str)
+        return unique_symbols
 
     def get_param_string(self):
         r"""Get a string containing the parameters, e.g.
 
         (0.2, $\pi$/3)
-        
+
         Returns:
             str: a string representing the parameters
         """
@@ -172,8 +182,7 @@ class Gate(object):
         }
 
     def to_unitary(self):
-        """Returns a unitary matrix representing the gate.
-        """
+        """Returns a unitary matrix representing the gate."""
         if self.name in {
             "I",
             "X",
@@ -204,10 +213,10 @@ class Gate(object):
 
     @classmethod
     def from_dict(cls, dict):
-        """Generates Gate object from dictionary. This is the inverse operation to the 
+        """Generates Gate object from dictionary. This is the inverse operation to the
         serialization function to_dict.
         If any of the gate params is string it will be converted to sympy symbol.
-        
+
         dict: dictionary
         Contains information needed to specify the Gate. See to_dict for details.
 
@@ -221,14 +230,16 @@ class Gate(object):
             else:
                 params.append(param)
         output = cls(
-            dict["name"], [Qubit.from_dict(qubit) for qubit in dict["qubits"]], params,
+            dict["name"],
+            [Qubit.from_dict(qubit) for qubit in dict["qubits"]],
+            params,
         )
         output.info = dict["info"]
         return output
 
     def to_pyquil(self):
         """Converts the current gate to a pyquil gate.
-        
+
         Return:
         A pyquil Program object that corresponds to the specification of QGate.
         """
@@ -377,7 +388,7 @@ class Gate(object):
         if self.name == "ZZ":
             return cirq.ZZ(cirq_qubits[0], cirq_qubits[1]) ** (params[0] * 2 / pi)
 
-    def to_qiskit(self, qreg=None):
+    def to_qiskit(self, qreg, creg):
         """Converts a Gate object to a qiskit object.
 
         Args:
@@ -400,40 +411,9 @@ class Gate(object):
         qiskit_qubits = []
         qiskit_bits = []
         for q in self.qubits:
-            if q.info["label"] == "qiskit":
-                # QuantumRegister info is stored as a string, so must parse
-                #   and recreate register
-                q_qreg_num = int(
-                    q.info["qreg"][
-                        q.info["qreg"].find("(") + 1 : q.info["qreg"].find(",")
-                    ]
-                )
-                q_qreg_label = q.info["qreg"][
-                    q.info["qreg"].find("'") + 1 : q.info["qreg"].rfind("'")
-                ]
-                q_qreg = QuantumRegister(q_qreg_num, q_qreg_label)
-                qiskit_qubit = QiskitQubit(q_qreg, q.info["num"])
-                qiskit_qubits.append(qiskit_qubit)
+            qiskit_qubits.append(QiskitQubit(qreg, q.index))
+            qiskit_bits.append(QiskitClbit(creg, q.index))
 
-                if "creg" in q.info.keys():
-                    q_creg_num = int(
-                        q.info["creg"][
-                            q.info["creg"].find("(") + 1 : q.info["creg"].find(",")
-                        ]
-                    )
-                    q_creg_label = q.info["creg"][
-                        q.info["creg"].find("'") + 1 : q.info["creg"].rfind("'")
-                    ]
-                    q_creg = ClassicalRegister(q_creg_num, q_creg_label)
-                    qiskit_clbit = QiskitClbit(q_creg, q.info["num"])
-                    qiskit_bits.append(qiskit_clbit)
-            else:
-                if qreg is None:
-                    Exception(
-                        "Gate doesn't come from qiskit and qreg is not provided. Please provide a qreg parameter."
-                    )
-                qiskit_qubit = QiskitQubit(qreg, q.index)
-                qiskit_qubits.append(qiskit_qubit)
         if len(self.params) > 0:
             params = copy.copy(self.params)
             for i in range(len(params)):
@@ -620,17 +600,34 @@ class Gate(object):
                 [qiskit_qubits[0], qiskit_qubits[1]],
                 [],
             ]
-        if self.name == 'CCX':
-            return [qiskit.extensions.standard.ToffoliGate(), 
-            [qiskit_qubits[0], qiskit_qubits[1], qiskit_qubits[2]], []]
-        if self.name == 'MCT':
-            gate = MCTGate(self.all_circuit_qubits, control_qubits=self.control_qubits, target_qubits=self.target_qubits)
+        if self.name == "CCX":
+            return [
+                qiskit.extensions.standard.ToffoliGate(),
+                [qiskit_qubits[0], qiskit_qubits[1], qiskit_qubits[2]],
+                [],
+            ]
+        if self.name == "MCT":
+            gate = MCTGate(
+                self.all_circuit_qubits,
+                control_qubits=self.control_qubits,
+                target_qubits=self.target_qubits,
+            )
             return gate.qiskit_data
-        if self.name == 'MCU1':
-            gate = PhaseOracle(self.params[0], self.all_circuit_qubits, control_qubits=self.control_qubits, target_qubits=self.target_qubits)
+        if self.name == "MCU1":
+            gate = PhaseOracle(
+                self.params[0],
+                self.all_circuit_qubits,
+                control_qubits=self.control_qubits,
+                target_qubits=self.target_qubits,
+            )
             return gate.qiskit_data
-        if self.name == 'MCRY':
-            gate = MCRY(self.params[0], self.all_circuit_qubits, control_qubits=self.control_qubits, target_qubits=self.target_qubits)
+        if self.name == "MCRY":
+            gate = MCRY(
+                self.params[0],
+                self.all_circuit_qubits,
+                control_qubits=self.control_qubits,
+                target_qubits=self.target_qubits,
+            )
             return gate.qiskit_data
         if self.name == "MEASURE":
             return [qiskit.circuit.measure.Measure(), qiskit_qubits, qiskit_bits]
@@ -692,7 +689,7 @@ class Gate(object):
                 The input pyquil Gate object.
             Qubit_list: list[Qubit]
                 A list of core.Qubit objects.
-        
+
         Returns:
             A core.Gate object.
         """
@@ -721,7 +718,7 @@ class Gate(object):
                 The input cirq GateOperation object.
             Qubit_list: list[Qubit]
                 A list of core.Qubit objects.
-        
+
         Returns:
             A core.Gate object. Here the 'params' entry stores the 'exponent' of
             the GateOperation object from cirq. The 'exponent' entry is crucial because
@@ -732,7 +729,7 @@ class Gate(object):
 
             both have their name string to be 'Z' while the first one is the Z gate, while the
             second one is Z rotation by angle 2·0.75π = 1.5π. This is in contrast with pyquil
-            where {X,Y,Z} are fixed single-qubit gates that are different from the rotation 
+            where {X,Y,Z} are fixed single-qubit gates that are different from the rotation
             gates {RX, RY, RZ}.
         """
 
@@ -861,14 +858,14 @@ class Gate(object):
             output.name = qiskit_gate.name.upper()
         elif qiskit_gate.name in {"measure", "barrier"}:
             output.name = qiskit_gate.name.upper()
-        elif qiskit_gate.name == 'ccx':
-            output.name = 'CCX'
-        elif qiskit_gate.name == 'mct':
-            output.name = 'MCT'
-        elif qiskit_gate.name == 'mcu1':
-            output.name = 'MCU1'
-        elif qiskit_gate.name == 'u1':
-            output.name = 'PHASE'
+        elif qiskit_gate.name == "ccx":
+            output.name = "CCX"
+        elif qiskit_gate.name == "mct":
+            output.name = "MCT"
+        elif qiskit_gate.name == "mcu1":
+            output.name = "MCU1"
+        elif qiskit_gate.name == "u1":
+            output.name = "PHASE"
         else:
             raise NotImplementedError(
                 "The gate {} is currently not supported.".format(qiskit_gate.name)
@@ -962,25 +959,31 @@ class MCTGate(object):
                 if i not in self.control_qubits and i not in self.target_qubits:
                     self.ancilla_qubits.append(i)
         else:
-            raise TypeError('Expecting a list integer labels for control and target qubits')
+            raise TypeError(
+                "Expecting a list integer labels for control and target qubits"
+            )
         # This is the ibm circuit object with all the toffoli gates
-        self.ccx_decomposition = qiskit.QuantumCircuit(len(self.all_circuit_qubits), len(self.all_circuit_qubits))
+        self.ccx_decomposition = qiskit.QuantumCircuit(
+            len(self.all_circuit_qubits), len(self.all_circuit_qubits)
+        )
         self.qiskit_ctrl_q = None
         self.qiskit_targ_q = None
         self.qiskit_ancilla_q = None
         self._create_gate_list()
-       
+
     def _synthesize_circuit(self):
         """
-         Produces the gate decomposition using qiskit
+        Produces the gate decomposition using qiskit
         """
-        self.ccx_decomposition.mct(self.qiskit_ctrl_q, self.qiskit_targ_q, self.qiskit_ancilla_q)
+        self.ccx_decomposition.mct(
+            self.qiskit_ctrl_q, self.qiskit_targ_q, self.qiskit_ancilla_q
+        )
 
     def _create_qiskit_qubits(self):
         """
         Producing list of qiskit qubit objects
         """
-        qreg = QuantumRegister(len(self.all_circuit_qubits), 'q')
+        qreg = QuantumRegister(len(self.all_circuit_qubits), "q")
         self.qiskit_ctrl_q = [qreg[i] for i in self.control_qubits]
         self.qiskit_targ_q = qreg[self.target_qubits[0]]
         self.qiskit_ancilla_q = [qreg[i] for i in self.ancilla_qubits]
@@ -994,25 +997,34 @@ class MCTGate(object):
         for i in range(len(self.ccx_decomposition.data)):
             self.qiskit_data += list(self.ccx_decomposition[i])
 
+
 class PhaseOracle(MCTGate):
     """
     This applies the Multicontrol phase gate
     Attributes:
     phase(numpy float): The phase angle for oracle to be implemented
     """
-    def __init__(self, phase, all_circuit_qubits, control_qubits=None, target_qubits=None):
+
+    def __init__(
+        self, phase, all_circuit_qubits, control_qubits=None, target_qubits=None
+    ):
         self.phase = phase
         if control_qubits is None and target_qubits is None:
             self.control_qubits = []
             self.target_qubits = []
-        super().__init__(all_circuit_qubits, control_qubits=control_qubits, target_qubits=target_qubits)
-      
+        super().__init__(
+            all_circuit_qubits,
+            control_qubits=control_qubits,
+            target_qubits=target_qubits,
+        )
+
     def _synthesize_circuit(self):
         """
         Produces the circuit that represents the multi control phase gate
         """
         self.ccx_decomposition.mcu1(self.phase, self.qiskit_ctrl_q, self.qiskit_targ_q)
-       
+
+
 class MCRY(MCTGate):
     """
     This applies the MulltiControl Y rotation
@@ -1020,19 +1032,23 @@ class MCRY(MCTGate):
     phase(numpy float): The phase angle for oracle to be implemente
     """
 
-    def __init__(self, phase, all_circuit_qubits, control_qubits=None, target_qubits=None):
+    def __init__(
+        self, phase, all_circuit_qubits, control_qubits=None, target_qubits=None
+    ):
         self.phase = phase
         if control_qubits is None and target_qubits is None:
             self.control_qubits = []
             self.target_qubits = []
-        super().__init__(all_circuit_qubits, control_qubits=control_qubits, target_qubits=target_qubits)
-     
+        super().__init__(
+            all_circuit_qubits,
+            control_qubits=control_qubits,
+            target_qubits=target_qubits,
+        )
+
     def _synthesize_circuit(self):
         """
         Produces the circuit that represents the multicontrol y rotation
         """
-        self.ccx_decomposition.mcry(self.phase, self.qiskit_ctrl_q, self.qiskit_targ_q, self.qiskit_ancilla_q)
-
-     
-
-
+        self.ccx_decomposition.mcry(
+            self.phase, self.qiskit_ctrl_q, self.qiskit_targ_q, self.qiskit_ancilla_q
+        )

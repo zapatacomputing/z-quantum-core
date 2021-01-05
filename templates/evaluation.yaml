@@ -141,7 +141,7 @@ spec:
           data: |
             from zquantum.core.utils import ValueEstimate, save_value_estimate
             from zquantum.core.openfermion import load_qubit_operator
-            from openfermion.utils import qubit_operator_sparse, jw_get_ground_state_at_particle_number
+            from openfermion import qubit_operator_sparse, jw_get_ground_state_at_particle_number
             from pyquil.wavefunction import Wavefunction
             from zquantum.core.measurement import save_wavefunction
             qubit_operator = load_qubit_operator('qubit_operator.json')

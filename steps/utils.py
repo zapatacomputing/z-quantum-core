@@ -8,5 +8,5 @@ def generate_random_list_of_integers(seed: Union[None, int] = None, **kwargs):
     https://numpy.org/devdocs/reference/random/generated/numpy.random.Generator.integers.html#numpy.random.Generator.integers
     """
     rng = np.random.default_rng(seed=seed)
-    generated_integers = rng.integers(**kwargs)
+    generated_integers = list(rng.integers(**kwargs))
     save_list(generated_integers, "integers.json")

@@ -81,9 +81,9 @@ class TestGate(unittest.TestCase):
         # Given
         params = [0.5, Symbol("theta_0"), Symbol("theta_0") + 2 * Symbol("theta_1")]
         target_symbolic_params = [
-            set(),
-            set([Symbol("theta_0")]),
-            set([Symbol("theta_0"), Symbol("theta_1")]),
+            [],
+            [Symbol("theta_0")],
+            [Symbol("theta_0"), Symbol("theta_1")],
         ]
 
         for param, target_params in zip(params, target_symbolic_params):

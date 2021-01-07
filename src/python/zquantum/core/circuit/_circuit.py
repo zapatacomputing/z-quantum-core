@@ -92,17 +92,19 @@ class Circuit(object):
     @property
     def symbolic_params(self):
         """
-        Returns a set of symbolic parameters used in the circuit
+        Returns a set of symbolic parameters used in the circuit in the chronological order.
 
         Returns:
-            set: set of all the sympy symbols used as params of gates in the circuit.
+            list: list of all the sympy symbols used as params of gates in the circuit.
         """
         symbolic_params = []
         for gate in self.gates:
             symbolic_params_per_gate = gate.symbolic_params
-            symbolic_params += symbolic_params_per_gate
+            for param in symbolic_params_per_gate:
+                if param not in symbolic_params:
+                    symbolic_params.append(param)
 
-        return set(symbolic_params)
+        return symbolic_params
 
     def __eq__(self, anotherCircuit):
         """Comparison between two Circuit objects."""
@@ -158,7 +160,7 @@ class Circuit(object):
         gates = []
 
         all_symbols_in_map = set([item[0] for item in symbols_map])
-        if len(all_symbols_in_map - self.symbolic_params) > 0:
+        if len(all_symbols_in_map - set(self.symbolic_params)) > 0:
             warnings.warn(
                 """
                 Trying to evaluate circuit with symbols not existing in the circuit:

@@ -155,8 +155,8 @@ class TestCircuit(unittest.TestCase):
         gate_3 = Gate("Rz", params=[0.5 * theta_1 - 2 * theta_2], qubits=[qubits[0]])
         gate_4 = Gate("Rx", params=[0.3], qubits=[qubits[0]])
 
-        target_symbolic_params_1 = set([theta_1, theta_2])
-        target_symbolic_params_2 = set()
+        target_symbolic_params_1 = [theta_1, theta_2]
+        target_symbolic_params_2 = []
 
         circ_1 = Circuit()
         circ_1.qubits = qubits

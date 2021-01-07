@@ -19,11 +19,6 @@ CNOT = sympy.Matrix([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 1], [0, 0, 1, 0]])
 CZ = sympy.Matrix([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, -1]])
 SWAP = sympy.Matrix([[1, 0, 0, 0], [0, 0, 1, 0], [0, 1, 0, 0], [0, 0, 0, 1]])
 
-Bell = (
-    1
-    / sympy.sqrt(2)
-    * sympy.Matrix([[1, 0, 1, 0], [0, 1, 0, 1], [0, 1, 0, -1], [1, 0, -1, 0]])
-)
 II = TensorProduct(I, I)
 IH = TensorProduct(I, H)
 HI = TensorProduct(H, I)

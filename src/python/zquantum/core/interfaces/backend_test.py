@@ -167,6 +167,7 @@ class QuantumBackendGatesTests:
         gate_2 = Gate(tested_gate, qubits=qubit_list)
 
         circuit = Circuit()
+        circuit.qubits = qubit_list
         circuit.gates = [gate_1, gate_2]
         operators = [
             QubitOperator("[]"),
@@ -208,6 +209,7 @@ class QuantumBackendGatesTests:
         gate_2 = Gate(tested_gate, params=params, qubits=qubit_list)
 
         circuit = Circuit()
+        circuit.qubits = qubit_list
         circuit.gates = [gate_1, gate_2]
         operators = [
             QubitOperator("[]"),
@@ -255,6 +257,7 @@ class QuantumBackendGatesTests:
         gate_3 = Gate(tested_gate, qubits=qubit_list)
 
         circuit = Circuit()
+        circuit.qubits = qubit_list
         circuit.gates = [gate_1, gate_2, gate_3]
 
         sigma = 1 / np.sqrt(backend_for_gates_test.n_samples)
@@ -298,6 +301,7 @@ class QuantumBackendGatesTests:
         gate_3 = Gate(tested_gate, params=params, qubits=qubit_list)
 
         circuit = Circuit()
+        circuit.qubits = qubit_list
         circuit.gates = [gate_1, gate_2, gate_3]
 
         sigma = 1 / np.sqrt(backend_for_gates_test.n_samples)
@@ -390,10 +394,8 @@ class QuantumSimulatorGatesTest:
         gate_2 = Gate(tested_gate, qubits=qubit_list)
 
         circuit = Circuit()
+        circuit.qubits = qubit_list
         circuit.gates = [gate_1, gate_2]
-        import pdb
-
-        pdb.set_trace()
 
         # When
         wavefunction = wf_simulator.get_wavefunction(circuit)
@@ -414,6 +416,7 @@ class QuantumSimulatorGatesTest:
         gate_2 = Gate(tested_gate, params=params, qubits=qubit_list)
 
         circuit = Circuit()
+        circuit.qubits = qubit_list
         circuit.gates = [gate_1, gate_2]
 
         # When
@@ -436,6 +439,7 @@ class QuantumSimulatorGatesTest:
         gate_3 = Gate(tested_gate, qubits=qubit_list)
 
         circuit = Circuit()
+        circuit.qubits = qubit_list
         circuit.gates = [gate_1, gate_2, gate_3]
 
         # When
@@ -454,13 +458,11 @@ class QuantumSimulatorGatesTest:
         # Given
         qubit_list = [Qubit(0), Qubit(1)]
         gate_1 = Gate(initial_gates[0], qubits=[qubit_list[0]])
-        if initial_gates[1] == "CNOT":
-            gate_2 = Gate(initial_gates[1], qubits=qubit_list)
-        else:
-            gate_2 = Gate(initial_gates[1], qubits=[qubit_list[1]])
+        gate_2 = Gate(initial_gates[1], qubits=[qubit_list[1]])
         gate_3 = Gate(tested_gate, params=params, qubits=qubit_list)
 
         circuit = Circuit()
+        circuit.qubits = qubit_list
 
         circuit.gates = [gate_1, gate_2, gate_3]
         # When

@@ -8,7 +8,7 @@ from zquantum.core.circuit import (
     load_circuit_template_params,
 )
 from zquantum.core.bitstring_distribution import save_bitstring_distribution
-from qeopenfermion import load_qubit_operator, load_interaction_rdm
+from zquantum.core.openfermion import load_qubit_operator, load_interaction_rdm
 from typing import Dict
 
 

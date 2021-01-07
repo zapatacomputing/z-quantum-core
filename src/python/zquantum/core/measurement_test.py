@@ -267,6 +267,7 @@ class TestMeasurement(unittest.TestCase):
         self.assertEqual(
             target_measurements.bitstrings, recreated_measurements.bitstrings
         )
+        os.remove("measurementstest.json")
 
     def test_measurement_class_intialize_with_bitstrings(self):
         # Given

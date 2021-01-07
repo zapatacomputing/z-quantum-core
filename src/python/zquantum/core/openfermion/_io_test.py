@@ -2,18 +2,19 @@ import unittest
 import subprocess
 import os
 import numpy as np
+
 from openfermion import (
     QubitOperator,
-    InteractionOperator,
     FermionOperator,
     IsingOperator,
     get_interaction_operator,
     hermitian_conjugated,
     InteractionRDM,
 )
-from zquantum.core.circuit import build_uniform_param_grid, save_circuit_template_params
-from zquantum.core.interfaces.mock_objects import MockAnsatz
-from zquantum.core.utils import create_object
+from ..circuit import build_uniform_param_grid, save_circuit_template_params
+from ..interfaces.mock_objects import MockAnsatz
+from ..utils import SCHEMA_VERSION, convert_dict_to_array, create_object
+
 from ._utils import evaluate_operator_for_parameter_grid
 from ._io import (
     load_qubit_operator,
@@ -35,11 +36,6 @@ from ._io import (
     load_interaction_rdm,
     convert_interaction_rdm_to_dict,
     convert_dict_to_interaction_rdm,
-)
-from zquantum.core.utils import (
-    SCHEMA_VERSION,
-    convert_dict_to_array,
-    convert_array_to_dict,
 )
 
 

@@ -29,7 +29,7 @@ setuptools.setup(
         "numpy>=1.18.1",
         "scipy>=1.4.1",
         "sympy>=1.5",
-        "openfermion>=0.11.0",
+        "openfermion>=1.0.0",
         "openfermioncirq==0.4.0",
         "lea>=3.2.0",
         "pyquil>=2.17.0",

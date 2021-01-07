@@ -1,28 +1,24 @@
 import unittest
 import random
 import numpy as np
-import os
-
 import pyquil
-from pyquil.paulis import sX, sY, sZ, sI
 
 from cirq import GridQubit, LineQubit, X, Y, Z, PauliSum, PauliString
-
 from openfermion import (
     QubitOperator,
     IsingOperator,
     FermionOperator,
-    InteractionOperator,
-    PolynomialTensor,
-)
-from openfermion.transforms import (
+    qubit_operator_sparse,
     get_interaction_operator,
     get_fermion_operator,
     jordan_wigner,
 )
-from openfermion.utils import qubit_operator_sparse
 
-from ._io import convert_qubitop_to_dict, save_qubit_operator, load_qubit_operator
+from ..circuit import Circuit, Gate, Qubit, build_uniform_param_grid
+from ..measurement import ExpectationValues
+from ..utils import RNDSEED, create_object
+from ..interfaces.mock_objects import MockAnsatz
+
 from ._utils import (
     generate_random_qubitop,
     get_qubitop_from_coeffs_and_labels,
@@ -36,14 +32,8 @@ from ._utils import (
     get_diagonal_component,
     get_polynomial_tensor,
     qubitop_to_paulisum,
+    create_circuits_from_qubit_operator,
 )
-
-
-from zquantum.core.measurement import ExpectationValues
-from zquantum.core.utils import RNDSEED, create_object
-from zquantum.core.interfaces.mock_objects import MockAnsatz
-from zquantum.core.testing import create_random_qubitop, create_random_isingop
-from zquantum.core.circuit import build_uniform_param_grid
 
 
 class TestQubitOperator(unittest.TestCase):
@@ -244,6 +234,42 @@ class TestQubitOperator(unittest.TestCase):
 
         # Then
         self.assertEqual(number_operator, correct_operator)
+
+    def test_create_circuits_from_qubit_operator(self):
+        # Initialize target
+        qubits = [Qubit(i) for i in range(0, 2)]
+
+        gate_Z0 = Gate("Z", [qubits[0]])
+        gate_X1 = Gate("X", [qubits[1]])
+
+        gate_Y0 = Gate("Y", [qubits[0]])
+        gate_Z1 = Gate("Z", [qubits[1]])
+
+        circuit1 = Circuit()
+        circuit1.qubits = qubits
+        circuit1.gates = [gate_Z0, gate_X1]
+
+        circuit2 = Circuit()
+        circuit2.qubits = qubits
+        circuit2.gates = [gate_Y0, gate_Z1]
+
+        target_circuits_list = [circuit1, circuit2]
+
+        # Given
+        qubit_op = QubitOperator("Z0 X1") + QubitOperator("Y0 Z1")
+
+        # When
+        pauli_circuits = create_circuits_from_qubit_operator(qubit_op)
+
+        # Then
+        self.assertEqual(pauli_circuits[0].gates, target_circuits_list[0].gates)
+        self.assertEqual(pauli_circuits[1].gates, target_circuits_list[1].gates)
+        self.assertEqual(
+            str(pauli_circuits[0].qubits), str(target_circuits_list[0].qubits)
+        )
+        self.assertEqual(
+            str(pauli_circuits[1].qubits), str(target_circuits_list[1].qubits)
+        )
 
 
 class TestOtherUtils(unittest.TestCase):

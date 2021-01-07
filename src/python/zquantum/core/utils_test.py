@@ -3,12 +3,10 @@ import os
 import random
 import numpy as np
 import pytest
-from scipy.linalg import expm
 from scipy.stats import unitary_group
 import sympy
 import json
 
-from openfermion.utils import qubit_operator_sparse
 from .utils import (
     convert_array_to_dict,
     convert_dict_to_array,
@@ -33,7 +31,6 @@ from .utils import (
     load_nmeas_estimate,
     SCHEMA_VERSION,
 )
-from .interfaces.mock_objects import MockQuantumSimulator
 
 
 class TestUtils(unittest.TestCase):
@@ -266,9 +263,18 @@ class TestUtils(unittest.TestCase):
     def test_save_nmeas_estimate(self):
         K_coeff = 0.5646124437984263
         nterms = 14
-        frame_meas = np.array([0.03362557, 0.03362557, 0.03362557, 0.03362557, 0.43011016])
-        save_nmeas_estimate(nmeas=K_coeff, nterms=nterms, filename="hamiltonian_analysis.json", frame_meas=frame_meas)
-        K_coeff_, nterms_, frame_meas_ = load_nmeas_estimate("hamiltonian_analysis.json")
+        frame_meas = np.array(
+            [0.03362557, 0.03362557, 0.03362557, 0.03362557, 0.43011016]
+        )
+        save_nmeas_estimate(
+            nmeas=K_coeff,
+            nterms=nterms,
+            filename="hamiltonian_analysis.json",
+            frame_meas=frame_meas,
+        )
+        K_coeff_, nterms_, frame_meas_ = load_nmeas_estimate(
+            "hamiltonian_analysis.json"
+        )
         self.assertEqual(K_coeff, K_coeff_)
         self.assertEqual(nterms, nterms_)
         self.assertListEqual(frame_meas.tolist(), frame_meas_.tolist())

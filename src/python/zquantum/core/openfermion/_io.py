@@ -7,12 +7,13 @@ from openfermion import (
     SymbolicOperator,
     InteractionRDM,
 )
-from zquantum.core.utils import (
+from typing import TextIO, Callable, List
+
+from ..utils import (
     SCHEMA_VERSION,
     convert_dict_to_array,
     convert_array_to_dict,
 )
-from typing import TextIO, Callable, List
 
 
 def convert_interaction_op_to_dict(op: InteractionOperator) -> dict:
@@ -52,7 +53,7 @@ def load_interaction_operator(file: TextIO) -> InteractionOperator:
     """Load an interaction operator object from a file.
     Args:
         file (str or file-like object): the name of the file, or a file-like object.
-    
+
     Returns:
         op (openfermion.ops.InteractionOperator): the operator.
     """
@@ -165,7 +166,7 @@ def save_qubit_operator_set(
     qubit_operator_set: List[QubitOperator], filename: str
 ) -> None:
     """Save a set of qubit operators to a file.
-    
+
     Args:
         qubit_operator_set (list): a list of QubitOperator to be saved
         file (str): the name of the file
@@ -181,7 +182,7 @@ def save_qubit_operator_set(
 
 def load_qubit_operator_set(file: TextIO) -> List[QubitOperator]:
     """Load a set of qubit operators from a file.
-    
+
     Args:
         file (str or file-like object): the name of the file, or a file-like object.
 
@@ -204,7 +205,7 @@ def convert_isingop_to_dict(op: IsingOperator) -> dict:
     """Convert an IsingOperator to a dictionary.
 
     Args:
-        op (openfermion.ops.IsingOperator): the operator 
+        op (openfermion.ops.IsingOperator): the operator
 
     Returns:
         dictionary (dict): the dictionary representation
@@ -311,7 +312,7 @@ def load_interaction_rdm(file: TextIO) -> InteractionRDM:
     """Load an interaction RDM object from a file.
     Args:
         file: a file-like object to load the interaction RDM from.
-    
+
     Returns:
         The interaction RDM.
     """

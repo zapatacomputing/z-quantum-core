@@ -18,7 +18,8 @@ def run_circuit_and_measure(
     noise_model: str = "None",
     device_connectivity: str = "None",
 ):
-    backend_specs = json.loads(backend_specs)
+    if isinstance(backend_specs, str):
+        backend_specs = json.loads(backend_specs)
     if noise_model != "None":
         backend_specs["noise_model"] = load_noise_model(noise_model)
     if device_connectivity != "None":
@@ -39,7 +40,8 @@ def get_bitstring_distribution(
     noise_model: str = "None",
     device_connectivity: str = "None",
 ):
-    backend_specs = json.loads(backend_specs)
+    if isinstance(backend_specs, str):
+        backend_specs = json.loads(backend_specs)
     if noise_model != "None":
         backend_specs["noise_model"] = load_noise_model(noise_model)
     if device_connectivity != "None":
@@ -66,13 +68,15 @@ def evaluate_ansatz_based_cost_function(
     ansatz_parameters = load_circuit_template_params(ansatz_parameters)
     # Load qubit op
     operator = load_qubit_operator(qubit_operator)
-    ansatz_specs = json.loads(ansatz_specs)
+    if isinstance(ansatz_specs, str):
+        ansatz_specs = json.loads(ansatz_specs)
     if ansatz_specs["function_name"] == "QAOAFarhiAnsatz":
         ansatz = create_object(ansatz_specs, cost_hamiltonian=operator)
     else:
         ansatz = create_object(ansatz_specs)
 
-    backend_specs = json.loads(backend_specs)
+    if isinstance(backend_specs, str):
+        backend_specs = json.loads(backend_specs)
     if noise_model != "None":
         backend_specs["noise_model"] = load_noise_model(noise_model)
     if device_connectivity != "None":
@@ -81,7 +85,9 @@ def evaluate_ansatz_based_cost_function(
         )
 
     backend = create_object(backend_specs)
-    cost_function_specs = json.loads(cost_function_specs)
+
+    if isinstance(cost_function_specs, str):
+        cost_function_specs = json.loads(cost_function_specs)
     estimator_specs = cost_function_specs.pop("estimator-specs", None)
     if estimator_specs is not None:
         cost_function_specs["estimator"] = create_object(estimator_specs)

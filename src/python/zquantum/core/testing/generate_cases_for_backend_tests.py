@@ -3,7 +3,12 @@ from sympy.physics.quantum import TensorProduct
 from operator import mul
 
 # This script is used to generate test cases for tests in `core/interfaces/backend_test.py`
-# In order to use just run this python file and then copy-paste the console output to the appropriate place in `test_cases_for_backend_tests.py`
+# In order to use just run this python file with python3 generate_cases_for_backend_tests.py
+# and then copy-paste the console output to the appropriate place in `test_cases_for_backend_tests.py`
+
+# If someone would like to add new testcases to core/interfaces/backend_test.py,
+# e.g. testing new gate or different initial state, they could use this script to do that.
+# (or they can do that manually).
 
 I = sympy.Matrix([[1, 0], [0, 1]])
 H = sympy.Matrix(

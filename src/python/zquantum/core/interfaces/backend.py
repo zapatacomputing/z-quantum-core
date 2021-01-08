@@ -12,8 +12,8 @@ from pyquil.wavefunction import Wavefunction
 
 class QuantumBackend(ABC):
     """
-    Interface for implementing different quantum backends. 
-    
+    Interface for implementing different quantum backends.
+
     Args:
         n_samples (int): number of times a circuit should be sampled.
 
@@ -37,7 +37,7 @@ class QuantumBackend(ABC):
         self, circuit_set: Iterable[Circuit], **kwargs
     ) -> List[Measurements]:
         """Run a set of circuits and measure a certain number of bitstrings.
-        
+
         It may be useful to override this method for backends that support
         batching. Note that self.n_samples shots are used for each circuit.
 
@@ -71,7 +71,7 @@ class QuantumBackend(ABC):
         self, circuitset: List[Circuit], qubit_operator: QubitOperator, **kwargs
     ) -> [ExpectationValues]:
         """
-        Calculates the expectation values for given operator, based on the exact quantum state 
+        Calculates the expectation values for given operator, based on the exact quantum state
         produced by a set of circuits.
 
         Args:
@@ -123,7 +123,7 @@ class QuantumSimulator(QuantumBackend):
 
         Args:
             circuit (core.circuit.Circuit): quantum circuit to be executed.
-        
+
         Returns:
             pyquil.Wafefunction: wavefunction object.
 

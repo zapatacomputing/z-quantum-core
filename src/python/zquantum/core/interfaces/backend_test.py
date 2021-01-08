@@ -5,9 +5,39 @@ from pyquil.gates import X, CNOT, H
 from pyquil.wavefunction import Wavefunction
 from openfermion import QubitOperator, IsingOperator
 
-from ..circuit import Circuit
+from ..circuit import Circuit, Qubit, Gate
 from ..measurement import Measurements, ExpectationValues
 from ..bitstring_distribution import BitstringDistribution
+from ..estimator import BasicEstimator
+from ..testing.test_cases_for_backend_tests import *
+
+"""
+Note regarding testing specific gates.
+
+To test that a gate is properly implemented, we can ask for its matrix representation 
+and check that each entry is correct. In some quantum simulator packages, 
+returning this matrix representation is either not possible or difficult to implement. 
+In such cases, we can check that the gate implementation is correct by ensuring that 
+the gate transforms input states to output states as expected. If the simulator has 
+the capability to provide the wavefunction as an output, then we can check that 
+the entries of the transformed wavefunction are correct. If the simulator does not 
+have the capability of providing the wavefunction as an output, but only gives 
+bitstring samples from the wavefunction, then we can check that the bitstring statistics 
+are as expected after taking sufficiently many samples. In both of these cases where 
+we cannot directly check the matrix corresponding to the gate, we must check the action 
+of the gate on multiple inputs (and outputs in the sampling case). We can picture 
+this process as a kind of "quantum process tomography" for gate unit testing. Mathematically, 
+correctness is ensured if the span of the input and outputs spans the full vector space. 
+Checking a tomographically complete set of input and outputs could be time consuming, 
+especially in the case of sampling. Furthermore, we expect that the bugs that will occur 
+will lead to an effect on many inputs (rather than, say, a single input-output pair). 
+Therefore, we are taking here a slightly lazy, but efficient approach to testing these gates 
+by testing how they transform a tomographically incomplete set of input and outputs.
+
+Gates tests use `backend_for_gates_test` instead of `backend` as an input parameter because:
+a) it has high chance of failing for noisy backends
+b) having execution time in mind it's a good idea to use lower number of samples.
+"""
 
 
 class QuantumBackendTests:
@@ -117,6 +147,179 @@ class QuantumBackendTests:
         assert bitstring_distribution.distribution_dict["111"] > 1 / 3
 
 
+class QuantumBackendGatesTests:
+    @pytest.mark.parametrize(
+        "initial_gate,tested_gate,target_values",
+        one_qubit_non_parametric_gates_exp_vals_test_set,
+    )
+    def test_one_qubit_non_parametric_gates_using_expectation_values(
+        self, backend_for_gates_test, initial_gate, tested_gate, target_values
+    ):
+
+        if backend_for_gates_test.n_samples is None:
+            pytest.xfail(
+                "This test won't work for simulators without sampling, it should be covered by a test in QuantumSimulatorTests."
+            )
+
+        # Given
+        qubit_list = [Qubit(0)]
+        gate_1 = Gate(initial_gate, qubits=qubit_list)
+        gate_2 = Gate(tested_gate, qubits=qubit_list)
+
+        circuit = Circuit()
+        circuit.qubits = qubit_list
+        circuit.gates = [gate_1, gate_2]
+        operators = [
+            QubitOperator("[]"),
+            QubitOperator("[X0]"),
+            QubitOperator("[Y0]"),
+            QubitOperator("[Z0]"),
+        ]
+
+        sigma = 1 / np.sqrt(backend_for_gates_test.n_samples)
+
+        for i, operator in enumerate(operators):
+            # When
+            estimator = BasicEstimator()
+            expectation_value = estimator.get_estimated_expectation_values(
+                backend_for_gates_test,
+                circuit,
+                operator,
+            ).values[0]
+
+            # Then
+            assert expectation_value == pytest.approx(target_values[i], abs=sigma * 3)
+
+    @pytest.mark.parametrize(
+        "initial_gate,tested_gate,params,target_values",
+        one_qubit_parametric_gates_exp_vals_test_set,
+    )
+    def test_one_qubit_parametric_gates_using_expectation_values(
+        self, backend_for_gates_test, initial_gate, tested_gate, params, target_values
+    ):
+
+        if backend_for_gates_test.n_samples is None:
+            pytest.xfail(
+                "This test won't work for simulators without sampling, it's covered by a test in QuantumSimulatorTests."
+            )
+
+        # Given
+        qubit_list = [Qubit(0)]
+        gate_1 = Gate(initial_gate, qubits=qubit_list)
+        gate_2 = Gate(tested_gate, params=params, qubits=qubit_list)
+
+        circuit = Circuit()
+        circuit.qubits = qubit_list
+        circuit.gates = [gate_1, gate_2]
+        operators = [
+            QubitOperator("[]"),
+            QubitOperator("[X0]"),
+            QubitOperator("[Y0]"),
+            QubitOperator("[Z0]"),
+        ]
+
+        sigma = 1 / np.sqrt(backend_for_gates_test.n_samples)
+
+        for i, operator in enumerate(operators):
+            # When
+            estimator = BasicEstimator()
+            expectation_value = estimator.get_estimated_expectation_values(
+                backend_for_gates_test,
+                circuit,
+                operator,
+            ).values[0]
+
+            # Then
+            assert expectation_value == pytest.approx(target_values[i], abs=sigma * 3)
+
+    @pytest.mark.parametrize(
+        "initial_gates,tested_gate,operators,target_values",
+        two_qubit_non_parametric_gates_exp_vals_test_set,
+    )
+    def test_two_qubit_non_parametric_gates_using_expectation_values(
+        self,
+        backend_for_gates_test,
+        initial_gates,
+        tested_gate,
+        operators,
+        target_values,
+    ):
+
+        if backend_for_gates_test.n_samples is None:
+            pytest.xfail(
+                "This test won't work for simulators without sampling, it's covered by a test in QuantumSimulatorTests."
+            )
+
+        # Given
+        qubit_list = [Qubit(0), Qubit(1)]
+        gate_1 = Gate(initial_gates[0], qubits=[qubit_list[0]])
+        gate_2 = Gate(initial_gates[1], qubits=[qubit_list[1]])
+        gate_3 = Gate(tested_gate, qubits=qubit_list)
+
+        circuit = Circuit()
+        circuit.qubits = qubit_list
+        circuit.gates = [gate_1, gate_2, gate_3]
+
+        sigma = 1 / np.sqrt(backend_for_gates_test.n_samples)
+
+        for i, operator in enumerate(operators):
+            # When
+            operator = QubitOperator(operator)
+            estimator = BasicEstimator()
+            expectation_value = estimator.get_estimated_expectation_values(
+                backend_for_gates_test,
+                circuit,
+                operator,
+            ).values[0]
+
+            # Then
+            assert expectation_value == pytest.approx(target_values[i], abs=sigma * 5)
+
+    @pytest.mark.parametrize(
+        "initial_gates,tested_gate,params,operators,target_values",
+        two_qubit_parametric_gates_exp_vals_test_set,
+    )
+    def test_two_qubit_parametric_gates_using_expectation_values(
+        self,
+        backend_for_gates_test,
+        initial_gates,
+        tested_gate,
+        params,
+        operators,
+        target_values,
+    ):
+
+        if backend_for_gates_test.n_samples is None:
+            pytest.xfail(
+                "This test won't work for simulators without sampling, it's covered by a test in QuantumSimulatorTests."
+            )
+
+        # Given
+        qubit_list = [Qubit(0), Qubit(1)]
+        gate_1 = Gate(initial_gates[0], qubits=[qubit_list[0]])
+        gate_2 = Gate(initial_gates[1], qubits=[qubit_list[1]])
+        gate_3 = Gate(tested_gate, params=params, qubits=qubit_list)
+
+        circuit = Circuit()
+        circuit.qubits = qubit_list
+        circuit.gates = [gate_1, gate_2, gate_3]
+
+        sigma = 1 / np.sqrt(backend_for_gates_test.n_samples)
+
+        for i, operator in enumerate(operators):
+            # When
+            operator = QubitOperator(operator)
+            estimator = BasicEstimator()
+            expectation_value = estimator.get_estimated_expectation_values(
+                backend_for_gates_test,
+                circuit,
+                operator,
+            ).values[0]
+
+            # Then
+            assert expectation_value == pytest.approx(target_values[i], abs=sigma * 5)
+
+
 class QuantumSimulatorTests(QuantumBackendTests):
     def test_get_wavefunction(self, wf_simulator):
         # Given
@@ -175,3 +378,95 @@ class QuantumSimulatorTests(QuantumBackendTests):
         assert bitstring_distribution.distribution_dict["111"] == pytest.approx(
             0.5, abs=1e-7
         )
+
+
+class QuantumSimulatorGatesTest:
+    @pytest.mark.parametrize(
+        "initial_gate,tested_gate,target_amplitudes",
+        one_qubit_non_parametric_gates_amplitudes_test_set,
+    )
+    def test_one_qubit_non_parametric_gates_using_amplitudes(
+        self, wf_simulator, initial_gate, tested_gate, target_amplitudes
+    ):
+        # Given
+        qubit_list = [Qubit(0)]
+        gate_1 = Gate(initial_gate, qubits=qubit_list)
+        gate_2 = Gate(tested_gate, qubits=qubit_list)
+
+        circuit = Circuit()
+        circuit.qubits = qubit_list
+        circuit.gates = [gate_1, gate_2]
+
+        # When
+        wavefunction = wf_simulator.get_wavefunction(circuit)
+
+        # Then
+        assert np.allclose(wavefunction.amplitudes, target_amplitudes)
+
+    @pytest.mark.parametrize(
+        "initial_gate,tested_gate,params,target_amplitudes",
+        one_qubit_parametric_gates_amplitudes_test_set,
+    )
+    def test_one_qubit_parametric_gates_using_amplitudes(
+        self, wf_simulator, initial_gate, tested_gate, params, target_amplitudes
+    ):
+        # Given
+        qubit_list = [Qubit(0)]
+        gate_1 = Gate(initial_gate, qubits=qubit_list)
+        gate_2 = Gate(tested_gate, params=params, qubits=qubit_list)
+
+        circuit = Circuit()
+        circuit.qubits = qubit_list
+        circuit.gates = [gate_1, gate_2]
+
+        # When
+        wavefunction = wf_simulator.get_wavefunction(circuit)
+
+        # Then
+        assert np.allclose(wavefunction.amplitudes, target_amplitudes)
+
+    @pytest.mark.parametrize(
+        "initial_gates,tested_gate,target_amplitudes",
+        two_qubit_non_parametric_gates_amplitudes_test_set,
+    )
+    def test_two_qubit_non_parametric_gates_using_amplitudes(
+        self, wf_simulator, initial_gates, tested_gate, target_amplitudes
+    ):
+        # Given
+        qubit_list = [Qubit(0), Qubit(1)]
+        gate_1 = Gate(initial_gates[0], qubits=[qubit_list[0]])
+        gate_2 = Gate(initial_gates[1], qubits=[qubit_list[1]])
+        gate_3 = Gate(tested_gate, qubits=qubit_list)
+
+        circuit = Circuit()
+        circuit.qubits = qubit_list
+        circuit.gates = [gate_1, gate_2, gate_3]
+
+        # When
+        wavefunction = wf_simulator.get_wavefunction(circuit)
+
+        # Then
+        assert np.allclose(wavefunction.amplitudes, target_amplitudes)
+
+    @pytest.mark.parametrize(
+        "initial_gates,tested_gate,params,target_amplitudes",
+        two_qubit_parametric_gates_amplitudes_test_set,
+    )
+    def test_two_qubit_parametric_gates_using_amplitudes(
+        self, wf_simulator, initial_gates, tested_gate, params, target_amplitudes
+    ):
+        # Given
+        qubit_list = [Qubit(0), Qubit(1)]
+        gate_1 = Gate(initial_gates[0], qubits=[qubit_list[0]])
+        gate_2 = Gate(initial_gates[1], qubits=[qubit_list[1]])
+        gate_3 = Gate(tested_gate, params=params, qubits=qubit_list)
+
+        circuit = Circuit()
+        circuit.qubits = qubit_list
+
+        circuit.gates = [gate_1, gate_2, gate_3]
+        # When
+        wavefunction = wf_simulator.get_wavefunction(circuit)
+
+        # Then
+        assert np.allclose(wavefunction.amplitudes, target_amplitudes)

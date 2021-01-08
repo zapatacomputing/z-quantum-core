@@ -63,6 +63,7 @@ def generate_cases_1_qubit_wavefunction(matrix, matrix_name, angles):
                 .replace("pi", "np.pi")
                 .replace("1.0*I", "1.0j")
                 .replace("*I", "*1.0j")
+                .replace("exp", "np.exp")
             )
             print(gate_names_string + angle_string + amplitude_string + "],")
 
@@ -222,15 +223,18 @@ def main():
         ]
     )
     PHASE = sympy.Matrix([[1, 0], [0, sympy.cos(theta) + 1j * sympy.sin(theta)]])
+    RH_phase_factor = sympy.exp(1j * theta / 2)
     RH = sympy.Matrix(
         [
             [
-                sympy.cos(theta / 2) - 1j * 1 / sympy.sqrt(2) * sympy.sin(theta / 2),
-                -1j * 1 / sympy.sqrt(2) * sympy.sin(theta / 2),
+                RH_phase_factor
+                * (sympy.cos(theta / 2) - 1j / sympy.sqrt(2) * sympy.sin(theta / 2)),
+                RH_phase_factor * -1j / sympy.sqrt(2) * sympy.sin(theta / 2),
             ],
             [
-                -1j * 1 / sympy.sqrt(2) * sympy.sin(theta / 2),
-                sympy.cos(theta / 2) + 1j * 1 / sympy.sqrt(2) * sympy.sin(theta / 2),
+                RH_phase_factor * -1j / sympy.sqrt(2) * sympy.sin(theta / 2),
+                RH_phase_factor
+                * (sympy.cos(theta / 2) + 1j / sympy.sqrt(2) * sympy.sin(theta / 2)),
             ],
         ]
     )

@@ -114,7 +114,10 @@ class ExpectationValues:
     def to_dict(self) -> dict:
         """Convert to a dictionary"""
 
-        data = {"schema": SCHEMA_VERSION + "-expectation_values", "frames": []} # what is "frames" for?
+        data = {
+            "schema": SCHEMA_VERSION + "-expectation_values",
+            "frames": [],
+        }  # what is "frames" for?
 
         data["expectation_values"] = convert_array_to_dict(self.values)
 
@@ -148,6 +151,7 @@ class ExpectationValues:
                 covariances.append(convert_dict_to_array(covariance_matrix))
 
         return cls(expectation_values, correlations, covariances)
+
 
 def sample_from_wavefunction(
     wavefunction: Wavefunction, n_samples: int
@@ -500,7 +504,30 @@ class Measurements:
                     value = -float(count) / num_measurements
                 expectation += np.real(coefficient) * value
             expectation_values.append(np.real(expectation))
-        return ExpectationValues(np.array(expectation_values))
+
+        correlations = np.zeros((len(ising_operator.terms),) * 2)
+        for i, first_term in enumerate(ising_operator.terms):
+            for j, second_term in enumerate(ising_operator.terms):
+                first_term_qubits = set(op[0] for op in first_term)
+                second_term_qubits = set(op[0] for op in second_term)
+                marked_qubits = first_term_qubits.symmetric_difference(
+                    second_term_qubits
+                )
+                for bitstring, count in bitstring_frequencies.items():
+                    bitstring_int = convert_bitstring_to_int(bitstring)
+                    if parity_even_p(bitstring_int, marked_qubits):
+                        value = float(count) / num_measurements
+                    else:
+                        value = -float(count) / num_measurements
+                    correlations[i, j] += (
+                        np.real(
+                            ising_operator.terms[first_term]
+                            * ising_operator.terms[second_term]
+                        )
+                        * value
+                    )
+
+        return ExpectationValues(np.array(expectation_values), [correlations])
 
 
 def concatenate_expectation_values(
@@ -515,11 +542,7 @@ def concatenate_expectation_values(
         The combined expectation values.
     """
 
-    combined_expectation_values = ExpectationValues(
-        np.zeros(
-            0,
-        )
-    )
+    combined_expectation_values = ExpectationValues(np.zeros(0,))
 
     for expectation_values in expectation_values_set:
         combined_expectation_values.values = np.concatenate(

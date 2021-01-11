@@ -586,11 +586,16 @@ class TestMeasurement(unittest.TestCase):
         )
         ising_operator = IsingOperator("10[] + [Z0 Z1] - 10[Z1 Z2]")
         target_expectation_values = np.array([10, 0.2, -2])
+        target_correlations = np.array([[100, 2, -20], [2, 1, -10], [-20, -10, 100]])
         # When
         expectation_values = measurements.get_expectation_values(ising_operator)
         # Then
         np.testing.assert_array_equal(
             expectation_values.values, target_expectation_values
+        )
+        self.assertEqual(len(expectation_values.correlations), 1)
+        np.testing.assert_array_equal(
+            expectation_values.correlations[0], target_correlations
         )
 
     def test_concatenate_expectation_values(self):

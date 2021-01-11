@@ -197,3 +197,54 @@ def test_evaluating_rx_gate_results_in_matrix_with_correct_entries(
     new_gate = gate.evaluate(symbols_map)
 
     assert new_gate == expected_new_gate
+
+
+@pytest.mark.parametrize("gate_cls", [H, T, I, X, Y, Z])
+def test_nonparametric_single_qubit_gates_have_no_params(gate_cls):
+    assert gate_cls(1).params == ()
+
+
+@pytest.mark.parametrize("gate_cls", [RX, RY, RZ])
+@pytest.mark.parametrize("angle", [sympy.Symbol("alpha"), np.pi / 2])
+def test_rotation_gates_have_a_single_parameter_equal_to_their_angle(gate_cls, angle):
+    assert gate_cls(1, angle).params == (angle,)
+
+
+@pytest.mark.parametrize(
+    "gate",
+    [
+        H(0),
+        T(1),
+        I(2),
+        X(5),
+        Y(1),
+        Z(2),
+        RX(0, np.pi / 2),
+        RY(0, sympy.Symbol("alpha")),
+        RZ(1, sympy.Symbol("alpha") + sympy.Symbol("x")),
+    ]
+)
+@pytest.mark.parametrize(
+    "symbol_map",
+    [
+        {},
+        {sympy.Symbol("beta"): 0.5 * np.pi},
+        {sympy.Symbol("alpha"): sympy.Symbol("gamma")},
+        {sympy.Symbol("alpha"): sympy.Symbol("x") + sympy.Symbol("y")}
+    ]
+)
+class TestEvaluationOfSingleQubitGates:
+
+    def test_evaluating_single_qubit_gate_preserves_gate_type(self, gate, symbol_map):
+        assert type(gate.evaluate(symbol_map)) == type(gate)
+
+    def test_evaluating_single_qubit_gate_preserves_qubits(self, gate, symbol_map):
+        assert gate.evaluate(symbol_map).qubits == gate.qubits
+
+    def test_evaluating_single_qubit_gate_correctly_substitutes_parameters(self, gate, symbol_map):
+        expected_params = tuple(
+            param.subs(symbol_map) if isinstance(param, sympy.Basic) else param
+            for param in gate.params
+        )
+
+        assert gate.evaluate(symbol_map).params == expected_params

@@ -40,6 +40,10 @@ class Gate(ABC):
         ...
 
     @property
+    def params(self) -> Tuple[Any, ...]:
+        return ()
+
+    @property
     def symbolic_params(self) -> Set[str]:
         """Free symbols present in gate's matrix."""
         return set(
@@ -213,45 +217,11 @@ class Gate(ABC):
         return Dagger(self)
 
     def evaluate(self, symbols_map: Dict[str, Any]) -> "Gate":
-        """Return a copy of self with symbolic parameters substituted according to provided map.
-
-        Args:
-            symbols_map (Dict): A map of the symbols/gate parameters to new values
-
-        Returns:
-            A copy of self with the same matrix, but every symbolic param sin the map is
-            substituted with corresponding value.
-        """
-        if not self.is_parameterized:
-            warnings.warn(
-                """Gate is not parameterized. evaluate will return a copy of the current gate."""
-            )
-            return copy.deepcopy(self)
-
-        if any(symbol not in self.symbolic_params for symbol in symbols_map):
-            warnings.warn(
-                f"""
-                Trying to evaluate gate with symbols not existing in the gate:
-                Symbols in circuit: {self.symbolic_params}
-                Symbols in the map: {symbols_map.keys()}
-                """,
-                Warning,
-            )
-
-        evaluated_matrix = copy.deepcopy(self.matrix)
-
-        for index, element in enumerate(evaluated_matrix):
-            new_element = element.subs(symbols_map).evalf()
-            if isinstance(sympy.re(new_element), sympy.Number) and isinstance(
-                sympy.im(new_element), sympy.Number
-            ):
-                new_element = complex(
-                    round(sympy.re(new_element), 16), round(sympy.im(new_element), 16)
-                )
-            evaluated_matrix[index] = new_element
-
-        evaluated_gate = CustomGate(evaluated_matrix, self.qubits)
-        return evaluated_gate
+        new_params = [
+            _evaluate_parameter(param, symbols_map)
+            for param in self.params
+        ]
+        return type(self)(*self.qubits, *new_params)
 
 
 class CustomGate(Gate):
@@ -284,6 +254,47 @@ class CustomGate(Gate):
     def matrix(self) -> sympy.Matrix:
         """Matrix representation of this gate."""
         return self._matrix
+
+    def evaluate(self, symbols_map: Dict[str, Any]) -> "Gate":
+        """Return a copy of self with symbolic parameters substituted according to provided map.
+
+        Args:
+            symbols_map (Dict): A map of the symbols/gate parameters to new values
+
+        Returns:
+            A copy of self with the same matrix, but every symbolic param in the map is
+            substituted with corresponding value.
+        """
+        if not self.is_parameterized:
+            warnings.warn(
+                """Gate is not parameterized. evaluate will return a copy of the current gate."""
+            )
+            return copy.deepcopy(self)
+
+        if any(symbol not in self.symbolic_params for symbol in symbols_map):
+            warnings.warn(
+                f"""
+                Trying to evaluate gate with symbols not existing in the gate:
+                Symbols in circuit: {self.symbolic_params}
+                Symbols in the map: {symbols_map.keys()}
+                """,
+                Warning,
+            )
+
+        evaluated_matrix = copy.deepcopy(self.matrix)
+
+        for index, element in enumerate(evaluated_matrix):
+            new_element = element.subs(symbols_map).evalf()
+            if isinstance(sympy.re(new_element), sympy.Number) and isinstance(
+                    sympy.im(new_element), sympy.Number
+            ):
+                new_element = complex(
+                    round(sympy.re(new_element), 16), round(sympy.im(new_element), 16)
+                )
+            evaluated_matrix[index] = new_element
+
+        evaluated_gate = CustomGate(evaluated_matrix, self.qubits)
+        return evaluated_gate
 
     def __repr__(self) -> str:
         return f"zquantum.core.circuit.gate.CustomGate(matrix={self.matrix}, qubits={self.qubits})"

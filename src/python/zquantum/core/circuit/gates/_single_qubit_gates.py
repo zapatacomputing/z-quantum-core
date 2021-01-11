@@ -1,6 +1,6 @@
 """Gates acting on single qubit."""
 from abc import ABC
-from typing import Union
+from typing import Union, Tuple, Any
 import sympy
 import numpy as np
 from ._gate import SpecializedGate, HermitianMixin
@@ -88,14 +88,21 @@ class T(SingleQubitGate):
         )
 
 
-class RX(SingleQubitGate):
-    """Quantum Rx gate."""
+class SingleQubitRotationGate(SingleQubitGate, ABC):
 
     def __init__(
         self, qubit: int, angle: Union[float, sympy.Symbol] = sympy.Symbol("theta")
     ):
         super().__init__(qubit)
         self.angle = angle
+
+    @property
+    def params(self) -> Tuple[Any, ...]:
+        return (self.angle,)
+
+
+class RX(SingleQubitRotationGate):
+    """Quantum Rx gate."""
 
     def _create_matrix(self) -> sympy.Matrix:
         return sympy.Matrix(
@@ -112,14 +119,8 @@ class RX(SingleQubitGate):
         )
 
 
-class RY(SingleQubitGate):
+class RY(SingleQubitRotationGate):
     """Quantum Ry gate."""
-
-    def __init__(
-        self, qubit: int, angle: Union[float, sympy.Symbol] = sympy.Symbol("theta")
-    ):
-        super().__init__(qubit)
-        self.angle = angle
 
     def _create_matrix(self) -> sympy.Matrix:
         return sympy.Matrix(
@@ -136,14 +137,8 @@ class RY(SingleQubitGate):
         )
 
 
-class RZ(SingleQubitGate):
+class RZ(SingleQubitRotationGate):
     """Quantum Rz gate."""
-
-    def __init__(
-        self, qubit: int, angle: Union[float, sympy.Symbol] = sympy.Symbol("theta")
-    ):
-        super().__init__(qubit)
-        self.angle = angle
 
     def _create_matrix(self) -> sympy.Matrix:
         return sympy.Matrix(

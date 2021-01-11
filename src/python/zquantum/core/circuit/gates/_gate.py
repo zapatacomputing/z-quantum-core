@@ -9,6 +9,15 @@ from typing import Tuple, Union, Dict, TextIO, Set, Any, Optional
 from ...utils import SCHEMA_VERSION
 
 
+def _evaluate_parameter(param, symbol_map):
+    if isinstance(param, sympy.Symbol):
+        return symbol_map.get(param, param)
+    elif isinstance(param, sympy.Expr):
+        return param.subs(symbol_map)
+    else:
+        return param
+
+
 class Gate(ABC):
     """Base class for quantum Gates.
 

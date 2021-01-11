@@ -40,16 +40,24 @@ class SWAP(HermitianMixin, SpecializedGate):
         return sympy.Matrix([[1, 0, 0, 0], [0, 0, 1, 0], [0, 1, 0, 0], [0, 0, 0, 1]])
 
 
-class XX(SpecializedGate):
-    """Quantum XX gate."""
+class TwoQubitRotationGate:
 
     def __init__(
         self,
-        qubits: (int, int),
-        angle: Union[float, sympy.Symbol] = sympy.Symbol("theta"),
+        first_qubit: int,
+        second_qubit: int,
+        angle: Union[float, sympy.Symbol] = sympy.Symbol("theta")
     ):
-        super().__init__(qubits)
+        super().__init__((first_qubit, second_qubit))
         self.angle = angle
+
+    @property
+    def params(self):
+        return (self.angle,)
+
+
+class XX(TwoQubitRotationGate):
+    """Quantum XX gate."""
 
     def _create_matrix(self) -> sympy.Matrix:
         return sympy.Matrix(
@@ -62,16 +70,8 @@ class XX(SpecializedGate):
         )
 
 
-class YY(SpecializedGate):
+class YY(TwoQubitRotationGate):
     """Quantum YY gate."""
-
-    def __init__(
-        self,
-        qubits: (int, int),
-        angle: Union[float, sympy.Symbol] = sympy.Symbol("theta"),
-    ):
-        super().__init__(qubits)
-        self.angle = angle
 
     def _create_matrix(self) -> sympy.Matrix:
         return sympy.Matrix(
@@ -86,14 +86,6 @@ class YY(SpecializedGate):
 
 class ZZ(SpecializedGate):
     """Quantum ZZ gate"""
-
-    def __init__(
-        self,
-        qubits: (int, int),
-        angle: Union[float, sympy.Symbol] = sympy.Symbol("theta"),
-    ):
-        super().__init__(qubits)
-        self.angle = angle
 
     def _create_matrix(self) -> sympy.Matrix:
         arg = self.angle / 2

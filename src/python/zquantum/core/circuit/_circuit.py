@@ -869,11 +869,17 @@ def add_gate_to_pyquil_program(pyquil_program, gate):
             )
         if gate.name == "RH":
             beta = pyquil.quilatom.Parameter("beta")
+            phase_factor = quil_cos(beta / 2) + 1j * quil_sin(beta / 2)
             elem00 = quil_cos(beta / 2) - 1j * 1 / np.sqrt(2) * quil_sin(beta / 2)
             elem01 = -1j * 1 / np.sqrt(2) * quil_sin(beta / 2)
             elem10 = -1j * 1 / np.sqrt(2) * quil_sin(beta / 2)
             elem11 = quil_cos(beta / 2) + 1j * 1 / np.sqrt(2) * quil_sin(beta / 2)
-            rh_unitary = np.array([[elem00, elem01], [elem10, elem11]])
+            rh_unitary = np.array(
+                [
+                    [phase_factor * elem00, phase_factor * elem01],
+                    [phase_factor * elem10, phase_factor * elem11],
+                ]
+            )
             rh_def = pyquil.quilbase.DefGate("RH", rh_unitary, [beta])
             RH = rh_def.get_constructor()
             return pyquil_program + rh_def + RH(gate.params[0])(gate.qubits[0].index)

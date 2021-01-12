@@ -9,6 +9,7 @@ from ..openfermion import expectation
 from typing import Optional, List, Tuple, Iterable
 from openfermion import IsingOperator, SymbolicOperator
 from pyquil.wavefunction import Wavefunction
+from overrides import overrides
 
 
 class QuantumBackend(ABC):
@@ -155,6 +156,7 @@ class QuantumSimulator(QuantumBackend):
         self.number_of_circuits_run += 1
         self.number_of_jobs_run += 1
 
+    @overrides
     def get_expectation_values(self, circuit, operator, **kwargs):
         """Run a circuit and measure the expectation values with respect to a
         given operator. Note: the number of bitstrings measured is derived

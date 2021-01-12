@@ -1,5 +1,6 @@
 import numpy as np
 import pytest
+import functools
 from pyquil import Program
 from pyquil.gates import X, CNOT, H
 from pyquil.wavefunction import Wavefunction
@@ -38,6 +39,18 @@ Gates tests use `backend_for_gates_test` instead of `backend` as an input parame
 a) it has high chance of failing for noisy backends
 b) having execution time in mind it's a good idea to use lower number of samples.
 """
+
+
+def skip_tests_for_excluded_gates(func):
+    @functools.wraps(func)
+    def _wrapper(self, **kwargs):
+        tested_gate = kwargs["tested_gate"]
+        if tested_gate not in self.gates_to_exclude:
+            func(self, **kwargs)
+        else:
+            pytest.xfail(f"{tested_gate} gate is excluded for tests for this backend.")
+
+    return _wrapper
 
 
 class QuantumBackendTests:
@@ -148,10 +161,13 @@ class QuantumBackendTests:
 
 
 class QuantumBackendGatesTests:
+    gates_to_exclude = []
+
     @pytest.mark.parametrize(
         "initial_gate,tested_gate,target_values",
         one_qubit_non_parametric_gates_exp_vals_test_set,
     )
+    @skip_tests_for_excluded_gates
     def test_one_qubit_non_parametric_gates_using_expectation_values(
         self, backend_for_gates_test, initial_gate, tested_gate, target_values
     ):
@@ -194,6 +210,7 @@ class QuantumBackendGatesTests:
         "initial_gate,tested_gate,params,target_values",
         one_qubit_parametric_gates_exp_vals_test_set,
     )
+    @skip_tests_for_excluded_gates
     def test_one_qubit_parametric_gates_using_expectation_values(
         self, backend_for_gates_test, initial_gate, tested_gate, params, target_values
     ):
@@ -236,6 +253,7 @@ class QuantumBackendGatesTests:
         "initial_gates,tested_gate,operators,target_values",
         two_qubit_non_parametric_gates_exp_vals_test_set,
     )
+    @skip_tests_for_excluded_gates
     def test_two_qubit_non_parametric_gates_using_expectation_values(
         self,
         backend_for_gates_test,
@@ -279,6 +297,7 @@ class QuantumBackendGatesTests:
         "initial_gates,tested_gate,params,operators,target_values",
         two_qubit_parametric_gates_exp_vals_test_set,
     )
+    @skip_tests_for_excluded_gates
     def test_two_qubit_parametric_gates_using_expectation_values(
         self,
         backend_for_gates_test,
@@ -381,10 +400,13 @@ class QuantumSimulatorTests(QuantumBackendTests):
 
 
 class QuantumSimulatorGatesTest:
+    gates_to_exclude = []
+
     @pytest.mark.parametrize(
         "initial_gate,tested_gate,target_amplitudes",
         one_qubit_non_parametric_gates_amplitudes_test_set,
     )
+    @skip_tests_for_excluded_gates
     def test_one_qubit_non_parametric_gates_using_amplitudes(
         self, wf_simulator, initial_gate, tested_gate, target_amplitudes
     ):
@@ -407,6 +429,7 @@ class QuantumSimulatorGatesTest:
         "initial_gate,tested_gate,params,target_amplitudes",
         one_qubit_parametric_gates_amplitudes_test_set,
     )
+    @skip_tests_for_excluded_gates
     def test_one_qubit_parametric_gates_using_amplitudes(
         self, wf_simulator, initial_gate, tested_gate, params, target_amplitudes
     ):
@@ -429,6 +452,7 @@ class QuantumSimulatorGatesTest:
         "initial_gates,tested_gate,target_amplitudes",
         two_qubit_non_parametric_gates_amplitudes_test_set,
     )
+    @skip_tests_for_excluded_gates
     def test_two_qubit_non_parametric_gates_using_amplitudes(
         self, wf_simulator, initial_gates, tested_gate, target_amplitudes
     ):
@@ -452,6 +476,7 @@ class QuantumSimulatorGatesTest:
         "initial_gates,tested_gate,params,target_amplitudes",
         two_qubit_parametric_gates_amplitudes_test_set,
     )
+    @skip_tests_for_excluded_gates
     def test_two_qubit_parametric_gates_using_amplitudes(
         self, wf_simulator, initial_gates, tested_gate, params, target_amplitudes
     ):

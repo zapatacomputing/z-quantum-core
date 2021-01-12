@@ -21,7 +21,6 @@ class SingleQubitGate(SpecializedGate, ABC):
 
 
 class SingleQubitRotationGate(SingleQubitGate, ABC):
-
     def __init__(
         self, qubit: int, angle: Union[float, sympy.Symbol] = sympy.Symbol("theta")
     ):

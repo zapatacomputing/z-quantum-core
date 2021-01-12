@@ -222,7 +222,7 @@ def test_rotation_gates_have_a_single_parameter_equal_to_their_angle(gate_cls, a
         RX(0, np.pi / 2),
         RY(0, sympy.Symbol("alpha")),
         RZ(1, sympy.Symbol("alpha") + sympy.Symbol("x")),
-    ]
+    ],
 )
 @pytest.mark.parametrize(
     "symbol_map",
@@ -230,18 +230,19 @@ def test_rotation_gates_have_a_single_parameter_equal_to_their_angle(gate_cls, a
         {},
         {sympy.Symbol("beta"): 0.5 * np.pi},
         {sympy.Symbol("alpha"): sympy.Symbol("gamma")},
-        {sympy.Symbol("alpha"): sympy.Symbol("x") + sympy.Symbol("y")}
-    ]
+        {sympy.Symbol("alpha"): sympy.Symbol("x") + sympy.Symbol("y")},
+    ],
 )
 class TestEvaluationOfSingleQubitGates:
-
     def test_evaluating_single_qubit_gate_preserves_gate_type(self, gate, symbol_map):
         assert type(gate.evaluate(symbol_map)) == type(gate)
 
     def test_evaluating_single_qubit_gate_preserves_qubits(self, gate, symbol_map):
         assert gate.evaluate(symbol_map).qubits == gate.qubits
 
-    def test_evaluating_single_qubit_gate_correctly_substitutes_parameters(self, gate, symbol_map):
+    def test_evaluating_single_qubit_gate_correctly_substitutes_parameters(
+        self, gate, symbol_map
+    ):
         expected_params = tuple(
             param.subs(symbol_map) if isinstance(param, sympy.Basic) else param
             for param in gate.params

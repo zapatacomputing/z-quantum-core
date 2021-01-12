@@ -5,12 +5,11 @@ from . import SpecializedGate, X, Z, PHASE, ControlledGate, HermitianMixin
 
 
 class TwoQubitRotationGate(SpecializedGate, ABC):
-
     def __init__(
         self,
         first_qubit: int,
         second_qubit: int,
-        angle: Union[float, sympy.Symbol] = sympy.Symbol("theta")
+        angle: Union[float, sympy.Symbol] = sympy.Symbol("theta"),
     ):
         super().__init__((first_qubit, second_qubit))
         self.angle = angle
@@ -41,7 +40,7 @@ class CPHASE(ControlledGate):
         self,
         control: int,
         target: int,
-        angle: Union[float, sympy.Symbol] = sympy.Symbol("theta")
+        angle: Union[float, sympy.Symbol] = sympy.Symbol("theta"),
     ):
         super().__init__(PHASE(target, angle), control)
         self.angle = angle

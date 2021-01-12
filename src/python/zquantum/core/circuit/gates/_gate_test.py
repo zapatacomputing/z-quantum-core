@@ -623,7 +623,7 @@ def test_custom_gate_created_without_name_has_name_equal_to_its_stringified_matr
             [THETA, 0, 0, 0],
             [0, THETA, 0, 0],
             [0, 0, 0, -1j * THETA],
-            [0, 0, -1j * THETA , 0],
+            [0, 0, -1j * THETA, 0],
         ]
     )
     assert CustomGate(matrix, (0, 1)).name == str(matrix)

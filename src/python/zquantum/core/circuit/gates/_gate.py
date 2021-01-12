@@ -217,17 +217,16 @@ class Gate(ABC):
         return Dagger(self)
 
     def evaluate(self, symbols_map: Dict[str, Any]) -> "Gate":
-        new_params = [
-            _evaluate_parameter(param, symbols_map)
-            for param in self.params
-        ]
+        new_params = [_evaluate_parameter(param, symbols_map) for param in self.params]
         return type(self)(*self.qubits, *new_params)
 
 
 class CustomGate(Gate):
     """Gate class with custom matrix."""
 
-    def __init__(self, matrix: sympy.Matrix, qubits: Tuple[int, ...], name: Optional[str] = None):
+    def __init__(
+        self, matrix: sympy.Matrix, qubits: Tuple[int, ...], name: Optional[str] = None
+    ):
         """Initialize a gate
 
         Args:
@@ -286,7 +285,7 @@ class CustomGate(Gate):
         for index, element in enumerate(evaluated_matrix):
             new_element = element.subs(symbols_map).evalf()
             if isinstance(sympy.re(new_element), sympy.Number) and isinstance(
-                    sympy.im(new_element), sympy.Number
+                sympy.im(new_element), sympy.Number
             ):
                 new_element = complex(
                     round(sympy.re(new_element), 16), round(sympy.im(new_element), 16)
@@ -340,14 +339,10 @@ class ControlledGate(SpecializedGate):
 
     def _create_matrix(self) -> sympy.Matrix:
         target_matrix = self.target_gate.matrix
-        return sympy.Matrix.diag(
-            sympy.eye(target_matrix.shape[0]),
-            target_matrix
-        )
+        return sympy.Matrix.diag(sympy.eye(target_matrix.shape[0]), target_matrix)
 
 
 class Dagger(SpecializedGate):
-
     def __init__(self, gate: Gate):
         super().__init__(gate.qubits)
         self.gate = gate

@@ -29,9 +29,7 @@ from ._two_qubit_gates import XX, YY, ZZ, SWAP, CNOT, CZ, CPHASE
 def test_XX_matrix_is_correct_for_characteristic_values_of_angle(
     angle, expected_matrix
 ):
-    assert XX(0, 1, angle=angle) == CustomGate(
-        matrix=expected_matrix, qubits=(0, 1)
-    )
+    assert XX(0, 1, angle=angle) == CustomGate(matrix=expected_matrix, qubits=(0, 1))
 
 
 @pytest.mark.parametrize(
@@ -54,9 +52,7 @@ def test_XX_matrix_is_correct_for_characteristic_values_of_angle(
 def test_YY_matrix_is_correct_for_characteristic_values_of_angle(
     angle, expected_matrix
 ):
-    assert YY(0, 1, angle=angle) == CustomGate(
-        matrix=expected_matrix, qubits=(0, 1)
-    )
+    assert YY(0, 1, angle=angle) == CustomGate(matrix=expected_matrix, qubits=(0, 1))
 
 
 @pytest.mark.parametrize(
@@ -89,9 +85,7 @@ def test_YY_matrix_is_correct_for_characteristic_values_of_angle(
 def test_ZZ_matrix_is_correct_for_characteristic_values_of_angle(
     angle, expected_matrix
 ):
-    assert ZZ(0, 1, angle=angle) == CustomGate(
-        matrix=expected_matrix, qubits=(0, 1)
-    )
+    assert ZZ(0, 1, angle=angle) == CustomGate(matrix=expected_matrix, qubits=(0, 1))
 
 
 @pytest.mark.parametrize("gate_cls", [SWAP, CZ, CNOT])

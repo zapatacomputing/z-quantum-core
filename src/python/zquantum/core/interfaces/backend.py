@@ -155,6 +155,24 @@ class QuantumSimulator(QuantumBackend):
         self.number_of_circuits_run += 1
         self.number_of_jobs_run += 1
 
+    def get_expectation_values(self, circuit, operator, **kwargs):
+        """Run a circuit and measure the expectation values with respect to a
+        given operator. Note: the number of bitstrings measured is derived
+        from self.n_samples - if self.n_samples = None, then this will use
+        self.get_exact_expectation_values
+
+        Args:
+            circuit (zquantum.core.circuit.Circuit): the circuit to prepare the state
+            qubit_operator (openfermion.SymbolicOperator): the operator to measure
+        Returns:
+            zquantum.core.measurement.ExpectationValues: the expectation values
+                of each term in the operator
+        """
+        if self.n_samples == None:
+            return self.get_exact_expectation_values(circuit, operator, **kwargs)
+        else:
+            return super().get_expectation_values(circuit, operator, **kwargs)
+
     @abstractmethod
     def get_exact_expectation_values(
         self, circuit: Circuit, operator: SymbolicOperator, **kwargs

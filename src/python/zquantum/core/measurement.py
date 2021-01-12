@@ -90,15 +90,18 @@ class ExpectationValues:
     """A class representing expectation values of operators.
 
     Args:
-        values (np.array): The expectation values of a set of operators.
-        pairwise_products (list): The expectation values of pairwise products. Is a list of numpy.array objects.
+        values: The expectation values of a set of operators.
+        correlations: The expectation values of pairwise products of operators.
+            Contains an NxN array for each frame, where N is the number of
+            operators in that frame.
+        covariances: The covariances between estimates of expectation values of
+            pairs of operators. Contains an NxN array for each frame, where N is the number of
+            operators in that frame.
 
     Attributes:
-        values (np.array): The expectation values of a set of operators.
-        correlations (list): The expectation values of pairwise products. Is a list of numpy.array objects, with each
-            array corresponding to a frame. Is None if no correlations are available.
-        covariances (list): The variances and covariances of different frames. Is a list of numpy.array
-            objects, with each array corresponding to a frame. Is None if no covariances are available.
+        values: See Args.
+        correlations: See Args.
+        covariances: See Args.
     """
 
     def __init__(
@@ -527,7 +530,12 @@ class Measurements:
                         * value
                     )
 
-        return ExpectationValues(np.array(expectation_values), [correlations])
+        
+        covariances = correlations / num_measurements
+
+        return ExpectationValues(
+            np.array(expectation_values), [correlations], [covariances]
+        )
 
 
 def concatenate_expectation_values(

@@ -327,9 +327,16 @@ class ControlledGate(SpecializedGate):
         self.control = control
         self.target_gate = target_gate
 
+    def evaluate(self, symbols_map: Dict[str, Any]) -> "Gate":
+        return ControlledGate(self.target_gate.evaluate(symbols_map), self.control)
+
     @property
     def dagger(self) -> "Gate":
         return ControlledGate(self.target_gate.dagger, self.control)
+
+    @property
+    def params(self):
+        return self.target_gate.params
 
     def _create_matrix(self) -> sympy.Matrix:
         target_matrix = self.target_gate.matrix

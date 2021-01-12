@@ -18,6 +18,7 @@ from .measurement import (
     get_expectation_values_from_parities,
     expectation_values_to_real,
     convert_bitstring_to_int,
+    check_parity,
     get_expectation_value_from_frequencies,
     Measurements,
     concatenate_expectation_values,

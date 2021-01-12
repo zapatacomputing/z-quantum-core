@@ -383,8 +383,26 @@ def convert_bitstring_to_int(bitstring: Iterable[int]) -> int:
     return int("".join(str(bit) for bit in bitstring[::-1]), 2)
 
 
+def check_parity(bitstring: str, marked_qubits: Tuple[int]) -> bool:
+    """Determine if the marked qubits have even parity for the given bitstring.
+
+    Args:
+        bitstring: The bitstring.
+        marked_qubits: The qubits whose parity is to be determined.
+
+    Returns:
+        True if an even number of the marked qubits are in the 1 state, False
+            otherwise.
+    """
+    result = True
+    for qubit_index in marked_qubits:
+        if bitstring[qubit_index] == "1":
+            result = not result
+    return result
+
+
 def get_expectation_value_from_frequencies(
-    marked_qubits: Tuple[int], bitstring_frequencies: dict[str, int]
+    marked_qubits: Tuple[int], bitstring_frequencies: Dict[str, int]
 ) -> float:
     """Get the expectation value the product of Z operators on selected qubits
     from bitstring frequencies.

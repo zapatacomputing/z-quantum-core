@@ -514,10 +514,13 @@ class Measurements:
                     value = -float(count) / num_measurements
                 expectation += np.real(coefficient) * value
             expectation_values.append(np.real(expectation))
+        expectation_values = np.array(expectation_values)
 
         correlations = np.zeros((len(ising_operator.terms),) * 2)
         for i, first_term in enumerate(ising_operator.terms):
-            for j, second_term in enumerate(ising_operator.terms):
+            correlations[i, i] = ising_operator.terms[first_term] ** 2
+            for j in range(i):
+                second_term = list(ising_operator.terms.keys())[j]
                 first_term_qubits = set(op[0] for op in first_term)
                 second_term_qubits = set(op[0] for op in second_term)
                 marked_qubits = first_term_qubits.symmetric_difference(
@@ -536,16 +539,16 @@ class Measurements:
                         )
                         * value
                     )
+                correlations[j, i] = correlations[i, j]
 
         denominator = (
             num_measurements - 1 if use_bessel_correction else num_measurements
         )
-        covariances = np.zeros((len(ising_operator.terms),) * 2)
-        for i, first_term in enumerate(ising_operator.terms):
-            for j, second_term in enumerate(ising_operator.terms):
-                covariances[i, j] = (
-                    (correlations[i, j] - expectation_values[i] * expectation_values[j])
-                ) / denominator
+
+        covariances = (
+            correlations
+            - expectation_values[:, np.newaxis] * expectation_values[np.newaxis, :]
+        ) / denominator
 
         return ExpectationValues(
             np.array(expectation_values), [correlations], [covariances]

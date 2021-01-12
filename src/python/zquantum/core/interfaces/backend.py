@@ -1,16 +1,18 @@
+import warnings
+
 from abc import ABC, abstractmethod
+from typing import Optional, List, Iterable
+from openfermion import IsingOperator, SymbolicOperator, QubitOperator
+from pyquil.wavefunction import Wavefunction
+from overrides import overrides
+
 from ..bitstring_distribution import (
     BitstringDistribution,
     create_bitstring_distribution_from_probability_distribution,
 )
 from ..circuit import Circuit, CircuitConnectivity
 from ..measurement import ExpectationValues, Measurements, expectation_values_to_real
-from ..openfermion import expectation
-from typing import Optional, List, Tuple, Iterable
-from openfermion import IsingOperator, SymbolicOperator
-from pyquil.wavefunction import Wavefunction
-from overrides import overrides
-import warnings
+from ..openfermion import expectation, change_operator_type
 
 
 class QuantumBackend(ABC):
@@ -65,7 +67,7 @@ class QuantumBackend(ABC):
             self.number_of_jobs_run += 1
 
     def get_expectation_values(
-        self, circuit: Circuit, operator: IsingOperator, **kwargs
+        self, circuit: Circuit, operator: SymbolicOperator, **kwargs
     ) -> ExpectationValues:
         """
         Executes the circuit and calculates the expectation values for given operator.
@@ -78,6 +80,7 @@ class QuantumBackend(ABC):
             ExpectationValues: object representing expectation values for given operator.
         """
         measurements = self.run_circuit_and_measure(circuit)
+        operator = change_operator_type(operator, IsingOperator)
         expectation_values = measurements.get_expectation_values(operator)
         expectation_values = expectation_values_to_real(expectation_values)
         return expectation_values
@@ -218,7 +221,6 @@ class QuantumSimulator(QuantumBackend):
 
                 return expectation_values_set
 
-    @abstractmethod
     def get_exact_expectation_values(
         self, circuit: Circuit, operator: SymbolicOperator, **kwargs
     ) -> ExpectationValues:
@@ -233,7 +235,11 @@ class QuantumSimulator(QuantumBackend):
             ExpectationValues: object representing expectation values for given operator.
         """
         wavefunction = self.get_wavefunction(circuit)
-        return ExpectationValues(expectation(operator, wavefunction))
+        expectation_values = ExpectationValues(
+            [expectation(term, wavefunction) for term in operator]
+        )
+        expectation_values = expectation_values_to_real(expectation_values)
+        return expectation_values
 
     def get_bitstring_distribution(
         self, circuit: Circuit, **kwargs

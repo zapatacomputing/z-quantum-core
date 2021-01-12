@@ -114,14 +114,15 @@ class QuantumBackendTests:
         number_of_circuits = 25
         # When
         backend.n_samples = n_samples
-        measurements = backend.run_circuitset_and_measure(
+        measurements_set = backend.run_circuitset_and_measure(
             [circuit] * number_of_circuits
         )
 
         # Then (since SPAM error could result in unexpected bitstrings, we make sure the most common bitstring is
         #   the one we expect)
-        counts = measurements.get_counts()
-        assert max(counts, key=counts.get) == "001"
+        for measurements in measurements_set:
+            counts = measurements.get_counts()
+            assert max(counts, key=counts.get) == "001"
         assert backend.number_of_circuits_run == number_of_circuits
 
         if backend.supports_batching:

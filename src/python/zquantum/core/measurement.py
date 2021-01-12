@@ -383,7 +383,7 @@ def convert_bitstring_to_int(bitstring: Iterable[int]) -> int:
     return int("".join(str(bit) for bit in bitstring[::-1]), 2)
 
 
-def check_parity(bitstring: str, marked_qubits: Tuple[int]) -> bool:
+def check_parity(bitstring: Union[str, Tuple[int]], marked_qubits: Tuple[int]) -> bool:
     """Determine if the marked qubits have even parity for the given bitstring.
 
     Args:
@@ -396,7 +396,7 @@ def check_parity(bitstring: str, marked_qubits: Tuple[int]) -> bool:
     """
     result = True
     for qubit_index in marked_qubits:
-        if bitstring[qubit_index] == "1":
+        if bitstring[qubit_index] == "1" or bitstring[qubit_index] == 1:
             result = not result
     return result
 

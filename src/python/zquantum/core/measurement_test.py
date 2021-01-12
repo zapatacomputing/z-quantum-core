@@ -211,6 +211,16 @@ class TestMeasurement(unittest.TestCase):
         bitstring = (0, 1, 0, 1, 0, 1)
         self.assertEqual(convert_bitstring_to_int(bitstring), 42)
 
+    def test_check_parity_odd(self):
+        bitstring = "01001"
+        marked_qubits = (1, 2, 3)
+        self.assertFalse(check_parity(bitstring, marked_qubits))
+
+    def test_check_parity_even(self):
+        bitstring = "01101"
+        marked_qubits = (1, 2, 3)
+        self.assertTrue(check_parity(bitstring, marked_qubits))
+
     def test_get_expectation_value_from_frequencies(self):
         bitstrings = ["001", "001", "110", "000"]
         bitstring_frequencies = dict(Counter(bitstrings))

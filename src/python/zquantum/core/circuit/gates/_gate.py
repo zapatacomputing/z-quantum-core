@@ -352,6 +352,12 @@ class Dagger(SpecializedGate):
         super().__init__(gate.qubits)
         self.gate = gate
 
+    def params(self) -> Tuple[Any, ...]:
+        return self.gate.params
+
+    def evaluate(self, symbols_map: Dict[str, Any]) -> "Gate":
+        return Dagger(self.gate.evaluate(symbols_map))
+
     @property
     def dagger(self) -> "Gate":
         return self.gate

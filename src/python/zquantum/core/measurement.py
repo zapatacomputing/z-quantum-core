@@ -94,9 +94,12 @@ class ExpectationValues:
         correlations: The expectation values of pairwise products of operators.
             Contains an NxN array for each frame, where N is the number of
             operators in that frame.
-        covariances: The covariances between estimates of expectation values of
-            pairs of operators. Contains an NxN array for each frame, where N is the number of
-            operators in that frame.
+        covariances: The (estimated) covariances between estimates of
+            expectation values of pairs of operators. Contains an NxN array for
+            each frame, where N is the number of operators in that frame. Note
+            that for direct sampling, the covariance between estimates of
+            expectation values is equal to the population covariance divided by
+            the number of samples.
 
     Attributes:
         values: See Args.

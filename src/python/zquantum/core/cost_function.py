@@ -128,6 +128,5 @@ class AnsatzBasedCostFunction:
             epsilon=self.epsilon,
             delta=self.delta,
         )
-        precision = None
 
         return sum_expectation_values(expectation_values)

@@ -3,7 +3,8 @@ from .hamiltonian import (
     group_comeasureable_terms_greedy,
     compute_group_variances,
     get_expectation_values_from_rdms,
-    estimate_nmeas,
+    estimate_nmeas_for_operator,
+    estimate_nmeas_for_frames,
     reorder_fermionic_modes,
 )
 from .measurement import ExpectationValues
@@ -369,11 +370,11 @@ def test_compute_group_variances_without_ref(groups, expecval):
         ),
     ],
 )
-def test_estimate_nmeas(
+def test_estimate_nmeas_for_operator(
     target_operator, decomposition_method, expecval, expected_result
 ):
     K2_ref, nterms_ref, frame_meas_ref = expected_result
-    K2, nterms, frame_meas = estimate_nmeas(
+    K2, nterms, frame_meas = estimate_nmeas_for_operator(
         target_operator, decomposition_method, expecval
     )
     assert np.allclose(frame_meas, frame_meas_ref)
@@ -382,7 +383,7 @@ def test_estimate_nmeas(
 
 
 @pytest.mark.parametrize(
-    "operator_list, expecval, expected_result",
+    "frame_operators, expecval, expected_result",
     [
         (
             h2_hamiltonian_grouped,
@@ -404,11 +405,9 @@ def test_estimate_nmeas(
         ),
     ],
 )
-def test_estimate_nmeas_with_groups(operator_list, expecval, expected_result):
+def test_estimate_nmeas_with_groups(frame_operators, expecval, expected_result):
     K2_ref, nterms_ref, frame_meas_ref = expected_result
-    K2, nterms, frame_meas = estimate_nmeas(
-        expecval=expecval, operator_list=operator_list,
-    )
+    K2, nterms, frame_meas = estimate_nmeas_for_frames(frame_operators, expecval)
     assert np.allclose(frame_meas, frame_meas_ref)
     assert math.isclose(K2_ref, K2)
     assert nterms_ref == nterms

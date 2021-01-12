@@ -1,6 +1,6 @@
 from openfermion.ops import QubitOperator, InteractionRDM, InteractionOperator
 import numpy as np
-from typing import Tuple, List, Optional
+from typing import Tuple, List, Optional, Callable
 
 from .measurement import ExpectationValues, expectation_values_to_real
 
@@ -72,6 +72,34 @@ def group_comeasureable_terms_greedy(
             groups.append(QubitOperator(term, qubit_operator.terms[term]))
 
     return groups
+
+
+DECOMPOSITION_METHODS = {
+    "greedy": group_comeasureable_terms_greedy,
+    "greedy-sorted": lambda qubit_operator: group_comeasureable_terms_greedy(
+        qubit_operator, True
+    ),
+}
+
+
+def get_decomposition_function(
+    decomposition_method: str,
+) -> Callable[[QubitOperator], List[QubitOperator]]:
+    """Get a function for Hamiltonian decomposition from its name.
+
+    Args:
+        decomposition_method: The name of the Hamiltonian decomposition method.
+    
+    Returns:
+        A callable that performs the decomposition.
+    """
+
+    decomposition_function = DECOMPOSITION_METHODS.get(decomposition_method)
+    if decomposition_function is None:
+        raise ValueError(
+            f"Unrecognized decomposition method {decomposition_method}. Allowed values are {list(DECOMPOSITION_METHODS.keys())}"
+        )
+    return decomposition_function
 
 
 def compute_group_variances(
@@ -158,15 +186,36 @@ def get_expectation_values_from_rdms(
     return ExpectationValues(expectations)
 
 
-def estimate_nmeas(
-    target_operator: Optional[QubitOperator] = None,
+def estimate_nmeas_for_operator(
+    operator: QubitOperator,
     decomposition_method: Optional[str] = "greedy-sorted",
     expecval: Optional[ExpectationValues] = None,
-    operator_list: Optional[List[QubitOperator]] = None,
+):
+    """Calculates the number of measurements required for computing
+    the expectation value of a qubit hamiltonian, where co-measurable terms
+    are grouped. See estimate_nmeas_for_frames for details.
+
+    Args:
+        operator: The operator whose expectation value is to be estimated.
+        decomposition_method: Method used to decompose the Hamiltonian into
+            co-measurable groups. See DECOMPOSITION_METHODS.
+        expval: Expectation values to be used when accounting for variances. See
+            estimate_nmeas_for_frames for details.
+        
+    Returns:
+        See estimate_nmeas_for_frames.
+    """
+
+    decomposition_function = get_decomposition_function(decomposition_method)
+    return estimate_nmeas_for_frames(decomposition_function(operator), expecval)
+
+
+def estimate_nmeas_for_frames(
+    frame_operators: List[QubitOperator], expecval: Optional[ExpectationValues] = None,
 ) -> Tuple[float, int, np.array]:
     """Calculates the number of measurements required for computing
-        the expectation value of a qubit hamiltonian, where co-measurable terms
-        are grouped. 
+    the expectation value of a qubit hamiltonian, where co-measurable terms
+    are grouped. 
 
     We are assuming the exact expectation values are provided
     (i.e. infinite number of measurements or simulations without noise)
@@ -179,15 +228,9 @@ def estimate_nmeas(
     cov(O_{a}^{i}, O_{b}^{i}) = <O_{a}^{i} O_{b}^{i}> - <O_{a}^{i}> <O_{b}^{i}> = 0
 
     Args:
-        target_operator (Optional): A QubitOperator to measure. One and only one of 
-            target_operator or operator_list must be given.
-        decomposition_method (Optional): A method to group the terms of the QubitOperator 
-            to measure. Possibilities are:
-            - "greedy" groups terms that are mutually qubit-wise commuting with 
-              a greedy algorithm
-            - "greedy-sorted" does the same but sorts the operator terms by decreasing
-              coefficients, so terms with large coefficients are prioritized.
-        expecval (Optional): An ExpectationValues object containing the expectation
+        frame_operators: A list of QubitOperator objects, where each element in
+            the list is a group of co-measurable terms.
+        expecval: An ExpectationValues object containing the expectation
             values of the operators and their squares. Optionally, contains
             values of operator products to compute covariances.
             If absent, covariances are assumed to be 0 and variances are
@@ -197,47 +240,20 @@ def estimate_nmeas(
             NOTE: WE HAVE TO MAKE SURE THAT THE ORDER
             OF EXPECTATION VALUES MATCHES THE ORDER OF THE TERMS IN THE
             TARGET QUBIT OPERATOR, OTHERWISE THIS FUNCTION WILL NOT WORK CORRECTLY
-        operator_list (Optional): A list of QubitOperator, where each element in the list
-            is a group of co-measurable terms. If this is given, decomposition_method 
-            is ignored. One and only one of target_operator or operator_list must be given.
+        
     Returns:
         K2: number of measurements for epsilon = 1.0
         nterms: number of groups of QWC terms in the target_operator
         frame_meas: Number of optimal measurements per group 
     """
-
-    if target_operator is None and operator_list is None:
-        raise ValueError(
-            "target_operator and operator_list arguments are both None, one and only one must be provided"
-        )
-    if target_operator is not None and operator_list is not None:
-        raise ValueError(
-            "target_operator and operator_list arguments are both provided, one and only one must be present"
-        )
-
-    frame_variances = None
-    if target_operator is not None:
-        if decomposition_method == "greedy-sorted":
-            decomposition_function = lambda qubit_operator: group_comeasureable_terms_greedy(
-                qubit_operator, True
-            )
-        elif decomposition_method == "greedy":
-            decomposition_function = lambda qubit_operator: group_comeasureable_terms_greedy(
-                qubit_operator, False
-            )
-        else:
-            raise ValueError(f"{decomposition_method} grouping is not implemented")
-
-        groups = decomposition_function(target_operator)
-    else:
-        groups = operator_list
-    frame_variances = compute_group_variances(groups, expecval)
+    frame_variances = compute_group_variances(frame_operators, expecval)
     sqrt_lambda = sum(np.sqrt(frame_variances))
     frame_meas = sqrt_lambda * np.sqrt(frame_variances)
     K2 = sum(frame_meas)
-    nterms = sum([len(group.terms) for group in groups])
+    nterms = sum([len(group.terms) for group in frame_operators])
 
     return K2, nterms, frame_meas
+
 
 def reorder_fermionic_modes(
     interaction_op: InteractionOperator, ordering: List

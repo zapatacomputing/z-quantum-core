@@ -474,12 +474,16 @@ class Measurements:
         return BitstringDistribution(distribution)
 
     def get_expectation_values(
-        self, ising_operator: IsingOperator
+        self, ising_operator: IsingOperator, use_bessel_correction: bool = True
     ) -> ExpectationValues:
         """Get the expectation values of an operator from the measurements.
 
         Args:
-            ising_operator (openfermion.ops.IsingOperator): the operator
+            ising_operator: the operator
+            use_bessel_correction: Whether to use Bessel's correction when
+                when estimating the covariance of operators. Using the
+                correction provides an unbiased estimate for covariances, but
+                diverges when only one sample is taken.
 
         Returns:
             zquantum.core.measurement.ExpectationValues: the expectation values of each term in the operator
@@ -530,8 +534,15 @@ class Measurements:
                         * value
                     )
 
-        
-        covariances = correlations / num_measurements
+        denominator = (
+            num_measurements - 1 if use_bessel_correction else num_measurements
+        )
+        covariances = np.zeros((len(ising_operator.terms),) * 2)
+        for i, first_term in enumerate(ising_operator.terms):
+            for j, second_term in enumerate(ising_operator.terms):
+                covariances[i, j] = (
+                    (correlations[i, j] - expectation_values[i] * expectation_values[j])
+                ) / denominator
 
         return ExpectationValues(
             np.array(expectation_values), [correlations], [covariances]

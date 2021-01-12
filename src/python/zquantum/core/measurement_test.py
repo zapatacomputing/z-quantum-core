@@ -587,8 +587,28 @@ class TestMeasurement(unittest.TestCase):
         ising_operator = IsingOperator("10[] + [Z0 Z1] - 10[Z1 Z2]")
         target_expectation_values = np.array([10, 0.2, -2])
         target_correlations = np.array([[100, 2, -20], [2, 1, -10], [-20, -10, 100]])
+        denominator = len(measurements.bitstrings)
+        covariance_11 = (
+            target_correlations[1, 1] - target_expectation_values[1] ** 2
+        ) / denominator
+        covariance_12 = (
+            target_correlations[1, 2]
+            - target_expectation_values[1] * target_expectation_values[2]
+        ) / denominator
+        covariance_22 = (
+            target_correlations[2, 2] - target_expectation_values[2] ** 2
+        ) / denominator
+
+        target_covariances = np.array(
+            [
+                [0, 0, 0],
+                [0, covariance_11, covariance_12],
+                [0, covariance_12, covariance_22],
+            ]
+        )
+
         # When
-        expectation_values = measurements.get_expectation_values(ising_operator)
+        expectation_values = measurements.get_expectation_values(ising_operator, False)
         # Then
         np.testing.assert_array_equal(
             expectation_values.values, target_expectation_values
@@ -596,6 +616,53 @@ class TestMeasurement(unittest.TestCase):
         self.assertEqual(len(expectation_values.correlations), 1)
         np.testing.assert_array_equal(
             expectation_values.correlations[0], target_correlations
+        )
+        self.assertEqual(len(expectation_values.covariances), 1)
+        np.testing.assert_array_equal(
+            expectation_values.covariances[0], target_covariances
+        )
+
+    def test_get_expectation_values_from_measurements_with_bessel_correction(self):
+        # Given
+        measurements = Measurements(
+            [(0, 1, 0), (0, 1, 0), (0, 0, 0), (0, 0, 0), (1, 1, 1)]
+        )
+        ising_operator = IsingOperator("10[] + [Z0 Z1] - 10[Z1 Z2]")
+        target_expectation_values = np.array([10, 0.2, -2])
+        target_correlations = np.array([[100, 2, -20], [2, 1, -10], [-20, -10, 100]])
+        denominator = len(measurements.bitstrings) - 1
+        covariance_11 = (
+            target_correlations[1, 1] - target_expectation_values[1] ** 2
+        ) / denominator
+        covariance_12 = (
+            target_correlations[1, 2]
+            - target_expectation_values[1] * target_expectation_values[2]
+        ) / denominator
+        covariance_22 = (
+            target_correlations[2, 2] - target_expectation_values[2] ** 2
+        ) / denominator
+
+        target_covariances = np.array(
+            [
+                [0, 0, 0],
+                [0, covariance_11, covariance_12],
+                [0, covariance_12, covariance_22],
+            ]
+        )
+
+        # When
+        expectation_values = measurements.get_expectation_values(ising_operator, True)
+        # Then
+        np.testing.assert_array_equal(
+            expectation_values.values, target_expectation_values
+        )
+        self.assertEqual(len(expectation_values.correlations), 1)
+        np.testing.assert_array_equal(
+            expectation_values.correlations[0], target_correlations
+        )
+        self.assertEqual(len(expectation_values.covariances), 1)
+        np.testing.assert_array_equal(
+            expectation_values.covariances[0], target_covariances
         )
 
     def test_concatenate_expectation_values(self):

@@ -76,9 +76,6 @@ class I(HermitianMixin, SingleQubitGate):
 class PHASE(SingleQubitRotationGate):
     """Quantum Phase gate."""
 
-    def __init__(self, qubit: int, angle: Union[float, sympy.Symbol]):
-        super().__init__(qubit, angle)
-
     def _create_matrix(self) -> sympy.Matrix:
         return sympy.Matrix(
             [

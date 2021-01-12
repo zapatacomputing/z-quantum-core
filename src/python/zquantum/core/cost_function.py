@@ -38,11 +38,11 @@ def sum_expectation_values(expectation_values: ExpectationValues) -> ValueEstima
 
     precision = None
 
-    if expectation_values.covariances:
-        variance = 0
-        for frame_covariance in expectation_values.covariances:
-            variance += np.sum(frame_covariance, (0, 1))
-        precision = np.sqrt(variance)
+    if expectation_values.estimator_covariances:
+        estimator_variance = 0
+        for frame_covariance in expectation_values.estimator_covariances:
+            estimator_variance += np.sum(frame_covariance, (0, 1))
+        precision = np.sqrt(estimator_variance)
     return ValueEstimate(value, precision)
 
 

@@ -94,7 +94,7 @@ class ExpectationValues:
         correlations: The expectation values of pairwise products of operators.
             Contains an NxN array for each frame, where N is the number of
             operators in that frame.
-        covariances: The (estimated) covariances between estimates of
+        estimator_covariances: The (estimated) covariances between estimates of
             expectation values of pairs of operators. Contains an NxN array for
             each frame, where N is the number of operators in that frame. Note
             that for direct sampling, the covariance between estimates of
@@ -104,18 +104,18 @@ class ExpectationValues:
     Attributes:
         values: See Args.
         correlations: See Args.
-        covariances: See Args.
+        estimator_covariances: See Args.
     """
 
     def __init__(
         self,
         values: np.ndarray,
         correlations: Optional[List[np.ndarray]] = None,
-        covariances: Optional[List[np.ndarray]] = None,
+        estimator_covariances: Optional[List[np.ndarray]] = None,
     ):
         self.values = values
         self.correlations = correlations
-        self.covariances = covariances
+        self.estimator_covariances = estimator_covariances
 
     def to_dict(self) -> dict:
         """Convert to a dictionary"""
@@ -132,10 +132,12 @@ class ExpectationValues:
             for correlation_matrix in self.correlations:
                 data["correlations"].append(convert_array_to_dict(correlation_matrix))
 
-        if self.covariances:
-            data["covariances"] = []
-            for covariance_matrix in self.covariances:
-                data["covariances"].append(convert_array_to_dict(covariance_matrix))
+        if self.estimator_covariances:
+            data["estimator_covariances"] = []
+            for covariance_matrix in self.estimator_covariances:
+                data["estimator_covariances"].append(
+                    convert_array_to_dict(covariance_matrix)
+                )
 
         return data
 
@@ -150,13 +152,13 @@ class ExpectationValues:
             for correlation_matrx in dictionary.get("correlations"):
                 correlations.append(convert_dict_to_array(correlation_matrx))
 
-        covariances = None
-        if dictionary.get("covariances"):
-            covariances = []
-            for covariance_matrix in dictionary.get("covariances"):
-                covariances.append(convert_dict_to_array(covariance_matrix))
+        estimator_covariances = None
+        if dictionary.get("estimator_covariances"):
+            estimator_covariances = []
+            for covariance_matrix in dictionary.get("estimator_covariances"):
+                estimator_covariances.append(convert_dict_to_array(covariance_matrix))
 
-        return cls(expectation_values, correlations, covariances)
+        return cls(expectation_values, correlations, estimator_covariances)
 
 
 def sample_from_wavefunction(
@@ -266,7 +268,7 @@ def get_expectation_values_from_parities(parities: Parities) -> ExpectationValue
         A zquantum.core.measurement.ExpectationValues object: Contains the expectation values of the operators and the associated precisions.
     """
     values = []
-    covariances = []
+    estimator_covariances = []
 
     for i in range(len(parities.values)):
         N0 = parities.values[i][0]
@@ -288,9 +290,11 @@ def get_expectation_values_from_parities(parities: Parities) -> ExpectationValue
             precision = 1.0 / np.sqrt(N)
 
         values.append(value)
-        covariances.append(np.array([[precision ** 2.0]]))
+        estimator_covariances.append(np.array([[precision ** 2.0]]))
 
-    return ExpectationValues(values=np.array(values), covariances=covariances)
+    return ExpectationValues(
+        values=np.array(values), estimator_covariances=estimator_covariances
+    )
 
 
 def get_parities_from_measurements(
@@ -561,13 +565,13 @@ class Measurements:
             num_measurements - 1 if use_bessel_correction else num_measurements
         )
 
-        covariances = (
+        estimator_covariances = (
             correlations
             - expectation_values[:, np.newaxis] * expectation_values[np.newaxis, :]
         ) / denominator
 
         return ExpectationValues(
-            np.array(expectation_values), [correlations], [covariances]
+            np.array(expectation_values), [correlations], [estimator_covariances]
         )
 
 
@@ -593,9 +597,11 @@ def concatenate_expectation_values(
             if not combined_expectation_values.correlations:
                 combined_expectation_values.correlations = []
             combined_expectation_values.correlations += expectation_values.correlations
-        if expectation_values.covariances:
-            if not combined_expectation_values.covariances:
-                combined_expectation_values.covariances = []
-            combined_expectation_values.covariances += expectation_values.covariances
+        if expectation_values.estimator_covariances:
+            if not combined_expectation_values.estimator_covariances:
+                combined_expectation_values.estimator_covariances = []
+            combined_expectation_values.estimator_covariances += (
+                expectation_values.estimator_covariances
+            )
 
     return combined_expectation_values

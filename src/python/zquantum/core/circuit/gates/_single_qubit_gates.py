@@ -20,6 +20,19 @@ class SingleQubitGate(SpecializedGate, ABC):
         super().__init__((qubit,))
 
 
+class SingleQubitRotationGate(SingleQubitGate, ABC):
+
+    def __init__(
+        self, qubit: int, angle: Union[float, sympy.Symbol] = sympy.Symbol("theta")
+    ):
+        super().__init__(qubit)
+        self.angle = angle
+
+    @property
+    def params(self) -> Tuple[Any, ...]:
+        return (self.angle,)
+
+
 class X(HermitianMixin, SingleQubitGate):
     """Quantum X gate."""
 
@@ -60,12 +73,11 @@ class I(HermitianMixin, SingleQubitGate):
         return sympy.Matrix([[1, 0], [0, 1]])
 
 
-class PHASE(SingleQubitGate):
+class PHASE(SingleQubitRotationGate):
     """Quantum Phase gate."""
 
     def __init__(self, qubit: int, angle: Union[float, sympy.Symbol]):
-        self.angle = angle
-        super().__init__(qubit)
+        super().__init__(qubit, angle)
 
     def _create_matrix(self) -> sympy.Matrix:
         return sympy.Matrix(
@@ -86,19 +98,6 @@ class T(SingleQubitGate):
                 [0, sympy.exp(1j * np.pi / 4)],
             ]
         )
-
-
-class SingleQubitRotationGate(SingleQubitGate, ABC):
-
-    def __init__(
-        self, qubit: int, angle: Union[float, sympy.Symbol] = sympy.Symbol("theta")
-    ):
-        super().__init__(qubit)
-        self.angle = angle
-
-    @property
-    def params(self) -> Tuple[Any, ...]:
-        return (self.angle,)
 
 
 class RX(SingleQubitRotationGate):

@@ -4,9 +4,10 @@ from ..bitstring_distribution import (
     create_bitstring_distribution_from_probability_distribution,
 )
 from ..circuit import Circuit, CircuitConnectivity
-from ..measurement import ExpectationValues, Measurements
+from ..measurement import ExpectationValues, Measurements, expectation_values_to_real
+from ..openfermion import expectation
 from typing import Optional, List, Tuple, Iterable
-from openfermion import QubitOperator
+from openfermion import IsingOperator, SymbolicOperator
 from pyquil.wavefunction import Wavefunction
 
 
@@ -19,11 +20,15 @@ class QuantumBackend(ABC):
 
     """
 
+    supports_batching = False
+
     def __init__(self, n_samples: Optional[int] = None):
         self.n_samples = n_samples
+        self.number_of_circuits_run = 0
+        self.number_of_jobs_run = 0
 
     @abstractmethod
-    def run_circuit_and_measure(self, circuit: Circuit, **kwargs) -> List[Tuple]:
+    def run_circuit_and_measure(self, circuit: Circuit, **kwargs) -> Measurements:
         """
         Method for executing the circuit and measuring the outcome.
         Args:
@@ -31,7 +36,8 @@ class QuantumBackend(ABC):
         Returns:
             core.measurement.Measurements: object representing the measurements resulting from the circuit
         """
-        raise NotImplementedError
+        self.number_of_circuits_run += 1
+        self.number_of_jobs_run += 1
 
     def run_circuitset_and_measure(
         self, circuit_set: Iterable[Circuit], **kwargs
@@ -47,46 +53,64 @@ class QuantumBackend(ABC):
         Returns:
             Measurements for each circuit.
         """
-        measurement_set = []
-        for circuit in circuit_set:
-            measurement_set.append(self.run_circuit_and_measure(circuit), **kwargs)
-        return measurement_set
+        if not self.supports_batching:
+            measurement_set = []
+            for circuit in circuit_set:
+                measurement_set.append(self.run_circuit_and_measure(circuit), **kwargs)
+            return measurement_set
+        else:
+            self.number_of_circuits_run += len(circuit_set)
+            self.number_of_jobs_run += 1
 
     def get_expectation_values(
-        self, circuit: Circuit, qubit_operator: QubitOperator, **kwargs
+        self, circuit: Circuit, operator: IsingOperator, **kwargs
     ) -> ExpectationValues:
         """
         Executes the circuit and calculates the expectation values for given operator.
 
         Args:
             circuit (core.circuit.Circuit): quantum circuit to be executed.
-            qubit_operator(openfermion): Operator for which we calculate the expectation value.
+            operator(openfermion.IsingOperator): Operator for which we calculate the expectation value.
 
         Returns:
             ExpectationValues: object representing expectation values for given operator.
         """
-        raise NotImplementedError
+        measurements = self.run_circuit_and_measure(circuit)
+        expectation_values = measurements.get_expectation_values(operator)
+        expectation_values = expectation_values_to_real(expectation_values)
+        return expectation_values
 
     def get_expectation_values_for_circuitset(
-        self, circuitset: List[Circuit], qubit_operator: QubitOperator, **kwargs
-    ) -> [ExpectationValues]:
+        self, circuitset: List[Circuit], operator: IsingOperator, **kwargs
+    ) -> List[ExpectationValues]:
         """
         Calculates the expectation values for given operator, based on the exact quantum state 
         produced by a set of circuits.
 
         Args:
             circuitset ([core.circuit.Circuit]): quantum circuits to be executed.
-            qubit_operator(openfermion): Operator for which we calculate the expectation value.
+            operator(openfermion.IsingOperator): Operator for which we calculate the expectation value.
 
         Returns:
-            [ExpectationValues]: list of objects representing expectation values for given operator.
+            List[ExpectationValues]: list of objects representing expectation values for given operator.
         """
-        expectation_values = []
-        for circuit in circuitset:
-            expectation_values.append(
-                self.get_expectation_values(circuit, qubit_operator, **kwargs)
-            )
-        return expectation_values
+        if not self.supports_batching:
+            expectation_values_set = []
+            for circuit in circuitset:
+                expectation_values_set.append(
+                    self.get_expectation_values(circuit, operator, **kwargs)
+                )
+            return expectation_values_set
+        else:
+            measurements_set = self.run_circuitset_and_measure(circuitset)
+
+            expectation_values_set = []
+            for measurements in measurements_set:
+                expectation_values = measurements.get_expectation_values(operator)
+                expectation_values = expectation_values_to_real(expectation_values)
+                expectation_values_set.append(expectation_values)
+
+            return expectation_values_set
 
     def get_bitstring_distribution(
         self, circuit: Circuit, **kwargs
@@ -114,7 +138,7 @@ class QuantumSimulator(QuantumBackend):
         noise_model: Optional = None,
         device_connectivity: Optional[CircuitConnectivity] = None,
     ):
-        self.n_samples = n_samples
+        super().__init__(n_samples)
 
     @abstractmethod
     def get_wavefunction(self, circuit: Circuit, **kwargs) -> Wavefunction:
@@ -128,25 +152,25 @@ class QuantumSimulator(QuantumBackend):
             pyquil.Wafefunction: wavefunction object.
 
         """
-
-        raise NotImplementedError
+        self.number_of_circuits_run += 1
+        self.number_of_jobs_run += 1
 
     @abstractmethod
     def get_exact_expectation_values(
-        self, circuit: Circuit, qubit_operator: QubitOperator, **kwargs
+        self, circuit: Circuit, operator: SymbolicOperator, **kwargs
     ) -> ExpectationValues:
         """
         Calculates the expectation values for given operator, based on the exact quantum state produced by circuit.
 
         Args:
             circuit (core.circuit.Circuit): quantum circuit to be executed.
-            qubit_operator(openfermion): Operator for which we calculate the expectation value.
+            operator(openfermion): Operator for which we calculate the expectation value.
 
         Returns:
             ExpectationValues: object representing expectation values for given operator.
         """
-
-        raise NotImplementedError
+        wavefunction = self.get_wavefunction(circuit)
+        return ExpectationValues(expectation(operator, wavefunction))
 
     def get_bitstring_distribution(
         self, circuit: Circuit, **kwargs

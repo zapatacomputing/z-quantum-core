@@ -18,6 +18,7 @@ from .measurement import (
     get_expectation_values_from_parities,
     expectation_values_to_real,
     convert_bitstring_to_int,
+    get_expectation_value_from_frequencies,
     Measurements,
     concatenate_expectation_values,
 )
@@ -208,6 +209,17 @@ class TestMeasurement(unittest.TestCase):
     def test_convert_bitstring_to_int(self):
         bitstring = (0, 1, 0, 1, 0, 1)
         self.assertEqual(convert_bitstring_to_int(bitstring), 42)
+
+    def test_get_expectation_value_from_frequencies(self):
+        bitstrings = ['001', '001', '110', '000']
+        bitstring_frequencies = dict(Counter(bitstrings))
+        marked_qubits = (1, 2)
+        self.assertAlmostEqual(
+            get_expectation_value_from_frequencies(
+                marked_qubits, bitstring_frequencies
+            ),
+            -0.5,
+        )
 
     def test_measurement_class_io(self):
         # Given

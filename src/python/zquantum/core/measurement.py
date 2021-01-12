@@ -379,6 +379,33 @@ def convert_bitstring_to_int(bitstring: Iterable[int]) -> int:
     return int("".join(str(bit) for bit in bitstring[::-1]), 2)
 
 
+def get_expectation_value_from_frequencies(
+    marked_qubits: Tuple[int], bitstring_frequencies: dict[str, int]
+) -> float:
+    """Get the expectation value the product of Z operators on selected qubits
+    from bitstring frequencies.
+
+    Args:
+        marked_qubits: The qubits that the Z operators act on.
+        bitstring_frequences: The frequencies of the bitstrings.
+
+    Returns:
+        The expectation value of the product of Z operators on selected qubits.
+    """
+
+    expectation = 0
+    num_measurements = sum(bitstring_frequencies.values())
+    for bitstring, count in bitstring_frequencies.items():
+        bitstring_int = convert_bitstring_to_int(bitstring)
+        if parity_even_p(bitstring_int, marked_qubits):
+            value = float(count) / num_measurements
+        else:
+            value = -float(count) / num_measurements
+        expectation += value
+
+    return expectation
+
+
 class Measurements:
     """A class representing measurements from a quantum circuit. The bitstrings variable represents the internal
     data structure of the Measurements class. It is expressed as a list of tuples wherein each tuple is a measurement
@@ -502,18 +529,13 @@ class Measurements:
         num_measurements = len(self.bitstrings)
 
         # Perform weighted average
-        expectation_values = []
-        for term, coefficient in ising_operator.terms.items():
-            expectation = 0
-            marked_qubits = [op[0] for op in term]
-            for bitstring, count in bitstring_frequencies.items():
-                bitstring_int = convert_bitstring_to_int(bitstring)
-                if parity_even_p(bitstring_int, marked_qubits):
-                    value = float(count) / num_measurements
-                else:
-                    value = -float(count) / num_measurements
-                expectation += np.real(coefficient) * value
-            expectation_values.append(np.real(expectation))
+        expectation_values = [
+            coefficient
+            * get_expectation_value_from_frequencies(
+                [op[0] for op in term], bitstring_frequencies
+            )
+            for term, coefficient in ising_operator.terms.items()
+        ]
         expectation_values = np.array(expectation_values)
 
         correlations = np.zeros((len(ising_operator.terms),) * 2)
@@ -526,19 +548,13 @@ class Measurements:
                 marked_qubits = first_term_qubits.symmetric_difference(
                     second_term_qubits
                 )
-                for bitstring, count in bitstring_frequencies.items():
-                    bitstring_int = convert_bitstring_to_int(bitstring)
-                    if parity_even_p(bitstring_int, marked_qubits):
-                        value = float(count) / num_measurements
-                    else:
-                        value = -float(count) / num_measurements
-                    correlations[i, j] += (
-                        np.real(
-                            ising_operator.terms[first_term]
-                            * ising_operator.terms[second_term]
-                        )
-                        * value
+                correlations[i, j] = (
+                    ising_operator.terms[first_term]
+                    * ising_operator.terms[second_term]
+                    * get_expectation_value_from_frequencies(
+                        marked_qubits, bitstring_frequencies
                     )
+                )
                 correlations[j, i] = correlations[i, j]
 
         denominator = (

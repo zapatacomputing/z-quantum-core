@@ -1,6 +1,23 @@
+from abc import ABC
 from typing import Tuple, Union
 import sympy
 from . import SpecializedGate, X, Z, PHASE, ControlledGate, HermitianMixin
+
+
+class TwoQubitRotationGate(SpecializedGate, ABC):
+
+    def __init__(
+        self,
+        first_qubit: int,
+        second_qubit: int,
+        angle: Union[float, sympy.Symbol] = sympy.Symbol("theta")
+    ):
+        super().__init__((first_qubit, second_qubit))
+        self.angle = angle
+
+    @property
+    def params(self):
+        return (self.angle,)
 
 
 class CNOT(HermitianMixin, ControlledGate):
@@ -40,22 +57,6 @@ class SWAP(HermitianMixin, SpecializedGate):
         return sympy.Matrix([[1, 0, 0, 0], [0, 0, 1, 0], [0, 1, 0, 0], [0, 0, 0, 1]])
 
 
-class TwoQubitRotationGate:
-
-    def __init__(
-        self,
-        first_qubit: int,
-        second_qubit: int,
-        angle: Union[float, sympy.Symbol] = sympy.Symbol("theta")
-    ):
-        super().__init__((first_qubit, second_qubit))
-        self.angle = angle
-
-    @property
-    def params(self):
-        return (self.angle,)
-
-
 class XX(TwoQubitRotationGate):
     """Quantum XX gate."""
 
@@ -84,7 +85,7 @@ class YY(TwoQubitRotationGate):
         )
 
 
-class ZZ(SpecializedGate):
+class ZZ(TwoQubitRotationGate):
     """Quantum ZZ gate"""
 
     def _create_matrix(self) -> sympy.Matrix:

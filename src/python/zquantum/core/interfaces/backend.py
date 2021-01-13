@@ -2,7 +2,7 @@ import warnings
 
 from abc import ABC, abstractmethod
 from typing import Optional, List, Iterable
-from openfermion import IsingOperator, SymbolicOperator, QubitOperator
+from openfermion import IsingOperator, SymbolicOperator
 from pyquil.wavefunction import Wavefunction
 from overrides import overrides
 
@@ -74,7 +74,7 @@ class QuantumBackend(ABC):
 
         Args:
             circuit (core.circuit.Circuit): quantum circuit to be executed.
-            operator(openfermion.IsingOperator): Operator for which we calculate the expectation value.
+            operator(openfermion.SymbolicOperator): Operator for which we calculate the expectation value.
 
         Returns:
             ExpectationValues: object representing expectation values for given operator.
@@ -86,7 +86,7 @@ class QuantumBackend(ABC):
         return expectation_values
 
     def get_expectation_values_for_circuitset(
-        self, circuitset: List[Circuit], operator: IsingOperator, **kwargs
+        self, circuitset: List[Circuit], operator: SymbolicOperator, **kwargs
     ) -> List[ExpectationValues]:
         """
         Calculates the expectation values for given operator, based on the exact quantum state
@@ -94,7 +94,7 @@ class QuantumBackend(ABC):
 
         Args:
             circuitset ([core.circuit.Circuit]): quantum circuits to be executed.
-            operator(openfermion.IsingOperator): Operator for which we calculate the expectation value.
+            operator(openfermion.SymbolicOperator): Operator for which we calculate the expectation value.
 
         Returns:
             List[ExpectationValues]: list of objects representing expectation values for given operator.
@@ -229,7 +229,7 @@ class QuantumSimulator(QuantumBackend):
 
         Args:
             circuit (core.circuit.Circuit): quantum circuit to be executed.
-            operator(openfermion): Operator for which we calculate the expectation value.
+            operator(openfermion.SymbolicOperator): Operator for which we calculate the expectation value.
 
         Returns:
             ExpectationValues: object representing expectation values for given operator.

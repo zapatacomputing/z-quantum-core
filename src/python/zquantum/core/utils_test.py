@@ -280,8 +280,6 @@ class TestUtils(unittest.TestCase):
         self.assertListEqual(frame_meas.tolist(), frame_meas_.tolist())
         os.remove("hamiltonian_analysis.json")
 
-        os.remove("timing.json")
-
 
 def test_arithmetic_on_value_estimate_and_float_gives_the_same_result_as_arithmetic_on_two_floats():
     value = 5.1

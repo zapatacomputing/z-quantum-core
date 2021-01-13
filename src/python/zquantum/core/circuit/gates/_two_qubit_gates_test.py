@@ -1,9 +1,10 @@
 """Test cases for two qubit gates."""
+import numpy as np
 import pytest
 import sympy
 
 from . import CustomGate
-from ._two_qubit_gates import XX, YY, ZZ
+from ._two_qubit_gates import XX, YY, ZZ, SWAP, CNOT, CZ, CPHASE
 
 
 @pytest.mark.parametrize(
@@ -28,9 +29,7 @@ from ._two_qubit_gates import XX, YY, ZZ
 def test_XX_matrix_is_correct_for_characteristic_values_of_angle(
     angle, expected_matrix
 ):
-    assert XX(qubits=(0, 1), angle=angle) == CustomGate(
-        matrix=expected_matrix, qubits=(0, 1)
-    )
+    assert XX(0, 1, angle=angle) == CustomGate(matrix=expected_matrix, qubits=(0, 1))
 
 
 @pytest.mark.parametrize(
@@ -53,9 +52,7 @@ def test_XX_matrix_is_correct_for_characteristic_values_of_angle(
 def test_YY_matrix_is_correct_for_characteristic_values_of_angle(
     angle, expected_matrix
 ):
-    assert YY(qubits=(0, 1), angle=angle) == CustomGate(
-        matrix=expected_matrix, qubits=(0, 1)
-    )
+    assert YY(0, 1, angle=angle) == CustomGate(matrix=expected_matrix, qubits=(0, 1))
 
 
 @pytest.mark.parametrize(
@@ -88,6 +85,15 @@ def test_YY_matrix_is_correct_for_characteristic_values_of_angle(
 def test_ZZ_matrix_is_correct_for_characteristic_values_of_angle(
     angle, expected_matrix
 ):
-    assert ZZ(qubits=(0, 1), angle=angle) == CustomGate(
-        matrix=expected_matrix, qubits=(0, 1)
-    )
+    assert ZZ(0, 1, angle=angle) == CustomGate(matrix=expected_matrix, qubits=(0, 1))
+
+
+@pytest.mark.parametrize("gate_cls", [SWAP, CZ, CNOT])
+def test_nonparametric_two_qubit_gates_have_no_params(gate_cls):
+    assert gate_cls(0, 3).params == ()
+
+
+@pytest.mark.parametrize("gate_cls", [XX, YY, ZZ, CPHASE])
+@pytest.mark.parametrize("angle", [sympy.Symbol("alpha"), np.pi / 2])
+def test_rotation_gates_have_a_single_parameter_equal_to_their_angle(gate_cls, angle):
+    assert gate_cls(1, 4, angle).params == (angle,)

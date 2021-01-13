@@ -9,6 +9,15 @@ from typing import Tuple, Union, Dict, TextIO, Set, Any, Optional
 from ...utils import SCHEMA_VERSION
 
 
+def _evaluate_parameter(param, symbol_map):
+    if isinstance(param, sympy.Symbol):
+        return symbol_map.get(param, param)
+    elif isinstance(param, sympy.Expr):
+        return param.subs(symbol_map)
+    else:
+        return param
+
+
 class Gate(ABC):
     """Base class for quantum Gates.
 
@@ -29,6 +38,10 @@ class Gate(ABC):
     def matrix(self) -> sympy.Matrix:
         """Matrix representation of this gate."""
         ...
+
+    @property
+    def params(self) -> Tuple[Any, ...]:
+        return ()
 
     @property
     def symbolic_params(self) -> Set[str]:
@@ -204,13 +217,51 @@ class Gate(ABC):
         return Dagger(self)
 
     def evaluate(self, symbols_map: Dict[str, Any]) -> "Gate":
+        new_params = [_evaluate_parameter(param, symbols_map) for param in self.params]
+        return type(self)(*self.qubits, *new_params)
+
+
+class CustomGate(Gate):
+    """Gate class with custom matrix."""
+
+    def __init__(
+        self, matrix: sympy.Matrix, qubits: Tuple[int, ...], name: Optional[str] = None
+    ):
+        """Initialize a gate
+
+        Args:
+            matrix (sympy.Matrix): See class definition
+            qubits (tuple(int)): See class definition
+        """
+        if not self.is_valid_operator(matrix, qubits):
+            raise ValueError(
+                f"Passed matrix has shape {matrix.shape} and cannot act on "
+                f"{len(qubits)} qubits."
+            )
+
+        super().__init__(qubits)
+        copied_matrix = copy.deepcopy(matrix)
+
+        self.name = name if name is not None else str(matrix)
+
+        for index, element in enumerate(copied_matrix):
+            copied_matrix[index] = element.evalf()
+
+        self._matrix = copied_matrix
+
+    @property
+    def matrix(self) -> sympy.Matrix:
+        """Matrix representation of this gate."""
+        return self._matrix
+
+    def evaluate(self, symbols_map: Dict[str, Any]) -> "Gate":
         """Return a copy of self with symbolic parameters substituted according to provided map.
 
         Args:
             symbols_map (Dict): A map of the symbols/gate parameters to new values
 
         Returns:
-            A copy of self with the same matrix, but every symbolic param sin the map is
+            A copy of self with the same matrix, but every symbolic param in the map is
             substituted with corresponding value.
         """
         if not self.is_parameterized:
@@ -244,38 +295,6 @@ class Gate(ABC):
         evaluated_gate = CustomGate(evaluated_matrix, self.qubits)
         return evaluated_gate
 
-
-class CustomGate(Gate):
-    """Gate class with custom matrix."""
-
-    def __init__(self, matrix: sympy.Matrix, qubits: Tuple[int, ...], name: Optional[str] = None):
-        """Initialize a gate
-
-        Args:
-            matrix (sympy.Matrix): See class definition
-            qubits (tuple(int)): See class definition
-        """
-        if not self.is_valid_operator(matrix, qubits):
-            raise ValueError(
-                f"Passed matrix has shape {matrix.shape} and cannot act on "
-                f"{len(qubits)} qubits."
-            )
-
-        super().__init__(qubits)
-        copied_matrix = copy.deepcopy(matrix)
-
-        self.name = name if name is not None else str(matrix)
-
-        for index, element in enumerate(copied_matrix):
-            copied_matrix[index] = element.evalf()
-
-        self._matrix = copied_matrix
-
-    @property
-    def matrix(self) -> sympy.Matrix:
-        """Matrix representation of this gate."""
-        return self._matrix
-
     def __repr__(self) -> str:
         return f"zquantum.core.circuit.gate.CustomGate(matrix={self.matrix}, qubits={self.qubits})"
 
@@ -307,23 +326,32 @@ class ControlledGate(SpecializedGate):
         self.control = control
         self.target_gate = target_gate
 
+    def evaluate(self, symbols_map: Dict[str, Any]) -> "Gate":
+        return ControlledGate(self.target_gate.evaluate(symbols_map), self.control)
+
     @property
     def dagger(self) -> "Gate":
         return ControlledGate(self.target_gate.dagger, self.control)
 
+    @property
+    def params(self):
+        return self.target_gate.params
+
     def _create_matrix(self) -> sympy.Matrix:
         target_matrix = self.target_gate.matrix
-        return sympy.Matrix.diag(
-            sympy.eye(target_matrix.shape[0]),
-            target_matrix
-        )
+        return sympy.Matrix.diag(sympy.eye(target_matrix.shape[0]), target_matrix)
 
 
 class Dagger(SpecializedGate):
-
     def __init__(self, gate: Gate):
         super().__init__(gate.qubits)
         self.gate = gate
+
+    def params(self) -> Tuple[Any, ...]:
+        return self.gate.params
+
+    def evaluate(self, symbols_map: Dict[str, Any]) -> "Gate":
+        return Dagger(self.gate.evaluate(symbols_map))
 
     @property
     def dagger(self) -> "Gate":
@@ -334,7 +362,7 @@ class Dagger(SpecializedGate):
 
 
 class HermitianMixin:
-    """At this to inheritance hierarchy of your class to make dagger behave as identity."""
+    """Add this to inheritance hierarchy of your class to make dagger behave as identity."""
 
     @property
     def dagger(self):

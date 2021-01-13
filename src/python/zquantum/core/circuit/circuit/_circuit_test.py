@@ -571,6 +571,7 @@ def test_circuit_evaluate_with_all_params_specified():
     assert evaluated_circuit == target_circuit
 
 
+@pytest.mark.xfail
 def test_circuit_evaluate_with_too_many_params_specified():
     # Given
     symbols_map = {"theta_0": 0.5, "theta_1": 0.6, "theta_2": 0.7}

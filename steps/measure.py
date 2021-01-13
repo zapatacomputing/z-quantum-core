@@ -1,7 +1,7 @@
 import json
 from zquantum.core.utils import create_object, load_noise_model, save_value_estimate, save_nmeas_estimate
 from zquantum.core.measurement import load_expectation_values, save_expectation_values
-from zquantum.core.hamiltonian import estimate_nmeas, get_expectation_values_from_rdms
+from zquantum.core.hamiltonian import estimate_nmeas_for_operator, get_expectation_values_from_rdms
 from zquantum.core.circuit import (
     load_circuit,
     load_circuit_connectivity,
@@ -106,14 +106,12 @@ def hamiltonian_analysis(
     expectation_values: str = "None",
 ):
     operator = load_qubit_operator(qubit_operator)
-    if decomposition_method != "greedy-sorted" and decomposition_method != "greedy":
-        raise ValueError(f'Decomposition method {decomposition_method} is not supported')
     if expectation_values != "None":
         expecval = load_expectation_values(expectation_values)
     else:
         expecval = None
 
-    K_coeff, nterms, frame_meas = estimate_nmeas(operator, decomposition_method, expecval)
+    K_coeff, nterms, frame_meas = estimate_nmeas_for_operator(operator, decomposition_method, expecval)
     save_nmeas_estimate(nmeas=K_coeff, nterms=nterms, frame_meas=frame_meas, filename='hamiltonian_analysis.json')
    
 def expectation_values_from_rdms(

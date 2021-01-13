@@ -18,8 +18,26 @@ def sum_x_squared(x):
 
 
 class OptimizerTests(object):
-    # To run tests with this class, Inherit it, and in the same module
-    # define a fixture with name optimizer that returns an optimizer.
+    """Base class for optimizers tests.
+
+    How to use:
+    1. Inherit this class (remember to start name of the class with "Test"
+    2. In the same module define fixture called "optimizer".
+
+    Basic usage pattern:
+
+    @pytest.fixture
+    def optimizer():
+        return MyOptimizer()
+
+
+    class TestMyOptimizer(OptimizerTests): # Inherits all tests from this class
+         def test_some_new_feature(self, optimizer):
+             ....
+
+    Notice that the `optimizer` fixture can be parametrized if you wish to
+    perform tests for various configurations of your optimizer.
+    """
 
     def test_optimizer_succeeds_with_optimizing_rosenbrock_function(self, optimizer):
         cost_function = FunctionWithGradient(rosenbrock_function, finite_differences_gradient(rosenbrock_function))

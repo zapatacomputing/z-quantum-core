@@ -18,11 +18,14 @@ from typing import Optional
 
 
 class MockQuantumBackend(QuantumBackend):
+
+    supports_batching = False
+
     def __init__(self, n_samples=None):
-        self.n_samples = n_samples
+        super().__init__(n_samples)
 
     def run_circuit_and_measure(self, circuit, **kwargs):
-
+        super(MockQuantumBackend, self).run_circuit_and_measure(circuit)
         n_qubits = len(circuit.qubits)
         measurements = Measurements()
         for _ in range(self.n_samples):
@@ -30,11 +33,6 @@ class MockQuantumBackend(QuantumBackend):
                 tuple([random.randint(0, 1) for j in range(n_qubits)])
             ]
         return measurements
-
-    def get_expectation_values(self, circuit, operator, **kwargs):
-        n_qubits = len(circuit.qubits)
-        values = np.asarray([random.random() for i in range(n_qubits)])
-        return ExpectationValues(values)
 
     def get_wavefunction(self, circuit):
         raise NotImplementedError
@@ -44,10 +42,14 @@ class MockQuantumBackend(QuantumBackend):
 
 
 class MockQuantumSimulator(QuantumSimulator):
+
+    supports_batching = False
+
     def __init__(self, n_samples: Optional[int] = None):
-        self.n_samples = n_samples
+        super().__init__(n_samples)
 
     def run_circuit_and_measure(self, circuit: Circuit, **kwargs):
+        super(MockQuantumSimulator, self).run_circuit_and_measure(circuit)
         n_qubits = len(circuit.qubits)
         measurements = Measurements()
         for _ in range(self.n_samples):
@@ -59,25 +61,30 @@ class MockQuantumSimulator(QuantumSimulator):
     def get_expectation_values(
         self, circuit: Circuit, operator: SymbolicOperator, **kwargs
     ):
-        n_qubits = len(circuit.qubits)
-        if hasattr(operator, "terms"):
-            n_operator = len(operator.terms.keys())
-            constant_position = None
-            for index, term in enumerate(operator.terms):
-                if term == ():
-                    constant_position = index
+        if self.n_samples is None:
+            self.number_of_circuits_run += 1
+            self.number_of_jobs_run += 1
+            n_qubits = len(circuit.qubits)
+            if hasattr(operator, "terms"):
+                n_operator = len(operator.terms.keys())
+                constant_position = None
+                for index, term in enumerate(operator.terms):
+                    if term == ():
+                        constant_position = index
+            else:
+                n_operator = None
+                constant_position = None
+                print("WARNING: operator does not have attribute terms")
+            if n_operator is not None:
+                length = n_operator
+            else:
+                length = n_qubits
+            values = np.asarray([2.0 * random.random() - 1.0 for i in range(length)])
+            if n_operator is not None and constant_position is not None:
+                values[constant_position] = 1.0
+            return ExpectationValues(values)
         else:
-            n_operator = None
-            constant_position = None
-            print("WARNING: operator does not have attribute terms")
-        if n_operator is not None:
-            length = n_operator
-        else:
-            length = n_qubits
-        values = np.asarray([2.0 * random.random() - 1.0 for i in range(length)])
-        if n_operator is not None and constant_position is not None:
-            values[constant_position] = 1.0
-        return ExpectationValues(values)
+            super(MockQuantumSimulator, self).get_expectation_values(circuit, operator)
 
     def get_exact_expectation_values(
         self, circuit: Circuit, operator: SymbolicOperator, **kwargs

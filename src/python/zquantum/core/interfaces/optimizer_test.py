@@ -31,7 +31,7 @@ class OptimizerTests(object):
 
 
     class TestMyOptimizer(OptimizerTests): # Inherits all tests from this class
-         def test_some_new_feature(self, optimizer):
+         def test_some_new_feature(self, optimizer): # new test
              ....
 
     Notice that the `optimizer` fixture can be parametrized if you wish to

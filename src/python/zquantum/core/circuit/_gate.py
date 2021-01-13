@@ -445,9 +445,15 @@ class Gate(object):
                 [qiskit_qubits[0]],
                 [],
             ]
-        if self.name == "Rz" or self.name == "PHASE":
+        if self.name == "Rz":
             return [
                 qiskit.circuit.library.RZGate(params[0]),
+                [qiskit_qubits[0]],
+                [],
+            ]
+        if self.name == "PHASE":
+            return [
+                qiskit.circuit.library.U1Gate(params[0]),
                 [qiskit_qubits[0]],
                 [],
             ]
@@ -470,10 +476,16 @@ class Gate(object):
                 qiskit.circuit.library.RYGate(pi / 4),
                 [qiskit_qubits[0]],
                 [],
-                qiskit.circuit.library.RZGate(params[0]),
+                qiskit.circuit.library.RXGate(params[0]),
                 [qiskit_qubits[0]],
                 [],
                 qiskit.circuit.library.RYGate(-pi / 4),
+                [qiskit_qubits[0]],
+                [],
+                qiskit.circuit.library.RZGate(-params[0]),
+                [qiskit_qubits[0]],
+                [],
+                qiskit.circuit.library.U1Gate(params[0]),
                 [qiskit_qubits[0]],
                 [],
             ]
@@ -493,29 +505,8 @@ class Gate(object):
             ]
         if self.name == "CPHASE":
             return [
-                qiskit.circuit.library.RXGate(pi / 2),
-                [qiskit_qubits[1]],
-                [],
-                qiskit.circuit.library.RYGate(pi - params[0] / 2),
-                [qiskit_qubits[1]],
-                [],
-                qiskit.circuit.library.CZGate(),
+                qiskit.circuit.library.CPhaseGate(params[0]),
                 [qiskit_qubits[0], qiskit_qubits[1]],
-                [],
-                qiskit.circuit.library.RYGate(-(pi - params[0] / 2)),
-                [qiskit_qubits[1]],
-                [],
-                qiskit.circuit.library.RXGate(-pi),
-                [qiskit_qubits[1]],
-                [],
-                qiskit.circuit.library.CZGate(),
-                [qiskit_qubits[0], qiskit_qubits[1]],
-                [],
-                qiskit.circuit.library.RXGate(pi / 2),
-                [qiskit_qubits[1]],
-                [],
-                qiskit.circuit.library.RZGate(params[0] / 2),
-                [qiskit_qubits[0]],
                 [],
             ]
         if self.name == "SWAP":
@@ -527,75 +518,23 @@ class Gate(object):
         if self.name == "XX":
             # Hard-coded decomposition is used for now. The compilation is inspired by the approach described in arXiv:1001.3855 [quant-ph]
             return [
-                qiskit.circuit.library.HGate(),
-                [qiskit_qubits[0]],
-                [],
-                qiskit.circuit.library.HGate(),
-                [qiskit_qubits[1]],
-                [],
-                qiskit.circuit.library.CXGate(),
+                qiskit.circuit.library.RXXGate(-params[0] * 2),
                 [qiskit_qubits[0], qiskit_qubits[1]],
-                [],
-                qiskit.circuit.library.RZGate(params[0] * 2),
-                [qiskit_qubits[1]],
-                [],
-                qiskit.circuit.library.CXGate(),
-                [qiskit_qubits[0], qiskit_qubits[1]],
-                [],
-                qiskit.circuit.library.HGate(),
-                [qiskit_qubits[0]],
-                [],
-                qiskit.circuit.library.HGate(),
-                [qiskit_qubits[1]],
                 [],
             ]
+
         if self.name == "YY":
             # Hard-coded decomposition is used for now. The compilation is inspired by the approach described in arXiv:1001.3855 [quant-ph]
             return [
-                qiskit.circuit.library.SGate(),
-                [qiskit_qubits[0]],
-                [],
-                qiskit.circuit.library.SGate(),
-                [qiskit_qubits[1]],
-                [],
-                qiskit.circuit.library.HGate(),
-                [qiskit_qubits[0]],
-                [],
-                qiskit.circuit.library.HGate(),
-                [qiskit_qubits[1]],
-                [],
-                qiskit.circuit.library.CXGate(),
+                qiskit.circuit.library.RYYGate(params[0] * 2),
                 [qiskit_qubits[0], qiskit_qubits[1]],
-                [],
-                qiskit.circuit.library.RZGate(params[0] * 2),
-                [qiskit_qubits[1]],
-                [],
-                qiskit.circuit.library.CXGate(),
-                [qiskit_qubits[0], qiskit_qubits[1]],
-                [],
-                qiskit.circuit.library.HGate(),
-                [qiskit_qubits[0]],
-                [],
-                qiskit.circuit.library.HGate(),
-                [qiskit_qubits[1]],
-                [],
-                qiskit.circuit.library.SdgGate(),
-                [qiskit_qubits[0]],
-                [],
-                qiskit.circuit.library.SdgGate(),
-                [qiskit_qubits[1]],
                 [],
             ]
+
         if self.name == "ZZ":
             # Hard-coded decomposition is used for now. The compilation is inspired by the approach described in arXiv:1001.3855 [quant-ph]
             return [
-                qiskit.circuit.library.CXGate(),
-                [qiskit_qubits[0], qiskit_qubits[1]],
-                [],
-                qiskit.circuit.library.RZGate(params[0] * 2),
-                [qiskit_qubits[1]],
-                [],
-                qiskit.circuit.library.CXGate(),
+                qiskit.circuit.library.RZZGate(-params[0] * 2),
                 [qiskit_qubits[0], qiskit_qubits[1]],
                 [],
             ]

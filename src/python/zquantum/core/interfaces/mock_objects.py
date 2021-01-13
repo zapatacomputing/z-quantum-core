@@ -122,20 +122,17 @@ class MockAnsatz(Ansatz):
     @overrides
     def _generate_circuit(self, parameters: Optional[np.ndarray] = None):
         circuit = Circuit()
-        for theta in self.get_symbols():
-            for qubit_index in range(self.number_of_qubits):
-                circuit += Circuit(Program(RX(theta, qubit_index)))
-        if parameters is not None:
-            symbols_map = create_symbols_map(self.get_symbols(), parameters)
-            circuit = circuit.evaluate(symbols_map)
-        return circuit
-
-    @overrides
-    def get_symbols(self):
-        return [
+        symbols = [
             sympy.Symbol(f"theta_{layer_index}")
             for layer_index in range(self._number_of_layers)
         ]
+        for theta in symbols:
+            for qubit_index in range(self.number_of_qubits):
+                circuit += Circuit(Program(RX(theta, qubit_index)))
+        if parameters is not None:
+            symbols_map = create_symbols_map(symbols, parameters)
+            circuit = circuit.evaluate(symbols_map)
+        return circuit
 
 
 class MockEstimator(Estimator):

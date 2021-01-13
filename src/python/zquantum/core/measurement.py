@@ -114,7 +114,7 @@ class ExpectationValues:
     def to_dict(self) -> dict:
         """Convert to a dictionary"""
 
-        data = {"schema": SCHEMA_VERSION + "-expectation_values", "frames": []}
+        data = {"schema": SCHEMA_VERSION + "-expectation_values", "frames": []} # what is "frames" for?
 
         data["expectation_values"] = convert_array_to_dict(self.values)
 
@@ -148,7 +148,6 @@ class ExpectationValues:
                 covariances.append(convert_dict_to_array(covariance_matrix))
 
         return cls(expectation_values, correlations, covariances)
-
 
 def sample_from_wavefunction(
     wavefunction: Wavefunction, n_samples: int
@@ -420,7 +419,10 @@ class Measurements:
         data = {
             "schema": SCHEMA_VERSION + "-measurements",
             "counts": self.get_counts(),
-            "bitstrings": self.bitstrings,
+            # This step is required if bistrings contain np.int8 instead of regular int.
+            "bitstrings": [
+                list(map(int, list(bitstring))) for bitstring in self.bitstrings
+            ],
         }
         with open(filename, "w") as f:
             f.write(json.dumps(data, indent=2))

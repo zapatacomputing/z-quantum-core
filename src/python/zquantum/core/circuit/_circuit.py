@@ -92,17 +92,19 @@ class Circuit(object):
     @property
     def symbolic_params(self):
         """
-        Returns a set of symbolic parameters used in the circuit
+        Returns a set of symbolic parameters used in the circuit in the chronological order.
 
         Returns:
-            set: set of all the sympy symbols used as params of gates in the circuit.
+            list: list of all the sympy symbols used as params of gates in the circuit.
         """
         symbolic_params = []
         for gate in self.gates:
             symbolic_params_per_gate = gate.symbolic_params
-            symbolic_params += symbolic_params_per_gate
+            for param in symbolic_params_per_gate:
+                if param not in symbolic_params:
+                    symbolic_params.append(param)
 
-        return set(symbolic_params)
+        return symbolic_params
 
     def __eq__(self, anotherCircuit):
         """Comparison between two Circuit objects."""
@@ -158,7 +160,7 @@ class Circuit(object):
         gates = []
 
         all_symbols_in_map = set([item[0] for item in symbols_map])
-        if len(all_symbols_in_map - self.symbolic_params) > 0:
+        if len(all_symbols_in_map - set(self.symbolic_params)) > 0:
             warnings.warn(
                 """
                 Trying to evaluate circuit with symbols not existing in the circuit:
@@ -228,83 +230,23 @@ class Circuit(object):
     def to_qiskit(self):
         """Converts the circuit to a qiskit QuantumCircuit object."""
         qiskit_circuit = qiskit.QuantumCircuit()  # New qiskit circuit object
-        list_qregs = []  # list of QuantumRegister objects
-        qreg = []
-
-        list_cregs = []
-        creg = []
+        qreg = None
+        creg = None
 
         if (
-            self.qubits != None
+            self.qubits != None and self.qubits != []
         ):  # If there are qubits in the circuit, add them to the new qiskit circuit
-            if (
-                self.info["label"] == "qiskit"
-            ):  # If the circuit originally was a qiskit circuit, create and add the quantum registers
-                collected_qregs = (
-                    {}
-                )  # dictionary of entries 'qreg name':list of collected qubit indices
-                collected_cregs = {}
-                for q in self.qubits:  # For every qubit in the circuit...
-                    # Quantum Register is stored as a string, so must parse for info and recreate qreg
-                    q_qreg_num = int(
-                        q.info["qreg"][
-                            q.info["qreg"].find("(") + 1 : q.info["qreg"].find(",")
-                        ]
-                    )
-                    q_qreg_label = q.info["qreg"][
-                        q.info["qreg"].find("'") + 1 : q.info["qreg"].rfind("'")
-                    ]
-
-                    q_qreg = QuantumRegister(q_qreg_num, q_qreg_label)
-                    if q_qreg.name in collected_qregs:
-                        # If the qubit register has already been collected, do nothing
-                        pass
-                    else:
-                        # If qubit register has not been collected, add to lists
-                        collected_qregs[q_qreg.name] = [q.index]
-                        list_qregs.append(q_qreg)
-                    # Quantum Register is stored as a string, so must parse for info and recreate qreg
-                    if "creg" in q.info.keys():
-                        q_creg_num = int(
-                            q.info["creg"][
-                                q.info["creg"].find("(") + 1 : q.info["creg"].find(",")
-                            ]
-                        )
-                        q_creg_label = q.info["creg"][
-                            q.info["creg"].find("'") + 1 : q.info["creg"].rfind("'")
-                        ]
-
-                        q_creg = ClassicalRegister(q_creg_num, q_creg_label)
-                        if q_creg.name in collected_cregs:
-                            # If the qubit register has already been collected, do nothing
-                            pass
-                        else:
-                            # If qubit register has not been collected, add to lists
-                            collected_cregs[q_creg.name] = [q.index]
-                            list_cregs.append(q_creg)
-                for qreg in list_qregs:
-                    qiskit_circuit.add_register(qreg)
-                for creg in list_cregs:
-                    qiskit_circuit.add_register(creg)
-            else:  # If not from a qiskit circuit, add all of the qubits to one register
-                max_qindex = max([q.index for q in self.qubits])
-                qreg = qiskit.QuantumRegister(max_qindex + 1, "q")
-                creg = qiskit.ClassicalRegister(max_qindex + 1, "c")
-                qiskit_circuit.add_register(qreg)
-                qiskit_circuit.add_register(creg)
+            max_qindex = max([q.index for q in self.qubits])
+            qreg = qiskit.QuantumRegister(max_qindex + 1, "q")
+            creg = qiskit.ClassicalRegister(max_qindex + 1, "c")
+            qiskit_circuit.add_register(qreg)
+            qiskit_circuit.add_register(creg)
 
         if self.gates != None:
             for gate in self.gates:
-                if (
-                    gate.info["label"] == "qiskit"
-                ):  # if the original circuit is a qiskit circuit
-                    qiskit_gate_data = (
-                        gate.to_qiskit()
-                    )  # assume that the underlying QuantumRegister is already provided
-                else:  # if the original state is not a qiskit circuit
-                    qiskit_gate_data = gate.to_qiskit(
-                        qreg
-                    )  # provide the gate conversion with the associated QuantumRegister
+                qiskit_gate_data = gate.to_qiskit(
+                    qreg, creg
+                )  # provide the gate conversion with the associated QuantumRegister
                 N = len(
                     qiskit_gate_data
                 )  # total number of entries in the list (which is 3x the number of elementary gates)
@@ -614,10 +556,7 @@ class Circuit(object):
                     for (
                         q
                     ) in _qubits:  # search for the old Qubit object in the _qubits list
-                        if (
-                            q.info["qreg"] == str(qubit.register)
-                            and q.info["num"] == qubit.index
-                        ):
+                        if q.info["num"] == qubit.index:
                             _old_Qubit = q
                             break
                     _gatequbits.append(_old_Qubit)
@@ -841,7 +780,7 @@ def cirq2pyquil(circuit):
                 cirq.H(q1),
                 cirq.H(q2),
                 cirq.CNOT(q1, q2),
-                cirq.Rz(op.gate.exponent * pi)(q2),
+                cirq.rz(op.gate.exponent * pi)(q2),
                 cirq.CNOT(q1, q2),
                 cirq.H(q1),
                 cirq.H(q2),
@@ -857,7 +796,7 @@ def cirq2pyquil(circuit):
                 cirq.H(q1),
                 cirq.H(q2),
                 cirq.CNOT(q1, q2),
-                cirq.Rz(op.gate.exponent * pi)(q2),
+                cirq.rz(op.gate.exponent * pi)(q2),
                 cirq.CNOT(q1, q2),
                 cirq.H(q1),
                 cirq.H(q2),
@@ -871,7 +810,7 @@ def cirq2pyquil(circuit):
             q1, q2 = op.qubits
             ops = [
                 cirq.CNOT(q1, q2),
-                cirq.Rz(op.gate.exponent * pi)(q2),
+                cirq.rz(op.gate.exponent * pi)(q2),
                 cirq.CNOT(q1, q2),
             ]
             for op in ops:
@@ -930,11 +869,17 @@ def add_gate_to_pyquil_program(pyquil_program, gate):
             )
         if gate.name == "RH":
             beta = pyquil.quilatom.Parameter("beta")
+            phase_factor = quil_cos(beta / 2) + 1j * quil_sin(beta / 2)
             elem00 = quil_cos(beta / 2) - 1j * 1 / np.sqrt(2) * quil_sin(beta / 2)
             elem01 = -1j * 1 / np.sqrt(2) * quil_sin(beta / 2)
             elem10 = -1j * 1 / np.sqrt(2) * quil_sin(beta / 2)
             elem11 = quil_cos(beta / 2) + 1j * 1 / np.sqrt(2) * quil_sin(beta / 2)
-            rh_unitary = np.array([[elem00, elem01], [elem10, elem11]])
+            rh_unitary = np.array(
+                [
+                    [phase_factor * elem00, phase_factor * elem01],
+                    [phase_factor * elem10, phase_factor * elem11],
+                ]
+            )
             rh_def = pyquil.quilbase.DefGate("RH", rh_unitary, [beta])
             RH = rh_def.get_constructor()
             return pyquil_program + rh_def + RH(gate.params[0])(gate.qubits[0].index)

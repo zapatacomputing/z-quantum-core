@@ -37,8 +37,7 @@ from ..testing import create_random_circuit
 
 class TestCircuit(unittest.TestCase):
     def test_circuit_eq(self):
-        """Test equality operation between Circuit objects.
-        """
+        """Test equality operation between Circuit objects."""
 
         qubits = [Qubit(i) for i in range(0, 3)]
         gate_H0 = Gate("H", [qubits[0]])
@@ -62,8 +61,7 @@ class TestCircuit(unittest.TestCase):
         self.assertEqual(circ1 == circ3, True)
 
     def test_circuit_eq_with_symbolic_params(self):
-        """Test equality operation between Circuit objects when some of the parameters are symbolical.
-        """
+        """Test equality operation between Circuit objects when some of the parameters are symbolical."""
 
         # Given
         qubits = [Qubit(i) for i in range(0, 3)]
@@ -89,8 +87,7 @@ class TestCircuit(unittest.TestCase):
         self.assertEqual(circ1 == circ3, True)
 
     def test_circuit_add(self):
-        """Test addition operation between Circuit objects.
-        """
+        """Test addition operation between Circuit objects."""
 
         qubits = [Qubit(i) for i in range(0, 3)]
         gate_H0 = Gate("H", [qubits[0]])
@@ -158,8 +155,8 @@ class TestCircuit(unittest.TestCase):
         gate_3 = Gate("Rz", params=[0.5 * theta_1 - 2 * theta_2], qubits=[qubits[0]])
         gate_4 = Gate("Rx", params=[0.3], qubits=[qubits[0]])
 
-        target_symbolic_params_1 = set([theta_1, theta_2])
-        target_symbolic_params_2 = set()
+        target_symbolic_params_1 = [theta_1, theta_2]
+        target_symbolic_params_2 = []
 
         circ_1 = Circuit()
         circ_1.qubits = qubits
@@ -308,8 +305,7 @@ class TestCircuit(unittest.TestCase):
         os.remove("circuit.json")
 
     def test_zxz_cirq(self):
-        """Test the special gate ZXZ (from cirq PhasedXPowGate)
-        """
+        """Test the special gate ZXZ (from cirq PhasedXPowGate)"""
 
         random.seed(RNDSEED)
         beta = random.uniform(-1, 1)
@@ -350,8 +346,7 @@ class TestCircuit(unittest.TestCase):
         self.assertTrue(compare_unitary(u, U1, tol=1e-10))
 
     def test_zxz_pyquil(self):
-        """Test the special gate ZXZ (from cirq PhasedXPowGate) for pyquil
-        """
+        """Test the special gate ZXZ (from cirq PhasedXPowGate) for pyquil"""
 
         # random.seed(RNDSEED)
         beta = random.uniform(-1, 1)  # rotation angles (in multiples of pi)
@@ -402,8 +397,7 @@ class TestCircuit(unittest.TestCase):
         self.assertTrue(compare_unitary(u3, u, tol=1e-10))
 
     def test_zxz_qiskit(self):
-        """Test the special gate ZXZ (from cirq PhasedXPowGate) for qiskit
-        """
+        """Test the special gate ZXZ (from cirq PhasedXPowGate) for qiskit"""
 
         # random.seed(RNDSEED)
         beta = random.uniform(-1, 1)  # rotation angles (in multiples of pi)
@@ -422,8 +416,7 @@ class TestCircuit(unittest.TestCase):
         self.assertTrue(compare_unitary(u1, u2, tol=1e-10))
 
     def test_rh_cirq(self):
-        """Test the special RH (from cirq HPowGate) for cirq
-        """
+        """Test the special RH (from cirq HPowGate) for cirq"""
 
         # random.seed(RNDSEED)
         beta = random.uniform(-1, 1)
@@ -453,8 +446,7 @@ class TestCircuit(unittest.TestCase):
         self.assertTrue(compare_unitary(u, U1, tol=1e-10), True)
 
     def test_rh_pyquil(self):
-        """Test the special RH (from cirq HPowGate) for pyquil
-        """
+        """Test the special RH (from cirq HPowGate) for pyquil"""
 
         # random.seed(RNDSEED)
         beta = random.uniform(-1, 1)  # rotation angles (in multiples of pi)
@@ -485,8 +477,7 @@ class TestCircuit(unittest.TestCase):
         self.assertTrue(compare_unitary(u3, u, tol=1e-10))
 
     def test_rh_qiskit(self):
-        """Test the special RH (from cirq HPowGate) for qiskit
-        """
+        """Test the special RH (from cirq HPowGate) for qiskit"""
 
         # random.seed(RNDSEED)
         beta = random.uniform(-1, 1)  # rotation angles (in multiples of pi)
@@ -504,8 +495,7 @@ class TestCircuit(unittest.TestCase):
         self.assertTrue(compare_unitary(u1, u2, tol=1e-10))
 
     def test_xx_cirq(self):
-        """Test the special XX (modified from cirq XXPowGate) for cirq
-        """
+        """Test the special XX (modified from cirq XXPowGate) for cirq"""
 
         # random.seed(RNDSEED)
         beta = random.uniform(-1, 1)  # we want to evolve under XX for time beta*pi
@@ -536,8 +526,7 @@ class TestCircuit(unittest.TestCase):
         self.assertTrue(compare_unitary(U2, U3, tol=1e-10), True)
 
     def test_xx_pyquil(self):
-        """Test the special XX (modified from cirq XXPowGate) for pyquil
-        """
+        """Test the special XX (modified from cirq XXPowGate) for pyquil"""
 
         # random.seed(RNDSEED)
         beta = random.uniform(-1, 1)  # rotation angles (in multiples of pi)
@@ -568,8 +557,7 @@ class TestCircuit(unittest.TestCase):
         self.assertTrue(compare_unitary(u3, u4, tol=1e-10))
 
     def test_xx_qiskit(self):
-        """Test the special XX (modified from cirq XXPowGate) for qiskit
-        """
+        """Test the special XX (modified from cirq XXPowGate) for qiskit"""
 
         # random.seed(RNDSEED)
         beta = random.uniform(-1, 1)  # rotation angles (in multiples of pi)
@@ -598,8 +586,7 @@ class TestCircuit(unittest.TestCase):
         self.assertTrue(compare_unitary(u2, u3, tol=1e-10))
 
     def test_yy_cirq(self):
-        """Test the special YY (modified from cirq YYPowGate) for cirq
-        """
+        """Test the special YY (modified from cirq YYPowGate) for cirq"""
 
         # random.seed(RNDSEED)
         beta = random.uniform(-1, 1)  # we want to evolve under XX for time beta*pi
@@ -630,8 +617,7 @@ class TestCircuit(unittest.TestCase):
         self.assertTrue(compare_unitary(U2, U3, tol=1e-10), True)
 
     def test_yy_pyquil(self):
-        """Test the special YY (modified from cirq YYPowGate) for pyquil
-        """
+        """Test the special YY (modified from cirq YYPowGate) for pyquil"""
 
         # random.seed(RNDSEED)
         beta = random.uniform(-1, 1)  # rotation angles (in multiples of pi)
@@ -672,8 +658,7 @@ class TestCircuit(unittest.TestCase):
         self.assertTrue(compare_unitary(u3, u4, tol=1e-10))
 
     def test_yy_qiskit(self):
-        """Test the special YY (modified from cirq YYPowGate) for qiskit
-        """
+        """Test the special YY (modified from cirq YYPowGate) for qiskit"""
 
         # random.seed(RNDSEED)
         beta = random.uniform(-1, 1)  # rotation angles (in multiples of pi)
@@ -706,8 +691,7 @@ class TestCircuit(unittest.TestCase):
         self.assertTrue(compare_unitary(u2, u3, tol=1e-10))
 
     def test_zz_cirq(self):
-        """Test the special ZZ (modified from cirq ZZPowGate) for cirq
-        """
+        """Test the special ZZ (modified from cirq ZZPowGate) for cirq"""
 
         # random.seed(RNDSEED)
         beta = random.uniform(-1, 1)  # we want to evolve under ZZ for time beta*pi
@@ -738,8 +722,7 @@ class TestCircuit(unittest.TestCase):
         self.assertTrue(compare_unitary(U2, U3, tol=1e-10), True)
 
     def test_zz_pyquil(self):
-        """Test the special ZZ (modified from cirq ZZPowGate) for pyquil
-        """
+        """Test the special ZZ (modified from cirq ZZPowGate) for pyquil"""
 
         # random.seed(RNDSEED)
         beta = random.uniform(-1, 1)  # rotation angles (in multiples of pi)
@@ -768,8 +751,7 @@ class TestCircuit(unittest.TestCase):
         self.assertTrue(compare_unitary(u3, u4, tol=1e-10))
 
     def test_zz_qiskit(self):
-        """Test the special ZZ (modified from cirq ZZPowGate) for qiskit
-        """
+        """Test the special ZZ (modified from cirq ZZPowGate) for qiskit"""
 
         # random.seed(RNDSEED)
         beta = random.uniform(-1, 1)  # rotation angles (in multiples of pi)
@@ -811,7 +793,7 @@ class TestCircuit(unittest.TestCase):
         gates = [
             cirq.X(qubits[0]),
             cirq.T(qubits[1]),
-            cirq.Rz(rads=0.1)(qubits[2]),
+            cirq.rz(rads=0.1)(qubits[2]),
             cirq.CNOT(qubits[0], qubits[1]),
             cirq.SWAP(qubits[0], qubits[1]),
             cirq.CZ(qubits[1], qubits[0]),
@@ -830,8 +812,7 @@ class TestCircuit(unittest.TestCase):
         self.assertTrue(compare_unitary(U, U_ref))
 
     def test_pyquil_empty(self):
-        """Convert empty pyquil Program object to Circuit object and back.
-        """
+        """Convert empty pyquil Program object to Circuit object and back."""
 
         prog = pyquil.Program()
         p = Circuit(prog)
@@ -959,8 +940,7 @@ class TestCircuit(unittest.TestCase):
             self.assertEqual(prog, prog2)
 
     def test_cirq_empty(self):
-        """Convert empty cirq Circuit object to core.circuit.Circuit object.
-        """
+        """Convert empty cirq Circuit object to core.circuit.Circuit object."""
 
         cirq_circuit = cirq.Circuit()
         p = Circuit(cirq_circuit)
@@ -994,8 +974,7 @@ class TestCircuit(unittest.TestCase):
         self.assertEqual(cirq_circuit, cirq_circuit2)
 
     def test_cirq_conversion_on_qubits(self):
-        """For testing conversion to cirq circuits acting on a given set of cirq qubits.
-        """
+        """For testing conversion to cirq circuits acting on a given set of cirq qubits."""
 
         qubits = [cirq.LineQubit(x) for x in range(0, 4)]
         gates = [cirq.H(qubits[0]), cirq.CNOT(qubits[0], qubits[2]), cirq.H(qubits[2])]
@@ -1061,9 +1040,9 @@ class TestCircuit(unittest.TestCase):
             "T": cirq.T,
             "H": cirq.H,
             "S": cirq.S,
-            "Rx": cirq.Rx,
-            "Ry": cirq.Ry,
-            "Rz": cirq.Rz,
+            "Rx": cirq.rx,
+            "Ry": cirq.ry,
+            "Rz": cirq.rz,
             "PHASE": cirq.Z,
             "ZXZ": cirq.PhasedXPowGate,
             "RH": cirq.H,
@@ -1141,27 +1120,13 @@ class TestCircuit(unittest.TestCase):
             self.assertEqual(compare_unitary(U1, U2, tol=1e-10), True)
 
     def test_qiskit_empty(self):
-        """Converting empty qiskit QuantumCircuit to and from core.circuit.Circuit objects.
-        """
+        """Converting empty qiskit QuantumCircuit to and from core.circuit.Circuit objects."""
         qubits = qiskit.QuantumRegister(3)
         circ = qiskit.QuantumCircuit(qubits)
 
-        # test if two qiskit QuantumCircuit objects are equal
-        def test_equal_qiskit(circ, circ2):
-            if len(circ.data) != len(circ2.data):
-                return False
-            for gate, gate2 in zip(circ.data, circ2.data):
-                if gate != gate2:
-                    return False
-                else:
-                    for qubit, qubit2 in zip(gate.qargs, gate2.qargs):
-                        if qubit != qubit2:
-                            return False
-            return True
-
         p = Circuit(circ)
         circ2 = p.to_qiskit()
-        self.assertEqual(test_equal_qiskit(circ, circ2), True)
+        self.assertEqual(are_equal_qiskit(circ, circ2), True)
 
     def test_qiskit_conversion_specific(self):
         """The goal of this test is to probe if the conversion between core.circuit.Circuit
@@ -1184,20 +1149,7 @@ class TestCircuit(unittest.TestCase):
         p = Circuit(circ)
         circ2 = p.to_qiskit()
 
-        # test if two qiskit QuantumCircuit objects are equal
-        def test_equal_qiskit(circ, circ2):
-            if len(circ.data) != len(circ2.data):
-                return False
-            for gate, gate2 in zip(circ.data, circ2.data):
-                if gate != gate2:
-                    return False
-                else:
-                    for qubit, qubit2 in zip(gate[1], gate2[1]):
-                        if qubit != qubit2:
-                            return False
-            return True
-
-        self.assertEqual(test_equal_qiskit(circ, circ2), True)
+        self.assertEqual(are_equal_qiskit(circ, circ2), True)
 
     def test_qiskit_conversion_general(self):
         """The goal of this test is to probe if the conversion between core.circuit.Circuit
@@ -1290,20 +1242,7 @@ class TestCircuit(unittest.TestCase):
             p = Circuit(circ)
             circ2 = p.to_qiskit()
 
-            # test if two qiskit QuantumCircuit objects are equal
-            def test_equal_qiskit(circ, circ2):
-                if len(circ.data) != len(circ2.data):
-                    return False
-                for gate, gate2 in zip(circ.data, circ2.data):
-                    if gate != gate2:
-                        return False
-                    else:
-                        for qubit, qubit2 in zip(gate[1], gate2[1]):
-                            if qubit != qubit2:
-                                return False
-                return True
-
-            self.assertEqual(test_equal_qiskit(circ, circ2), True)
+            self.assertEqual(are_equal_qiskit(circ, circ2), True)
 
     def test_cirq2pyquil(self):
         ref_qprog = pyquil.quil.Program().inst(
@@ -1332,7 +1271,7 @@ class TestCircuit(unittest.TestCase):
 
     def test_cirq2pyquil_RZ(self):
         circuit = cirq.Circuit()
-        circuit.append(cirq.Rz(rads=0.1)(cirq.GridQubit(0, 0)))
+        circuit.append(cirq.rz(rads=0.1)(cirq.GridQubit(0, 0)))
         qprog = cirq2pyquil(circuit)
         self.assertEqual(qprog[0].name, "RZ")
         self.assertAlmostEqual(qprog[0].params[0], 0.1)
@@ -1519,7 +1458,8 @@ class TestCircuit(unittest.TestCase):
 
         # Create Orquestra circuit from qiskit
         circuit = Circuit(input_object=ibm_circuit, name="test ccx")
-        self.assertEqual(ibm_circuit == circuit.to_qiskit(), True)
+
+        self.assertTrue(are_equal_qiskit(ibm_circuit, circuit.to_qiskit()))
 
     def test_mct(self):
         ctrl = [0, 1, 2, 3, 5]
@@ -1669,3 +1609,19 @@ class TestCircuit(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+# test if two qiskit QuantumCircuit objects are equal
+def are_equal_qiskit(circ, circ2):
+    if len(circ.data) != len(circ2.data):
+        return False
+    for gate, gate2 in zip(circ.data, circ2.data):
+        if gate[0].name != gate2[0].name:
+            return False
+        elif [qubit.index for qubit in gate[1]] != [qubit.index for qubit in gate2[1]]:
+            return False
+        else:
+            for qubit, qubit2 in zip(gate[1], gate2[1]):
+                if qubit.index != qubit2.index:
+                    return False
+    return True

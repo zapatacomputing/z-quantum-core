@@ -34,7 +34,7 @@ class Gate(object):
         params: list[any]
             List of parameters associated with the gate.
         The above three attributes follow a standard convention that is enforced throughout
-        Zap OS.
+        z-quantum-core
 
         (optional attribute)
         info: dictionary
@@ -90,7 +90,8 @@ class Gate(object):
             return False
         for i in range(len(self.params)):
             if self.params[i] != another_gate.params[i]:
-                return False
+                if sympy.simplify(self.params[i] - another_gate.params[i]) != 0:
+                    return False
         return True
 
     def __repr__(self):
@@ -122,7 +123,7 @@ class Gate(object):
         Returns a list of symbolic parameters used in the gate
 
         Returns:
-            set: set containing all the sympy symbols used in gate params
+            list: list containing all the sympy symbols used in gate params
         """
         all_symbols = []
         for param in self.params:
@@ -130,7 +131,8 @@ class Gate(object):
                 for symbol in param.free_symbols:
                     all_symbols.append(symbol)
 
-        return set(all_symbols)
+        unique_symbols = sorted(list(set(all_symbols)), key=str)
+        return unique_symbols
 
     def get_param_string(self):
         r"""Get a string containing the parameters, e.g.
@@ -346,11 +348,11 @@ class Gate(object):
         if self.name == "T":  # T gate
             return cirq.T(cirq_qubits[0])
         if self.name == "Rx":  # Single-qubit X rotation
-            return cirq.Rx(params[0])(cirq_qubits[0])
+            return cirq.rx(params[0])(cirq_qubits[0])
         if self.name == "Ry":  # Single-qubit Y rotation
-            return cirq.Ry(params[0])(cirq_qubits[0])
+            return cirq.ry(params[0])(cirq_qubits[0])
         if self.name == "Rz":  # Single-qubit Z rotation
-            return cirq.Rz(params[0])(cirq_qubits[0])
+            return cirq.rz(params[0])(cirq_qubits[0])
         if self.name == "PHASE":  # Phase gate
             return cirq.Z(cirq_qubits[0]) ** (params[0] / pi)
         if self.name == "ZXZ":  # PhasedXPowGate gate
@@ -386,7 +388,7 @@ class Gate(object):
         if self.name == "ZZ":
             return cirq.ZZ(cirq_qubits[0], cirq_qubits[1]) ** (params[0] * 2 / pi)
 
-    def to_qiskit(self, qreg=None):
+    def to_qiskit(self, qreg, creg):
         """Converts a Gate object to a qiskit object.
 
         Args:
@@ -409,40 +411,9 @@ class Gate(object):
         qiskit_qubits = []
         qiskit_bits = []
         for q in self.qubits:
-            if q.info["label"] == "qiskit":
-                # QuantumRegister info is stored as a string, so must parse
-                #   and recreate register
-                q_qreg_num = int(
-                    q.info["qreg"][
-                        q.info["qreg"].find("(") + 1 : q.info["qreg"].find(",")
-                    ]
-                )
-                q_qreg_label = q.info["qreg"][
-                    q.info["qreg"].find("'") + 1 : q.info["qreg"].rfind("'")
-                ]
-                q_qreg = QuantumRegister(q_qreg_num, q_qreg_label)
-                qiskit_qubit = QiskitQubit(q_qreg, q.info["num"])
-                qiskit_qubits.append(qiskit_qubit)
+            qiskit_qubits.append(QiskitQubit(qreg, q.index))
+            qiskit_bits.append(QiskitClbit(creg, q.index))
 
-                if "creg" in q.info.keys():
-                    q_creg_num = int(
-                        q.info["creg"][
-                            q.info["creg"].find("(") + 1 : q.info["creg"].find(",")
-                        ]
-                    )
-                    q_creg_label = q.info["creg"][
-                        q.info["creg"].find("'") + 1 : q.info["creg"].rfind("'")
-                    ]
-                    q_creg = ClassicalRegister(q_creg_num, q_creg_label)
-                    qiskit_clbit = QiskitClbit(q_creg, q.info["num"])
-                    qiskit_bits.append(qiskit_clbit)
-            else:
-                if qreg is None:
-                    Exception(
-                        "Gate doesn't come from qiskit and qreg is not provided. Please provide a qreg parameter."
-                    )
-                qiskit_qubit = QiskitQubit(qreg, q.index)
-                qiskit_qubits.append(qiskit_qubit)
         if len(self.params) > 0:
             params = copy.copy(self.params)
             for i in range(len(params)):

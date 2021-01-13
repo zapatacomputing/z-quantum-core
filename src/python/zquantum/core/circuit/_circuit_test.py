@@ -1387,7 +1387,6 @@ class TestCircuit(unittest.TestCase):
             circ = create_random_circuit(10, 20, seed=RNDSEED)
 
         zirc = Circuit(circ.to_qiskit())
-
         self.assertTrue(compare_unitary(circ.to_unitary(), zirc.to_unitary()))
 
     def test_save_circuit_from_qiskit(self):

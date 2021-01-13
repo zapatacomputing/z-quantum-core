@@ -804,6 +804,8 @@ class Gate(object):
             output.name = "MCU1"
         elif qiskit_gate.name == "u1":
             output.name = "PHASE"
+        elif qiskit_gate.name == "cp":
+            output.name = "CPHASE"
         else:
             raise NotImplementedError(
                 "The gate {} is currently not supported.".format(qiskit_gate.name)

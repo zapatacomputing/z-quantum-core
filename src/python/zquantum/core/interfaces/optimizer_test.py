@@ -1,4 +1,3 @@
-import unittest
 import numpy as np
 import pytest
 from zquantum.core.interfaces.functions import FunctionWithGradient

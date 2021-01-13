@@ -6,7 +6,7 @@ from .measurement import (
     expectation_values_to_real,
     concatenate_expectation_values,
 )
-from .hamiltonian import group_comeasureable_terms_greedy
+from .hamiltonian import get_decomposition_function
 from openfermion import SymbolicOperator, IsingOperator, QubitOperator
 from overrides import overrides
 import logging
@@ -15,34 +15,6 @@ import pyquil
 from typing import Tuple, Optional, Callable, List
 
 logger = logging.getLogger(__name__)
-
-DECOMPOSITION_METHODS = {
-    "greedy": group_comeasureable_terms_greedy,
-    "greedy-sorted": lambda qubit_operator: group_comeasureable_terms_greedy(
-        qubit_operator, True
-    ),
-}
-
-
-def get_decomposition_function(
-    decomposition_method: str,
-) -> Callable[[QubitOperator], List[QubitOperator]]:
-    """Get a function for Hamiltonian decomposition from its name.
-
-    Args:
-        decomposition_method: The name of the Hamiltonian decomposition method.
-    
-    Returns:
-        A callable that performs the decomposition.
-    """
-
-    decomposition_function = DECOMPOSITION_METHODS.get(decomposition_method)
-    if decomposition_function is None:
-        raise ValueError(
-            f"Unrecognized decomposition method {decomposition_method}. Allowed values are {list(DECOMPOSITION_METHODS.keys())}"
-        )
-    return decomposition_function
-
 
 def get_context_selection_circuit(
     term: Tuple[Tuple[int, str], ...]

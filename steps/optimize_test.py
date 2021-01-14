@@ -1,5 +1,5 @@
 import pytest
-from optimize import optimize_parameterized_quantum_circuit
+from optimize import optimize_parametrized_circuit_for_ground_state_of_operator
 import os
 import json
 from openfermion import QubitOperator
@@ -9,7 +9,7 @@ import numpy as np
 TARGET_OPERATOR = QubitOperator("X0 X1 Z2 Y4", 1.5)
 
 
-def test_optimize_parameterized_quantum_circuit_optimizer_specs_input():
+def test_optimize_parametrized_circuit_for_ground_state_of_operator_optimizer_specs_input():
     optimizer_specs = '{"module_name": "zquantum.core.interfaces.mock_objects", "function_name": "MockOptimizer"}'
     target_operator = TARGET_OPERATOR
     circuit = "circuit.json"
@@ -110,12 +110,17 @@ def test_optimize_parameterized_quantum_circuit_optimizer_specs_input():
     initial_parameters = "initial_parameters.json"
     with open(initial_parameters, "w") as f:
         f.write(
-            '{"schema": "zapata-v1-circuit_template_params","parameters": {"real": [1.0, 1.0, 1.0]}}'
+            '{"schema": "zapata-v1-circuit_template_params","parameters": {"real": [1.0, 1.0]}}'
+        )
+    fixed_parameters = "fixed_parameters.json"
+    with open(fixed_parameters, "w") as f:
+        f.write(
+            '{"schema": "zapata-v1-circuit_template_params","parameters": {"real": [1.0]}}'
         )
 
     if os.path.exists("optimization_results.json"):
         os.remove("optimization_results.json")
-    optimize_parameterized_quantum_circuit(
+    optimize_parametrized_circuit_for_ground_state_of_operator(
         optimizer_specs,
         target_operator,
         circuit,
@@ -124,6 +129,9 @@ def test_optimize_parameterized_quantum_circuit_optimizer_specs_input():
         epsilon,
         delta,
         initial_parameters,
+        fixed_parameters=fixed_parameters,
+        parameter_precision=0.001,
+        parameter_precision_seed=1234,
     )
     assert os.path.exists("optimization_results.json")
     os.remove("optimization_results.json")

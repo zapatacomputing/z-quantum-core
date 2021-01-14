@@ -1,14 +1,27 @@
 import json
-from zquantum.core.utils import create_object, load_noise_model, save_value_estimate, save_nmeas_estimate
+from zquantum.core.utils import (
+    create_object,
+    load_noise_model,
+    save_value_estimate,
+    save_nmeas_estimate,
+)
 from zquantum.core.measurement import load_expectation_values, save_expectation_values
-from zquantum.core.hamiltonian import estimate_nmeas_for_operator, get_expectation_values_from_rdms
+from zquantum.core.hamiltonian import (
+    estimate_nmeas_for_operator,
+    estimate_nmeas_for_frames,
+    get_expectation_values_from_rdms,
+)
 from zquantum.core.circuit import (
     load_circuit,
     load_circuit_connectivity,
     load_circuit_template_params,
 )
 from zquantum.core.bitstring_distribution import save_bitstring_distribution
-from zquantum.core.openfermion import load_qubit_operator, load_interaction_rdm
+from zquantum.core.openfermion import (
+    load_qubit_operator,
+    load_interaction_rdm,
+    load_qubit_operator_set,
+)
 from typing import Dict
 
 
@@ -100,6 +113,7 @@ def evaluate_ansatz_based_cost_function(
 
     save_value_estimate(value_estimate, "value_estimate.json")
 
+
 def hamiltonian_analysis(
     qubit_operator: str,
     decomposition_method: str = "greedy",
@@ -111,15 +125,42 @@ def hamiltonian_analysis(
     else:
         expecval = None
 
-    K_coeff, nterms, frame_meas = estimate_nmeas_for_operator(operator, decomposition_method, expecval)
-    save_nmeas_estimate(nmeas=K_coeff, nterms=nterms, frame_meas=frame_meas, filename='hamiltonian_analysis.json')
-   
+    K_coeff, nterms, frame_meas = estimate_nmeas_for_operator(
+        operator, decomposition_method, expecval
+    )
+    save_nmeas_estimate(
+        nmeas=K_coeff,
+        nterms=nterms,
+        frame_meas=frame_meas,
+        filename="hamiltonian_analysis.json",
+    )
+
+
+def grouped_hamiltonian_analysis(
+    groups: str, expectation_values: str = "None",
+):
+
+    grouped_operator = load_qubit_operator_set(groups)
+
+    if expectation_values != "None":
+        expecval = load_expectation_values(expectation_values)
+    else:
+        expecval = None
+
+    K_coeff, nterms, frame_meas = estimate_nmeas_for_frames(grouped_operator, expecval)
+
+    save_nmeas_estimate(
+        nmeas=K_coeff,
+        nterms=nterms,
+        frame_meas=frame_meas,
+        filename="hamiltonian_analysis.json",
+    )
+
+
 def expectation_values_from_rdms(
-    interactionrdm: str,
-    qubit_operator: str,
-    sort_terms: bool = False,
+    interactionrdm: str, qubit_operator: str, sort_terms: bool = False,
 ):
     operator = load_qubit_operator(qubit_operator)
     rdms = load_interaction_rdm(interactionrdm)
     expecval = get_expectation_values_from_rdms(rdms, operator, sort_terms=sort_terms)
-    save_expectation_values(expecval, 'expectation_values.json')
+    save_expectation_values(expecval, "expectation_values.json")

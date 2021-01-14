@@ -883,10 +883,12 @@ def add_gate_to_pyquil_program(pyquil_program, gate):
             rh_def = pyquil.quilbase.DefGate("RH", rh_unitary, [beta])
             RH = rh_def.get_constructor()
             return pyquil_program + rh_def + RH(gate.params[0])(gate.qubits[0].index)
-        if gate.name == "XX":  # XX gate (modified from XXPowGate in cirq)
+        if gate.name == "XX":
+            # Reference for XX implementation in cirq: https://github.com/quantumlib/Cirq/blob/a61e51b53612735e93b3bb8a7605030c499cd6c7/cirq/ops/parity_gates.py#L30
+            # Reference for XX implementation in qiskit: https://qiskit.org/documentation/stubs/qiskit.circuit.library.RXXGate.html
             beta = pyquil.quilatom.Parameter("beta")
             elem_cos = quil_cos(beta)
-            elem_sin = 1j * quil_sin(beta)
+            elem_sin = -1j * quil_sin(beta)
             xx_unitary = np.array(
                 [
                     [elem_cos, 0, 0, elem_sin],
@@ -902,7 +904,9 @@ def add_gate_to_pyquil_program(pyquil_program, gate):
                 + xx_def
                 + XX(gate.params[0])(gate.qubits[0].index, gate.qubits[1].index)
             )
-        if gate.name == "YY":  # YY gate (modified from XXPowGate in cirq)
+        if gate.name == "YY":
+            # Reference for YY implementation in cirq: https://github.com/quantumlib/Cirq/blob/a61e51b53612735e93b3bb8a7605030c499cd6c7/cirq/ops/parity_gates.py#L142
+            # Reference for YY implementation in qiskit: https://qiskit.org/documentation/stubs/qiskit.circuit.library.RYYGate.html
             beta = pyquil.quilatom.Parameter("beta")
             elem_cos = quil_cos(beta)
             elem_sin = 1j * quil_sin(beta)
@@ -921,16 +925,18 @@ def add_gate_to_pyquil_program(pyquil_program, gate):
                 + yy_def
                 + YY(gate.params[0])(gate.qubits[0].index, gate.qubits[1].index)
             )
-        if gate.name == "ZZ":  # ZZ gate (modified from XXPowGate in cirq)
+        if gate.name == "ZZ":
+            # Reference for ZZ implementation in cirq: https://github.com/quantumlib/Cirq/blob/a61e51b53612735e93b3bb8a7605030c499cd6c7/cirq/ops/parity_gates.py#L254
+            # Reference for ZZ implementation in qiskit: https://qiskit.org/documentation/stubs/qiskit.circuit.library.RYYGate.html
             beta = pyquil.quilatom.Parameter("beta")
             elem_cos = quil_cos(beta)
             elem_sin = 1j * quil_sin(beta)
             zz_unitary = np.array(
                 [
-                    [elem_cos + elem_sin, 0, 0, 0],
-                    [0, elem_cos - elem_sin, 0, 0],
-                    [0, 0, elem_cos - elem_sin, 0],
-                    [0, 0, 0, elem_cos + elem_sin],
+                    [elem_cos - elem_sin, 0, 0, 0],
+                    [0, elem_cos + elem_sin, 0, 0],
+                    [0, 0, elem_cos + elem_sin, 0],
+                    [0, 0, 0, elem_cos - elem_sin],
                 ]
             )
             zz_def = pyquil.quilbase.DefGate("ZZ", zz_unitary, [beta])

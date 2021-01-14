@@ -14,23 +14,54 @@ from .measurement import ExpectationValues
 RNGSEED = 1234
 
 
-@pytest.fixture
-def ground_state_cost_function():
-    target_operator = QubitOperator("Z0")
-    parametrized_circuit = MockAnsatz(
-        number_of_layers=1, problem_size=1
-    ).parametrized_circuit
-    backend = MockQuantumSimulator()
-    estimator = MockEstimator()
-    return get_ground_state_cost_function(
-        target_operator, parametrized_circuit, backend, estimator=estimator
-    )
+@pytest.fixture(
+    params=[
+        {
+            "target_operator": QubitOperator("Z0"),
+            "parametrized_circuit": MockAnsatz(
+                number_of_layers=1, problem_size=1
+            ).parametrized_circuit,
+            "backend": MockQuantumSimulator(),
+            "estimator": MockEstimator(),
+        },
+        {
+            "target_operator": QubitOperator("Z0 Z1"),
+            "parametrized_circuit": MockAnsatz(
+                number_of_layers=1, problem_size=2
+            ).parametrized_circuit,
+            "backend": MockQuantumSimulator(),
+            "estimator": MockEstimator(),
+        },
+        {
+            "target_operator": QubitOperator("Z0 Z1"),
+            "parametrized_circuit": MockAnsatz(
+                number_of_layers=2, problem_size=2
+            ).parametrized_circuit,
+            "backend": MockQuantumSimulator(),
+            "estimator": MockEstimator(),
+            "fixed_parameters": [1.2],
+        },
+        {
+            "target_operator": QubitOperator("Z0 Z1"),
+            "parametrized_circuit": MockAnsatz(
+                number_of_layers=2, problem_size=2
+            ).parametrized_circuit,
+            "backend": MockQuantumSimulator(),
+            "estimator": MockEstimator(),
+            "fixed_parameters": [1.2],
+            "parameter_precision": 0.001,
+            "parameter_precision_seed": RNGSEED,
+        },
+    ]
+)
+def ground_state_cost_function(request):
+    return get_ground_state_cost_function(**request.param)
 
 
 def test_ground_state_cost_function_returns_value_between_plus_and_minus_one(
     ground_state_cost_function,
 ):
-    params = np.array([1])
+    params = np.array([1.0], dtype=float)
     value = ground_state_cost_function(params)
     assert -1 <= value <= 1
 
@@ -57,7 +88,7 @@ def test_noisy_ground_state_cost_function_adds_noise_to_parameters():
     # We expect the below to get added to parameters
     noise = generator.normal(0, 1e-4, 2)
 
-    params = np.array([0.1, 2.3])
+    params = np.array([0.1, 2.3], dtype=float)
 
     expected_symbols_map = [
         (Symbol("theta_0"), noise[0] + params[0]),

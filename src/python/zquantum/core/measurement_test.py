@@ -179,15 +179,20 @@ class TestMeasurement(unittest.TestCase):
         self.assertEqual(len(expectation_values.estimator_covariances), 3)
         self.assertTrue(
             np.allclose(
-                expectation_values.estimator_covariances[0], np.array([[0.014705882352941176]])
+                expectation_values.estimator_covariances[0],
+                np.array([[0.014705882352941176]]),
             )
         )
         self.assertTrue(
-            np.allclose(expectation_values.estimator_covariances[1], np.array([[0.00428797]]))
+            np.allclose(
+                expectation_values.estimator_covariances[1], np.array([[0.00428797]])
+            )
         )
 
         self.assertTrue(
-            np.allclose(expectation_values.estimator_covariances[2], np.array([[0.0075706]]))
+            np.allclose(
+                expectation_values.estimator_covariances[2], np.array([[0.0075706]])
+            )
         )
 
     def test_expectation_values_to_real(self):
@@ -211,13 +216,23 @@ class TestMeasurement(unittest.TestCase):
         bitstring = (0, 1, 0, 1, 0, 1)
         self.assertEqual(convert_bitstring_to_int(bitstring), 42)
 
-    def test_check_parity_odd(self):
+    def test_check_parity_odd_string(self):
         bitstring = "01001"
         marked_qubits = (1, 2, 3)
         self.assertFalse(check_parity(bitstring, marked_qubits))
 
-    def test_check_parity_even(self):
+    def test_check_parity_even_string(self):
         bitstring = "01101"
+        marked_qubits = (1, 2, 3)
+        self.assertTrue(check_parity(bitstring, marked_qubits))
+
+    def test_check_parity_odd_tuple(self):
+        bitstring = (0, 1, 0, 0, 1)
+        marked_qubits = (1, 2, 3)
+        self.assertFalse(check_parity(bitstring, marked_qubits))
+
+    def test_check_parity_even_tuple(self):
+        bitstring = (0, 1, 1, 0, 1)
         marked_qubits = (1, 2, 3)
         self.assertTrue(check_parity(bitstring, marked_qubits))
 
@@ -718,7 +733,8 @@ class TestMeasurement(unittest.TestCase):
         self.assertEqual(len(combined_expectation_values.estimator_covariances), 3)
         self.assertTrue(
             np.allclose(
-                combined_expectation_values.estimator_covariances[0], [[0.1, 0.2], [0.3, 0.4]]
+                combined_expectation_values.estimator_covariances[0],
+                [[0.1, 0.2], [0.3, 0.4]],
             )
         )
         self.assertTrue(

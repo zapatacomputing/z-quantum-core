@@ -35,7 +35,6 @@ setuptools.setup(
         "pyquil>=2.17.0",
         "cirq==0.9.0",
         "qiskit==0.18.3",
-        "quantum-grove>=1.0.0",
         "overrides>=3.1.0",
     ],
 )

@@ -1,5 +1,3 @@
-from zquantum.core.utils import ValueEstimate
-
 from .interfaces.backend import QuantumBackend
 from .interfaces.ansatz import Ansatz
 from .interfaces.estimator import Estimator
@@ -7,7 +5,8 @@ from .interfaces.functions import function_with_gradient, StoreArtifact
 from .circuit import combine_ansatz_params, Circuit
 from .gradients import finite_differences_gradient
 from .estimator import BasicEstimator
-from .utils import create_symbols_map
+from .utils import create_symbols_map, ValueEstimate
+from .measurement import ExpectationValues
 from typing import Optional, Callable
 import numpy as np
 from openfermion import SymbolicOperator
@@ -86,6 +85,41 @@ def get_ground_state_cost_function(
     return function_with_gradient(
         ground_state_cost_function, gradient_function(ground_state_cost_function)
     )
+
+
+def sum_expectation_values(expectation_values: ExpectationValues) -> ValueEstimate:
+    """Compute the sum of expectation values.
+
+    If correlations are available, the precision of the sum is computed as
+
+    \epsilon = \sqrt{\sum_k \sigma^2_k}
+
+    where the sum runs over frames and \sigma^2_k is the estimated variance of
+    the estimated contribution of frame k to the total. This is calculated as
+
+    \sigma^2_k = \sum_{i,j} Cov(o_{k,i}, o_{k, j})
+
+    where Cov(o_{k,i}, o_{k, j}) is the estimated covariance in the estimated
+    expectation values of operators i and j of frame k.
+
+    Args:
+        expectation_values: The expectation values to sum.
+
+    Returns:
+        The value of the sum, including a precision if the expectation values
+            included covariances.
+    """
+
+    value = np.sum(expectation_values.values)
+
+    precision = None
+
+    if expectation_values.estimator_covariances:
+        estimator_variance = 0
+        for frame_covariance in expectation_values.estimator_covariances:
+            estimator_variance += np.sum(frame_covariance, (0, 1))
+        precision = np.sqrt(estimator_variance)
+    return ValueEstimate(value, precision)
 
 
 class AnsatzBasedCostFunction:
@@ -172,4 +206,5 @@ class AnsatzBasedCostFunction:
             epsilon=self.epsilon,
             delta=self.delta,
         )
-        return ValueEstimate(np.sum(expectation_values.values))
+
+        return sum_expectation_values(expectation_values)

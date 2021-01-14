@@ -15,7 +15,6 @@ from qiskit import QuantumRegister, ClassicalRegister
 from qiskit.circuit.quantumregister import Qubit as QiskitQubit
 from qiskit.circuit.classicalregister import Clbit as QiskitClbit
 from qiskit.circuit import ParameterExpression
-from qiskit.aqua.circuits.gates import mct
 
 from ._gateset import ALL_GATES
 from ._qubit import Qubit
@@ -421,60 +420,72 @@ class Gate(object):
                     params[i] = ParameterExpression({}, params[i])
         # single-qubit gates
         if self.name == "I":
-            return [qiskit.extensions.standard.IGate(), [qiskit_qubits[0]], []]
+            return [qiskit.circuit.library.IGate(), [qiskit_qubits[0]], []]
         if self.name == "X":
-            return [qiskit.extensions.standard.XGate(), [qiskit_qubits[0]], []]
+            return [qiskit.circuit.library.XGate(), [qiskit_qubits[0]], []]
         if self.name == "Y":
-            return [qiskit.extensions.standard.YGate(), [qiskit_qubits[0]], []]
+            return [qiskit.circuit.library.YGate(), [qiskit_qubits[0]], []]
         if self.name == "Z":
-            return [qiskit.extensions.standard.ZGate(), [qiskit_qubits[0]], []]
+            return [qiskit.circuit.library.ZGate(), [qiskit_qubits[0]], []]
         if self.name == "H":
-            return [qiskit.extensions.standard.HGate(), [qiskit_qubits[0]], []]
+            return [qiskit.circuit.library.HGate(), [qiskit_qubits[0]], []]
         if self.name == "T":
-            return [qiskit.extensions.standard.TGate(), [qiskit_qubits[0]], []]
+            return [qiskit.circuit.library.TGate(), [qiskit_qubits[0]], []]
         if self.name == "S":
-            return [qiskit.extensions.standard.SGate(), [qiskit_qubits[0]], []]
+            return [qiskit.circuit.library.SGate(), [qiskit_qubits[0]], []]
         if self.name == "Rx":
             return [
-                qiskit.extensions.standard.RXGate(params[0]),
+                qiskit.circuit.library.RXGate(params[0]),
                 [qiskit_qubits[0]],
                 [],
             ]
         if self.name == "Ry":
             return [
-                qiskit.extensions.standard.RYGate(params[0]),
+                qiskit.circuit.library.RYGate(params[0]),
                 [qiskit_qubits[0]],
                 [],
             ]
-        if self.name == "Rz" or self.name == "PHASE":
+        if self.name == "Rz":
             return [
-                qiskit.extensions.standard.RZGate(params[0]),
+                qiskit.circuit.library.RZGate(params[0]),
+                [qiskit_qubits[0]],
+                [],
+            ]
+        if self.name == "PHASE":
+            return [
+                qiskit.circuit.library.U1Gate(params[0]),
                 [qiskit_qubits[0]],
                 [],
             ]
         if self.name == "ZXZ":  # PhasedXPowGate gate (from cirq)
             # Hard-coded decomposition is used for now.
             return [
-                qiskit.extensions.standard.RXGate(-params[0]),
+                qiskit.circuit.library.RXGate(-params[0]),
                 [qiskit_qubits[0]],
                 [],
-                qiskit.extensions.standard.RZGate(params[1]),
+                qiskit.circuit.library.RZGate(params[1]),
                 [qiskit_qubits[0]],
                 [],
-                qiskit.extensions.standard.RXGate(params[0]),
+                qiskit.circuit.library.RXGate(params[0]),
                 [qiskit_qubits[0]],
                 [],
             ]
         if self.name == "RH":  # HPowGate (from cirq)
             # Hard-coded decomposition is used for now.
             return [
-                qiskit.extensions.standard.RYGate(pi / 4),
+                qiskit.circuit.library.RYGate(pi / 4),
                 [qiskit_qubits[0]],
                 [],
-                qiskit.extensions.standard.RZGate(params[0]),
+                qiskit.circuit.library.RXGate(params[0]),
                 [qiskit_qubits[0]],
                 [],
-                qiskit.extensions.standard.RYGate(-pi / 4),
+                qiskit.circuit.library.RYGate(-pi / 4),
+                [qiskit_qubits[0]],
+                [],
+                qiskit.circuit.library.RZGate(-params[0]),
+                [qiskit_qubits[0]],
+                [],
+                qiskit.circuit.library.U1Gate(params[0]),
                 [qiskit_qubits[0]],
                 [],
             ]
@@ -482,127 +493,54 @@ class Gate(object):
         # two-qubit gates
         if self.name == "CNOT":
             return [
-                qiskit.extensions.standard.CnotGate(),
+                qiskit.circuit.library.CXGate(),
                 [qiskit_qubits[0], qiskit_qubits[1]],
                 [],
             ]
         if self.name == "CZ":
             return [
-                qiskit.extensions.standard.CzGate(),
+                qiskit.circuit.library.CZGate(),
                 [qiskit_qubits[0], qiskit_qubits[1]],
                 [],
             ]
         if self.name == "CPHASE":
             return [
-                qiskit.extensions.standard.RXGate(pi / 2),
-                [qiskit_qubits[1]],
-                [],
-                qiskit.extensions.standard.RYGate(pi - params[0] / 2),
-                [qiskit_qubits[1]],
-                [],
-                qiskit.extensions.standard.CzGate(),
+                qiskit.circuit.library.CPhaseGate(params[0]),
                 [qiskit_qubits[0], qiskit_qubits[1]],
-                [],
-                qiskit.extensions.standard.RYGate(-(pi - params[0] / 2)),
-                [qiskit_qubits[1]],
-                [],
-                qiskit.extensions.standard.RXGate(-pi),
-                [qiskit_qubits[1]],
-                [],
-                qiskit.extensions.standard.CzGate(),
-                [qiskit_qubits[0], qiskit_qubits[1]],
-                [],
-                qiskit.extensions.standard.RXGate(pi / 2),
-                [qiskit_qubits[1]],
-                [],
-                qiskit.extensions.standard.RZGate(params[0] / 2),
-                [qiskit_qubits[0]],
                 [],
             ]
         if self.name == "SWAP":
             return [
-                qiskit.extensions.standard.SwapGate(),
+                qiskit.circuit.library.SwapGate(),
                 [qiskit_qubits[0], qiskit_qubits[1]],
                 [],
             ]
         if self.name == "XX":
             # Hard-coded decomposition is used for now. The compilation is inspired by the approach described in arXiv:1001.3855 [quant-ph]
             return [
-                qiskit.extensions.standard.HGate(),
-                [qiskit_qubits[0]],
-                [],
-                qiskit.extensions.standard.HGate(),
-                [qiskit_qubits[1]],
-                [],
-                qiskit.extensions.standard.CnotGate(),
+                qiskit.circuit.library.RXXGate(params[0] * 2),
                 [qiskit_qubits[0], qiskit_qubits[1]],
-                [],
-                qiskit.extensions.standard.RZGate(params[0] * 2),
-                [qiskit_qubits[1]],
-                [],
-                qiskit.extensions.standard.CnotGate(),
-                [qiskit_qubits[0], qiskit_qubits[1]],
-                [],
-                qiskit.extensions.standard.HGate(),
-                [qiskit_qubits[0]],
-                [],
-                qiskit.extensions.standard.HGate(),
-                [qiskit_qubits[1]],
                 [],
             ]
+
         if self.name == "YY":
             # Hard-coded decomposition is used for now. The compilation is inspired by the approach described in arXiv:1001.3855 [quant-ph]
             return [
-                qiskit.extensions.standard.SGate(),
-                [qiskit_qubits[0]],
-                [],
-                qiskit.extensions.standard.SGate(),
-                [qiskit_qubits[1]],
-                [],
-                qiskit.extensions.standard.HGate(),
-                [qiskit_qubits[0]],
-                [],
-                qiskit.extensions.standard.HGate(),
-                [qiskit_qubits[1]],
-                [],
-                qiskit.extensions.standard.CnotGate(),
+                qiskit.circuit.library.RYYGate(params[0] * 2),
                 [qiskit_qubits[0], qiskit_qubits[1]],
-                [],
-                qiskit.extensions.standard.RZGate(params[0] * 2),
-                [qiskit_qubits[1]],
-                [],
-                qiskit.extensions.standard.CnotGate(),
-                [qiskit_qubits[0], qiskit_qubits[1]],
-                [],
-                qiskit.extensions.standard.HGate(),
-                [qiskit_qubits[0]],
-                [],
-                qiskit.extensions.standard.HGate(),
-                [qiskit_qubits[1]],
-                [],
-                qiskit.extensions.standard.SdgGate(),
-                [qiskit_qubits[0]],
-                [],
-                qiskit.extensions.standard.SdgGate(),
-                [qiskit_qubits[1]],
                 [],
             ]
+
         if self.name == "ZZ":
             # Hard-coded decomposition is used for now. The compilation is inspired by the approach described in arXiv:1001.3855 [quant-ph]
             return [
-                qiskit.extensions.standard.CnotGate(),
-                [qiskit_qubits[0], qiskit_qubits[1]],
-                [],
-                qiskit.extensions.standard.RZGate(params[0] * 2),
-                [qiskit_qubits[1]],
-                [],
-                qiskit.extensions.standard.CnotGate(),
+                qiskit.circuit.library.RZZGate(params[0] * 2),
                 [qiskit_qubits[0], qiskit_qubits[1]],
                 [],
             ]
         if self.name == "CCX":
             return [
-                qiskit.extensions.standard.ToffoliGate(),
+                qiskit.circuit.library.CCXGate(),
                 [qiskit_qubits[0], qiskit_qubits[1], qiskit_qubits[2]],
                 [],
             ]
@@ -633,7 +571,7 @@ class Gate(object):
             return [qiskit.circuit.measure.Measure(), qiskit_qubits, qiskit_bits]
         if self.name == "BARRIER":
             return [
-                qiskit.extensions.standard.Barrier(len(qiskit_qubits)),
+                qiskit.circuit.library.Barrier(len(qiskit_qubits)),
                 qiskit_qubits,
                 [],
             ]
@@ -866,6 +804,8 @@ class Gate(object):
             output.name = "MCU1"
         elif qiskit_gate.name == "u1":
             output.name = "PHASE"
+        elif qiskit_gate.name == "cp":
+            output.name = "CPHASE"
         else:
             raise NotImplementedError(
                 "The gate {} is currently not supported.".format(qiskit_gate.name)

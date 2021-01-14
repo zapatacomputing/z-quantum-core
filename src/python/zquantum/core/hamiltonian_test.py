@@ -3,7 +3,8 @@ from .hamiltonian import (
     group_comeasureable_terms_greedy,
     compute_group_variances,
     get_expectation_values_from_rdms,
-    estimate_nmeas,
+    estimate_nmeas_for_operator,
+    estimate_nmeas_for_frames,
     reorder_fermionic_modes,
 )
 from .measurement import ExpectationValues
@@ -37,6 +38,25 @@ h2_hamiltonian = QubitOperator(
 0.17627640802761105 [Z2 Z3] +
 -0.24274280496459985 [Z3]"""
 )
+
+h2_hamiltonian_grouped = [
+    QubitOperator("-0.04475014401986127 [X0 X1 Y2 Y3]"),
+    QubitOperator("0.04475014401986127 [X0 Y1 Y2 X3]"),
+    QubitOperator("0.04475014401986127 [Y0 X1 X2 Y3]"),
+    QubitOperator("-0.04475014401986127 [Y0 Y1 X2 X3]"),
+    QubitOperator(
+        """0.17771287459806312 [Z0] + 
+         0.1705973832722407 [Z0 Z1] + 
+         0.12293305054268083 [Z0 Z2] + 
+         0.1676831945625421 [Z0 Z3] + 
+         0.17771287459806312 [Z1] + 
+         0.1676831945625421 [Z1 Z2] + 
+         0.12293305054268083 [Z1 Z3] + 
+         -0.24274280496459985 [Z2] + 
+         0.17627640802761105 [Z2 Z3] + 
+         -0.24274280496459985 [Z3]"""
+    ),
+]
 
 rdm1 = np.array(
     [
@@ -350,13 +370,44 @@ def test_compute_group_variances_without_ref(groups, expecval):
         ),
     ],
 )
-def test_estimate_nmeas(
+def test_estimate_nmeas_for_operator(
     target_operator, decomposition_method, expecval, expected_result
 ):
     K2_ref, nterms_ref, frame_meas_ref = expected_result
-    K2, nterms, frame_meas = estimate_nmeas(
+    K2, nterms, frame_meas = estimate_nmeas_for_operator(
         target_operator, decomposition_method, expecval
     )
+    assert np.allclose(frame_meas, frame_meas_ref)
+    assert math.isclose(K2_ref, K2)
+    assert nterms_ref == nterms
+
+
+@pytest.mark.parametrize(
+    "frame_operators, expecval, expected_result",
+    [
+        (
+            h2_hamiltonian_grouped,
+            None,
+            (
+                0.5646124437984263,
+                14,
+                np.array([0.03362557, 0.03362557, 0.03362557, 0.03362557, 0.43011016]),
+            ),
+        ),
+        (
+            h2_hamiltonian_grouped,
+            get_expectation_values_from_rdms(rdms, h2_hamiltonian, False),
+            (
+                0.06951544260278607,
+                14,
+                np.array([0.01154017, 0.01154017, 0.01154017, 0.01154017, 0.02335476]),
+            ),
+        ),
+    ],
+)
+def test_estimate_nmeas_with_groups(frame_operators, expecval, expected_result):
+    K2_ref, nterms_ref, frame_meas_ref = expected_result
+    K2, nterms, frame_meas = estimate_nmeas_for_frames(frame_operators, expecval)
     assert np.allclose(frame_meas, frame_meas_ref)
     assert math.isclose(K2_ref, K2)
     assert nterms_ref == nterms

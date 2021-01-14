@@ -518,7 +518,7 @@ class Gate(object):
         if self.name == "XX":
             # Hard-coded decomposition is used for now. The compilation is inspired by the approach described in arXiv:1001.3855 [quant-ph]
             return [
-                qiskit.circuit.library.RXXGate(-params[0] * 2),
+                qiskit.circuit.library.RXXGate(params[0] * 2),
                 [qiskit_qubits[0], qiskit_qubits[1]],
                 [],
             ]
@@ -534,7 +534,7 @@ class Gate(object):
         if self.name == "ZZ":
             # Hard-coded decomposition is used for now. The compilation is inspired by the approach described in arXiv:1001.3855 [quant-ph]
             return [
-                qiskit.circuit.library.RZZGate(-params[0] * 2),
+                qiskit.circuit.library.RZZGate(params[0] * 2),
                 [qiskit_qubits[0], qiskit_qubits[1]],
                 [],
             ]

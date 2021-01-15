@@ -17,7 +17,13 @@ from zquantum.core.circuit import (
     Circuit,
     ParameterGrid,
 )
-from zquantum.core.utils import create_object, ValueEstimate, save_value_estimate
+from zquantum.core.utils import (
+    create_object,
+    ValueEstimate,
+    save_value_estimate,
+    get_ground_state_rdm_from_qubit_op as _get_ground_state_rdm_from_qubit_op,
+    save_interaction_rdm,
+)
 from zquantum.core.openfermion import (
     load_qubit_operator,
     evaluate_operator_for_parameter_grid as _evaluate_operator_for_parameter_grid,
@@ -49,6 +55,12 @@ def get_expectation_values_for_qubit_operator(
 
     expectation_values = backend.get_expectation_values(circuit, qubit_operator)
     save_expectation_values(expectation_values, "expectation-values.json")
+
+
+def get_ground_state_rdm_from_qubit_operator(qubit_operator, n_particles):
+    qubit_operator = load_qubit_operator(qubit_operator)
+    rdm = _get_ground_state_rdm_from_qubit_op(qubit_operator, n_particles)
+    save_interaction_rdm(rdm, "rdms.json")
 
 
 def evaluate_operator_for_parameter_grid(

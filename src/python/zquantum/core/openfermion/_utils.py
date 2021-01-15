@@ -13,8 +13,10 @@ from openfermion import (
     normal_ordered,
     get_sparse_operator,
     get_interaction_operator,
+    InteractionRDM,
 )
 from openfermion import expectation as openfermion_expectation
+from openfermion.utils import jw_get_ground_state_at_particle_number
 from typing import List, Union, Optional
 
 from ..circuit import (
@@ -620,3 +622,55 @@ def create_circuits_from_qubit_operator(qubit_operator: QubitOperator) -> List[C
         circuit_set += [circuit]
 
     return circuit_set
+
+
+def get_ground_state_rdm_from_qubit_op(
+    qubit_operator: QubitOperator, n_particles: int
+) -> InteractionRDM:
+    """Diagonalize operator and compute the ground state 1- and 2-RDM
+
+    Args:
+        qubit_operator (openfermion.QubitOperator): The openfermion operator to diagonalize
+        n_particles (int): number of particles in the target ground state
+
+    Returns:
+        rdm (openfermion.InteractionRDM): interaction RDM of the ground state with the particle
+            number n_particles
+    """
+
+    sparse_operator = get_sparse_operator(qubit_operator)
+    e, ground_state_wf = jw_get_ground_state_at_particle_number(
+        sparse_operator, n_particles
+    )  # float/np.array pair
+    n_qubits = count_qubits(qubit_operator)
+
+    rdm1_matrix = []
+    for i in range(n_qubits):
+        for j in range(n_qubits):
+            idag_j = get_sparse_operator(
+                FermionOperator(f"{i}^ {j}"), n_qubits=n_qubits
+            )
+            idag_j = idag_j.toarray()
+            rdm1_matrix.append(np.conjugate(ground_state_wf) @ idag_j @ ground_state_wf)
+
+    rdm1_matrix = np.array(rdm1_matrix)
+    rdm1_matrix = rdm1_matrix.reshape(n_qubits, n_qubits)
+
+    rdm2_matrix = np.zeros((n_qubits, n_qubits, n_qubits, n_qubits), dtype=complex)
+    for p in range(n_qubits):
+        for q in range(0, p + 1):
+            for r in range(n_qubits):
+                for s in range(0, r + 1):
+                    pdag_qdag_r_s = get_sparse_operator(
+                        FermionOperator(f"{p}^ {q}^ {r} {s}"), n_qubits=n_qubits
+                    )
+                    pdag_qdag_r_s = pdag_qdag_r_s.toarray()
+                    rdm_element = (
+                        np.conjugate(ground_state_wf) @ pdag_qdag_r_s @ ground_state_wf
+                    )
+                    rdm2_matrix[p, q, r, s] = rdm_element
+                    rdm2_matrix[q, p, r, s] = -rdm_element
+                    rdm2_matrix[q, p, s, r] = rdm_element
+                    rdm2_matrix[p, q, s, r] = -rdm_element
+
+    return InteractionRDM(rdm1_matrix, rdm2_matrix)

@@ -18,6 +18,7 @@ from .measurement import (
     get_expectation_values_from_parities,
     expectation_values_to_real,
     convert_bitstring_to_int,
+    get_expectation_value_from_frequencies,
     Measurements,
     concatenate_expectation_values,
 )
@@ -36,12 +37,12 @@ class TestMeasurement(unittest.TestCase):
         correlations.append(np.array([[1.0, -1.0], [-1.0, 1.0]]))
         correlations.append(np.array([[1.0]]))
 
-        covariances = []
-        covariances.append(np.array([[0.1, -0.1], [-0.1, 0.1]]))
-        covariances.append(np.array([[0.1]]))
+        estimator_covariances = []
+        estimator_covariances.append(np.array([[0.1, -0.1], [-0.1, 0.1]]))
+        estimator_covariances.append(np.array([[0.1]]))
 
         expectation_values_object = ExpectationValues(
-            expectation_values, correlations, covariances
+            expectation_values, correlations, estimator_covariances
         )
 
         save_expectation_values(expectation_values_object, "expectation_values.json")
@@ -60,8 +61,8 @@ class TestMeasurement(unittest.TestCase):
             len(expectation_values_object_loaded.correlations),
         )
         self.assertEqual(
-            len(expectation_values_object.covariances),
-            len(expectation_values_object_loaded.covariances),
+            len(expectation_values_object.estimator_covariances),
+            len(expectation_values_object_loaded.estimator_covariances),
         )
         for i in range(len(expectation_values_object.correlations)):
             self.assertTrue(
@@ -70,11 +71,11 @@ class TestMeasurement(unittest.TestCase):
                     expectation_values_object_loaded.correlations[i],
                 )
             )
-        for i in range(len(expectation_values_object.covariances)):
+        for i in range(len(expectation_values_object.estimator_covariances)):
             self.assertTrue(
                 np.allclose(
-                    expectation_values_object.covariances[i],
-                    expectation_values_object_loaded.covariances[i],
+                    expectation_values_object.estimator_covariances[i],
+                    expectation_values_object_loaded.estimator_covariances[i],
                 )
             )
 
@@ -174,18 +175,18 @@ class TestMeasurement(unittest.TestCase):
         self.assertAlmostEqual(expectation_values.values[1], 0.030042918454935622)
         self.assertAlmostEqual(expectation_values.values[2], 0.48514851485148514)
 
-        self.assertEqual(len(expectation_values.covariances), 3)
+        self.assertEqual(len(expectation_values.estimator_covariances), 3)
         self.assertTrue(
             np.allclose(
-                expectation_values.covariances[0], np.array([[0.014705882352941176]])
+                expectation_values.estimator_covariances[0], np.array([[0.014705882352941176]])
             )
         )
         self.assertTrue(
-            np.allclose(expectation_values.covariances[1], np.array([[0.00428797]]))
+            np.allclose(expectation_values.estimator_covariances[1], np.array([[0.00428797]]))
         )
 
         self.assertTrue(
-            np.allclose(expectation_values.covariances[2], np.array([[0.0075706]]))
+            np.allclose(expectation_values.estimator_covariances[2], np.array([[0.0075706]]))
         )
 
     def test_expectation_values_to_real(self):
@@ -208,6 +209,17 @@ class TestMeasurement(unittest.TestCase):
     def test_convert_bitstring_to_int(self):
         bitstring = (0, 1, 0, 1, 0, 1)
         self.assertEqual(convert_bitstring_to_int(bitstring), 42)
+
+    def test_get_expectation_value_from_frequencies(self):
+        bitstrings = ["001", "001", "110", "000"]
+        bitstring_frequencies = dict(Counter(bitstrings))
+        marked_qubits = (1, 2)
+        self.assertAlmostEqual(
+            get_expectation_value_from_frequencies(
+                marked_qubits, bitstring_frequencies
+            ),
+            -0.5,
+        )
 
     def test_measurement_class_io(self):
         # Given
@@ -582,15 +594,83 @@ class TestMeasurement(unittest.TestCase):
     def test_get_expectation_values_from_measurements(self):
         # Given
         measurements = Measurements(
-            [(0, 1, 0), (0, 1, 0), (0, 0, 0), (0, 0, 0), (1, 1, 1)]
+            [(0, 1, 0), (0, 1, 0), (0, 0, 0), (1, 0, 0), (1, 1, 1)]
         )
-        ising_operator = IsingOperator("10[] + [Z0 Z1] - 10[Z1 Z2]")
-        target_expectation_values = np.array([10, 0.2, -2])
+        ising_operator = IsingOperator("10[] + [Z0 Z1] - 15[Z1 Z2]")
+        target_expectation_values = np.array([10, -0.2, -3])
+        target_correlations = np.array([[100, -2, -30], [-2, 1, -9], [-30, -9, 225]])
+        denominator = len(measurements.bitstrings)
+        covariance_11 = (
+            target_correlations[1, 1] - target_expectation_values[1] ** 2
+        ) / denominator
+        covariance_12 = (
+            target_correlations[1, 2]
+            - target_expectation_values[1] * target_expectation_values[2]
+        ) / denominator
+        covariance_22 = (
+            target_correlations[2, 2] - target_expectation_values[2] ** 2
+        ) / denominator
+
+        target_covariances = np.array(
+            [
+                [0, 0, 0],
+                [0, covariance_11, covariance_12],
+                [0, covariance_12, covariance_22],
+            ]
+        )
+
         # When
-        expectation_values = measurements.get_expectation_values(ising_operator)
+        expectation_values = measurements.get_expectation_values(ising_operator, False)
         # Then
-        np.testing.assert_array_equal(
-            expectation_values.values, target_expectation_values
+        np.testing.assert_allclose(expectation_values.values, target_expectation_values)
+        self.assertEqual(len(expectation_values.correlations), 1)
+        np.testing.assert_allclose(
+            expectation_values.correlations[0], target_correlations
+        )
+        self.assertEqual(len(expectation_values.estimator_covariances), 1)
+        np.testing.assert_allclose(
+            expectation_values.estimator_covariances[0], target_covariances
+        )
+
+    def test_get_expectation_values_from_measurements_with_bessel_correction(self):
+        # Given
+        measurements = Measurements(
+            [(0, 1, 0), (0, 1, 0), (0, 0, 0), (1, 0, 0), (1, 1, 1)]
+        )
+        ising_operator = IsingOperator("10[] + [Z0 Z1] - 15[Z1 Z2]")
+        target_expectation_values = np.array([10, -0.2, -3])
+        target_correlations = np.array([[100, -2, -30], [-2, 1, -9], [-30, -9, 225]])
+        denominator = len(measurements.bitstrings) - 1
+        covariance_11 = (
+            target_correlations[1, 1] - target_expectation_values[1] ** 2
+        ) / denominator
+        covariance_12 = (
+            target_correlations[1, 2]
+            - target_expectation_values[1] * target_expectation_values[2]
+        ) / denominator
+        covariance_22 = (
+            target_correlations[2, 2] - target_expectation_values[2] ** 2
+        ) / denominator
+
+        target_covariances = np.array(
+            [
+                [0, 0, 0],
+                [0, covariance_11, covariance_12],
+                [0, covariance_12, covariance_22],
+            ]
+        )
+
+        # When
+        expectation_values = measurements.get_expectation_values(ising_operator, True)
+        # Then
+        np.testing.assert_allclose(expectation_values.values, target_expectation_values)
+        self.assertEqual(len(expectation_values.correlations), 1)
+        np.testing.assert_allclose(
+            expectation_values.correlations[0], target_correlations
+        )
+        self.assertEqual(len(expectation_values.estimator_covariances), 1)
+        np.testing.assert_allclose(
+            expectation_values.estimator_covariances[0], target_covariances
         )
 
     def test_concatenate_expectation_values(self):
@@ -603,7 +683,7 @@ class TestMeasurement(unittest.TestCase):
             expectation_values_set
         )
         self.assertTrue(combined_expectation_values.correlations is None)
-        self.assertTrue(combined_expectation_values.covariances is None)
+        self.assertTrue(combined_expectation_values.estimator_covariances is None)
         self.assertTrue(
             np.allclose(combined_expectation_values.values, [1.0, 2.0, 3.0, 4.0])
         )
@@ -612,29 +692,29 @@ class TestMeasurement(unittest.TestCase):
         expectation_values_set = [
             ExpectationValues(
                 np.array([1.0, 2.0]),
-                covariances=[np.array([[0.1, 0.2], [0.3, 0.4]])],
+                estimator_covariances=[np.array([[0.1, 0.2], [0.3, 0.4]])],
                 correlations=[np.array([[-0.1, -0.2], [-0.3, -0.4]])],
             ),
             ExpectationValues(
                 np.array([3.0, 4.0]),
-                covariances=[np.array([[0.1]]), np.array([[0.2]])],
+                estimator_covariances=[np.array([[0.1]]), np.array([[0.2]])],
                 correlations=[np.array([[-0.1]]), np.array([[-0.2]])],
             ),
         ]
         combined_expectation_values = concatenate_expectation_values(
             expectation_values_set
         )
-        self.assertEqual(len(combined_expectation_values.covariances), 3)
+        self.assertEqual(len(combined_expectation_values.estimator_covariances), 3)
         self.assertTrue(
             np.allclose(
-                combined_expectation_values.covariances[0], [[0.1, 0.2], [0.3, 0.4]]
+                combined_expectation_values.estimator_covariances[0], [[0.1, 0.2], [0.3, 0.4]]
             )
         )
         self.assertTrue(
-            np.allclose(combined_expectation_values.covariances[1], [[0.1]])
+            np.allclose(combined_expectation_values.estimator_covariances[1], [[0.1]])
         )
         self.assertTrue(
-            np.allclose(combined_expectation_values.covariances[2], [[0.2]])
+            np.allclose(combined_expectation_values.estimator_covariances[2], [[0.2]])
         )
 
         self.assertEqual(len(combined_expectation_values.correlations), 3)

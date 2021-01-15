@@ -90,31 +90,40 @@ class ExpectationValues:
     """A class representing expectation values of operators.
 
     Args:
-        values (np.array): The expectation values of a set of operators.
-        pairwise_products (list): The expectation values of pairwise products. Is a list of numpy.array objects.
+        values: The expectation values of a set of operators.
+        correlations: The expectation values of pairwise products of operators.
+            Contains an NxN array for each frame, where N is the number of
+            operators in that frame.
+        estimator_covariances: The (estimated) covariances between estimates of
+            expectation values of pairs of operators. Contains an NxN array for
+            each frame, where N is the number of operators in that frame. Note
+            that for direct sampling, the covariance between estimates of
+            expectation values is equal to the population covariance divided by
+            the number of samples.
 
     Attributes:
-        values (np.array): The expectation values of a set of operators.
-        correlations (list): The expectation values of pairwise products. Is a list of numpy.array objects, with each
-            array corresponding to a frame. Is None if no correlations are available.
-        covariances (list): The variances and covariances of different frames. Is a list of numpy.array
-            objects, with each array corresponding to a frame. Is None if no covariances are available.
+        values: See Args.
+        correlations: See Args.
+        estimator_covariances: See Args.
     """
 
     def __init__(
         self,
         values: np.ndarray,
         correlations: Optional[List[np.ndarray]] = None,
-        covariances: Optional[List[np.ndarray]] = None,
+        estimator_covariances: Optional[List[np.ndarray]] = None,
     ):
         self.values = values
         self.correlations = correlations
-        self.covariances = covariances
+        self.estimator_covariances = estimator_covariances
 
     def to_dict(self) -> dict:
         """Convert to a dictionary"""
 
-        data = {"schema": SCHEMA_VERSION + "-expectation_values", "frames": []} # what is "frames" for?
+        data = {
+            "schema": SCHEMA_VERSION + "-expectation_values",
+            "frames": [],
+        }  # what is "frames" for?
 
         data["expectation_values"] = convert_array_to_dict(self.values)
 
@@ -123,10 +132,12 @@ class ExpectationValues:
             for correlation_matrix in self.correlations:
                 data["correlations"].append(convert_array_to_dict(correlation_matrix))
 
-        if self.covariances:
-            data["covariances"] = []
-            for covariance_matrix in self.covariances:
-                data["covariances"].append(convert_array_to_dict(covariance_matrix))
+        if self.estimator_covariances:
+            data["estimator_covariances"] = []
+            for covariance_matrix in self.estimator_covariances:
+                data["estimator_covariances"].append(
+                    convert_array_to_dict(covariance_matrix)
+                )
 
         return data
 
@@ -141,13 +152,14 @@ class ExpectationValues:
             for correlation_matrx in dictionary.get("correlations"):
                 correlations.append(convert_dict_to_array(correlation_matrx))
 
-        covariances = None
-        if dictionary.get("covariances"):
-            covariances = []
-            for covariance_matrix in dictionary.get("covariances"):
-                covariances.append(convert_dict_to_array(covariance_matrix))
+        estimator_covariances = None
+        if dictionary.get("estimator_covariances"):
+            estimator_covariances = []
+            for covariance_matrix in dictionary.get("estimator_covariances"):
+                estimator_covariances.append(convert_dict_to_array(covariance_matrix))
 
-        return cls(expectation_values, correlations, covariances)
+        return cls(expectation_values, correlations, estimator_covariances)
+
 
 def sample_from_wavefunction(
     wavefunction: Wavefunction, n_samples: int
@@ -256,7 +268,7 @@ def get_expectation_values_from_parities(parities: Parities) -> ExpectationValue
         A zquantum.core.measurement.ExpectationValues object: Contains the expectation values of the operators and the associated precisions.
     """
     values = []
-    covariances = []
+    estimator_covariances = []
 
     for i in range(len(parities.values)):
         N0 = parities.values[i][0]
@@ -278,9 +290,11 @@ def get_expectation_values_from_parities(parities: Parities) -> ExpectationValue
             precision = 1.0 / np.sqrt(N)
 
         values.append(value)
-        covariances.append(np.array([[precision ** 2.0]]))
+        estimator_covariances.append(np.array([[precision ** 2.0]]))
 
-    return ExpectationValues(values=np.array(values), covariances=covariances)
+    return ExpectationValues(
+        values=np.array(values), estimator_covariances=estimator_covariances
+    )
 
 
 def get_parities_from_measurements(
@@ -367,6 +381,33 @@ def convert_bitstring_to_int(bitstring: Iterable[int]) -> int:
             significant (little endian).
     """
     return int("".join(str(bit) for bit in bitstring[::-1]), 2)
+
+
+def get_expectation_value_from_frequencies(
+    marked_qubits: Tuple[int], bitstring_frequencies: dict[str, int]
+) -> float:
+    """Get the expectation value the product of Z operators on selected qubits
+    from bitstring frequencies.
+
+    Args:
+        marked_qubits: The qubits that the Z operators act on.
+        bitstring_frequences: The frequencies of the bitstrings.
+
+    Returns:
+        The expectation value of the product of Z operators on selected qubits.
+    """
+
+    expectation = 0
+    num_measurements = sum(bitstring_frequencies.values())
+    for bitstring, count in bitstring_frequencies.items():
+        bitstring_int = convert_bitstring_to_int(bitstring)
+        if parity_even_p(bitstring_int, marked_qubits):
+            value = float(count) / num_measurements
+        else:
+            value = -float(count) / num_measurements
+        expectation += value
+
+    return expectation
 
 
 class Measurements:
@@ -467,12 +508,16 @@ class Measurements:
         return BitstringDistribution(distribution)
 
     def get_expectation_values(
-        self, ising_operator: IsingOperator
+        self, ising_operator: IsingOperator, use_bessel_correction: bool = True
     ) -> ExpectationValues:
         """Get the expectation values of an operator from the measurements.
 
         Args:
-            ising_operator (openfermion.ops.IsingOperator): the operator
+            ising_operator: the operator
+            use_bessel_correction: Whether to use Bessel's correction when
+                when estimating the covariance of operators. Using the
+                correction provides an unbiased estimate for covariances, but
+                diverges when only one sample is taken.
 
         Returns:
             zquantum.core.measurement.ExpectationValues: the expectation values of each term in the operator
@@ -488,19 +533,46 @@ class Measurements:
         num_measurements = len(self.bitstrings)
 
         # Perform weighted average
-        expectation_values = []
-        for term, coefficient in ising_operator.terms.items():
-            expectation = 0
-            marked_qubits = [op[0] for op in term]
-            for bitstring, count in bitstring_frequencies.items():
-                bitstring_int = convert_bitstring_to_int(bitstring)
-                if parity_even_p(bitstring_int, marked_qubits):
-                    value = float(count) / num_measurements
-                else:
-                    value = -float(count) / num_measurements
-                expectation += np.real(coefficient) * value
-            expectation_values.append(np.real(expectation))
-        return ExpectationValues(np.array(expectation_values))
+        expectation_values = [
+            coefficient
+            * get_expectation_value_from_frequencies(
+                [op[0] for op in term], bitstring_frequencies
+            )
+            for term, coefficient in ising_operator.terms.items()
+        ]
+        expectation_values = np.array(expectation_values)
+
+        correlations = np.zeros((len(ising_operator.terms),) * 2)
+        for i, first_term in enumerate(ising_operator.terms):
+            correlations[i, i] = ising_operator.terms[first_term] ** 2
+            for j in range(i):
+                second_term = list(ising_operator.terms.keys())[j]
+                first_term_qubits = set(op[0] for op in first_term)
+                second_term_qubits = set(op[0] for op in second_term)
+                marked_qubits = first_term_qubits.symmetric_difference(
+                    second_term_qubits
+                )
+                correlations[i, j] = (
+                    ising_operator.terms[first_term]
+                    * ising_operator.terms[second_term]
+                    * get_expectation_value_from_frequencies(
+                        marked_qubits, bitstring_frequencies
+                    )
+                )
+                correlations[j, i] = correlations[i, j]
+
+        denominator = (
+            num_measurements - 1 if use_bessel_correction else num_measurements
+        )
+
+        estimator_covariances = (
+            correlations
+            - expectation_values[:, np.newaxis] * expectation_values[np.newaxis, :]
+        ) / denominator
+
+        return ExpectationValues(
+            np.array(expectation_values), [correlations], [estimator_covariances]
+        )
 
 
 def concatenate_expectation_values(
@@ -515,11 +587,7 @@ def concatenate_expectation_values(
         The combined expectation values.
     """
 
-    combined_expectation_values = ExpectationValues(
-        np.zeros(
-            0,
-        )
-    )
+    combined_expectation_values = ExpectationValues(np.zeros(0,))
 
     for expectation_values in expectation_values_set:
         combined_expectation_values.values = np.concatenate(
@@ -529,9 +597,11 @@ def concatenate_expectation_values(
             if not combined_expectation_values.correlations:
                 combined_expectation_values.correlations = []
             combined_expectation_values.correlations += expectation_values.correlations
-        if expectation_values.covariances:
-            if not combined_expectation_values.covariances:
-                combined_expectation_values.covariances = []
-            combined_expectation_values.covariances += expectation_values.covariances
+        if expectation_values.estimator_covariances:
+            if not combined_expectation_values.estimator_covariances:
+                combined_expectation_values.estimator_covariances = []
+            combined_expectation_values.estimator_covariances += (
+                expectation_values.estimator_covariances
+            )
 
     return combined_expectation_values

@@ -1,10 +1,25 @@
 import numpy as np
 import pytest
 from unittest import mock
-from .cost_function import AnsatzBasedCostFunction
+from .cost_function import AnsatzBasedCostFunction, sum_expectation_values
 from .interfaces.mock_objects import MockQuantumSimulator, MockEstimator, MockAnsatz
 from openfermion import QubitOperator
+from .measurement import ExpectationValues
 
+def test_sum_expectation_values():
+    expectation_values = ExpectationValues(np.array([5, -2, 1]))
+    total = sum_expectation_values(expectation_values)
+    assert np.isclose(total.value, 4)
+    assert total.precision is None
+
+def test_sum_expectation_values_with_covariances():
+    values = np.array([5, -2, 1])
+    correlations = [np.array([[1, 0.5],[0.5, 2]]), np.array([[7]])]
+    covariances = [correlations[0]/10, correlations[1]/10]
+    expectation_values = ExpectationValues(values, correlations, covariances)
+    total = sum_expectation_values(expectation_values)
+    assert np.isclose(total.value, 4)
+    assert np.isclose(total.precision, np.sqrt((1 + 0.5 + 0.5 + 2 + 7)/10))
 
 @pytest.fixture
 def ansatz_based_cost_function():

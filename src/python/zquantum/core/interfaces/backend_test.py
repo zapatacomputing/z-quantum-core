@@ -126,7 +126,9 @@ class QuantumBackendTests:
         assert backend.number_of_circuits_run == number_of_circuits
 
         if backend.supports_batching:
-            assert backend.number_of_jobs_run == 1
+            assert backend.number_of_jobs_run == int(
+                np.ceil(number_of_circuits / backend.batch_size)
+            )
         else:
             assert backend.number_of_jobs_run == number_of_circuits
 
@@ -192,7 +194,9 @@ class QuantumBackendTests:
             )
         assert backend.number_of_circuits_run == num_circuits
         if backend.supports_batching:
-            assert backend.number_of_jobs_run == 1
+            assert backend.number_of_jobs_run == int(
+                np.ceil(num_circuits / backend.batch_size)
+            )
         else:
             assert backend.number_of_jobs_run == num_circuits
 

@@ -1,4 +1,5 @@
 import warnings
+import numpy as np
 
 from abc import ABC, abstractmethod
 from typing import Optional, List, Iterable
@@ -30,6 +31,9 @@ class QuantumBackend(ABC):
         self.n_samples = n_samples
         self.number_of_circuits_run = 0
         self.number_of_jobs_run = 0
+
+        if self.supports_batching:
+            assert self.batch_size > 0
 
     @abstractmethod
     def run_circuit_and_measure(self, circuit: Circuit, **kwargs) -> Measurements:
@@ -64,7 +68,7 @@ class QuantumBackend(ABC):
             return measurement_set
         else:
             self.number_of_circuits_run += len(circuit_set)
-            self.number_of_jobs_run += 1
+            self.number_of_jobs_run += int(np.ceil(len(circuit_set) / self.batch_size))
 
     def get_expectation_values(
         self, circuit: Circuit, operator: SymbolicOperator, **kwargs

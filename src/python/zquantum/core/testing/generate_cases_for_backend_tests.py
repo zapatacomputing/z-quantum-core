@@ -25,15 +25,15 @@ CZ = sympy.Matrix([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, -1]])
 SWAP = sympy.Matrix([[1, 0, 0, 0], [0, 0, 1, 0], [0, 1, 0, 0], [0, 0, 0, 1]])
 
 II = TensorProduct(I, I)
-IH = TensorProduct(I, H)
-HI = TensorProduct(H, I)
+IH = TensorProduct(H, I)
+HI = TensorProduct(I, H)
 
 HH = TensorProduct(H, H)
 XX = TensorProduct(X, X)
 YY = TensorProduct(Y, Y)
 ZZ = TensorProduct(Z, Z)
-IX = TensorProduct(I, X)
-ZI = TensorProduct(Z, I)
+IX = TensorProduct(X, I)
+ZI = TensorProduct(I, Z)
 
 single_qubit_initial_states = [(I, "I"), (H, "H")]
 single_qubit_operators = [I, X, Y, Z]
@@ -254,10 +254,10 @@ def main():
     )
     XX = sympy.Matrix(
         [
-            [sympy.cos(theta), 0, 0, 1j * sympy.sin(theta)],
-            [0, sympy.cos(theta), 1j * sympy.sin(theta), 0],
-            [0, 1j * sympy.sin(theta), sympy.cos(theta), 0],
-            [1j * sympy.sin(theta), 0, 0, sympy.cos(theta)],
+            [sympy.cos(theta), 0, 0, -1j * sympy.sin(theta)],
+            [0, sympy.cos(theta), -1j * sympy.sin(theta), 0],
+            [0, -1j * sympy.sin(theta), sympy.cos(theta), 0],
+            [-1j * sympy.sin(theta), 0, 0, sympy.cos(theta)],
         ]
     )
     YY = sympy.Matrix(
@@ -270,10 +270,10 @@ def main():
     )
     ZZ = sympy.Matrix(
         [
-            [sympy.cos(theta) + 1j * sympy.sin(theta), 0, 0, 0],
-            [0, sympy.cos(theta) - 1j * sympy.sin(theta), 0, 0],
-            [0, 0, sympy.cos(theta) - 1j * sympy.sin(theta), 0],
-            [0, 0, 0, sympy.cos(theta) + 1j * sympy.sin(theta)],
+            [sympy.cos(theta) - 1j * sympy.sin(theta), 0, 0, 0],
+            [0, sympy.cos(theta) + 1j * sympy.sin(theta), 0, 0],
+            [0, 0, sympy.cos(theta) + 1j * sympy.sin(theta), 0],
+            [0, 0, 0, sympy.cos(theta) - 1j * sympy.sin(theta)],
         ]
     )
 

@@ -1,7 +1,6 @@
 from __future__ import annotations
 import json
 from pyquil.wavefunction import Wavefunction
-from grove.pyvqe.vqe import parity_even_p
 import numpy as np
 from openfermion.ops import IsingOperator
 from .utils import (
@@ -323,8 +322,7 @@ def get_parities_from_measurements(
         values.append([0, 0])
         marked_qubits = [op[0] for op in term]
         for bitstring, count in bitstring_frequencies.items():
-            bitstring_int = convert_bitstring_to_int(bitstring)
-            if parity_even_p(bitstring_int, marked_qubits):
+            if check_parity(bitstring, marked_qubits):
                 values[-1][0] += count
             else:
                 values[-1][1] += count
@@ -336,9 +334,8 @@ def get_parities_from_measurements(
             marked_qubits_term1 = [op[0] for op in term1]
             marked_qubits_term2 = [op[0] for op in term2]
             for bitstring, count in bitstring_frequencies.items():
-                bitstring_int = convert_bitstring_to_int(bitstring)
-                parity1 = parity_even_p(bitstring_int, marked_qubits_term1)
-                parity2 = parity_even_p(bitstring_int, marked_qubits_term2)
+                parity1 = check_parity(bitstring, marked_qubits_term1)
+                parity2 = check_parity(bitstring, marked_qubits_term2)
                 if parity1 == parity2:
                     correlations[0][term1_index, term2_index][0] += count
                 else:
@@ -383,8 +380,26 @@ def convert_bitstring_to_int(bitstring: Iterable[int]) -> int:
     return int("".join(str(bit) for bit in bitstring[::-1]), 2)
 
 
+def check_parity(bitstring: Union[str, Tuple[int]], marked_qubits: Tuple[int]) -> bool:
+    """Determine if the marked qubits have even parity for the given bitstring.
+
+    Args:
+        bitstring: The bitstring, either as a tuple or little endian string.
+        marked_qubits: The qubits whose parity is to be determined.
+
+    Returns:
+        True if an even number of the marked qubits are in the 1 state, False
+            otherwise.
+    """
+    result = True
+    for qubit_index in marked_qubits:
+        if bitstring[qubit_index] == "1" or bitstring[qubit_index] == 1:
+            result = not result
+    return result
+
+
 def get_expectation_value_from_frequencies(
-    marked_qubits: Tuple[int], bitstring_frequencies: dict[str, int]
+    marked_qubits: Tuple[int], bitstring_frequencies: Dict[str, int]
 ) -> float:
     """Get the expectation value the product of Z operators on selected qubits
     from bitstring frequencies.
@@ -400,8 +415,7 @@ def get_expectation_value_from_frequencies(
     expectation = 0
     num_measurements = sum(bitstring_frequencies.values())
     for bitstring, count in bitstring_frequencies.items():
-        bitstring_int = convert_bitstring_to_int(bitstring)
-        if parity_even_p(bitstring_int, marked_qubits):
+        if check_parity(bitstring, marked_qubits):
             value = float(count) / num_measurements
         else:
             value = -float(count) / num_measurements

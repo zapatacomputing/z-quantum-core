@@ -227,7 +227,8 @@ def convert_bitstrings_to_tuples(bitstrings):
 
 
 def convert_tuples_to_bitstrings(tuples):
-    """Given a set of measurement tuples, convert each to bitstring format
+    """Given a set of measurement tuples, convert each to a little endian
+    string.
 
     Args:
         tuples (list of tuples): the measurement tuples

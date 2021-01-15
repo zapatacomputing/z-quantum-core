@@ -120,6 +120,10 @@ def compute_group_variances(
         frame_variances: A Numpy array of the computed variances for each frame
     """
 
+    if any([x.terms.get(()) for x in groups]):
+        raise ValueError(
+            "The list of qubitoperators for measurement estimation should not contain a constant term"
+        )
     if expecval is None:
         frame_variances = [
             np.sum(np.array(list(x.terms.values())) ** 2) for x in groups
@@ -139,6 +143,36 @@ def compute_group_variances(
             frame_variances.append(np.sum(coeffs ** 2 * pauli_variances_for_group))
 
     return np.array(frame_variances)
+
+
+def get_expectation_values_from_rdms_for_frames(
+    interactionrdm: InteractionRDM,
+    qubitoperator_list: List[QubitOperator],
+    sort_terms: bool = False,
+) -> ExpectationValues:
+    """Computes expectation values of Pauli strings in a list of QubitOperator given a 
+       fermionic InteractionRDM from OpenFermion. All the expectation values for the 
+       operators in the list are returned in a single ExpectationValues object in the
+       same order the operators came in.
+
+    Args:
+        interactionrdm: interaction RDM to use for the expectation values
+            computation, as an OF InteractionRDM object
+        qubitoperator_list: List of qubit operators to compute the expectation values for
+            in the form of OpenFermion QubitOperator objects
+        sort_terms: whether or not each input qubit operator needs to be sorted before calculating expectations
+    Returns:
+        expectation values of Pauli strings in all qubit operators as an ExpectationValues object
+    """
+
+    all_expectations = []
+    for qubitoperator in qubitoperator_list:
+        expectations = get_expectation_values_from_rdms(
+            interactionrdm, qubitoperator, sort_terms=sort_terms
+        )
+        all_expectations += list(expectations.values)
+
+    return ExpectationValues(np.asarray(all_expectations))
 
 
 def get_expectation_values_from_rdms(

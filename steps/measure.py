@@ -10,6 +10,7 @@ from zquantum.core.hamiltonian import (
     estimate_nmeas_for_operator,
     estimate_nmeas_for_frames,
     get_expectation_values_from_rdms,
+    get_expectation_values_from_rdms_for_frames,
 )
 from zquantum.core.circuit import (
     load_circuit,
@@ -163,4 +164,15 @@ def expectation_values_from_rdms(
     operator = load_qubit_operator(qubit_operator)
     rdms = load_interaction_rdm(interactionrdm)
     expecval = get_expectation_values_from_rdms(rdms, operator, sort_terms=sort_terms)
+    save_expectation_values(expecval, "expectation_values.json")
+
+
+def expectation_values_from_rdms_for_frames(
+    interactionrdm: str, qubit_operator_list: str, sort_terms: bool = False
+):
+    operator_list = load_qubit_operator_set(qubit_operator_list)
+    rdms = load_interaction_rdm(interactionrdm)
+    expecval = get_expectation_values_from_rdms_for_frames(
+        rdms, operator_list, sort_terms=sort_terms
+    )
     save_expectation_values(expecval, "expectation_values.json")

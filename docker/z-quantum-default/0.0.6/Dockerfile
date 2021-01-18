@@ -56,12 +56,12 @@ RUN git clone https://github.com/rigetti/qvm.git && \
 
 RUN python3 -m pip install rpcq==3.0.0 \
                     pytest==5.3.5 \
-                    networkx==2.3 \
+                    networkx==2.4 \
                     pyquil==2.17.0 \
-                    cirq==0.7.0 \
-                    openfermion==0.11.0 \
-                    openfermioncirq==0.3.0 \
-                    qiskit==0.18.3 \
+                    cirq==0.9.0 \
+                    openfermion==1.0.0 \
+                    openfermioncirq==0.4.0 \
+                    qiskit==0.23.2 \
                     cffi>=1.14.0 \
                     scipy==1.4.1 \
                     lea==3.2.0 \
@@ -69,6 +69,7 @@ RUN python3 -m pip install rpcq==3.0.0 \
                     werkzeug==0.14.1 \
                     flask==1.1.1 \
                     pyyaml==5.1 \
+                    sympy==1.5 \
                     overrides>=3.1.0 \
                     codecarbon==1.0.0
 

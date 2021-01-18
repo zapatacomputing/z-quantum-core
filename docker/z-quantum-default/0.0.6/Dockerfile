@@ -69,8 +69,7 @@ RUN python3 -m pip install rpcq==3.0.0 \
                     werkzeug==0.14.1 \
                     flask==1.1.1 \
                     pyyaml==5.1 \
-                    quantum-grove>=1.0.0 \
-                    overrides>=3.1.0
+                    overrides>=3.1.0 \
 
 RUN python3 -m pip install qutip>=5.4.1
 

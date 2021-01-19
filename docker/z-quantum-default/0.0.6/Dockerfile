@@ -24,8 +24,7 @@ RUN apt-get -y install \
                 liblapack-dev
 
 # Set the default version of Python3 to Python 3.7 since OpenPack uses Python 3.7 features
-RUN update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.6 1 && \
-    update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.7 2 && \
+RUN update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.7 1 && \
     update-alternatives --set python3 /usr/bin/python3.7
 
 ENV PYTHONPATH="/usr/local/lib/python3.7/dist-packages:${PYTHONPATH}"
@@ -42,7 +41,7 @@ RUN curl -O https://beta.quicklisp.org/quicklisp.lisp && \
 RUN git clone https://github.com/rigetti/quilc.git && \
                 cd quilc && \
                 git fetch && \
-                git checkout v1.18.0 && \
+                git checkout v1.23.0 && \
                 git submodule init && \
                 git submodule update --init && \
                 make && \
@@ -50,7 +49,7 @@ RUN git clone https://github.com/rigetti/quilc.git && \
 RUN git clone https://github.com/rigetti/qvm.git && \
                 cd qvm && \
                 git fetch && \
-                git checkout v1.17.0 && \
+                git checkout v1.17.1 && \
                 make QVM_WORKSPACE=10240 qvm && \
                 mv qvm /usr/local/bin
 
@@ -58,16 +57,13 @@ RUN python3 -m pip install rpcq==3.0.0 \
                     pytest==5.3.5 \
                     networkx==2.4 \
                     pyquil==2.17.0 \
-                    cirq==0.9.0 \
+                    cirq==0.9.1 \
                     openfermion==1.0.0 \
                     openfermioncirq==0.4.0 \
                     qiskit==0.23.2 \
-                    cffi>=1.14.0 \
                     scipy==1.4.1 \
                     lea==3.2.0 \
                     numpy==1.18.1 \
-                    werkzeug==0.14.1 \
-                    flask==1.1.1 \
                     pyyaml==5.1 \
                     sympy==1.5 \
                     overrides>=3.1.0 \

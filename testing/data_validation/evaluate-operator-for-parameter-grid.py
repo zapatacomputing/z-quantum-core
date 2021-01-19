@@ -25,13 +25,13 @@ for key in workflowresult.keys():
             == "zapata-v1-circuit_template_params"
         )
         assert len(workflowresult[key]["optimal-parameters"]["parameters"]["real"]) == 2
-        assert (
-            type(workflowresult[key]["optimal-parameters"]["parameters"]["real"][0])
-            == float
+        assert isinstance(
+            float(workflowresult[key]["optimal-parameters"]["parameters"]["real"][0]),
+            float,
         )
-        assert (
-            type(workflowresult[key]["optimal-parameters"]["parameters"]["real"][1])
-            == float
+        assert isinstance(
+            float(workflowresult[key]["optimal-parameters"]["parameters"]["real"][1]),
+            float,
         )
 
         assert (
@@ -53,7 +53,7 @@ for key in workflowresult.keys():
 
             assert evaluation["value"]["precision"] is None
             assert evaluation["value"]["schema"] == "zapata-v1-value_estimate"
-            assert isinstance(evaluation["value"]["value"], float)
+            assert isinstance(float(evaluation["value"]["value"]), float)
 
 
 assert found_template

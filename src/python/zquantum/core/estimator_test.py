@@ -5,6 +5,7 @@ from .estimator import (
     BasicEstimator,
     ExactEstimator,
     get_context_selection_circuit,
+    get_context_selection_circuit_for_group,
 )
 from .circuit import Circuit
 from pyquil import Program
@@ -39,6 +40,26 @@ class TestEstimatorUtils(unittest.TestCase):
         circuit, ising_operator = get_context_selection_circuit(term)
         self.assertEqual(len(circuit.gates), 0)
         self.assertEqual(ising_operator, IsingOperator(term))
+
+    def test_get_context_selection_circuit_for_group(self):
+        group = QubitOperator(((0, "X"), (1, "Y"))) - 0.5 * QubitOperator(((1, "Y"),))
+        circuit, ising_operator = get_context_selection_circuit_for_group(group)
+
+        # Need to convert to QubitOperator in order to get matrix representation
+        qubit_operator = QubitOperator()
+        for ising_term in ising_operator.terms:
+            qubit_operator += QubitOperator(
+                ising_term, ising_operator.terms[ising_term]
+            )
+
+        target_unitary = qubit_operator_sparse(group)
+        transformed_unitary = (
+            circuit.to_unitary().conj().T
+            @ qubit_operator_sparse(qubit_operator)
+            @ circuit.to_unitary()
+        )
+
+        self.assertTrue(np.allclose(target_unitary.todense(), transformed_unitary))
 
 
 class TestBasicEstimator(unittest.TestCase, EstimatorTests):
@@ -97,6 +118,28 @@ class TestBasicEstimator(unittest.TestCase, EstimatorTests):
             )
             # Then
             self.assertEqual(self.backend.n_samples, 5)
+
+    def test_get_estimated_expectation_values_with_constant(self):
+        for estimator in self.estimators:
+            # Given
+            coefficient = -2
+            constant_qubit_operator = QubitOperator((), coefficient) + QubitOperator(
+                (0, "X")
+            )
+
+            # When
+            values = estimator.get_estimated_expectation_values(
+                self.backend,
+                self.circuit,
+                constant_qubit_operator,
+                n_samples=self.n_samples,
+                epsilon=self.epsilon,
+                delta=self.delta,
+            ).values
+            value = values[1]
+            # Then
+            self.assertTrue(len(values) == 2)
+            self.assertEqual(coefficient, value)
 
 
 class TestExactEstimator(unittest.TestCase, EstimatorTests):

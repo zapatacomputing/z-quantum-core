@@ -163,6 +163,27 @@ def save_bitstring_distribution(
         f.write(json.dumps(dictionary, indent=2))
 
 
+#JUST ADDED 
+def save_bitstring_distribution_set(
+    bitstring_distribution_set: [BitstringDistribution], filename: str
+) -> None:
+    """Save a set of bitstring distributions to a file.
+    
+     Args:
+        bitstring_distribution_set (list): a list of distributions to be saved
+        file (str): the name of the file
+    """
+    dictionary = {}
+    dictionary["schema"] = SCHEMA_VERSION + "-bitstring-probability-distribution-set"
+    dictionary["bitstring_distribution"] = []
+    
+    for distribution in bitstring_distribution_set:
+        dictionary["bitstring_distribution"].append(distribution.distribution_dict)
+   
+    with open(filename, "w") as f:
+        f.write(json.dumps(dictionary, indent=2))
+
+
 def load_bitstring_distribution(file: str, many: bool = False) -> BitstringDistribution:
     """Load an bitstring_distribution from a json file using a schema.
 
@@ -173,7 +194,6 @@ def load_bitstring_distribution(file: str, many: bool = False) -> BitstringDistr
     Returns:
         object: a python object loaded from the bitstring_distribution
     """
-
     if isinstance(file, str):
         with open(file, "r") as f:
             data = json.load(f)
@@ -182,6 +202,28 @@ def load_bitstring_distribution(file: str, many: bool = False) -> BitstringDistr
 
     bitstring_distribution = BitstringDistribution(data["bitstring_distribution"])
     return bitstring_distribution
+
+#JUST ADDED 
+def load_bitstring_distribution_set(file: str) -> BitstringDistribution:
+    """Load a list of bitstring_distributions from a json file using a schema.
+
+    Arguments:
+        file (str): the name of the file
+
+    Returns:
+        object: a list of bitstring distributions loaded from the bitstring_distribution
+    """
+    if isinstance(file, str):
+        with open(file, "r") as f:
+            data = json.load(f)
+    else:
+        data = json.load(file)
+    
+    bitstring_distribution_list = []
+    for i in range(len(data["bitstring_distribution"])): 
+        bitstring_distribution_list.append(BitstringDistribution(data["bitstring_distribution"][i])) 
+    
+    return bitstring_distribution_list 
 
 
 def create_bitstring_distribution_from_probability_distribution(

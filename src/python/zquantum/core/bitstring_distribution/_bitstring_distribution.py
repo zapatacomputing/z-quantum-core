@@ -204,7 +204,7 @@ def load_bitstring_distribution(file: str, many: bool = False) -> BitstringDistr
     return bitstring_distribution
 
 #JUST ADDED 
-def load_bitstring_distribution_set(file: str) -> BitstringDistribution:
+def load_bitstring_distribution_set(file: str) -> [BitstringDistribution]:
     """Load a list of bitstring_distributions from a json file using a schema.
 
     Arguments:

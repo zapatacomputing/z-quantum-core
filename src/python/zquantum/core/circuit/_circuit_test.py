@@ -1573,30 +1573,34 @@ class TestCircuit(unittest.TestCase):
         self.assertEqual(qiskit_gates == translated_ibm_circuit_1, True)
 
     def test_control_rotation_gates(self):
-        '''Test addition of crx, cry and crz from qiskit
+        """Test addition of crx, cry and crz from qiskit
 
-        '''
-        qr = QuantumRegister(2, name='q')
-        cr = ClassicalRegister(2, name='c')
+        """
+        qr = QuantumRegister(2, name="q")
+        cr = ClassicalRegister(2, name="c")
         qc = QuantumCircuit(qr, cr)
-        angle = [np.pi/2, np.pi/4, np.pi/8]
+        angle = [np.pi / 2, np.pi / 4, np.pi / 8]
         qc.crx(angle[0], 0, 1)
         qc.cry(angle[1], 0, 1)
         qc.crz(angle[2], 0, 1)
 
         circuit = Circuit()
         qubits = [Qubit(0), Qubit(1)]
-        gates = [Gate('CRX', qubits=qubits, params=[angle[0]]), 
-            Gate('CRY', qubits=qubits, params=[angle[1]]), 
-            Gate('CRZ', qubits=qubits, params=[angle[2]])
-          ]
+        gates = [
+            Gate("CRX", qubits=qubits, params=[angle[0]]),
+            Gate("CRY", qubits=qubits, params=[angle[1]]),
+            Gate("CRZ", qubits=qubits, params=[angle[2]]),
+        ]
         circuit.qubits = qubits
-        circuit.gates =gates
+        circuit.gates = gates
 
         ibm_circuit = circuit.to_qiskit()
         ibm_circuit_unitary = Operator(ibm_circuit).data
         qc_unitary = Operator(qc).data
-        self.assertLessEqual(np.linalg.norm(ibm_circuit_unitary - qc_unitary), pow(10, -15))
+        self.assertLessEqual(
+            np.linalg.norm(ibm_circuit_unitary - qc_unitary), pow(10, -15)
+        )
+
     def test_add_ancilla_register_to_circuit(self):
         n_qubits = 6
         n_ancilla_qubits = 2

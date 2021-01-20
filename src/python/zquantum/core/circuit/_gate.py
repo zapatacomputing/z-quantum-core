@@ -229,9 +229,7 @@ class Gate(object):
             else:
                 params.append(param)
         output = cls(
-            dict["name"],
-            [Qubit.from_dict(qubit) for qubit in dict["qubits"]],
-            params,
+            dict["name"], [Qubit.from_dict(qubit) for qubit in dict["qubits"]], params,
         )
         output.info = dict["info"]
         return output
@@ -497,15 +495,24 @@ class Gate(object):
             ]
 
         # two-qubit gates
-        if self.name == 'CRX':
-            return [qiskit.circuit.library.CRXGate(params[0]), 
-                [qiskit_qubits[0], qiskit_qubits[1]], []]
-        if self.name == 'CRY':
-            return [qiskit.circuit.library.CRYGate(params[0]), 
-                [qiskit_qubits[0], qiskit_qubits[1]], []]
-        if self.name == 'CRZ':
-            return [qiskit.circuit.library.CRZGate(params[0]), 
-                [qiskit_qubits[0], qiskit_qubits[1]], []]
+        if self.name == "CRX":
+            return [
+                qiskit.circuit.library.CRXGate(params[0]),
+                [qiskit_qubits[0], qiskit_qubits[1]],
+                [],
+            ]
+        if self.name == "CRY":
+            return [
+                qiskit.circuit.library.CRYGate(params[0]),
+                [qiskit_qubits[0], qiskit_qubits[1]],
+                [],
+            ]
+        if self.name == "CRZ":
+            return [
+                qiskit.circuit.library.CRZGate(params[0]),
+                [qiskit_qubits[0], qiskit_qubits[1]],
+                [],
+            ]
         if self.name == "CNOT":
             return [
                 qiskit.circuit.library.CXGate(),
@@ -559,11 +566,11 @@ class Gate(object):
                 [qiskit_qubits[0], qiskit_qubits[1], qiskit_qubits[2]],
                 [],
             ]
-        if self.name == 'CU3':
-            return [ 
-                  qiskit.circuit.library.CU3Gate(params[0], params[1], params[2]),
-                  [qiskit_qubits[0], qiskit_qubits[1]],
-                  [],
+        if self.name == "CU3":
+            return [
+                qiskit.circuit.library.CU3Gate(params[0], params[1], params[2]),
+                [qiskit_qubits[0], qiskit_qubits[1]],
+                [],
             ]
         if self.name == "MCT":
             gate = MCTGate(

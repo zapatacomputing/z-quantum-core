@@ -13,12 +13,7 @@ from pyquil.gates import *
 from pyquil.gates import QUANTUM_GATES
 from math import pi, sin, cos
 
-<<<<<<< HEAD
-from qiskit.aqua.circuits.gates import mcu1, mcry
-
 from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister
-=======
->>>>>>> dev
 from . import (
     load_circuit,
     save_circuit,
@@ -1589,7 +1584,7 @@ class TestCircuit(unittest.TestCase):
         qc.cry(angle[1], 0, 1)
         qc.crz(angle[2], 0, 1)
 
-        circuit = Circuit('test')
+        circuit = Circuit()
         qubits = [Qubit(0), Qubit(1)]
         gates = [Gate('CRX', qubits=qubits, params=[angle[0]]), 
             Gate('CRY', qubits=qubits, params=[angle[1]]), 

@@ -71,38 +71,38 @@ spec:
       parent: generic-task
       inputs:
         parameters:
-        - name: ansatz-specs
-        - name: command
-          value: python3 main_script.py
+          - name: ansatz-specs
+          - name: command
+            value: python3 main_script.py
         artifacts:
-        - name: params
-          optional: True
-          path: /app/params.json
-        - name: main-script
-          path: /app/main_script.py
-          raw:
-            data: |
-              from zquantum.core.utils import create_object
-              from zquantum.core.circuit import (load_circuit_template_params,
-                                                save_circuit)
-              import os
-              ansatz = create_object({{inputs.parameters.ansatz-specs}})
-              if os.path.exists('params.json'):
-                params = load_circuit_template_params('params.json')
-              else:
-                params = None
+          - name: params
+            optional: True
+            path: /app/params.json
+          - name: main-script
+            path: /app/main_script.py
+            raw:
+              data: |
+                from zquantum.core.utils import create_object
+                from zquantum.core.circuit import (load_circuit_template_params,
+                                                  save_circuit)
+                import os
+                ansatz = create_object({{inputs.parameters.ansatz-specs}})
+                if os.path.exists('params.json'):
+                  params = load_circuit_template_params('params.json')
+                else:
+                  params = None
 
-              if params is not None:
-                circuit = ansatz.get_executable_circuit(params)
-              elif ansatz.supports_parametrized_circuits:
-                circuit = ansatz.parametrized_circuit
-              else:
-                raise(Exception("Ansatz is not parametrizable and no parameters has been provided."))
-              save_circuit(circuit, 'circuit.json')
+                if params is not None:
+                  circuit = ansatz.get_executable_circuit(params)
+                elif ansatz.supports_parametrized_circuits:
+                  circuit = ansatz.parametrized_circuit
+                else:
+                  raise(Exception("Ansatz is not parametrizable and no parameters has been provided."))
+                save_circuit(circuit, 'circuit.json')
       outputs:
         artifacts:
-        - name: circuit
-          path: /app/circuit.json
+          - name: circuit
+            path: /app/circuit.json
 
     # Build uniform parameter grid
     - name: build-uniform-parameter-grid
@@ -253,7 +253,6 @@ spec:
           - name: circuit
             path: /app/circuit.json
 
-
     # Create circuit set from circuit artifacts
     - name: create-circuit-set-from-circuit-artifacts
       parent: generic-task
@@ -273,6 +272,18 @@ spec:
           - name: circuit-4
             path: /app/circuit4.json
             optional: true
+          - name: circuit-5
+            path: /app/circuit5.json
+            optional: true
+          - name: circuit-6
+            path: /app/circuit6.json
+            optional: true
+          - name: circuit-7
+            path: /app/circuit7.json
+            optional: true
+          - name: circuit-8
+            path: /app/circuit8.json
+            optional: true
           - name: circuit-set
             path: /app/circuit_set_in.json
             optional: true
@@ -288,7 +299,7 @@ spec:
                 else:
                   circuit_set = []
 
-                filenames = ["circuit1.json", "circuit2.json", "circuit3.json", "circuit4.json"]
+                filenames = ["circuit1.json", "circuit2.json", "circuit3.json", "circuit4.json", "circuit5.json", "circuit6.json", "circuit7.json", "circuit8.json"]
                 for file in filenames:
                   if os.path.exists(file):
                     circuit_set.append(load_circuit(file))

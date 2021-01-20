@@ -22,6 +22,7 @@ from .utils import (
     save_list,
     load_list,
     create_object,
+    save_generic_dict,
     get_func_from_specs,
     load_noise_model,
     save_noise_model,
@@ -192,6 +193,15 @@ class TestUtils(unittest.TestCase):
         self.assertEqual(type(mock_simulator).__name__, function_name)
         self.assertEqual(mock_simulator.n_samples, n_samples)
 
+    def test_save_generic_dict(self):
+        data = {"flavor": "chocolate", "weight": 42}
+        save_generic_dict(data, "dict.json")
+        with open("dict.json") as f:
+            loaded_data = json.load(f)
+        for key, value in data.items():
+            self.assertEqual(loaded_data[key], value)
+        os.remove("dict.json")
+
     def test_get_func_from_specs(self):
         # Given
         function_name = "sum_x_squared"
@@ -216,10 +226,7 @@ class TestUtils(unittest.TestCase):
 
         # When
         save_noise_model(
-            noise_model_data,
-            module_name,
-            function_name,
-            "noise_model.json",
+            noise_model_data, module_name, function_name, "noise_model.json",
         )
         noise_model = load_noise_model("noise_model.json")
 

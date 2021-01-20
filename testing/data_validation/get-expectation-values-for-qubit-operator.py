@@ -20,12 +20,19 @@ for key in workflowresult.keys():
             == "zapata-v1-expectation_values"
         )
 
+        identity_term = workflowresult[key]["expectation-values"]["expectation_values"][
+            "real"
+        ][0]
+        assert isinstance(float(identity_term), float)
+        assert identity_term > 1.5
+        assert identity_term < 2.5
+
         for expectation_value in workflowresult[key]["expectation-values"][
             "expectation_values"
-        ]["real"]:
-            assert isinstance(expectation_value, float)
-            assert expectation_value > 0.0
-            assert expectation_value < 1.0
+        ]["real"][1:]:
+            assert isinstance(float(expectation_value), float)
+            assert expectation_value > -0.5
+            assert expectation_value < 0.5
 
 assert found_template
 print("Workflow result is as expected")

@@ -54,6 +54,7 @@ COMMON_GATES = [
 ]
 UNIQUE_GATES = [
     "ZXZ",
+    "U3",
     "RH",
     'CRX', 
     'CRY', 

@@ -811,6 +811,8 @@ class Gate(object):
             output.name = "I"
         elif qiskit_gate.name in {"rx", "ry", "rz"}:
             output.name = "R" + qiskit_gate.name[1]
+        elif qiskit_gate.name == "u3":
+            output.name = "U3"
         elif qiskit_gate.name == "cx":
             output.name = "CNOT"
         elif qiskit_gate.name in {"cz", "swap"}:

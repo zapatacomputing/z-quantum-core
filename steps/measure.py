@@ -6,6 +6,7 @@ from zquantum.core.circuit import (
     load_circuit,
     load_circuit_connectivity,
     load_circuit_template_params,
+    load_circuit_set,
 )
 from zquantum.core.bitstring_distribution import save_bitstring_distribution
 from zquantum.core.openfermion import load_qubit_operator, load_interaction_rdm
@@ -33,6 +34,27 @@ def run_circuit_and_measure(
     measurements = backend.run_circuit_and_measure(circuit)
     measurements.save("measurements.json")
 
+def run_circuitset_and_measure(
+    backend_specs: Dict,
+    circuitset: str, 
+    noise_model: str = "None", 
+    device_connectivity: str = "None",
+):
+
+    if isinstance(backend_specs, str):
+        backend_specs = json.loads(backend_specs)
+    if noise_model != "None":
+        backend_specs["noise_model"] = load_noise_model("noise_model.json")
+    if device_connectivity != "None":
+        backend_specs["device_connectivity"] = load_circuit_connectivity(
+            "device_connectivity.json"
+        )
+
+    circuit_set = load_circuit_set('circuitset.json')
+    backend = create_object(backend_specs)
+
+    measurements_set = backend.run_circuitset_and_measure(circuit_set)
+    save_list(measurements_set, "measurements_set.json")
 
 def get_bitstring_distribution(
     backend_specs: Dict,

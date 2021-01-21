@@ -1,7 +1,7 @@
 from typing import Union, Optional, List
 from numpy.lib.arraysetops import isin
-from openfermion import InteractionOperator
-
+from openfermion import (InteractionOperator,   
+    QubitOperator)
 from zquantum.core.openfermion import (
     get_fermion_number_operator as _get_fermion_number_operator,
     get_diagonal_component as _get_diagonal_component,
@@ -80,3 +80,11 @@ def reorder_fermionic_modes(interaction_operator: str, ordering: List) -> Intera
 
     reordered_operator = _reorder_fermionic_modes(interaction_operator, ordering)
     save_interaction_operator(reordered_operator, "reordered-operator.json")
+
+def create_one_qubit_operator(x_coeff:float, 
+                            y_coeff:float ,
+                            z_coeff:float
+                            ) -> QubitOperator:
+
+    qubit_operator = x_coeff*QubitOperator('X0') + y_coeff*QubitOperator('Y0') + z_coeff*QubitOperator('Z0')
+    save_qubit_operator(qubit_operator, 'qubit_operator.json')

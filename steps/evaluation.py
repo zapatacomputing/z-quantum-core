@@ -3,7 +3,7 @@ import json
 import numpy as np
 from typing import Dict, Union, List
 from openfermion import SymbolicOperator
-from openfermion.utils import (
+from openfermion.linalg import (
     qubit_operator_sparse,
     jw_get_ground_state_at_particle_number as _jw_get_ground_state_at_particle_number,
 )

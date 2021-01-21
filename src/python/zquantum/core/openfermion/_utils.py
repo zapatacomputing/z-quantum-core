@@ -16,7 +16,7 @@ from openfermion import (
     InteractionRDM,
 )
 from openfermion import expectation as openfermion_expectation
-from openfermion.utils import jw_get_ground_state_at_particle_number
+from openfermion.linalg import jw_get_ground_state_at_particle_number
 from typing import List, Union, Optional
 
 from ..circuit import (

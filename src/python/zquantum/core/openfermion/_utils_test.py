@@ -15,7 +15,7 @@ from openfermion import (
     get_sparse_operator,
 )
 from openfermion.hamiltonians import fermi_hubbard
-from openfermion.utils import jw_get_ground_state_at_particle_number
+from openfermion.linalg import jw_get_ground_state_at_particle_number
 
 from ..circuit import Circuit, Gate, Qubit, build_uniform_param_grid
 from ..measurement import ExpectationValues

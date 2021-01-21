@@ -16,6 +16,7 @@ from typing import Tuple, Optional, Callable, List
 
 logger = logging.getLogger(__name__)
 
+
 def get_context_selection_circuit(
     term: Tuple[Tuple[int, str], ...]
 ) -> Tuple[Circuit, IsingOperator]:
@@ -24,7 +25,7 @@ def get_context_selection_circuit(
 
     Args:
         term: The Pauli term, expressed using the OpenFermion convention.
-    
+
     Returns:
         Tuple containing:
         - The context selection circuit.
@@ -51,7 +52,7 @@ def get_context_selection_circuit_for_group(
 
     Args:
         term: The Pauli term, expressed using the OpenFermion convention.
-    
+
     Returns:
         Tuple containing:
         - The context selection circuit.
@@ -84,11 +85,11 @@ def get_context_selection_circuit_for_group(
 
 class BasicEstimator(Estimator):
     """An estimator that uses the standard approach to computing expectation values of an operator.
-    
-        Attributes:
-            decomposition_method (str): Which Hamiltonian decomposition method
-                to use. Available options are: 'greedy-sorted' (default) and
-                'greedy'.
+
+    Attributes:
+        decomposition_method (str): Which Hamiltonian decomposition method
+            to use. Available options are: 'greedy-sorted' (default) and
+            'greedy'.
     """
 
     def __init__(self, decomposition_method: str = "greedy-sorted"):
@@ -104,14 +105,14 @@ class BasicEstimator(Estimator):
         epsilon: Optional[float] = None,
         delta: Optional[float] = None,
     ) -> ExpectationValues:
-        """Given a circuit, backend, and target operators, this method produces expectation values 
-        for each target operator using the get_expectation_values method built into the provided QuantumBackend. 
+        """Given a circuit, backend, and target operators, this method produces expectation values
+        for each target operator using the get_expectation_values method built into the provided QuantumBackend.
 
         Args:
             backend (QuantumBackend): the backend that will be used to run the circuit
             circuit (Circuit): the circuit that prepares the state.
             target_operator (List[SymbolicOperator]): List of target functions to be estimated.
-            n_samples (int): Number of measurements done. 
+            n_samples (int): Number of measurements done.
             epsilon (float): an error term.
             delta (float): a confidence term.
 
@@ -159,8 +160,7 @@ class BasicEstimator(Estimator):
 
 
 class ExactEstimator(Estimator):
-    """An estimator that exactly computes the expectation values of an operator. This estimator must run on a quantum simulator. 
-    """
+    """An estimator that exactly computes the expectation values of an operator. This estimator must run on a quantum simulator."""
 
     @overrides
     def get_estimated_expectation_values(
@@ -172,19 +172,19 @@ class ExactEstimator(Estimator):
         epsilon: Optional[float] = None,
         delta: Optional[float] = None,
     ) -> ExpectationValues:
-        """Given a circuit, backend, and target operators, this method produces expectation values 
-        for each target operator using the get_exact_expectation_values method built into the provided QuantumBackend. 
+        """Given a circuit, backend, and target operators, this method produces expectation values
+        for each target operator using the get_exact_expectation_values method built into the provided QuantumBackend.
 
         Args:
             backend (QuantumBackend): the backend that will be used to run the circuit
             circuit (Circuit): the circuit that prepares the state.
             target_operator (List[SymbolicOperator]): List of target functions to be estimated.
-            n_samples (int): Number of measurements done on the unknown quantum state. 
+            n_samples (int): Number of measurements done on the unknown quantum state.
             epsilon (float): an error term.
             delta (float): a confidence term.
 
         Raises:
-            AttributeError: If backend is not a QuantumSimulator. 
+            AttributeError: If backend is not a QuantumSimulator.
 
         Returns:
             ExpectationValues: expectation values for each term in the target operator.

@@ -6,12 +6,13 @@ from .measurement import (
     expectation_values_to_real,
     concatenate_expectation_values,
 )
-from openfermion import SymbolicOperator, IsingOperator
+from .hamiltonian import get_decomposition_function
+from openfermion import SymbolicOperator, IsingOperator, QubitOperator
 from overrides import overrides
 import logging
 import numpy as np
 import pyquil
-from typing import Tuple, Optional
+from typing import Tuple, Optional, Callable, List
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +25,7 @@ def get_context_selection_circuit(
 
     Args:
         term: The Pauli term, expressed using the OpenFermion convention.
-    
+
     Returns:
         Tuple containing:
         - The context selection circuit.
@@ -43,9 +44,56 @@ def get_context_selection_circuit(
     return context_selection_circuit, operator
 
 
+def get_context_selection_circuit_for_group(
+    qubit_operator: QubitOperator,
+) -> Tuple[Circuit, IsingOperator]:
+    """Get the context selection circuit for measuring the expectation value
+    of a group of co-measurable Pauli terms.
+
+    Args:
+        term: The Pauli term, expressed using the OpenFermion convention.
+
+    Returns:
+        Tuple containing:
+        - The context selection circuit.
+        - The frame operator
+    """
+
+    context_selection_circuit = Circuit()
+    transformed_operator = IsingOperator()
+    context = []
+
+    for term in qubit_operator.terms:
+        term_operator = IsingOperator(())
+        for qubit, operator in term:
+            for existing_qubit, existing_operator in context:
+                if existing_qubit == qubit and existing_operator != operator:
+                    raise ValueError("Terms are not co-measurable")
+            if not (qubit, operator) in context:
+                context.append((qubit, operator))
+            term_operator *= IsingOperator((qubit, "Z"))
+        transformed_operator += term_operator * qubit_operator.terms[term]
+
+    for factor in context:
+        if factor[1] == "X":
+            context_selection_circuit += Circuit(pyquil.gates.RY(-np.pi / 2, factor[0]))
+        elif factor[1] == "Y":
+            context_selection_circuit += Circuit(pyquil.gates.RX(np.pi / 2, factor[0]))
+
+    return context_selection_circuit, transformed_operator
+
+
 class BasicEstimator(Estimator):
     """An estimator that uses the standard approach to computing expectation values of an operator.
+
+    Attributes:
+        decomposition_method (str): Which Hamiltonian decomposition method
+            to use. Available options are: 'greedy-sorted' (default) and
+            'greedy'.
     """
+
+    def __init__(self, decomposition_method: str = "greedy-sorted"):
+        self.decomposition_method = decomposition_method
 
     @overrides
     def get_estimated_expectation_values(
@@ -57,14 +105,14 @@ class BasicEstimator(Estimator):
         epsilon: Optional[float] = None,
         delta: Optional[float] = None,
     ) -> ExpectationValues:
-        """Given a circuit, backend, and target operators, this method produces expectation values 
-        for each target operator using the get_expectation_values method built into the provided QuantumBackend. 
+        """Given a circuit, backend, and target operators, this method produces expectation values
+        for each target operator using the get_expectation_values method built into the provided QuantumBackend.
 
         Args:
             backend (QuantumBackend): the backend that will be used to run the circuit
             circuit (Circuit): the circuit that prepares the state.
             target_operator (List[SymbolicOperator]): List of target functions to be estimated.
-            n_samples (int): Number of measurements done. 
+            n_samples (int): Number of measurements done.
             epsilon (float): an error term.
             delta (float): a confidence term.
 
@@ -73,10 +121,13 @@ class BasicEstimator(Estimator):
         """
         frame_operators = []
         frame_circuits = []
-        for term in target_operator.terms:
-            frame_circuit, frame_operator = get_context_selection_circuit(term)
+        groups = get_decomposition_function(self.decomposition_method)(target_operator)
+        for group in groups:
+            frame_circuit, frame_operator = get_context_selection_circuit_for_group(
+                group
+            )
             frame_circuits.append(circuit + frame_circuit)
-            frame_operators.append(target_operator.terms[term] * frame_operator)
+            frame_operators.append(frame_operator)
 
         if n_samples is not None:
             logger.warning(
@@ -98,14 +149,18 @@ class BasicEstimator(Estimator):
                 )
             )
 
+        if target_operator.terms.get(()) is not None:
+            expectation_values_set.append(
+                ExpectationValues(np.array([target_operator.terms.get(())]))
+            )
+
         return expectation_values_to_real(
             concatenate_expectation_values(expectation_values_set)
         )
 
 
 class ExactEstimator(Estimator):
-    """An estimator that exactly computes the expectation values of an operator. This estimator must run on a quantum simulator. 
-    """
+    """An estimator that exactly computes the expectation values of an operator. This estimator must run on a quantum simulator."""
 
     @overrides
     def get_estimated_expectation_values(
@@ -117,19 +172,19 @@ class ExactEstimator(Estimator):
         epsilon: Optional[float] = None,
         delta: Optional[float] = None,
     ) -> ExpectationValues:
-        """Given a circuit, backend, and target operators, this method produces expectation values 
-        for each target operator using the get_exact_expectation_values method built into the provided QuantumBackend. 
+        """Given a circuit, backend, and target operators, this method produces expectation values
+        for each target operator using the get_exact_expectation_values method built into the provided QuantumBackend.
 
         Args:
             backend (QuantumBackend): the backend that will be used to run the circuit
             circuit (Circuit): the circuit that prepares the state.
             target_operator (List[SymbolicOperator]): List of target functions to be estimated.
-            n_samples (int): Number of measurements done on the unknown quantum state. 
+            n_samples (int): Number of measurements done on the unknown quantum state.
             epsilon (float): an error term.
             delta (float): a confidence term.
 
         Raises:
-            AttributeError: If backend is not a QuantumSimulator. 
+            AttributeError: If backend is not a QuantumSimulator.
 
         Returns:
             ExpectationValues: expectation values for each term in the target operator.

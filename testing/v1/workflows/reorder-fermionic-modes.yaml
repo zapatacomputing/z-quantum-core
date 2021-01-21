@@ -1,0 +1,61 @@
+# Workflow API version
+apiVersion: io.orquestra.workflow/1.0.0
+
+# Prefix for workflow ID
+name: reorder-fermionic-modes
+
+imports:
+- name: z-quantum-core
+  type: git
+  parameters:
+    repository: "git@github.com:zapatacomputing/z-quantum-core.git"
+    branch: dev
+
+steps:
+- name: get-operator
+  config:
+    runtime:
+      language: python3
+      imports: [z-quantum-core]
+      parameters:
+        file: z-quantum-core/steps/operators.py
+        function: get_fermion_number_operator
+    resources:
+      cpu: "1000m"
+      memory: "1Gi"
+      disk: "10Gi"
+  inputs:
+  - number_of_qubits: 4
+    type: int
+  - number_of_particles: null
+    type: null_type
+  outputs:
+  - name: number-operator
+    type: interaction-operator
+
+- name: reorder-fermionic-modes
+  passed: [get-operator]
+  config:
+    runtime:
+      language: python3
+      imports: [z-quantum-core]
+      parameters:
+        file: z-quantum-core/steps/operators.py
+        function: reorder_fermionic_modes
+    resources:
+      cpu: "1000m"
+      memory: "1Gi"
+      disk: "10Gi"
+  inputs:
+  - ordering: [0, 2, 1, 3]
+    type: mode-ordering
+  - interaction_operator: ((get-operator.number-operator))
+    type: interaction-operator
+  outputs:
+  - name: reordered-operator
+    type: interaction-operator
+
+types:
+- interaction-operator
+- mode-ordering
+- null_type

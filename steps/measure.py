@@ -44,13 +44,13 @@ def run_circuitset_and_measure(
     if isinstance(backend_specs, str):
         backend_specs = json.loads(backend_specs)
     if noise_model != "None":
-        backend_specs["noise_model"] = load_noise_model("noise_model.json")
+        backend_specs["noise_model"] = load_noise_model(noise_model)
     if device_connectivity != "None":
         backend_specs["device_connectivity"] = load_circuit_connectivity(
-            "device_connectivity.json"
+            device_connectivity
         )
 
-    circuit_set = load_circuit_set('circuitset.json')
+    circuit_set = load_circuit_set(circuitset)
     backend = create_object(backend_specs)
 
     measurements_set = backend.run_circuitset_and_measure(circuit_set)

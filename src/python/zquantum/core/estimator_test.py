@@ -1,19 +1,21 @@
-import unittest
+from pyquil import Program
+from pyquil.gates import X
+from openfermion import QubitOperator, qubit_operator_sparse, IsingOperator
+import numpy as np
+import pytest
+
 from .interfaces.estimator_test import EstimatorTests
 from .interfaces.mock_objects import MockQuantumBackend, MockQuantumSimulator
 from .estimator import (
     BasicEstimator,
     ExactEstimator,
     get_context_selection_circuit,
+    get_context_selection_circuit_for_group,
 )
 from .circuit import Circuit
-from pyquil import Program
-from pyquil.gates import X
-from openfermion import QubitOperator, qubit_operator_sparse, IsingOperator
-import numpy as np
 
 
-class TestEstimatorUtils(unittest.TestCase):
+class TestEstimatorUtils:
     def test_get_context_selection_circuit_offdiagonal(self):
         term = ((0, "X"), (1, "Y"))
         circuit, ising_operator = get_context_selection_circuit(term)
@@ -32,106 +34,189 @@ class TestEstimatorUtils(unittest.TestCase):
             @ circuit.to_unitary()
         )
 
-        self.assertTrue(np.allclose(target_unitary.todense(), transformed_unitary))
+        assert np.allclose(target_unitary.todense(), transformed_unitary)
 
     def test_get_context_selection_circuit_diagonal(self):
         term = ((4, "Z"), (2, "Z"))
         circuit, ising_operator = get_context_selection_circuit(term)
-        self.assertEqual(len(circuit.gates), 0)
-        self.assertEqual(ising_operator, IsingOperator(term))
+        assert len(circuit.gates) == 0
+        assert ising_operator == IsingOperator(term)
 
+    def test_get_context_selection_circuit_for_group(self):
+        group = QubitOperator(((0, "X"), (1, "Y"))) - 0.5 * QubitOperator(((1, "Y"),))
+        circuit, ising_operator = get_context_selection_circuit_for_group(group)
 
-class TestBasicEstimator(unittest.TestCase, EstimatorTests):
-    def setUp(self):
-        # Setting up inherited tests
-        self.operator = QubitOperator("Z0")
-        self.circuit = Circuit(Program(X(0)))
-        self.backend = MockQuantumBackend(n_samples=20)
-        self.n_samples = 10
-        self.epsilon = None
-        self.delta = None
-        self.estimators = [BasicEstimator()]
-
-    def test_get_estimated_expectation_values(self):
-        for estimator in self.estimators:
-            # Given
-            # When
-            values = estimator.get_estimated_expectation_values(
-                self.backend,
-                self.circuit,
-                self.operator,
-                n_samples=self.n_samples,
-                epsilon=self.epsilon,
-                delta=self.delta,
-            ).values
-            value = values[0]
-            # Then
-            self.assertTrue(len(values) == 1)
-            self.assertGreaterEqual(value, -1)
-            self.assertLessEqual(value, 1)
-
-    def test_get_estimated_expectation_values_samples_from_backend(self):
-        for estimator in self.estimators:
-            # Given
-            # When
-            values = estimator.get_estimated_expectation_values(
-                self.backend,
-                self.circuit,
-                self.operator,
-                epsilon=self.epsilon,
-                delta=self.delta,
-            ).values
-            value = values[0]
-            # Then
-            self.assertTrue(len(values) == 1)
-            self.assertGreaterEqual(value, -1)
-            self.assertLessEqual(value, 1)
-
-    def test_n_samples_is_restored(self):
-        for estimator in self.estimators:
-            # Given
-            self.backend.n_samples = 5
-            # When
-            values = estimator.get_estimated_expectation_values(
-                self.backend, self.circuit, self.operator, n_samples=10
+        # Need to convert to QubitOperator in order to get matrix representation
+        qubit_operator = QubitOperator()
+        for ising_term in ising_operator.terms:
+            qubit_operator += QubitOperator(
+                ising_term, ising_operator.terms[ising_term]
             )
-            # Then
-            self.assertEqual(self.backend.n_samples, 5)
+
+        target_unitary = qubit_operator_sparse(group)
+        transformed_unitary = (
+            circuit.to_unitary().conj().T
+            @ qubit_operator_sparse(qubit_operator)
+            @ circuit.to_unitary()
+        )
+
+        assert np.allclose(target_unitary.todense(), transformed_unitary)
 
 
-class TestExactEstimator(unittest.TestCase, EstimatorTests):
-    def setUp(self):
-        # Setting up inherited tests
-        self.operator = QubitOperator("Z0")
-        self.circuit = Circuit(Program(X(0)))
-        self.backend = MockQuantumSimulator()
-        self.n_samples = None
-        self.epsilon = None
-        self.delta = None
-        self.estimators = [ExactEstimator()]
+class TestBasicEstimator(EstimatorTests):
+    @pytest.fixture()
+    def estimator(self, request):
+        return BasicEstimator()
 
-    def test_require_quantum_simulator(self):
-        self.backend = MockQuantumBackend()  # Note: setUp() is run before *each* test.
-        for estimator in self.estimators:
-            with self.assertRaises(AttributeError):
-                value = estimator.get_estimated_expectation_values(
-                    self.backend, self.circuit, self.operator,
-                ).values
+    @pytest.fixture()
+    def operator(self, request):
+        return QubitOperator("Z0")
 
-    def test_get_estimated_expectation_values(self):
-        for estimator in self.estimators:
-            # Given
-            # When
-            values = estimator.get_estimated_expectation_values(
-                self.backend,
-                self.circuit,
-                self.operator,
-                n_samples=self.n_samples,
-                epsilon=self.epsilon,
-                delta=self.delta,
+    @pytest.fixture()
+    def circuit(self, request):
+        return Circuit(Program(X(0)))
+
+    @pytest.fixture()
+    def backend(self, request):
+        return MockQuantumBackend(n_samples=20)
+
+    @pytest.fixture()
+    def n_samples(self, request):
+        return 10
+
+    @pytest.fixture()
+    def epsilon(self, request):
+        return None
+
+    @pytest.fixture()
+    def delta(self, request):
+        return None
+
+    def test_get_estimated_expectation_values(
+        self, estimator, backend, circuit, operator, n_samples, epsilon, delta
+    ):
+        # When
+        values = estimator.get_estimated_expectation_values(
+            backend,
+            circuit,
+            operator,
+            n_samples=n_samples,
+            epsilon=epsilon,
+            delta=delta,
+        ).values
+        value = values[0]
+        # Then
+        assert len(values) == 1
+        assert value >= -1
+        assert value <= 1
+
+    def test_get_estimated_expectation_values_samples_from_backend(
+        self, estimator, backend, circuit, operator, epsilon, delta
+    ):
+        # Given
+        # When
+        values = estimator.get_estimated_expectation_values(
+            backend,
+            circuit,
+            operator,
+            epsilon=epsilon,
+            delta=delta,
+        ).values
+        value = values[0]
+        # Then
+        assert len(values) == 1
+        assert value >= -1
+        assert value <= 1
+
+    def test_n_samples_is_restored(
+        self, estimator, backend, circuit, operator, epsilon, delta
+    ):
+        # Given
+        backend.n_samples = 5
+        # When
+        values = estimator.get_estimated_expectation_values(
+            backend, circuit, operator, n_samples=10
+        )
+        # Then
+        assert backend.n_samples == 5
+
+    def test_get_estimated_expectation_values_with_constant(
+        self, estimator, backend, circuit, operator, n_samples, epsilon, delta
+    ):
+        # Given
+        coefficient = -2
+        constant_qubit_operator = QubitOperator((), coefficient) + QubitOperator(
+            (0, "X")
+        )
+
+        # When
+        values = estimator.get_estimated_expectation_values(
+            backend,
+            circuit,
+            constant_qubit_operator,
+            n_samples=n_samples,
+            epsilon=epsilon,
+            delta=delta,
+        ).values
+        value = values[1]
+        # Then
+        assert len(values) == 2
+        assert coefficient == value
+
+
+class TestExactEstimator(EstimatorTests):
+    @pytest.fixture()
+    def estimator(self, request):
+        return ExactEstimator()
+
+    @pytest.fixture()
+    def operator(self, request):
+        return QubitOperator("Z0")
+
+    @pytest.fixture()
+    def circuit(self, request):
+        return Circuit(Program(X(0)))
+
+    @pytest.fixture()
+    def backend(self, request):
+        return MockQuantumSimulator()
+
+    @pytest.fixture()
+    def n_samples(self, request):
+        return None
+
+    @pytest.fixture()
+    def epsilon(self, request):
+        return None
+
+    @pytest.fixture()
+    def delta(self, request):
+        return None
+
+    def test_require_quantum_simulator(self, estimator, backend, circuit, operator):
+        backend = MockQuantumBackend()
+        with pytest.raises(AttributeError):
+            value = estimator.get_estimated_expectation_values(
+                backend,
+                circuit,
+                operator,
             ).values
-            value = values[0]
-            # Then
-            self.assertTrue(len(values) == 1)
-            self.assertGreaterEqual(value, -1)
-            self.assertLessEqual(value, 1)
+
+    def test_get_estimated_expectation_values(
+        self, estimator, backend, circuit, operator, epsilon, delta
+    ):
+        # Given
+        # When
+        values = estimator.get_estimated_expectation_values(
+            backend,
+            circuit,
+            operator,
+            n_samples=None,
+            epsilon=epsilon,
+            delta=delta,
+        ).values
+        value = values[0]
+        # Then
+        assert len(values) == 1
+        assert value >= -1
+        assert value <= 1

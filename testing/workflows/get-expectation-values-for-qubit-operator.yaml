@@ -1,0 +1,57 @@
+ZapOSApiVersion: v1alpha1
+kind: Workflow
+
+resources:
+- name: z-quantum-core
+  type: git
+  parameters:
+    url: "git@github.com:zapatacomputing/z-quantum-core.git"
+    branch: "dev"
+
+metadata:
+  generateName: z-quantum-core-acceptance-test-get-exp-vals-
+
+spec:
+  entrypoint: main
+  arguments:
+    parameters:
+    - s3-bucket: quantum-engine
+    - s3-key: testing/acceptance-tests/
+
+  templates:
+  - name: main
+    steps:
+    - - name: get-operator
+        template: get-number-operator
+        arguments:
+          parameters:
+            - n-qubits: "4"
+            - resources: [z-quantum-core]
+      - name: get-circuit
+        template: create-random-circuit
+        arguments:
+          parameters:
+            - num-qubits: "4"
+            - num-gates: "20"
+            - seed: "1234"
+            - resources: [z-quantum-core]
+    - - name: transform-op
+        template: transform-interaction-operator
+        arguments:
+          parameters:
+            - transformation: "Jordan-Wigner"
+            - resources: [z-quantum-core]
+          artifacts:
+            - input-op:
+                from: "{{steps.get-operator.outputs.artifacts.number-op}}"
+    - - name: test
+        template: get-expectation-values-for-qubit-operator
+        arguments:
+          parameters:
+            - backend-specs: "{'module_name': 'zquantum.core.interfaces.mock_objects', 'function_name': 'MockQuantumBackend', 'n_samples': 1000}"
+            - resources: [z-quantum-core]
+          artifacts:
+            - circuit:
+                from: "{{steps.get-circuit.outputs.artifacts.circuit}}"
+            - qubit-operator:
+                from: "{{steps.transform-op.outputs.artifacts.transformed-op}}"

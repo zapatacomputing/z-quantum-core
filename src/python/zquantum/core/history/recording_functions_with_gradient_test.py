@@ -1,4 +1,4 @@
-"""Test cases for functions with gradients."""
+"""Test cases for recording functions with gradients."""
 import pytest
 import numpy as np
 from .example_functions import function_1, Function2, Function5

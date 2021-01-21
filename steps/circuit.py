@@ -15,10 +15,10 @@ from zquantum.core.circuit import (
     load_circuit_set,
     Circuit,
     save_circuit_set,
+    Gate, Qubit
 )
 from zquantum.core.utils import create_object
 from zquantum.core.testing import create_random_circuit as _create_random_circuit
-
 from typing import Dict, Union
 
 # Generate random parameters for an ansatz
@@ -149,3 +149,31 @@ def create_circuit_set_from_circuit_artifacts(
             circuit_set_object.append(load_circuit(object))
 
     save_circuit_set(circuit_set_object, "circuit-set.json")
+
+def create_arbitrary_single_qubit_circuit(rz_parameter_1: float, 
+                                        ry_parameter:float, 
+                                        rz_parameter_2:float
+                                        ):
+
+    circuit = Circuit()
+    circuit.qubits = [Qubit(0)]
+    gates = [Gate('Ry', qubits=[Qubit(0)], params = [ry_parameter_1]), Gate('Rz', qubits=[Qubit(0)], params = [rz_parameter]), Gate('Ry', qubits=[Qubit(0)], params = [ry_parameter_2]) ]
+    circuit.gates = gates
+    save_circuit(circuit, 'circuit.json')
+
+
+def create_two_qubit_molecular_hydrogen_circuit(rz_parameter:float):
+    # Two-qubit ansatz
+    ansatz_circuit2Q = Circuit()
+    ansatz_circuit2Q.qubits = [Qubit(0), Qubit(1)]
+    # Ansatz from Chem Review paper
+    rz_parameter = float({{inputs.parameters.rz-parameter}})
+    ansatz_circuit2Q.gates = [Gate('Rx', qubits=[Qubit(0)], params = [np.pi]),
+                            Gate('Rx', qubits=[Qubit(0)], params = [-np.pi/2]),
+                            Gate('Ry', qubits=[Qubit(1)], params = [np.pi/2]),
+                            Gate("CNOT", qubits=[Qubit(1), Qubit(0)]),
+                            Gate('Rz', qubits=[Qubit(0)], params = [rz_parameter]),
+                            Gate("CNOT", qubits=[Qubit(1), Qubit(0)]),
+                            Gate('Rx', qubits=[Qubit(0)], params = [np.pi/2]),
+                            Gate('Ry', qubits=[Qubit(1)], params = [-np.pi/2]),]
+    save_circuit(ansatz_circuit2Q, 'circuit.json')

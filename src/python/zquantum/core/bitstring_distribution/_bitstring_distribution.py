@@ -163,7 +163,7 @@ def save_bitstring_distribution(
         f.write(json.dumps(dictionary, indent=2))
 
 
-#JUST ADDED 
+
 def save_bitstring_distribution_set(
     bitstring_distribution_set: [BitstringDistribution], filename: str
 ) -> None:
@@ -203,7 +203,7 @@ def load_bitstring_distribution(file: str, many: bool = False) -> BitstringDistr
     bitstring_distribution = BitstringDistribution(data["bitstring_distribution"])
     return bitstring_distribution
 
-#JUST ADDED 
+
 def load_bitstring_distribution_set(file: str) -> [BitstringDistribution]:
     """Load a list of bitstring_distributions from a json file using a schema.
 

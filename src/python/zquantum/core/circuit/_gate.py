@@ -994,7 +994,7 @@ class PhaseOracle(MCTGate):
         """
         Produces the circuit that represents the multi control phase gate
         """
-        self.ccx_decomposition.mcu1(self.phase, self.qiskit_ctrl_q, self.qiskit_targ_q)
+        self.ccx_decomposition.mcp(self.phase, self.qiskit_ctrl_q, self.qiskit_targ_q)
 
 
 class MCRY(MCTGate):

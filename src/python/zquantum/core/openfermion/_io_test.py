@@ -24,7 +24,7 @@ from ._io import (
     load_interaction_operator,
     save_interaction_operator,
     convert_qubitop_to_dict,
-    get_pauli_string,
+    get_pauli_strings,
     convert_dict_to_qubitop,
     convert_interaction_op_to_dict,
     convert_dict_to_interaction_op,

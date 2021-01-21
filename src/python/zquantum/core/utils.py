@@ -388,6 +388,19 @@ def save_list(array, filename, artifact_name=""):
         f.write(json.dumps(dictionary, indent=2))
 
 
+def save_generic_dict(dictionary, filename):
+    """Save dictionary as json
+
+    Args:
+        dictionary (dict): the dict containing the data
+    """
+    dictionary_stored = {"schema": SCHEMA_VERSION + "-dict"}
+    dictionary_stored.update(dictionary)
+
+    with open(filename, "w") as f:
+        f.write(json.dumps(dictionary_stored, indent=2))
+
+
 def get_func_from_specs(specs):
     """
     Return function based on given specs.

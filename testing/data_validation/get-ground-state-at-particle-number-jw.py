@@ -16,13 +16,13 @@ for key in workflowresult.keys():
 
         assert len(workflowresult[key]["ground-state"]["amplitudes"]["real"]) == 16
         for element in workflowresult[key]["ground-state"]["amplitudes"]["real"]:
-            assert isinstance(element, float) or isinstance(element, int)
+            assert isinstance(float(element), float)
             assert element >= -1
             assert element <= 1
 
         assert len(workflowresult[key]["ground-state"]["amplitudes"]["imag"]) == 16
         for element in workflowresult[key]["ground-state"]["amplitudes"]["imag"]:
-            assert isinstance(element, float) or isinstance(element, int)
+            assert isinstance(float(element), float)
             assert element >= -1
             assert element <= 1
 

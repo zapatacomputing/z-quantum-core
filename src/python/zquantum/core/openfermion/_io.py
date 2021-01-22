@@ -201,7 +201,7 @@ def load_qubit_operator_set(file: TextIO) -> List[QubitOperator]:
     return qubit_operator_set
 
 
-def get_pauli_strings(qubit_operator: QubitOperator) -> List(str):
+def get_pauli_strings(qubit_operator: QubitOperator) -> List[str]:
     """Convert a qubit operators into a list of Pauli strings.
 
     Args:

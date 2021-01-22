@@ -17,6 +17,7 @@ from openfermion import (
 )
 from openfermion import expectation as openfermion_expectation
 from openfermion.linalg import jw_get_ground_state_at_particle_number
+from openfermion.transforms import get_fermion_operator, freeze_orbitals
 from typing import List, Union, Optional
 
 from ..circuit import (
@@ -674,3 +675,46 @@ def get_ground_state_rdm_from_qubit_op(
                     rdm2_matrix[p, q, s, r] = -rdm_element
 
     return InteractionRDM(rdm1_matrix, rdm2_matrix)
+
+
+def remove_inactive_orbitals(
+    interaction_op: InteractionOperator, n_active: int = None, n_core: int = 0
+) -> InteractionOperator:
+    """Remove orbitals not in the active space from an interaction operator.
+
+    Args:
+        interaction_op (openfermion.ops.InteractionOperator): the operator, assumed to be ordered with alternating
+            spin-up and spin-down spin orbitals.
+        n_active (int): the number of active molecular orbitals. If None, include all orbitals beyond n_core.
+            Note that the number of active spin orbitals will be twice the number of active molecular orbitals.
+        n_core (int): the number of core molecular orbitals to be frozen.
+    
+    Returns:
+        openfermion.ops.InteractionOperator: the interaction operator with inactive orbitals removed, and the
+            Hartree-Fock energy of the core orbitals added to the constant.
+    """
+
+    # This implementation is probably not very efficient, because it converts the interaction operator
+    # into a fermion operator and then back to an interaction operator.
+
+    # Convert the InteractionOperator to a FermionOperator
+    fermion_op = get_fermion_operator(interaction_op)
+
+    # Determine which occupied spin-orbitals are to be frozen
+    occupied = range(2 * n_core)
+
+    # Determine which unoccupied spin-orbitals are to be frozen
+    if n_active is not None:
+        unoccupied = range(
+            2 * n_core + 2 * n_active, interaction_op.one_body_tensor.shape[0]
+        )
+    else:
+        unoccupied = []
+
+    # Freeze the spin-orbitals
+    frozen_fermion_op = freeze_orbitals(fermion_op, occupied, unoccupied)
+
+    # Convert back to an interaction operator
+    frozen_interaction_op = get_interaction_operator(frozen_fermion_op)
+
+    return frozen_interaction_op

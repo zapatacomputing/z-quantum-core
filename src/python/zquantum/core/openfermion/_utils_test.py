@@ -2,6 +2,7 @@ import unittest
 import random
 import numpy as np
 import pyquil
+import os
 
 from cirq import GridQubit, LineQubit, X, Y, Z, PauliSum, PauliString
 from openfermion import (
@@ -19,8 +20,10 @@ from openfermion.linalg import jw_get_ground_state_at_particle_number
 
 from ..circuit import Circuit, Gate, Qubit, build_uniform_param_grid
 from ..measurement import ExpectationValues
-from ..utils import RNDSEED, create_object
+from ..utils import RNDSEED, create_object, hf_rdm
 from ..interfaces.mock_objects import MockAnsatz
+
+from ._io import load_interaction_operator
 
 from ._utils import (
     generate_random_qubitop,
@@ -37,6 +40,7 @@ from ._utils import (
     qubitop_to_paulisum,
     create_circuits_from_qubit_operator,
     get_ground_state_rdm_from_qubit_op,
+    remove_inactive_orbitals,
 )
 
 
@@ -423,3 +427,12 @@ class TestOtherUtils(unittest.TestCase):
         # Then
         self.assertAlmostEqual(e, rdm.expectation(fhm_int))
 
+    def test_remove_inactive_orbitals(self):
+        fermion_ham = load_interaction_operator(
+            os.path.dirname(__file__) + "/../testing/hamiltonian_HeH_plus_STO-3G.json"
+        )
+        frozen_ham = remove_inactive_orbitals(fermion_ham, 1, 1)
+        self.assertEqual(frozen_ham.one_body_tensor.shape[0], 2)
+
+        hf_energy = hf_rdm(1, 1, 2).expectation(fermion_ham)
+        self.assertAlmostEqual(frozen_ham.constant, hf_energy)

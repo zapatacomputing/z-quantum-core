@@ -24,6 +24,7 @@ from ._io import (
     load_interaction_operator,
     save_interaction_operator,
     convert_qubitop_to_dict,
+    get_pauli_strings,
     convert_dict_to_qubitop,
     convert_interaction_op_to_dict,
     convert_dict_to_interaction_op,
@@ -121,6 +122,16 @@ class TestQubitOperator(unittest.TestCase):
         # Then
         self.assertEqual(qubit_op, loaded_op)
         os.remove("qubit_op.json")
+
+    def test_get_pauli_strings(self):
+        qubit_operator = (
+            QubitOperator(((0, "X"), (1, "Y")))
+            - 0.5 * QubitOperator(((1, "Y"),))
+            + 0.5 * QubitOperator(())
+        )
+        constructed_list = get_pauli_strings(qubit_operator)
+        target_list = ["X0Y1", "Y1", ""]
+        self.assertListEqual(constructed_list, target_list)
 
     def test_isingop_to_dict_io(self):
         # Given

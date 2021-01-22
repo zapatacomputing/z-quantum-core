@@ -59,7 +59,8 @@ def run_circuitset_and_measure(
     backend = create_object(backend_specs)
 
     measurements_set = backend.run_circuitset_and_measure(circuit_set)
-    save_list(measurements_set, "measurements_set.json")
+    list_of_measurements = [measurement.bitstrings for measurement in  measurements_set ]
+    save_list(list_of_measurements , "measurements_set.json")
 
 def get_bitstring_distribution(
     backend_specs: Dict,

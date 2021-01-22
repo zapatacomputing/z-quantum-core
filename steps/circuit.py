@@ -167,7 +167,6 @@ def create_two_qubit_molecular_hydrogen_circuit(rz_parameter:float):
     ansatz_circuit2Q = Circuit()
     ansatz_circuit2Q.qubits = [Qubit(0), Qubit(1)]
     # Ansatz from Chem Review paper
-    rz_parameter = float({{inputs.parameters.rz-parameter}})
     ansatz_circuit2Q.gates = [Gate('Rx', qubits=[Qubit(0)], params = [np.pi]),
                             Gate('Rx', qubits=[Qubit(0)], params = [-np.pi/2]),
                             Gate('Ry', qubits=[Qubit(1)], params = [np.pi/2]),

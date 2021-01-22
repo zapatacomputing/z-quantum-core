@@ -97,9 +97,9 @@ class TestBasicEstimator(EstimatorTests):
     ):
         # When
         values = estimator.get_estimated_expectation_values(
-            backend,
-            circuit,
-            operator,
+            backend=backend,
+            circuit=circuit,
+            target_operator=operator,
             n_samples=n_samples,
             epsilon=epsilon,
             delta=delta,
@@ -116,9 +116,9 @@ class TestBasicEstimator(EstimatorTests):
         # Given
         # When
         values = estimator.get_estimated_expectation_values(
-            backend,
-            circuit,
-            operator,
+            backend=backend,
+            circuit=circuit,
+            target_operator=operator,
             epsilon=epsilon,
             delta=delta,
         ).values
@@ -151,9 +151,9 @@ class TestBasicEstimator(EstimatorTests):
 
         # When
         values = estimator.get_estimated_expectation_values(
-            backend,
-            circuit,
-            constant_qubit_operator,
+            backend=backend,
+            circuit=circuit,
+            target_operator=constant_qubit_operator,
             n_samples=n_samples,
             epsilon=epsilon,
             delta=delta,
@@ -197,9 +197,9 @@ class TestExactEstimator(EstimatorTests):
         backend = MockQuantumBackend()
         with pytest.raises(AttributeError):
             value = estimator.get_estimated_expectation_values(
-                backend,
-                circuit,
-                operator,
+                backend=backend,
+                circuit=circuit,
+                target_operator=operator,
             ).values
 
     def test_get_estimated_expectation_values(
@@ -208,9 +208,9 @@ class TestExactEstimator(EstimatorTests):
         # Given
         # When
         values = estimator.get_estimated_expectation_values(
-            backend,
-            circuit,
-            operator,
+            backend=backend,
+            circuit=circuit,
+            target_operator=operator,
             n_samples=None,
             epsilon=epsilon,
             delta=delta,

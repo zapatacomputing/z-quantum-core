@@ -836,6 +836,8 @@ class Gate(object):
             output.name = "PHASE"
         elif qiskit_gate.name == "cp":
             output.name = "CPHASE"
+        elif qiskit_gate.name == "cu1":
+            output.name = "CPHASE"
         elif qiskit_gate.name == "cu3":
             output.name == "CU3"
         else:

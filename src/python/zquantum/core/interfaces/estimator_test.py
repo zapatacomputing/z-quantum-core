@@ -7,9 +7,9 @@ class EstimatorTests:
         self, estimator, backend, circuit, operator, n_samples, epsilon, delta
     ):
         value = estimator.get_estimated_expectation_values(
-            backend,
-            circuit,
-            operator,
+            backend=backend,
+            circuit=circuit,
+            target_operator=operator,
             n_samples=n_samples,
             epsilon=epsilon,
             delta=delta,

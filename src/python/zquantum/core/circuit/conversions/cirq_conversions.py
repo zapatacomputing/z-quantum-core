@@ -1,3 +1,4 @@
+import re
 from functools import singledispatch
 
 import cirq
@@ -50,6 +51,20 @@ CIRQ_TO_ORQUESTRA_MAPPING = {
 }
 
 
+def parse_gate_name_from_cirq_gate(gate: cirq.Gate) -> str:
+    """Parse name of the gate given Cirq object that represents it.
+
+    Args:
+        gate: Cirq gate whose name should be parsed.
+    Returns:
+        Name of `gate` as parsed from its str representation.
+
+    """
+    pattern = "[A-Za-z]+"
+    match = re.match(pattern, str(gate))
+    return match.group(0)
+
+
 @singledispatch
 def convert_to_cirq(obj):
     raise NotImplementedError(f"Cannot convert {obj} to cirq object.")
@@ -59,6 +74,8 @@ def convert_to_cirq(obj):
 def convert_orquestra_gate_to_cirq(gate: Gate):
     try:
         cirq_gate = ORQUESTRA_TO_CIRQ_MAPPING[type(gate)]
+        if gate.params:
+            cirq_gate = cirq_gate(*gate.params)
         return cirq_gate(*(cirq.LineQubit(qubit) for qubit in gate.qubits))
     except KeyError:
         raise NotImplementedError(

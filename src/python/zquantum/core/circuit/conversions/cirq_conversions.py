@@ -1,5 +1,6 @@
 import re
 from functools import singledispatch
+from typing import Sequence
 
 import cirq
 import numpy as np
@@ -42,29 +43,28 @@ ORQUESTRA_TO_CIRQ_MAPPING = {
 }
 
 
-def make_non_parametric_gate_converter(orquestra_cls):
-    def _converter(ops: cirq.GateOperation) -> Gate:
-        return orquestra_cls(*(qubit.x for qubit in ops.qubits))
-    return _converter
-
-
-def make_rotation_gate_converter(orquestra_cls):
-    def _converter(ops: cirq.GateOperation) -> Gate:
-        return orquestra_cls(*(qubit.x for qubit in ops.qubits), ops.gate.exponent * np.pi)
-    return _converter
+def extract_angle_from_gates_exponent(gate: cirq.EigenGate):
+    return gate.exponent * np.pi,
 
 
 # Map of cirq gate name to Orquestra's gate class.
-CIRQ_TO_ORQUESTRA_MAPPING = {
-    "X": make_non_parametric_gate_converter(X),
-    "Y": make_non_parametric_gate_converter(Y),
-    "Z": make_non_parametric_gate_converter(Z),
-    "I": make_non_parametric_gate_converter(I),
-    "H": make_non_parametric_gate_converter(H),
-    "T": make_non_parametric_gate_converter(T),
-    "Rx": make_rotation_gate_converter(RX),
-    "Ry": make_rotation_gate_converter(RY),
-    "Rz": make_rotation_gate_converter(RZ)
+CIRQ_TO_ORQUESTRA_CLS_MAPPING = {
+    "X": X,
+    "Y": Y,
+    "Z": Z,
+    "I": I,
+    "H": H,
+    "T": T,
+    "Rx": RX,
+    "Ry": RY,
+    "Rz": RZ
+}
+
+
+CIRQ_TO_ORQUESTRA_PARAMETER_CONVERTER = {
+    "Rx": extract_angle_from_gates_exponent,
+    "Ry": extract_angle_from_gates_exponent,
+    "Rz": extract_angle_from_gates_exponent
 }
 
 
@@ -116,4 +116,11 @@ def convert_cirq_gate_operation_to_orquestra_gate(ops: cirq.ops.GateOperation):
             "gate operations with LineQubits."
         )
 
-    return CIRQ_TO_ORQUESTRA_MAPPING[parse_gate_name_from_cirq_gate(ops.gate)](ops)
+    cirq_gate_name = parse_gate_name_from_cirq_gate(ops.gate)
+    if cirq_gate_name in CIRQ_TO_ORQUESTRA_PARAMETER_CONVERTER:
+        orquestra_params = CIRQ_TO_ORQUESTRA_PARAMETER_CONVERTER[cirq_gate_name](ops.gate)
+    else:
+        orquestra_params = ()
+    orquestra_qubits = [qubit.x for qubit in ops.qubits]
+
+    return CIRQ_TO_ORQUESTRA_CLS_MAPPING[cirq_gate_name](*orquestra_qubits, *orquestra_params)

@@ -2,6 +2,7 @@ import re
 from functools import singledispatch
 
 import cirq
+import numpy as np
 
 from ...circuit.gates import (
     Gate,
@@ -47,6 +48,12 @@ def make_non_parametric_gate_converter(orquestra_cls):
     return _converter
 
 
+def make_rotation_gate_converter(orquestra_cls):
+    def _converter(ops: cirq.GateOperation) -> Gate:
+        return orquestra_cls(*(qubit.x for qubit in ops.qubits), ops.gate.exponent * np.pi)
+    return _converter
+
+
 # Map of cirq gate name to Orquestra's gate class.
 CIRQ_TO_ORQUESTRA_MAPPING = {
     "X": make_non_parametric_gate_converter(X),
@@ -55,6 +62,9 @@ CIRQ_TO_ORQUESTRA_MAPPING = {
     "I": make_non_parametric_gate_converter(I),
     "H": make_non_parametric_gate_converter(H),
     "T": make_non_parametric_gate_converter(T),
+    "Rx": make_rotation_gate_converter(RX),
+    "Ry": make_rotation_gate_converter(RY),
+    "Rz": make_rotation_gate_converter(RZ)
 }
 
 

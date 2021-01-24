@@ -81,14 +81,14 @@ class TestSingleQubitNonParametricGatesConversion:
     ],
 )
 class TestSingleQubitRotationGatesConversion:
-    def test_conversion_from_orquestra_to_pyquil_gives_correct_gate(
+    def test_conversion_from_orquestra_to_cirq_gives_correct_gate(
         self, qubit_index, angle, orquestra_gate_cls, cirq_func
     ):
         assert cirq_func(angle)(cirq.LineQubit(qubit_index)) == convert_to_cirq(
             orquestra_gate_cls(qubit_index, angle)
         )
 
-    def test_conversion_from_pyquil_to_orquestra_gives_correct_gate(
+    def test_conversion_from_cirq_to_orquestra_gives_correct_gate(
         self, qubit_index, angle, orquestra_gate_cls, cirq_func
     ):
         assert orquestra_gate_cls(qubit_index, angle) == convert_from_cirq(

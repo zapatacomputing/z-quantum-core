@@ -40,14 +40,21 @@ ORQUESTRA_TO_CIRQ_MAPPING = {
     SWAP: cirq.SWAP,
 }
 
+
+def make_non_parametric_gate_converter(orquestra_cls):
+    def _converter(ops: cirq.GateOperation) -> Gate:
+        return orquestra_cls(*(qubit.x for qubit in ops.qubits))
+    return _converter
+
+
 # Map of cirq gate name to Orquestra's gate class.
 CIRQ_TO_ORQUESTRA_MAPPING = {
-    "X": X,
-    "Y": Y,
-    "Z": Z,
-    "I": I,
-    "H": H,
-    "T": T,
+    "X": make_non_parametric_gate_converter(X),
+    "Y": make_non_parametric_gate_converter(Y),
+    "Z": make_non_parametric_gate_converter(Z),
+    "I": make_non_parametric_gate_converter(I),
+    "H": make_non_parametric_gate_converter(H),
+    "T": make_non_parametric_gate_converter(T),
 }
 
 
@@ -99,7 +106,4 @@ def convert_cirq_gate_operation_to_orquestra_gate(ops: cirq.ops.GateOperation):
             "gate operations with LineQubits."
         )
 
-    orquestra_cls = CIRQ_TO_ORQUESTRA_MAPPING[
-        parse_gate_name_from_cirq_gate(ops.gate)
-    ]
-    return orquestra_cls(*(qubit.x for qubit in ops.qubits))
+    return CIRQ_TO_ORQUESTRA_MAPPING[parse_gate_name_from_cirq_gate(ops.gate)](ops)

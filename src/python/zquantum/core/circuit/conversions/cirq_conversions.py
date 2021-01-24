@@ -40,14 +40,14 @@ ORQUESTRA_TO_CIRQ_MAPPING = {
     SWAP: cirq.SWAP,
 }
 
-# Inverse of ORQUESTRA_TO_CIRQ_MAPPING, provided for faster loookup
+# Map of cirq gate name to Orquestra's gate class.
 CIRQ_TO_ORQUESTRA_MAPPING = {
-    cirq.X: X,
-    cirq.Y: Y,
-    cirq.Z: Z,
-    cirq.I: I,
-    cirq.H: H,
-    cirq.T: T,
+    "X": X,
+    "Y": Y,
+    "Z": Z,
+    "I": I,
+    "H": H,
+    "T": T,
 }
 
 
@@ -99,5 +99,7 @@ def convert_cirq_gate_operation_to_orquestra_gate(ops: cirq.ops.GateOperation):
             "gate operations with LineQubits."
         )
 
-    orquestra_cls = CIRQ_TO_ORQUESTRA_MAPPING[ops.gate]
+    orquestra_cls = CIRQ_TO_ORQUESTRA_MAPPING[
+        parse_gate_name_from_cirq_gate(ops.gate)
+    ]
     return orquestra_cls(*(qubit.x for qubit in ops.qubits))

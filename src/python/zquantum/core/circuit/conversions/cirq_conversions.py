@@ -1,9 +1,9 @@
-import re
 from functools import singledispatch
-from typing import Sequence
+from typing import Union
 
 import cirq
 import numpy as np
+import sympy
 
 from ...circuit.gates import (
     Gate,
@@ -43,43 +43,11 @@ ORQUESTRA_TO_CIRQ_MAPPING = {
 }
 
 
-def extract_angle_from_gates_exponent(gate: cirq.EigenGate):
-    return gate.exponent * np.pi,
-
-
-# Map of cirq gate name to Orquestra's gate class.
-CIRQ_TO_ORQUESTRA_CLS_MAPPING = {
-    "X": X,
-    "Y": Y,
-    "Z": Z,
-    "I": I,
-    "H": H,
-    "T": T,
-    "Rx": RX,
-    "Ry": RY,
-    "Rz": RZ
-}
-
-
-CIRQ_TO_ORQUESTRA_PARAMETER_CONVERTER = {
-    "Rx": extract_angle_from_gates_exponent,
-    "Ry": extract_angle_from_gates_exponent,
-    "Rz": extract_angle_from_gates_exponent
-}
-
-
-def parse_gate_name_from_cirq_gate(gate: cirq.Gate) -> str:
-    """Parse name of the gate given Cirq object that represents it.
-
-    Args:
-        gate: Cirq gate whose name should be parsed.
-    Returns:
-        Name of `gate` as parsed from its str representation.
-
-    """
-    pattern = "[A-Za-z]+"
-    match = re.match(pattern, str(gate))
-    return match.group(0)
+def extract_angle_from_gates_exponent(gate: cirq.EigenGate) -> Union[sympy.Expr, float]:
+    if isinstance(gate.exponent, sympy.Basic):
+        return gate.exponent * sympy.pi
+    else:
+        return gate.exponent * np.pi
 
 
 @singledispatch
@@ -108,6 +76,53 @@ def convert_from_cirq(obj):
     )
 
 
+@singledispatch
+def orquestra_gate_factory_from_cirq_gate(gate: cirq.Gate):
+    raise NotImplementedError(f"Don't know Orquestra factory for gate: {gate}.")
+
+
+def rotation_or_pauli_factory_from_eigengate(
+    gate, orquestra_pauli_cls, orquestra_rotation_cls
+):
+    if gate.global_shift == 0 and gate.exponent == 1:
+        return orquestra_pauli_cls
+    elif gate.global_shift == -0.5:
+        return lambda *qubits: orquestra_rotation_cls(
+            *qubits, extract_angle_from_gates_exponent(gate)
+        )
+    else:
+        raise NotImplementedError(f"Conversion of arbitrary {type(gate)} gate not yet supported.")
+
+
+@orquestra_gate_factory_from_cirq_gate.register
+def identity_gate_factory_from_cirq_identity(gate: cirq.IdentityGate):
+    return I
+
+
+@orquestra_gate_factory_from_cirq_gate.register
+def oquestra_gate_factory_from_xpow_gate(gate: cirq.XPowGate):
+    return rotation_or_pauli_factory_from_eigengate(gate, X, RX)
+
+
+@orquestra_gate_factory_from_cirq_gate.register
+def orquestra_gate_factory_from_ypow_gate(gate: cirq.YPowGate):
+    return rotation_or_pauli_factory_from_eigengate(gate, Y, RY)
+
+
+@orquestra_gate_factory_from_cirq_gate.register
+def orquestra_gate_factory_from_zpow_gate(gate: cirq.ZPowGate):
+    if gate.global_shift == 0 and gate.exponent == 0.25:
+        return T
+    return rotation_or_pauli_factory_from_eigengate(gate, Z, RZ)
+
+
+@orquestra_gate_factory_from_cirq_gate.register
+def orquestra_gate_factory_from_hpow_gate(gate: cirq.HPowGate):
+    if gate.global_shift == 0 and gate.exponent == 1.0:
+        return H
+    raise NotImplementedError("Conversion for arbitrary HPowGate not implemented.")
+
+
 @convert_from_cirq.register
 def convert_cirq_gate_operation_to_orquestra_gate(ops: cirq.ops.GateOperation):
     if not all(isinstance(qubit, cirq.LineQubit) for qubit in ops.qubits):
@@ -116,11 +131,7 @@ def convert_cirq_gate_operation_to_orquestra_gate(ops: cirq.ops.GateOperation):
             "gate operations with LineQubits."
         )
 
-    cirq_gate_name = parse_gate_name_from_cirq_gate(ops.gate)
-    if cirq_gate_name in CIRQ_TO_ORQUESTRA_PARAMETER_CONVERTER:
-        orquestra_params = CIRQ_TO_ORQUESTRA_PARAMETER_CONVERTER[cirq_gate_name](ops.gate)
-    else:
-        orquestra_params = ()
+    orquestra_gate_factory = orquestra_gate_factory_from_cirq_gate(ops.gate)
     orquestra_qubits = [qubit.x for qubit in ops.qubits]
 
-    return CIRQ_TO_ORQUESTRA_CLS_MAPPING[cirq_gate_name](*orquestra_qubits, *orquestra_params)
+    return orquestra_gate_factory(*orquestra_qubits)

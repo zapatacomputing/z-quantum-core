@@ -279,9 +279,7 @@ class ValueEstimate(float):
         super_eq = super().__eq__(other)
         if super_eq is NotImplemented:
             return super_eq
-        return super_eq and self.precision == getattr(
-            other, "precision", None
-        )
+        return super_eq and self.precision == getattr(other, "precision", None)
 
     def __ne__(self, other):
         return not self == other
@@ -387,6 +385,19 @@ def save_list(array, filename, artifact_name=""):
 
     with open(filename, "w") as f:
         f.write(json.dumps(dictionary, indent=2))
+
+
+def save_generic_dict(dictionary, filename):
+    """Save dictionary as json
+
+    Args:
+        dictionary (dict): the dict containing the data
+    """
+    dictionary_stored = {"schema": SCHEMA_VERSION + "-dict"}
+    dictionary_stored.update(dictionary)
+
+    with open(filename, "w") as f:
+        f.write(json.dumps(dictionary_stored, indent=2))
 
 
 def get_func_from_specs(specs):
@@ -506,7 +517,10 @@ def save_timing(walltime: float, filename: str) -> None:
             json.dumps({"schema": SCHEMA_VERSION + "-timing", "walltime": walltime})
         )
 
-def save_nmeas_estimate(nmeas: float, nterms: int, filename: str, frame_meas: np.ndarray = None) -> None:
+
+def save_nmeas_estimate(
+    nmeas: float, nterms: int, filename: str, frame_meas: np.ndarray = None
+) -> None:
     """ Save an estimate of the number of measurements to a file
 
     Args:
@@ -516,14 +530,15 @@ def save_nmeas_estimate(nmeas: float, nterms: int, filename: str, frame_meas: np
     """
 
     data = {}
-    data['schema'] = SCHEMA_VERSION + '-hamiltonian_analysis'
-    data['K'] = nmeas
-    data['nterms'] = nterms
+    data["schema"] = SCHEMA_VERSION + "-hamiltonian_analysis"
+    data["K"] = nmeas
+    data["nterms"] = nterms
     if frame_meas is not None:
-        data['frame_meas'] = convert_array_to_dict(frame_meas)
+        data["frame_meas"] = convert_array_to_dict(frame_meas)
 
-    with open(filename, 'w') as f:
+    with open(filename, "w") as f:
         f.write(json.dumps(data, indent=2))
+
 
 def load_nmeas_estimate(filename: str) -> Tuple[float, int, np.ndarray]:
     """Load an estimate of the number of measurements from a file.
@@ -537,11 +552,11 @@ def load_nmeas_estimate(filename: str) -> Tuple[float, int, np.ndarray]:
         frame_meas: frame measurements (number of measurements per group)
     """
 
-    with open(filename, 'r') as f:
+    with open(filename, "r") as f:
         data = json.load(f)
 
-    frame_meas = convert_dict_to_array(data['frame_meas'])
-    K_coeff = data['K']
-    nterms = data['nterms']
+    frame_meas = convert_dict_to_array(data["frame_meas"])
+    K_coeff = data["K"]
+    nterms = data["nterms"]
 
     return K_coeff, nterms, frame_meas

@@ -25,7 +25,7 @@ spec:
         template: get-number-operator
         arguments:
           parameters:
-            - n-qubits: "4"
+            - n-qubits: "2"
             - resources: [z-quantum-core]
       - name: get-parameter-grid
         template: build-uniform-parameter-grid

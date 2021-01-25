@@ -229,9 +229,7 @@ class Gate(object):
             else:
                 params.append(param)
         output = cls(
-            dict["name"],
-            [Qubit.from_dict(qubit) for qubit in dict["qubits"]],
-            params,
+            dict["name"], [Qubit.from_dict(qubit) for qubit in dict["qubits"]], params,
         )
         output.info = dict["info"]
         return output
@@ -451,6 +449,12 @@ class Gate(object):
                 [qiskit_qubits[0]],
                 [],
             ]
+        if self.name == "U3":
+            return [
+                qiskit.circuit.library.U3Gate(params[0], params[1], params[2]),
+                [qiskit_qubits[0]],
+                [],
+            ]
         if self.name == "PHASE":
             return [
                 qiskit.circuit.library.U1Gate(params[0]),
@@ -491,6 +495,24 @@ class Gate(object):
             ]
 
         # two-qubit gates
+        if self.name == "CRX":
+            return [
+                qiskit.circuit.library.CRXGate(params[0]),
+                [qiskit_qubits[0], qiskit_qubits[1]],
+                [],
+            ]
+        if self.name == "CRY":
+            return [
+                qiskit.circuit.library.CRYGate(params[0]),
+                [qiskit_qubits[0], qiskit_qubits[1]],
+                [],
+            ]
+        if self.name == "CRZ":
+            return [
+                qiskit.circuit.library.CRZGate(params[0]),
+                [qiskit_qubits[0], qiskit_qubits[1]],
+                [],
+            ]
         if self.name == "CNOT":
             return [
                 qiskit.circuit.library.CXGate(),
@@ -542,6 +564,12 @@ class Gate(object):
             return [
                 qiskit.circuit.library.CCXGate(),
                 [qiskit_qubits[0], qiskit_qubits[1], qiskit_qubits[2]],
+                [],
+            ]
+        if self.name == "CU3":
+            return [
+                qiskit.circuit.library.CU3Gate(params[0], params[1], params[2]),
+                [qiskit_qubits[0], qiskit_qubits[1]],
                 [],
             ]
         if self.name == "MCT":
@@ -790,6 +818,8 @@ class Gate(object):
             output.name = "I"
         elif qiskit_gate.name in {"rx", "ry", "rz"}:
             output.name = "R" + qiskit_gate.name[1]
+        elif qiskit_gate.name == "u3":
+            output.name = "U3"
         elif qiskit_gate.name == "cx":
             output.name = "CNOT"
         elif qiskit_gate.name in {"cz", "swap"}:
@@ -806,6 +836,10 @@ class Gate(object):
             output.name = "PHASE"
         elif qiskit_gate.name == "cp":
             output.name = "CPHASE"
+        elif qiskit_gate.name == "cu1":
+            output.name = "CPHASE"
+        elif qiskit_gate.name == "cu3":
+            output.name == "CU3"
         else:
             raise NotImplementedError(
                 "The gate {} is currently not supported.".format(qiskit_gate.name)

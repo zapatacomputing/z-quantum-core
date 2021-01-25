@@ -43,6 +43,22 @@ ORQUESTRA_TO_CIRQ_MAPPING = {
 }
 
 
+EIGENGATE_SPECIAL_CASES = {
+    (type(cirq.X), cirq.X.global_shift, cirq.X.exponent): X,
+    (type(cirq.Y), cirq.Y.global_shift, cirq.Y.exponent): Y,
+    (type(cirq.Z), cirq.Z.global_shift, cirq.Z.exponent): Z,
+    (type(cirq.T), cirq.T.global_shift, cirq.T.exponent): T,
+    (type(cirq.H), cirq.H.global_shift, cirq.H.exponent): H,
+}
+
+
+EIGENGATE_ROTATIONS = {
+    (cirq.XPowGate, -0.5): RX,
+    (cirq.YPowGate, -0.5): RY,
+    (cirq.ZPowGate, -0.5): RZ,
+}
+
+
 def extract_angle_from_gates_exponent(gate: cirq.EigenGate) -> Union[sympy.Expr, float]:
     if isinstance(gate.exponent, sympy.Basic):
         return gate.exponent * sympy.pi
@@ -81,47 +97,24 @@ def orquestra_gate_factory_from_cirq_gate(gate: cirq.Gate):
     raise NotImplementedError(f"Don't know Orquestra factory for gate: {gate}.")
 
 
-def rotation_or_pauli_factory_from_eigengate(
-    gate, orquestra_pauli_cls, orquestra_rotation_cls
-):
-    if gate.global_shift == 0 and gate.exponent == 1:
-        return orquestra_pauli_cls
-    elif gate.global_shift == -0.5:
-        return lambda *qubits: orquestra_rotation_cls(
-            *qubits, extract_angle_from_gates_exponent(gate)
-        )
-    else:
-        raise NotImplementedError(f"Conversion of arbitrary {type(gate)} gate not yet supported.")
-
-
 @orquestra_gate_factory_from_cirq_gate.register
-def identity_gate_factory_from_cirq_identity(gate: cirq.IdentityGate):
+def identity_gate_factory_from_cirq_identity(_gate: cirq.IdentityGate):
     return I
 
 
 @orquestra_gate_factory_from_cirq_gate.register
-def oquestra_gate_factory_from_xpow_gate(gate: cirq.XPowGate):
-    return rotation_or_pauli_factory_from_eigengate(gate, X, RX)
-
-
-@orquestra_gate_factory_from_cirq_gate.register
-def orquestra_gate_factory_from_ypow_gate(gate: cirq.YPowGate):
-    return rotation_or_pauli_factory_from_eigengate(gate, Y, RY)
-
-
-@orquestra_gate_factory_from_cirq_gate.register
-def orquestra_gate_factory_from_zpow_gate(gate: cirq.ZPowGate):
-    if gate.global_shift == 0 and gate.exponent == 0.25:
-        return T
-    return rotation_or_pauli_factory_from_eigengate(gate, Z, RZ)
-
-
-@orquestra_gate_factory_from_cirq_gate.register
-def orquestra_gate_factory_from_hpow_gate(gate: cirq.HPowGate):
-    if gate.global_shift == 0 and gate.exponent == 1.0:
-        return H
-    raise NotImplementedError("Conversion for arbitrary HPowGate not implemented.")
-
+def oquestra_gate_factory_from_xpow_gate(gate: cirq.EigenGate):
+    key = (type(gate), gate.global_shift, gate.exponent)
+    if key in EIGENGATE_SPECIAL_CASES:
+        return EIGENGATE_SPECIAL_CASES[key]
+    elif key[0:2] in EIGENGATE_ROTATIONS:
+        return lambda *qubits: EIGENGATE_ROTATIONS[key[0:2]](
+            *qubits, extract_angle_from_gates_exponent(gate)
+        )
+    else:
+        raise NotImplementedError(
+            f"Conversion of arbitrary {type(gate)} gate not supported yet."
+        )
 
 @convert_from_cirq.register
 def convert_cirq_gate_operation_to_orquestra_gate(ops: cirq.ops.GateOperation):

@@ -1635,6 +1635,22 @@ class TestCircuit(unittest.TestCase):
         )
         self.assertEqual(extended_circuit == expected_circuit, True)
 
+    def test_cu1_gate(self):
+        """Test that qiskit CU1 gate is properly converted.
+
+        """
+        qr = QuantumRegister(2, name="q")
+        cr = ClassicalRegister(2, name="c")
+        qiskit_circuit = QuantumCircuit(qr, cr)
+        qiskit_circuit.cu1(np.pi / 2, 0, 1)
+        converted_qiskit_circuit = Circuit(qiskit_circuit).to_qiskit()
+        print(qiskit_circuit)
+        print(converted_qiskit_circuit)
+
+        unitary = Operator(qiskit_circuit).data
+        converted_unitary = Operator(converted_qiskit_circuit).data
+        self.assertLessEqual(np.linalg.norm(unitary - converted_unitary), pow(10, -15))
+
 
 if __name__ == "__main__":
     unittest.main()

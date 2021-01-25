@@ -103,9 +103,9 @@ def concatenate_qubit_operator_lists(
     qubit_operator_list_A: Union[str, List[QubitOperator]],
     qubit_operator_list_B: Union[str, List[QubitOperator]],
 ):
-    if isinstance(str, qubit_operator_list_A):
+    if isinstance(qubit_operator_list_A, str):
         qubit_operator_list_A = load_qubit_operator_set(qubit_operator_list_A)
-    if isinstance(str, qubit_operator_list_B):
+    if isinstance(qubit_operator_list_B, str):
         qubit_operator_list_B = load_qubit_operator_set(qubit_operator_list_B)
 
     qubit_operator_list_final = qubit_operator_list_A + qubit_operator_list_B

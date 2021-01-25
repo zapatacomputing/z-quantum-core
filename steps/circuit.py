@@ -150,9 +150,9 @@ def create_circuit_set_from_circuit_artifacts(
 
     save_circuit_set(circuit_set_object, "circuit-set.json")
 
-def create_arbitrary_single_qubit_circuit(rz_parameter_1: float, 
-                                        ry_parameter:float, 
-                                        rz_parameter_2:float
+def create_arbitrary_single_qubit_circuit(ry_parameter_1: float, 
+                                        rz_parameter:float, 
+                                        ry_parameter_2:float
                                         ):
 
     circuit = Circuit()

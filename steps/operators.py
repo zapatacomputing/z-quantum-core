@@ -126,4 +126,4 @@ def get_one_qubit_hydrogen_hamiltonian(interaction_operator: Union[InteractionOp
 
     one_qubit_h = r_id * QubitOperator('') + r_x * QubitOperator('X0') + r_y * QubitOperator('Y0') + r_z * QubitOperator('Z0')
 
-    save_qubit_operator('qubit-operator.json', one_qubit_h)
+    save_qubit_operator(one_qubit_h, 'qubit-operator.json')

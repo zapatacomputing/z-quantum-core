@@ -1,7 +1,7 @@
 from typing import Union, Optional, List
 from numpy.lib.arraysetops import isin
 from openfermion import InteractionOperator, FermionOperator
-from openfermion.utils import normal_ordered
+from openfermion import normal_ordered
 from openfermion.transforms import get_fermion_operator
 import numpy as np
 

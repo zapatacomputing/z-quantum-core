@@ -1,5 +1,6 @@
+"""Utilities for converting gates and circuits to and from Cirq objects."""
 from functools import singledispatch
-from typing import Union
+from typing import Union, Type, Callable
 
 import cirq
 import numpy as np
@@ -26,9 +27,27 @@ from ...circuit.gates import (
     ZZ
 )
 
+Param = Union[sympy.Expr, float]
+RotationGateFactory = Callable[[Param], cirq.EigenGate]
 
-def make_rotation_factory(eigengate_cls, global_shift: float=0):
-    def _rotation(angle):
+
+def make_rotation_factory(
+    eigengate_cls: Type[cirq.EigenGate], global_shift: float = 0
+) -> RotationGateFactory:
+    """Construct a factor for rotation gate based on given EigenGate subclass.
+
+    This function might be thought of as a partial which freezes global_shift
+    parameter but also scales the exponent parameter of eigengate_cls initializer.
+
+    Args:
+        eigengate_cls: EigenGate subclass, e.g. ZPowGate, XXPowGate.
+        global_shift: Determines phase of the rotation gate. Check Cirq docs
+            for explanation.
+    Returns:
+        A function that maps angle to EigenGate instance with given global shift
+        and an exponent equal to angle divided by a factor of pi.
+    """
+    def _rotation(angle: Param) -> cirq.EigenGate:
         return eigengate_cls(global_shift=global_shift, exponent=angle_to_exponent(angle))
 
     return _rotation
@@ -81,27 +100,48 @@ EIGENGATE_ROTATIONS = {
 }
 
 
-def extract_angle_from_gates_exponent(gate: cirq.EigenGate) -> Union[sympy.Expr, float]:
-    if isinstance(gate.exponent, sympy.Basic):
-        return gate.exponent * sympy.pi
-    else:
-        return gate.exponent * np.pi
+def exponent_to_angle(exponent: Param) -> Param:
+    """Convert exponent from Cirq gate to angle usable in rotation gates..
+
+    Args:
+        exponent: Exponent to be converted.
+    Returns:
+        exponent multiplied by pi.
+    Notes:
+        Scaling of the exponent preserves its "type", i.e. numerical exponents
+        are scaled by numerical approximation of pi, but symbolic ones
+        are scaled by sympy.pi
+    """
+    return exponent * (sympy.pi if isinstance(exponent, sympy.Expr) else np.pi)
 
 
-def angle_to_exponent(angle: Union[sympy.Expr, float]):
-    if isinstance(angle, sympy.Expr):
-        return angle / sympy.pi
-    else:
-        return angle / np.pi
+def angle_to_exponent(angle: Param) -> Param:
+    """Convert exponent from Cirq gate to angle usable in rotation gates..
+
+        Args:
+            angle: Exponent to be converted.
+        Returns:
+            angle divided by pi.
+        Notes:
+            Scaling of the angle preserves its "type", i.e. numerical angles
+            are scaled by numerical approximation of pi, but symbolic ones
+            are scaled by sympy.pi
+        """
+    return angle / (sympy.pi if isinstance(angle, sympy.Expr) else np.pi)
 
 
 @singledispatch
 def convert_to_cirq(obj):
+    """Convert native Orquestra object to its closest Cirq counterpart.
+
+    TODO: add longer description once all conversions are done.
+    """
     raise NotImplementedError(f"Cannot convert {obj} to cirq object.")
 
 
 @convert_to_cirq.register
-def convert_orquestra_gate_to_cirq(gate: Gate):
+def convert_orquestra_gate_to_cirq(gate: Gate) -> cirq.GateOperation:
+    """Convert native Orquestra get to its Cirq counterpart."""
     try:
         cirq_gate = ORQUESTRA_TO_CIRQ_MAPPING[type(gate)]
         if gate.params:
@@ -110,36 +150,46 @@ def convert_orquestra_gate_to_cirq(gate: Gate):
     except KeyError:
         raise NotImplementedError(
             f"Cannot convert Orquestra gate {gate} to cirq. This is probably a bug, "
-            "please reach out to Orquestra support."
+            "please reach out to the Orquestra support."
         )
 
 
 @singledispatch
 def convert_from_cirq(obj):
+    """Convert Cirq object to its closes Orquestra counterpart.
+
+    TODO: add longer description once all conversions are done.
+    """
     raise NotImplementedError(
         f"Conversion from cirq to Orquestra not supported for {obj}."
     )
 
 
 @singledispatch
-def orquestra_gate_factory_from_cirq_gate(gate: cirq.Gate):
+def orquestra_gate_factory_from_cirq_gate(gate: cirq.Gate) -> Callable[[int, ...], Gate]:
+    """Create a function that constructs orquestra Gate based on Cirq Gate.
+
+    Args:
+          gate: Cirq gate to base the factory on.
+    Returns:
+          function of the form f(*qubits) -> Gate. For most variants of this
+          function those will be just respective classes initializers.
+    """
     raise NotImplementedError(f"Don't know Orquestra factory for gate: {gate}.")
 
 
 @orquestra_gate_factory_from_cirq_gate.register
-def identity_gate_factory_from_cirq_identity(_gate: cirq.IdentityGate):
+def identity_gate_factory_from_cirq_identity(_gate: cirq.IdentityGate) -> Type[I]:
     return I
 
 
 @orquestra_gate_factory_from_cirq_gate.register
-def oquestra_gate_factory_from_xpow_gate(gate: cirq.EigenGate):
+def orquestra_gate_factory_from_eigengate(gate: cirq.EigenGate) -> Callable[[int, ...], Gate]:
     key = (type(gate), gate.global_shift, gate.exponent)
     if key in EIGENGATE_SPECIAL_CASES:
         return EIGENGATE_SPECIAL_CASES[key]
     elif key[0:2] in EIGENGATE_ROTATIONS:
-        return lambda *qubits: EIGENGATE_ROTATIONS[key[0:2]](
-            *qubits, extract_angle_from_gates_exponent(gate)
-        )
+        return lambda * qubits: EIGENGATE_ROTATIONS[key[0:2]](*qubits, angle=exponent_to_angle(gate.exponent))
     else:
         raise NotImplementedError(
             f"Conversion of arbitrary {type(gate).__name__} gate not supported yet."
@@ -147,14 +197,29 @@ def oquestra_gate_factory_from_xpow_gate(gate: cirq.EigenGate):
 
 
 @convert_from_cirq.register
-def convert_cirq_gate_operation_to_orquestra_gate(ops: cirq.ops.GateOperation):
-    if not all(isinstance(qubit, cirq.LineQubit) for qubit in ops.qubits):
+def convert_cirq_gate_operation_to_orquestra_gate(operation: cirq.GateOperation) -> Gate:
+    """Convert Cirq GateOperation to native Orquestra Gate.
+
+    Note that Cirq distinguishes concept of GateOperation and Gate. The correspondence
+    between terminology in Cirq is as follows:
+
+    Cirq Gate <-> Orquestra Gate subclass
+    Cirq GateOperation <-> A concrete instance of some Orquestra Gate,
+
+    which is why this function accepts GateOperation instead of Gate.
+
+    Args:
+        operation: operation to be converted.
+    Returns:
+        Native Orquestra Gate.
+    """
+    if not all(isinstance(qubit, cirq.LineQubit) for qubit in operation.qubits):
         raise NotImplementedError(
             "Currently conversions from cirq to Orquestra is supported only for "
             "gate operations with LineQubits."
         )
 
-    orquestra_gate_factory = orquestra_gate_factory_from_cirq_gate(ops.gate)
-    orquestra_qubits = [qubit.x for qubit in ops.qubits]
+    orquestra_gate_factory = orquestra_gate_factory_from_cirq_gate(operation.gate)
+    orquestra_qubits = [qubit.x for qubit in operation.qubits]
 
     return orquestra_gate_factory(*orquestra_qubits)

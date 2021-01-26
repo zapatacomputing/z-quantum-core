@@ -3,7 +3,7 @@ import numpy as np
 import pytest
 import sympy
 
-from .cirq_conversions import convert_from_cirq, convert_to_cirq, angle_to_exponent
+from .cirq_conversions import convert_from_cirq, convert_to_cirq, angle_to_exponent, make_rotation_factory
 from ...circuit.gates import (
     X,
     Y,
@@ -49,7 +49,7 @@ EQUIVALENT_SINGLE_QUBIT_ROTATION_GATES = [
     (RZ, cirq.rz),
     # There is no PHASE gate in cirq, so the pair below is a bit of cheating
     # so we can fit into tests that follow.
-    (PHASE, lambda angle: cirq.ZPowGate(exponent=angle_to_exponent(angle)))
+    (PHASE, make_rotation_factory(cirq.ZPowGate))
 ]
 
 
@@ -59,10 +59,10 @@ EQUIVALENT_NONPARAMETRIC_TWO_QUBIT_GATES = [
 
 
 TWO_QUBIT_ROTATION_GATE_FACTORIES = [
-    (CPHASE, lambda angle: cirq.CZPowGate(exponent=angle_to_exponent(angle))),
-    (XX, lambda angle: cirq.XXPowGate(global_shift=-0.5, exponent=angle_to_exponent(angle))),
-    (YY, lambda angle: cirq.YYPowGate(global_shift=-0.5, exponent=angle_to_exponent(angle))),
-    (ZZ, lambda angle: cirq.ZZPowGate(global_shift=-0.5, exponent=angle_to_exponent(angle)))
+    (CPHASE, make_rotation_factory(cirq.CZPowGate)),
+    (XX, make_rotation_factory(cirq.XXPowGate, global_shift=-0.5)),
+    (YY, make_rotation_factory(cirq.YYPowGate, global_shift=-0.5)),
+    (ZZ, make_rotation_factory(cirq.ZZPowGate, global_shift=-0.5))
 ]
 
 
@@ -111,6 +111,7 @@ class TestGateConversionWithoutSymbolicParameters:
     def test_orquestra_gate_and_cirq_gate_have_the_same_matrix(
         self, orquestra_gate, cirq_operation
     ):
+        # This is to ensure that we are indeed converting the same gate.
         assert np.allclose(
             np.array(orquestra_gate.matrix).astype(np.complex128),
             cirq.unitary(cirq_operation.gate)

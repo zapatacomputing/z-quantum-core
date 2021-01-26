@@ -28,6 +28,13 @@ from ...circuit.gates import (
 )
 
 
+def make_rotation_factory(eigengate_cls, global_shift: float=0):
+    def _rotation(angle):
+        return eigengate_cls(global_shift=global_shift, exponent=angle_to_exponent(angle))
+
+    return _rotation
+
+
 # Mapping between Orquestra gate classes and Cirq gates.
 # Note that not all gates are included, those require special treatment.
 ORQUESTRA_TO_CIRQ_MAPPING = {
@@ -43,11 +50,11 @@ ORQUESTRA_TO_CIRQ_MAPPING = {
     CZ: cirq.CZ,
     CNOT: cirq.CNOT,
     SWAP: cirq.SWAP,
-    PHASE: (lambda angle: cirq.ZPowGate(exponent=angle_to_exponent(angle))),
-    CPHASE: (lambda angle: cirq.CZPowGate(exponent=angle_to_exponent(angle))),
-    XX: (lambda angle: cirq.XXPowGate(global_shift=-0.5, exponent=angle_to_exponent(angle))),
-    YY: (lambda angle: cirq.YYPowGate(global_shift=-0.5, exponent=angle_to_exponent(angle))),
-    ZZ: (lambda angle: cirq.ZZPowGate(global_shift=-0.5, exponent=angle_to_exponent(angle)))
+    PHASE: make_rotation_factory(cirq.ZPowGate),
+    CPHASE: make_rotation_factory(cirq.CZPowGate),
+    XX: make_rotation_factory(cirq.XXPowGate, -0.5),
+    YY: make_rotation_factory(cirq.YYPowGate, -0.5),
+    ZZ: make_rotation_factory(cirq.ZZPowGate, -0.5),
 }
 
 

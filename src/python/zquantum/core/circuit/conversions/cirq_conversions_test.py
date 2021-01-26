@@ -3,7 +3,7 @@ import numpy as np
 import pytest
 import sympy
 
-from .cirq_conversions import convert_from_cirq, convert_to_cirq
+from .cirq_conversions import convert_from_cirq, convert_to_cirq, angle_to_exponent
 from ...circuit.gates import (
     X,
     Y,
@@ -30,57 +30,71 @@ EXAMPLE_SYMBOLIC_ANGLES = [
 ]
 
 
-@pytest.mark.parametrize("qubit_index", [0, 1, 5, 13])
+EQUIVALENT_NONPARAMETRIC_SINGLE_QUBIT_GATES = [
+    (X, cirq.X),
+    (Y, cirq.Y),
+    (Z, cirq.Z),
+    (T, cirq.T),
+    (I, cirq.I),
+    (H, cirq.H)
+]
+
+
+EQUIVALENT_SINGLE_QUBIT_ROTATION_GATES = [
+    (RX, cirq.rx),
+    (RY, cirq.ry),
+    (RZ, cirq.rz),
+    # There is no PHASE gate in cirq, so the pair below is a bit of cheating
+    # so we can fit into tests that follow.
+    (PHASE, lambda angle: cirq.ZPowGate(exponent=angle_to_exponent(angle)))
+]
+
+
+EQUIVALENT_NONPARAMETRIC_TWO_QUBIT_GATES = [
+    (CZ, cirq.CZ), (CNOT, cirq.CNOT), (SWAP, cirq.SWAP)
+]
+
+
+# Here we combine multiple testcases of the form
+# (Orquestra gate, Cirq operation)
+# We do this for easier parametrization in tests that follow.
+TEST_CASES_WO_SYMBOLIC_PARAMS = [
+    (orq_gate_cls(q), cirq_gate.on(cirq.LineQubit(q)))
+    for orq_gate_cls, cirq_gate in EQUIVALENT_NONPARAMETRIC_SINGLE_QUBIT_GATES
+    for q in [0, 1, 5, 13]
+] + [
+    (orq_gate_cls(q0, q1), cirq_gate.on(cirq.LineQubit(q0), cirq.LineQubit(q1)))
+    for orq_gate_cls, cirq_gate in EQUIVALENT_NONPARAMETRIC_TWO_QUBIT_GATES
+    for q0, q1 in [(0, 1), (2, 3), (0, 10)]
+] + [
+    (orq_gate_cls(q, angle), cirq_gate_func(angle).on(cirq.LineQubit(q)))
+    for orq_gate_cls, cirq_gate_func in EQUIVALENT_SINGLE_QUBIT_ROTATION_GATES
+    for q in [0, 4, 10, 11]
+    for angle in [np.pi, np.pi / 2, 0.4]
+]
+
+
 @pytest.mark.parametrize(
-    "orquestra_gate_cls, cirq_gate",
-    [
-        (X, cirq.X),
-        (Y, cirq.Y),
-        (Z, cirq.Z),
-        (T, cirq.T),
-        (I, cirq.I),
-        (H, cirq.H),
-    ],
+    "orquestra_gate, cirq_operation", TEST_CASES_WO_SYMBOLIC_PARAMS
 )
-class TestSingleQubitNonParametricGatesConversion:
-    def test_conversion_from_orquestra_to_cirq_gives_correct_gate(
-        self, qubit_index, orquestra_gate_cls, cirq_gate
-    ):
-        assert convert_to_cirq(orquestra_gate_cls(qubit_index)) == cirq_gate(
-            cirq.LineQubit(qubit_index)
-        )
+class TestGateConversionWithoutSymbolicParameters:
 
-    def test_conversion_from_cirq_to_orquestra_gives_correct_gate(
-        self, qubit_index, orquestra_gate_cls, cirq_gate
+    def test_converting_orquestra_gate_to_cirq_gives_expected_operation(
+        self, orquestra_gate, cirq_operation
     ):
-        assert convert_from_cirq(
-            cirq_gate(cirq.LineQubit(qubit_index))
-        ) == orquestra_gate_cls(qubit_index)
+        assert convert_to_cirq(orquestra_gate) == cirq_operation
 
-
-@pytest.mark.parametrize("qubit_index", [0, 4, 10, 11])
-@pytest.mark.parametrize("angle", [np.pi, np.pi / 2, 0.4])
-@pytest.mark.parametrize(
-    "orquestra_gate_cls, cirq_func",
-    [
-        (RX, cirq.rx),
-        (RY, cirq.ry),
-        (RZ, cirq.rz),
-    ],
-)
-class TestSingleQubitRotationGatesConversion:
-    def test_conversion_from_orquestra_to_cirq_gives_correct_gate(
-        self, qubit_index, angle, orquestra_gate_cls, cirq_func
+    def test_converting_cirq_operation_to_orquestra_gives_expected_gate(
+        self, orquestra_gate, cirq_operation
     ):
-        assert cirq_func(angle)(cirq.LineQubit(qubit_index)) == convert_to_cirq(
-            orquestra_gate_cls(qubit_index, angle)
-        )
+        assert convert_from_cirq(cirq_operation) == orquestra_gate
 
-    def test_conversion_from_cirq_to_orquestra_gives_correct_gate(
-        self, qubit_index, angle, orquestra_gate_cls, cirq_func
+    def test_orquestra_gate_and_cirq_gate_have_the_same_matrix(
+        self, orquestra_gate, cirq_operation
     ):
-        assert orquestra_gate_cls(qubit_index, angle) == convert_from_cirq(
-            cirq_func(angle)(cirq.LineQubit(qubit_index))
+        assert np.allclose(
+            np.array(orquestra_gate.matrix).astype(np.complex128),
+            cirq.unitary(cirq_operation.gate)
         )
 
 

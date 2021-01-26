@@ -71,6 +71,16 @@ TEST_CASES_WO_SYMBOLIC_PARAMS = [
     for orq_gate_cls, cirq_gate_func in EQUIVALENT_SINGLE_QUBIT_ROTATION_GATES
     for q in [0, 4, 10, 11]
     for angle in [np.pi, np.pi / 2, 0.4]
+] + [
+    (
+        CPHASE(q0, q1, angle),
+        (
+            cirq.CZPowGate(exponent=angle_to_exponent(angle))
+                .on(cirq.LineQubit(q0), cirq.LineQubit(q1))
+        )
+    )
+    for q0, q1 in [(0, 1), (2, 3), (0, 10)]
+    for angle in [np.pi, np.pi / 2, 0.4]
 ]
 
 

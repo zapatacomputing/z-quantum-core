@@ -40,7 +40,8 @@ ORQUESTRA_TO_CIRQ_MAPPING = {
     CZ: cirq.CZ,
     CNOT: cirq.CNOT,
     SWAP: cirq.SWAP,
-    PHASE: (lambda angle: cirq.ZPowGate(exponent=angle_to_exponent(angle)))
+    PHASE: (lambda angle: cirq.ZPowGate(exponent=angle_to_exponent(angle))),
+    CPHASE: (lambda angle: cirq.CZPowGate(exponent=angle_to_exponent(angle)))
 }
 
 
@@ -60,7 +61,8 @@ EIGENGATE_ROTATIONS = {
     (cirq.XPowGate, -0.5): RX,
     (cirq.YPowGate, -0.5): RY,
     (cirq.ZPowGate, -0.5): RZ,
-    (cirq.ZPowGate, 0): PHASE
+    (cirq.ZPowGate, 0): PHASE,
+    (cirq.CZPowGate, 0): CPHASE
 }
 
 
@@ -125,7 +127,7 @@ def oquestra_gate_factory_from_xpow_gate(gate: cirq.EigenGate):
         )
     else:
         raise NotImplementedError(
-            f"Conversion of arbitrary {type(gate)} gate not supported yet."
+            f"Conversion of arbitrary {type(gate).__name__} gate not supported yet."
         )
 
 

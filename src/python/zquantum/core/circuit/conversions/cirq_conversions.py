@@ -166,7 +166,7 @@ def convert_from_cirq(obj):
 
 
 @singledispatch
-def orquestra_gate_factory_from_cirq_gate(gate: cirq.Gate) -> Callable[[int, ...], Gate]:
+def orquestra_gate_factory_from_cirq_gate(gate: cirq.Gate) -> Callable[..., Gate]:
     """Create a function that constructs orquestra Gate based on Cirq Gate.
 
     Args:
@@ -184,7 +184,7 @@ def identity_gate_factory_from_cirq_identity(_gate: cirq.IdentityGate) -> Type[I
 
 
 @orquestra_gate_factory_from_cirq_gate.register
-def orquestra_gate_factory_from_eigengate(gate: cirq.EigenGate) -> Callable[[int, ...], Gate]:
+def orquestra_gate_factory_from_eigengate(gate: cirq.EigenGate) -> Callable[..., Gate]:
     key = (type(gate), gate.global_shift, gate.exponent)
     if key in EIGENGATE_SPECIAL_CASES:
         return EIGENGATE_SPECIAL_CASES[key]

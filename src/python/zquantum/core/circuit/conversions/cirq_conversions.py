@@ -21,7 +21,6 @@ from ...circuit.gates import (
     CNOT,
     CPHASE,
     SWAP,
-    Dagger,
     XX,
     YY,
     ZZ

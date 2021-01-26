@@ -24,7 +24,7 @@ from ...circuit.gates import (
     SWAP,
     XX,
     YY,
-    ZZ
+    ZZ,
 )
 
 Param = Union[sympy.Expr, float]
@@ -47,8 +47,11 @@ def make_rotation_factory(
         A function that maps angle to EigenGate instance with given global shift
         and an exponent equal to angle divided by a factor of pi.
     """
+
     def _rotation(angle: Param) -> cirq.EigenGate:
-        return eigengate_cls(global_shift=global_shift, exponent=angle_to_exponent(angle))
+        return eigengate_cls(
+            global_shift=global_shift, exponent=angle_to_exponent(angle)
+        )
 
     return _rotation
 
@@ -84,7 +87,7 @@ EIGENGATE_SPECIAL_CASES = {
     (type(cirq.H), cirq.H.global_shift, cirq.H.exponent): H,
     (type(cirq.CNOT), cirq.CNOT.global_shift, cirq.CNOT.exponent): CNOT,
     (type(cirq.CZ), cirq.CZ.global_shift, cirq.CZ.exponent): CZ,
-    (type(cirq.SWAP), cirq.SWAP.global_shift, cirq.SWAP.exponent): SWAP
+    (type(cirq.SWAP), cirq.SWAP.global_shift, cirq.SWAP.exponent): SWAP,
 }
 
 
@@ -96,7 +99,7 @@ EIGENGATE_ROTATIONS = {
     (cirq.CZPowGate, 0): CPHASE,
     (cirq.XXPowGate, -0.5): XX,
     (cirq.YYPowGate, -0.5): YY,
-    (cirq.ZZPowGate, -0.5): ZZ
+    (cirq.ZZPowGate, -0.5): ZZ,
 }
 
 
@@ -118,15 +121,15 @@ def exponent_to_angle(exponent: Param) -> Param:
 def angle_to_exponent(angle: Param) -> Param:
     """Convert exponent from Cirq gate to angle usable in rotation gates..
 
-        Args:
-            angle: Exponent to be converted.
-        Returns:
-            angle divided by pi.
-        Notes:
-            Scaling of the angle preserves its "type", i.e. numerical angles
-            are scaled by numerical approximation of pi, but symbolic ones
-            are scaled by sympy.pi
-        """
+    Args:
+        angle: Exponent to be converted.
+    Returns:
+        angle divided by pi.
+    Notes:
+        Scaling of the angle preserves its "type", i.e. numerical angles
+        are scaled by numerical approximation of pi, but symbolic ones
+        are scaled by sympy.pi
+    """
     return angle / (sympy.pi if isinstance(angle, sympy.Expr) else np.pi)
 
 
@@ -189,7 +192,9 @@ def orquestra_gate_factory_from_eigengate(gate: cirq.EigenGate) -> Callable[...,
     if key in EIGENGATE_SPECIAL_CASES:
         return EIGENGATE_SPECIAL_CASES[key]
     elif key[0:2] in EIGENGATE_ROTATIONS:
-        return lambda * qubits: EIGENGATE_ROTATIONS[key[0:2]](*qubits, angle=exponent_to_angle(gate.exponent))
+        return lambda *qubits: EIGENGATE_ROTATIONS[key[0:2]](
+            *qubits, angle=exponent_to_angle(gate.exponent)
+        )
     else:
         raise NotImplementedError(
             f"Conversion of arbitrary {type(gate).__name__} gate not supported yet."
@@ -197,7 +202,9 @@ def orquestra_gate_factory_from_eigengate(gate: cirq.EigenGate) -> Callable[...,
 
 
 @convert_from_cirq.register
-def convert_cirq_gate_operation_to_orquestra_gate(operation: cirq.GateOperation) -> Gate:
+def convert_cirq_gate_operation_to_orquestra_gate(
+    operation: cirq.GateOperation,
+) -> Gate:
     """Convert Cirq GateOperation to native Orquestra Gate.
 
     Note that Cirq distinguishes concept of GateOperation and Gate. The correspondence

@@ -3,7 +3,7 @@ import numpy as np
 import pytest
 import sympy
 
-from .cirq_conversions import convert_from_cirq, convert_to_cirq, angle_to_exponent, make_rotation_factory
+from .cirq_conversions import convert_from_cirq, convert_to_cirq, make_rotation_factory
 from ...circuit.gates import (
     X,
     Y,
@@ -19,7 +19,6 @@ from ...circuit.gates import (
     CNOT,
     CPHASE,
     SWAP,
-    Dagger,
     XX,
     YY,
     ZZ

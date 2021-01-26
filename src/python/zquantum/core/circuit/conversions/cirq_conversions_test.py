@@ -68,7 +68,7 @@ TWO_QUBIT_ROTATION_GATE_FACTORIES = [
 # Here we combine multiple testcases of the form
 # (Orquestra gate, Cirq operation)
 # We do this for easier parametrization in tests that follow.
-TEST_CASES_WO_SYMBOLIC_PARAMS = [
+TEST_CASES_WITHOUT_SYMBOLIC_PARAMS = [
     (orq_gate_cls(q), cirq_gate.on(cirq.LineQubit(q)))
     for orq_gate_cls, cirq_gate in EQUIVALENT_NONPARAMETRIC_SINGLE_QUBIT_GATES
     for q in [0, 1, 5, 13]
@@ -88,12 +88,28 @@ TEST_CASES_WO_SYMBOLIC_PARAMS = [
     )
     for orq_gate_cls, cirq_gate_func in TWO_QUBIT_ROTATION_GATE_FACTORIES
     for q0, q1 in [(0, 1), (2, 3), (0, 10)]
-    for angle in [np.pi, np.pi / 2, 0.4]
+    for angle in [np.pi, np.pi / 2, 0.4, 0.1, 0.05, 2.5]
+]
+
+
+TEST_CASES_WITH_SYMBOLIC_PARAMS = [
+    (orq_gate_cls(q, angle), cirq_gate_func(angle).on(cirq.LineQubit(q)))
+    for orq_gate_cls, cirq_gate_func in EQUIVALENT_SINGLE_QUBIT_ROTATION_GATES
+    for q in [0, 4, 10, 11]
+    for angle in EXAMPLE_SYMBOLIC_ANGLES
+] + [
+    (
+        orq_gate_cls(q0, q1, angle),
+        cirq_gate_func(angle).on(cirq.LineQubit(q0), cirq.LineQubit(q1))
+    )
+    for orq_gate_cls, cirq_gate_func in TWO_QUBIT_ROTATION_GATE_FACTORIES
+    for q0, q1 in [(0, 1), (2, 3), (0, 10)]
+    for angle in EXAMPLE_SYMBOLIC_ANGLES
 ]
 
 
 @pytest.mark.parametrize(
-    "orquestra_gate, cirq_operation", TEST_CASES_WO_SYMBOLIC_PARAMS
+    "orquestra_gate, cirq_operation", TEST_CASES_WITHOUT_SYMBOLIC_PARAMS
 )
 class TestGateConversionWithoutSymbolicParameters:
 
@@ -117,37 +133,17 @@ class TestGateConversionWithoutSymbolicParameters:
         )
 
 
-@pytest.mark.parametrize("qubit_index", [0, 4, 10, 11])
-@pytest.mark.parametrize("angle", EXAMPLE_SYMBOLIC_ANGLES)
 @pytest.mark.parametrize(
-    "orquestra_gate_cls, cirq_gate_func",
-    [
-        (RX, cirq.rx),
-        (RY, cirq.ry),
-        (RZ, cirq.rz),
-    ],
+    "orquestra_gate, cirq_operation", TEST_CASES_WITH_SYMBOLIC_PARAMS
 )
-class TestSingleQubitRotationGatesWithSymbolicParamsConversion:
+class TestGateConversionWithSymbolicParameters:
 
-    def test_conversion_from_orquestra_to_pyquil_gives_correct_gate(
-        self,
-        qubit_index,
-        angle,
-        orquestra_gate_cls,
-        cirq_gate_func,
+    def test_converting_orquestra_gate_to_cirq_gives_expected_operation(
+        self, orquestra_gate, cirq_operation
     ):
-        assert (
-            cirq_gate_func(angle)(cirq.LineQubit(qubit_index)) ==
-            convert_to_cirq(orquestra_gate_cls(qubit_index, angle))
-        )
+        assert convert_to_cirq(orquestra_gate) == cirq_operation
 
-    def test_conversion_from_cirq_to_orquestra_gives_correct_gate(
-        self,
-        qubit_index,
-        angle,
-        orquestra_gate_cls,
-        cirq_gate_func,
+    def test_converting_cirq_operation_to_orquestra_gives_expected_gate(
+        self, orquestra_gate, cirq_operation
     ):
-        assert orquestra_gate_cls(qubit_index, angle) == convert_from_cirq(
-            cirq_gate_func(angle)(cirq.LineQubit(qubit_index))
-        )
+        assert convert_from_cirq(cirq_operation) == orquestra_gate

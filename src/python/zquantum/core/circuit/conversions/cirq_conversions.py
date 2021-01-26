@@ -40,6 +40,7 @@ ORQUESTRA_TO_CIRQ_MAPPING = {
     CZ: cirq.CZ,
     CNOT: cirq.CNOT,
     SWAP: cirq.SWAP,
+    PHASE: (lambda angle: cirq.ZPowGate(exponent=angle_to_exponent(angle)))
 }
 
 
@@ -49,6 +50,9 @@ EIGENGATE_SPECIAL_CASES = {
     (type(cirq.Z), cirq.Z.global_shift, cirq.Z.exponent): Z,
     (type(cirq.T), cirq.T.global_shift, cirq.T.exponent): T,
     (type(cirq.H), cirq.H.global_shift, cirq.H.exponent): H,
+    (type(cirq.CNOT), cirq.CNOT.global_shift, cirq.CNOT.exponent): CNOT,
+    (type(cirq.CZ), cirq.CZ.global_shift, cirq.CZ.exponent): CZ,
+    (type(cirq.SWAP), cirq.SWAP.global_shift, cirq.SWAP.exponent): SWAP
 }
 
 
@@ -56,6 +60,7 @@ EIGENGATE_ROTATIONS = {
     (cirq.XPowGate, -0.5): RX,
     (cirq.YPowGate, -0.5): RY,
     (cirq.ZPowGate, -0.5): RZ,
+    (cirq.ZPowGate, 0): PHASE
 }
 
 
@@ -64,6 +69,13 @@ def extract_angle_from_gates_exponent(gate: cirq.EigenGate) -> Union[sympy.Expr,
         return gate.exponent * sympy.pi
     else:
         return gate.exponent * np.pi
+
+
+def angle_to_exponent(angle: Union[sympy.Expr, float]):
+    if isinstance(angle, sympy.Expr):
+        return angle / sympy.pi
+    else:
+        return angle / np.pi
 
 
 @singledispatch
@@ -115,6 +127,7 @@ def oquestra_gate_factory_from_xpow_gate(gate: cirq.EigenGate):
         raise NotImplementedError(
             f"Conversion of arbitrary {type(gate)} gate not supported yet."
         )
+
 
 @convert_from_cirq.register
 def convert_cirq_gate_operation_to_orquestra_gate(ops: cirq.ops.GateOperation):

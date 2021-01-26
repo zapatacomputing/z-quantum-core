@@ -22,6 +22,9 @@ from ...circuit.gates import (
     CPHASE,
     SWAP,
     Dagger,
+    XX,
+    YY,
+    ZZ
 )
 
 
@@ -41,7 +44,10 @@ ORQUESTRA_TO_CIRQ_MAPPING = {
     CNOT: cirq.CNOT,
     SWAP: cirq.SWAP,
     PHASE: (lambda angle: cirq.ZPowGate(exponent=angle_to_exponent(angle))),
-    CPHASE: (lambda angle: cirq.CZPowGate(exponent=angle_to_exponent(angle)))
+    CPHASE: (lambda angle: cirq.CZPowGate(exponent=angle_to_exponent(angle))),
+    XX: (lambda angle: cirq.XXPowGate(global_shift=-0.5, exponent=angle_to_exponent(angle))),
+    YY: (lambda angle: cirq.YYPowGate(global_shift=-0.5, exponent=angle_to_exponent(angle))),
+    ZZ: (lambda angle: cirq.ZZPowGate(global_shift=-0.5, exponent=angle_to_exponent(angle)))
 }
 
 
@@ -62,7 +68,10 @@ EIGENGATE_ROTATIONS = {
     (cirq.YPowGate, -0.5): RY,
     (cirq.ZPowGate, -0.5): RZ,
     (cirq.ZPowGate, 0): PHASE,
-    (cirq.CZPowGate, 0): CPHASE
+    (cirq.CZPowGate, 0): CPHASE,
+    (cirq.XXPowGate, -0.5): XX,
+    (cirq.YYPowGate, -0.5): YY,
+    (cirq.ZZPowGate, -0.5): ZZ
 }
 
 

@@ -20,6 +20,9 @@ from ...circuit.gates import (
     CPHASE,
     SWAP,
     Dagger,
+    XX,
+    YY,
+    ZZ
 )
 
 
@@ -55,6 +58,14 @@ EQUIVALENT_NONPARAMETRIC_TWO_QUBIT_GATES = [
 ]
 
 
+TWO_QUBIT_ROTATION_GATE_FACTORIES = [
+    (CPHASE, lambda angle: cirq.CZPowGate(exponent=angle_to_exponent(angle))),
+    (XX, lambda angle: cirq.XXPowGate(global_shift=-0.5, exponent=angle_to_exponent(angle))),
+    (YY, lambda angle: cirq.YYPowGate(global_shift=-0.5, exponent=angle_to_exponent(angle))),
+    (ZZ, lambda angle: cirq.ZZPowGate(global_shift=-0.5, exponent=angle_to_exponent(angle)))
+]
+
+
 # Here we combine multiple testcases of the form
 # (Orquestra gate, Cirq operation)
 # We do this for easier parametrization in tests that follow.
@@ -73,12 +84,10 @@ TEST_CASES_WO_SYMBOLIC_PARAMS = [
     for angle in [np.pi, np.pi / 2, 0.4]
 ] + [
     (
-        CPHASE(q0, q1, angle),
-        (
-            cirq.CZPowGate(exponent=angle_to_exponent(angle))
-                .on(cirq.LineQubit(q0), cirq.LineQubit(q1))
-        )
+        orq_gate_cls(q0, q1, angle),
+        cirq_gate_func(angle).on(cirq.LineQubit(q0), cirq.LineQubit(q1))
     )
+    for orq_gate_cls, cirq_gate_func in TWO_QUBIT_ROTATION_GATE_FACTORIES
     for q0, q1 in [(0, 1), (2, 3), (0, 10)]
     for angle in [np.pi, np.pi / 2, 0.4]
 ]

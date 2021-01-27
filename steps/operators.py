@@ -1,7 +1,7 @@
 from typing import Union, Optional, List
 from numpy.lib.arraysetops import isin
-from openfermion import (InteractionOperator,   
-    QubitOperator)
+from openfermion import InteractionOperator, QubitOperator
+
 from zquantum.core.openfermion import (
     get_fermion_number_operator as _get_fermion_number_operator,
     get_diagonal_component as _get_diagonal_component,
@@ -9,10 +9,13 @@ from zquantum.core.openfermion import (
     load_interaction_operator,
     load_qubit_operator,
     save_qubit_operator,
+    save_qubit_operator_set,
+    load_qubit_operator_set,
 )
 
 from zquantum.core.hamiltonian import (
     reorder_fermionic_modes as _reorder_fermionic_modes,
+    group_comeasureable_terms_greedy as _group_comeasurable_terms_greedy,
 )
 
 
@@ -74,7 +77,9 @@ def interpolate_qubit_operators(
     save_qubit_operator(output_qubit_operator, "qubit-operator.json")
 
 
-def reorder_fermionic_modes(interaction_operator: str, ordering: List) -> InteractionOperator:
+def reorder_fermionic_modes(
+    interaction_operator: str, ordering: List
+) -> InteractionOperator:
 
     interaction_operator = load_interaction_operator(interaction_operator)
 
@@ -88,3 +93,30 @@ def create_one_qubit_operator(x_coeff:float,
 
     qubit_operator = x_coeff*QubitOperator('X0') + y_coeff*QubitOperator('Y0') + z_coeff*QubitOperator('Z0')
     save_qubit_operator(qubit_operator, 'qubit_operator.json')
+
+def group_comeasureable_terms_greedy(
+    qubit_operator: Union[str, QubitOperator], sort_terms: bool = False
+):
+
+    if isinstance(qubit_operator, str):
+        qubit_operator = load_qubit_operator(qubit_operator)
+
+    groups = _group_comeasurable_terms_greedy(qubit_operator, sort_terms=sort_terms)
+
+    save_qubit_operator_set(groups, "grouped-operator.json")
+
+
+def concatenate_qubit_operator_lists(
+    qubit_operator_list_A: Union[str, List[QubitOperator]],
+    qubit_operator_list_B: Union[str, List[QubitOperator]],
+):
+    if isinstance(qubit_operator_list_A, str):
+        qubit_operator_list_A = load_qubit_operator_set(qubit_operator_list_A)
+    if isinstance(qubit_operator_list_B, str):
+        qubit_operator_list_B = load_qubit_operator_set(qubit_operator_list_B)
+
+    qubit_operator_list_final = qubit_operator_list_A + qubit_operator_list_B
+
+    save_qubit_operator_set(
+        qubit_operator_list_final, "concatenated-qubit-operators.json"
+    )

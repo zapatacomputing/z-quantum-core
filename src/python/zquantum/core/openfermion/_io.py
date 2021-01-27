@@ -201,6 +201,27 @@ def load_qubit_operator_set(file: TextIO) -> List[QubitOperator]:
     return qubit_operator_set
 
 
+def get_pauli_strings(qubit_operator: QubitOperator) -> List[str]:
+    """Convert a qubit operator into a list of Pauli strings.
+
+    Args:
+        qubit_operator: a QubitOperator to be converted
+
+    Returns:
+        pauli_strings: list of Pauli strings
+    """
+    pauli_strings = []
+    term_list = list(qubit_operator.terms.keys())
+    for term in term_list:
+        pauli_list = term
+        pauli_string = ""
+        for pauli in pauli_list:
+            pauli_string += pauli[1] + str(pauli[0])
+        pauli_strings.append(pauli_string)
+
+    return pauli_strings
+
+
 def convert_isingop_to_dict(op: IsingOperator) -> dict:
     """Convert an IsingOperator to a dictionary.
 

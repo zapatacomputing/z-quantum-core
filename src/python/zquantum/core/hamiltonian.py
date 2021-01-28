@@ -145,7 +145,7 @@ def compute_group_variances(
     return np.array(frame_variances)
 
 
-def get_expectation_values_from_rdms_for_frames(
+def get_expectation_values_from_rdms_for_qubitoperator_list(
     interactionrdm: InteractionRDM,
     qubitoperator_list: List[QubitOperator],
     sort_terms: bool = False,

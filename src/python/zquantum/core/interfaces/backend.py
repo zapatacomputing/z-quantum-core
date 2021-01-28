@@ -6,6 +6,7 @@ from typing import Optional, List, Iterable
 from openfermion import IsingOperator, SymbolicOperator
 from pyquil.wavefunction import Wavefunction
 from overrides import overrides
+import warnings
 
 from ..bitstring_distribution import (
     BitstringDistribution,
@@ -28,6 +29,15 @@ class QuantumBackend(ABC):
     supports_batching = False
 
     def __init__(self, n_samples: Optional[int] = None):
+        if n_samples is not None:
+            warnings.warn(
+                """The n_samples attribute is deprecated. In future releases,
+                n_samples will need to be passed as an argument to
+                run_circuit_and_measure or run_circuitset_and_measure.""".replace(
+                    "\n", ""
+                ),
+                DeprecationWarning,
+            )px
         self.n_samples = n_samples
         self.number_of_circuits_run = 0
         self.number_of_jobs_run = 0

@@ -163,6 +163,24 @@ class TestBasicEstimator(EstimatorTests):
         assert len(values) == 2
         assert coefficient == value
 
+    def test_get_estimated_expectation_values_optimal_shot_allocation(
+        self, estimator, backend, circuit, operator, epsilon, delta
+    ):
+        # Given
+        # When
+        values = estimator.get_estimated_expectation_values(
+            backend=backend,
+            circuit=circuit,
+            target_operator=operator,
+            epsilon=epsilon,
+            delta=delta,
+            shot_allocation_strategy="optimal"
+        ).values
+        value = values[0]
+        # Then
+        assert len(values) == 1
+        assert value >= -1
+        assert value <= 1
 
 class TestExactEstimator(EstimatorTests):
     @pytest.fixture()

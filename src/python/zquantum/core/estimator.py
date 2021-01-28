@@ -6,7 +6,7 @@ from .measurement import (
     expectation_values_to_real,
     concatenate_expectation_values,
 )
-from .hamiltonian import get_decomposition_function
+from .hamiltonian import get_decomposition_function, estimate_nmeas_for_frames
 from openfermion import SymbolicOperator, IsingOperator, QubitOperator
 from overrides import overrides
 import logging
@@ -104,21 +104,37 @@ class BasicEstimator(Estimator):
         n_samples: Optional[int] = None,
         epsilon: Optional[float] = None,
         delta: Optional[float] = None,
+        shot_allocation_strategy: str = "uniform",
+        prior_expectation_values: Optional[ExpectationValues] = None,
     ) -> ExpectationValues:
         """Given a circuit, backend, and target operators, this method produces expectation values
         for each target operator using the get_expectation_values method built into the provided QuantumBackend.
 
         Args:
-            backend (QuantumBackend): the backend that will be used to run the circuit
-            circuit (Circuit): the circuit that prepares the state.
-            target_operator (List[SymbolicOperator]): List of target functions to be estimated.
-            n_samples (int): Number of measurements done.
-            epsilon (float): an error term.
-            delta (float): a confidence term.
+            backend: the backend that will be used to run the circuit
+            circuit: the circuit that prepares the state.
+            target_operator): List of target functions to be estimated.
+            n_samples: Number of measurements done.
+            epsilon: Inherited from Estimator, not used.
+            delta: Inherited from Estimator, not used.
+            shot_allocation_strategy: Strategy for allocating shots to groups.
+                - "uniform": The number of shots specified by n_samples is used
+                    for each group.
+                - "optimal": The number of shots specified by n_samples is
+                    divided amongst the groups optimally. If
+                    prior_expectation_values is provided, it will be used to
+                    account for variances. Otherwise the upper bound on
+                    variances is used. Covariances are assumed to be zero.
 
         Returns:
             ExpectationValues: expectation values for each term in the target operator.
         """
+        if shot_allocation_strategy not in ("optimal", "uniform",):
+            raise ValueError(
+                f"Invalid shot allocation stratgey: ${shot_allocation_strategy}"
+            )
+        
+
         frame_operators = []
         frame_circuits = []
         groups = get_decomposition_function(self.decomposition_method)(target_operator)
@@ -129,17 +145,24 @@ class BasicEstimator(Estimator):
             frame_circuits.append(circuit + frame_circuit)
             frame_operators.append(frame_operator)
 
-        if n_samples is not None:
-            logger.warning(
-                f"""Using n_samples={n_samples} (argument passed to get_estimated_expectation_values). 
-                    Ignoring backend.n_samples={backend.n_samples}"""
-            )
-            saved_n_samples = backend.n_samples
-            backend.n_samples = n_samples
-            measurements_set = backend.run_circuitset_and_measure(frame_circuits)
-            backend.n_samples = saved_n_samples
-        else:
-            measurements_set = backend.run_circuitset_and_measure(frame_circuits)
+
+        if shot_allocation_strategy == "uniform":
+            if n_samples is not None:
+                logger.warning(
+                    f"""Using n_samples={n_samples} (argument passed to get_estimated_expectation_values). 
+                        Ignoring backend.n_samples={backend.n_samples}"""
+                )
+                saved_n_samples = backend.n_samples
+                backend.n_samples = n_samples
+                measurements_set = backend.run_circuitset_and_measure(frame_circuits)
+                backend.n_samples = saved_n_samples
+            else:
+                measurements_set = backend.run_circuitset_and_measure(frame_circuits)
+
+        elif shot_allocation_strategy == "optimal":
+            K2, nterms, measurements_per_frame = estimate_nmeas_for_frames(frame_operators, prior_expectation_values)
+            measurements_set = backend.run_circuitset_and_measure(frame_circuits, measurements_per_frame)
+
 
         expectation_values_set = []
         for frame_operator, measurements in zip(frame_operators, measurements_set):

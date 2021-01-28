@@ -11,7 +11,7 @@ import pyquil
 
 class TestGate(unittest.TestCase):
     def setUp(self):
-        self.two_qubit_gates = ["CNOT", "CZ", "CPHASE", "SWAP"]
+        self.two_qubit_gates = ["CNOT", "CZ", "CPHASE", "SWAP", "ISWAP"]
         self.one_parameter_gates = ["PHASE", "Rx", "Ry", "Rz", "CPHASE"]
 
     def create_gate(self, gate_name, qubit_indices=[0, 1], params=None):
@@ -147,16 +147,6 @@ class TestGate(unittest.TestCase):
             gate = self.create_gate(gate_name)
             qreg = qiskit.QuantumRegister(2, "q")
             creg = qiskit.ClassicalRegister(2, "c")
-            cphase_targets = [
-                ("Rx", [pi / 2]),
-                ("Ry", [pi - 0.5]),
-                ("CZ", None),
-                ("Ry", [-pi + 0.5]),
-                ("Rx", [-pi]),
-                ("CZ", None),
-                ("Rx", [pi / 2]),
-                ("Rz", [0.5]),
-            ]
 
             # When
             qiskit_gate, qreg, creg = gate.to_qiskit(qreg, creg)
@@ -226,16 +216,6 @@ class TestGate(unittest.TestCase):
             gate, params = self.create_gate_with_symbolic_params(gate_name)
             qreg = qiskit.QuantumRegister(2, "q")
             creg = qiskit.ClassicalRegister(2, "c")
-            cphase_targets = [
-                ("Rx", [pi / 2]),
-                ("Ry", [pi - params[0] / 2]),
-                ("CZ", None),
-                ("Ry", [-pi + params[0] / 2]),
-                ("Rx", [-pi]),
-                ("CZ", None),
-                ("Rx", [pi / 2]),
-                ("Rz", [params[0] / 2]),
-            ]
 
             # When
             qiskit_gate, qreg, creg = gate.to_qiskit(qreg, creg)

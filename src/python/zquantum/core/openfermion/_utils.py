@@ -234,6 +234,39 @@ def evaluate_qubit_operator(
     return value_estimate
 
 
+def evaluate_qubit_operator_list(
+    qubit_operator_list: List[QubitOperator], expectation_values: ExpectationValues
+) -> ValueEstimate:
+    """Evaluate the expectation value of a qubit operator list using
+    expectation values for the terms. The expectation values should be in the order 
+    given by the qubit operator list, and the value returned is the sum of all terms in
+    the qubit operator list.
+
+    Args:
+        qubit_operator_list (list of openfermion.QubitOperator): the operator list
+        expectation_values (core.measurement.ExpectationValues): the expectation values
+
+    Returns:
+        value_estimate (zquantum.core.utils.ValueEstimate): stores the value of the expectation and its
+             precision
+    """
+
+    # Sum the contributions from all terms
+    total = 0
+
+    # Add all non-trivial terms
+    term_index = 0
+    for qubit_operator in qubit_operator_list:
+        for term in qubit_operator.terms:
+            total += np.real(
+                qubit_operator.terms[term] * expectation_values.values[term_index]
+            )
+            term_index += 1
+
+    value_estimate = ValueEstimate(total)
+    return value_estimate
+
+
 def evaluate_operator_for_parameter_grid(
     ansatz, grid, backend, operator, previous_layer_params=[]
 ):

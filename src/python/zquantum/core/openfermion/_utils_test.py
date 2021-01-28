@@ -33,6 +33,7 @@ from ._utils import (
     get_polynomial_tensor,
     qubitop_to_paulisum,
     create_circuits_from_qubit_operator,
+    evaluate_qubit_operator_list,
 )
 
 
@@ -106,6 +107,18 @@ class TestQubitOperator(unittest.TestCase):
         value_estimate = evaluate_qubit_operator(qubit_op, expectation_values)
         # Then
         self.assertAlmostEqual(value_estimate.value, 0.5)
+
+    def test_evaluate_qubit_operator_list(self):
+        # Given
+        qubit_op_list = [
+            QubitOperator("0.5 [] + 0.5 [Z1]"),
+            QubitOperator("0.3 [X1] + 0.2[Y2]"),
+        ]
+        expectation_values = ExpectationValues([0.5, 0.5, 0.4, 0.6])
+        # When
+        value_estimate = evaluate_qubit_operator_list(qubit_op_list, expectation_values)
+        # Then
+        self.assertAlmostEqual(value_estimate.value, 0.74)
 
     def test_evaluate_operator_for_parameter_grid(self):
         # Given

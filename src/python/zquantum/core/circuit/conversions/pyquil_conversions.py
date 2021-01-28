@@ -27,6 +27,7 @@ from ...circuit.gates import (
     CPHASE,
     SWAP,
     CustomGate,
+    XY
 )
 from .symbolic.sympy_expressions import expression_from_sympy
 from .symbolic.translations import translate_expression
@@ -49,6 +50,7 @@ ORQUESTRA_CLS_TO_PYQUIL_FUNCTION = {
     CNOT: pyquil.gates.CNOT,
     SWAP: pyquil.gates.SWAP,
     CPHASE: pyquil.gates.CPHASE,
+    XY: pyquil.gates.XY
 }
 
 
@@ -68,6 +70,7 @@ PYQUIL_NAME_TO_ORQUESTRA_CLS = {
     "CNOT": CNOT,
     "CPHASE": CPHASE,
     "SWAP": SWAP,
+    "XY": XY
 }
 
 
@@ -134,6 +137,13 @@ def convert_controlled_gate_to_pyquil(
         return _convert_ordinary_gate_to_pyquil(gate, _program)
     else:
         return convert_to_pyquil(gate.target_gate, _program).controlled(gate.control)
+
+
+@_convert_gate_to_pyquil.register
+def convert_XY_gate_to_pyquil(
+    gate: XY, _program: Optional[pyquil.Program]
+) -> pyquil.gates.XY:
+    return pyquil.gates.XY(-gate.angle * 2, *gate.qubits)
 
 
 @_convert_gate_to_pyquil.register
@@ -255,6 +265,14 @@ def convert_gate_from_pyquil(gate: pyquil.quil.Gate, custom_gates=None) -> Gate:
 
     if custom_gates is not None:
         pyquil_name_to_orquestra_cls.update(custom_gates)
+
+    # Dirty hack
+    if gate.name == "XY":
+        return XY(
+            gate.qubits[0].index,
+            gate.qubits[1].index,
+            - gate.params[0] / 2
+        )
 
     try:
         gate_cls = pyquil_name_to_orquestra_cls[gate.name]

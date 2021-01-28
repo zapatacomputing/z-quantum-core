@@ -102,6 +102,7 @@ class BasicEstimator(Estimator):
         circuit: Circuit,
         target_operator: SymbolicOperator,
         n_samples: Optional[int] = None,
+        n_total_samples: Optional[int] = None,
         epsilon: Optional[float] = None,
         delta: Optional[float] = None,
         shot_allocation_strategy: str = "uniform",
@@ -114,7 +115,11 @@ class BasicEstimator(Estimator):
             backend: the backend that will be used to run the circuit
             circuit: the circuit that prepares the state.
             target_operator): List of target functions to be estimated.
-            n_samples: Number of measurements done.
+            n_samples: Number of measurements to be performed on each frame.
+                Exactly one of n_samples and n_total_samples must be provided.
+            n_total_samples: Total number of measurements to be performed across
+                all frames. Exactly one of n_samples and n_total_samples must be
+                provided.
             epsilon: Inherited from Estimator, not used.
             delta: Inherited from Estimator, not used.
             shot_allocation_strategy: Strategy for allocating shots to groups.
@@ -133,7 +138,6 @@ class BasicEstimator(Estimator):
             raise ValueError(
                 f"Invalid shot allocation stratgey: ${shot_allocation_strategy}"
             )
-        
 
         frame_operators = []
         frame_circuits = []
@@ -145,8 +149,16 @@ class BasicEstimator(Estimator):
             frame_circuits.append(circuit + frame_circuit)
             frame_operators.append(frame_operator)
 
-
         if shot_allocation_strategy == "uniform":
+
+            if (n_total_samples is not None) and (n_samples is not None):
+                raise ValueError(
+                    "Values were provided for both n_samples and n_total_samples."
+                )
+
+            if n_total_samples is not None:
+                n_samples = n_total_samples // len(frame_circuits)
+
             if n_samples is not None:
                 logger.warning(
                     f"""Using n_samples={n_samples} (argument passed to get_estimated_expectation_values). 
@@ -160,9 +172,12 @@ class BasicEstimator(Estimator):
                 measurements_set = backend.run_circuitset_and_measure(frame_circuits)
 
         elif shot_allocation_strategy == "optimal":
-            K2, nterms, measurements_per_frame = estimate_nmeas_for_frames(frame_operators, prior_expectation_values)
-            measurements_set = backend.run_circuitset_and_measure(frame_circuits, measurements_per_frame)
-
+            K2, nterms, measurements_per_frame = estimate_nmeas_for_frames(
+                frame_operators, prior_expectation_values
+            )
+            measurements_set = backend.run_circuitset_and_measure(
+                frame_circuits, measurements_per_frame
+            )
 
         expectation_values_set = []
         for frame_operator, measurements in zip(frame_operators, measurements_set):

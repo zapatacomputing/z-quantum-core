@@ -52,7 +52,7 @@ def native_float_from_sympy_rational(number: sympy.Rational):
 
 
 @expression_from_sympy.register
-def native_imaginary_unit_from_sympy_imaginary_unit(_unit: sympy.numbers.ImaginaryUnit):
+def native_imaginary_unit_from_sympy_imaginary_unit(_unit: sympy.core.numbers.ImaginaryUnit):
     return 1j
 
 

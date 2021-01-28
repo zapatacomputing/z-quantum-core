@@ -1,5 +1,6 @@
 import openfermion, pyquil
 from pyquil.paulis import exponentiate as pyquil_exponentiate
+from .openfermion import qubitop_to_pyquilpauli
 import numpy as np
 from .circuit import Circuit
 from typing import Tuple, List, Union
@@ -22,7 +23,7 @@ def time_evolution(
         time: Time duration of the evolution.
         method: Time evolution method. Currently the only option is 'Trotter'.
         trotter_order: order of Trotter evolution
-    
+
     Returns:
         A Circuit (core.circuit) object representing the time evolution.
     """
@@ -46,7 +47,7 @@ def time_evolution_derivatives(
     trotter_order: int = 1,
 ) -> Tuple[List[Circuit], List[float]]:
 
-    """Generates derivative circuits for the time evolution operator defined in 
+    """Generates derivative circuits for the time evolution operator defined in
     function time_evolution
 
     Args:
@@ -54,7 +55,7 @@ def time_evolution_derivatives(
         time: Time duration of the evolution.
         method: Time evolution method. Currently the only option is 'Trotter'.
         trotter_order: order of Trotter evolution
-    
+
     Returns:
         A Circuit (core.circuit) object representing the time evolution.
     """
@@ -127,18 +128,18 @@ def generate_circuit_sequence(
     repeated_circuit: Circuit, different_circuit: Circuit, length: int, position: int
 ) -> Circuit:
     """
-        Auxiliary function to generate a sequence of the "repeated_circuit",
-        "length" times, where at position "position" we have "different_circuit"
-        instead.
+    Auxiliary function to generate a sequence of the "repeated_circuit",
+    "length" times, where at position "position" we have "different_circuit"
+    instead.
 
-        Args:
-            repeated_circuit (core.circuit.Circuit)
-            different_circuit (core.circuit.Circuit)
-            length (int)
-            position (int)
-        
-        Returns:
-            circuit_sequence (core.circuit.Circuit))
+    Args:
+        repeated_circuit (core.circuit.Circuit)
+        different_circuit (core.circuit.Circuit)
+        length (int)
+        position (int)
+
+    Returns:
+        circuit_sequence (core.circuit.Circuit))
     """
     if position >= length:
         raise ValueError("The position must be less than the total length")
@@ -153,7 +154,28 @@ def generate_circuit_sequence(
 
 
 def exponentiate(
-    term: pyquil.paulis.PauliSum, factor: Union[float, sympy.Expr]
+    operator: Union[
+        pyquil.paulis.PauliSum, pyquil.paulis.PauliTerm, openfermion.QubitOperator
+    ],
+    factor: Union[float, sympy.Expr],
+) -> Circuit:
+
+    if isinstance(operator, pyquil.paulis.PauliTerm):
+        return exponentiate_term(operator, factor)
+
+    if isinstance(operator, openfermion.QubitOperator):
+        operator = qubitop_to_pyquilpauli(operator)
+
+    circuit = Circuit()
+
+    for term in operator.terms:
+        circuit += exponentiate_term(term, factor)
+
+    return circuit
+
+
+def exponentiate_term(
+    term: pyquil.paulis.PauliTerm, factor: Union[float, sympy.Expr]
 ) -> Circuit:
     """Exponentiates a Pauli term and returns a circuit representing it.
     Args:

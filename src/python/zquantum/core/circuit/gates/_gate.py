@@ -1,5 +1,6 @@
 """Base classes for implementing quantum gates."""
 from abc import abstractmethod, ABC
+import inspect
 import numpy as np
 import sympy
 import json
@@ -219,6 +220,24 @@ class Gate(ABC):
     def evaluate(self, symbols_map: Dict[str, Any]) -> "Gate":
         new_params = [_evaluate_parameter(param, symbols_map) for param in self.params]
         return type(self)(*self.qubits, *new_params)
+
+    def __str__(self):
+        args_reprs = [str(qubit) for qubit in self.qubits]
+        if self.params:
+            param_names = [
+                param.name
+                for param in inspect.signature(self.__init__).parameters.values()
+            ][-len(self.params):]
+
+            args_reprs += [
+                f"{param_name}={param_value}".replace(" ", "")
+                for param_name, param_value in zip(param_names, self.params)
+            ]
+
+        return f"{type(self).__name__}({', '.join(args_reprs)})"
+
+    def __repr__(self):
+        return str(self)
 
 
 class CustomGate(Gate):

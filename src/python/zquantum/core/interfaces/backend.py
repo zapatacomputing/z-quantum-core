@@ -36,19 +36,28 @@ class QuantumBackend(ABC):
             assert self.batch_size > 0
 
     @abstractmethod
-    def run_circuit_and_measure(self, circuit: Circuit, **kwargs) -> Measurements:
+    def run_circuit_and_measure(
+        self, circuit: Circuit, n_samples: Optional[int] = None, **kwargs
+    ) -> Measurements:
         """
         Method for executing the circuit and measuring the outcome.
         Args:
-            circuit (core.circuit.Circuit): quantum circuit to be executed.
+            circuit: quantum circuit to be executed.
+            n_samples: The number of samples to collect. If None, the
+                number of samples is determined by the n_samples attribute.
+
         Returns:
-            core.measurement.Measurements: object representing the measurements resulting from the circuit
+            core.measurement.Measurements: Object representing the measurements
+                resulting from the circuit.
         """
         self.number_of_circuits_run += 1
         self.number_of_jobs_run += 1
 
     def run_circuitset_and_measure(
-        self, circuit_set: Iterable[Circuit], **kwargs
+        self,
+        circuit_set: Iterable[Circuit],
+        n_samples: Optional[List[int]] = None,
+        **kwargs
     ) -> List[Measurements]:
         """Run a set of circuits and measure a certain number of bitstrings.
 
@@ -57,14 +66,28 @@ class QuantumBackend(ABC):
 
         Args:
             circuit_set: The circuits to execute.
+            n_samples: The number of samples to collect for each circuit. If
+                None, the number of samples for each circuit is given by the
+                n_samples attribute.
 
         Returns:
             Measurements for each circuit.
         """
         if not self.supports_batching:
             measurement_set = []
-            for circuit in circuit_set:
-                measurement_set.append(self.run_circuit_and_measure(circuit), **kwargs)
+            if n_samples is not None:
+                for circuit, n_samples_for_circuit in zip(circuit_set, n_samples):
+                    measurement_set.append(
+                        self.run_circuit_and_measure(circuit),
+                        n_samples_for_circuit,
+                        **kwargs
+                    )
+            else:
+                for circuit in circuit_set:
+                    measurement_set.append(
+                        self.run_circuit_and_measure(circuit), **kwargs
+                    )
+
             return measurement_set
         else:
             self.number_of_circuits_run += len(circuit_set)

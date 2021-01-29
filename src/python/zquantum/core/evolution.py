@@ -1,5 +1,6 @@
 import openfermion, pyquil
 from pyquil.paulis import exponentiate as pyquil_exponentiate
+from .openfermion import qubitop_to_pyquilpauli
 import numpy as np
 from .circuit import Circuit
 from typing import Tuple, List, Union
@@ -22,7 +23,7 @@ def time_evolution(
         time: Time duration of the evolution.
         method: Time evolution method. Currently the only option is 'Trotter'.
         trotter_order: order of Trotter evolution
-    
+
     Returns:
         A Circuit (core.circuit) object representing the time evolution.
     """
@@ -31,7 +32,9 @@ def time_evolution(
         output = Circuit()
         for index_order in range(0, trotter_order):  # iterate over Trotter orders
             for index_term in range(0, len(hamiltonian.terms)):
-                output += exponentiate(hamiltonian[index_term], time / trotter_order)
+                output += time_evolution_for_term(
+                    hamiltonian[index_term], time / trotter_order
+                )
 
     else:
         raise ValueError("Currently the method {} is not supported".format(method))
@@ -46,7 +49,7 @@ def time_evolution_derivatives(
     trotter_order: int = 1,
 ) -> Tuple[List[Circuit], List[float]]:
 
-    """Generates derivative circuits for the time evolution operator defined in 
+    """Generates derivative circuits for the time evolution operator defined in
     function time_evolution
 
     Args:
@@ -54,7 +57,7 @@ def time_evolution_derivatives(
         time: Time duration of the evolution.
         method: Time evolution method. Currently the only option is 'Trotter'.
         trotter_order: order of Trotter evolution
-    
+
     Returns:
         A Circuit (core.circuit) object representing the time evolution.
     """
@@ -79,12 +82,12 @@ def time_evolution_derivatives(
 
                 for index_term2 in range(0, len(hamiltonian.terms)):
                     if index_term1 == index_term2:
-                        expitH_circuit = exponentiate(
+                        expitH_circuit = time_evolution_for_term(
                             hamiltonian[index_term2], ((time + shift) / trotter_order)
                         )
                         output += expitH_circuit
                     else:
-                        expitH_circuit = exponentiate(
+                        expitH_circuit = time_evolution_for_term(
                             hamiltonian[index_term2], (time / trotter_order)
                         )
                         output += expitH_circuit
@@ -127,18 +130,18 @@ def generate_circuit_sequence(
     repeated_circuit: Circuit, different_circuit: Circuit, length: int, position: int
 ) -> Circuit:
     """
-        Auxiliary function to generate a sequence of the "repeated_circuit",
-        "length" times, where at position "position" we have "different_circuit"
-        instead.
+    Auxiliary function to generate a sequence of the "repeated_circuit",
+    "length" times, where at position "position" we have "different_circuit"
+    instead.
 
-        Args:
-            repeated_circuit (core.circuit.Circuit)
-            different_circuit (core.circuit.Circuit)
-            length (int)
-            position (int)
-        
-        Returns:
-            circuit_sequence (core.circuit.Circuit))
+    Args:
+        repeated_circuit (core.circuit.Circuit)
+        different_circuit (core.circuit.Circuit)
+        length (int)
+        position (int)
+
+    Returns:
+        circuit_sequence (core.circuit.Circuit))
     """
     if position >= length:
         raise ValueError("The position must be less than the total length")
@@ -152,17 +155,17 @@ def generate_circuit_sequence(
     return circuit_sequence
 
 
-def exponentiate(
-    term: pyquil.paulis.PauliSum, factor: Union[float, sympy.Expr]
+def time_evolution_for_term(
+    term: pyquil.paulis.PauliTerm, time: Union[float, sympy.Expr]
 ) -> Circuit:
-    """Exponentiates a Pauli term and returns a circuit representing it.
+    """Evolves a Pauli term for a given time and returns a circuit representing it.
     Args:
-        term: Pauli term to be exponentiated
-        factor: factor for exponentiation
+        term: Pauli term to be evolved
+        time: time of evolution
     Returns:
-        Circuit: Circuit representing exponentiated term.
+        Circuit: Circuit representing evolved pyquil term.
     """
-    if isinstance(factor, sympy.Expr):
+    if isinstance(time, sympy.Expr):
         circuit = Circuit(pyquil_exponentiate(term))
         for gate in circuit.gates:
             if len(gate.params) == 0:
@@ -170,12 +173,12 @@ def exponentiate(
             elif len(gate.params) > 1:
                 raise (
                     NotImplementedError(
-                        "Exponentiation of multi-parametered gates with symbolic parameters is not supported."
+                        "Time evolution of multi-parametered gates with symbolic parameters is not supported."
                     )
                 )
             elif gate.name == "Rz" or gate.name == "PHASE":
                 # We only want to modify the parameter of Rz gate or PHASE gate.
-                gate.params[0] = gate.params[0] * factor
+                gate.params[0] = gate.params[0] * time
     else:
-        circuit = Circuit(pyquil_exponentiate(term * factor))
+        circuit = Circuit(pyquil_exponentiate(term * time))
     return circuit

@@ -252,7 +252,6 @@ class TestEvaluationOfSingleQubitGates:
 
 
 class TestStringRepresentationOfSingleQubitGates:
-
     @pytest.mark.parametrize(
         "gate, expected_representation",
         [
@@ -266,13 +265,11 @@ class TestStringRepresentationOfSingleQubitGates:
             (H(3), "H(3)"),
             (T(0), "T(0)"),
             (I(1), "I(1)"),
-            (I(5), "I(5)")
-        ]
+            (I(5), "I(5)"),
+        ],
     )
-    def test_representation_of_single_qubit_nonparametric_gates_looks_like_initiizer_call(
-        self,
-        gate,
-        expected_representation
+    def test_representation_of_single_qubit_nonparametric_gates_looks_like_initializer_call(
+        self, gate, expected_representation
     ):
         assert str(gate) == repr(gate) == expected_representation
 
@@ -283,12 +280,10 @@ class TestStringRepresentationOfSingleQubitGates:
             (RX(0, sympy.Symbol("x") + sympy.Symbol("y")), "RX(0, angle=x+y)"),
             (RY(1, sympy.Symbol("theta")), "RY(1, angle=theta)"),
             (RZ(2, sympy.Symbol("phi")), "RZ(2, angle=phi)"),
-            (RZ(3, np.pi), f"RZ(3, angle={np.pi})")
-        ]
+            (RZ(3, np.pi), f"RZ(3, angle={np.pi})"),
+        ],
     )
     def test_representation_of_single_qubit_rotations_looks_like_initializer_call_with_keyword_angle(
-        self,
-        gate,
-        expected_representation
+        self, gate, expected_representation
     ):
         assert str(gate) == repr(gate) == expected_representation

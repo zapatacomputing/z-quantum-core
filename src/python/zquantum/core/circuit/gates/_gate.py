@@ -227,7 +227,7 @@ class Gate(ABC):
             param_names = [
                 param.name
                 for param in inspect.signature(self.__init__).parameters.values()
-            ][-len(self.params):]
+            ][-len(self.params) :]
 
             args_reprs += [
                 f"{param_name}={param_value}".replace(" ", "")

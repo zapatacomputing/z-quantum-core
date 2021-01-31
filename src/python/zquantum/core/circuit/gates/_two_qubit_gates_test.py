@@ -100,20 +100,18 @@ def test_rotation_gates_have_a_single_parameter_equal_to_their_angle(gate_cls, a
 
 
 class TestStringRepresentationOfTwoQubitGates:
-
     @pytest.mark.parametrize(
         "gate, expected_representation",
         [
             (SWAP(0, 1), "SWAP(0, 1)"),
             (CZ(4, 2), "CZ(4, 2)"),
-            (CNOT(1, 3), "CNOT(1, 3)")
-        ]
+            (CNOT(1, 3), "CNOT(1, 3)"),
+        ],
     )
-    def test_representation_of_two_qubit_nonparametric_gates_looks_like_initiizer_call(
+    def test_representation_of_two_qubit_nonparametric_gates_looks_like_initializer_call(
         self, gate, expected_representation
     ):
         assert str(gate) == repr(gate) == expected_representation
-
 
     @pytest.mark.parametrize(
         "gate, expected_representation",
@@ -125,8 +123,8 @@ class TestStringRepresentationOfTwoQubitGates:
             (ZZ(4, 0, sympy.Symbol("x") + sympy.Symbol("y")), "ZZ(4, 0, angle=x+y)"),
             (ZZ(0, 1, np.pi / 4), f"ZZ(0, 1, angle={np.pi/4})"),
             (CPHASE(0, 1, np.pi / 5), f"CPHASE(0, 1, angle={np.pi/5})"),
-            (CPHASE(4, 1, sympy.cos(sympy.Symbol("x"))), f"CPHASE(4, 1, angle=cos(x))")
-        ]
+            (CPHASE(4, 1, sympy.cos(sympy.Symbol("x"))), f"CPHASE(4, 1, angle=cos(x))"),
+        ],
     )
     def test_representation_of_two_qubit_rotations_looks_like_initializer_call_with_keyword_angle(
         self, gate, expected_representation

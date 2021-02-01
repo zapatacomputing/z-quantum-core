@@ -23,6 +23,7 @@ T = sympy.Matrix([[1, 0], [0, (1 + sympy.I) / sympy.sqrt(2)]])
 CNOT = sympy.Matrix([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 1], [0, 0, 1, 0]])
 CZ = sympy.Matrix([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, -1]])
 SWAP = sympy.Matrix([[1, 0, 0, 0], [0, 0, 1, 0], [0, 1, 0, 0], [0, 0, 0, 1]])
+ISWAP = sympy.Matrix([[1, 0, 0, 0], [0, 0, 1j, 0], [0, 1j, 0, 0], [0, 0, 0, 1]])
 
 II = TensorProduct(I, I)
 IH = TensorProduct(H, I)
@@ -277,6 +278,8 @@ def main():
         ]
     )
 
+    XY = XX * YY
+    XY.simplify()
     angles = [-sympy.pi / 2, 0, sympy.pi / 5, sympy.pi / 2, sympy.pi]
     print("**" * 10)
     print("WAVEFUNCTION")
@@ -295,6 +298,7 @@ def main():
     generate_cases_2_qubits_wavefunction(XX, "XX", angles)
     generate_cases_2_qubits_wavefunction(YY, "YY", angles)
     generate_cases_2_qubits_wavefunction(ZZ, "ZZ", angles)
+    generate_cases_2_qubits_wavefunction(XY, "XY", angles)
 
     print("**" * 10)
     print("EXP VALS WITHOUT ANGLES")
@@ -312,6 +316,7 @@ def main():
     print("-" * 10)
     generate_cases_2_qubits_exp_vals(CNOT, "CNOT")
     generate_cases_2_qubits_exp_vals(SWAP, "SWAP")
+    generate_cases_2_qubits_exp_vals(ISWAP, "ISWAP")
     generate_cases_2_qubits_exp_vals(CZ, "CZ")
 
     print("**" * 10)
@@ -331,6 +336,7 @@ def main():
     generate_cases_2_qubits_exp_vals_with_angles(XX, "XX", angles)
     generate_cases_2_qubits_exp_vals_with_angles(YY, "YY", angles)
     generate_cases_2_qubits_exp_vals_with_angles(ZZ, "ZZ", angles)
+    generate_cases_2_qubits_exp_vals_with_angles(XY, "XY", angles)
 
 
 if __name__ == "__main__":

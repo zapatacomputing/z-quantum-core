@@ -4,6 +4,7 @@ import pytest
 import sympy
 
 from .cirq_conversions import convert_from_cirq, convert_to_cirq, make_rotation_factory
+from .. import XY
 from ...circuit.gates import (
     X,
     Y,
@@ -64,6 +65,7 @@ TWO_QUBIT_ROTATION_GATE_FACTORIES = [
     (XX, make_rotation_factory(cirq.XXPowGate, global_shift=-0.5)),
     (YY, make_rotation_factory(cirq.YYPowGate, global_shift=-0.5)),
     (ZZ, make_rotation_factory(cirq.ZZPowGate, global_shift=-0.5)),
+    (XY, make_rotation_factory(cirq.ISwapPowGate, 0.0))
 ]
 
 
@@ -94,7 +96,7 @@ TEST_CASES_WITHOUT_SYMBOLIC_PARAMS = (
         )
         for orq_gate_cls, cirq_gate_func in TWO_QUBIT_ROTATION_GATE_FACTORIES
         for q0, q1 in [(0, 1), (2, 3), (0, 10)]
-        for angle in [np.pi, np.pi / 2, 0.4, 0.1, 0.05, 2.5]
+        for angle in [np.pi, np.pi / 2, np.pi / 5, 0.4, 0.1, 0.05, 2.5]
     ]
 )
 

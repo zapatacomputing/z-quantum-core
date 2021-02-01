@@ -9,8 +9,10 @@ from .graph import (
     generate_random_graph_erdos_renyi,
     generate_random_regular_graph,
     generate_graph_from_specs,
+    generate_random_value_from_string,
 )
 import os
+import random
 
 
 class TestGraph(unittest.TestCase):
@@ -177,3 +179,122 @@ class TestGraph(unittest.TestCase):
         for edge in graph.edges:
             self.assertIn("weight", graph.edges[edge].keys())
 
+    def test_generate_random_value_from_string_uniform(self):
+        # Given
+        specs_float = 'uniform_-5._5.'
+
+        # When
+        value_float = generate_random_value_from_string(specs_float)
+    
+        # Then
+        self.assertTrue(type(value_float) is float)
+        self.assertTrue((value_float > -5) and (value_float < 5))
+
+    def test_generate_random_value_from_string_uniformrange(self):
+        # Given
+        specs_int = 'uniformrange_5_10'
+        
+        # When
+        value_int = generate_random_value_from_string(specs_int)
+    
+        # Then
+        self.assertTrue(type(value_int) is int)
+        self.assertTrue(value_int in range(5, 10))
+
+        
+    def test_generate_random_value_from_string_choice(self):
+        # Given
+        specs_float = 'choice_3._5._14.'
+        specs_int = 'choice_3_5_14'
+        
+        # When
+        value_float = generate_random_value_from_string(specs_float)
+        value_int = generate_random_value_from_string(specs_int)
+    
+        # Then
+        self.assertTrue(type(value_float) is float)
+        self.assertTrue(type(value_int) is int)
+        self.assertTrue(value_float in [3., 5., 14.])
+        self.assertTrue(value_int in [3, 5, 14])
+        
+    def test_generate_random_value_from_string_normal(self):
+        # Given
+        specs_float = 'normal_-10._0.0001'
+        random.seed(123)
+
+        # When
+        value_float = generate_random_value_from_string(specs_float)
+    
+        # Then
+        self.assertTrue(type(value_float) is float)
+        self.assertTrue((value_float > -11.) and (value_float < -9.))
+ 
+    def test_generate_random_value_from_string_constant(self):
+        # Given
+        specs_float = 'constant_5.'
+        specs_int = 'constant_5'
+
+        # When
+        value_float = generate_random_value_from_string(specs_float)
+        value_int = generate_random_value_from_string(specs_int)
+    
+        # Then
+        self.assertTrue(type(value_float) is float)
+        self.assertTrue(type(value_int) is int)
+        self.assertEqual(value_float, 5)
+        self.assertTrue(value_int, 5)
+        
+    def test_generate_random_value_from_string_numerics(self):
+        # Given
+        specs_float = 5.
+        specs_int = 5
+
+        # When
+        value_float = generate_random_value_from_string(specs_float)
+        value_int = generate_random_value_from_string(specs_int)
+    
+        # Then
+        self.assertTrue(type(value_float) is float)
+        self.assertTrue(type(value_int) is int)
+        self.assertEqual(value_float, 5)
+        self.assertTrue(value_int, 5)    
+
+    def test_generate_random_value_from_string_wrongtype(self):
+        # Given
+        specs_float = (5.,)
+        specs_int = (5,)
+
+        # When/Then
+        self.assertRaises(
+            AssertionError,
+            lambda: generate_random_value_from_string(specs_float)
+        )
+        self.assertRaises(
+            AssertionError,
+            lambda: generate_random_value_from_string(specs_int)
+        )
+
+    def test_generate_graph_from_specs_with_string_random(self):
+        # Given
+        specs = {'type_graph':'regular', 'num_nodes':8, 'degree':'choice_3_4'}
+        
+        # When
+        graph = generate_graph_from_specs(specs)
+
+        # Then
+        degrees = [deg for node, deg in graph.degree]
+        degree_ref = degrees[0]
+        self.assertTrue(degree_ref in [3, 4])
+        for degree in degrees:
+            self.assertEqual(degree, degree_ref)
+
+        # Given
+        specs = {'type_graph':'regular', 'num_nodes':8, 'degree':3, 'random_weights':'uniform_-1_-0.5'}
+    
+        # When
+        graph = generate_graph_from_specs(specs)
+        
+        # Then
+        for node1, node2, weight in graph.edges(data='weight'):
+            self.assertTrue((weight>-1) and (weight<-0.5))
+        

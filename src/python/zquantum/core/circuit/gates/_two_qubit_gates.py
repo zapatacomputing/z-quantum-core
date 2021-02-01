@@ -114,6 +114,11 @@ class XY(TwoQubitRotationGate):
     """Quantum XY gate."""
 
     def _create_matrix(self) -> sympy.Matrix:
-        matrix = XX._create_matrix(self) * YY._create_matrix(self)
-        matrix.simplify()
-        return matrix
+        return sympy.Matrix(
+            [
+                [1, 0, 0, 0],
+                [0, sympy.cos(self.angle / 2), 1j * sympy.sin(self.angle / 2), 0],
+                [0, 1j * sympy.sin(self.angle / 2), sympy.cos(self.angle / 2), 0],
+                [0, 0, 0, 1]
+            ]
+        )

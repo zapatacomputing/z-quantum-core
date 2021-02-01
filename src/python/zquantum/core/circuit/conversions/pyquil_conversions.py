@@ -140,13 +140,6 @@ def convert_controlled_gate_to_pyquil(
 
 
 @_convert_gate_to_pyquil.register
-def convert_XY_gate_to_pyquil(
-    gate: XY, _program: Optional[pyquil.Program]
-) -> pyquil.gates.XY:
-    return pyquil.gates.XY(-gate.angle * 2, *gate.qubits)
-
-
-@_convert_gate_to_pyquil.register
 def convert_dagger_to_pyquil(
     gate: Dagger, _program: Optional[pyquil.Program]
 ) -> pyquil.gates.Gate:
@@ -265,14 +258,6 @@ def convert_gate_from_pyquil(gate: pyquil.quil.Gate, custom_gates=None) -> Gate:
 
     if custom_gates is not None:
         pyquil_name_to_orquestra_cls.update(custom_gates)
-
-    # Dirty hack
-    if gate.name == "XY":
-        return XY(
-            gate.qubits[0].index,
-            gate.qubits[1].index,
-            - gate.params[0] / 2
-        )
 
     try:
         gate_cls = pyquil_name_to_orquestra_cls[gate.name]

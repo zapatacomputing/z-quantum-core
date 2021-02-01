@@ -117,9 +117,8 @@ def get_one_qubit_hydrogen_hamiltonian(interaction_operator: Union[InteractionOp
     pauli_x = np.array([[0., 1.], [1., 0.]])
     pauli_y = np.array([[0., -1.j], [1.j, 0.]])
     pauli_z = np.array([[1., 0.], [0., -1.]])
-    identity = np.eye(2)
 
-    r_id = 0.5 * np.trace(one_qubit_h_matrix @ identity)
+    r_id = 0.5 * np.trace(one_qubit_h_matrix)
     r_x = 0.5 * np.trace(one_qubit_h_matrix @ pauli_x)
     r_y = 0.5 * np.trace(one_qubit_h_matrix @ pauli_y)
     r_z = 0.5 * np.trace(one_qubit_h_matrix @ pauli_z)

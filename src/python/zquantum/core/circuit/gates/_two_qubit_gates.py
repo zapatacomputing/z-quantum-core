@@ -56,6 +56,16 @@ class SWAP(HermitianMixin, SpecializedGate):
         return sympy.Matrix([[1, 0, 0, 0], [0, 0, 1, 0], [0, 1, 0, 0], [0, 0, 0, 1]])
 
 
+class ISWAP(SpecializedGate):
+    """Quantum ISWAP gate."""
+
+    def __init__(self, first_qubit: int, second_qubit: int):
+        super().__init__((first_qubit, second_qubit))
+
+    def _create_matrix(self) -> sympy.Matrix:
+        return sympy.Matrix([[1, 0, 0, 0], [0, 0, 1j, 0], [0, 1j, 0, 0], [0, 0, 0, 1]])
+
+
 class XX(TwoQubitRotationGate):
     """Quantum XX gate."""
 
@@ -96,5 +106,19 @@ class ZZ(TwoQubitRotationGate):
                 [0, sympy.cos(arg) + 1j * sympy.sin(arg), 0, 0],
                 [0, 0, sympy.cos(arg) + 1j * sympy.sin(arg), 0],
                 [0, 0, 0, sympy.cos(arg) - 1j * sympy.sin(arg)],
+            ]
+        )
+
+
+class XY(TwoQubitRotationGate):
+    """Quantum XY gate."""
+
+    def _create_matrix(self) -> sympy.Matrix:
+        return sympy.Matrix(
+            [
+                [1, 0, 0, 0],
+                [0, sympy.cos(self.angle / 2), 1j * sympy.sin(self.angle / 2), 0],
+                [0, 1j * sympy.sin(self.angle / 2), sympy.cos(self.angle / 2), 0],
+                [0, 0, 0, 1]
             ]
         )

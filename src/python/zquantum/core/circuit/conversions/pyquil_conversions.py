@@ -27,6 +27,7 @@ from ...circuit.gates import (
     CPHASE,
     SWAP,
     CustomGate,
+    XY
 )
 from .symbolic.sympy_expressions import expression_from_sympy
 from .symbolic.translations import translate_expression
@@ -49,6 +50,7 @@ ORQUESTRA_CLS_TO_PYQUIL_FUNCTION = {
     CNOT: pyquil.gates.CNOT,
     SWAP: pyquil.gates.SWAP,
     CPHASE: pyquil.gates.CPHASE,
+    XY: pyquil.gates.XY
 }
 
 
@@ -68,6 +70,7 @@ PYQUIL_NAME_TO_ORQUESTRA_CLS = {
     "CNOT": CNOT,
     "CPHASE": CPHASE,
     "SWAP": SWAP,
+    "XY": XY
 }
 
 

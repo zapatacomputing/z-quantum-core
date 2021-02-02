@@ -27,6 +27,7 @@ from ...circuit.gates import (
     CPHASE,
     SWAP,
     Dagger,
+    XY
 )
 import numpy as np
 import pytest
@@ -47,6 +48,7 @@ ORQUESTRA_GATE_TYPE_TO_PYQUIL_NAME = {
     CZ: "CZ",
     SWAP: "SWAP",
     CPHASE: "CPHASE",
+    XY: "XY"
 }
 
 
@@ -364,6 +366,7 @@ class TestCorrectnessOfGateTypeAndMatrix:
             CZ(2, 12),
             SWAP(2, 4),
             CPHASE(2, 4, np.pi / 4),
+            XY(0, 1, np.pi / 5)
         ],
     )
     def test_conversion_from_orquestra_to_pyquil_preserves_gate_type_and_matrix(
@@ -375,6 +378,37 @@ class TestCorrectnessOfGateTypeAndMatrix:
         assert np.allclose(
             pyquil_gate_matrix(pyquil_gate),
             np.array(gate.matrix.tolist(), dtype=complex),
+        )
+
+    @pytest.mark.parametrize(
+        "pyquil_gate",
+        [
+            pyquil.gates.X(2),
+            pyquil.gates.Y(0),
+            pyquil.gates.Z(1),
+            pyquil.gates.H(0),
+            pyquil.gates.PHASE(np.pi, 0),
+            pyquil.gates.T(2),
+            pyquil.gates.I(10),
+            pyquil.gates.RX(np.pi, 0),
+            pyquil.gates.RY(np.pi / 2, 0),
+            pyquil.gates.RZ(0.0, 0),
+            pyquil.gates.CNOT(0, 1),
+            pyquil.gates.CZ(2, 12),
+            pyquil.gates.SWAP(2, 4),
+            pyquil.gates.CPHASE(np.pi / 4, 2, 4),
+            pyquil.gates.XY(np.pi / 5, 0, 1)
+        ],
+    )
+    def test_conversion_from_pyquil_to_orquestra_preserves_gate_type_and_matrix(
+        self, pyquil_gate
+    ):
+        orquestra_gate = convert_from_pyquil(pyquil_gate)
+
+        assert pyquil_gate.name == ORQUESTRA_GATE_TYPE_TO_PYQUIL_NAME[type(orquestra_gate)]
+        assert np.allclose(
+            pyquil_gate_matrix(pyquil_gate),
+            np.array(orquestra_gate.matrix.tolist(), dtype=complex),
         )
 
 

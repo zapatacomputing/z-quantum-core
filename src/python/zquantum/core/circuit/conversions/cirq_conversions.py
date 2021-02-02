@@ -25,6 +25,7 @@ from ...circuit.gates import (
     XX,
     YY,
     ZZ,
+    XY,
 )
 
 Param = Union[sympy.Expr, float]
@@ -76,6 +77,7 @@ ORQUESTRA_TO_CIRQ_MAPPING = {
     XX: make_rotation_factory(cirq.XXPowGate, -0.5),
     YY: make_rotation_factory(cirq.YYPowGate, -0.5),
     ZZ: make_rotation_factory(cirq.ZZPowGate, -0.5),
+    XY: make_rotation_factory(cirq.ISwapPowGate, 0.0),
 }
 
 
@@ -100,6 +102,7 @@ EIGENGATE_ROTATIONS = {
     (cirq.XXPowGate, -0.5): XX,
     (cirq.YYPowGate, -0.5): YY,
     (cirq.ZZPowGate, -0.5): ZZ,
+    (cirq.ISwapPowGate, 0.0): XY,
 }
 
 

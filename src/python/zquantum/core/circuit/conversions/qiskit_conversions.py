@@ -14,5 +14,5 @@ def convert_from_qiskit(
     pass
 
 
-def convert_to_qiskit(obj):
+def convert_to_qiskit(obj, num_qubits_in_circuit: int):
     pass

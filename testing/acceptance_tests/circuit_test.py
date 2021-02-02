@@ -6,7 +6,7 @@ from zquantum.core.utils import RNDSEED
 from zquantum.core.circuit import load_circuit_template_params
 
 sys.path.append("../..")
-from steps.circuit import generate_random_ansatz_params
+from steps.circuit import generate_random_ansatz_params, combine_ansatz_params
 
 
 class Test_generate_random_ansatz_params:
@@ -102,3 +102,46 @@ class Test_generate_random_ansatz_params:
                 number_of_parameters=number_of_parameters,
                 seed=seed,
             )
+
+
+class Test_combine_ansatz_params:
+    @pytest.mark.parametrize(
+        "params1, params2",
+        [
+            ([], []),
+            ([1.0], []),
+            ([], [1.0]),
+            ([0.0], [1.0]),
+            ([0.0, 1.0, 3.0, 5.0, -2.3], [1.0]),
+        ],
+    )
+    def test_combine_ansatz_params(self, params1, params2):
+        # Given
+        params1_filename = "params1.json"
+        with open(params1_filename, "w") as f:
+            f.write(
+                '{"schema": "zapata-v1-circuit_template_params","parameters": {"real": '
+                + str(params1)
+                + "}}"
+            )
+
+        params2_filename = "params2.json"
+        with open(params2_filename, "w") as f:
+            f.write(
+                '{"schema": "zapata-v1-circuit_template_params","parameters": {"real": '
+                + str(params2)
+                + "}}"
+            )
+
+        # When
+        combine_ansatz_params(params1_filename, params2_filename)
+
+        # Then
+        combined_parameters_filename = "combined-params.json"
+        assert os.path.exists(combined_parameters_filename)
+        parameters = load_circuit_template_params(combined_parameters_filename)
+        assert all(parameters == params1 + params2)
+
+        os.remove(params1_filename)
+        os.remove(params2_filename)
+        os.remove(combined_parameters_filename)

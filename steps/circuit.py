@@ -23,24 +23,26 @@ from typing import Dict, Union
 
 # Generate random parameters for an ansatz
 def generate_random_ansatz_params(
-    ansatz_specs: Dict,
-    number_of_parameters: Union[str, int] = "None",
+    ansatz_specs: Union[str, Dict] = None,
+    number_of_parameters: int = None,
     min_value: float = -np.pi * 0.5,
     max_value: float = np.pi * 0.5,
-    seed: Union[str, int] = "None",
+    seed: int = None,
 ):
-    if ansatz_specs != "None":  # TODO None issue in workflow v1
+    assert (ansatz_specs is None) or (number_of_parameters is None)
+
+    if ansatz_specs is not None:  # TODO None issue in workflow v1
         if isinstance(ansatz_specs, str):
             ansatz_specs_dict = json.loads(ansatz_specs)
         else:
             ansatz_specs_dict = ansatz_specs
         ansatz = create_object(ansatz_specs_dict)
-        number_of_params = ansatz.number_of_params
-    elif number_of_parameters != "None":
-        number_of_params = number_of_parameters
-    if seed != "None":
+        number_of_parameters = ansatz.number_of_params
+
+    if seed is not None:
         np.random.seed(seed)
-    params = np.random.uniform(min_value, max_value, number_of_params)
+
+    params = np.random.uniform(min_value, max_value, number_of_parameters)
     save_circuit_template_params(params, "params.json")
 
 

@@ -1,10 +1,10 @@
-import pytest
-from optimize import optimize_parametrized_circuit_for_ground_state_of_operator
 import os
 import json
+import sys
 from openfermion import QubitOperator
-import sympy
-import numpy as np
+
+sys.path.append("../..")
+from steps.optimize import optimize_parametrized_circuit_for_ground_state_of_operator
 
 TARGET_OPERATOR = QubitOperator("X0 X1 Z2 Y4", 1.5)
 
@@ -137,3 +137,4 @@ def test_optimize_parametrized_circuit_for_ground_state_of_operator_optimizer_sp
     os.remove("optimization_results.json")
     os.remove("circuit.json")
     os.remove("initial_parameters.json")
+    os.remove("fixed_parameters.json")

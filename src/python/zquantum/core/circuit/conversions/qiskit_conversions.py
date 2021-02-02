@@ -1,3 +1,4 @@
+from functools import singledispatch
 from typing import Tuple, List, Union
 
 import qiskit
@@ -43,5 +44,21 @@ def convert_operation_from_qiskit(instruction: QiskitOperation) -> Gate:
         )
 
 
+@singledispatch
 def convert_to_qiskit(obj, num_qubits_in_circuit: int):
-    pass
+    raise NotImplementedError(f"Convertion of {obj} to qiskit is not supported.")
+
+
+@convert_to_qiskit.register
+def convert_orquestra_gate_to_qiskit(gate: Gate, num_qubits_in_circuit: int) -> QiskitOperation:
+    try:
+        qiskit_qubit = qiskit.circuit.Qubit(
+            qiskit.circuit.QuantumRegister(num_qubits_in_circuit, "q"),
+            gate.qubits[0]
+        )
+        qiskit_gate_cls = ORQUESTRA_TO_QISKIT_MAPPING[type(gate)]
+        return qiskit_gate_cls(), [qiskit_qubit], []
+    except KeyError:
+        raise NotImplementedError(
+            f"Conversion of {gate} to Qiskit is not supported."
+        )

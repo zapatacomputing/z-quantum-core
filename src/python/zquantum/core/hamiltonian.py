@@ -112,10 +112,9 @@ def compute_group_variances(
     is ignored in the current implementation, covariances are assumed to be 0.
 
     Args:
-        groups:  A list of QubitOperators that defines a (grouped) objective function
+        groups:  A list of QubitOperators that defines a (grouped) operator 
         expecval: An ExpectationValues object containing the expectation
-            values of the operators and their squares. Optionally, contains
-            values of operator products to compute covariances.
+            values of the operators.
     Returns:
         frame_variances: A Numpy array of the computed variances for each frame
     """
@@ -156,11 +155,11 @@ def get_expectation_values_from_rdms_for_qubitoperator_list(
        same order the operators came in.
 
     Args:
-        interactionrdm: interaction RDM to use for the expectation values
-            computation, as an OF InteractionRDM object
-        qubitoperator_list: List of qubit operators to compute the expectation values for
+        interactionrdm (InteractionRDM): interaction RDM to use for the expectation values
+            computation, as an OpenFermion InteractionRDM object
+        qubitoperator_list (List[QubitOperator]): List of qubit operators to compute the expectation values for
             in the form of OpenFermion QubitOperator objects
-        sort_terms: whether or not each input qubit operator needs to be sorted before calculating expectations
+        sort_terms (bool): whether or not each input qubit operator needs to be sorted before calculating expectations
     Returns:
         expectation values of Pauli strings in all qubit operators as an ExpectationValues object
     """
@@ -249,7 +248,8 @@ def estimate_nmeas_for_frames(
 ) -> Tuple[float, int, np.array]:
     """Calculates the number of measurements required for computing
     the expectation value of a qubit hamiltonian, where co-measurable terms
-    are grouped. 
+    are grouped in a single QubitOperator, and different groups are different 
+    members of the list.
 
     We are assuming the exact expectation values are provided
     (i.e. infinite number of measurements or simulations without noise)
@@ -262,23 +262,19 @@ def estimate_nmeas_for_frames(
     cov(O_{a}^{i}, O_{b}^{i}) = <O_{a}^{i} O_{b}^{i}> - <O_{a}^{i}> <O_{b}^{i}> = 0
 
     Args:
-        frame_operators: A list of QubitOperator objects, where each element in
+        frame_operators (List[QubitOperator]): A list of QubitOperator objects, where each element in
             the list is a group of co-measurable terms.
-        expecval: An ExpectationValues object containing the expectation
-            values of the operators and their squares. Optionally, contains
-            values of operator products to compute covariances.
-            If absent, covariances are assumed to be 0 and variances are
-            assumed to be maximal, i.e. 1. It is assumed that the first expectation
-            value corresponds to the constant term in the target operator in line 
-            with the conventions used in the BasicEstimator
-            NOTE: WE HAVE TO MAKE SURE THAT THE ORDER
-            OF EXPECTATION VALUES MATCHES THE ORDER OF THE TERMS IN THE
-            TARGET QUBIT OPERATOR, OTHERWISE THIS FUNCTION WILL NOT WORK CORRECTLY
+        expecval (Optional[ExpectationValues]): An ExpectationValues object containing the expectation
+            values of all operators in frame_operators. If absent, variances are assumed to be 
+            maximal, i.e. 1. 
+            NOTE: YOU HAVE TO MAKE SURE THAT THE ORDER OF EXPECTATION VALUES MATCHES 
+            THE ORDER OF THE TERMS IN THE *GROUPED* TARGET QUBIT OPERATOR, OTHERWISE 
+            THIS FUNCTION WILL NOT RETURN THE CORRECT RESULT.
         
     Returns:
-        K2: number of measurements for epsilon = 1.0
-        nterms: number of groups of QWC terms in the target_operator
-        frame_meas: Number of optimal measurements per group 
+        K2 (float): number of measurements for epsilon = 1.0
+        nterms (int): number of groups in frame_operators
+        frame_meas (np.array): Number of optimal measurements per group 
     """
     frame_variances = compute_group_variances(frame_operators, expecval)
     sqrt_lambda = sum(np.sqrt(frame_variances))

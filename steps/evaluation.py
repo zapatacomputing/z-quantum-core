@@ -2,7 +2,7 @@ from pyquil.wavefunction import Wavefunction
 import json
 import numpy as np
 from typing import Dict, Union, List
-from openfermion import SymbolicOperator
+from openfermion import SymbolicOperator, QubitOperator
 from openfermion.linalg import (
     qubit_operator_sparse,
     jw_get_ground_state_at_particle_number as _jw_get_ground_state_at_particle_number,
@@ -57,7 +57,15 @@ def get_expectation_values_for_qubit_operator(
     save_expectation_values(expectation_values, "expectation-values.json")
 
 
-def get_ground_state_rdm_from_qubit_operator(qubit_operator, n_particles):
+def get_ground_state_rdm_from_qubit_operator(
+    qubit_operator: Union[str, QubitOperator], n_particles: int
+):
+    """Diagonalize operator and compute the ground state 1- and 2-RDM
+
+    ARGS:
+        qubit_operator (Union[str, QubitOperator]): The openfermion operator to diagonalize
+        n_particles (int): number of particles in the target ground state
+    """
     qubit_operator = load_qubit_operator(qubit_operator)
     rdm = _get_ground_state_rdm_from_qubit_op(qubit_operator, n_particles)
     save_interaction_rdm(rdm, "rdms.json")

@@ -33,20 +33,24 @@ TWO_QUBIT_SWAP_MATRIX = np.array(
 )
 
 
-def qiskit_qubit(index: int) -> qiskit.circuit.Qubit:
-    return qiskit.circuit.Qubit(qiskit.circuit.QuantumRegister(index + 1, "q"), index)
+def qiskit_qubit(index: int, num_qubits: int) -> qiskit.circuit.Qubit:
+    return qiskit.circuit.Qubit(qiskit.circuit.QuantumRegister(num_qubits, "q"), index)
 
 
 TEST_CASES_WITHOUT_SYMBOLIC_PARAMS = [
     *[
-        (orquestra_gate(qubit), (qiskit_gate(), [qiskit_qubit(qubit)], []))
+        (orquestra_gate(qubit), (qiskit_gate(), [qiskit_qubit(qubit, qubit + 1)], []))
         for orquestra_gate, qiskit_gate in EQUIVALENT_NONPARAMETRIC_SINGLE_QUBIT_GATES
         for qubit in [0, 1, 4, 10]
     ],
     *[
         (
             orquestra_gate(*qubits),
-            (qiskit_gate(), [qiskit_qubit(qubit) for qubit in reversed(qubits)], []),
+            (
+                qiskit_gate(),
+                [qiskit_qubit(qubit, max(qubits) + 1) for qubit in reversed(qubits)],
+                [],
+            ),
         )
         for orquestra_gate, qiskit_gate in EQUIVALENT_NONPARAMETRIC_TWO_QUBIT_GATES
         for qubits in [(0, 1), (3, 4), (10, 1)]
@@ -62,7 +66,7 @@ class TestGateConversionWithoutSymbolicParameters:
         self, orquestra_gate, qiskit_operation
     ):
         assert (
-            convert_to_qiskit(orquestra_gate, orquestra_gate.qubits[0] + 1)
+            convert_to_qiskit(orquestra_gate, max(orquestra_gate.qubits) + 1)
             == qiskit_operation
         )
 

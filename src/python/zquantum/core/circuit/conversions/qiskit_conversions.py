@@ -19,7 +19,7 @@ ORQUESTRA_TO_QISKIT_MAPPING = {
     CNOT: qiskit.extensions.CnotGate,
     CZ: qiskit.extensions.CZGate,
     SWAP: qiskit.extensions.SwapGate,
-    ISWAP: qiskit.extensions.iSwapGate
+    ISWAP: qiskit.extensions.iSwapGate,
 }
 
 
@@ -54,15 +54,17 @@ def convert_to_qiskit(obj, num_qubits_in_circuit: int):
 
 
 @convert_to_qiskit.register
-def convert_orquestra_gate_to_qiskit(gate: Gate, num_qubits_in_circuit: int) -> QiskitOperation:
+def convert_orquestra_gate_to_qiskit(
+    gate: Gate, num_qubits_in_circuit: int
+) -> QiskitOperation:
     try:
-        qiskit_qubit = qiskit.circuit.Qubit(
-            qiskit.circuit.QuantumRegister(num_qubits_in_circuit, "q"),
-            gate.qubits[0]
-        )
+        qiskit_qubits = [
+            qiskit.circuit.Qubit(
+                qiskit.circuit.QuantumRegister(num_qubits_in_circuit, "q"), qubit
+            )
+            for qubit in reversed(gate.qubits)
+        ]
         qiskit_gate_cls = ORQUESTRA_TO_QISKIT_MAPPING[type(gate)]
-        return qiskit_gate_cls(), [qiskit_qubit], []
+        return qiskit_gate_cls(), qiskit_qubits, []
     except KeyError:
-        raise NotImplementedError(
-            f"Conversion of {gate} to Qiskit is not supported."
-        )
+        raise NotImplementedError(f"Conversion of {gate} to Qiskit is not supported.")

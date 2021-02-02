@@ -37,14 +37,14 @@ def convert_from_qiskit(
         raise NotImplementedError()
 
 
-def convert_operation_from_qiskit(instruction: QiskitOperation) -> Gate:
+def convert_operation_from_qiskit(operation: QiskitOperation) -> Gate:
     try:
-        qiskit_op, qiskit_qubits, _ = instruction
+        qiskit_op, qiskit_qubits, _ = operation
         orquestra_gate_cls = QISKIT_TO_ORQUESTRA_MAPPING[type(qiskit_op)]
         return orquestra_gate_cls(*(qubit.index for qubit in reversed(qiskit_qubits)))
     except KeyError:
         raise NotImplementedError(
-            f"Cannot convert {instruction} to Orquestra, unknown operation."
+            f"Cannot convert {operation} to Orquestra, unknown operation."
         )
 
 

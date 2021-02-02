@@ -28,6 +28,12 @@ QISKIT_TO_ORQUESTRA_MAPPING = {
 }
 
 
+def qiskit_qubit(index: int, num_qubits_in_circuit: int) -> qiskit.circuit.Qubit:
+    return qiskit.circuit.Qubit(
+        qiskit.circuit.QuantumRegister(num_qubits_in_circuit, "q"), index
+    )
+
+
 def convert_from_qiskit(
     obj: Union[QiskitOperation, qiskit.QuantumCircuit]
 ) -> Union[Gate, Circuit]:
@@ -59,9 +65,7 @@ def convert_orquestra_gate_to_qiskit(
 ) -> QiskitOperation:
     try:
         qiskit_qubits = [
-            qiskit.circuit.Qubit(
-                qiskit.circuit.QuantumRegister(num_qubits_in_circuit, "q"), qubit
-            )
+            qiskit_qubit(qubit, num_qubits_in_circuit)
             for qubit in reversed(gate.qubits)
         ]
         qiskit_gate_cls = ORQUESTRA_TO_QISKIT_MAPPING[type(gate)]

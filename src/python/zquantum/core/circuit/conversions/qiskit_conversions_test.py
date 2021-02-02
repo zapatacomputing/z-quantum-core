@@ -2,7 +2,7 @@ import pytest
 import qiskit
 import numpy as np
 from zquantum.core.circuit import X, Y, Z, I, T, H, Gate, Circuit, CNOT, CZ, SWAP, ISWAP
-from .qiskit_conversions import convert_to_qiskit, convert_from_qiskit
+from .qiskit_conversions import convert_to_qiskit, convert_from_qiskit, qiskit_qubit
 
 
 EQUIVALENT_NONPARAMETRIC_SINGLE_QUBIT_GATES = [
@@ -31,10 +31,6 @@ TWO_QUBIT_SWAP_MATRIX = np.array(
         [0, 0, 0, 1],
     ]
 )
-
-
-def qiskit_qubit(index: int, num_qubits: int) -> qiskit.circuit.Qubit:
-    return qiskit.circuit.Qubit(qiskit.circuit.QuantumRegister(num_qubits, "q"), index)
 
 
 TEST_CASES_WITHOUT_SYMBOLIC_PARAMS = [
@@ -84,3 +80,13 @@ class TestGateConversionWithoutSymbolicParameters:
                 TWO_QUBIT_SWAP_MATRIX @ orquestra_matrix @ TWO_QUBIT_SWAP_MATRIX
             )
         np.testing.assert_allclose(orquestra_matrix, qiskit_operation[0].to_matrix())
+
+
+class TestQiskitQubit:
+    def test_qiskit_qubit_produces_qubit_with_specified_index(self):
+        qubit = qiskit_qubit(0, 3)
+        assert qubit.index == 0
+
+    def test_qiskit_qubit_produces_qubit_with_register_having_specified_size(self):
+        qubit = qiskit_qubit(1, 4)
+        assert qubit.register.size == 4

@@ -18,6 +18,8 @@ from zquantum.core.hamiltonian import (
     group_comeasureable_terms_greedy as _group_comeasurable_terms_greedy,
 )
 
+from zquantum.core.testing import create_random_qubitop as _create_random_qubitop
+
 
 def get_fermion_number_operator(
     number_of_qubits: int, number_of_particles: Optional[int] = None
@@ -126,3 +128,10 @@ def concatenate_qubit_operator_lists(
     save_qubit_operator_set(
         qubit_operator_list_final, "concatenated-qubit-operators.json"
     )
+
+
+def create_random_qubitop(nqubits: int, nterms: int):
+
+    output_qubit_operator = _create_random_qubitop(nqubits, nterms)
+
+    save_qubit_operator(output_qubit_operator, "qubit-operator.json")

@@ -17,6 +17,7 @@ from zquantum.core.circuit import (
 sys.path.append("../..")
 from steps.circuit import (
     build_ansatz_circuit,
+    create_random_circuit,
     generate_random_ansatz_params,
     combine_ansatz_params,
     build_uniform_param_grid,
@@ -410,3 +411,46 @@ class Test_build_circuit_layers_and_connectivity:
 
         os.remove(expected_circuit_layers_filename)
         os.remove(expected_circuit_connectivity_filename)
+
+
+class Test_create_random_circuit:
+    @pytest.mark.parametrize(
+        "number_of_qubits, number_of_gates, seed",
+        [
+            (2, 4, None),
+            (2, 10, RNDSEED),
+            (2, 100, RNDSEED),
+            (2, 1000, RNDSEED),
+            (2, 10000, RNDSEED),
+            (5, 4, None),
+            (5, 10, RNDSEED),
+            (5, 100, RNDSEED),
+            (5, 1000, RNDSEED),
+            (5, 10000, RNDSEED),
+            (17, 4, None),
+            (17, 10, RNDSEED),
+            (17, 100, RNDSEED),
+            (17, 1000, RNDSEED),
+            (17, 10000, RNDSEED),
+            (35, 4, None),
+            (35, 10, RNDSEED),
+            (35, 100, RNDSEED),
+            (35, 1000, RNDSEED),
+            (35, 10000, RNDSEED),
+        ],
+    )
+    def test_create_random_circuit(self, number_of_qubits, number_of_gates, seed):
+        # Given
+        expected_filename = "circuit.json"
+
+        # When
+        create_random_circuit(
+            number_of_qubits=number_of_qubits,
+            number_of_gates=number_of_gates,
+            seed=seed,
+        )
+
+        # Then
+        circuit = load_circuit(expected_filename)
+
+        os.remove(expected_filename)

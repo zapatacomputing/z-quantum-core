@@ -115,7 +115,7 @@ def build_circuit_layers_and_connectivity(
 
 # Create random circuit
 def create_random_circuit(
-    number_of_qubits: int, number_of_gates: int, seed: Union[str, int] = "None"
+    number_of_qubits: int, number_of_gates: int, seed: int = None
 ):
     circuit = _create_random_circuit(number_of_qubits, number_of_gates, seed=seed)
     save_circuit(circuit, "circuit.json")

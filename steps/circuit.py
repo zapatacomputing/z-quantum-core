@@ -30,8 +30,9 @@ def generate_random_ansatz_params(
     seed: int = None,
 ):
     assert (ansatz_specs is None) or (number_of_parameters is None)
+    assert not ((ansatz_specs is None) and (number_of_parameters is None))
 
-    if ansatz_specs is not None:  # TODO None issue in workflow v1
+    if ansatz_specs is not None:
         if isinstance(ansatz_specs, str):
             ansatz_specs_dict = json.loads(ansatz_specs)
         else:
@@ -55,7 +56,7 @@ def combine_ansatz_params(params1: str, params2: str):
 
 
 # Build circuit from ansatz
-def build_ansatz_circuit(ansatz_specs: Dict, params: str = None):
+def build_ansatz_circuit(ansatz_specs: Union[str, Dict], params: str = None):
     if isinstance(ansatz_specs, str):
         ansatz_specs = json.loads(ansatz_specs)
     ansatz = create_object(ansatz_specs)
@@ -75,15 +76,20 @@ def build_ansatz_circuit(ansatz_specs: Dict, params: str = None):
 
 # Build uniform parameter grid
 def build_uniform_param_grid(
-    ansatz_specs: Dict,
-    number_of_params_per_layer: Union[str, int] = "None",
+    ansatz_specs: Union[str, Dict] = None,
+    number_of_params_per_layer: int = None,
     number_of_layers: int = 1,
     min_value: float = 0,
     max_value: float = 2 * np.pi,
     step: float = np.pi / 5,
 ):
-    if ansatz_specs != "None":  # TODO None issue in workflow v1
-        ansatz = create_object(json.loads(ansatz_specs))
+    assert (ansatz_specs is None) or (number_of_params_per_layer is None)
+    assert not ((ansatz_specs is None) and (number_of_params_per_layer is None))
+
+    if ansatz_specs is not None:
+        if isinstance(ansatz_specs, str):
+            ansatz_specs = json.loads(ansatz_specs)
+        ansatz = create_object(ansatz_specs)
         number_of_params = ansatz.number_of_params
     elif number_of_params_per_layer != "None":
         number_of_params = number_of_params_per_layer

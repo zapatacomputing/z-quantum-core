@@ -122,7 +122,9 @@ def create_random_circuit(
 
 
 # Add register of ancilla qubits to circuit
-def add_ancilla_register_to_circuit(number_of_ancilla_qubits: int, circuit: str):
+def add_ancilla_register_to_circuit(
+    number_of_ancilla_qubits: int, circuit: Union[Circuit, str]
+):
     circuit_object = load_circuit(circuit)
     extended_circuit = _add_ancilla_register_to_circuit(
         circuit_object, number_of_ancilla_qubits

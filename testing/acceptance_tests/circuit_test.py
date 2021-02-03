@@ -8,11 +8,13 @@ from zquantum.core.circuit import (
     load_circuit_template_params,
     save_circuit_template_params,
     load_circuit,
+    save_circuit,
     load_parameter_grid,
     load_circuit_layers,
     load_circuit_connectivity,
     Circuit,
 )
+from zquantum.core.testing import create_random_circuit as _create_random_circuit
 
 sys.path.append("../..")
 from steps.circuit import (
@@ -22,6 +24,7 @@ from steps.circuit import (
     combine_ansatz_params,
     build_uniform_param_grid,
     build_circuit_layers_and_connectivity,
+    add_ancilla_register_to_circuit,
 )
 
 
@@ -454,3 +457,52 @@ class Test_create_random_circuit:
         circuit = load_circuit(expected_filename)
 
         os.remove(expected_filename)
+
+
+class Test_add_ancilla_register_to_circuit:
+    @pytest.mark.parametrize("number_of_ancilla_qubits", [i for i in range(50)])
+    def test_add_ancilla_register_to_circuit_python_object(
+        self, number_of_ancilla_qubits
+    ):
+        # Given
+        number_of_qubits = 4
+        number_of_gates = 10
+        circuit = _create_random_circuit(
+            number_of_qubits, number_of_gates, seed=RNDSEED
+        )
+        expected_extended_circuit_filename = "extended-circuit.json"
+
+        # When
+        add_ancilla_register_to_circuit(number_of_ancilla_qubits, circuit)
+
+        # Then
+        extended_circuit = load_circuit(expected_extended_circuit_filename)
+        assert (
+            len(extended_circuit.qubits) == number_of_qubits + number_of_ancilla_qubits
+        )
+        os.remove(expected_extended_circuit_filename)
+
+    @pytest.mark.parametrize("number_of_ancilla_qubits", [i for i in range(50)])
+    def test_add_ancilla_register_to_circuit_python_object(
+        self, number_of_ancilla_qubits
+    ):
+        # Given
+        number_of_qubits = 4
+        number_of_gates = 10
+        circuit = _create_random_circuit(
+            number_of_qubits, number_of_gates, seed=RNDSEED
+        )
+        circuit_filename = "circuit.json"
+        save_circuit(circuit, circuit_filename)
+        expected_extended_circuit_filename = "extended-circuit.json"
+
+        # When
+        add_ancilla_register_to_circuit(number_of_ancilla_qubits, circuit_filename)
+
+        # Then
+        extended_circuit = load_circuit(expected_extended_circuit_filename)
+        assert (
+            len(extended_circuit.qubits) == number_of_qubits + number_of_ancilla_qubits
+        )
+        os.remove(expected_extended_circuit_filename)
+        os.remove(circuit_filename)

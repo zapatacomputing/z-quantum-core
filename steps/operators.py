@@ -86,13 +86,19 @@ def reorder_fermionic_modes(
     reordered_operator = _reorder_fermionic_modes(interaction_operator, ordering)
     save_interaction_operator(reordered_operator, "reordered-operator.json")
 
-def create_one_qubit_operator(x_coeff:float, 
-                            y_coeff:float ,
-                            z_coeff:float
-                            ) -> QubitOperator:
 
-    qubit_operator = x_coeff*QubitOperator('X0') + y_coeff*QubitOperator('Y0') + z_coeff*QubitOperator('Z0')
-    save_qubit_operator(qubit_operator, 'qubit_operator.json')
+def create_one_qubit_operator(
+    x_coeff: float, y_coeff: float, z_coeff: float, constant: float
+) -> None:
+
+    qubit_operator = (
+        x_coeff * QubitOperator("X0")
+        + y_coeff * QubitOperator("Y0")
+        + z_coeff * QubitOperator("Z0")
+        + constant * QubitOperator(())
+    )
+    save_qubit_operator(qubit_operator, "qubit_operator.json")
+
 
 def group_comeasureable_terms_greedy(
     qubit_operator: Union[str, QubitOperator], sort_terms: bool = False

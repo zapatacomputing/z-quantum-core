@@ -15,8 +15,6 @@ from zquantum.core.circuit import (
     load_circuit_set,
     Circuit,
     save_circuit_set,
-    Gate,
-    Qubit,
 )
 from zquantum.core.utils import create_object
 from zquantum.core.testing import create_random_circuit as _create_random_circuit

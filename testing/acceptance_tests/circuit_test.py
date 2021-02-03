@@ -9,6 +9,8 @@ from zquantum.core.circuit import (
     save_circuit_template_params,
     load_circuit,
     load_parameter_grid,
+    load_circuit_layers,
+    load_circuit_connectivity,
     Circuit,
 )
 
@@ -18,6 +20,7 @@ from steps.circuit import (
     generate_random_ansatz_params,
     combine_ansatz_params,
     build_uniform_param_grid,
+    build_circuit_layers_and_connectivity,
 )
 
 
@@ -363,3 +366,47 @@ class Test_build_uniform_param_grid:
         # When
         with pytest.raises(AssertionError):
             build_uniform_param_grid()
+
+
+class Test_build_circuit_layers_and_connectivity:
+    @pytest.mark.parametrize(
+        "x_dimension, y_dimension, layer_type",
+        [
+            (0, None, "nearest-neighbor"),
+            (1, None, "nearest-neighbor"),
+            (2, None, "nearest-neighbor"),
+            (0, 0, "nearest-neighbor"),
+            (1, 0, "nearest-neighbor"),
+            (2, 0, "nearest-neighbor"),
+            (0, 1, "nearest-neighbor"),
+            (1, 1, "nearest-neighbor"),
+            (2, 1, "nearest-neighbor"),
+            (0, 2, "nearest-neighbor"),
+            (1, 2, "nearest-neighbor"),
+            (2, 2, "nearest-neighbor"),
+            (1, 1, "sycamore"),
+            (2, 1, "sycamore"),
+            (1, 2, "sycamore"),
+            (2, 2, "sycamore"),
+        ],
+    )
+    def test_build_circuit_layers_and_connectivity(
+        self, x_dimension, y_dimension, layer_type
+    ):
+        # Given
+        expected_circuit_layers_filename = "circuit-layers.json"
+        expected_circuit_connectivity_filename = "circuit-connectivity.json"
+
+        # When
+        build_circuit_layers_and_connectivity(
+            x_dimension=x_dimension, y_dimension=y_dimension, layer_type=layer_type
+        )
+
+        # Then
+        circuit_layers = load_circuit_layers(expected_circuit_layers_filename)
+        circuit_connectivity = load_circuit_connectivity(
+            expected_circuit_connectivity_filename
+        )
+
+        os.remove(expected_circuit_layers_filename)
+        os.remove(expected_circuit_connectivity_filename)

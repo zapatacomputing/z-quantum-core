@@ -103,10 +103,9 @@ def build_uniform_param_grid(
 # Build circuit layers and connectivity
 def build_circuit_layers_and_connectivity(
     x_dimension: int,
-    y_dimension: Union[int, str] = "None",
+    y_dimension: int = None,
     layer_type: str = "nearest-neighbor",
 ):
-    # TODO None issue in workflow v1
     connectivity, layers = _build_circuit_layers_and_connectivity(
         x_dimension, y_dimension, layer_type
     )

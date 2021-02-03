@@ -200,6 +200,7 @@ class Gate(object):
             "CZ",
             "CPHASE",
             "SWAP",
+            "ISWAP",
             "XX",
             "YY",
             "ZZ",
@@ -229,7 +230,9 @@ class Gate(object):
             else:
                 params.append(param)
         output = cls(
-            dict["name"], [Qubit.from_dict(qubit) for qubit in dict["qubits"]], params,
+            dict["name"],
+            [Qubit.from_dict(qubit) for qubit in dict["qubits"]],
+            params,
         )
         output.info = dict["info"]
         return output
@@ -285,6 +288,10 @@ class Gate(object):
             return pyquil.gates.CPHASE(params[0], q1, q2)
         if self.name == "SWAP":
             return pyquil.gates.SWAP(q1, q2)
+        if self.name == "ISWAP":
+            return pyquil.gates.ISWAP(q1, q2)
+        if self.name == "XY":
+            return pyquil.gates.XY(-params[0] * 4, q1, q2)
 
     def to_cirq(self, input_cirq_qubits=None):
         """Convert to a cirq gate.
@@ -378,12 +385,18 @@ class Gate(object):
             )
         if self.name == "SWAP":
             return cirq.SWAP(cirq_qubits[0], cirq_qubits[1])
+        if self.name == "ISWAP":
+            return cirq.ISWAP(cirq_qubits[0], cirq_qubits[1])
         if self.name == "XX":
             return cirq.XX(cirq_qubits[0], cirq_qubits[1]) ** (params[0] * 2 / pi)
         if self.name == "YY":
             return cirq.YY(cirq_qubits[0], cirq_qubits[1]) ** (params[0] * 2 / pi)
         if self.name == "ZZ":
             return cirq.ZZ(cirq_qubits[0], cirq_qubits[1]) ** (params[0] * 2 / pi)
+        if self.name == "XY":
+            return cirq.ISwapPowGate(cirq_qubits[0], cirq_qubits[1]) ** (
+                -params[0] * 4 / pi
+            )
 
     def to_qiskit(self, qreg, creg):
         """Converts a Gate object to a qiskit object.
@@ -537,8 +550,14 @@ class Gate(object):
                 [qiskit_qubits[0], qiskit_qubits[1]],
                 [],
             ]
+        if self.name == "ISWAP":
+            return [
+                qiskit.circuit.library.iSwapGate(),
+                [qiskit_qubits[0], qiskit_qubits[1]],
+                [],
+            ]
+
         if self.name == "XX":
-            # Hard-coded decomposition is used for now. The compilation is inspired by the approach described in arXiv:1001.3855 [quant-ph]
             return [
                 qiskit.circuit.library.RXXGate(params[0] * 2),
                 [qiskit_qubits[0], qiskit_qubits[1]],
@@ -546,7 +565,6 @@ class Gate(object):
             ]
 
         if self.name == "YY":
-            # Hard-coded decomposition is used for now. The compilation is inspired by the approach described in arXiv:1001.3855 [quant-ph]
             return [
                 qiskit.circuit.library.RYYGate(params[0] * 2),
                 [qiskit_qubits[0], qiskit_qubits[1]],
@@ -554,9 +572,17 @@ class Gate(object):
             ]
 
         if self.name == "ZZ":
-            # Hard-coded decomposition is used for now. The compilation is inspired by the approach described in arXiv:1001.3855 [quant-ph]
             return [
                 qiskit.circuit.library.RZZGate(params[0] * 2),
+                [qiskit_qubits[0], qiskit_qubits[1]],
+                [],
+            ]
+        if self.name == "XY":
+            return [
+                qiskit.circuit.library.RXXGate(params[0] * 2),
+                [qiskit_qubits[0], qiskit_qubits[1]],
+                [],
+                qiskit.circuit.library.RYYGate(params[0] * 2),
                 [qiskit_qubits[0], qiskit_qubits[1]],
                 [],
             ]
@@ -741,10 +767,12 @@ class Gate(object):
                 "S",
                 "CNOT",
                 "SWAP",
+                "ISWAP",
                 "CZ",
                 "XX",
                 "YY",
                 "ZZ",
+                "XY",
             }:
                 if len(parsed_gatename) == 1:  # discrete gate
                     output.name = name_str
@@ -778,6 +806,10 @@ class Gate(object):
                     elif name_str == "ZZ":
                         output.name = "ZZ"
                         output.params = [cirq_gate.gate.exponent * pi / 2]
+                    elif name_str == "XY":
+                        output.name = "XY"
+                        output.params = [cirq_gate.gate.exponent * pi / 2]
+
                     elif name_str == "S":
                         # In cirq, ZPowGate(exponent=-0.5) has a string
                         # representation of 'S**-1'.
@@ -822,7 +854,7 @@ class Gate(object):
             output.name = "U3"
         elif qiskit_gate.name == "cx":
             output.name = "CNOT"
-        elif qiskit_gate.name in {"cz", "swap"}:
+        elif qiskit_gate.name in {"cz", "swap", "iswap"}:
             output.name = qiskit_gate.name.upper()
         elif qiskit_gate.name in {"measure", "barrier"}:
             output.name = qiskit_gate.name.upper()

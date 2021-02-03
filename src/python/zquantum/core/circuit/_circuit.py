@@ -946,6 +946,9 @@ def add_gate_to_pyquil_program(pyquil_program, gate):
                 + zz_def
                 + ZZ(gate.params[0])(gate.qubits[0].index, gate.qubits[1].index)
             )
+        if gate.name == "XY":
+            return pyquil_program + gate.to_pyquil()  # do nothing
+
         if gate.name == "U1ex":  # IBM U1ex gate (arXiv:1805.04340v1)
             alpha = pyquil.quilatom.Parameter("alpha")
             beta = pyquil.quilatom.Parameter("beta")

@@ -11,6 +11,7 @@ import json
 import openfermion
 import sympy
 from openfermion import hermitian_conjugated
+from openfermion import InteractionRDM
 from openfermion.ops import SymbolicOperator
 from networkx.readwrite import json_graph
 import lea
@@ -560,3 +561,31 @@ def load_nmeas_estimate(filename: str) -> Tuple[float, int, np.ndarray]:
     nterms = data["nterms"]
 
     return K_coeff, nterms, frame_meas
+
+
+def hf_rdm(n_alpha: int, n_beta: int, n_orbitals: int) -> InteractionRDM:
+    """Construct the RDM corresponding to a Hartree-Fock state.
+
+    Args:
+        n_alpha (int): number of spin-up electrons
+        n_beta (int): number of spin-down electrons
+        n_orbitals (int): number of spatial orbitals (not spin orbitals)
+    
+    Returns:
+        openfermion.ops.InteractionRDM: the reduced density matrix
+    """
+    # Determine occupancy of each spin orbital
+    occ = np.zeros(2 * n_orbitals)
+    occ[: (2 * n_alpha) : 2] = 1
+    occ[1 : (2 * n_beta + 1) : 2] = 1
+
+    one_body_tensor = np.diag(occ)
+
+    two_body_tensor = np.zeros([2 * n_orbitals for i in range(4)])
+    for i in range(2 * n_orbitals):
+        for j in range(2 * n_orbitals):
+            if i != j and occ[i] and occ[j]:
+                two_body_tensor[i, j, j, i] = 1
+                two_body_tensor[i, j, i, j] = -1
+
+    return InteractionRDM(one_body_tensor, two_body_tensor)

@@ -3,10 +3,19 @@ import os
 import sys
 import numpy as np
 from zquantum.core.utils import RNDSEED
-from zquantum.core.circuit import load_circuit_template_params
+from zquantum.core.circuit import (
+    load_circuit_template_params,
+    save_circuit_template_params,
+    load_circuit,
+    Circuit,
+)
 
 sys.path.append("../..")
-from steps.circuit import generate_random_ansatz_params, combine_ansatz_params
+from steps.circuit import (
+    build_ansatz_circuit,
+    generate_random_ansatz_params,
+    combine_ansatz_params,
+)
 
 
 class Test_generate_random_ansatz_params:
@@ -118,20 +127,10 @@ class Test_combine_ansatz_params:
     def test_combine_ansatz_params(self, params1, params2):
         # Given
         params1_filename = "params1.json"
-        with open(params1_filename, "w") as f:
-            f.write(
-                '{"schema": "zapata-v1-circuit_template_params","parameters": {"real": '
-                + str(params1)
-                + "}}"
-            )
+        save_circuit_template_params(np.array(params1), params1_filename)
 
         params2_filename = "params2.json"
-        with open(params2_filename, "w") as f:
-            f.write(
-                '{"schema": "zapata-v1-circuit_template_params","parameters": {"real": '
-                + str(params2)
-                + "}}"
-            )
+        save_circuit_template_params(np.array(params2), params2_filename)
 
         # When
         combine_ansatz_params(params1_filename, params2_filename)
@@ -145,3 +144,60 @@ class Test_combine_ansatz_params:
         os.remove(params1_filename)
         os.remove(params2_filename)
         os.remove(combined_parameters_filename)
+
+
+class Test_build_ansatz_circuit:
+    @pytest.mark.parametrize(
+        "number_of_layers, number_of_parameters",
+        [
+            (0, 0),
+            (2, 0),
+            (2, 2),
+            (2, 4),
+        ],
+    )
+    def test_build_ansatz_circuit(self, number_of_layers, number_of_parameters):
+        # Given
+        params = np.random.uniform(low=0, high=np.pi, size=number_of_parameters)
+        number_of_layers = 0
+        params_filename = None
+        if params is not None:
+            number_of_layers = len(params)
+            params_filename = "params.json"
+            save_circuit_template_params(np.array(params), params_filename)
+
+        ansatz_specs = {
+            "module_name": "zquantum.core.interfaces.mock_objects",
+            "function_name": "MockAnsatz",
+            "number_of_layers": number_of_layers,
+            "problem_size": 2,
+        }
+
+        # When
+        build_ansatz_circuit(ansatz_specs=ansatz_specs, params=params_filename)
+
+        # Then
+        circuit_filename = "circuit.json"
+        circuit = load_circuit(circuit_filename)
+        assert isinstance(circuit, Circuit)
+
+        os.remove(circuit_filename)
+        os.remove(params_filename)
+
+    def test_build_ansatz_circuit_raises_exception_on_invalid_inputs(self):
+        # Given
+        params_filename = "params.json"
+        save_circuit_template_params(np.array([1.0]), params_filename)
+
+        ansatz_specs = {
+            "module_name": "zquantum.core.interfaces.mock_objects",
+            "function_name": "MockAnsatz",
+            "number_of_layers": 0,
+            "problem_size": 2,
+        }
+
+        # When
+        with pytest.raises(Exception):
+            build_ansatz_circuit(ansatz_specs=ansatz_specs, params=params_filename)
+
+        os.remove(params_filename)

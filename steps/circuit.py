@@ -55,9 +55,11 @@ def combine_ansatz_params(params1: str, params2: str):
 
 
 # Build circuit from ansatz
-def build_ansatz_circuit(ansatz_specs: Dict, params: str = "None"):
-    ansatz = create_object(json.loads(ansatz_specs))
-    if params != "None":  # TODO Non issue in worklow v1
+def build_ansatz_circuit(ansatz_specs: Dict, params: str = None):
+    if isinstance(ansatz_specs, str):
+        ansatz_specs = json.loads(ansatz_specs)
+    ansatz = create_object(ansatz_specs)
+    if params is not None:
         parameters = load_circuit_template_params(params)
         circuit = ansatz.get_executable_circuit(parameters)
     elif ansatz.supports_parametrized_circuits:

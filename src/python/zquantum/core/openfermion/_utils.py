@@ -644,19 +644,21 @@ def get_ground_state_rdm_from_qubit_op(
     )  # float/np.array pair
     n_qubits = count_qubits(qubit_operator)
 
-    rdm1_matrix = []
+    one_body_tensor = []
     for i in range(n_qubits):
         for j in range(n_qubits):
             idag_j = get_sparse_operator(
                 FermionOperator(f"{i}^ {j}"), n_qubits=n_qubits
             )
             idag_j = idag_j.toarray()
-            rdm1_matrix.append(np.conjugate(ground_state_wf) @ idag_j @ ground_state_wf)
+            one_body_tensor.append(
+                np.conjugate(ground_state_wf) @ idag_j @ ground_state_wf
+            )
 
-    rdm1_matrix = np.array(rdm1_matrix)
-    rdm1_matrix = rdm1_matrix.reshape(n_qubits, n_qubits)
+    one_body_tensor = np.array(one_body_tensor)
+    one_body_tensor = one_body_tensor.reshape(n_qubits, n_qubits)
 
-    rdm2_matrix = np.zeros((n_qubits, n_qubits, n_qubits, n_qubits), dtype=complex)
+    two_body_tensor = np.zeros((n_qubits,) * 4, dtype=complex)
     for p in range(n_qubits):
         for q in range(0, p + 1):
             for r in range(n_qubits):
@@ -668,9 +670,9 @@ def get_ground_state_rdm_from_qubit_op(
                     rdm_element = (
                         np.conjugate(ground_state_wf) @ pdag_qdag_r_s @ ground_state_wf
                     )
-                    rdm2_matrix[p, q, r, s] = rdm_element
-                    rdm2_matrix[q, p, r, s] = -rdm_element
-                    rdm2_matrix[q, p, s, r] = rdm_element
-                    rdm2_matrix[p, q, s, r] = -rdm_element
+                    two_body_tensor[p, q, r, s] = rdm_element
+                    two_body_tensor[q, p, r, s] = -rdm_element
+                    two_body_tensor[q, p, s, r] = rdm_element
+                    two_body_tensor[p, q, s, r] = -rdm_element
 
-    return InteractionRDM(rdm1_matrix, rdm2_matrix)
+    return InteractionRDM(one_body_tensor, two_body_tensor)

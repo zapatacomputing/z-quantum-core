@@ -119,16 +119,16 @@ def compute_group_variances(
         frame_variances: A Numpy array of the computed variances for each frame
     """
 
-    if any([x.terms.get(()) for x in groups]):
+    if any([group.terms.get(()) for group in groups]):
         raise ValueError(
             "The list of qubitoperators for measurement estimation should not contain a constant term"
         )
     if expecval is None:
         frame_variances = [
-            np.sum(np.array(list(x.terms.values())) ** 2) for x in groups
+            np.sum(np.array(list(group.terms.values())) ** 2) for group in groups
         ]  # Covariances are ignored; Variances are set to 1
     else:
-        group_sizes = np.array([len(g.terms.keys()) for g in groups])
+        group_sizes = np.array([len(group.terms.keys()) for group in groups])
         assert np.sum(group_sizes) == len(expecval.values)
         real_expecval = expectation_values_to_real(expecval)
         pauli_variances = 1.0 - real_expecval.values ** 2

@@ -37,7 +37,7 @@ class QuantumBackend(ABC):
                     "\n", ""
                 ),
                 DeprecationWarning,
-            )px
+            )
         self.n_samples = n_samples
         self.number_of_circuits_run = 0
         self.number_of_jobs_run = 0

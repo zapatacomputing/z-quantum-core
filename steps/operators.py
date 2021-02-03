@@ -9,6 +9,7 @@ from zquantum.core.openfermion import (
     load_interaction_operator,
     load_qubit_operator,
     save_qubit_operator,
+    remove_inactive_orbitals as _remove_inactive_orbitals,
     save_qubit_operator_set,
     load_qubit_operator_set,
 )
@@ -87,6 +88,21 @@ def reorder_fermionic_modes(
 
     reordered_operator = _reorder_fermionic_modes(interaction_operator, ordering)
     save_interaction_operator(reordered_operator, "reordered-operator.json")
+
+
+def remove_inactive_orbitals(
+    interaction_operator: str,
+    n_active: Optional[int] = None,
+    n_core: Optional[int] = None,
+):
+
+    interaction_operator = load_interaction_operator(interaction_operator)
+
+    frozen_operator = _remove_inactive_orbitals(
+        interaction_operator, n_active=n_active, n_core=n_core
+    )
+
+    save_interaction_operator(frozen_operator, "frozen-operator.json")
 
 
 def create_one_qubit_operator(

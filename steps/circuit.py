@@ -19,7 +19,7 @@ from zquantum.core.circuit import (
 from zquantum.core.utils import create_object
 from zquantum.core.testing import create_random_circuit as _create_random_circuit
 
-from typing import Dict, Union
+from typing import Dict, Union, List
 
 # Generate random parameters for an ansatz
 def generate_random_ansatz_params(
@@ -125,18 +125,20 @@ def create_random_circuit(
 def add_ancilla_register_to_circuit(
     number_of_ancilla_qubits: int, circuit: Union[Circuit, str]
 ):
-    circuit_object = load_circuit(circuit)
+    if isinstance(circuit, str):
+        circuit = load_circuit(circuit)
     extended_circuit = _add_ancilla_register_to_circuit(
-        circuit_object, number_of_ancilla_qubits
+        circuit, number_of_ancilla_qubits
     )
     save_circuit(extended_circuit, "extended-circuit.json")
 
 
 # Concatenate circuits in a circuitset to create a composite circuit
-def concatenate_circuits(circuit_set: str):
-    circuit_set_object = load_circuit_set(circuit_set)
+def concatenate_circuits(circuit_set: Union[str, List[Circuit]]):
+    if isinstance(circuit_set, str):
+        circuit_set = load_circuit_set(circuit_set)
     result_circuit = Circuit()
-    for circuit in circuit_set_object:
+    for circuit in circuit_set:
         result_circuit += circuit
     save_circuit(result_circuit, "result-circuit.json")
 

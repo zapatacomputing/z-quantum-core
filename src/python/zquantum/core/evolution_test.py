@@ -7,7 +7,7 @@ from .evolution import (
     time_evolution,
     time_evolution_derivatives,
     generate_circuit_sequence,
-    exponentiate,
+    time_evolution_for_term,
 )
 from .utils import compare_unitary
 from .testing import create_random_circuit
@@ -201,13 +201,13 @@ class TestTimeEvolution(unittest.TestCase):
                 repeated_circuit, different_circuit, length, position
             )
 
-    def test_exponentiate(self):
+    def test_time_evolution_for_term(self):
         # Given
         term_1 = PauliTerm("X", 0) * PauliTerm("X", 1)
         term_2 = PauliTerm("Y", 0, 0.5) * PauliTerm("Y", 1)
         term_3 = PauliTerm("Z", 0) * PauliTerm("Z", 1)
         term_4 = PauliTerm("I", 0) * PauliTerm("I", 1)
-        factor = pi
+        time = pi
 
         target_unitary_1 = -np.eye(4)
         target_unitary_2 = np.zeros((4, 4), dtype=np.complex)
@@ -219,10 +219,10 @@ class TestTimeEvolution(unittest.TestCase):
         target_unitary_4 = -np.eye(2)
 
         # When
-        unitary_1 = exponentiate(term_1, factor).to_unitary()
-        unitary_2 = exponentiate(term_2, factor).to_unitary()
-        unitary_3 = exponentiate(term_3, factor).to_unitary()
-        unitary_4 = exponentiate(term_4, factor).to_unitary()
+        unitary_1 = time_evolution_for_term(term_1, time).to_unitary()
+        unitary_2 = time_evolution_for_term(term_2, time).to_unitary()
+        unitary_3 = time_evolution_for_term(term_3, time).to_unitary()
+        unitary_4 = time_evolution_for_term(term_4, time).to_unitary()
 
         # Then
         np.testing.assert_array_almost_equal(unitary_1, target_unitary_1)
@@ -230,15 +230,15 @@ class TestTimeEvolution(unittest.TestCase):
         np.testing.assert_array_almost_equal(unitary_3, target_unitary_3)
         np.testing.assert_array_almost_equal(unitary_4, target_unitary_4)
 
-    def test_exponentiate_with_symbolic_parameter(self):
+    def test_time_evolution_for_term_with_symbolic_parameter(self):
         # Given
         term_1 = PauliTerm("X", 0) * PauliTerm("X", 1)
         term_2 = PauliTerm("Y", 0, 0.5) * PauliTerm("Y", 1)
         term_3 = PauliTerm("Z", 0) * PauliTerm("Z", 1)
         term_4 = PauliTerm("I", 0) * PauliTerm("I", 1)
-        factor = sympy.Symbol("t")
-        factor_value = pi
-        symbols_map = [(factor, factor_value)]
+        time = sympy.Symbol("t")
+        time_value = pi
+        symbols_map = [(time, time_value)]
 
         target_unitary_1 = -np.eye(4)
         target_unitary_2 = np.zeros((4, 4), dtype=np.complex)
@@ -250,14 +250,21 @@ class TestTimeEvolution(unittest.TestCase):
         target_unitary_4 = -np.eye(2)
 
         # When
-        unitary_1 = exponentiate(term_1, factor).evaluate(symbols_map).to_unitary()
-        unitary_2 = exponentiate(term_2, factor).evaluate(symbols_map).to_unitary()
-        unitary_3 = exponentiate(term_3, factor).evaluate(symbols_map).to_unitary()
-        unitary_4 = exponentiate(term_4, factor).evaluate(symbols_map).to_unitary()
+        unitary_1 = (
+            time_evolution_for_term(term_1, time).evaluate(symbols_map).to_unitary()
+        )
+        unitary_2 = (
+            time_evolution_for_term(term_2, time).evaluate(symbols_map).to_unitary()
+        )
+        unitary_3 = (
+            time_evolution_for_term(term_3, time).evaluate(symbols_map).to_unitary()
+        )
+        unitary_4 = (
+            time_evolution_for_term(term_4, time).evaluate(symbols_map).to_unitary()
+        )
 
         # Then
         np.testing.assert_array_almost_equal(unitary_1, target_unitary_1)
         np.testing.assert_array_almost_equal(unitary_2, target_unitary_2)
         np.testing.assert_array_almost_equal(unitary_3, target_unitary_3)
         np.testing.assert_array_almost_equal(unitary_4, target_unitary_4)
-

@@ -3,7 +3,7 @@ from .hamiltonian import (
     group_comeasureable_terms_greedy,
     compute_group_variances,
     get_expectation_values_from_rdms,
-    get_expectation_values_from_rdms_for_frames,
+    get_expectation_values_from_rdms_for_qubitoperator_list,
     estimate_nmeas_for_operator,
     estimate_nmeas_for_frames,
     reorder_fermionic_modes,
@@ -264,10 +264,10 @@ def test_get_expectation_values_from_rdms(interactionrdm, qubitoperator, sort_te
     "interactionrdm, qubitoperator_list, sort_terms",
     [(rdms, h2_hamiltonian_grouped, False,), (rdms, h2_hamiltonian_grouped, True,),],
 )
-def test_get_expectation_values_from_rdms_for_frames(
+def test_get_expectation_values_from_rdms_for_qubitoperator_list(
     interactionrdm, qubitoperator_list, sort_terms
 ):
-    expecval = get_expectation_values_from_rdms_for_frames(
+    expecval = get_expectation_values_from_rdms_for_qubitoperator_list(
         interactionrdm, qubitoperator_list, sort_terms
     )
     assert len(expecval.values) == np.sum(len(x.terms) for x in qubitoperator_list)

@@ -4,18 +4,20 @@ from zquantum.core.utils import (
     load_noise_model,
     save_value_estimate,
     save_nmeas_estimate,
+    save_list,
 )
 from zquantum.core.measurement import load_expectation_values, save_expectation_values
 from zquantum.core.hamiltonian import (
     estimate_nmeas_for_operator,
     estimate_nmeas_for_frames,
     get_expectation_values_from_rdms,
-    get_expectation_values_from_rdms_for_frames,
+    get_expectation_values_from_rdms_for_qubitoperator_list,
 )
 from zquantum.core.circuit import (
     load_circuit,
     load_circuit_connectivity,
     load_circuit_template_params,
+    load_circuit_set,
 )
 from zquantum.core.bitstring_distribution import save_bitstring_distribution
 from zquantum.core.openfermion import (
@@ -46,6 +48,30 @@ def run_circuit_and_measure(
 
     measurements = backend.run_circuit_and_measure(circuit)
     measurements.save("measurements.json")
+
+
+def run_circuitset_and_measure(
+    backend_specs: Dict,
+    circuitset: str,
+    noise_model: str = "None",
+    device_connectivity: str = "None",
+):
+
+    if isinstance(backend_specs, str):
+        backend_specs = json.loads(backend_specs)
+    if noise_model != "None":
+        backend_specs["noise_model"] = load_noise_model(noise_model)
+    if device_connectivity != "None":
+        backend_specs["device_connectivity"] = load_circuit_connectivity(
+            device_connectivity
+        )
+
+    circuit_set = load_circuit_set(circuitset)
+    backend = create_object(backend_specs)
+
+    measurements_set = backend.run_circuitset_and_measure(circuit_set)
+    list_of_measurements = [measurement.bitstrings for measurement in measurements_set]
+    save_list(list_of_measurements, "measurements-set.json")
 
 
 def get_bitstring_distribution(
@@ -140,6 +166,30 @@ def hamiltonian_analysis(
 def grouped_hamiltonian_analysis(
     groups: str, expectation_values: str = "None",
 ):
+    """Calculates the number of measurements required for computing
+    the expectation value of a qubit hamiltonian, where co-measurable terms
+    are grouped as a list of QubitOperators. 
+
+    We are assuming the exact expectation values are provided
+    (i.e. infinite number of measurements or simulations without noise)
+    M ~ (\sum_{i} prec(H_i)) ** 2.0 / (epsilon ** 2.0)
+    where prec(H_i) is the precision (square root of the variance)
+    for each group of co-measurable terms H_{i}. It is computed as
+    prec(H_{i}) = \sum{ab} |h_{a}^{i}||h_{b}^{i}| cov(O_{a}^{i}, O_{b}^{i})
+    where h_{a}^{i} is the coefficient of the a-th operator, O_{a}^{i}, in the
+    i-th group. Covariances are assumed to be zero for a != b:
+    cov(O_{a}^{i}, O_{b}^{i}) = <O_{a}^{i} O_{b}^{i}> - <O_{a}^{i}> <O_{b}^{i}> = 0
+
+    ARGS:
+        groups (str): The name of a file containing a list of QubitOperator objects, 
+            where each element in the list is a group of co-measurable terms.
+        expectation_values (str): The name of a file containing a single ExpectationValues 
+            object with all expectation values of the operators contained in groups.
+            If absent, variances are assumed to be maximal, i.e. 1. 
+            NOTE: YOU HAVE TO MAKE SURE THAT THE ORDER OF EXPECTATION VALUES MATCHES 
+            THE ORDER OF THE TERMS IN THE *GROUPED* TARGET QUBIT OPERATOR, 
+            OTHERWISE THIS FUNCTION WILL NOT RETURN THE CORRECT RESULT.
+    """
 
     grouped_operator = load_qubit_operator_set(groups)
 
@@ -167,12 +217,26 @@ def expectation_values_from_rdms(
     save_expectation_values(expecval, "expectation_values.json")
 
 
-def expectation_values_from_rdms_for_frames(
+def expectation_values_from_rdms_for_qubitoperator_list(
     interactionrdm: str, qubit_operator_list: str, sort_terms: bool = False
 ):
+    """Computes expectation values of Pauli strings in a list of QubitOperator given a 
+       fermionic InteractionRDM from OpenFermion. All the expectation values for the 
+       operators in the list are written to file in a single ExpectationValues object in the
+       same order the operators came in.
+
+    ARGS:
+        interactionrdm (str): The name of the file containing the interaction RDM to 
+            use for the expectation values computation
+        qubitoperator_list (str): The name of the file containing the list of qubit operators 
+            to compute the expectation values for in the form of OpenFermion QubitOperator objects
+        sort_terms (bool): whether or not each input qubit operator needs to be sorted before 
+            calculating expectations
+    """
+
     operator_list = load_qubit_operator_set(qubit_operator_list)
     rdms = load_interaction_rdm(interactionrdm)
-    expecval = get_expectation_values_from_rdms_for_frames(
+    expecval = get_expectation_values_from_rdms_for_qubitoperator_list(
         rdms, operator_list, sort_terms=sort_terms
     )
     save_expectation_values(expecval, "expectation_values.json")

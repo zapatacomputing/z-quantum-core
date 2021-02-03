@@ -563,7 +563,7 @@ def load_nmeas_estimate(filename: str) -> Tuple[float, int, np.ndarray]:
     return K_coeff, nterms, frame_meas
 
 
-def hf_rdm(n_alpha: int, n_beta: int, n_orbitals: int):
+def hf_rdm(n_alpha: int, n_beta: int, n_orbitals: int) -> InteractionRDM:
     """Construct the RDM corresponding to a Hartree-Fock state.
 
     Args:

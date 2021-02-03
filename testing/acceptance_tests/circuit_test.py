@@ -3,6 +3,8 @@ import os
 import sys
 import json
 import numpy as np
+import copy
+
 from zquantum.core import circuit
 from zquantum.core.utils import RNDSEED
 from zquantum.core.circuit import (
@@ -11,6 +13,7 @@ from zquantum.core.circuit import (
     load_circuit,
     save_circuit,
     save_circuit_set,
+    load_circuit_set,
     load_parameter_grid,
     load_circuit_layers,
     load_circuit_connectivity,
@@ -28,6 +31,7 @@ from steps.circuit import (
     build_circuit_layers_and_connectivity,
     add_ancilla_register_to_circuit,
     concatenate_circuits,
+    batch_circuits,
 )
 
 
@@ -556,3 +560,136 @@ class Test_concatenate_circuits:
         )
         os.remove(expected_concatenated_circuit_filename)
         os.remove(circuit_set_filename)
+
+
+@pytest.fixture(params=[0, 1, 4, 7])
+def input_circuits(request):
+    number_of_qubits = 4
+    number_of_gates = 10
+    return [
+        _create_random_circuit(number_of_qubits, number_of_gates, seed=RNDSEED + i)
+        for i in range(request.param)
+    ]
+
+
+@pytest.fixture(params=[0, 3, 6, 8])
+def input_circuit_set(request):
+    number_of_qubits = 4
+    number_of_gates = 10
+    return [
+        _create_random_circuit(
+            number_of_qubits, number_of_gates, seed=RNDSEED + 100 + i
+        )
+        for i in range(request.param)
+    ]
+
+
+class Test_batch_circuits:
+    def test_batch_circuits_all_artifacts_no_circuit_set(self, input_circuits):
+        # Given
+        circuit_filenames = []
+        for i, circuit in enumerate(input_circuits):
+            circuit_filenames.append("circuit-{}.json".format(i))
+            save_circuit(circuit, circuit_filenames[i])
+
+        expected_circuit_set_filename = "circuit-set.json"
+
+        # When
+        batch_circuits(circuit_filenames)
+
+        # Then
+        circuit_set = load_circuit_set(expected_circuit_set_filename)
+        assert circuit_set == input_circuits
+        for circuit_filename in circuit_filenames:
+            os.remove(circuit_filename)
+        os.remove(expected_circuit_set_filename)
+
+    def test_batch_circuits_all_artifacts_circuit_set_is_artifact(
+        self, input_circuits, input_circuit_set
+    ):
+        # Given
+        circuit_filenames = []
+        for i, circuit in enumerate(input_circuits):
+            circuit_filenames.append("circuit-{}.json".format(i))
+            save_circuit(circuit, circuit_filenames[i])
+
+        input_circuit_set_filename = "input-circuit-set.json"
+        save_circuit_set(input_circuit_set, input_circuit_set_filename)
+
+        expected_circuit_set_filename = "circuit-set.json"
+
+        # When
+        batch_circuits(circuit_filenames, circuit_set=input_circuit_set_filename)
+
+        # Then
+        circuit_set = load_circuit_set(expected_circuit_set_filename)
+        assert circuit_set == input_circuit_set + input_circuits
+        for circuit_filename in circuit_filenames:
+            os.remove(circuit_filename)
+        os.remove(expected_circuit_set_filename)
+        os.remove(input_circuit_set_filename)
+
+    def test_batch_circuits_all_artifacts_circuit_set_is_object(
+        self, input_circuits, input_circuit_set
+    ):
+        # Given
+        circuit_filenames = []
+        for i, circuit in enumerate(input_circuits):
+            circuit_filenames.append("circuit-{}.json".format(i))
+            save_circuit(circuit, circuit_filenames[i])
+
+        expected_circuit_set_filename = "circuit-set.json"
+
+        # When
+        batch_circuits(circuit_filenames, circuit_set=copy.deepcopy(input_circuit_set))
+
+        # Then
+        circuit_set = load_circuit_set(expected_circuit_set_filename)
+        assert circuit_set == input_circuit_set + input_circuits
+        for circuit_filename in circuit_filenames:
+            os.remove(circuit_filename)
+        os.remove(expected_circuit_set_filename)
+
+    def test_batch_circuits_all_objects_no_circuit_set(self, input_circuits):
+        # Given
+        expected_circuit_set_filename = "circuit-set.json"
+
+        # When
+        batch_circuits(input_circuits)
+
+        # Then
+        circuit_set = load_circuit_set(expected_circuit_set_filename)
+        assert circuit_set == input_circuits
+        os.remove(expected_circuit_set_filename)
+
+    def test_batch_circuits_all_objects_circuit_set_is_artifact(
+        self, input_circuits, input_circuit_set
+    ):
+        # Given
+        input_circuit_set_filename = "input-circuit-set.json"
+        save_circuit_set(input_circuit_set, input_circuit_set_filename)
+
+        expected_circuit_set_filename = "circuit-set.json"
+
+        # When
+        batch_circuits(input_circuits, circuit_set=input_circuit_set_filename)
+
+        # Then
+        circuit_set = load_circuit_set(expected_circuit_set_filename)
+        assert circuit_set == input_circuit_set + input_circuits
+        os.remove(expected_circuit_set_filename)
+        os.remove(input_circuit_set_filename)
+
+    def test_batch_circuits_all_objects_circuit_set_is_object(
+        self, input_circuits, input_circuit_set
+    ):
+        # Given
+        expected_circuit_set_filename = "circuit-set.json"
+
+        # When
+        batch_circuits(input_circuits, circuit_set=copy.deepcopy(input_circuit_set))
+
+        # Then
+        circuit_set = load_circuit_set(expected_circuit_set_filename)
+        assert circuit_set == input_circuit_set + input_circuits
+        os.remove(expected_circuit_set_filename)

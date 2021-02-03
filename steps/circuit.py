@@ -143,22 +143,19 @@ def concatenate_circuits(circuit_set: Union[str, List[Circuit]]):
     save_circuit(result_circuit, "result-circuit.json")
 
 
-# Create circuitset from circuit artifacts
-def create_circuit_set_from_circuit_artifacts(
-    circuit1: str,
-    circuit2: str = "None",
-    circuit3: str = "None",
-    circuit4: str = "None",
-    circuit_set: str = "None",
+# Create one circuitset from circuit and circuitset objects
+def batch_circuits(
+    circuits: List[Union[str, Circuit]], circuit_set: Union[str, List[Circuit]] = None
 ):
-    if circuit_set != "None":  # TODO None isse in workflow v1
-        circuit_set_object = load_circuit_set(circuit_set)
+    if circuit_set is None:
+        circuit_set = []
     else:
-        circuit_set_object = []
+        if isinstance(circuit_set, str):
+            circuit_set = load_circuit_set(circuit_set)
 
-    object_names = [circuit1, circuit2, circuit3, circuit4]
-    for object in object_names:
-        if object != "None":
-            circuit_set_object.append(load_circuit(object))
+    for circuit in circuits:
+        if isinstance(circuit, str):
+            circuit = load_circuit(circuit)
+        circuit_set.append(circuit)
 
-    save_circuit_set(circuit_set_object, "circuit-set.json")
+    save_circuit_set(circuit_set, "circuit-set.json")

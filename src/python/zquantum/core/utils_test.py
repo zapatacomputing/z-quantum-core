@@ -7,6 +7,11 @@ from scipy.stats import unitary_group
 import sympy
 import json
 
+from zquantum.core.openfermion import (
+    convert_dict_to_interaction_op,
+    load_interaction_operator,
+)
+
 from .utils import (
     convert_array_to_dict,
     convert_dict_to_array,
@@ -31,6 +36,7 @@ from .utils import (
     save_nmeas_estimate,
     load_nmeas_estimate,
     SCHEMA_VERSION,
+    hf_rdm,
 )
 
 
@@ -341,3 +347,37 @@ def test_value_estimate_is_not_equivalent_to_an_object_of_non_numeric_type(
     estimate, other_obj
 ):
     assert estimate != other_obj
+
+
+# Hamiltonians and energies from Psi4 H2 minimal basis
+# first one is RHF, second one is H2- doublet with ROHF
+@pytest.mark.parametrize(
+    "hamiltonian, ref_energy, nalpha",
+    [
+        (
+            load_interaction_operator(
+                os.path.join(
+                    os.path.dirname(__file__),
+                    "testing",
+                    "hamiltonian_H2_minimal_basis.json",
+                )
+            ),
+            -0.8543376267387818,
+            1,
+        ),
+        (
+            load_interaction_operator(
+                os.path.join(
+                    os.path.dirname(__file__),
+                    "testing",
+                    "hamiltonian_H2_minus_ROHF_minimal_basis.json",
+                )
+            ),
+            -0.6857403043904364,
+            2,
+        ),
+    ],
+)
+def test_hf_rdm_energy(hamiltonian, ref_energy, nalpha):
+    rdm = hf_rdm(nalpha, 1, 2)
+    assert np.isclose(ref_energy, rdm.expectation(hamiltonian))

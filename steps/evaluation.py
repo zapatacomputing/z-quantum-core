@@ -8,7 +8,12 @@ from openfermion.linalg import (
     jw_get_ground_state_at_particle_number as _jw_get_ground_state_at_particle_number,
 )
 
-from zquantum.core.measurement import save_expectation_values, save_wavefunction
+from zquantum.core.measurement import (
+    save_expectation_values,
+    save_wavefunction,
+    load_expectation_values,
+    ExpectationValues,
+)
 from zquantum.core.circuit import (
     load_circuit,
     load_parameter_grid,
@@ -24,10 +29,12 @@ from zquantum.core.utils import (
 )
 from zquantum.core.openfermion import (
     load_qubit_operator,
+    load_qubit_operator_set,
     evaluate_operator_for_parameter_grid as _evaluate_operator_for_parameter_grid,
     get_ground_state_rdm_from_qubit_op as _get_ground_state_rdm_from_qubit_op,
     save_interaction_rdm,
     save_parameter_grid_evaluation,
+    evaluate_qubit_operator_list as _evaluate_qubit_operator_list,
 )
 
 
@@ -144,4 +151,20 @@ def jw_get_ground_state_at_particle_number(
     value_estimate = ValueEstimate(ground_energy)
 
     save_wavefunction(ground_state, "ground-state.json")
+    save_value_estimate(value_estimate, "value-estimate.json")
+
+
+def evaluate_qubit_operator_list(
+    qubit_operator_list: Union[str, List[QubitOperator]],
+    expectation_values: Union[str, ExpectationValues],
+):
+    if isinstance(qubit_operator_list, str):
+        qubit_operator_list = load_qubit_operator_set(qubit_operator_list)
+    if isinstance(expectation_values, str):
+        expectation_values = load_expectation_values(expectation_values)
+
+    value_estimate = _evaluate_qubit_operator_list(
+        qubit_operator_list, expectation_values
+    )
+
     save_value_estimate(value_estimate, "value-estimate.json")

@@ -2,7 +2,7 @@ from functools import singledispatch
 from typing import Tuple, List, Union
 
 import qiskit
-from zquantum.core.circuit import X, Y, Z, I, T, H, Gate, Circuit, CZ, CNOT, SWAP, ISWAP
+from zquantum.core.circuit import X, Y, Z, I, T, H, Gate, Circuit, CZ, CNOT, SWAP, ISWAP, RX, RY, RZ
 
 QiskitOperation = Tuple[
     qiskit.circuit.Instruction, List[qiskit.circuit.Qubit], List[qiskit.circuit.Clbit]
@@ -16,10 +16,13 @@ ORQUESTRA_TO_QISKIT_MAPPING = {
     T: qiskit.extensions.TGate,
     H: qiskit.extensions.HGate,
     I: qiskit.extensions.IGate,
-    CNOT: qiskit.extensions.CnotGate,
+    CNOT: qiskit.extensions.CXGate,
     CZ: qiskit.extensions.CZGate,
     SWAP: qiskit.extensions.SwapGate,
     ISWAP: qiskit.extensions.iSwapGate,
+    RX: qiskit.extensions.RXGate,
+    RY: qiskit.extensions.RYGate,
+    RZ: qiskit.extensions.RZGate,
 }
 
 
@@ -47,7 +50,10 @@ def convert_operation_from_qiskit(operation: QiskitOperation) -> Gate:
     try:
         qiskit_op, qiskit_qubits, _ = operation
         orquestra_gate_cls = QISKIT_TO_ORQUESTRA_MAPPING[type(qiskit_op)]
-        return orquestra_gate_cls(*(qubit.index for qubit in reversed(qiskit_qubits)))
+        return orquestra_gate_cls(
+            *(qubit.index for qubit in reversed(qiskit_qubits)),
+            *qiskit_op.params
+        )
     except KeyError:
         raise NotImplementedError(
             f"Cannot convert {operation} to Orquestra, unknown operation."
@@ -69,6 +75,6 @@ def convert_orquestra_gate_to_qiskit(
             for qubit in reversed(gate.qubits)
         ]
         qiskit_gate_cls = ORQUESTRA_TO_QISKIT_MAPPING[type(gate)]
-        return qiskit_gate_cls(), qiskit_qubits, []
+        return qiskit_gate_cls(*gate.params), qiskit_qubits, []
     except KeyError:
         raise NotImplementedError(f"Conversion of {gate} to Qiskit is not supported.")

@@ -17,7 +17,7 @@ EQUIVALENT_NONPARAMETRIC_SINGLE_QUBIT_GATES = [
 
 EQUIVALENT_NONPARAMETRIC_TWO_QUBIT_GATES = [
     # TODO: use non-deprecated CXGate
-    (CNOT, qiskit.extensions.CnotGate),
+    (CNOT, qiskit.extensions.CXGate),
     (CZ, qiskit.extensions.CZGate),
     (SWAP, qiskit.extensions.SwapGate),
     (ISWAP, qiskit.extensions.iSwapGate),

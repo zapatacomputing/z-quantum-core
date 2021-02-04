@@ -93,8 +93,11 @@ class BasicEstimator(Estimator):
             'greedy'.
     """
 
-    def __init__(self, decomposition_method: str = "greedy-sorted"):
+    def __init__(
+        self, decomposition_method: str = "greedy-sorted", prior_expectation_values=None
+    ):
         self.decomposition_method = decomposition_method
+        self.prior_expectation_values = prior_expectation_values
 
     @overrides
     def get_estimated_expectation_values(
@@ -107,7 +110,6 @@ class BasicEstimator(Estimator):
         epsilon: Optional[float] = None,
         delta: Optional[float] = None,
         shot_allocation_strategy: str = "uniform",
-        prior_expectation_values: Optional[ExpectationValues] = None,
     ) -> ExpectationValues:
         """Given a circuit, backend, and target operators, this method produces expectation values
         for each target operator using the get_expectation_values method built into the provided QuantumBackend.
@@ -128,7 +130,7 @@ class BasicEstimator(Estimator):
                     for each group.
                 - "optimal": The number of shots specified by n_samples is
                     divided amongst the groups optimally. If
-                    prior_expectation_values is provided, it will be used to
+                    self.prior_expectation_values is set, it will be used to
                     account for variances. Otherwise the upper bound on
                     variances is used. Covariances are assumed to be zero.
 
@@ -181,7 +183,7 @@ class BasicEstimator(Estimator):
                 )
 
             K2, nterms, measurements_per_frame = estimate_nmeas_for_frames(
-                frame_operators, prior_expectation_values
+                frame_operators, self.prior_expectation_values
             )
 
             measurements_per_frame = scale_and_discretize(

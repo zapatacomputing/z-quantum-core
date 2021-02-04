@@ -189,7 +189,7 @@ class TestBasicEstimator(EstimatorTests):
     ):
         # Given
         # When
-        prior_expectation_values = ExpectationValues(
+        estimator.prior_expectation_values = ExpectationValues(
             np.array([0 for _ in operator.terms])
         )
         values = estimator.get_estimated_expectation_values(
@@ -200,7 +200,6 @@ class TestBasicEstimator(EstimatorTests):
             delta=delta,
             shot_allocation_strategy="optimal",
             n_total_samples=100,
-            prior_expectation_values=prior_expectation_values,
         ).values
         value = values[0]
         # Then

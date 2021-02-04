@@ -35,7 +35,7 @@ from steps.circuit import (
 )
 
 
-class Test_generate_random_ansatz_params:
+class TestGenerateRandomAnsatzParams:
     @pytest.mark.parametrize(
         "number_of_layers",
         [0, 1, 4, 7],
@@ -58,6 +58,32 @@ class Test_generate_random_ansatz_params:
 
         # When
         generate_random_ansatz_params(ansatz_specs=ansatz_specs, seed=seed)
+
+        # Then
+        assert os.path.exists(filename)
+        parameters = load_circuit_template_params(filename)
+        assert len(parameters) == number_of_layers
+
+        if os.path.exists(filename):
+            os.remove(filename)
+
+    def test_generate_random_ansatz_params_ansatz_specs_as_string(self):
+        # Given
+        number_of_layers = 5
+        ansatz_specs = {
+            "module_name": "zquantum.core.interfaces.mock_objects",
+            "function_name": "MockAnsatz",
+            "number_of_layers": number_of_layers,
+            "problem_size": 2,
+        }
+        seed = RNDSEED
+
+        filename = "params.json"
+        if os.path.exists(filename):
+            os.remove(filename)
+
+        # When
+        generate_random_ansatz_params(ansatz_specs=json.dumps(ansatz_specs), seed=seed)
 
         # Then
         assert os.path.exists(filename)
@@ -129,7 +155,7 @@ class Test_generate_random_ansatz_params:
             )
 
 
-class Test_combine_ansatz_params:
+class TestCombineAnsatzParams:
     @pytest.mark.parametrize(
         "params1, params2",
         [
@@ -162,23 +188,16 @@ class Test_combine_ansatz_params:
         os.remove(combined_parameters_filename)
 
 
-class Test_build_ansatz_circuit:
+class TestBuildAnsatzCircuit:
     @pytest.mark.parametrize(
-        "number_of_layers, number_of_parameters",
-        [
-            (0, 0),
-            (2, 0),
-            (2, 2),
-            (2, 4),
-        ],
+        "number_of_layers",
+        [0, 1, 2, 5],
     )
-    def test_build_ansatz_circuit(self, number_of_layers, number_of_parameters):
+    def test_build_ansatz_circuit_with_parameter_values(self, number_of_layers):
         # Given
-        params = np.random.uniform(low=0, high=np.pi, size=number_of_parameters)
-        number_of_layers = 0
+        params = np.random.uniform(low=0, high=np.pi, size=number_of_layers)
         params_filename = None
         if params is not None:
-            number_of_layers = len(params)
             params_filename = "params.json"
             save_circuit_template_params(np.array(params), params_filename)
 
@@ -200,6 +219,49 @@ class Test_build_ansatz_circuit:
         os.remove(circuit_filename)
         os.remove(params_filename)
 
+    @pytest.mark.parametrize(
+        "number_of_layers",
+        [0, 1, 2, 5],
+    )
+    def test_build_ansatz_circuit_without_parameter_values(self, number_of_layers):
+        # Given
+        ansatz_specs = {
+            "module_name": "zquantum.core.interfaces.mock_objects",
+            "function_name": "MockAnsatz",
+            "number_of_layers": number_of_layers,
+            "problem_size": 2,
+        }
+
+        # When
+        build_ansatz_circuit(ansatz_specs=ansatz_specs)
+
+        # Then
+        circuit_filename = "circuit.json"
+        circuit = load_circuit(circuit_filename)
+        assert isinstance(circuit, Circuit)
+
+        os.remove(circuit_filename)
+
+    def test_build_ansatz_circuit_ansatz_specs_as_string(self):
+        # Given
+        number_of_layers = 2
+        ansatz_specs = {
+            "module_name": "zquantum.core.interfaces.mock_objects",
+            "function_name": "MockAnsatz",
+            "number_of_layers": number_of_layers,
+            "problem_size": 2,
+        }
+
+        # When
+        build_ansatz_circuit(ansatz_specs=json.dumps(ansatz_specs))
+
+        # Then
+        circuit_filename = "circuit.json"
+        circuit = load_circuit(circuit_filename)
+        assert isinstance(circuit, Circuit)
+
+        os.remove(circuit_filename)
+
     def test_build_ansatz_circuit_raises_exception_on_invalid_inputs(self):
         # Given
         params_filename = "params.json"
@@ -219,7 +281,7 @@ class Test_build_ansatz_circuit:
         os.remove(params_filename)
 
 
-class Test_build_uniform_param_grid:
+class TestBuildUniformParameterGrid:
     @pytest.mark.parametrize(
         "number_of_ansatz_layers, problem_size, number_of_layers, min_value, max_value, step",
         [
@@ -366,7 +428,7 @@ class Test_build_uniform_param_grid:
             build_uniform_param_grid()
 
 
-class Test_build_circuit_layers_and_connectivity:
+class TestBuildCircuitLayersAndConnectivity:
     @pytest.mark.parametrize(
         "x_dimension, y_dimension, layer_type",
         [
@@ -410,7 +472,7 @@ class Test_build_circuit_layers_and_connectivity:
         os.remove(expected_circuit_connectivity_filename)
 
 
-class Test_create_random_circuit:
+class TestCreateRandomCircuit:
     @pytest.mark.parametrize(
         "number_of_qubits, number_of_gates, seed",
         [
@@ -453,7 +515,7 @@ class Test_create_random_circuit:
         os.remove(expected_filename)
 
 
-class Test_add_ancilla_register_to_circuit:
+class TestAddAncillaRegisterToCircuitPythonObject:
     @pytest.mark.parametrize("number_of_ancilla_qubits", [i for i in range(1, 20, 3)])
     def test_add_ancilla_register_to_circuit_python_object(
         self, number_of_ancilla_qubits
@@ -502,7 +564,7 @@ class Test_add_ancilla_register_to_circuit:
         os.remove(circuit_filename)
 
 
-class Test_concatenate_circuits:
+class TestConcatenateCircuits:
     @pytest.mark.parametrize("number_of_circuits", [i for i in range(1, 20, 3)])
     def test_concatenate_circuits_python_objects(self, number_of_circuits):
         # Given
@@ -571,7 +633,7 @@ def input_circuit_set(request):
     ]
 
 
-class Test_batch_circuits:
+class TestBatchCircuits:
     def test_batch_circuits_all_artifacts_no_circuit_set(self, input_circuits):
         # Given
         circuit_filenames = []

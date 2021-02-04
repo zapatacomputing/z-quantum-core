@@ -141,9 +141,7 @@ def evaluate_ansatz_based_cost_function(
         if prior_expectation_values == "None":
             prior_expectation_values = None
         else:
-            cost_function_specs[
-                "estimator"
-            ].prior_expectation_values = load_expectation_values(
+            cost_function.estimator.prior_expectation_values = load_expectation_values(
                 prior_expectation_values
             )
 

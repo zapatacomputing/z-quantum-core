@@ -6,7 +6,7 @@ from .measurement import (
     expectation_values_to_real,
     concatenate_expectation_values,
 )
-from .hamiltonian import group_comeasureable_terms_greedy
+from .hamiltonian import get_decomposition_function
 from openfermion import SymbolicOperator, IsingOperator, QubitOperator
 from overrides import overrides
 import logging
@@ -15,33 +15,6 @@ import pyquil
 from typing import Tuple, Optional, Callable, List
 
 logger = logging.getLogger(__name__)
-
-DECOMPOSITION_METHODS = {
-    "greedy": group_comeasureable_terms_greedy,
-    "greedy-sorted": lambda qubit_operator: group_comeasureable_terms_greedy(
-        qubit_operator, True
-    ),
-}
-
-
-def get_decomposition_function(
-    decomposition_method: str,
-) -> Callable[[QubitOperator], List[QubitOperator]]:
-    """Get a function for Hamiltonian decomposition from its name.
-
-    Args:
-        decomposition_method: The name of the Hamiltonian decomposition method.
-    
-    Returns:
-        A callable that performs the decomposition.
-    """
-
-    decomposition_function = DECOMPOSITION_METHODS.get(decomposition_method)
-    if decomposition_function is None:
-        raise ValueError(
-            f"Unrecognized decomposition method {decomposition_method}. Allowed values are {list(DECOMPOSITION_METHODS.keys())}"
-        )
-    return decomposition_function
 
 
 def get_context_selection_circuit(
@@ -52,7 +25,7 @@ def get_context_selection_circuit(
 
     Args:
         term: The Pauli term, expressed using the OpenFermion convention.
-    
+
     Returns:
         Tuple containing:
         - The context selection circuit.
@@ -79,7 +52,7 @@ def get_context_selection_circuit_for_group(
 
     Args:
         term: The Pauli term, expressed using the OpenFermion convention.
-    
+
     Returns:
         Tuple containing:
         - The context selection circuit.
@@ -112,11 +85,11 @@ def get_context_selection_circuit_for_group(
 
 class BasicEstimator(Estimator):
     """An estimator that uses the standard approach to computing expectation values of an operator.
-    
-        Attributes:
-            decomposition_method (str): Which Hamiltonian decomposition method
-                to use. Available options are: 'greedy-sorted' (default) and
-                'greedy'.
+
+    Attributes:
+        decomposition_method (str): Which Hamiltonian decomposition method
+            to use. Available options are: 'greedy-sorted' (default) and
+            'greedy'.
     """
 
     def __init__(self, decomposition_method: str = "greedy-sorted"):
@@ -132,14 +105,14 @@ class BasicEstimator(Estimator):
         epsilon: Optional[float] = None,
         delta: Optional[float] = None,
     ) -> ExpectationValues:
-        """Given a circuit, backend, and target operators, this method produces expectation values 
-        for each target operator using the get_expectation_values method built into the provided QuantumBackend. 
+        """Given a circuit, backend, and target operators, this method produces expectation values
+        for each target operator using the get_expectation_values method built into the provided QuantumBackend.
 
         Args:
             backend (QuantumBackend): the backend that will be used to run the circuit
             circuit (Circuit): the circuit that prepares the state.
             target_operator (List[SymbolicOperator]): List of target functions to be estimated.
-            n_samples (int): Number of measurements done. 
+            n_samples (int): Number of measurements done.
             epsilon (float): an error term.
             delta (float): a confidence term.
 
@@ -176,14 +149,18 @@ class BasicEstimator(Estimator):
                 )
             )
 
+        if target_operator.terms.get(()) is not None:
+            expectation_values_set.append(
+                ExpectationValues(np.array([target_operator.terms.get(())]))
+            )
+
         return expectation_values_to_real(
             concatenate_expectation_values(expectation_values_set)
         )
 
 
 class ExactEstimator(Estimator):
-    """An estimator that exactly computes the expectation values of an operator. This estimator must run on a quantum simulator. 
-    """
+    """An estimator that exactly computes the expectation values of an operator. This estimator must run on a quantum simulator."""
 
     @overrides
     def get_estimated_expectation_values(
@@ -195,19 +172,19 @@ class ExactEstimator(Estimator):
         epsilon: Optional[float] = None,
         delta: Optional[float] = None,
     ) -> ExpectationValues:
-        """Given a circuit, backend, and target operators, this method produces expectation values 
-        for each target operator using the get_exact_expectation_values method built into the provided QuantumBackend. 
+        """Given a circuit, backend, and target operators, this method produces expectation values
+        for each target operator using the get_exact_expectation_values method built into the provided QuantumBackend.
 
         Args:
             backend (QuantumBackend): the backend that will be used to run the circuit
             circuit (Circuit): the circuit that prepares the state.
             target_operator (List[SymbolicOperator]): List of target functions to be estimated.
-            n_samples (int): Number of measurements done on the unknown quantum state. 
+            n_samples (int): Number of measurements done on the unknown quantum state.
             epsilon (float): an error term.
             delta (float): a confidence term.
 
         Raises:
-            AttributeError: If backend is not a QuantumSimulator. 
+            AttributeError: If backend is not a QuantumSimulator.
 
         Returns:
             ExpectationValues: expectation values for each term in the target operator.

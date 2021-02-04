@@ -1,4 +1,4 @@
-"""Main implementation of recorder."""
+"""Main implementation of the recorder."""
 from typing import TypeVar, Callable, Generic, List, Any, NamedTuple, Dict
 from typing_extensions import overload
 from ..interfaces.functions import (
@@ -15,7 +15,11 @@ S = TypeVar("S")
 
 
 class ArtifactCollection(dict):
-    """A dict with additional `forced` attribute."""
+    """A dict with additional `forced` attribute.
+
+    The `forced` flag is set whenever an artifact is forced into the dictionary
+    despite current save_condition being false.
+     """
     forced: bool = False
 
 
@@ -37,10 +41,11 @@ class HistoryEntry(NamedTuple):
 class SimpleRecorder(Generic[S, T]):
     """A basic recorder that stores history entries.
 
-    :param target: a target function. Calls to the recorder will be propagated to this
-     function.
-    :param save_condition: a function determining whether given call should be saved
-     to the history. See respective protocol for explanation of this parameter.
+    Args:
+        target: a target function. Calls to the recorder will be propagated to this
+          function.
+        save_condition: a function determining whether given call should be saved
+          to the history. See respective protocol for explanation of this parameter.
      """
     def __init__(self, target: Callable[[S], T], save_condition: SaveCondition):
         self.predicate = save_condition
@@ -51,8 +56,11 @@ class SimpleRecorder(Generic[S, T]):
     def __call__(self, params: S) -> T:
         """Call the underlying target function, possibly saving call to the history.
 
-        :param params: argument to be passed to the target function.
-        :return: the value returned by the terget function.
+        Args:
+            params: argument to be passed to the target function.
+
+        Returns:
+            The value returned by the target function.
         """
         return_value = self.target(params)
         if self.predicate(return_value, params, self.call_number):
@@ -113,11 +121,14 @@ class ArtifactRecorderWithGradient(ArtifactRecorder):
 def store_artifact(artifacts) -> StoreArtifact:
     """Create a function storing artifacts in given artifacts collection.
 
-    :param artifacts: artifact collection.
-    :return: a function with signature:
-     _store(artifact_name: str, artifact: Any, force: bool = False) -> None:
-     This function is intended to be passed to functions that are capable of
-     storing artifacts.
+    Args:
+        artifacts: artifact collection.
+
+    Returns:
+        A function with signature:
+        _store(artifact_name: str, artifact: Any, force: bool = False) -> None:
+        This function is intended to be passed to functions that are capable of
+        storing artifacts.
     """
     def _store(artifact_name: str, artifact: Any, force: bool = False) -> None:
         artifacts[artifact_name] = artifact
@@ -162,13 +173,23 @@ def recorder(
 def recorder(function, save_condition: SaveCondition = always):
     """Create a recorder that is suitable for recording calls to given callable.
 
-    The return type depends on the passed callable. See overloads defined above
-    to check for available variants.
 
-    :param function: a callable to be recorded.
-    :param save_condition: a condition on which the calls will be saved.
-     See SaveCondition protocol for explanation of this parameter.
-     By default all calls are saved.
+
+    Args:
+        function: a callable to be recorded.
+        save_condition: a condition on which the calls will be saved. See
+          `SaveCondition` protocol for explanation of this parameter. By default
+          all calls are saved.
+
+    Returns:
+        A callable object (the recorder) wrapping the `function`.
+        The return type depends on the passed callable. See overloads defined
+        above to check for available variants. Here is a summary:
+        - recorder is always callable
+        - if `function` has gradient, so does the recorder. Calls to gradient
+          and calls made by gradient are NOT recorded.
+        - if `function` has possibility to store artifacts (i.e. accepts
+          `store_artifact` argument, then so does the recorder.
     """
     with_artifacts = has_store_artifact_param(function)
     with_gradient = isinstance(function, CallableWithGradient)

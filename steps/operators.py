@@ -1,0 +1,153 @@
+from typing import Union, Optional, List
+from numpy.lib.arraysetops import isin
+from openfermion import InteractionOperator, QubitOperator
+
+from zquantum.core.openfermion import (
+    get_fermion_number_operator as _get_fermion_number_operator,
+    get_diagonal_component as _get_diagonal_component,
+    save_interaction_operator,
+    load_interaction_operator,
+    load_qubit_operator,
+    save_qubit_operator,
+    remove_inactive_orbitals as _remove_inactive_orbitals,
+    save_qubit_operator_set,
+    load_qubit_operator_set,
+)
+
+from zquantum.core.hamiltonian import (
+    reorder_fermionic_modes as _reorder_fermionic_modes,
+    group_comeasureable_terms_greedy as _group_comeasurable_terms_greedy,
+)
+
+from zquantum.core.testing import create_random_qubitop as _create_random_qubitop
+
+
+def get_fermion_number_operator(
+    number_of_qubits: int, number_of_particles: Optional[int] = None
+):
+    """Get the nubmer operator for the input number of qubits. Optionally, the number of particles can be passed.
+    Outputs are serialized to JSON under the file: "number-operator.json"
+
+    ARGS:
+        number_of_qubits (int): The number of qubits
+        number_of_particles (int): The number of particles
+    """
+    number_op = _get_fermion_number_operator(number_of_qubits, number_of_particles)
+    save_interaction_operator(number_op, "number-operator.json")
+
+
+def get_diagonal_component(interaction_operator: Union[InteractionOperator, str]):
+    """Get the diagonal component and remainder of an input interaction operator. Outputs are serialized to JSON
+    under the files: "diagonal-operator.json" and "remainder-operator.json"
+
+    ARGS:
+        interaction_operator (Union[InteractionOperator, str]): The input interaction operator
+    """
+    if isinstance(interaction_operator, str):
+        interaction_operator = load_interaction_operator(interaction_operator)
+
+    diagonal_operator, remainder_operator = _get_diagonal_component(
+        interaction_operator
+    )
+    save_interaction_operator(diagonal_operator, "diagonal-operator.json")
+    save_interaction_operator(remainder_operator, "remainder-operator.json")
+
+
+def interpolate_qubit_operators(
+    reference_qubit_operator: Union[InteractionOperator, str],
+    target_qubit_operator: Union[InteractionOperator, str],
+    epsilon: Optional[float] = 0.5,
+):
+    """Produce a qubit operator which is the interpolation of two operators through the function:
+        epsilon * target_qubit_operator + (1.0 - epsilon) * reference_qubit_operator.
+    Outputs are serialized to JSON under the file: "qubit-operator.json"
+
+    ARGS:
+        reference_qubit_operator (Union[InteractionOperator, str]): The initial operator
+        target_qubit_operator (Union[InteractionOperator, str]): The target operator
+        epsilon (float): The parameterization between the two operators. Default value is 0.5
+    """
+    reference_qubit_operator = load_qubit_operator(reference_qubit_operator)
+    target_qubit_operator = load_qubit_operator(target_qubit_operator)
+
+    if epsilon > 1.0 or epsilon < 0.0:
+        raise ValueError("epsilon must be in the range [0.0, 1.0]")
+
+    output_qubit_operator = (
+        epsilon * target_qubit_operator + (1.0 - epsilon) * reference_qubit_operator
+    )
+
+    save_qubit_operator(output_qubit_operator, "qubit-operator.json")
+
+
+def reorder_fermionic_modes(
+    interaction_operator: str, ordering: List
+) -> InteractionOperator:
+
+    interaction_operator = load_interaction_operator(interaction_operator)
+
+    reordered_operator = _reorder_fermionic_modes(interaction_operator, ordering)
+    save_interaction_operator(reordered_operator, "reordered-operator.json")
+
+
+def remove_inactive_orbitals(
+    interaction_operator: str,
+    n_active: Optional[int] = None,
+    n_core: Optional[int] = None,
+):
+
+    interaction_operator = load_interaction_operator(interaction_operator)
+
+    frozen_operator = _remove_inactive_orbitals(
+        interaction_operator, n_active=n_active, n_core=n_core
+    )
+
+    save_interaction_operator(frozen_operator, "frozen-operator.json")
+
+
+def create_one_qubit_operator(
+    x_coeff: float, y_coeff: float, z_coeff: float, constant: float
+) -> None:
+
+    qubit_operator = (
+        x_coeff * QubitOperator("X0")
+        + y_coeff * QubitOperator("Y0")
+        + z_coeff * QubitOperator("Z0")
+        + constant * QubitOperator(())
+    )
+    save_qubit_operator(qubit_operator, "qubit_operator.json")
+
+
+def group_comeasureable_terms_greedy(
+    qubit_operator: Union[str, QubitOperator], sort_terms: bool = False
+):
+
+    if isinstance(qubit_operator, str):
+        qubit_operator = load_qubit_operator(qubit_operator)
+
+    groups = _group_comeasurable_terms_greedy(qubit_operator, sort_terms=sort_terms)
+
+    save_qubit_operator_set(groups, "grouped-operator.json")
+
+
+def concatenate_qubit_operator_lists(
+    qubit_operator_list_A: Union[str, List[QubitOperator]],
+    qubit_operator_list_B: Union[str, List[QubitOperator]],
+):
+    if isinstance(qubit_operator_list_A, str):
+        qubit_operator_list_A = load_qubit_operator_set(qubit_operator_list_A)
+    if isinstance(qubit_operator_list_B, str):
+        qubit_operator_list_B = load_qubit_operator_set(qubit_operator_list_B)
+
+    qubit_operator_list_final = qubit_operator_list_A + qubit_operator_list_B
+
+    save_qubit_operator_set(
+        qubit_operator_list_final, "concatenated-qubit-operators.json"
+    )
+
+
+def create_random_qubitop(nqubits: int, nterms: int):
+
+    output_qubit_operator = _create_random_qubitop(nqubits, nterms)
+
+    save_qubit_operator(output_qubit_operator, "qubit-operator.json")

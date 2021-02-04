@@ -11,6 +11,7 @@ import json
 import openfermion
 import sympy
 from openfermion import hermitian_conjugated
+from openfermion import InteractionRDM
 from openfermion.ops import SymbolicOperator
 from networkx.readwrite import json_graph
 import lea
@@ -227,7 +228,8 @@ def convert_bitstrings_to_tuples(bitstrings):
 
 
 def convert_tuples_to_bitstrings(tuples):
-    """Given a set of measurement tuples, convert each to bitstring format
+    """Given a set of measurement tuples, convert each to a little endian
+    string.
 
     Args:
         tuples (list of tuples): the measurement tuples
@@ -275,9 +277,10 @@ class ValueEstimate(float):
         return float(self)
 
     def __eq__(self, other):
-        return super().__eq__(other) and self.precision == getattr(
-            other, "precision", None
-        )
+        super_eq = super().__eq__(other)
+        if super_eq is NotImplemented:
+            return super_eq
+        return super_eq and self.precision == getattr(other, "precision", None)
 
     def __ne__(self, other):
         return not self == other
@@ -383,6 +386,19 @@ def save_list(array, filename, artifact_name=""):
 
     with open(filename, "w") as f:
         f.write(json.dumps(dictionary, indent=2))
+
+
+def save_generic_dict(dictionary, filename):
+    """Save dictionary as json
+
+    Args:
+        dictionary (dict): the dict containing the data
+    """
+    dictionary_stored = {"schema": SCHEMA_VERSION + "-dict"}
+    dictionary_stored.update(dictionary)
+
+    with open(filename, "w") as f:
+        f.write(json.dumps(dictionary_stored, indent=2))
 
 
 def get_func_from_specs(specs):
@@ -501,3 +517,75 @@ def save_timing(walltime: float, filename: str) -> None:
         f.write(
             json.dumps({"schema": SCHEMA_VERSION + "-timing", "walltime": walltime})
         )
+
+
+def save_nmeas_estimate(
+    nmeas: float, nterms: int, filename: str, frame_meas: np.ndarray = None
+) -> None:
+    """ Save an estimate of the number of measurements to a file
+
+    Args:
+        nmeas: total number of measurements for epsilon = 1.0
+        nterms: number of terms (groups) in the objective function
+        frame_meas: A list of the number of measurements per frame for epsilon = 1.0
+    """
+
+    data = {}
+    data["schema"] = SCHEMA_VERSION + "-hamiltonian_analysis"
+    data["K"] = nmeas
+    data["nterms"] = nterms
+    if frame_meas is not None:
+        data["frame_meas"] = convert_array_to_dict(frame_meas)
+
+    with open(filename, "w") as f:
+        f.write(json.dumps(data, indent=2))
+
+
+def load_nmeas_estimate(filename: str) -> Tuple[float, int, np.ndarray]:
+    """Load an estimate of the number of measurements from a file.
+
+    Args:
+        filename: the name of the file
+
+    Returns:
+        nmeas: number of measurements for epsilon = 1.0
+        nterms: number of terms in the hamiltonian
+        frame_meas: frame measurements (number of measurements per group)
+    """
+
+    with open(filename, "r") as f:
+        data = json.load(f)
+
+    frame_meas = convert_dict_to_array(data["frame_meas"])
+    K_coeff = data["K"]
+    nterms = data["nterms"]
+
+    return K_coeff, nterms, frame_meas
+
+
+def hf_rdm(n_alpha: int, n_beta: int, n_orbitals: int) -> InteractionRDM:
+    """Construct the RDM corresponding to a Hartree-Fock state.
+
+    Args:
+        n_alpha (int): number of spin-up electrons
+        n_beta (int): number of spin-down electrons
+        n_orbitals (int): number of spatial orbitals (not spin orbitals)
+    
+    Returns:
+        openfermion.ops.InteractionRDM: the reduced density matrix
+    """
+    # Determine occupancy of each spin orbital
+    occ = np.zeros(2 * n_orbitals)
+    occ[: (2 * n_alpha) : 2] = 1
+    occ[1 : (2 * n_beta + 1) : 2] = 1
+
+    one_body_tensor = np.diag(occ)
+
+    two_body_tensor = np.zeros([2 * n_orbitals for i in range(4)])
+    for i in range(2 * n_orbitals):
+        for j in range(2 * n_orbitals):
+            if i != j and occ[i] and occ[j]:
+                two_body_tensor[i, j, j, i] = 1
+                two_body_tensor[i, j, i, j] = -1
+
+    return InteractionRDM(one_body_tensor, two_body_tensor)

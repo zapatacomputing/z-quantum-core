@@ -11,7 +11,7 @@ import pyquil
 
 class TestGate(unittest.TestCase):
     def setUp(self):
-        self.two_qubit_gates = ["CNOT", "CZ", "CPHASE", "SWAP"]
+        self.two_qubit_gates = ["CNOT", "CZ", "CPHASE", "SWAP", "ISWAP"]
         self.one_parameter_gates = ["PHASE", "Rx", "Ry", "Rz", "CPHASE"]
 
     def create_gate(self, gate_name, qubit_indices=[0, 1], params=None):
@@ -81,9 +81,9 @@ class TestGate(unittest.TestCase):
         # Given
         params = [0.5, Symbol("theta_0"), Symbol("theta_0") + 2 * Symbol("theta_1")]
         target_symbolic_params = [
-            set(),
-            set([Symbol("theta_0")]),
-            set([Symbol("theta_0"), Symbol("theta_1")]),
+            [],
+            [Symbol("theta_0")],
+            [Symbol("theta_0"), Symbol("theta_1")],
         ]
 
         for param, target_params in zip(params, target_symbolic_params):
@@ -146,43 +146,14 @@ class TestGate(unittest.TestCase):
             # Given
             gate = self.create_gate(gate_name)
             qreg = qiskit.QuantumRegister(2, "q")
-            cphase_targets = [
-                ("Rx", [pi / 2]),
-                ("Ry", [pi - 0.5]),
-                ("CZ", None),
-                ("Ry", [-pi + 0.5]),
-                ("Rx", [-pi]),
-                ("CZ", None),
-                ("Rx", [pi / 2]),
-                ("Rz", [0.5]),
-            ]
+            creg = qiskit.ClassicalRegister(2, "c")
 
             # When
-            if gate_name == "CPHASE":
-                cphase_decomposition = gate.to_qiskit(qreg=qreg)
-                for i in range(int(len(cphase_decomposition) / 3)):
-                    current_gate = cphase_decomposition[3 * i]
-                    current_qreg = cphase_decomposition[3 * i + 1]
-                    target_gate = self.create_gate(
-                        cphase_targets[i][0], params=cphase_targets[i][1]
-                    )
-
-                    recreated_current_gate = Gate.from_qiskit(
-                        current_gate, target_gate.qubits
-                    )
-                    self.assertEqual(target_gate, recreated_current_gate)
-                continue
-
-            else:
-                qiskit_gate, qreg, creg = gate.to_qiskit(qreg=qreg)
-                recreated_gate = Gate.from_qiskit(qiskit_gate, gate.qubits)
+            qiskit_gate, qreg, creg = gate.to_qiskit(qreg, creg)
+            recreated_gate = Gate.from_qiskit(qiskit_gate, gate.qubits)
 
             # Then
-            if gate_name == "PHASE":
-                rz_gate = self.create_gate("Rz")
-                self.assertEqual(rz_gate, recreated_gate)
-            else:
-                self.assertEqual(gate, recreated_gate)
+            self.assertEqual(gate, recreated_gate)
 
     def test_dict_io_for_symbolic_parameters(self):
         for gate_name in self.one_parameter_gates:
@@ -244,40 +215,11 @@ class TestGate(unittest.TestCase):
             # Given
             gate, params = self.create_gate_with_symbolic_params(gate_name)
             qreg = qiskit.QuantumRegister(2, "q")
-            cphase_targets = [
-                ("Rx", [pi / 2]),
-                ("Ry", [pi - params[0] / 2]),
-                ("CZ", None),
-                ("Ry", [-pi + params[0] / 2]),
-                ("Rx", [-pi]),
-                ("CZ", None),
-                ("Rx", [pi / 2]),
-                ("Rz", [params[0] / 2]),
-            ]
+            creg = qiskit.ClassicalRegister(2, "c")
 
             # When
-            if gate_name == "CPHASE":
-                cphase_decomposition = gate.to_qiskit(qreg=qreg)
-                for i in range(int(len(cphase_decomposition) / 3)):
-                    current_gate = cphase_decomposition[3 * i]
-                    current_qreg = cphase_decomposition[3 * i + 1]
-                    target_gate = self.create_gate(
-                        cphase_targets[i][0], params=cphase_targets[i][1]
-                    )
-
-                    recreated_current_gate = Gate.from_qiskit(
-                        current_gate, target_gate.qubits
-                    )
-                    self.assertEqual(target_gate, recreated_current_gate)
-                continue
-
-            else:
-                qiskit_gate, qreg, creg = gate.to_qiskit(qreg=qreg)
-                recreated_gate = Gate.from_qiskit(qiskit_gate, gate.qubits)
+            qiskit_gate, qreg, creg = gate.to_qiskit(qreg, creg)
+            recreated_gate = Gate.from_qiskit(qiskit_gate, gate.qubits)
 
             # Then
-            if gate_name == "PHASE":
-                rz_gate, _ = self.create_gate_with_symbolic_params("Rz")
-                self.assertEqual(rz_gate, recreated_gate)
-            else:
-                self.assertEqual(gate, recreated_gate)
+            self.assertEqual(gate, recreated_gate)

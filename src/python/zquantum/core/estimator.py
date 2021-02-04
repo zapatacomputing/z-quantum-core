@@ -7,6 +7,7 @@ from .measurement import (
     concatenate_expectation_values,
 )
 from .hamiltonian import get_decomposition_function, estimate_nmeas_for_frames
+from .utils import scale_and_discretize
 from openfermion import SymbolicOperator, IsingOperator, QubitOperator
 from overrides import overrides
 import logging
@@ -151,29 +152,40 @@ class BasicEstimator(Estimator):
 
         if shot_allocation_strategy == "uniform":
 
-            if (n_total_samples is not None) and (n_samples is not None):
-                raise ValueError(
-                    "Values were provided for both n_samples and n_total_samples."
-                )
-
             if n_total_samples is not None:
-                n_samples = n_total_samples // len(frame_circuits)
+                raise ValueError(
+                    "Uniform sampling does not yet support n_total_samples."
+                )
 
             if n_samples is not None:
                 logger.warning(
                     f"""Using n_samples={n_samples} (argument passed to get_estimated_expectation_values). 
                         Ignoring backend.n_samples={backend.n_samples}"""
                 )
-                saved_n_samples = backend.n_samples
-                backend.n_samples = n_samples
-                measurements_set = backend.run_circuitset_and_measure(frame_circuits)
-                backend.n_samples = saved_n_samples
+                n_samples = (n_samples,) * len(frame_circuits)
+                measurements_set = backend.run_circuitset_and_measure(
+                    frame_circuits, n_samples
+                )
             else:
                 measurements_set = backend.run_circuitset_and_measure(frame_circuits)
 
         elif shot_allocation_strategy == "optimal":
+            if n_total_samples is None:
+                raise ValueError(
+                    "For optimal shot allocation, n_total_samples must be provided."
+                )
+
+            if n_samples is not None:
+                raise ValueError(
+                    "Optimal shot allocation does not support n_samples; use n_total_samples instead."
+                )
+
             K2, nterms, measurements_per_frame = estimate_nmeas_for_frames(
                 frame_operators, prior_expectation_values
+            )
+
+            measurements_per_frame = scale_and_discretize(
+                measurements_per_frame, n_total_samples
             )
             measurements_set = backend.run_circuitset_and_measure(
                 frame_circuits, measurements_per_frame

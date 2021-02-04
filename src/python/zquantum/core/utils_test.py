@@ -31,6 +31,7 @@ from .utils import (
     save_nmeas_estimate,
     load_nmeas_estimate,
     SCHEMA_VERSION,
+    scale_and_discretize,
 )
 
 
@@ -341,3 +342,16 @@ def test_value_estimate_is_not_equivalent_to_an_object_of_non_numeric_type(
     estimate, other_obj
 ):
     assert estimate != other_obj
+
+
+@pytest.mark.parametrize(
+    "values,total,expected_result",
+    [
+        ([0.5, 0.3, 0.2], 9, [4, 3, 2]),
+        ([0.5, 0.3, 0.2], 10, [5, 3, 2]),
+        ([0.5, 0.3, 0.2], 11, [6, 3, 2]),
+        ([0.5, 0.3, 0.2], 2, [1, 1, 0]),
+    ],
+)
+def test_scale_and_discretize(values, total, expected_result):
+    assert scale_and_discretize(values, total) == expected_result

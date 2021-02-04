@@ -1,7 +1,8 @@
 import pytest
 import qiskit
 import numpy as np
-from zquantum.core.circuit import X, Y, Z, I, T, H, Gate, Circuit, CNOT, CZ, SWAP, ISWAP, RX, RY, RZ, PHASE, CPHASE
+from zquantum.core.circuit import X, Y, Z, I, T, H, Gate, Circuit, CNOT, CZ, SWAP, ISWAP, RX, RY, RZ, PHASE, CPHASE, XX, \
+    YY, ZZ, XY
 from .qiskit_conversions import convert_to_qiskit, convert_from_qiskit, qiskit_qubit
 
 
@@ -29,6 +30,14 @@ EQUIVALENT_SINGLE_QUBIT_ROTATION_GATES = [
     (RY, qiskit.extensions.RYGate),
     (RZ, qiskit.extensions.RZGate),
     (PHASE, qiskit.extensions.PhaseGate)
+]
+
+
+EQUIVALENT_TWO_QUBIT_ROTATION_GATES = [
+    (CPHASE, qiskit.extensions.CPhaseGate),
+    (XX, qiskit.extensions.RXXGate),
+    (YY, qiskit.extensions.RYYGate),
+    (ZZ, qiskit.extensions.RZZGate),
 ]
 
 
@@ -66,6 +75,19 @@ TEST_CASES_WITHOUT_SYMBOLIC_PARAMS = [
         for qubit in [0, 1, 4, 10]
         for angle in [0, np.pi, np.pi / 2, 0.4, np.pi/5]
     ],
+    *[
+        (
+            orquestra_gate(*qubits, angle),
+            (
+                qiskit_gate(angle),
+                [qiskit_qubit(qubit, max(qubits) + 1) for qubit in reversed(qubits)],
+                [],
+            ),
+        )
+        for orquestra_gate, qiskit_gate in EQUIVALENT_TWO_QUBIT_ROTATION_GATES
+        for qubits in [(0, 1), (3, 4), (10, 1)]
+        for angle in [0, np.pi, np.pi / 2, 0.4, np.pi/5]
+    ]
 ]
 
 

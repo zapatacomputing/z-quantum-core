@@ -2,7 +2,8 @@ from functools import singledispatch
 from typing import Tuple, List, Union
 
 import qiskit
-from zquantum.core.circuit import X, Y, Z, I, T, H, Gate, Circuit, CZ, CNOT, SWAP, ISWAP, RX, RY, RZ, PHASE
+from zquantum.core.circuit import X, Y, Z, I, T, H, Gate, Circuit, CZ, CNOT, SWAP, ISWAP, RX, RY, RZ, PHASE, CPHASE, XX, \
+    YY, ZZ
 
 QiskitOperation = Tuple[
     qiskit.circuit.Instruction, List[qiskit.circuit.Qubit], List[qiskit.circuit.Clbit]
@@ -23,7 +24,11 @@ ORQUESTRA_TO_QISKIT_MAPPING = {
     RX: qiskit.extensions.RXGate,
     RY: qiskit.extensions.RYGate,
     RZ: qiskit.extensions.RZGate,
-    PHASE: qiskit.extensions.PhaseGate
+    PHASE: qiskit.extensions.PhaseGate,
+    CPHASE: qiskit.extensions.CPhaseGate,
+    XX: qiskit.extensions.RXXGate,
+    YY: qiskit.extensions.RYYGate,
+    ZZ: qiskit.extensions.RZZGate
 }
 
 

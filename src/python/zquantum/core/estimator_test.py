@@ -174,13 +174,45 @@ class TestBasicEstimator(EstimatorTests):
             target_operator=operator,
             epsilon=epsilon,
             delta=delta,
-            shot_allocation_strategy="optimal"
+            shot_allocation_strategy="optimal",
+            n_total_samples=100,
         ).values
         value = values[0]
         # Then
         assert len(values) == 1
         assert value >= -1
         assert value <= 1
+
+    @pytest.mark.parametrize(
+        "n_samples,n_total_samples,shot_allocation_strategy",
+        [
+            (None, 100, "uniform"),
+            (100, None, "optimal"),
+            (100, 100, "optimal"),
+            (100, 100, "optimal"),
+            (100, None, "foo"),
+        ],
+    )
+    def test_get_estimated_expectation_values_invalid_options(
+        self,
+        estimator,
+        backend,
+        circuit,
+        operator,
+        n_samples,
+        n_total_samples,
+        shot_allocation_strategy,
+    ):
+        with pytest.raises(ValueError):
+            estimator.get_estimated_expectation_values(
+                backend=backend,
+                circuit=circuit,
+                target_operator=operator,
+                shot_allocation_strategy=shot_allocation_strategy,
+                n_total_samples=n_total_samples,
+                n_samples=n_samples,
+            )
+
 
 class TestExactEstimator(EstimatorTests):
     @pytest.fixture()
@@ -215,9 +247,7 @@ class TestExactEstimator(EstimatorTests):
         backend = MockQuantumBackend()
         with pytest.raises(AttributeError):
             value = estimator.get_estimated_expectation_values(
-                backend=backend,
-                circuit=circuit,
-                target_operator=operator,
+                backend=backend, circuit=circuit, target_operator=operator,
             ).values
 
     def test_get_estimated_expectation_values(

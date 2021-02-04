@@ -12,6 +12,7 @@ from .estimator import (
     get_context_selection_circuit,
     get_context_selection_circuit_for_group,
 )
+from .measurement import ExpectationValues
 from .circuit import Circuit
 
 
@@ -183,13 +184,37 @@ class TestBasicEstimator(EstimatorTests):
         assert value >= -1
         assert value <= 1
 
+    def test_get_estimated_expectation_values_optimal_shot_allocation_with_prior(
+        self, estimator, backend, circuit, operator, epsilon, delta
+    ):
+        # Given
+        # When
+        prior_expectation_values = ExpectationValues(
+            np.array([0 for _ in operator.terms])
+        )
+        values = estimator.get_estimated_expectation_values(
+            backend=backend,
+            circuit=circuit,
+            target_operator=operator,
+            epsilon=epsilon,
+            delta=delta,
+            shot_allocation_strategy="optimal",
+            n_total_samples=100,
+            prior_expectation_values=prior_expectation_values,
+        ).values
+        value = values[0]
+        # Then
+        assert len(values) == 1
+        assert value >= -1
+        assert value <= 1
+
     @pytest.mark.parametrize(
         "n_samples,n_total_samples,shot_allocation_strategy",
         [
             (None, 100, "uniform"),
             (100, None, "optimal"),
             (100, 100, "optimal"),
-            (100, 100, "optimal"),
+            (100, 100, "uniform"),
             (100, None, "foo"),
         ],
     )

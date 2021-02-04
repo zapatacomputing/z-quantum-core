@@ -9,6 +9,7 @@ from zquantum.core.openfermion import (
     load_interaction_operator,
     load_qubit_operator,
     save_qubit_operator,
+    remove_inactive_orbitals as _remove_inactive_orbitals,
     save_qubit_operator_set,
     load_qubit_operator_set,
 )
@@ -17,6 +18,8 @@ from zquantum.core.hamiltonian import (
     reorder_fermionic_modes as _reorder_fermionic_modes,
     group_comeasureable_terms_greedy as _group_comeasurable_terms_greedy,
 )
+
+from zquantum.core.testing import create_random_qubitop as _create_random_qubitop
 
 
 def get_fermion_number_operator(
@@ -87,6 +90,34 @@ def reorder_fermionic_modes(
     save_interaction_operator(reordered_operator, "reordered-operator.json")
 
 
+def remove_inactive_orbitals(
+    interaction_operator: str,
+    n_active: Optional[int] = None,
+    n_core: Optional[int] = None,
+):
+
+    interaction_operator = load_interaction_operator(interaction_operator)
+
+    frozen_operator = _remove_inactive_orbitals(
+        interaction_operator, n_active=n_active, n_core=n_core
+    )
+
+    save_interaction_operator(frozen_operator, "frozen-operator.json")
+
+
+def create_one_qubit_operator(
+    x_coeff: float, y_coeff: float, z_coeff: float, constant: float
+) -> None:
+
+    qubit_operator = (
+        x_coeff * QubitOperator("X0")
+        + y_coeff * QubitOperator("Y0")
+        + z_coeff * QubitOperator("Z0")
+        + constant * QubitOperator(())
+    )
+    save_qubit_operator(qubit_operator, "qubit_operator.json")
+
+
 def group_comeasureable_terms_greedy(
     qubit_operator: Union[str, QubitOperator], sort_terms: bool = False
 ):
@@ -113,3 +144,10 @@ def concatenate_qubit_operator_lists(
     save_qubit_operator_set(
         qubit_operator_list_final, "concatenated-qubit-operators.json"
     )
+
+
+def create_random_qubitop(nqubits: int, nterms: int):
+
+    output_qubit_operator = _create_random_qubitop(nqubits, nterms)
+
+    save_qubit_operator(output_qubit_operator, "qubit-operator.json")

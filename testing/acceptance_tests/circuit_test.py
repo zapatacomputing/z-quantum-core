@@ -37,23 +37,18 @@ from steps.circuit import (
 
 class Test_generate_random_ansatz_params:
     @pytest.mark.parametrize(
-        "number_of_layers, problem_size",
-        [
-            (1, 1),
-            (0, 1),
-            (1, 6),
-            (4, 3),
-        ],
+        "number_of_layers",
+        [0, 1, 4, 7],
     )
     def test_generate_random_ansatz_params_using_mock_ansatz_specs(
-        self, number_of_layers, problem_size
+        self, number_of_layers
     ):
         # Given
         ansatz_specs = {
             "module_name": "zquantum.core.interfaces.mock_objects",
             "function_name": "MockAnsatz",
             "number_of_layers": number_of_layers,
-            "problem_size": problem_size,
+            "problem_size": 2,
         }
         seed = RNDSEED
 
@@ -68,10 +63,6 @@ class Test_generate_random_ansatz_params:
         assert os.path.exists(filename)
         parameters = load_circuit_template_params(filename)
         assert len(parameters) == number_of_layers
-        for parameter in parameters:
-            assert parameter < np.pi * 0.5
-            assert parameter > -np.pi * 0.5
-            assert isinstance(parameter, float)
 
         if os.path.exists(filename):
             os.remove(filename)
@@ -100,10 +91,6 @@ class Test_generate_random_ansatz_params:
         assert os.path.exists(filename)
         parameters = load_circuit_template_params(filename)
         assert len(parameters) == number_of_parameters
-        for parameter in parameters:
-            assert parameter < np.pi * 0.5
-            assert parameter > -np.pi * 0.5
-            assert isinstance(parameter, float)
 
         if os.path.exists(filename):
             os.remove(filename)

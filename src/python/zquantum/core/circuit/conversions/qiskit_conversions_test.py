@@ -28,6 +28,7 @@ EQUIVALENT_SINGLE_QUBIT_ROTATION_GATES = [
     (RX, qiskit.extensions.RXGate),
     (RY, qiskit.extensions.RYGate),
     (RZ, qiskit.extensions.RZGate),
+    (PHASE, qiskit.extensions.PhaseGate)
 ]
 
 

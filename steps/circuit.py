@@ -18,15 +18,15 @@ from zquantum.core.circuit import (
 )
 from zquantum.core.utils import create_object
 from zquantum.core.testing import create_random_circuit as _create_random_circuit
-from typing import Dict, Union, List
+from typing import Dict, Union, List, Optional
 
 # Generate random parameters for an ansatz
 def generate_random_ansatz_params(
-    ansatz_specs: Union[str, Dict] = None,
-    number_of_parameters: int = None,
+    ansatz_specs: Optional[Union[str, Dict]] = None,
+    number_of_parameters: Optional[int] = None,
     min_value: float = -np.pi * 0.5,
     max_value: float = np.pi * 0.5,
-    seed: int = None,
+    seed: Optional[int] = None,
 ):
     assert (ansatz_specs is None) or (number_of_parameters is None)
     assert not ((ansatz_specs is None) and (number_of_parameters is None))
@@ -55,7 +55,7 @@ def combine_ansatz_params(params1: str, params2: str):
 
 
 # Build circuit from ansatz
-def build_ansatz_circuit(ansatz_specs: Union[str, Dict], params: str = None):
+def build_ansatz_circuit(ansatz_specs: Union[str, Dict], params: Optional[str] = None):
     if isinstance(ansatz_specs, str):
         ansatz_specs = json.loads(ansatz_specs)
     ansatz = create_object(ansatz_specs)
@@ -75,8 +75,8 @@ def build_ansatz_circuit(ansatz_specs: Union[str, Dict], params: str = None):
 
 # Build uniform parameter grid
 def build_uniform_param_grid(
-    ansatz_specs: Union[str, Dict] = None,
-    number_of_params_per_layer: int = None,
+    ansatz_specs: Optional[Union[str, Dict]] = None,
+    number_of_params_per_layer: Optional[int] = None,
     number_of_layers: int = 1,
     min_value: float = 0,
     max_value: float = 2 * np.pi,
@@ -102,7 +102,7 @@ def build_uniform_param_grid(
 # Build circuit layers and connectivity
 def build_circuit_layers_and_connectivity(
     x_dimension: int,
-    y_dimension: int = None,
+    y_dimension: Optional[int] = None,
     layer_type: str = "nearest-neighbor",
 ):
     connectivity, layers = _build_circuit_layers_and_connectivity(
@@ -114,7 +114,7 @@ def build_circuit_layers_and_connectivity(
 
 # Create random circuit
 def create_random_circuit(
-    number_of_qubits: int, number_of_gates: int, seed: int = None
+    number_of_qubits: int, number_of_gates: int, seed: Optional[int] = None
 ):
     circuit = _create_random_circuit(number_of_qubits, number_of_gates, seed=seed)
     save_circuit(circuit, "circuit.json")
@@ -144,7 +144,8 @@ def concatenate_circuits(circuit_set: Union[str, List[Circuit]]):
 
 # Create one circuitset from circuit and circuitset objects
 def batch_circuits(
-    circuits: List[Union[str, Circuit]], circuit_set: Union[str, List[Circuit]] = None
+    circuits: List[Union[str, Circuit]],
+    circuit_set: Optional[Union[str, List[Circuit]]] = None,
 ):
     if circuit_set is None:
         circuit_set = []

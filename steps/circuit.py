@@ -90,7 +90,7 @@ def build_uniform_param_grid(
             ansatz_specs = json.loads(ansatz_specs)
         ansatz = create_object(ansatz_specs)
         number_of_params = ansatz.number_of_params
-    elif number_of_params_per_layer != "None":
+    else:
         number_of_params = number_of_params_per_layer
 
     grid = _build_uniform_param_grid(

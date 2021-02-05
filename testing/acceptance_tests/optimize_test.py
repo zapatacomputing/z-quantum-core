@@ -104,9 +104,6 @@ def test_optimize_parametrized_circuit_for_ground_state_of_operator_optimizer_sp
             )
         )
     backend_specs = '{"module_name": "zquantum.core.interfaces.mock_objects", "function_name": "MockQuantumSimulator", "n_samples": 10000}'
-    estimator_specs = "None"
-    epsilon = "None"
-    delta = "None"
     initial_parameters = "initial_parameters.json"
     with open(initial_parameters, "w") as f:
         f.write(

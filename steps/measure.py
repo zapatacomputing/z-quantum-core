@@ -12,9 +12,10 @@ from zquantum.core.circuit import (
     load_circuit_connectivity,
     load_circuit_template_params,
     load_circuit_set,
+    load_parameter_grid
 )
 from zquantum.core.bitstring_distribution import save_bitstring_distribution
-from zquantum.core.openfermion import load_qubit_operator, load_interaction_rdm
+from zquantum.core.openfermion import load_qubit_operator, load_interaction_rdm, save_parameter_grid_evaluation
 from typing import Dict
 
 
@@ -127,6 +128,63 @@ def evaluate_ansatz_based_cost_function(
     value_estimate = cost_function(ansatz_parameters)
 
     save_value_estimate(value_estimate, "value_estimate.json")
+
+def evaluate_ansatz_based_cost_function_for_parameter_grid(
+    ansatz_specs: str,
+    backend_specs: str,
+    cost_function_specs: str,
+    grid: str,
+    qubit_operator: str,
+    noise_model="None",
+    device_connectivity="None",
+):
+    # Load parameter grid
+    if isinstance(grid, str):
+        grid = load_parameter_grid(grid)
+    # Load qubit op
+    operator = load_qubit_operator(qubit_operator)
+    if isinstance(ansatz_specs, str):
+        ansatz_specs = json.loads(ansatz_specs)
+    if ansatz_specs["function_name"] == "QAOAFarhiAnsatz":
+        ansatz = create_object(ansatz_specs, cost_hamiltonian=operator)
+    else:
+        ansatz = create_object(ansatz_specs)
+
+    if isinstance(backend_specs, str):
+        backend_specs = json.loads(backend_specs)
+    if noise_model != "None":
+        backend_specs["noise_model"] = load_noise_model(noise_model)
+    if device_connectivity != "None":
+        backend_specs["device_connectivity"] = load_circuit_connectivity(
+            device_connectivity
+        )
+
+    backend = create_object(backend_specs)
+
+    if isinstance(cost_function_specs, str):
+        cost_function_specs = json.loads(cost_function_specs)
+    estimator_specs = cost_function_specs.pop("estimator-specs", None)
+    if estimator_specs is not None:
+        cost_function_specs["estimator"] = create_object(estimator_specs)
+    cost_function_specs["target_operator"] = operator
+    cost_function_specs["ansatz"] = ansatz
+    cost_function_specs["backend"] = backend
+    cost_function = create_object(cost_function_specs)
+
+    parameter_grid_evaluation = []
+
+    for ansatz_parameters in grid.params_list:
+        value_estimate = cost_function(ansatz_parameters)
+        parameter_grid_evaluation.append(
+            {
+                "value": value_estimate,
+                "parameters": json.dumps(ansatz_parameters.tolist()) ,
+            }
+        )
+
+    save_parameter_grid_evaluation(
+        parameter_grid_evaluation, "parameter-grid-evaluation.json"
+    )
 
 def hamiltonian_analysis(
     qubit_operator: str,

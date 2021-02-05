@@ -71,7 +71,7 @@ def build_ansatz_circuit(ansatz_specs: Dict, params: str = "None"):
 
 # Build uniform parameter grid
 def build_uniform_param_grid(
-    ansatz_specs: Dict,
+    ansatz_specs: str,
     number_of_params_per_layer: Union[str, int] = "None",
     number_of_layers: int = 1,
     min_value: float = 0,

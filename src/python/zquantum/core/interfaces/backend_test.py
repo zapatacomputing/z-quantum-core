@@ -73,7 +73,9 @@ class QuantumBackendTests:
         assert backend.number_of_jobs_run == 1
 
     @pytest.mark.parametrize("n_shots", [1, 2, 10, 100])
-    def test_run_circuit_and_measure_correct_num_measurements(self, backend, n_shots):
+    def test_run_circuit_and_measure_correct_num_measurements_attribute(
+        self, backend, n_shots
+    ):
         # Given
         backend.number_of_circuits_run = 0
         backend.number_of_jobs_run = 0
@@ -82,6 +84,24 @@ class QuantumBackendTests:
         # When
         backend.n_samples = n_shots
         measurements = backend.run_circuit_and_measure(circuit)
+
+        # Then
+        assert isinstance(measurements, Measurements)
+        assert len(measurements.bitstrings) == n_shots
+        assert backend.number_of_circuits_run == 1
+        assert backend.number_of_jobs_run == 1
+
+    @pytest.mark.parametrize("n_shots", [1, 2, 10, 100])
+    def test_run_circuit_and_measure_correct_num_measurements_argument(
+        self, backend, n_shots
+    ):
+        # Given
+        backend.number_of_circuits_run = 0
+        backend.number_of_jobs_run = 0
+        circuit = Circuit(Program(X(0), X(0), X(1), X(1), X(2)))
+
+        # When
+        measurements = backend.run_circuit_and_measure(circuit, n_shots)
 
         # Then
         assert isinstance(measurements, Measurements)
@@ -131,6 +151,33 @@ class QuantumBackendTests:
             )
         else:
             assert backend.number_of_jobs_run == number_of_circuits
+
+    def test_run_circuitset_and_measure_n_samples(self, backend):
+        # Note: this test may fail with noisy devices
+        # Given
+        backend.number_of_circuits_run = 0
+        backend.number_of_jobs_run = 0
+        first_circuit = Circuit(Program(X(0), X(0), X(1), X(1), X(2)))
+        second_circuit = Circuit(Program(X(0), X(1), X(2)))
+        n_samples = [100, 105]
+
+        # When
+        backend.n_samples = n_samples
+        measurements_set = backend.run_circuitset_and_measure(
+            [first_circuit, second_circuit], n_samples
+        )
+
+        # Then (since SPAM error could result in unexpected bitstrings, we make sure the most common bitstring is
+        #   the one we expect)
+        counts = measurements_set[0].get_counts()
+        assert max(counts, key=counts.get) == "001"
+        counts = measurements_set[1].get_counts()
+        assert max(counts, key=counts.get) == "111"
+
+        assert len(measurements_set[0].bitstrings) == n_samples[0]
+        assert len(measurements_set[1].bitstrings) == n_samples[1]
+
+        assert backend.number_of_circuits_run == 2
 
     def test_get_expectation_values_identity(self, backend):
         # Given
@@ -259,9 +306,7 @@ class QuantumBackendGatesTests:
             # When
             estimator = BasicEstimator()
             expectation_value = estimator.get_estimated_expectation_values(
-                backend_for_gates_test,
-                circuit,
-                operator,
+                backend_for_gates_test, circuit, operator,
             ).values[0]
 
             # Then
@@ -302,9 +347,7 @@ class QuantumBackendGatesTests:
             # When
             estimator = BasicEstimator()
             expectation_value = estimator.get_estimated_expectation_values(
-                backend_for_gates_test,
-                circuit,
-                operator,
+                backend_for_gates_test, circuit, operator,
             ).values[0]
 
             # Then
@@ -346,9 +389,7 @@ class QuantumBackendGatesTests:
             operator = QubitOperator(operator)
             estimator = BasicEstimator()
             expectation_value = estimator.get_estimated_expectation_values(
-                backend_for_gates_test,
-                circuit,
-                operator,
+                backend_for_gates_test, circuit, operator,
             ).values[0]
 
             # Then
@@ -391,9 +432,7 @@ class QuantumBackendGatesTests:
             operator = QubitOperator(operator)
             estimator = BasicEstimator()
             expectation_value = estimator.get_estimated_expectation_values(
-                backend_for_gates_test,
-                circuit,
-                operator,
+                backend_for_gates_test, circuit, operator,
             ).values[0]
 
             # Then

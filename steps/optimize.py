@@ -16,7 +16,7 @@ def optimize_parametrized_circuit_for_ground_state_of_operator(
     target_operator: Union[SymbolicOperator, str],
     parametrized_circuit: Union[Circuit, str],
     backend_specs: Union[Dict, str],
-    estimator_specs: Union[Dict, str] = None,
+    estimator_specs: Optional[Union[Dict, str]] = None,
     epsilon: Optional[float] = None,
     delta: Optional[float] = None,
     initial_parameters: Union[str, np.ndarray, List[float]] = None,

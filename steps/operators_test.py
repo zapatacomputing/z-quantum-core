@@ -30,6 +30,164 @@ h2_hamiltonian_grouped = [
     ),
 ]
 
+# Interaction Hamiltonian of H2 (0.74 A, STO-3G) generated using openfermion-psi4
+constant = 0.7151043387432434
+
+one_body_tensor = np.array([[-1.253309786435,  0.            ,  0.            ,
+         0.            ],
+       [ 0.            , -1.253309786435,  0.            ,
+         0.            ],
+       [ 0.            ,  0.            , -0.475068848992,
+         0.            ],
+       [ 0.            ,  0.            ,  0.            ,
+        -0.475068848992]])
+
+two_body_tensor = np.array([[[[0.337377963374, 0.            , 0.            ,
+          0.            ],
+         [0.            , 0.            , 0.            ,
+          0.            ],
+         [0.            , 0.            , 0.090605231017,
+          0.            ],
+         [0.            , 0.            , 0.            ,
+          0.            ]],
+
+        [[0.            , 0.            , 0.            ,
+          0.            ],
+         [0.337377963374, 0.            , 0.            ,
+          0.            ],
+         [0.            , 0.            , 0.            ,
+          0.            ],
+         [0.            , 0.            , 0.090605231017,
+          0.            ]],
+
+        [[0.            , 0.            , 0.090605231017,
+          0.            ],
+         [0.            , 0.            , 0.            ,
+          0.            ],
+         [0.331855700645, 0.            , 0.            ,
+          0.            ],
+         [0.            , 0.            , 0.            ,
+          0.            ]],
+
+        [[0.            , 0.            , 0.            ,
+          0.            ],
+         [0.            , 0.            , 0.090605231017,
+          0.            ],
+         [0.            , 0.            , 0.            ,
+          0.            ],
+         [0.331855700645, 0.            , 0.            ,
+          0.            ]]],
+
+
+       [[[0.            , 0.337377963374, 0.            ,
+          0.            ],
+         [0.            , 0.            , 0.            ,
+          0.            ],
+         [0.            , 0.            , 0.            ,
+          0.090605231017],
+         [0.            , 0.            , 0.            ,
+          0.            ]],
+
+        [[0.            , 0.            , 0.            ,
+          0.            ],
+         [0.            , 0.337377963374, 0.            ,
+          0.            ],
+         [0.            , 0.            , 0.            ,
+          0.            ],
+         [0.            , 0.            , 0.            ,
+          0.090605231017]],
+
+        [[0.            , 0.            , 0.            ,
+          0.090605231017],
+         [0.            , 0.            , 0.            ,
+          0.            ],
+         [0.            , 0.331855700645, 0.            ,
+          0.            ],
+         [0.            , 0.            , 0.            ,
+          0.            ]],
+
+        [[0.            , 0.            , 0.            ,
+          0.            ],
+         [0.            , 0.            , 0.            ,
+          0.090605231017],
+         [0.            , 0.            , 0.            ,
+          0.            ],
+         [0.            , 0.331855700645, 0.            ,
+          0.            ]]],
+
+
+       [[[0.            , 0.            , 0.331855700645,
+          0.            ],
+         [0.            , 0.            , 0.            ,
+          0.            ],
+         [0.090605231017, 0.            , 0.            ,
+          0.            ],
+         [0.            , 0.            , 0.            ,
+          0.            ]],
+
+        [[0.            , 0.            , 0.            ,
+          0.            ],
+         [0.            , 0.            , 0.331855700645,
+          0.            ],
+         [0.            , 0.            , 0.            ,
+          0.            ],
+         [0.090605231017, 0.            , 0.            ,
+          0.            ]],
+
+        [[0.090605231017, 0.            , 0.            ,
+          0.            ],
+         [0.            , 0.            , 0.            ,
+          0.            ],
+         [0.            , 0.            , 0.348825752213,
+          0.            ],
+         [0.            , 0.            , 0.            ,
+          0.            ]],
+
+        [[0.            , 0.            , 0.            ,
+          0.            ],
+         [0.090605231017, 0.            , 0.            ,
+          0.            ],
+         [0.            , 0.            , 0.            ,
+          0.            ],
+         [0.            , 0.            , 0.348825752213,
+          0.            ]]],
+
+
+       [[[0.            , 0.            , 0.            ,
+          0.331855700645],
+         [0.            , 0.            , 0.            ,
+          0.            ],
+         [0.            , 0.090605231017, 0.            ,
+          0.            ],
+         [0.            , 0.            , 0.            ,
+          0.            ]],
+
+        [[0.            , 0.            , 0.            ,
+          0.            ],
+         [0.            , 0.            , 0.            ,
+          0.331855700645],
+         [0.            , 0.            , 0.            ,
+          0.            ],
+         [0.            , 0.090605231017, 0.            ,
+          0.            ]],
+
+        [[0.            , 0.090605231017, 0.            ,
+          0.            ],
+         [0.            , 0.            , 0.            ,
+          0.            ],
+         [0.            , 0.            , 0.            ,
+          0.348825752213],
+         [0.            , 0.            , 0.            ,
+          0.            ]],
+
+        [[0.            , 0.            , 0.            ,
+          0.            ],
+         [0.            , 0.090605231017, 0.            ,
+          0.            ],
+         [0.            , 0.            , 0.            ,
+          0.            ],
+         [0.            , 0.            , 0.            ,
+          0.348825752213]]]])
 
 def test_concatenate_qubit_operator_lists():
 
@@ -51,15 +209,7 @@ def test_concatenate_qubit_operator_lists():
 
 def test_get_one_qubit_hydrogen_hamiltonian():
 
-    # Interaction Hamiltonian of H2 (0.74 A, STO-3G) generated using openfermion-psi4
-    constant = 0.7151043387432434
-    # Load one body tensor from .npz file
-    file_handle_1b = np.load('h2_one_body_tensor.npz')
-    one_body_tensor = file_handle_1b.get('arr_0')
-    # Load one body tensor from .npz file
-    file_handle_2b = np.load('h2_two_body_tensor.npz')
-    two_body_tensor = file_handle_2b.get('arr_0')
-    # Assemble interaction operator
+    # Define interaction hamiltonian
     h2_hamiltonian_int = InteractionOperator(constant=constant, one_body_tensor=one_body_tensor, two_body_tensor=two_body_tensor)
     save_interaction_operator(h2_hamiltonian_int, 'interaction-operator.json')
 
@@ -67,13 +217,13 @@ def test_get_one_qubit_hydrogen_hamiltonian():
     h2_1qubit = load_qubit_operator('qubit-operator.json')
     h2_1qubit_sparse = get_sparse_operator(h2_1qubit, n_qubits=1)
     h2_1qubit_dense = h2_1qubit_sparse.toarray()
-    print(h2_1qubit_dense)
+    #print(h2_1qubit_dense)
 
     e_1q = eigvalsh(h2_1qubit_dense)
 
     gs_4q = get_ground_state(get_sparse_operator(h2_hamiltonian_int))
 
-    assert isclose(e_1q[0], gs_4q[0])
-
     os.remove('interaction-operator.json')
     os.remove('qubit-operator.json')
+
+    assert isclose(e_1q[0], gs_4q[0])

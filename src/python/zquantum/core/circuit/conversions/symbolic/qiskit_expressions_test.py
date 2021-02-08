@@ -17,9 +17,8 @@ class TestIntegerPower:
             (THETA, 2, THETA * THETA)
         ]
     )
-    def test_integer_power_with_positive_exponent_is_correctly_converted_to_number(
+    def test_integer_power_with_positive_exponent_is_converted_to_repeated_multiplication(
         self, base, exponent, expected_result
     ):
         power = FunctionCall("pow", (base, exponent))
         assert integer_pow(power) == expected_result
-

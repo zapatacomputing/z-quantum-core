@@ -21,6 +21,7 @@ def is_addition_of_negation(sympy_add: sympy.Add) -> bool:
 
 @singledispatch
 def expression_from_sympy(expression):
+    '''Parse Sympy expression into intermediate expression tree.'''
     raise NotImplementedError(
         f"Expression {expression} of type {type(expression)} is currently not supported"
     )

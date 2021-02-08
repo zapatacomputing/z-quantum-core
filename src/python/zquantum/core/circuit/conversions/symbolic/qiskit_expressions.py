@@ -49,6 +49,8 @@ def integer_pow(pow_call: FunctionCall):
     return reduce(operator.mul, exponent * [base], 1)
 
 
+# A mapping from the intermediate expression tree into atoms used in Qiskit symbolic expressions.
+# Allows translating an expression into the Qiskit dialect.
 QISKIT_DIALECT = ExpressionDialect(
     symbol_factory=lambda symbol: qiskit.circuit.Parameter(symbol.name),
     number_factory=lambda number: number,

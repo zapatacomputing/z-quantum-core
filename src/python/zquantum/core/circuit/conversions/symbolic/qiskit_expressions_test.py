@@ -7,6 +7,7 @@ from .translations import translate_expression
 
 
 THETA = qiskit.circuit.Parameter("theta")
+PHI = qiskit.circuit.Parameter("phi")
 
 
 EQUIVALENT_EXPRESSIONS = [
@@ -20,6 +21,10 @@ EQUIVALENT_EXPRESSIONS = [
     (
         FunctionCall(name='add', args=(1, FunctionCall(name='pow', args=(Symbol(name='theta'), 2)))),
         THETA * THETA + 1,
+    ),
+    (
+        FunctionCall(name='sub', args=(2, FunctionCall(name='mul', args=(Symbol(name='phi'), Symbol(name='theta'))))),
+        2 - THETA * PHI,
     )
 ]
 

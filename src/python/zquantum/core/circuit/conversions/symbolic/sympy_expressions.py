@@ -57,6 +57,10 @@ def native_imaginary_unit_from_sympy_imaginary_unit(_unit: sympy.core.numbers.Im
     return 1j
 
 
+def _negate_sympy_expr(expr):
+    return expr * (-1)
+
+
 @expression_from_sympy.register
 def addition_from_sympy_add(add: sympy.Add):
     if is_addition_of_negation(add):
@@ -64,7 +68,7 @@ def addition_from_sympy_add(add: sympy.Add):
             "sub",
             (
                 expression_from_sympy(add.args[0]),
-                expression_from_sympy(add.args[1].args[1]),
+                expression_from_sympy(_negate_sympy_expr(add.args[1])),
             ),
         )
     return FunctionCall("add", expression_from_sympy(add.args))

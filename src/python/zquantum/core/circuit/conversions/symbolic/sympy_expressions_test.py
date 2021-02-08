@@ -181,6 +181,7 @@ def test_add_not_resulting_from_subtraction_is_not_classified_as_addition_of_neg
     [
         (sympy.Symbol("x") - sympy.Symbol("y"), (Symbol("x"), Symbol("y"))),
         (1 - sympy.Symbol("x"), (1, Symbol("x"))),
+        (1 - sympy.Symbol("x") * sympy.Symbol("y"), (1, FunctionCall("mul", (Symbol("x"), Symbol("y"))))),
     ],
 )
 def test_add_resulting_from_subtraction_is_converted_to_sub_function_call(

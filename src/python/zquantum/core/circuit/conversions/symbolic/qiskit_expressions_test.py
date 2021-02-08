@@ -23,6 +23,11 @@ class TestIntegerPower:
         power = FunctionCall("pow", (base, exponent))
         assert integer_pow(power) == expected_result
 
+    def test_negative_exponent_cannot_be_used_if_base_is_zero(self):
+        power = FunctionCall("pow", (0, -10))
+        with pytest.raises(ValueError):
+            integer_pow(power)
+
     @pytest.mark.parametrize(
         "base, exponent, expected_result",
         [

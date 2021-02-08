@@ -9,21 +9,26 @@ THETA = qiskit.circuit.Parameter("theta")
 
 
 EQUIVALENT_EXPRESSIONS = [
-    (FunctionCall(name='add', args=(1, FunctionCall(name='mul', args=(2, Symbol(name='theta'))))), THETA * 2 + 1)
+    (
+        FunctionCall(
+            name="add",
+            args=(1, FunctionCall(name="mul", args=(2, Symbol(name="theta")))),
+        ),
+        THETA * 2 + 1,
+    )
 ]
 
 
 class TestParsingQiskitExpressions:
-    @pytest.mark.parametrize(
-        "intermediate_expr, qiskit_expr", EQUIVALENT_EXPRESSIONS
-    )
-    def test_parsed_intermediate_expression_matches_equivalent_expression(self, intermediate_expr, qiskit_expr):
+    @pytest.mark.parametrize("intermediate_expr, qiskit_expr", EQUIVALENT_EXPRESSIONS)
+    def test_parsed_intermediate_expression_matches_equivalent_expression(
+        self, intermediate_expr, qiskit_expr
+    ):
         parsed_expr = expression_from_qiskit(qiskit_expr)
         assert parsed_expr == intermediate_expr
 
 
 class TestIntegerPower:
-
     def test_only_integer_exponents_are_valid_for_integer_power(self):
         power = FunctionCall("pow", (2, 2.5))
         with pytest.raises(ValueError):
@@ -36,10 +41,7 @@ class TestIntegerPower:
 
     @pytest.mark.parametrize(
         "base, exponent, expected_result",
-        [
-            (2.5, 3, 2.5 ** 3),
-            (THETA, 2, THETA * THETA)
-        ]
+        [(2.5, 3, 2.5 ** 3), (THETA, 2, THETA * THETA)],
     )
     def test_integer_power_with_positive_exponent_is_converted_to_repeated_multiplication(
         self, base, exponent, expected_result
@@ -54,10 +56,7 @@ class TestIntegerPower:
 
     @pytest.mark.parametrize(
         "base, exponent, expected_result",
-        [
-            (2.0, -4, 0.5 ** 4),
-            (THETA, -3, (1 / THETA) * (1 / THETA) * (1 / THETA))
-        ]
+        [(2.0, -4, 0.5 ** 4), (THETA, -3, (1 / THETA) * (1 / THETA) * (1 / THETA))],
     )
     def test_integer_power_with_negative_exponent_is_converted_to_repeated_multiplication_of_reciprocals(
         self, base, exponent, expected_result

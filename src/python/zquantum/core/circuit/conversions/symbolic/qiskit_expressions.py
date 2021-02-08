@@ -32,7 +32,12 @@ def _expr_from_qiskit_param_expr(qiskit_expr: qiskit.circuit.parameterexpression
 
 
 def integer_pow(pow_call: FunctionCall):
+    # TODO: just use the one with (base, exponent) arguments.
     base, exponent = pow_call.args
+    return _integer_pow2(base, exponent)
+
+
+def _integer_pow2(base, exponent):
     if not isinstance(exponent, int):
         raise ValueError(
             f"Cannot convert expression {base} ** {exponent} to Qiskit. "
@@ -59,6 +64,6 @@ QISKIT_DIALECT = ExpressionDialect(
         "mul": reduction(operator.mul),
         "div": operator.truediv,
         "sub": operator.sub,
-        "pow": operator.pow,
+        "pow": _integer_pow2,
     }
 )

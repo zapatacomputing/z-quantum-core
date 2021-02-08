@@ -16,6 +16,10 @@ EQUIVALENT_EXPRESSIONS = [
             args=(1, FunctionCall(name="mul", args=(2, Symbol(name="theta")))),
         ),
         THETA * 2 + 1,
+    ),
+    (
+        FunctionCall(name='add', args=(1, FunctionCall(name='pow', args=(Symbol(name='theta'), 2)))),
+        THETA * THETA + 1,
     )
 ]
 

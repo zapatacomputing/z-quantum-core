@@ -2,7 +2,8 @@ import pytest
 import qiskit
 
 from .expressions import FunctionCall, Symbol
-from .qiskit_expressions import expression_from_qiskit, integer_pow
+from .qiskit_expressions import expression_from_qiskit, integer_pow, QISKIT_DIALECT
+from .translations import translate_expression
 
 
 THETA = qiskit.circuit.Parameter("theta")
@@ -18,6 +19,8 @@ EQUIVALENT_EXPRESSIONS = [
     )
 ]
 
+INTERMEDIATE_EXPRESSIONS = [expr for expr, _ in EQUIVALENT_EXPRESSIONS]
+
 
 class TestParsingQiskitExpressions:
     @pytest.mark.parametrize("intermediate_expr, qiskit_expr", EQUIVALENT_EXPRESSIONS)
@@ -26,6 +29,14 @@ class TestParsingQiskitExpressions:
     ):
         parsed_expr = expression_from_qiskit(qiskit_expr)
         assert parsed_expr == intermediate_expr
+
+    @pytest.mark.parametrize("expr", INTERMEDIATE_EXPRESSIONS)
+    def test_translate_parse_identity(self, expr):
+        # NOTE: the other way round (Qiskit -> intermediate -> Qiskit) can't be done
+        # directly, because Qiskit expressions don't implement equality checks.
+        qiskit_expr = translate_expression(expr, QISKIT_DIALECT)
+        parsed_expr = expression_from_qiskit(qiskit_expr)
+        assert parsed_expr == expr
 
 
 class TestIntegerPower:

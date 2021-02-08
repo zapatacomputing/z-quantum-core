@@ -22,3 +22,16 @@ class TestIntegerPower:
     ):
         power = FunctionCall("pow", (base, exponent))
         assert integer_pow(power) == expected_result
+
+    @pytest.mark.parametrize(
+        "base, exponent, expected_result",
+        [
+            (2.0, -4, 0.5 ** 4),
+            (THETA, -3, (1 / THETA) * (1 / THETA) * (1 / THETA))
+        ]
+    )
+    def test_integer_power_with_negative_exponent_is_converted_to_repeated_multiplication_of_reciprocals(
+        self, base, exponent, expected_result
+    ):
+        power = FunctionCall("pow", (base, exponent))
+        assert integer_pow(power) == expected_result

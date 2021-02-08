@@ -17,6 +17,7 @@ def integer_pow(pow_call: FunctionCall):
     if exponent < 0:
         if base != 0:
             base = 1 / base
+            exponent = -exponent
         else:
             raise ValueError(
                 f"Invalid power: cannot raise 0 to exponent {exponent} < 0."

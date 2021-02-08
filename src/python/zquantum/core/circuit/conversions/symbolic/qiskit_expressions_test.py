@@ -10,6 +10,11 @@ THETA = qiskit.circuit.Parameter("theta")
 
 class TestIntegerPower:
 
+    @pytest.mark.parametrize("base", [10, THETA])
+    def test_integer_power_with_exponent_0_is_equal_to_one(self, base):
+        power = FunctionCall("pow", (base, 0))
+        assert integer_pow(power) == 1
+
     @pytest.mark.parametrize(
         "base, exponent, expected_result",
         [

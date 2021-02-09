@@ -153,12 +153,12 @@ class TestGateConversionWithoutSymbolicParameters:
             == qiskit_operation
         )
 
-    def test_converting_cirq_operation_to_orquestra_gives_expected_gate(
+    def test_converting_qiskit_operation_to_orquestra_gives_expected_gate(
         self, orquestra_gate, qiskit_operation
     ):
         assert convert_from_qiskit(qiskit_operation) == orquestra_gate
 
-    def test_orquestra_gate_and_cirq_gate_have_the_same_matrix(
+    def test_orquestra_gate_and_qiskit_gate_have_the_same_matrix(
         self, orquestra_gate, qiskit_operation
     ):
         orquestra_matrix = np.array(orquestra_gate.matrix).astype(np.complex128)
@@ -192,7 +192,7 @@ class TestGateConversionWithSymbolicParameters:
             qiskit_operation
         )
 
-    def test_converting_cirq_operation_to_orquestra_gives_expected_gate(
+    def test_converting_qiskit_operation_to_orquestra_gives_expected_gate(
         self, orquestra_gate, qiskit_operation
     ):
         assert convert_from_qiskit(qiskit_operation) == orquestra_gate

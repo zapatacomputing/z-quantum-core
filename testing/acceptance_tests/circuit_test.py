@@ -6,7 +6,7 @@ import numpy as np
 import copy
 
 from zquantum.core import circuit
-from zquantum.core.utils import RNDSEED
+from zquantum.core.utils import RNDSEED, create_object
 from zquantum.core.circuit import (
     load_circuit_template_params,
     save_circuit_template_params,
@@ -199,17 +199,25 @@ class TestCombineAnsatzParams:
 
 
 class TestBuildAnsatzCircuit:
-    @pytest.mark.parametrize(
-        "number_of_layers",
-        [0, 1, 2, 5],
-    )
-    def test_build_ansatz_circuit_with_parameter_values(self, number_of_layers):
-        # Given
+    @pytest.fixture(params=[0, 1, 2, 5])
+    def number_of_layers(self, request):
+        return request.param
+
+    @pytest.fixture()
+    def params_filename_and_number_of_layers(self, number_of_layers):
         params = np.random.uniform(low=0, high=np.pi, size=number_of_layers)
-        params_filename = None
-        if params is not None:
-            params_filename = "params.json"
-            save_circuit_template_params(np.array(params), params_filename)
+        params_filename = "params.json"
+        save_circuit_template_params(np.array(params), params_filename)
+
+        yield params_filename, number_of_layers
+
+        remove_file_if_exists(params_filename)
+
+    def test_build_ansatz_circuit_with_parameter_values(
+        self, params_filename_and_number_of_layers
+    ):
+        # Given
+        params_filename, number_of_layers = params_filename_and_number_of_layers
 
         ansatz_specs = {
             "module_name": "zquantum.core.interfaces.mock_objects",
@@ -218,6 +226,10 @@ class TestBuildAnsatzCircuit:
             "problem_size": 2,
         }
 
+        parameters = load_circuit_template_params(params_filename)
+        ansatz = create_object(copy.deepcopy(ansatz_specs))
+        expected_circuit = ansatz.get_executable_circuit(parameters)
+
         # When
         build_ansatz_circuit(ansatz_specs=ansatz_specs, params=params_filename)
 
@@ -225,14 +237,10 @@ class TestBuildAnsatzCircuit:
         circuit_filename = "circuit.json"
         circuit = load_circuit(circuit_filename)
         assert isinstance(circuit, Circuit)
+        assert circuit == expected_circuit
 
-        os.remove(circuit_filename)
-        os.remove(params_filename)
+        remove_file_if_exists(circuit_filename)
 
-    @pytest.mark.parametrize(
-        "number_of_layers",
-        [0, 1, 2, 5],
-    )
     def test_build_ansatz_circuit_without_parameter_values(self, number_of_layers):
         # Given
         ansatz_specs = {
@@ -242,6 +250,9 @@ class TestBuildAnsatzCircuit:
             "problem_size": 2,
         }
 
+        ansatz = create_object(copy.deepcopy(ansatz_specs))
+        expected_circuit = ansatz.parametrized_circuit
+
         # When
         build_ansatz_circuit(ansatz_specs=ansatz_specs)
 
@@ -249,8 +260,9 @@ class TestBuildAnsatzCircuit:
         circuit_filename = "circuit.json"
         circuit = load_circuit(circuit_filename)
         assert isinstance(circuit, Circuit)
+        assert circuit == expected_circuit
 
-        os.remove(circuit_filename)
+        remove_file_if_exists(circuit_filename)
 
     def test_build_ansatz_circuit_ansatz_specs_as_string(self):
         # Given
@@ -262,6 +274,9 @@ class TestBuildAnsatzCircuit:
             "problem_size": 2,
         }
 
+        ansatz = create_object(copy.deepcopy(ansatz_specs))
+        expected_circuit = ansatz.parametrized_circuit
+
         # When
         build_ansatz_circuit(ansatz_specs=json.dumps(ansatz_specs))
 
@@ -269,8 +284,9 @@ class TestBuildAnsatzCircuit:
         circuit_filename = "circuit.json"
         circuit = load_circuit(circuit_filename)
         assert isinstance(circuit, Circuit)
+        assert circuit == expected_circuit
 
-        os.remove(circuit_filename)
+        remove_file_if_exists(circuit_filename)
 
     def test_build_ansatz_circuit_raises_exception_on_invalid_inputs(self):
         # Given
@@ -285,10 +301,12 @@ class TestBuildAnsatzCircuit:
         }
 
         # When
+        circuit_filename = "circuit.json"
         with pytest.raises(Exception):
             build_ansatz_circuit(ansatz_specs=ansatz_specs, params=params_filename)
 
-        os.remove(params_filename)
+        remove_file_if_exists(params_filename)
+        remove_file_if_exists(circuit_filename)
 
 
 class TestBuildUniformParameterGrid:

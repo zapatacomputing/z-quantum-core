@@ -67,10 +67,11 @@ class TestGenerateRandomAnsatzParams:
         generate_random_ansatz_params(ansatz_specs=ansatz_specs, seed=seed)
 
         # Then
-        parameters = load_circuit_template_params(filename)
-        assert len(parameters) == number_of_layers
-
-        remove_file_if_exists(filename)
+        try:
+            parameters = load_circuit_template_params(filename)
+            assert len(parameters) == number_of_layers
+        finally:
+            remove_file_if_exists(filename)
 
     def test_generate_random_ansatz_params_ansatz_specs_as_string(self):
         # Given
@@ -90,10 +91,11 @@ class TestGenerateRandomAnsatzParams:
         generate_random_ansatz_params(ansatz_specs=json.dumps(ansatz_specs), seed=seed)
 
         # Then
-        parameters = load_circuit_template_params(filename)
-        assert len(parameters) == number_of_layers
-
-        remove_file_if_exists(filename)
+        try:
+            parameters = load_circuit_template_params(filename)
+            assert len(parameters) == number_of_layers
+        finally:
+            remove_file_if_exists(filename)
 
     @pytest.mark.parametrize(
         "number_of_parameters",
@@ -115,10 +117,11 @@ class TestGenerateRandomAnsatzParams:
         )
 
         # Then
-        parameters = load_circuit_template_params(filename)
-        assert len(parameters) == number_of_parameters
-
-        remove_file_if_exists(filename)
+        try:
+            parameters = load_circuit_template_params(filename)
+            assert len(parameters) == number_of_parameters
+        finally:
+            remove_file_if_exists(filename)
 
     def test_generate_random_ansatz_params_fails_with_both_ansatz_specs_and_number_of_parameters(
         self,
@@ -135,14 +138,15 @@ class TestGenerateRandomAnsatzParams:
         filename = "params.json"
 
         # When
-        with pytest.raises(AssertionError):
-            generate_random_ansatz_params(
-                ansatz_specs=ansatz_specs,
-                number_of_parameters=number_of_parameters,
-                seed=seed,
-            )
-
-        remove_file_if_exists(filename)
+        try:
+            with pytest.raises(AssertionError):
+                generate_random_ansatz_params(
+                    ansatz_specs=ansatz_specs,
+                    number_of_parameters=number_of_parameters,
+                    seed=seed,
+                )
+        finally:
+            remove_file_if_exists(filename)
 
     def test_generate_random_ansatz_params_fails_with_neither_ansatz_specs_nor_number_of_parameters(
         self,
@@ -152,12 +156,13 @@ class TestGenerateRandomAnsatzParams:
         filename = "params.json"
 
         # When
-        with pytest.raises(AssertionError):
-            generate_random_ansatz_params(
-                seed=seed,
-            )
-
-        remove_file_if_exists(filename)
+        try:
+            with pytest.raises(AssertionError):
+                generate_random_ansatz_params(
+                    seed=seed,
+                )
+        finally:
+            remove_file_if_exists(filename)
 
 
 class TestCombineAnsatzParams:
@@ -190,13 +195,14 @@ class TestCombineAnsatzParams:
         combine_ansatz_params(params1_filename, params2_filename)
 
         # Then
-        combined_parameters_filename = "combined-params.json"
-        parameters = load_circuit_template_params(combined_parameters_filename)
-        params1 = load_circuit_template_params(params1_filename)
-        params2 = load_circuit_template_params(params2_filename)
-        assert all(parameters == np.concatenate([params1, params2]))
-
-        remove_file_if_exists(combined_parameters_filename)
+        try:
+            combined_parameters_filename = "combined-params.json"
+            parameters = load_circuit_template_params(combined_parameters_filename)
+            params1 = load_circuit_template_params(params1_filename)
+            params2 = load_circuit_template_params(params2_filename)
+            assert all(parameters == np.concatenate([params1, params2]))
+        finally:
+            remove_file_if_exists(combined_parameters_filename)
 
 
 class TestBuildAnsatzCircuit:
@@ -235,12 +241,13 @@ class TestBuildAnsatzCircuit:
         build_ansatz_circuit(ansatz_specs=ansatz_specs, params=params_filename)
 
         # Then
-        circuit_filename = "circuit.json"
-        circuit = load_circuit(circuit_filename)
-        assert isinstance(circuit, Circuit)
-        assert circuit == expected_circuit
-
-        remove_file_if_exists(circuit_filename)
+        try:
+            circuit_filename = "circuit.json"
+            circuit = load_circuit(circuit_filename)
+            assert isinstance(circuit, Circuit)
+            assert circuit == expected_circuit
+        finally:
+            remove_file_if_exists(circuit_filename)
 
     def test_build_ansatz_circuit_without_parameter_values(self, number_of_layers):
         # Given
@@ -258,12 +265,13 @@ class TestBuildAnsatzCircuit:
         build_ansatz_circuit(ansatz_specs=ansatz_specs)
 
         # Then
-        circuit_filename = "circuit.json"
-        circuit = load_circuit(circuit_filename)
-        assert isinstance(circuit, Circuit)
-        assert circuit == expected_circuit
-
-        remove_file_if_exists(circuit_filename)
+        try:
+            circuit_filename = "circuit.json"
+            circuit = load_circuit(circuit_filename)
+            assert isinstance(circuit, Circuit)
+            assert circuit == expected_circuit
+        finally:
+            remove_file_if_exists(circuit_filename)
 
     def test_build_ansatz_circuit_ansatz_specs_as_string(self):
         # Given
@@ -282,12 +290,13 @@ class TestBuildAnsatzCircuit:
         build_ansatz_circuit(ansatz_specs=json.dumps(ansatz_specs))
 
         # Then
-        circuit_filename = "circuit.json"
-        circuit = load_circuit(circuit_filename)
-        assert isinstance(circuit, Circuit)
-        assert circuit == expected_circuit
-
-        remove_file_if_exists(circuit_filename)
+        try:
+            circuit_filename = "circuit.json"
+            circuit = load_circuit(circuit_filename)
+            assert isinstance(circuit, Circuit)
+            assert circuit == expected_circuit
+        finally:
+            remove_file_if_exists(circuit_filename)
 
     def test_build_ansatz_circuit_raises_exception_on_invalid_inputs(self):
         # Given
@@ -302,12 +311,13 @@ class TestBuildAnsatzCircuit:
         }
 
         # When
-        circuit_filename = "circuit.json"
-        with pytest.raises(Exception):
-            build_ansatz_circuit(ansatz_specs=ansatz_specs, params=params_filename)
-
-        remove_file_if_exists(params_filename)
-        remove_file_if_exists(circuit_filename)
+        try:
+            circuit_filename = "circuit.json"
+            with pytest.raises(Exception):
+                build_ansatz_circuit(ansatz_specs=ansatz_specs, params=params_filename)
+        finally:
+            remove_file_if_exists(params_filename)
+            remove_file_if_exists(circuit_filename)
 
 
 class TestBuildUniformParameterGrid:
@@ -360,12 +370,13 @@ class TestBuildUniformParameterGrid:
         )
 
         # Then
-        parameter_grid = load_parameter_grid(expected_parameter_grid_filename)
-        assert [
-            tuple(param) for param in parameter_grid.param_ranges
-        ] == expected_parameter_grid.param_ranges
-
-        remove_file_if_exists(expected_parameter_grid_filename)
+        try:
+            parameter_grid = load_parameter_grid(expected_parameter_grid_filename)
+            assert [
+                tuple(param) for param in parameter_grid.param_ranges
+            ] == expected_parameter_grid.param_ranges
+        finally:
+            remove_file_if_exists(expected_parameter_grid_filename)
 
     @pytest.mark.parametrize(
         "number_of_ansatz_layers, problem_size, number_of_layers, min_value, max_value, step",
@@ -416,12 +427,13 @@ class TestBuildUniformParameterGrid:
         )
 
         # Then
-        parameter_grid = load_parameter_grid(expected_parameter_grid_filename)
-        assert [
-            tuple(param) for param in parameter_grid.param_ranges
-        ] == expected_parameter_grid.param_ranges
-
-        remove_file_if_exists(expected_parameter_grid_filename)
+        try:
+            parameter_grid = load_parameter_grid(expected_parameter_grid_filename)
+            assert [
+                tuple(param) for param in parameter_grid.param_ranges
+            ] == expected_parameter_grid.param_ranges
+        finally:
+            remove_file_if_exists(expected_parameter_grid_filename)
 
     @pytest.mark.parametrize(
         "number_of_params_per_layer, number_of_layers, min_value, max_value, step",
@@ -458,12 +470,13 @@ class TestBuildUniformParameterGrid:
         )
 
         # Then
-        parameter_grid = load_parameter_grid(expected_parameter_grid_filename)
-        assert [
-            tuple(param) for param in parameter_grid.param_ranges
-        ] == expected_parameter_grid.param_ranges
-
-        remove_file_if_exists(expected_parameter_grid_filename)
+        try:
+            parameter_grid = load_parameter_grid(expected_parameter_grid_filename)
+            assert [
+                tuple(param) for param in parameter_grid.param_ranges
+            ] == expected_parameter_grid.param_ranges
+        finally:
+            remove_file_if_exists(expected_parameter_grid_filename)
 
     def test_build_uniform_param_grid_fails_with_both_ansatz_specs_and_number_of_params_per_layer(
         self,
@@ -479,21 +492,25 @@ class TestBuildUniformParameterGrid:
         }
 
         # When
-        with pytest.raises(AssertionError):
-            build_uniform_param_grid(
-                ansatz_specs=ansatz_specs,
-                number_of_params_per_layer=number_of_params_per_layer,
-            )
-        remove_file_if_exists(expected_parameter_grid_filename)
+        try:
+            with pytest.raises(AssertionError):
+                build_uniform_param_grid(
+                    ansatz_specs=ansatz_specs,
+                    number_of_params_per_layer=number_of_params_per_layer,
+                )
+        finally:
+            remove_file_if_exists(expected_parameter_grid_filename)
 
     def test_build_uniform_param_grid_fails_with_neither_ansatz_specs_nor_number_of_params_per_layer(
         self,
     ):
         # When
         expected_parameter_grid_filename = "parameter-grid.json"
-        with pytest.raises(AssertionError):
-            build_uniform_param_grid()
-        remove_file_if_exists(expected_parameter_grid_filename)
+        try:
+            with pytest.raises(AssertionError):
+                build_uniform_param_grid()
+        finally:
+            remove_file_if_exists(expected_parameter_grid_filename)
 
 
 class TestBuildCircuitLayersAndConnectivity:
@@ -536,8 +553,8 @@ class TestBuildCircuitLayersAndConnectivity:
             expected_circuit_connectivity_filename
         )
 
-        os.remove(expected_circuit_layers_filename)
-        os.remove(expected_circuit_connectivity_filename)
+        remove_file_if_exists(expected_circuit_connectivity_filename)
+        remove_file_if_exists(expected_circuit_layers_filename)
 
 
 class TestCreateRandomCircuit:

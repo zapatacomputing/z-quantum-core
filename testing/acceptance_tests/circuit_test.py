@@ -160,36 +160,42 @@ class TestGenerateRandomAnsatzParams:
 
 
 class TestCombineAnsatzParams:
-    @pytest.mark.parametrize(
-        "params1, params2",
-        [
+    @pytest.fixture(
+        params=[
             ([], []),
             ([1.0], []),
             ([], [1.0]),
             ([0.0], [1.0]),
             ([0.0, 1.0, 3.0, 5.0, -2.3], [1.0]),
-        ],
+        ]
     )
-    def test_combine_ansatz_params(self, params1, params2):
-        # Given
+    def params_filenames(self, request):
         params1_filename = "params1.json"
-        save_circuit_template_params(np.array(params1), params1_filename)
+        save_circuit_template_params(np.array(request.param[0]), params1_filename)
 
         params2_filename = "params2.json"
-        save_circuit_template_params(np.array(params2), params2_filename)
+        save_circuit_template_params(np.array(request.param[1]), params2_filename)
+
+        yield (params1_filename, params2_filename)
+
+        remove_file_if_exists(params1_filename)
+        remove_file_if_exists(params2_filename)
+
+    def test_combine_ansatz_params(self, params_filenames):
+        # Given
+        params1_filename, params2_filename = params_filenames
 
         # When
         combine_ansatz_params(params1_filename, params2_filename)
 
         # Then
         combined_parameters_filename = "combined-params.json"
-        assert os.path.exists(combined_parameters_filename)
         parameters = load_circuit_template_params(combined_parameters_filename)
-        assert all(parameters == params1 + params2)
+        params1 = load_circuit_template_params(params1_filename)
+        params2 = load_circuit_template_params(params2_filename)
+        assert all(parameters == np.concatenate([params1, params2]))
 
-        os.remove(params1_filename)
-        os.remove(params2_filename)
-        os.remove(combined_parameters_filename)
+        remove_file_if_exists(combined_parameters_filename)
 
 
 class TestBuildAnsatzCircuit:

@@ -28,6 +28,8 @@ class Ansatz(ABC, EnforceOverrides):
             supports_parametrized_circuits(bool): flag indicating whether given ansatz supports parametrized circuits.
 
         """
+        if number_of_layers < 0:
+            raise ValueError("number_of_layers must be non-negative.")
         self.number_of_layers = number_of_layers
         self._parametrized_circuit = None
 

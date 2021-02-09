@@ -1,6 +1,8 @@
 from functools import singledispatch
 from typing import Tuple, List, Union
-
+from .symbolic.qiskit_expressions import expression_from_qiskit, QISKIT_DIALECT
+from .symbolic.sympy_expressions import expression_from_sympy, SYMPY_DIALECT
+from .symbolic.translations import translate_expression
 import qiskit
 from zquantum.core.circuit import X, Y, Z, I, T, H, Gate, Circuit, CZ, CNOT, SWAP, ISWAP, RX, RY, RZ, PHASE, CPHASE, XX, \
     YY, ZZ
@@ -56,9 +58,13 @@ def convert_operation_from_qiskit(operation: QiskitOperation) -> Gate:
     try:
         qiskit_op, qiskit_qubits, _ = operation
         orquestra_gate_cls = QISKIT_TO_ORQUESTRA_MAPPING[type(qiskit_op)]
+        orquestra_params = [
+            translate_expression(intermediate_expr, SYMPY_DIALECT)
+            for intermediate_expr in map(expression_from_qiskit, qiskit_op.params)
+        ]
         return orquestra_gate_cls(
             *(qubit.index for qubit in reversed(qiskit_qubits)),
-            *qiskit_op.params
+            *orquestra_params
         )
     except KeyError:
         raise NotImplementedError(
@@ -81,6 +87,10 @@ def convert_orquestra_gate_to_qiskit(
             for qubit in reversed(gate.qubits)
         ]
         qiskit_gate_cls = ORQUESTRA_TO_QISKIT_MAPPING[type(gate)]
-        return qiskit_gate_cls(*gate.params), qiskit_qubits, []
+        qiskit_params = [
+            translate_expression(intermediate_expr, QISKIT_DIALECT)
+            for intermediate_expr in map(expression_from_sympy, gate.params)
+        ]
+        return qiskit_gate_cls(*qiskit_params), qiskit_qubits, []
     except KeyError:
         raise NotImplementedError(f"Conversion of {gate} to Qiskit is not supported.")

@@ -35,6 +35,13 @@ from steps.circuit import (
 )
 
 
+def remove_file_if_exists(filename):
+    try:
+        os.remove(filename)
+    except OSError:
+        pass
+
+
 class TestGenerateRandomAnsatzParams:
     @pytest.mark.parametrize(
         "number_of_layers",
@@ -53,19 +60,16 @@ class TestGenerateRandomAnsatzParams:
         seed = RNDSEED
 
         filename = "params.json"
-        if os.path.exists(filename):
-            os.remove(filename)
+        remove_file_if_exists(filename)
 
         # When
         generate_random_ansatz_params(ansatz_specs=ansatz_specs, seed=seed)
 
         # Then
-        assert os.path.exists(filename)
         parameters = load_circuit_template_params(filename)
         assert len(parameters) == number_of_layers
 
-        if os.path.exists(filename):
-            os.remove(filename)
+        remove_file_if_exists(filename)
 
     def test_generate_random_ansatz_params_ansatz_specs_as_string(self):
         # Given
@@ -79,19 +83,16 @@ class TestGenerateRandomAnsatzParams:
         seed = RNDSEED
 
         filename = "params.json"
-        if os.path.exists(filename):
-            os.remove(filename)
+        remove_file_if_exists(filename)
 
         # When
         generate_random_ansatz_params(ansatz_specs=json.dumps(ansatz_specs), seed=seed)
 
         # Then
-        assert os.path.exists(filename)
         parameters = load_circuit_template_params(filename)
         assert len(parameters) == number_of_layers
 
-        if os.path.exists(filename):
-            os.remove(filename)
+        remove_file_if_exists(filename)
 
     @pytest.mark.parametrize(
         "number_of_parameters",
@@ -105,8 +106,7 @@ class TestGenerateRandomAnsatzParams:
         seed = RNDSEED
 
         filename = "params.json"
-        if os.path.exists(filename):
-            os.remove(filename)
+        remove_file_if_exists(filename)
 
         # When
         generate_random_ansatz_params(
@@ -114,12 +114,10 @@ class TestGenerateRandomAnsatzParams:
         )
 
         # Then
-        assert os.path.exists(filename)
         parameters = load_circuit_template_params(filename)
         assert len(parameters) == number_of_parameters
 
-        if os.path.exists(filename):
-            os.remove(filename)
+        remove_file_if_exists(filename)
 
     def test_generate_random_ansatz_params_fails_with_both_ansatz_specs_and_number_of_parameters(
         self,
@@ -133,6 +131,7 @@ class TestGenerateRandomAnsatzParams:
             "problem_size": 1,
         }
         seed = RNDSEED
+        filename = "params.json"
 
         # When
         with pytest.raises(AssertionError):
@@ -142,17 +141,22 @@ class TestGenerateRandomAnsatzParams:
                 seed=seed,
             )
 
+        remove_file_if_exists(filename)
+
     def test_generate_random_ansatz_params_fails_with_neither_ansatz_specs_nor_number_of_parameters(
         self,
     ):
         # Given
         seed = RNDSEED
+        filename = "params.json"
 
         # When
         with pytest.raises(AssertionError):
             generate_random_ansatz_params(
                 seed=seed,
             )
+
+        remove_file_if_exists(filename)
 
 
 class TestCombineAnsatzParams:

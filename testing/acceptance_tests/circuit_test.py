@@ -20,6 +20,7 @@ from zquantum.core.circuit import (
     Circuit,
     build_uniform_param_grid as _build_uniform_param_grid,
     build_circuit_layers_and_connectivity as _build_circuit_layers_and_connectivity,
+    add_ancilla_register_to_circuit as _add_ancilla_register_to_circuit,
 )
 from zquantum.core.testing import create_random_circuit as _create_random_circuit
 
@@ -624,7 +625,24 @@ class TestCreateRandomCircuit:
 
 
 class TestAddAncillaRegisterToCircuitPythonObject:
-    @pytest.mark.parametrize("number_of_ancilla_qubits", [i for i in range(1, 20, 3)])
+    @pytest.fixture(params=[i for i in range(1, 20, 3)])
+    def number_of_ancilla_qubits(self, request):
+        return request.param
+
+    @pytest.fixture()
+    def circuit_filename_and_number_of_ancilla_qubits(self, number_of_ancilla_qubits):
+        number_of_qubits = 4
+        number_of_gates = 10
+        circuit = _create_random_circuit(
+            number_of_qubits, number_of_gates, seed=RNDSEED
+        )
+        circuit_filename = "circuit.json"
+        save_circuit(circuit, circuit_filename)
+
+        yield circuit_filename, number_of_ancilla_qubits
+
+        remove_file_if_exists(circuit_filename)
+
     def test_add_ancilla_register_to_circuit_python_object(
         self, number_of_ancilla_qubits
     ):
@@ -634,42 +652,53 @@ class TestAddAncillaRegisterToCircuitPythonObject:
         circuit = _create_random_circuit(
             number_of_qubits, number_of_gates, seed=RNDSEED
         )
+        expected_extended_cirucit = _add_ancilla_register_to_circuit(
+            copy.deepcopy(circuit), number_of_ancilla_qubits
+        )
         expected_extended_circuit_filename = "extended-circuit.json"
 
         # When
         add_ancilla_register_to_circuit(number_of_ancilla_qubits, circuit)
 
         # Then
-        extended_circuit = load_circuit(expected_extended_circuit_filename)
-        assert (
-            len(extended_circuit.qubits) == number_of_qubits + number_of_ancilla_qubits
-        )
-        os.remove(expected_extended_circuit_filename)
+        try:
+            extended_circuit = load_circuit(expected_extended_circuit_filename)
+            assert (
+                len(extended_circuit.qubits)
+                == number_of_qubits + number_of_ancilla_qubits
+            )
+            assert extended_circuit.gates == expected_extended_cirucit.gates
+        finally:
+            remove_file_if_exists(expected_extended_circuit_filename)
 
-    @pytest.mark.parametrize("number_of_ancilla_qubits", [i for i in range(1, 20, 3)])
     def test_add_ancilla_register_to_circuit_artifact_file(
-        self, number_of_ancilla_qubits
+        self, circuit_filename_and_number_of_ancilla_qubits
     ):
         # Given
-        number_of_qubits = 4
-        number_of_gates = 10
-        circuit = _create_random_circuit(
-            number_of_qubits, number_of_gates, seed=RNDSEED
-        )
-        circuit_filename = "circuit.json"
-        save_circuit(circuit, circuit_filename)
+        (
+            circuit_filename,
+            number_of_ancilla_qubits,
+        ) = circuit_filename_and_number_of_ancilla_qubits
         expected_extended_circuit_filename = "extended-circuit.json"
+
+        circuit = load_circuit(circuit_filename)
+        expected_extended_circuit = _add_ancilla_register_to_circuit(
+            circuit, number_of_ancilla_qubits
+        )
 
         # When
         add_ancilla_register_to_circuit(number_of_ancilla_qubits, circuit_filename)
 
         # Then
-        extended_circuit = load_circuit(expected_extended_circuit_filename)
-        assert (
-            len(extended_circuit.qubits) == number_of_qubits + number_of_ancilla_qubits
-        )
-        os.remove(expected_extended_circuit_filename)
-        os.remove(circuit_filename)
+        try:
+            extended_circuit = load_circuit(expected_extended_circuit_filename)
+            assert (
+                len(extended_circuit.qubits)
+                == len(circuit.qubits) + number_of_ancilla_qubits
+            )
+            assert extended_circuit.gates == expected_extended_circuit.gates
+        finally:
+            remove_file_if_exists(expected_extended_circuit_filename)
 
 
 class TestConcatenateCircuits:

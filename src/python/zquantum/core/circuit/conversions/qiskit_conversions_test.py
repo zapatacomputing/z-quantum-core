@@ -125,6 +125,22 @@ TEST_CASES_WITH_SYMBOLIC_PARAMS = [
 ]
 
 
+def are_qiskit_parameters_equal(param_1, param_2):
+    return getattr(param_1, "_symbol_expr", param_1) - getattr(param_2, "_symbol_expr", param_2) == 0
+
+
+def are_qiskit_gates_equal(gate_1, gate_2):
+    type_1, type_2 = type(gate_1), type(gate_2)
+    return (
+        (issubclass(type_1, type_2) or issubclass(type_2, type_1)) and
+        all(are_qiskit_parameters_equal(param_1, param_2) for param_1, param_2 in zip(gate_1.params, gate_2.params))
+    )
+
+
+def are_qiskit_operations_equal(operation_1, operation_2):
+    return operation_1[1:] == operation_2[1:] and are_qiskit_gates_equal(operation_1[0], operation_2[0])
+
+
 @pytest.mark.parametrize(
     "orquestra_gate, qiskit_operation", TEST_CASES_WITHOUT_SYMBOLIC_PARAMS
 )
@@ -171,22 +187,12 @@ class TestGateConversionWithSymbolicParameters:
     def test_converting_orquestra_gate_to_qiskit_gives_expected_operation(
         self, orquestra_gate, qiskit_operation
     ):
-        assert (
-            convert_to_qiskit(orquestra_gate, max(orquestra_gate.qubits) + 1)
-            == qiskit_operation
+        assert are_qiskit_operations_equal(
+            convert_to_qiskit(orquestra_gate, max(orquestra_gate.qubits) + 1),
+            qiskit_operation
         )
 
     def test_converting_cirq_operation_to_orquestra_gives_expected_gate(
         self, orquestra_gate, qiskit_operation
     ):
         assert convert_from_qiskit(qiskit_operation) == orquestra_gate
-
-    def test_orquestra_gate_and_cirq_gate_have_the_same_matrix(
-        self, orquestra_gate, qiskit_operation
-    ):
-        orquestra_matrix = np.array(orquestra_gate.matrix).astype(np.complex128)
-        if len(orquestra_gate.qubits) == 2:
-            orquestra_matrix = (
-                TWO_QUBIT_SWAP_MATRIX @ orquestra_matrix @ TWO_QUBIT_SWAP_MATRIX
-            )
-        np.testing.assert_allclose(orquestra_matrix, qiskit_operation[0].to_matrix())

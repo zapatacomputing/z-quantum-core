@@ -30,14 +30,8 @@ def _expr_from_qiskit_param_expr(qiskit_expr: qiskit.circuit.parameterexpression
     return expression_from_sympy(sympy_expr)
 
 
-
-def integer_pow(pow_call: FunctionCall):
-    # TODO: just use the one with (base, exponent) arguments.
-    base, exponent = pow_call.args
-    return _integer_pow2(base, exponent)
-
-
-def _integer_pow2(base, exponent):
+def integer_pow(base, exponent: int):
+    """Exponentiation to the power of an integer exponent."""
     if not isinstance(exponent, int):
         raise ValueError(
             f"Cannot convert expression {base} ** {exponent} to Qiskit. "
@@ -64,6 +58,6 @@ QISKIT_DIALECT = ExpressionDialect(
         "mul": reduction(operator.mul),
         "div": operator.truediv,
         "sub": operator.sub,
-        "pow": _integer_pow2,
+        "pow": integer_pow,
     }
 )

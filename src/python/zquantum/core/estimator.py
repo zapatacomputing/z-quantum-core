@@ -182,7 +182,7 @@ class BasicEstimator(Estimator):
                     "Optimal shot allocation does not support n_samples; use n_total_samples instead."
                 )
 
-            K2, nterms, measurements_per_frame = estimate_nmeas_for_frames(
+            _, nterms, measurements_per_frame = estimate_nmeas_for_frames(
                 frame_operators, self.prior_expectation_values
             )
 

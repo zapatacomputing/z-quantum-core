@@ -167,6 +167,10 @@ class TestBasicEstimator(EstimatorTests):
     def test_get_estimated_expectation_values_optimal_shot_allocation(
         self, estimator, backend, circuit, operator, epsilon, delta
     ):
+        # TODO: After a deterministic testing backend is imlemented, this test
+        # should be updated to actually check that shots are being correctly
+        # allocated and the expectation values correctly estimated.
+
         # Given
         # When
         values = estimator.get_estimated_expectation_values(
@@ -187,6 +191,10 @@ class TestBasicEstimator(EstimatorTests):
     def test_get_estimated_expectation_values_optimal_shot_allocation_with_prior(
         self, estimator, backend, circuit, operator, epsilon, delta
     ):
+        # TODO: After a deterministic testing backend is imlemented, this test
+        # should be updated to actually check that shots are being correctly
+        # allocated and the expectation values correctly estimated.
+
         # Given
         # When
         estimator.prior_expectation_values = ExpectationValues(

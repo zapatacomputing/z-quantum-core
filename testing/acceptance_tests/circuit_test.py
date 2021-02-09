@@ -19,6 +19,7 @@ from zquantum.core.circuit import (
     load_circuit_connectivity,
     Circuit,
     build_uniform_param_grid as _build_uniform_param_grid,
+    build_circuit_layers_and_connectivity as _build_circuit_layers_and_connectivity,
 )
 from zquantum.core.testing import create_random_circuit as _create_random_circuit
 
@@ -541,6 +542,12 @@ class TestBuildCircuitLayersAndConnectivity:
         # Given
         expected_circuit_layers_filename = "circuit-layers.json"
         expected_circuit_connectivity_filename = "circuit-connectivity.json"
+        (
+            expected_circuit_connectivity,
+            expected_circuit_layers,
+        ) = _build_circuit_layers_and_connectivity(
+            x_dimension=x_dimension, y_dimension=y_dimension, layer_type=layer_type
+        )
 
         # When
         build_circuit_layers_and_connectivity(
@@ -548,13 +555,19 @@ class TestBuildCircuitLayersAndConnectivity:
         )
 
         # Then
-        circuit_layers = load_circuit_layers(expected_circuit_layers_filename)
-        circuit_connectivity = load_circuit_connectivity(
-            expected_circuit_connectivity_filename
-        )
-
-        remove_file_if_exists(expected_circuit_connectivity_filename)
-        remove_file_if_exists(expected_circuit_layers_filename)
+        try:
+            circuit_layers = load_circuit_layers(expected_circuit_layers_filename)
+            circuit_connectivity = load_circuit_connectivity(
+                expected_circuit_connectivity_filename
+            )
+            assert circuit_layers.layers == expected_circuit_layers.layers
+            assert (
+                circuit_connectivity.connectivity
+                == expected_circuit_connectivity.connectivity
+            )
+        finally:
+            remove_file_if_exists(expected_circuit_connectivity_filename)
+            remove_file_if_exists(expected_circuit_layers_filename)
 
 
 class TestCreateRandomCircuit:

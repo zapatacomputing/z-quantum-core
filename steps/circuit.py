@@ -20,6 +20,10 @@ from zquantum.core.circuit import (
 from zquantum.core.utils import create_object
 from zquantum.core.testing import create_random_circuit as _create_random_circuit
 from typing import Dict, Union
+import sympy
+from pyquil import Program
+from pyquil.gates import RX, RY, RZ, CNOT
+
 
 # Generate random parameters for an ansatz
 def generate_random_ansatz_params(
@@ -162,17 +166,32 @@ def create_arbitrary_single_qubit_circuit(ry_parameter_1: float,
     save_circuit(circuit, 'circuit.json')
 
 
-def create_two_qubit_molecular_hydrogen_circuit(rz_parameter:float):
+def create_two_qubit_molecular_hydrogen_circuit(rz_parameter = None, parametrizable=False):
     # Two-qubit ansatz
-    ansatz_circuit2Q = Circuit()
-    ansatz_circuit2Q.qubits = [Qubit(0), Qubit(1)]
-    # Ansatz from Chem Review paper
-    ansatz_circuit2Q.gates = [Gate('Rx', qubits=[Qubit(0)], params = [np.pi]),
-                            Gate('Rx', qubits=[Qubit(0)], params = [-np.pi/2]),
-                            Gate('Ry', qubits=[Qubit(1)], params = [np.pi/2]),
-                            Gate("CNOT", qubits=[Qubit(1), Qubit(0)]),
-                            Gate('Rz', qubits=[Qubit(0)], params = [rz_parameter]),
-                            Gate("CNOT", qubits=[Qubit(1), Qubit(0)]),
-                            Gate('Rx', qubits=[Qubit(0)], params = [np.pi/2]),
-                            Gate('Ry', qubits=[Qubit(1)], params = [-np.pi/2]),]
+
+    if parametrizable:
+        ansatz_circuit2Q = Circuit()
+        symbols = [sympy.Symbol("theta")]
+        for theta in symbols:
+            ansatz_circuit2Q += Circuit(Program(RX(np.pi, 0)))
+            ansatz_circuit2Q += Circuit(Program(RX(-np.pi/2, 0)))
+            ansatz_circuit2Q += Circuit(Program(RY(np.pi/2, 1)))
+            ansatz_circuit2Q += Circuit(Program(CNOT(1, 0)))
+            ansatz_circuit2Q += Circuit(Program(RZ(theta, 0)))
+            ansatz_circuit2Q += Circuit(Program(CNOT(1, 0)))
+            ansatz_circuit2Q += Circuit(Program(RX(np.pi/2, 0)))
+            ansatz_circuit2Q += Circuit(Program(RY(-np.pi/2, 1)))
+    
+    else:
+        ansatz_circuit2Q = Circuit()
+        ansatz_circuit2Q.qubits = [Qubit(0), Qubit(1)]
+        # Ansatz from Chem Review paper
+        ansatz_circuit2Q.gates = [Gate('Rx', qubits=[Qubit(0)], params = [np.pi]),
+                                Gate('Rx', qubits=[Qubit(0)], params = [-np.pi/2]),
+                                Gate('Ry', qubits=[Qubit(1)], params = [np.pi/2]),
+                                Gate("CNOT", qubits=[Qubit(1), Qubit(0)]),
+                                Gate('Rz', qubits=[Qubit(0)], params = [rz_parameter]),
+                                Gate("CNOT", qubits=[Qubit(1), Qubit(0)]),
+                                Gate('Rx', qubits=[Qubit(0)], params = [np.pi/2]),
+                                Gate('Ry', qubits=[Qubit(1)], params = [-np.pi/2]),]
     save_circuit(ansatz_circuit2Q, 'circuit.json')

@@ -18,7 +18,6 @@ from zquantum.core.circuit import (
 )
 from zquantum.core.utils import create_object
 from zquantum.core.testing import create_random_circuit as _create_random_circuit
-
 from typing import Dict, Union
 
 # Generate random parameters for an ansatz
@@ -30,7 +29,10 @@ def generate_random_ansatz_params(
     seed: Union[str, int] = "None",
 ):
     if ansatz_specs != "None":  # TODO None issue in workflow v1
-        ansatz_specs_dict = json.loads(ansatz_specs)
+        if isinstance(ansatz_specs, str):
+            ansatz_specs_dict = json.loads(ansatz_specs)
+        else:
+            ansatz_specs_dict = ansatz_specs
         ansatz = create_object(ansatz_specs_dict)
         number_of_params = ansatz.number_of_params
     elif number_of_parameters != "None":

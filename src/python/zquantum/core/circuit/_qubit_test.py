@@ -59,7 +59,7 @@ class TestQubit(unittest.TestCase):
         qubit = qiskit.circuit.Qubit(register, index)
         target_qubit_dict = {
             "index": index,
-            "info": {"label": "qiskit", "qreg": str(register), "num": index},
+            "info": {"label": "qiskit", "num": index},
         }
 
         # When

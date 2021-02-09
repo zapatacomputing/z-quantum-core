@@ -18,6 +18,7 @@ from zquantum.core.circuit import (
     load_circuit_layers,
     load_circuit_connectivity,
     Circuit,
+    build_uniform_param_grid as _build_uniform_param_grid,
 )
 from zquantum.core.testing import create_random_circuit as _create_random_circuit
 
@@ -340,6 +341,14 @@ class TestBuildUniformParameterGrid:
             "number_of_layers": number_of_ansatz_layers,
             "problem_size": problem_size,
         }
+        ansatz = create_object(copy.deepcopy(ansatz_specs))
+        expected_parameter_grid = _build_uniform_param_grid(
+            ansatz.number_of_params,
+            number_of_layers,
+            min_value=min_value,
+            max_value=max_value,
+            step=step,
+        )
 
         # When
         build_uniform_param_grid(
@@ -351,8 +360,12 @@ class TestBuildUniformParameterGrid:
         )
 
         # Then
-        param_grid = load_parameter_grid(expected_parameter_grid_filename)
-        os.remove(expected_parameter_grid_filename)
+        parameter_grid = load_parameter_grid(expected_parameter_grid_filename)
+        assert [
+            tuple(param) for param in parameter_grid.param_ranges
+        ] == expected_parameter_grid.param_ranges
+
+        remove_file_if_exists(expected_parameter_grid_filename)
 
     @pytest.mark.parametrize(
         "number_of_ansatz_layers, problem_size, number_of_layers, min_value, max_value, step",
@@ -384,6 +397,14 @@ class TestBuildUniformParameterGrid:
             "number_of_layers": number_of_ansatz_layers,
             "problem_size": problem_size,
         }
+        ansatz = create_object(copy.deepcopy(ansatz_specs))
+        expected_parameter_grid = _build_uniform_param_grid(
+            ansatz.number_of_params,
+            number_of_layers,
+            min_value=min_value,
+            max_value=max_value,
+            step=step,
+        )
 
         # When
         build_uniform_param_grid(
@@ -395,8 +416,12 @@ class TestBuildUniformParameterGrid:
         )
 
         # Then
-        param_grid = load_parameter_grid(expected_parameter_grid_filename)
-        os.remove(expected_parameter_grid_filename)
+        parameter_grid = load_parameter_grid(expected_parameter_grid_filename)
+        assert [
+            tuple(param) for param in parameter_grid.param_ranges
+        ] == expected_parameter_grid.param_ranges
+
+        remove_file_if_exists(expected_parameter_grid_filename)
 
     @pytest.mark.parametrize(
         "number_of_params_per_layer, number_of_layers, min_value, max_value, step",
@@ -415,6 +440,13 @@ class TestBuildUniformParameterGrid:
     ):
         # Given
         expected_parameter_grid_filename = "parameter-grid.json"
+        expected_parameter_grid = _build_uniform_param_grid(
+            number_of_params_per_layer,
+            number_of_layers,
+            min_value=min_value,
+            max_value=max_value,
+            step=step,
+        )
 
         # When
         build_uniform_param_grid(
@@ -426,13 +458,18 @@ class TestBuildUniformParameterGrid:
         )
 
         # Then
-        param_grid = load_parameter_grid(expected_parameter_grid_filename)
-        os.remove(expected_parameter_grid_filename)
+        parameter_grid = load_parameter_grid(expected_parameter_grid_filename)
+        assert [
+            tuple(param) for param in parameter_grid.param_ranges
+        ] == expected_parameter_grid.param_ranges
+
+        remove_file_if_exists(expected_parameter_grid_filename)
 
     def test_build_uniform_param_grid_fails_with_both_ansatz_specs_and_number_of_params_per_layer(
         self,
     ):
         # Given
+        expected_parameter_grid_filename = "parameter-grid.json"
         number_of_params_per_layer = 2
         ansatz_specs = {
             "module_name": "zquantum.core.interfaces.mock_objects",
@@ -447,13 +484,16 @@ class TestBuildUniformParameterGrid:
                 ansatz_specs=ansatz_specs,
                 number_of_params_per_layer=number_of_params_per_layer,
             )
+        remove_file_if_exists(expected_parameter_grid_filename)
 
     def test_build_uniform_param_grid_fails_with_neither_ansatz_specs_nor_number_of_params_per_layer(
         self,
     ):
         # When
+        expected_parameter_grid_filename = "parameter-grid.json"
         with pytest.raises(AssertionError):
             build_uniform_param_grid()
+        remove_file_if_exists(expected_parameter_grid_filename)
 
 
 class TestBuildCircuitLayersAndConnectivity:

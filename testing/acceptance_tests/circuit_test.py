@@ -702,50 +702,64 @@ class TestAddAncillaRegisterToCircuitPythonObject:
 
 
 class TestConcatenateCircuits:
-    @pytest.mark.parametrize("number_of_circuits", [i for i in range(1, 20, 3)])
-    def test_concatenate_circuits_python_objects(self, number_of_circuits):
-        # Given
+    @pytest.fixture(params=[i for i in range(1, 20, 3)])
+    def number_of_circuits(self, request):
+        return request.param
+
+    @pytest.fixture()
+    def circuit_set(self, number_of_circuits):
         number_of_qubits = 4
         number_of_gates = 10
         circuit_set = [
             _create_random_circuit(number_of_qubits, number_of_gates, seed=RNDSEED)
             for _ in range(number_of_circuits)
         ]
+        return circuit_set
+
+    @pytest.fixture()
+    def circuit_set_filename(self, circuit_set):
+        circuit_set_filename = "circuit-set.json"
+        save_circuit_set(circuit_set, circuit_set_filename)
+
+        yield circuit_set_filename
+
+        remove_file_if_exists(circuit_set_filename)
+
+    def test_concatenate_circuits_python_objects(self, circuit_set):
+        # Given
         expected_concatenated_circuit_filename = "result-circuit.json"
+        expected_concatenated_circuit = Circuit()
+        for circuit in copy.deepcopy(circuit_set):
+            expected_concatenated_circuit += circuit
 
         # When
         concatenate_circuits(circuit_set)
 
         # Then
-        concatenated_circuit = load_circuit(expected_concatenated_circuit_filename)
-        assert len(concatenated_circuit.gates) == sum(
-            [len(circuit.gates) for circuit in circuit_set]
-        )
-        os.remove(expected_concatenated_circuit_filename)
+        try:
+            concatenated_circuit = load_circuit(expected_concatenated_circuit_filename)
+            assert concatenated_circuit.gates == expected_concatenated_circuit.gates
+        finally:
+            remove_file_if_exists(expected_concatenated_circuit_filename)
 
-    @pytest.mark.parametrize("number_of_circuits", [i for i in range(1, 20, 3)])
-    def test_concatenate_circuits_artifact_file(self, number_of_circuits):
+    def test_concatenate_circuits_artifact_file(self, circuit_set_filename):
         # Given
-        number_of_qubits = 4
-        number_of_gates = 10
-        circuit_set = [
-            _create_random_circuit(number_of_qubits, number_of_gates, seed=RNDSEED)
-            for _ in range(number_of_circuits)
-        ]
-        circuit_set_filename = "circuit-set.json"
-        save_circuit_set(circuit_set, circuit_set_filename)
         expected_concatenated_circuit_filename = "result-circuit.json"
+
+        circuit_set = load_circuit_set(circuit_set_filename)
+        expected_concatenated_circuit = Circuit()
+        for circuit in copy.deepcopy(circuit_set):
+            expected_concatenated_circuit += circuit
 
         # When
         concatenate_circuits(circuit_set_filename)
 
         # Then
-        concatenated_circuit = load_circuit(expected_concatenated_circuit_filename)
-        assert len(concatenated_circuit.gates) == sum(
-            [len(circuit.gates) for circuit in circuit_set]
-        )
-        os.remove(expected_concatenated_circuit_filename)
-        os.remove(circuit_set_filename)
+        try:
+            concatenated_circuit = load_circuit(expected_concatenated_circuit_filename)
+            assert concatenated_circuit.gates == expected_concatenated_circuit.gates
+        finally:
+            remove_file_if_exists(expected_concatenated_circuit_filename)
 
 
 @pytest.fixture(params=[0, 1, 4, 7])

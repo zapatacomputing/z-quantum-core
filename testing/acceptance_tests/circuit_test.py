@@ -599,6 +599,11 @@ class TestCreateRandomCircuit:
     def test_create_random_circuit(self, number_of_qubits, number_of_gates, seed):
         # Given
         expected_filename = "circuit.json"
+        expected_circuit = _create_random_circuit(
+            number_of_qubits,
+            number_of_gates,
+            seed=seed,
+        )
 
         # When
         create_random_circuit(
@@ -608,9 +613,14 @@ class TestCreateRandomCircuit:
         )
 
         # Then
-        circuit = load_circuit(expected_filename)
-
-        os.remove(expected_filename)
+        try:
+            circuit = load_circuit(expected_filename)
+            if seed is not None:
+                assert circuit.gates == expected_circuit.gates
+            else:
+                assert circuit.gates != expected_circuit.gates
+        finally:
+            remove_file_if_exists(expected_filename)
 
 
 class TestAddAncillaRegisterToCircuitPythonObject:

@@ -21,4 +21,4 @@ from .gates import (
     XY,
     ISWAP,
 )
-from .circuit import *
+from ._circuit import *

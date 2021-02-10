@@ -1,6 +1,6 @@
 import json
-from ..gates import Gate
-from ....utils import SCHEMA_VERSION
+from .gates import Gate
+from ...utils import SCHEMA_VERSION
 from typing import List, Dict, Union, TextIO
 
 

@@ -20,6 +20,13 @@ from zquantum.core.utils import create_object
 from zquantum.core.testing import create_random_circuit as _create_random_circuit
 from typing import Dict, Union, List, Optional
 
+
+def load_from_specs(specs):
+    if isinstance(specs, str):
+        specs = json.loads(specs)
+    return create_object(specs)
+
+
 # Generate random parameters for an ansatz
 def generate_random_ansatz_params(
     ansatz_specs: Optional[Union[str, Dict]] = None,
@@ -28,15 +35,10 @@ def generate_random_ansatz_params(
     max_value: float = np.pi * 0.5,
     seed: Optional[int] = None,
 ):
-    assert (ansatz_specs is None) or (number_of_parameters is None)
-    assert not ((ansatz_specs is None) and (number_of_parameters is None))
+    assert (ansatz_specs is None) != (number_of_parameters is None)
 
     if ansatz_specs is not None:
-        if isinstance(ansatz_specs, str):
-            ansatz_specs_dict = json.loads(ansatz_specs)
-        else:
-            ansatz_specs_dict = ansatz_specs
-        ansatz = create_object(ansatz_specs_dict)
+        ansatz = load_from_specs(ansatz_specs)
         number_of_parameters = ansatz.number_of_params
 
     if seed is not None:
@@ -56,9 +58,7 @@ def combine_ansatz_params(params1: str, params2: str):
 
 # Build circuit from ansatz
 def build_ansatz_circuit(ansatz_specs: Union[str, Dict], params: Optional[str] = None):
-    if isinstance(ansatz_specs, str):
-        ansatz_specs = json.loads(ansatz_specs)
-    ansatz = create_object(ansatz_specs)
+    ansatz = load_from_specs(ansatz_specs)
     if params is not None:
         parameters = load_circuit_template_params(params)
         circuit = ansatz.get_executable_circuit(parameters)
@@ -86,9 +86,7 @@ def build_uniform_param_grid(
     assert not ((ansatz_specs is None) and (number_of_params_per_layer is None))
 
     if ansatz_specs is not None:
-        if isinstance(ansatz_specs, str):
-            ansatz_specs = json.loads(ansatz_specs)
-        ansatz = create_object(ansatz_specs)
+        ansatz = load_from_specs(ansatz_specs)
         number_of_params = ansatz.number_of_params
     else:
         number_of_params = number_of_params_per_layer

@@ -1,9 +1,7 @@
-import unittest
 import os
 import numpy as np
 import json
-import subprocess
-from openfermion.ops import QubitOperator, IsingOperator
+from openfermion.ops import IsingOperator
 from .measurement import (
     ExpectationValues,
     Parities,
@@ -25,229 +23,276 @@ from .measurement import (
 )
 from pyquil.wavefunction import Wavefunction
 
-from .bitstring_distribution import BitstringDistribution
 from .testing import create_random_wavefunction
 from .utils import convert_bitstrings_to_tuples, SCHEMA_VERSION
 from collections import Counter
 
 
-class TestMeasurement(unittest.TestCase):
-    def test_expectation_values_io(self):
-        expectation_values = np.array([0.0, 0.0, -1.0])
-        correlations = []
-        correlations.append(np.array([[1.0, -1.0], [-1.0, 1.0]]))
-        correlations.append(np.array([[1.0]]))
+def remove_file_if_exists(filename):
+    try:
+        os.remove(filename)
+    except OSError:
+        pass
 
-        estimator_covariances = []
-        estimator_covariances.append(np.array([[0.1, -0.1], [-0.1, 0.1]]))
-        estimator_covariances.append(np.array([[0.1]]))
 
-        expectation_values_object = ExpectationValues(
-            expectation_values, correlations, estimator_covariances
+def test_expectation_values_io():
+    expectation_values = np.array([0.0, 0.0, -1.0])
+    correlations = []
+    correlations.append(np.array([[1.0, -1.0], [-1.0, 1.0]]))
+    correlations.append(np.array([[1.0]]))
+
+    estimator_covariances = []
+    estimator_covariances.append(np.array([[0.1, -0.1], [-0.1, 0.1]]))
+    estimator_covariances.append(np.array([[0.1]]))
+
+    expectation_values_object = ExpectationValues(
+        expectation_values, correlations, estimator_covariances
+    )
+
+    save_expectation_values(expectation_values_object, "expectation_values.json")
+    expectation_values_object_loaded = load_expectation_values(
+        "expectation_values.json"
+    )
+
+    assert np.allclose(
+        expectation_values_object.values,
+        expectation_values_object_loaded.values,
+    )
+    assert len(expectation_values_object.correlations) == len(
+        expectation_values_object_loaded.correlations
+    )
+    assert len(expectation_values_object.estimator_covariances) == len(
+        expectation_values_object_loaded.estimator_covariances
+    )
+    for i in range(len(expectation_values_object.correlations)):
+        assert np.allclose(
+            expectation_values_object.correlations[i],
+            expectation_values_object_loaded.correlations[i],
+        )
+    for i in range(len(expectation_values_object.estimator_covariances)):
+        assert np.allclose(
+            expectation_values_object.estimator_covariances[i],
+            expectation_values_object_loaded.estimator_covariances[i],
         )
 
-        save_expectation_values(expectation_values_object, "expectation_values.json")
-        expectation_values_object_loaded = load_expectation_values(
-            "expectation_values.json"
-        )
+    remove_file_if_exists("expectation_values.json")
 
-        self.assertTrue(
-            np.allclose(
-                expectation_values_object.values,
-                expectation_values_object_loaded.values,
-            )
-        )
-        self.assertEqual(
-            len(expectation_values_object.correlations),
-            len(expectation_values_object_loaded.correlations),
-        )
-        self.assertEqual(
-            len(expectation_values_object.estimator_covariances),
-            len(expectation_values_object_loaded.estimator_covariances),
-        )
-        for i in range(len(expectation_values_object.correlations)):
-            self.assertTrue(
-                np.allclose(
-                    expectation_values_object.correlations[i],
-                    expectation_values_object_loaded.correlations[i],
-                )
-            )
-        for i in range(len(expectation_values_object.estimator_covariances)):
-            self.assertTrue(
-                np.allclose(
-                    expectation_values_object.estimator_covariances[i],
-                    expectation_values_object_loaded.estimator_covariances[i],
-                )
-            )
 
-        os.remove("expectation_values.json")
+def test_real_wavefunction_io():
+    wf = Wavefunction([0, 1, 0, 0, 0, 0, 0, 0])
+    save_wavefunction(wf, "wavefunction.json")
+    loaded_wf = load_wavefunction("wavefunction.json")
+    assert np.allclose(wf.amplitudes, loaded_wf.amplitudes)
+    remove_file_if_exists("wavefunction.json")
 
-    def test_real_wavefunction_io(self):
-        wf = Wavefunction([0, 1, 0, 0, 0, 0, 0, 0])
-        save_wavefunction(wf, "wavefunction.json")
-        loaded_wf = load_wavefunction("wavefunction.json")
-        self.assertTrue(np.allclose(wf.amplitudes, loaded_wf.amplitudes))
-        os.remove("wavefunction.json")
 
-    def test_imag_wavefunction_io(self):
-        wf = Wavefunction([0, 1j, 0, 0, 0, 0, 0, 0])
-        save_wavefunction(wf, "wavefunction.json")
-        loaded_wf = load_wavefunction("wavefunction.json")
-        self.assertTrue(np.allclose(wf.amplitudes, loaded_wf.amplitudes))
-        os.remove("wavefunction.json")
+def test_imag_wavefunction_io():
+    wf = Wavefunction([0, 1j, 0, 0, 0, 0, 0, 0])
+    save_wavefunction(wf, "wavefunction.json")
+    loaded_wf = load_wavefunction("wavefunction.json")
+    assert np.allclose(wf.amplitudes, loaded_wf.amplitudes)
+    remove_file_if_exists("wavefunction.json")
 
-    def test_sample_from_wavefunction(self):
-        wavefunction = create_random_wavefunction(4)
 
-        samples = sample_from_wavefunction(wavefunction, 100000)
-        sampled_dict = Counter(samples)
+def test_sample_from_wavefunction():
+    wavefunction = create_random_wavefunction(4)
 
-        sampled_probabilities = []
-        for num in range(len(wavefunction) ** 2):
-            bitstring = format(num, "b")
-            while len(bitstring) < len(wavefunction):
-                bitstring = "0" + bitstring
-            # NOTE: our indexing places the state of qubit i at the ith index of the tuple. Hence |01> will result in
-            # the tuple (1, 0)
-            bitstring = bitstring[::-1]
-            measurement = convert_bitstrings_to_tuples([bitstring])[0]
-            sampled_probabilities.append(sampled_dict[measurement] / 100000)
+    samples = sample_from_wavefunction(wavefunction, 100000)
+    sampled_dict = Counter(samples)
 
-        probabilities = wavefunction.probabilities()
-        for sampled_prob, exact_prob in zip(sampled_probabilities, probabilities):
-            self.assertAlmostEqual(sampled_prob, exact_prob, 2)
-
-    def test_sample_from_wavefunction_column_vector(self):
-        n_qubits = 4
+    sampled_probabilities = []
+    for num in range(len(wavefunction) ** 2):
+        bitstring = format(num, "b")
+        while len(bitstring) < len(wavefunction):
+            bitstring = "0" + bitstring
         # NOTE: our indexing places the state of qubit i at the ith index of the tuple. Hence |01> will result in
         # the tuple (1, 0)
-        expected_bitstring = (1, 0, 0, 0)
-        amplitudes = np.array([0] * (2 ** n_qubits)).reshape(2 ** n_qubits, 1)
-        amplitudes[1] = 1  # |0001> will be measured in all cases.
-        wavefunction = Wavefunction(amplitudes)
-        sample = set(sample_from_wavefunction(wavefunction, 500))
-        self.assertEqual(len(sample), 1)
-        self.assertEqual(sample.pop(), expected_bitstring)
+        bitstring = bitstring[::-1]
+        measurement = convert_bitstrings_to_tuples([bitstring])[0]
+        sampled_probabilities.append(sampled_dict[measurement] / 100000)
 
-    def test_sample_from_wavefunction_row_vector(self):
-        n_qubits = 4
-        # NOTE: our indexing places the state of qubit i at the ith index of the tuple. Hence |01> will result in
-        # the tuple (1, 0)
-        expected_bitstring = (1, 0, 0, 0)
-        amplitudes = np.array([0] * (2 ** n_qubits))
-        amplitudes[1] = 1  # |0001> will be measured in all cases.
-        wavefunction = Wavefunction(amplitudes)
-        sample = set(sample_from_wavefunction(wavefunction, 500))
-        self.assertEqual(len(sample), 1)
-        self.assertEqual(sample.pop(), expected_bitstring)
+    probabilities = wavefunction.probabilities()
+    for sampled_prob, exact_prob in zip(sampled_probabilities, probabilities):
+        assert np.allclose(sampled_prob, exact_prob, rtol=0.1)
 
-    def test_sample_from_wavefunction_list(self):
-        n_qubits = 4
-        # NOTE: our indexing places the state of qubit i at the ith index of the tuple. Hence |01> will result in
-        # the tuple (1, 0)
-        expected_bitstring = (1, 0, 0, 0)
-        amplitudes = [0] * (2 ** n_qubits)
-        amplitudes[1] = 1  # |0001> will be measured in all cases.
-        wavefunction = Wavefunction(amplitudes)
-        sample = set(sample_from_wavefunction(wavefunction, 500))
-        self.assertEqual(len(sample), 1)
-        self.assertEqual(sample.pop(), expected_bitstring)
 
-    def test_parities_io(self):
-        measurements = [(1, 0), (1, 0), (0, 1), (0, 0)]
-        op = IsingOperator("[Z0] + [Z1] + [Z0 Z1]")
-        parities = get_parities_from_measurements(measurements, op)
-        save_parities(parities, "parities.json")
-        loaded_parities = load_parities("parities.json")
-        self.assertTrue(np.allclose(parities.values, loaded_parities.values))
-        self.assertEqual(len(parities.correlations), len(loaded_parities.correlations))
-        for i in range(len(parities.correlations)):
-            self.assertTrue(
-                np.allclose(parities.correlations[i], loaded_parities.correlations[i])
-            )
-        os.remove("parities.json")
+def test_sample_from_wavefunction_column_vector():
+    n_qubits = 4
+    # NOTE: our indexing places the state of qubit i at the ith index of the tuple. Hence |01> will result in
+    # the tuple (1, 0)
+    expected_bitstring = (1, 0, 0, 0)
+    amplitudes = np.array([0] * (2 ** n_qubits)).reshape(2 ** n_qubits, 1)
+    amplitudes[1] = 1  # |0001> will be measured in all cases.
+    wavefunction = Wavefunction(amplitudes)
+    sample = set(sample_from_wavefunction(wavefunction, 500))
+    assert len(sample) == 1
+    assert sample.pop() == expected_bitstring
 
-    def test_get_expectation_values_from_parities(self):
-        parities = Parities(values=np.array([[18, 50], [120, 113], [75, 26]]))
-        expectation_values = get_expectation_values_from_parities(parities)
 
-        self.assertEqual(len(expectation_values.values), 3)
-        self.assertAlmostEqual(expectation_values.values[0], -0.47058823529411764)
-        self.assertAlmostEqual(expectation_values.values[1], 0.030042918454935622)
-        self.assertAlmostEqual(expectation_values.values[2], 0.48514851485148514)
+def test_sample_from_wavefunction_row_vector():
+    n_qubits = 4
+    # NOTE: our indexing places the state of qubit i at the ith index of the tuple. Hence |01> will result in
+    # the tuple (1, 0)
+    expected_bitstring = (1, 0, 0, 0)
+    amplitudes = np.array([0] * (2 ** n_qubits))
+    amplitudes[1] = 1  # |0001> will be measured in all cases.
+    wavefunction = Wavefunction(amplitudes)
+    sample = set(sample_from_wavefunction(wavefunction, 500))
+    assert len(sample) == 1
+    assert sample.pop() == expected_bitstring
 
-        self.assertEqual(len(expectation_values.estimator_covariances), 3)
-        self.assertTrue(
-            np.allclose(
-                expectation_values.estimator_covariances[0],
-                np.array([[0.014705882352941176]]),
-            )
-        )
-        self.assertTrue(
-            np.allclose(
-                expectation_values.estimator_covariances[1], np.array([[0.00428797]])
-            )
-        )
 
-        self.assertTrue(
-            np.allclose(
-                expectation_values.estimator_covariances[2], np.array([[0.0075706]])
-            )
-        )
+def test_sample_from_wavefunction_list():
+    n_qubits = 4
+    # NOTE: our indexing places the state of qubit i at the ith index of the tuple. Hence |01> will result in
+    # the tuple (1, 0)
+    expected_bitstring = (1, 0, 0, 0)
+    amplitudes = [0] * (2 ** n_qubits)
+    amplitudes[1] = 1  # |0001> will be measured in all cases.
+    wavefunction = Wavefunction(amplitudes)
+    sample = set(sample_from_wavefunction(wavefunction, 500))
+    assert len(sample) == 1
+    assert sample.pop() == expected_bitstring
 
-    def test_expectation_values_to_real(self):
-        # Given
-        expectation_values = ExpectationValues(
-            np.array([0.0 + 0.1j, 0.0 + 1e-10j, -1.0])
-        )
-        target_expectation_values = ExpectationValues(np.array([0.0, 0.0, -1.0]))
 
-        # When
-        real_expectation_values = expectation_values_to_real(expectation_values)
+def test_parities_io():
+    measurements = [(1, 0), (1, 0), (0, 1), (0, 0)]
+    op = IsingOperator("[Z0] + [Z1] + [Z0 Z1]")
+    parities = get_parities_from_measurements(measurements, op)
+    save_parities(parities, "parities.json")
+    loaded_parities = load_parities("parities.json")
+    assert np.allclose(parities.values, loaded_parities.values)
+    assert len(parities.correlations) == len(loaded_parities.correlations)
+    for i in range(len(parities.correlations)):
+        assert np.allclose(parities.correlations[i], loaded_parities.correlations[i])
+    remove_file_if_exists("parities.json")
 
-        # Then
-        for value in expectation_values.values:
-            self.assertNotIsInstance(value, complex)
-        np.testing.assert_array_equal(
-            real_expectation_values.values, target_expectation_values.values
-        )
 
-    def test_convert_bitstring_to_int(self):
-        bitstring = (0, 1, 0, 1, 0, 1)
-        self.assertEqual(convert_bitstring_to_int(bitstring), 42)
+def test_get_expectation_values_from_parities():
+    parities = Parities(values=np.array([[18, 50], [120, 113], [75, 26]]))
+    expectation_values = get_expectation_values_from_parities(parities)
 
-    def test_check_parity_odd_string(self):
-        bitstring = "01001"
-        marked_qubits = (1, 2, 3)
-        self.assertFalse(check_parity(bitstring, marked_qubits))
+    assert len(expectation_values.values) == 3
+    assert np.isclose(expectation_values.values[0], -0.47058823529411764)
+    assert np.isclose(expectation_values.values[1], 0.030042918454935622)
+    assert np.isclose(expectation_values.values[2], 0.48514851485148514)
 
-    def test_check_parity_even_string(self):
-        bitstring = "01101"
-        marked_qubits = (1, 2, 3)
-        self.assertTrue(check_parity(bitstring, marked_qubits))
+    assert len(expectation_values.estimator_covariances) == 3
+    assert np.allclose(
+        expectation_values.estimator_covariances[0],
+        np.array([[0.014705882352941176]]),
+    )
+    assert np.allclose(
+        expectation_values.estimator_covariances[1], np.array([[0.00428797]])
+    )
 
-    def test_check_parity_odd_tuple(self):
-        bitstring = (0, 1, 0, 0, 1)
-        marked_qubits = (1, 2, 3)
-        self.assertFalse(check_parity(bitstring, marked_qubits))
+    assert np.allclose(
+        expectation_values.estimator_covariances[2], np.array([[0.0075706]])
+    )
 
-    def test_check_parity_even_tuple(self):
-        bitstring = (0, 1, 1, 0, 1)
-        marked_qubits = (1, 2, 3)
-        self.assertTrue(check_parity(bitstring, marked_qubits))
 
-    def test_get_expectation_value_from_frequencies(self):
-        bitstrings = ["001", "001", "110", "000"]
-        bitstring_frequencies = dict(Counter(bitstrings))
-        marked_qubits = (1, 2)
-        self.assertAlmostEqual(
-            get_expectation_value_from_frequencies(
-                marked_qubits, bitstring_frequencies
-            ),
-            -0.5,
-        )
+def test_expectation_vafmneaslues_to_real():
+    # Given
+    expectation_values = ExpectationValues(np.array([0.0 + 0.1j, 0.0 + 1e-10j, -1.0]))
+    target_expectation_values = ExpectationValues(np.array([0.0, 0.0, -1.0]))
 
-    def test_measurement_class_io(self):
+    # When
+    real_expectation_values = expectation_values_to_real(expectation_values)
+
+    # Then
+    for value in expectation_values.values:
+        assert not isinstance(value, complex)
+    np.testing.assert_array_equal(
+        real_expectation_values.values, target_expectation_values.values
+    )
+
+
+def test_convert_bitstring_to_int():
+    bitstring = (0, 1, 0, 1, 0, 1)
+    assert convert_bitstring_to_int(bitstring) == 42
+
+
+def test_check_parity_odd_string():
+    bitstring = "01001"
+    marked_qubits = (1, 2, 3)
+    assert not check_parity(bitstring, marked_qubits)
+
+
+def test_check_parity_even_string():
+    bitstring = "01101"
+    marked_qubits = (1, 2, 3)
+    assert check_parity(bitstring, marked_qubits)
+
+
+def test_check_parity_odd_tuple():
+    bitstring = (0, 1, 0, 0, 1)
+    marked_qubits = (1, 2, 3)
+    assert not check_parity(bitstring, marked_qubits)
+
+
+def test_check_parity_even_tuple():
+    bitstring = (0, 1, 1, 0, 1)
+    marked_qubits = (1, 2, 3)
+    assert check_parity(bitstring, marked_qubits)
+
+
+def test_get_expectation_value_from_frequencies():
+    bitstrings = ["001", "001", "110", "000"]
+    bitstring_frequencies = dict(Counter(bitstrings))
+    marked_qubits = (1, 2)
+    assert np.isclose(
+        get_expectation_value_from_frequencies(marked_qubits, bitstring_frequencies),
+        -0.5,
+    )
+
+
+def test_concatenate_expectation_values():
+    expectation_values_set = [
+        ExpectationValues(np.array([1.0, 2.0])),
+        ExpectationValues(np.array([3.0, 4.0])),
+    ]
+
+    combined_expectation_values = concatenate_expectation_values(expectation_values_set)
+    assert combined_expectation_values.correlations is None
+    assert combined_expectation_values.estimator_covariances is None
+    assert np.allclose(combined_expectation_values.values, [1.0, 2.0, 3.0, 4.0])
+
+
+def test_concatenate_expectation_values_with_cov_and_corr():
+    expectation_values_set = [
+        ExpectationValues(
+            np.array([1.0, 2.0]),
+            estimator_covariances=[np.array([[0.1, 0.2], [0.3, 0.4]])],
+            correlations=[np.array([[-0.1, -0.2], [-0.3, -0.4]])],
+        ),
+        ExpectationValues(
+            np.array([3.0, 4.0]),
+            estimator_covariances=[np.array([[0.1]]), np.array([[0.2]])],
+            correlations=[np.array([[-0.1]]), np.array([[-0.2]])],
+        ),
+    ]
+    combined_expectation_values = concatenate_expectation_values(expectation_values_set)
+    assert len(combined_expectation_values.estimator_covariances) == 3
+    assert np.allclose(
+        combined_expectation_values.estimator_covariances[0],
+        [[0.1, 0.2], [0.3, 0.4]],
+    )
+    assert np.allclose(combined_expectation_values.estimator_covariances[1], [[0.1]])
+    assert np.allclose(combined_expectation_values.estimator_covariances[2], [[0.2]])
+
+    assert len(combined_expectation_values.correlations) == 3
+    assert np.allclose(
+        combined_expectation_values.correlations[0],
+        [[-0.1, -0.2], [-0.3, -0.4]],
+    )
+    assert np.allclose(combined_expectation_values.correlations[1], [[-0.1]])
+    assert np.allclose(combined_expectation_values.correlations[2], [[-0.2]])
+
+    assert np.allclose(combined_expectation_values.values, [1.0, 2.0, 3.0, 4.0])
+
+
+class TestMeasurements:
+    def test_io(self):
         # Given
         measurements_data = {
             "schema": SCHEMA_VERSION + "-measurements",
@@ -286,9 +331,12 @@ class TestMeasurement(unittest.TestCase):
         # Then
         with open(output_filename, "r") as f:
             output_data = json.load(f)
-        self.assertEqual(measurements_data, output_data)
+        assert measurements_data == output_data
 
-    def test_measurement_class_save_for_numpy_integers(self):
+        remove_file_if_exists(input_filename)
+        remove_file_if_exists(output_filename)
+
+    def test_save_for_numpy_integers(self):
         # Given
         target_bitstrings = [(0, 0, 0)]
         input_bitstrings = [(np.int8(0), np.int8(0), np.int8(0))]
@@ -302,12 +350,10 @@ class TestMeasurement(unittest.TestCase):
 
         # Then
         recreated_measurements = Measurements.load_from_file(filename)
-        self.assertEqual(
-            target_measurements.bitstrings, recreated_measurements.bitstrings
-        )
-        os.remove("measurementstest.json")
+        assert target_measurements.bitstrings == recreated_measurements.bitstrings
+        remove_file_if_exists("measurementstest.json")
 
-    def test_measurement_class_intialize_with_bitstrings(self):
+    def test_intialize_with_bitstrings(self):
         # Given
         bitstrings = [
             (0, 0, 0),
@@ -325,22 +371,19 @@ class TestMeasurement(unittest.TestCase):
         measurements = Measurements(bitstrings=bitstrings)
 
         # Then
-        self.assertEqual(
-            measurements.bitstrings,
-            [
-                (0, 0, 0),
-                (0, 0, 1),
-                (0, 0, 1),
-                (0, 1, 0),
-                (0, 1, 1),
-                (1, 0, 0),
-                (1, 0, 1),
-                (1, 1, 0),
-                (1, 1, 1),
-            ],
-        )
+        assert measurements.bitstrings == [
+            (0, 0, 0),
+            (0, 0, 1),
+            (0, 0, 1),
+            (0, 1, 0),
+            (0, 1, 1),
+            (1, 0, 0),
+            (1, 0, 1),
+            (1, 1, 0),
+            (1, 1, 1),
+        ]
 
-    def test_measurement_class_intialize_with_counts(self):
+    def test_intialize_with_counts(self):
         # Given
         counts = {
             "000": 1,
@@ -357,22 +400,19 @@ class TestMeasurement(unittest.TestCase):
         measurements = Measurements.from_counts(counts)
 
         # Then
-        self.assertEqual(
-            measurements.bitstrings,
-            [
-                (0, 0, 0),
-                (0, 0, 1),
-                (0, 0, 1),
-                (0, 1, 0),
-                (0, 1, 1),
-                (1, 0, 0),
-                (1, 0, 1),
-                (1, 1, 0),
-                (1, 1, 1),
-            ],
-        )
+        assert measurements.bitstrings == [
+            (0, 0, 0),
+            (0, 0, 1),
+            (0, 0, 1),
+            (0, 1, 0),
+            (0, 1, 1),
+            (1, 0, 0),
+            (1, 0, 1),
+            (1, 1, 0),
+            (1, 1, 1),
+        ]
 
-    def test_measurement_class_bitstrings(self):
+    def test_bitstrings(self):
         # Given
         measurements_data = {
             "schema": SCHEMA_VERSION + "-measurements",
@@ -405,22 +445,21 @@ class TestMeasurement(unittest.TestCase):
         measurements = Measurements.load_from_file(input_filename)
 
         # When/Then
-        self.assertEqual(
-            measurements.bitstrings,
-            [
-                (0, 0, 0),
-                (0, 0, 1),
-                (0, 1, 0),
-                (0, 1, 1),
-                (1, 0, 0),
-                (1, 1, 0),
-                (1, 1, 1),
-                (1, 0, 1),
-                (0, 0, 1),
-            ],
-        )
+        assert measurements.bitstrings == [
+            (0, 0, 0),
+            (0, 0, 1),
+            (0, 1, 0),
+            (0, 1, 1),
+            (1, 0, 0),
+            (1, 1, 0),
+            (1, 1, 1),
+            (1, 0, 1),
+            (0, 0, 1),
+        ]
 
-    def test_measurement_class_get_counts(self):
+        remove_file_if_exists(input_filename)
+
+    def test_get_counts(self):
         # Given
         measurements_data = {
             "schema": SCHEMA_VERSION + "-measurements",
@@ -456,9 +495,11 @@ class TestMeasurement(unittest.TestCase):
         counts = measurements.get_counts()
 
         # Then
-        self.assertEqual(measurements_data["counts"], counts)
+        assert measurements_data["counts"] == counts
 
-    def test_measurement_class_get_distribution(self):
+        remove_file_if_exists(input_filename)
+
+    def test_get_distribution(self):
         # Given
         measurements_data = {
             "schema": SCHEMA_VERSION + "-measurements",
@@ -494,22 +535,21 @@ class TestMeasurement(unittest.TestCase):
         distribution = measurements.get_distribution()
 
         # Then
-        self.assertEqual(
-            distribution.distribution_dict,
-            {
-                "000": 1 / 9,
-                "001": 2 / 9,
-                "010": 1 / 9,
-                "011": 1 / 9,
-                "011": 1 / 9,
-                "100": 1 / 9,
-                "101": 1 / 9,
-                "110": 1 / 9,
-                "111": 1 / 9,
-            },
-        )
+        assert distribution.distribution_dict == {
+            "000": 1 / 9,
+            "001": 2 / 9,
+            "010": 1 / 9,
+            "011": 1 / 9,
+            "011": 1 / 9,
+            "100": 1 / 9,
+            "101": 1 / 9,
+            "110": 1 / 9,
+            "111": 1 / 9,
+        }
 
-    def test_measurement_class_add_counts(self):
+        remove_file_if_exists(input_filename)
+
+    def test_add_counts(self):
         # Given
         measurements = Measurements()
         measurements_counts = {
@@ -527,35 +567,29 @@ class TestMeasurement(unittest.TestCase):
         measurements.add_counts(measurements_counts)
 
         # Then
-        self.assertEqual(
-            measurements.bitstrings,
-            [
-                (0, 0, 0),
-                (0, 0, 1),
-                (0, 0, 1),
-                (0, 1, 0),
-                (0, 1, 1),
-                (1, 0, 0),
-                (1, 0, 1),
-                (1, 1, 0),
-                (1, 1, 1),
-            ],
-        )
-        self.assertEqual(
-            measurements.get_counts(),
-            {
-                "000": 1,
-                "001": 2,
-                "010": 1,
-                "011": 1,
-                "100": 1,
-                "101": 1,
-                "110": 1,
-                "111": 1,
-            },
-        )
+        assert measurements.bitstrings == [
+            (0, 0, 0),
+            (0, 0, 1),
+            (0, 0, 1),
+            (0, 1, 0),
+            (0, 1, 1),
+            (1, 0, 0),
+            (1, 0, 1),
+            (1, 1, 0),
+            (1, 1, 1),
+        ]
+        assert measurements.get_counts() == {
+            "000": 1,
+            "001": 2,
+            "010": 1,
+            "011": 1,
+            "100": 1,
+            "101": 1,
+            "110": 1,
+            "111": 1,
+        }
 
-    def test_measurement_class_add_measurements(self):
+    def test_add_measurements(self):
         # Given
         measurements = Measurements()
         bitstrings = [
@@ -574,48 +608,42 @@ class TestMeasurement(unittest.TestCase):
         measurements.bitstrings = bitstrings
 
         # Then
-        self.assertEqual(
-            measurements.bitstrings,
-            [
-                (0, 0, 0),
-                (0, 0, 1),
-                (0, 0, 1),
-                (0, 1, 0),
-                (0, 1, 1),
-                (1, 0, 0),
-                (1, 0, 1),
-                (1, 1, 0),
-                (1, 1, 1),
-            ],
-        )
+        assert measurements.bitstrings == [
+            (0, 0, 0),
+            (0, 0, 1),
+            (0, 0, 1),
+            (0, 1, 0),
+            (0, 1, 1),
+            (1, 0, 0),
+            (1, 0, 1),
+            (1, 1, 0),
+            (1, 1, 1),
+        ]
 
         # When
         measurements.bitstrings += bitstrings
 
         # Then
-        self.assertEqual(
-            measurements.bitstrings,
-            [
-                (0, 0, 0),
-                (0, 0, 1),
-                (0, 0, 1),
-                (0, 1, 0),
-                (0, 1, 1),
-                (1, 0, 0),
-                (1, 0, 1),
-                (1, 1, 0),
-                (1, 1, 1),
-                (0, 0, 0),
-                (0, 0, 1),
-                (0, 0, 1),
-                (0, 1, 0),
-                (0, 1, 1),
-                (1, 0, 0),
-                (1, 0, 1),
-                (1, 1, 0),
-                (1, 1, 1),
-            ],
-        )
+        assert measurements.bitstrings == [
+            (0, 0, 0),
+            (0, 0, 1),
+            (0, 0, 1),
+            (0, 1, 0),
+            (0, 1, 1),
+            (1, 0, 0),
+            (1, 0, 1),
+            (1, 1, 0),
+            (1, 1, 1),
+            (0, 0, 0),
+            (0, 0, 1),
+            (0, 0, 1),
+            (0, 1, 0),
+            (0, 1, 1),
+            (1, 0, 0),
+            (1, 0, 1),
+            (1, 1, 0),
+            (1, 1, 1),
+        ]
 
     def test_get_expectation_values_from_measurements(self):
         # Given
@@ -649,11 +677,11 @@ class TestMeasurement(unittest.TestCase):
         expectation_values = measurements.get_expectation_values(ising_operator, False)
         # Then
         np.testing.assert_allclose(expectation_values.values, target_expectation_values)
-        self.assertEqual(len(expectation_values.correlations), 1)
+        assert len(expectation_values.correlations) == 1
         np.testing.assert_allclose(
             expectation_values.correlations[0], target_correlations
         )
-        self.assertEqual(len(expectation_values.estimator_covariances), 1)
+        assert len(expectation_values.estimator_covariances) == 1
         np.testing.assert_allclose(
             expectation_values.estimator_covariances[0], target_covariances
         )
@@ -690,79 +718,11 @@ class TestMeasurement(unittest.TestCase):
         expectation_values = measurements.get_expectation_values(ising_operator, True)
         # Then
         np.testing.assert_allclose(expectation_values.values, target_expectation_values)
-        self.assertEqual(len(expectation_values.correlations), 1)
+        assert len(expectation_values.correlations) == 1
         np.testing.assert_allclose(
             expectation_values.correlations[0], target_correlations
         )
-        self.assertEqual(len(expectation_values.estimator_covariances), 1)
+        assert len(expectation_values.estimator_covariances) == 1
         np.testing.assert_allclose(
             expectation_values.estimator_covariances[0], target_covariances
-        )
-
-    def test_concatenate_expectation_values(self):
-        expectation_values_set = [
-            ExpectationValues(np.array([1.0, 2.0])),
-            ExpectationValues(np.array([3.0, 4.0])),
-        ]
-
-        combined_expectation_values = concatenate_expectation_values(
-            expectation_values_set
-        )
-        self.assertTrue(combined_expectation_values.correlations is None)
-        self.assertTrue(combined_expectation_values.estimator_covariances is None)
-        self.assertTrue(
-            np.allclose(combined_expectation_values.values, [1.0, 2.0, 3.0, 4.0])
-        )
-
-    def test_concatenate_expectation_values_with_cov_and_corr(self):
-        expectation_values_set = [
-            ExpectationValues(
-                np.array([1.0, 2.0]),
-                estimator_covariances=[np.array([[0.1, 0.2], [0.3, 0.4]])],
-                correlations=[np.array([[-0.1, -0.2], [-0.3, -0.4]])],
-            ),
-            ExpectationValues(
-                np.array([3.0, 4.0]),
-                estimator_covariances=[np.array([[0.1]]), np.array([[0.2]])],
-                correlations=[np.array([[-0.1]]), np.array([[-0.2]])],
-            ),
-        ]
-        combined_expectation_values = concatenate_expectation_values(
-            expectation_values_set
-        )
-        self.assertEqual(len(combined_expectation_values.estimator_covariances), 3)
-        self.assertTrue(
-            np.allclose(
-                combined_expectation_values.estimator_covariances[0],
-                [[0.1, 0.2], [0.3, 0.4]],
-            )
-        )
-        self.assertTrue(
-            np.allclose(combined_expectation_values.estimator_covariances[1], [[0.1]])
-        )
-        self.assertTrue(
-            np.allclose(combined_expectation_values.estimator_covariances[2], [[0.2]])
-        )
-
-        self.assertEqual(len(combined_expectation_values.correlations), 3)
-        self.assertTrue(
-            np.allclose(
-                combined_expectation_values.correlations[0],
-                [[-0.1, -0.2], [-0.3, -0.4]],
-            )
-        )
-        self.assertTrue(
-            np.allclose(combined_expectation_values.correlations[1], [[-0.1]])
-        )
-        self.assertTrue(
-            np.allclose(combined_expectation_values.correlations[2], [[-0.2]])
-        )
-
-        self.assertTrue(
-            np.allclose(combined_expectation_values.values, [1.0, 2.0, 3.0, 4.0])
-        )
-
-    def tearDown(self):
-        subprocess.run(
-            ["rm", "measurements_input_test.json", "measurements_output_test.json"]
         )

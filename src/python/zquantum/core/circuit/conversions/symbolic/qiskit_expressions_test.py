@@ -61,14 +61,12 @@ class TestParsingQiskitExpressions:
 
 class TestIntegerPower:
     def test_only_integer_exponents_are_valid_for_integer_power(self):
-        power = FunctionCall("pow", (2, 2.5))
         with pytest.raises(ValueError):
-            integer_pow(power)
+            integer_pow(2, 2.5)
 
     @pytest.mark.parametrize("base", [10, THETA])
     def test_integer_power_with_exponent_0_is_equal_to_one(self, base):
-        power = FunctionCall("pow", (base, 0))
-        assert integer_pow(power) == 1
+        assert integer_pow(base, 0) == 1
 
     @pytest.mark.parametrize(
         "base, exponent, expected_result",
@@ -77,13 +75,11 @@ class TestIntegerPower:
     def test_integer_power_with_positive_exponent_is_converted_to_repeated_multiplication(
         self, base, exponent, expected_result
     ):
-        power = FunctionCall("pow", (base, exponent))
-        assert integer_pow(power) == expected_result
+        assert integer_pow(base, exponent) == expected_result
 
     def test_negative_exponent_cannot_be_used_if_base_is_zero(self):
-        power = FunctionCall("pow", (0, -10))
         with pytest.raises(ValueError):
-            integer_pow(power)
+            integer_pow(0, -10)
 
     @pytest.mark.parametrize(
         "base, exponent, expected_result",
@@ -92,5 +88,4 @@ class TestIntegerPower:
     def test_integer_power_with_negative_exponent_is_converted_to_repeated_multiplication_of_reciprocals(
         self, base, exponent, expected_result
     ):
-        power = FunctionCall("pow", (base, exponent))
-        assert integer_pow(power) == expected_result
+        assert integer_pow(base, exponent) == expected_result

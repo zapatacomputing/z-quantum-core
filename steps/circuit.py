@@ -183,5 +183,5 @@ def create_two_qubit_molecular_hydrogen_circuit(rz_parameter: Union[float, str] 
     ansatz_circuit2Q += Circuit(Program(RX(np.pi/2, 0)))
     ansatz_circuit2Q += Circuit(Program(RY(-np.pi/2, 1)))
     if not parametrizable:
-        ansatz_circuit2Q = ansatz_circuit2Q.evaluate({theta: rz_parameter[0]})
+        ansatz_circuit2Q = ansatz_circuit2Q.evaluate((theta, rz_parameter[0]))
     save_circuit(ansatz_circuit2Q, 'circuit.json')

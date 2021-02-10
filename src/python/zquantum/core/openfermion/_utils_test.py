@@ -31,7 +31,7 @@ from ._utils import (
     evaluate_qubit_operator,
     get_qubitop_from_matrix,
     reverse_qubit_order,
-    expectation,
+    get_expectation_value,
     change_operator_type,
     evaluate_operator_for_parameter_grid,
     get_fermion_number_operator,
@@ -179,15 +179,15 @@ class TestQubitOperator(unittest.TestCase):
         self.assertEqual(op1, reverse_qubit_order(op2, n_qubits=2))
         self.assertEqual(op2, reverse_qubit_order(op1, n_qubits=2))
 
-    def test_expectation(self):
+    def test_get_expectation_value(self):
         """Check <Z0> and <Z1> for the state |100>"""
         # Given
         wf = pyquil.wavefunction.Wavefunction([0, 1, 0, 0, 0, 0, 0, 0])
         op1 = QubitOperator("Z0")
         op2 = QubitOperator("Z1")
         # When
-        exp_op1 = expectation(op1, wf)
-        exp_op2 = expectation(op2, wf)
+        exp_op1 = get_expectation_value(op1, wf)
+        exp_op2 = get_expectation_value(op2, wf)
 
         # Then
         self.assertAlmostEqual(-1, exp_op1)

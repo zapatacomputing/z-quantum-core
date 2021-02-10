@@ -75,8 +75,7 @@ def build_uniform_param_grid(
     max_value: float = 2 * np.pi,
     step: float = np.pi / 5,
 ):
-    assert (ansatz_specs is None) or (number_of_params_per_layer is None)
-    assert not ((ansatz_specs is None) and (number_of_params_per_layer is None))
+    assert (ansatz_specs is None) != (number_of_params_per_layer is None)
 
     if ansatz_specs is not None:
         ansatz = load_from_specs(ansatz_specs)

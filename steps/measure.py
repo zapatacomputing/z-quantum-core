@@ -104,6 +104,7 @@ def evaluate_ansatz_based_cost_function(
     qubit_operator: str,
     noise_model: Optional[str] = None,
     device_connectivity: Optional[str] = None,
+    prior_expectation_values: Optional[str] = None,
 ):
     ansatz_parameters = load_circuit_template_params(ansatz_parameters)
     # Load qubit op
@@ -135,6 +136,12 @@ def evaluate_ansatz_based_cost_function(
     cost_function_specs["ansatz"] = ansatz
     cost_function_specs["backend"] = backend
     cost_function = create_object(cost_function_specs)
+
+    if prior_expectation_values is not None:
+        if isinstance(prior_expectation_values, str):
+            cost_function.estimator.prior_expectation_values = load_expectation_values(
+                prior_expectation_values
+            )
 
     value_estimate = cost_function(ansatz_parameters)
 

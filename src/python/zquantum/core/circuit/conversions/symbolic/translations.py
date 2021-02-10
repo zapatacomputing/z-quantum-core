@@ -25,7 +25,7 @@ def translate_symbol(symbol: Symbol, dialect: ExpressionDialect):
 @translate_expression.register
 def translate_function_call(function_call: FunctionCall, dialect: ExpressionDialect):
     if function_call.name not in dialect.known_functions:
-        raise ValueError(f"Function {function_call.name} not know in this dialect.")
+        raise ValueError(f"Function {function_call.name} is unknown in this dialect.")
 
     return dialect.known_functions[function_call.name](
         *translate_tuple(function_call.args, dialect)

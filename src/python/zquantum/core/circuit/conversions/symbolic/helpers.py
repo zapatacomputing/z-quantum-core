@@ -1,5 +1,5 @@
 """Helper functions for use with symbolic expressions."""
-from functools import reduce, partial
+from functools import reduce
 
 
 def reduction(operator):

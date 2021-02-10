@@ -87,7 +87,7 @@ TEST_CASES_WITHOUT_SYMBOLIC_PARAMS = (
         (orq_gate_cls(q, angle), cirq_gate_func(angle).on(cirq.LineQubit(q)))
         for orq_gate_cls, cirq_gate_func in EQUIVALENT_SINGLE_QUBIT_ROTATION_GATES
         for q in [0, 4, 10, 11]
-        for angle in [np.pi, np.pi / 2, 0.4]
+        for angle in [0, np.pi, np.pi / 2, 0.4]
     ]
     + [
         (

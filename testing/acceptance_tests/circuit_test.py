@@ -128,7 +128,6 @@ class TestGenerateRandomAnsatzParams:
     def test_generate_random_ansatz_params_fails_with_both_ansatz_specs_and_number_of_parameters(
         self,
     ):
-        # Given
         number_of_parameters = 2
         ansatz_specs = {
             "module_name": "zquantum.core.interfaces.mock_objects",
@@ -139,7 +138,6 @@ class TestGenerateRandomAnsatzParams:
         seed = RNDSEED
         filename = "params.json"
 
-        # When
         try:
             with pytest.raises(AssertionError):
                 generate_random_ansatz_params(
@@ -153,11 +151,9 @@ class TestGenerateRandomAnsatzParams:
     def test_generate_random_ansatz_params_fails_with_neither_ansatz_specs_nor_number_of_parameters(
         self,
     ):
-        # Given
         seed = RNDSEED
         filename = "params.json"
 
-        # When
         try:
             with pytest.raises(AssertionError):
                 generate_random_ansatz_params(
@@ -301,7 +297,6 @@ class TestBuildAnsatzCircuit:
             remove_file_if_exists(circuit_filename)
 
     def test_build_ansatz_circuit_raises_exception_on_invalid_inputs(self):
-        # Given
         params_filename = "params.json"
         save_circuit_template_params(np.array([1.0]), params_filename)
 
@@ -312,7 +307,6 @@ class TestBuildAnsatzCircuit:
             "problem_size": 2,
         }
 
-        # When
         try:
             circuit_filename = "circuit.json"
             with pytest.raises(Exception):
@@ -483,7 +477,6 @@ class TestBuildUniformParameterGrid:
     def test_build_uniform_param_grid_fails_with_both_ansatz_specs_and_number_of_params_per_layer(
         self,
     ):
-        # Given
         expected_parameter_grid_filename = "parameter-grid.json"
         number_of_params_per_layer = 2
         ansatz_specs = {
@@ -493,7 +486,6 @@ class TestBuildUniformParameterGrid:
             "problem_size": 1,
         }
 
-        # When
         try:
             with pytest.raises(AssertionError):
                 build_uniform_param_grid(
@@ -506,7 +498,6 @@ class TestBuildUniformParameterGrid:
     def test_build_uniform_param_grid_fails_with_neither_ansatz_specs_nor_number_of_params_per_layer(
         self,
     ):
-        # When
         expected_parameter_grid_filename = "parameter-grid.json"
         try:
             with pytest.raises(AssertionError):

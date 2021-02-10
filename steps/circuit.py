@@ -1,5 +1,4 @@
 import numpy as np
-import json
 from zquantum.core.circuit import (
     build_circuit_layers_and_connectivity as _build_circuit_layers_and_connectivity,
     add_ancilla_register_to_circuit as _add_ancilla_register_to_circuit,
@@ -16,20 +15,14 @@ from zquantum.core.circuit import (
     Circuit,
     save_circuit_set,
 )
-from zquantum.core.utils import create_object
 from zquantum.core.testing import create_random_circuit as _create_random_circuit
-from typing import Dict, Union, List, Optional
-
-
-def load_from_specs(specs):
-    if isinstance(specs, str):
-        specs = json.loads(specs)
-    return create_object(specs)
+from typing import Union, List, Optional
+from .utils import Specs, load_from_specs
 
 
 # Generate random parameters for an ansatz
 def generate_random_ansatz_params(
-    ansatz_specs: Optional[Union[str, Dict]] = None,
+    ansatz_specs: Optional[Specs] = None,
     number_of_parameters: Optional[int] = None,
     min_value: float = -np.pi * 0.5,
     max_value: float = np.pi * 0.5,
@@ -57,7 +50,7 @@ def combine_ansatz_params(params1: str, params2: str):
 
 
 # Build circuit from ansatz
-def build_ansatz_circuit(ansatz_specs: Union[str, Dict], params: Optional[str] = None):
+def build_ansatz_circuit(ansatz_specs: Specs, params: Optional[str] = None):
     ansatz = load_from_specs(ansatz_specs)
     if params is not None:
         parameters = load_circuit_template_params(params)
@@ -75,7 +68,7 @@ def build_ansatz_circuit(ansatz_specs: Union[str, Dict], params: Optional[str] =
 
 # Build uniform parameter grid
 def build_uniform_param_grid(
-    ansatz_specs: Optional[Union[str, Dict]] = None,
+    ansatz_specs: Optional[Specs] = None,
     number_of_params_per_layer: Optional[int] = None,
     number_of_layers: int = 1,
     min_value: float = 0,

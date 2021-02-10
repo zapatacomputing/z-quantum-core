@@ -11,7 +11,7 @@ from .sympy_expressions import expression_from_sympy
 
 @singledispatch
 def expression_from_qiskit(expression):
-    '''Parse Qiskit expression into intermediate expression tree.'''
+    """Parse Qiskit expression into intermediate expression tree."""
     raise NotImplementedError(
         f"Expression {expression} of type {type(expression)} is currently not supported"
     )
@@ -23,12 +23,13 @@ def _number_identity(number: Number):
 
 
 @expression_from_qiskit.register
-def _expr_from_qiskit_param_expr(qiskit_expr: qiskit.circuit.parameterexpression.ParameterExpression):
+def _expr_from_qiskit_param_expr(
+    qiskit_expr: qiskit.circuit.parameterexpression.ParameterExpression,
+):
     # At the moment of writing this (qiskit==0.16.1) there's no other way to introspect
     # a Qiskit parameter expression than by using a property from the private API.
     sympy_expr = qiskit_expr._symbol_expr
     return expression_from_sympy(sympy_expr)
-
 
 
 def integer_pow(pow_call: FunctionCall):
@@ -65,5 +66,5 @@ QISKIT_DIALECT = ExpressionDialect(
         "div": operator.truediv,
         "sub": operator.sub,
         "pow": _integer_pow2,
-    }
+    },
 )

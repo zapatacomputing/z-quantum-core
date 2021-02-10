@@ -19,13 +19,24 @@ EQUIVALENT_EXPRESSIONS = [
         THETA * 2 + 1,
     ),
     (
-        FunctionCall(name='add', args=(1, FunctionCall(name='pow', args=(Symbol(name='theta'), 2)))),
+        FunctionCall(
+            name="add",
+            args=(1, FunctionCall(name="pow", args=(Symbol(name="theta"), 2))),
+        ),
         THETA * THETA + 1,
     ),
     (
-        FunctionCall(name='sub', args=(2, FunctionCall(name='mul', args=(Symbol(name='phi'), Symbol(name='theta'))))),
+        FunctionCall(
+            name="sub",
+            args=(
+                2,
+                FunctionCall(
+                    name="mul", args=(Symbol(name="phi"), Symbol(name="theta"))
+                ),
+            ),
+        ),
         2 - THETA * PHI,
-    )
+    ),
 ]
 
 INTERMEDIATE_EXPRESSIONS = [expr for expr, _ in EQUIVALENT_EXPRESSIONS]

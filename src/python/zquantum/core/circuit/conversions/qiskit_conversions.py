@@ -4,8 +4,28 @@ from .symbolic.qiskit_expressions import expression_from_qiskit, QISKIT_DIALECT
 from .symbolic.sympy_expressions import expression_from_sympy, SYMPY_DIALECT
 from .symbolic.translations import translate_expression
 import qiskit
-from zquantum.core.circuit import X, Y, Z, I, T, H, Gate, Circuit, CZ, CNOT, SWAP, ISWAP, RX, RY, RZ, PHASE, CPHASE, XX, \
-    YY, ZZ
+from zquantum.core.circuit import (
+    X,
+    Y,
+    Z,
+    I,
+    T,
+    H,
+    Gate,
+    Circuit,
+    CZ,
+    CNOT,
+    SWAP,
+    ISWAP,
+    RX,
+    RY,
+    RZ,
+    PHASE,
+    CPHASE,
+    XX,
+    YY,
+    ZZ,
+)
 
 QiskitOperation = Tuple[
     qiskit.circuit.Instruction, List[qiskit.circuit.Qubit], List[qiskit.circuit.Clbit]
@@ -30,7 +50,7 @@ ORQUESTRA_TO_QISKIT_MAPPING = {
     CPHASE: qiskit.extensions.CPhaseGate,
     XX: qiskit.extensions.RXXGate,
     YY: qiskit.extensions.RYYGate,
-    ZZ: qiskit.extensions.RZZGate
+    ZZ: qiskit.extensions.RZZGate,
 }
 
 
@@ -63,8 +83,7 @@ def convert_operation_from_qiskit(operation: QiskitOperation) -> Gate:
             for intermediate_expr in map(expression_from_qiskit, qiskit_op.params)
         ]
         return orquestra_gate_cls(
-            *(qubit.index for qubit in reversed(qiskit_qubits)),
-            *orquestra_params
+            *(qubit.index for qubit in reversed(qiskit_qubits)), *orquestra_params
         )
     except KeyError:
         raise NotImplementedError(

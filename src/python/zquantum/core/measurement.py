@@ -1,5 +1,6 @@
 from __future__ import annotations
 import json
+import copy
 from pyquil.wavefunction import Wavefunction
 import numpy as np
 from openfermion.ops import IsingOperator
@@ -447,6 +448,36 @@ class Measurements:
         return measurements
 
     @classmethod
+    def get_measurements_representing_distribution(
+        cls, bitstring_distribution, number_of_samples
+    ):
+        distribution = copy.deepcopy(bitstring_distribution.distribution_dict)
+
+        bitstring_samples = []
+        for state in distribution:
+            bitstring = tuple([int(measurement_value) for measurement_value in state])
+
+            bitstring_samples += [bitstring] * int(
+                distribution[state] * number_of_samples
+            )
+
+        while len(bitstring_samples) != number_of_samples:
+            leftover_distribution = {
+                states: (distribution[states] * number_of_samples) % 1
+                for states in distribution
+            }
+
+            samples = sample_from_probability_distribution(
+                leftover_distribution, number_of_samples - len(bitstring_samples)
+            )
+            bitstring_samples += [
+                tuple([int(measurement_value) for measurement_value in sample])
+                for sample in samples
+            ]
+
+        return cls(bitstring_samples)
+
+    @classmethod
     def load_from_file(cls, file: TextIO):
         """Load a set of measurements from file
 
@@ -601,7 +632,11 @@ def concatenate_expectation_values(
         The combined expectation values.
     """
 
-    combined_expectation_values = ExpectationValues(np.zeros(0,))
+    combined_expectation_values = ExpectationValues(
+        np.zeros(
+            0,
+        )
+    )
 
     for expectation_values in expectation_values_set:
         combined_expectation_values.values = np.concatenate(

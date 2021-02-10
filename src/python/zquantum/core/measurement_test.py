@@ -1,6 +1,7 @@
 import os
 import numpy as np
 import json
+import pytest
 from openfermion.ops import IsingOperator
 from .measurement import (
     ExpectationValues,
@@ -23,6 +24,7 @@ from .measurement import (
 )
 from pyquil.wavefunction import Wavefunction
 
+from .bitstring_distribution import BitstringDistribution
 from .testing import create_random_wavefunction
 from .utils import convert_bitstrings_to_tuples, SCHEMA_VERSION
 from collections import Counter
@@ -97,7 +99,7 @@ def test_imag_wavefunction_io():
 def test_sample_from_wavefunction():
     wavefunction = create_random_wavefunction(4)
 
-    samples = sample_from_wavefunction(wavefunction, 100000)
+    samples = sample_from_wavefunction(wavefunction, 1000000)
     sampled_dict = Counter(samples)
 
     sampled_probabilities = []
@@ -109,7 +111,7 @@ def test_sample_from_wavefunction():
         # the tuple (1, 0)
         bitstring = bitstring[::-1]
         measurement = convert_bitstrings_to_tuples([bitstring])[0]
-        sampled_probabilities.append(sampled_dict[measurement] / 100000)
+        sampled_probabilities.append(sampled_dict[measurement] / 1000000)
 
     probabilities = wavefunction.probabilities()
     for sampled_prob, exact_prob in zip(sampled_probabilities, probabilities):
@@ -726,3 +728,92 @@ class TestMeasurements:
         np.testing.assert_allclose(
             expectation_values.estimator_covariances[0], target_covariances
         )
+
+    @pytest.mark.parametrize(
+        "bitstring_distribution, number_of_samples",
+        [
+            (BitstringDistribution({"00": 0.5, "11": 0.5}), 1),
+            (BitstringDistribution({"00": 0.5, "11": 0.5}), 10),
+            (BitstringDistribution({"00": 0.5, "11": 0.5}), 51),
+            (BitstringDistribution({"00": 0.5, "11": 0.5}), 137),
+            (BitstringDistribution({"00": 0.5, "11": 0.5}), 5000),
+            (BitstringDistribution({"0000": 0.137, "0001": 0.863}), 100),
+            (
+                BitstringDistribution(
+                    {"00": 0.1234, "01": 0.5467, "10": 0.0023, "11": 0.3276}
+                ),
+                100,
+            ),
+        ],
+    )
+    def test_get_measurements_representing_distribution_returns_right_number_of_samples(
+        self, bitstring_distribution, number_of_samples
+    ):
+        measurements = Measurements.get_measurements_representing_distribution(
+            bitstring_distribution, number_of_samples
+        )
+        assert len(measurements.bitstrings) == number_of_samples
+    @pytest.mark.parametrize(
+        "bitstring_distribution, number_of_samples, expected_counts",
+        [
+            (BitstringDistribution({"01": 0.3333333, "11": (1-0.3333333)}), 3, {"01": 1, "11": 2}),
+            (BitstringDistribution({"01": 0.9999999, "11": (1-0.9999999)}), 1, {"01": 1}),
+        ],
+    )
+    def test_get_measurements_representing_distribution_correctly_samples_leftover_bitstrings(
+        self, bitstring_distribution, number_of_samples, expected_counts
+    ):
+        measurements = Measurements.get_measurements_representing_distribution(
+            bitstring_distribution, number_of_samples
+        )
+        assert measurements.get_counts() == expected_counts
+
+    def test_get_measurements_representing_distribution_randomly_samples_leftover_bitstrings_when_probabilities_equal(
+        self,
+    ):
+        bitstring_distribution = BitstringDistribution({"00": 0.5, "11": 0.5})
+        number_of_samples = 51
+        max_number_of_trials = 10
+        got_different_measurements = False
+        previous_measurements = Measurements.get_measurements_representing_distribution(
+            bitstring_distribution, number_of_samples
+        )
+
+        while not got_different_measurements:
+            measurements = Measurements.get_measurements_representing_distribution(
+                bitstring_distribution, number_of_samples
+            )
+
+            assert (measurements.get_counts() == {"00": 25, "11": 26} or measurements.get_counts() == {"00": 26, "11": 25})
+
+
+            if measurements.get_counts() != previous_measurements.get_counts():
+                got_different_measurements = True
+
+            max_number_of_trials -= 1
+            if max_number_of_trials == 0:
+                break
+        assert got_different_measurements
+
+    @pytest.mark.parametrize(
+        "bitstring_distribution",
+        [
+            BitstringDistribution({"00": 0.5, "11": 0.5}),
+            BitstringDistribution({"000": 0.5, "101": 0.5}),
+            BitstringDistribution({"0000": 0.137, "0001": 0.863}),
+            BitstringDistribution(
+                {"00": 0.1234, "01": 0.5467, "10": 0.0023, "11": 0.3276}
+            ),
+        ],
+    )
+    def test_get_measurements_representing_distribution_gives_exactly_right_counts(
+        self, bitstring_distribution
+    ):
+        number_of_samples = 10000
+        measurements = Measurements.get_measurements_representing_distribution(
+            bitstring_distribution, number_of_samples
+        )
+
+        counts = measurements.get_counts()
+        for bitstring, probability in bitstring_distribution.distribution_dict.items():
+            assert probability * number_of_samples == counts[bitstring]

@@ -8,9 +8,8 @@ import pyquil
 import pyquil.gates
 import sympy
 
-from ...circuit import Gate, ControlledGate
-from ..circuit import Circuit
-from ...circuit.gates import (
+from .. import Circuit, Gate, ControlledGate
+from ..gates import (
     X,
     Y,
     Z,

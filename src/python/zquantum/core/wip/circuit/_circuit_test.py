@@ -6,9 +6,9 @@ import copy
 import sympy
 import random
 
-from ..gates._two_qubit_gates import CNOT
+
 from ...utils import SCHEMA_VERSION
-from ..gates import X, Y, Z, H, I, RX, RY, RZ, PHASE, T, CustomGate
+from .gates import X, Y, Z, H, I, RX, RY, RZ, PHASE, T, CustomGate, CNOT
 from ._circuit import Circuit
 
 CustomParameterizedGate = CustomGate(

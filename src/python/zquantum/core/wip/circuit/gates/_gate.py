@@ -7,7 +7,7 @@ import json
 import copy
 import warnings
 from typing import Tuple, Union, Dict, TextIO, Set, Any, Optional
-from ...utils import SCHEMA_VERSION
+from ....utils import SCHEMA_VERSION
 
 
 def _evaluate_parameter(param, symbol_map):

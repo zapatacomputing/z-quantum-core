@@ -5,9 +5,9 @@ import pyquil.gates
 from pyquil import quilatom
 import sympy
 from pyquil.simulation.matrices import QUANTUM_GATES
-from ..circuit import Circuit
-from ...circuit.gates import ControlledGate, CustomGate
-from ...circuit.conversions.pyquil_conversions import (
+from .. import Circuit
+from ..gates import ControlledGate, CustomGate
+from .pyquil_conversions import (
     convert_to_pyquil,
     convert_from_pyquil, custom_gate_factory_from_pyquil_defgate,
 )

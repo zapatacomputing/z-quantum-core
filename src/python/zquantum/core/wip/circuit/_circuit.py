@@ -1,6 +1,5 @@
 import json
-import numpy as np
-from ..gates import Gate
+from .gates import Gate
 from ...utils import SCHEMA_VERSION
 from typing import List, Dict, Union, TextIO
 

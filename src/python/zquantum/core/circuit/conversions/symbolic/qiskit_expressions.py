@@ -4,7 +4,7 @@ from numbers import Number
 
 import qiskit
 
-from .expressions import ExpressionDialect, FunctionCall, Symbol
+from .expressions import ExpressionDialect, FunctionCall
 from .helpers import reduction
 from .sympy_expressions import expression_from_sympy
 

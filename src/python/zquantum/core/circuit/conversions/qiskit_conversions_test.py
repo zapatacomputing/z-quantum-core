@@ -9,8 +9,6 @@ from zquantum.core.circuit import (
     I,
     T,
     H,
-    Gate,
-    Circuit,
     CNOT,
     CZ,
     SWAP,
@@ -23,7 +21,6 @@ from zquantum.core.circuit import (
     XX,
     YY,
     ZZ,
-    XY,
 )
 from .qiskit_conversions import convert_to_qiskit, convert_from_qiskit, qiskit_qubit
 

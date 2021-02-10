@@ -168,8 +168,9 @@ def create_arbitrary_single_qubit_circuit(ry_parameter_1: float,
 
 def create_two_qubit_molecular_hydrogen_circuit(rz_parameter: Union[float, str] = None, parametrizable=False):
 
-    if not isinstance(rz_parameter, float):
-        rz_parameter = load_circuit_template_params(rz_parameter)[0]
+    if isinstance(rz_parameter, str):
+        rz_parameter = load_circuit_template_params(rz_parameter)
+        print(rz_parameter)
 
     # Two-qubit ansatz
     ansatz_circuit2Q = Circuit()

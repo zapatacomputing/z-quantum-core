@@ -1,3 +1,4 @@
+"""Conversions between Qiskit and Orquestra objects."""
 from functools import singledispatch
 from typing import Tuple, List, Union
 from .symbolic.qiskit_expressions import expression_from_qiskit, QISKIT_DIALECT
@@ -68,13 +69,21 @@ def qiskit_qubit(index: int, num_qubits_in_circuit: int) -> qiskit.circuit.Qubit
 def convert_from_qiskit(
     obj: Union[QiskitOperation, qiskit.QuantumCircuit]
 ) -> Union[Gate, Circuit]:
+    """Convert Qiskit object to a corresponding one in Orquestra.
+
+    Args:
+        obj: Qiskit object to convert. Currently, only gate operations are supported.
+
+    Returns:
+        Orquestra object converted from the `obj`.
+    """
     if isinstance(obj, tuple):
-        return convert_operation_from_qiskit(obj)
+        return _convert_operation_from_qiskit(obj)
     else:
         raise NotImplementedError()
 
 
-def convert_operation_from_qiskit(operation: QiskitOperation) -> Gate:
+def _convert_operation_from_qiskit(operation: QiskitOperation) -> Gate:
     try:
         qiskit_op, qiskit_qubits, _ = operation
         orquestra_gate_cls = QISKIT_TO_ORQUESTRA_MAPPING[type(qiskit_op)]
@@ -92,7 +101,18 @@ def convert_operation_from_qiskit(operation: QiskitOperation) -> Gate:
 
 
 @singledispatch
-def convert_to_qiskit(obj, num_qubits_in_circuit: int):
+def convert_to_qiskit(obj, num_qubits_in_circuit: int) -> QiskitOperation:
+    """Convert Orquestra object to a corresponding one in Qiskit.
+
+    Args:
+        obj: Object to convert. Currenly, only gates are supported.
+        num_qubits_in_circuit: Number of qubits in target Qiskit circuit. It's
+            needed because Orquestra gates don't contain information about
+            number of qubits in circuit, but Qiskit operations do.
+
+    Returns:
+        Qiskit operation converted from the `obj`.
+    """
     raise NotImplementedError(f"Convertion of {obj} to qiskit is not supported.")
 
 

@@ -2,7 +2,7 @@ import pytest
 import qiskit
 import numpy as np
 import sympy
-from zquantum.core.circuit import (
+from .. import (
     X,
     Y,
     Z,

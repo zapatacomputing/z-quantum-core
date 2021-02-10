@@ -5,7 +5,7 @@ from .symbolic.qiskit_expressions import expression_from_qiskit, QISKIT_DIALECT
 from .symbolic.sympy_expressions import expression_from_sympy, SYMPY_DIALECT
 from .symbolic.translations import translate_expression
 import qiskit
-from zquantum.core.circuit import (
+from .. import (
     X,
     Y,
     Z,

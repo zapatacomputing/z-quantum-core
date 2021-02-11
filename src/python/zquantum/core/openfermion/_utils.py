@@ -241,7 +241,7 @@ def evaluate_qubit_operator_list(
     qubit_operator_list: List[QubitOperator], expectation_values: ExpectationValues
 ) -> ValueEstimate:
     """Evaluate the expectation value of a qubit operator list using
-    expectation values for the terms. The expectation values should be in the order 
+    expectation values for the terms. The expectation values should be in the order
     given by the qubit operator list, and the value returned is the sum of all terms in
     the qubit operator list.
 
@@ -361,7 +361,7 @@ def reverse_qubit_order(qubit_operator: QubitOperator, n_qubits: Optional[int] =
     return reversed_op
 
 
-def expectation(qubit_op, wavefunction, reverse_operator=True):
+def get_expectation_value(qubit_op, wavefunction, reverse_operator=True):
     """Get the expectation value of a qubit operator with respect to a wavefunction.
     Args:
         qubit_op (openfermion.ops.QubitOperator): the operator
@@ -723,7 +723,7 @@ def remove_inactive_orbitals(
         n_active (int): the number of active molecular orbitals. If None, include all orbitals beyond n_core.
             Note that the number of active spin orbitals will be twice the number of active molecular orbitals.
         n_core (int): the number of core molecular orbitals to be frozen.
-    
+
     Returns:
         openfermion.ops.InteractionOperator: the interaction operator with inactive orbitals removed, and the
             Hartree-Fock energy of the core orbitals added to the constant.

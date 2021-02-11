@@ -14,7 +14,7 @@ from ..bitstring_distribution import (
 )
 from ..circuit import Circuit, CircuitConnectivity
 from ..measurement import ExpectationValues, Measurements, expectation_values_to_real
-from ..openfermion import expectation, change_operator_type
+from ..openfermion import get_expectation_value, change_operator_type
 
 
 class QuantumBackend(ABC):
@@ -273,7 +273,7 @@ class QuantumSimulator(QuantumBackend):
         """
         wavefunction = self.get_wavefunction(circuit)
         expectation_values = ExpectationValues(
-            [expectation(term, wavefunction) for term in operator]
+            [get_expectation_value(term, wavefunction) for term in operator]
         )
         expectation_values = expectation_values_to_real(expectation_values)
         return expectation_values

@@ -193,7 +193,7 @@ def test_get_expectation_values_from_parities():
     )
 
 
-def test_expectation_vafmneaslues_to_real():
+def test_expectation_values_to_real():
     # Given
     expectation_values = ExpectationValues(np.array([0.0 + 0.1j, 0.0 + 1e-10j, -1.0]))
     target_expectation_values = ExpectationValues(np.array([0.0, 0.0, -1.0]))
@@ -753,6 +753,7 @@ class TestMeasurements:
             bitstring_distribution, number_of_samples
         )
         assert len(measurements.bitstrings) == number_of_samples
+
     @pytest.mark.parametrize(
         "bitstring_distribution, number_of_samples, expected_counts",
         [

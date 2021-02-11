@@ -469,14 +469,18 @@ class Measurements:
                 distribution[state] * number_of_samples
             )
 
-        while len(bitstring_samples) != number_of_samples:
-            leftover_distribution = {
-                states: (distribution[states] * number_of_samples) % 1
-                for states in distribution
-            }
+        if len(bitstring_samples) != number_of_samples:
+            leftover_distribution = BitstringDistribution(
+                {
+                    states: (distribution[states] * number_of_samples) % 1
+                    for states in distribution
+                },
+                True,
+            )
 
             samples = sample_from_probability_distribution(
-                leftover_distribution, number_of_samples - len(bitstring_samples)
+                leftover_distribution.distribution_dict,
+                number_of_samples - len(bitstring_samples),
             )
             bitstring_samples += [
                 tuple([int(measurement_value) for measurement_value in sample])

@@ -33,12 +33,12 @@ class Circuit(object):
         Returns:
             tuple(int)
         """
-        qubits = []
-        for gate in self.gates:
-            for qubit in gate.qubits:
-                if qubit not in qubits:
-                    qubits.append(qubit)
-        return tuple(qubits)
+        qubits = {
+            qubit
+            for gate in self.gates
+            for qubit in gate.qubits
+        }
+        return tuple(sorted(qubits))
 
     @property
     def symbolic_params(self):

@@ -58,6 +58,7 @@ class Circuit(object):
         """Comparison between two Circuit objects.
         """
         if self.qubits != anotherCircuit.qubits:
+        # TODO: figure out if this check is redundant when reworking Circuit
             return False
 
         if len(self.gates) != len(anotherCircuit.gates):
@@ -68,6 +69,7 @@ class Circuit(object):
                 return False
 
         if len(self.symbolic_params) != len(anotherCircuit.symbolic_params):
+        # TODO: figure out if this check is redundant when reworking Circuit
             return False
 
         return True

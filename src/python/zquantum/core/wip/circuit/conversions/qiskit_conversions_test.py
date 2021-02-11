@@ -1,7 +1,9 @@
-import pytest
 import qiskit
 import numpy as np
 import sympy
+import pytest
+
+from ..gates import ControlledGate, CustomGate
 from .. import (
     X,
     Y,
@@ -21,6 +23,7 @@ from .. import (
     XX,
     YY,
     ZZ,
+    Circuit,
 )
 from .qiskit_conversions import convert_to_qiskit, convert_from_qiskit, qiskit_qubit
 
@@ -149,6 +152,48 @@ TEST_CASES_WITH_SYMBOLIC_PARAMS = [
 ]
 
 
+def _single_qubit_qiskit_circuit():
+    qc = qiskit.QuantumCircuit(4)
+    qc.x(0)
+    qc.z(3)
+    return qc
+
+
+def _two_qubit_qiskit_circuit():
+    qc = qiskit.QuantumCircuit(4)
+    qc.cnot(1, 3)
+    return qc
+
+
+def _parametric_qiskit_circuit():
+    qc = qiskit.QuantumCircuit(4)
+    qc.rx(np.pi, 2)
+    return qc
+
+
+EQUIVALENT_CIRCUITS = [
+    (
+        Circuit([
+            X(0),
+            Z(3),
+        ]),
+        _single_qubit_qiskit_circuit(),
+    ),
+    (
+        Circuit([
+            CNOT(1, 3),
+        ]),
+        _two_qubit_qiskit_circuit(),
+    ),
+    (
+        Circuit([
+            RX(2, np.pi),
+        ]),
+        _parametric_qiskit_circuit(),
+    ),
+]
+
+
 def are_qiskit_parameters_equal(param_1, param_2):
     return (
         getattr(param_1, "_symbol_expr", param_1)
@@ -165,7 +210,7 @@ def are_qiskit_gates_equal(gate_1, gate_2):
     )
 
 
-def are_qiskit_operations_equal(operation_1, operation_2):
+def _are_qiskit_operations_equal(operation_1, operation_2):
     return operation_1[1:] == operation_2[1:] and are_qiskit_gates_equal(
         operation_1[0], operation_2[0]
     )
@@ -216,7 +261,7 @@ class TestGateConversionWithSymbolicParameters:
     def test_converting_orquestra_gate_to_qiskit_gives_expected_operation(
         self, orquestra_gate, qiskit_operation
     ):
-        assert are_qiskit_operations_equal(
+        assert _are_qiskit_operations_equal(
             convert_to_qiskit(orquestra_gate, max(orquestra_gate.qubits) + 1),
             qiskit_operation,
         )
@@ -225,3 +270,10 @@ class TestGateConversionWithSymbolicParameters:
         self, orquestra_gate, qiskit_operation
     ):
         assert convert_from_qiskit(qiskit_operation) == orquestra_gate
+
+@pytest.mark.parametrize(
+    "orquestra_circuit, qiskit_circuit", EQUIVALENT_CIRCUITS
+)
+class TestCircuitConversion:
+    def test_foo(self, orquestra_circuit, qiskit_circuit):
+        assert False

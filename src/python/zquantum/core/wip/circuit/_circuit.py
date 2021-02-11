@@ -54,22 +54,22 @@ class Circuit(object):
 
         return set(symbolic_params)
 
-    def __eq__(self, anotherCircuit):
+    def __eq__(self, another_circuit):
         """Comparison between two Circuit objects.
         """
-        if self.qubits != anotherCircuit.qubits:
         # TODO: figure out if this check is redundant when reworking Circuit
+        if self.qubits != another_circuit.qubits:
             return False
 
-        if len(self.gates) != len(anotherCircuit.gates):
+        if len(self.gates) != len(another_circuit.gates):
             return False
 
         for i in range(len(self.gates)):
-            if self.gates[i] != anotherCircuit.gates[i]:
+            if self.gates[i] != another_circuit.gates[i]:
                 return False
 
-        if len(self.symbolic_params) != len(anotherCircuit.symbolic_params):
         # TODO: figure out if this check is redundant when reworking Circuit
+        if len(self.symbolic_params) != len(another_circuit.symbolic_params):
             return False
 
         return True

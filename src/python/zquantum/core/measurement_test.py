@@ -2,6 +2,7 @@ import os
 import numpy as np
 import json
 import pytest
+import random
 from openfermion.ops import IsingOperator
 from .measurement import (
     ExpectationValues,
@@ -26,7 +27,7 @@ from pyquil.wavefunction import Wavefunction
 
 from .bitstring_distribution import BitstringDistribution
 from .testing import create_random_wavefunction
-from .utils import convert_bitstrings_to_tuples, SCHEMA_VERSION
+from .utils import RNDSEED, convert_bitstrings_to_tuples, SCHEMA_VERSION
 from collections import Counter
 
 
@@ -764,6 +765,7 @@ class TestMeasurements:
     def test_get_measurements_representing_distribution_correctly_samples_leftover_bitstrings(
         self, bitstring_distribution, number_of_samples, expected_counts
     ):
+        random.seed(RNDSEED)
         measurements = Measurements.get_measurements_representing_distribution(
             bitstring_distribution, number_of_samples
         )
@@ -772,6 +774,7 @@ class TestMeasurements:
     def test_get_measurements_representing_distribution_randomly_samples_leftover_bitstrings_when_probabilities_equal(
         self,
     ):
+        random.seed(RNDSEED)
         bitstring_distribution = BitstringDistribution({"00": 0.5, "11": 0.5})
         number_of_samples = 51
         max_number_of_trials = 10

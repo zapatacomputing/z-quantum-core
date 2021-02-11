@@ -18,7 +18,7 @@ from zquantum.core.circuit import (
 )
 from zquantum.core.utils import create_object
 from zquantum.core.testing import create_random_circuit as _create_random_circuit
-from typing import Dict, Union
+from typing import Dict, Union, List
 
 # Generate random parameters for an ansatz
 def generate_random_ansatz_params(
@@ -65,6 +65,13 @@ def build_ansatz_circuit(ansatz_specs: Dict, params: str = "None"):
                 "Ansatz is not parametrizable and no parameters has been provided."
             )
         )
+    save_circuit(circuit, "circuit.json")
+
+
+# Build circuit from ansatz
+def build_ansatz_circuit_from_list_input(ansatz_specs: Dict, params: List):
+    ansatz = create_object(json.loads(ansatz_specs))
+    circuit = ansatz.get_executable_circuit(np.array(params))
     save_circuit(circuit, "circuit.json")
 
 

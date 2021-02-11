@@ -100,7 +100,7 @@ def test_imag_wavefunction_io():
 def test_sample_from_wavefunction():
     wavefunction = create_random_wavefunction(4)
 
-    samples = sample_from_wavefunction(wavefunction, 1000000)
+    samples = sample_from_wavefunction(wavefunction, 10000)
     sampled_dict = Counter(samples)
 
     sampled_probabilities = []
@@ -112,11 +112,11 @@ def test_sample_from_wavefunction():
         # the tuple (1, 0)
         bitstring = bitstring[::-1]
         measurement = convert_bitstrings_to_tuples([bitstring])[0]
-        sampled_probabilities.append(sampled_dict[measurement] / 1000000)
+        sampled_probabilities.append(sampled_dict[measurement] / 10000)
 
     probabilities = wavefunction.probabilities()
     for sampled_prob, exact_prob in zip(sampled_probabilities, probabilities):
-        assert np.allclose(sampled_prob, exact_prob, rtol=0.1)
+        assert np.allclose(sampled_prob, exact_prob, atol=0.01)
 
 
 def test_sample_from_wavefunction_column_vector():

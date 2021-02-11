@@ -34,7 +34,7 @@ def _number_identity(number: Number):
 def _expr_from_qiskit_param_expr(
     qiskit_expr: qiskit.circuit.parameterexpression.ParameterExpression,
 ):
-    # At the moment of writing this (qiskit==0.16.1) there's no other way to introspect
+    # At the moment of writing this (qiskit==0.23.2) there's no other way to introspect
     # a Qiskit parameter expression than by using a property from the private API.
     sympy_expr = qiskit_expr._symbol_expr
     return expression_from_sympy(sympy_expr)

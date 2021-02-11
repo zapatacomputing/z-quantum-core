@@ -14,7 +14,7 @@ def is_multiplication_by_reciprocal(sympy_mul: sympy.Mul) -> bool:
 
 
 def is_addition_of_negation(sympy_add: sympy.Add) -> bool:
-    """Check if given sympy addition os of the form x + (-y)."""
+    """Check if given sympy addition is of the form x + (-y)."""
     args = sympy_add.args
     return len(args) == 2 and isinstance(args[1], sympy.Mul) and args[1].args[0] == -1
 

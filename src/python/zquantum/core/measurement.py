@@ -449,8 +449,16 @@ class Measurements:
 
     @classmethod
     def get_measurements_representing_distribution(
-        cls, bitstring_distribution, number_of_samples
+        cls, bitstring_distribution: BitstringDistribution, number_of_samples: int
     ):
+        """Create an instance of the Measurements class that exactly (or as closely as possible) resembles the input
+        bitstring distribution.
+
+        Args:
+            bitstring_distribution (zquantum.core.bitstring_distribution.BitstringDistribution): the bitstring
+                distribution to be sampled
+            number_of_samples (int): the number of measurements
+        """
         distribution = copy.deepcopy(bitstring_distribution.distribution_dict)
 
         bitstring_samples = []

@@ -13,6 +13,7 @@ from zquantum.core.openfermion import (
 from .utils import (
     convert_array_to_dict,
     convert_dict_to_array,
+    sample_from_probability_distribution,
     dec2bin,
     bin2dec,
     is_identity,
@@ -88,8 +89,22 @@ class TestUtils:
         # When/Then
         assert not compare_unitary(U1, U2)
 
-    def test_sample_from_probability_distribution(self):
-        pass
+    @pytest.mark.parametrize(
+        "distribution, number_of_samples",
+        [
+            ({"00": 0.5, "11": 0.5}, 1),
+            ({"00": 0.5, "11": 0.5}, 10),
+            ({"00": 0.5, "11": 0.5}, 17),
+            ({"00": 0.5, "11": 0.5}, 177),
+            ({"0000": 0.137, "0001": 0.863}, 10),
+            ({"0000": 0.137, "0001": 0.863}, 100),
+        ],
+    )
+    def test_sample_from_probability_distribution_gives_correct_number_of_samples(
+        self, distribution, number_of_samples
+    ):
+        counts = sample_from_probability_distribution(distribution, number_of_samples)
+        assert sum(counts.values()) == number_of_samples
 
     def test_convert_bitstrings_to_tuples(self):
         pass

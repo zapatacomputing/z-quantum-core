@@ -16,7 +16,7 @@ def optimize_parametrized_circuit_for_ground_state_of_operator(
     target_operator: Union[SymbolicOperator, str],
     parametrized_circuit: Union[Circuit, str],
     backend_specs: Union[Dict, str],
-    estimator_specs: Union[Dict, str] = None,
+    estimator_specs: Optional[Union[Dict, str]] = None,
     epsilon: Optional[float] = None,
     delta: Optional[float] = None,
     initial_parameters: Union[str, np.ndarray, List[float]] = None,
@@ -46,15 +46,6 @@ def optimize_parametrized_circuit_for_ground_state_of_operator(
         initial_parameters (Union[str, np.ndarray, List[float]] = None,
     """
     # for input_argument in [estimator_specs, epsilon, delta, initial_parameters]:
-    if estimator_specs == "None":
-        estimator_specs = None
-    if epsilon == "None":
-        epsilon = None
-    if delta == "None":
-        delta = None
-    if initial_parameters == "None":
-        initial_parameters = None
-
     if isinstance(optimizer_specs, str):
         optimizer_specs = json.loads(optimizer_specs)
     optimizer = create_object(optimizer_specs)

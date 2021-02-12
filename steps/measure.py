@@ -25,20 +25,20 @@ from zquantum.core.openfermion import (
     load_interaction_rdm,
     load_qubit_operator_set,
 )
-from typing import Dict
+from typing import Dict, Optional
 
 
 def run_circuit_and_measure(
     backend_specs: Dict,
     circuit: str,
-    noise_model: str = "None",
-    device_connectivity: str = "None",
+    noise_model: Optional[str] = None,
+    device_connectivity: Optional[str] = None,
 ):
     if isinstance(backend_specs, str):
         backend_specs = json.loads(backend_specs)
-    if noise_model != "None":
+    if noise_model is not None:
         backend_specs["noise_model"] = load_noise_model(noise_model)
-    if device_connectivity != "None":
+    if device_connectivity is not None:
         backend_specs["device_connectivity"] = load_circuit_connectivity(
             device_connectivity
         )
@@ -53,15 +53,15 @@ def run_circuit_and_measure(
 def run_circuitset_and_measure(
     backend_specs: Dict,
     circuitset: str,
-    noise_model: str = "None",
-    device_connectivity: str = "None",
+    noise_model: Optional[str] = None,
+    device_connectivity: Optional[str] = None,
 ):
 
     if isinstance(backend_specs, str):
         backend_specs = json.loads(backend_specs)
-    if noise_model != "None":
+    if noise_model is not None:
         backend_specs["noise_model"] = load_noise_model(noise_model)
-    if device_connectivity != "None":
+    if device_connectivity is not None:
         backend_specs["device_connectivity"] = load_circuit_connectivity(
             device_connectivity
         )
@@ -77,14 +77,14 @@ def run_circuitset_and_measure(
 def get_bitstring_distribution(
     backend_specs: Dict,
     circuit: str,
-    noise_model: str = "None",
-    device_connectivity: str = "None",
+    noise_model: Optional[str] = None,
+    device_connectivity: Optional[str] = None,
 ):
     if isinstance(backend_specs, str):
         backend_specs = json.loads(backend_specs)
-    if noise_model != "None":
+    if noise_model is not None:
         backend_specs["noise_model"] = load_noise_model(noise_model)
-    if device_connectivity != "None":
+    if device_connectivity is not None:
         backend_specs["device_connectivity"] = load_circuit_connectivity(
             device_connectivity
         )
@@ -102,9 +102,9 @@ def evaluate_ansatz_based_cost_function(
     cost_function_specs: str,
     ansatz_parameters: str,
     qubit_operator: str,
-    noise_model="None",
-    device_connectivity="None",
-    prior_expectation_values="None",
+    noise_model: Optional[str] = None,
+    device_connectivity: Optional[str] = None,
+    prior_expectation_values: Optional[str] = None,
 ):
     ansatz_parameters = load_circuit_template_params(ansatz_parameters)
     # Load qubit op
@@ -118,9 +118,9 @@ def evaluate_ansatz_based_cost_function(
 
     if isinstance(backend_specs, str):
         backend_specs = json.loads(backend_specs)
-    if noise_model != "None":
+    if noise_model is not None:
         backend_specs["noise_model"] = load_noise_model(noise_model)
-    if device_connectivity != "None":
+    if device_connectivity is not None:
         backend_specs["device_connectivity"] = load_circuit_connectivity(
             device_connectivity
         )
@@ -137,10 +137,8 @@ def evaluate_ansatz_based_cost_function(
     cost_function_specs["backend"] = backend
     cost_function = create_object(cost_function_specs)
 
-    if isinstance(prior_expectation_values, str):
-        if prior_expectation_values == "None":
-            prior_expectation_values = None
-        else:
+    if prior_expectation_values is not None:
+        if isinstance(prior_expectation_values, str):
             cost_function.estimator.prior_expectation_values = load_expectation_values(
                 prior_expectation_values
             )
@@ -153,10 +151,10 @@ def evaluate_ansatz_based_cost_function(
 def hamiltonian_analysis(
     qubit_operator: str,
     decomposition_method: str = "greedy",
-    expectation_values: str = "None",
+    expectation_values: Optional[str] = None,
 ):
     operator = load_qubit_operator(qubit_operator)
-    if expectation_values != "None":
+    if expectation_values is not None:
         expecval = load_expectation_values(expectation_values)
     else:
         expecval = None
@@ -173,11 +171,12 @@ def hamiltonian_analysis(
 
 
 def grouped_hamiltonian_analysis(
-    groups: str, expectation_values: str = "None",
+    groups: str,
+    expectation_values: Optional[str] = None,
 ):
     """Calculates the number of measurements required for computing
     the expectation value of a qubit hamiltonian, where co-measurable terms
-    are grouped as a list of QubitOperators. 
+    are grouped as a list of QubitOperators.
 
     We are assuming the exact expectation values are provided
     (i.e. infinite number of measurements or simulations without noise)
@@ -190,19 +189,19 @@ def grouped_hamiltonian_analysis(
     cov(O_{a}^{i}, O_{b}^{i}) = <O_{a}^{i} O_{b}^{i}> - <O_{a}^{i}> <O_{b}^{i}> = 0
 
     ARGS:
-        groups (str): The name of a file containing a list of QubitOperator objects, 
+        groups (str): The name of a file containing a list of QubitOperator objects,
             where each element in the list is a group of co-measurable terms.
-        expectation_values (str): The name of a file containing a single ExpectationValues 
+        expectation_values (str): The name of a file containing a single ExpectationValues
             object with all expectation values of the operators contained in groups.
-            If absent, variances are assumed to be maximal, i.e. 1. 
-            NOTE: YOU HAVE TO MAKE SURE THAT THE ORDER OF EXPECTATION VALUES MATCHES 
-            THE ORDER OF THE TERMS IN THE *GROUPED* TARGET QUBIT OPERATOR, 
+            If absent, variances are assumed to be maximal, i.e. 1.
+            NOTE: YOU HAVE TO MAKE SURE THAT THE ORDER OF EXPECTATION VALUES MATCHES
+            THE ORDER OF THE TERMS IN THE *GROUPED* TARGET QUBIT OPERATOR,
             OTHERWISE THIS FUNCTION WILL NOT RETURN THE CORRECT RESULT.
     """
 
     grouped_operator = load_qubit_operator_set(groups)
 
-    if expectation_values != "None":
+    if expectation_values is not None:
         expecval = load_expectation_values(expectation_values)
     else:
         expecval = None
@@ -218,7 +217,9 @@ def grouped_hamiltonian_analysis(
 
 
 def expectation_values_from_rdms(
-    interactionrdm: str, qubit_operator: str, sort_terms: bool = False,
+    interactionrdm: str,
+    qubit_operator: str,
+    sort_terms: bool = False,
 ):
     operator = load_qubit_operator(qubit_operator)
     rdms = load_interaction_rdm(interactionrdm)
@@ -229,17 +230,17 @@ def expectation_values_from_rdms(
 def expectation_values_from_rdms_for_qubitoperator_list(
     interactionrdm: str, qubit_operator_list: str, sort_terms: bool = False
 ):
-    """Computes expectation values of Pauli strings in a list of QubitOperator given a 
-       fermionic InteractionRDM from OpenFermion. All the expectation values for the 
+    """Computes expectation values of Pauli strings in a list of QubitOperator given a
+       fermionic InteractionRDM from OpenFermion. All the expectation values for the
        operators in the list are written to file in a single ExpectationValues object in the
        same order the operators came in.
 
     ARGS:
-        interactionrdm (str): The name of the file containing the interaction RDM to 
+        interactionrdm (str): The name of the file containing the interaction RDM to
             use for the expectation values computation
-        qubitoperator_list (str): The name of the file containing the list of qubit operators 
+        qubitoperator_list (str): The name of the file containing the list of qubit operators
             to compute the expectation values for in the form of OpenFermion QubitOperator objects
-        sort_terms (bool): whether or not each input qubit operator needs to be sorted before 
+        sort_terms (bool): whether or not each input qubit operator needs to be sorted before
             calculating expectations
     """
 

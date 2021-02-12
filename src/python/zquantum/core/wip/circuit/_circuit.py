@@ -43,14 +43,13 @@ class Circuit:
         return True
 
     def __add__(self, other_circuit):
-        """Add two circuits.
-        """
+        """Add two circuits."""
         new_circuit = type(self)()
         new_circuit.gates = self.gates + other_circuit.gates
         return new_circuit
 
     def evaluate(self, symbols_map: Dict):
-        """ Create a copy of the current Circuit with the parameters of each gate evaluated to the values 
+        """Create a copy of the current Circuit with the parameters of each gate evaluated to the values
         provided in the input symbols map
 
         Args:
@@ -62,7 +61,7 @@ class Circuit:
         return evaluated_circuit
 
     def to_dict(self, serializable: bool = True):
-        """ Creates a dictionary representing a circuit.
+        """Creates a dictionary representing a circuit.
 
         Args:
             serializable (bool): If true, the returned dictionary is serializable so that it can be stored
@@ -88,7 +87,7 @@ class Circuit:
         return circuit_dict
 
     def save(self, filename: str):
-        """ Save the Circuit object to file in JSON format
+        """Save the Circuit object to file in JSON format
 
         Args:
             filename (str): The path to the file to store the Circuit
@@ -98,7 +97,7 @@ class Circuit:
 
     @classmethod
     def load(cls, data: Union[Dict, TextIO]):
-        """ Load a Circuit object from either a file/file-like object or a dictionary
+        """Load a Circuit object from either a file/file-like object or a dictionary
 
         Args:
             data (Union[Dict, TextIO]): The data to load into the Circuit object

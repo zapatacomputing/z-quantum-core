@@ -1,9 +1,9 @@
 import json
-from typing import List, Dict, Union, TextIO, Iterable, Any
+from typing import Dict, Union, TextIO, Iterable
+from functools import reduce
+
 from .gates import Gate
 from ...utils import SCHEMA_VERSION
-
-import sympy
 
 
 class Circuit:
@@ -27,17 +27,8 @@ class Circuit:
 
     @property
     def symbolic_params(self):
-        """ The set of symbolic parameters used in the circuit
-
-        Returns:
-            set: set of all the sympy symbols used as params of gates in the circuit.
-        """
-        symbolic_params = []
-        for gate in self.gates:
-            symbolic_params_per_gate = gate.symbolic_params
-            symbolic_params += symbolic_params_per_gate
-
-        return set(symbolic_params)
+        """Set of all the sympy symbols used as params of gates in the circuit."""
+        return reduce(set.union, (set(gate.symbolic_params) for gate in self._gates))
 
     def __eq__(self, other: "Circuit"):
         if not isinstance(other, type(self)):
@@ -58,8 +49,8 @@ class Circuit:
         new_circuit.gates = self.gates + other_circuit.gates
         return new_circuit
 
-    def evaluate(self, symbols_map: Dict["sympy.Symbol", Any]):
-        """Create a copy of the current Circuit with the parameters of each gate evaluated to the values
+    def evaluate(self, symbols_map: Dict):
+        """ Create a copy of the current Circuit with the parameters of each gate evaluated to the values 
         provided in the input symbols map
 
         Args:

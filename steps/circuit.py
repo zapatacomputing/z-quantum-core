@@ -18,7 +18,7 @@ from zquantum.core.circuit import (
 )
 from zquantum.core.utils import create_object
 from zquantum.core.testing import create_random_circuit as _create_random_circuit
-from typing import Dict, Union
+from typing import Dict, Union, List
 
 # Generate random parameters for an ansatz
 def generate_random_ansatz_params(
@@ -52,10 +52,13 @@ def combine_ansatz_params(params1: str, params2: str):
 
 
 # Build circuit from ansatz
-def build_ansatz_circuit(ansatz_specs: Dict, params: str = "None"):
+def build_ansatz_circuit(ansatz_specs: Dict, params: Union[str, List] = "None"):
     ansatz = create_object(json.loads(ansatz_specs))
     if params != "None":  # TODO Non issue in worklow v1
-        parameters = load_circuit_template_params(params)
+        if isinstance(params, str):
+            parameters = load_circuit_template_params(params)
+        else:
+            parameters = np.array(params)
         circuit = ansatz.get_executable_circuit(parameters)
     elif ansatz.supports_parametrized_circuits:
         circuit = ansatz.parametrized_circuit

@@ -271,9 +271,16 @@ class TestGateConversionWithSymbolicParameters:
     ):
         assert convert_from_qiskit(qiskit_operation) == orquestra_gate
 
+
+def _draw_qiskit_circuit(circuit):
+    return qiskit.visualization.circuit_drawer(circuit, output='text')
+
+
 @pytest.mark.parametrize(
     "orquestra_circuit, qiskit_circuit", EQUIVALENT_CIRCUITS
 )
 class TestCircuitConversion:
-    def test_foo(self, orquestra_circuit, qiskit_circuit):
-        assert False
+    def test_converting_orquestra_circuit_to_qiskit_gives_expected_circuit(self, orquestra_circuit, qiskit_circuit):
+        converted = convert_to_qiskit(orquestra_circuit)
+        assert converted == qiskit_circuit, \
+            f"Converted circuit:\n{_draw_qiskit_circuit(converted)}\n isn't equal to {_draw_qiskit_circuit(qiskit_circuit)}"

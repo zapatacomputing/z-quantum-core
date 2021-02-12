@@ -70,7 +70,7 @@ def build_ansatz_circuit(ansatz_specs: Dict, params: str = "None"):
 
 # Build circuit from ansatz
 def build_ansatz_circuit_from_list_input(ansatz_specs: Dict, params: List):
-    ansatz = create_object(json.loads(ansatz_specs))
+    ansatz = create_object(ansatz_specs)
     circuit = ansatz.get_executable_circuit(np.array(params))
     save_circuit(circuit, "circuit.json")
 

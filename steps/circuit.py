@@ -52,10 +52,13 @@ def combine_ansatz_params(params1: str, params2: str):
 
 
 # Build circuit from ansatz
-def build_ansatz_circuit(ansatz_specs: Dict, params: str = "None"):
+def build_ansatz_circuit(ansatz_specs: Dict, params: Union[str, List] = "None"):
     ansatz = create_object(json.loads(ansatz_specs))
     if params != "None":  # TODO Non issue in worklow v1
-        parameters = load_circuit_template_params(params)
+        if isinstance(params, str):
+            parameters = load_circuit_template_params(params)
+        else:
+            parameters = np.array(params)
         circuit = ansatz.get_executable_circuit(parameters)
     elif ansatz.supports_parametrized_circuits:
         circuit = ansatz.parametrized_circuit
@@ -65,13 +68,6 @@ def build_ansatz_circuit(ansatz_specs: Dict, params: str = "None"):
                 "Ansatz is not parametrizable and no parameters has been provided."
             )
         )
-    save_circuit(circuit, "circuit.json")
-
-
-# Build circuit from ansatz
-def build_ansatz_circuit_from_list_input(ansatz_specs: Dict, params: List):
-    ansatz = create_object(ansatz_specs)
-    circuit = ansatz.get_executable_circuit(np.array(params))
     save_circuit(circuit, "circuit.json")
 
 

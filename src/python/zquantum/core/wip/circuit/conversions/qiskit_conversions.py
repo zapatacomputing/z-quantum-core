@@ -1,10 +1,12 @@
 """Conversions between Qiskit and Orquestra objects."""
 from functools import singledispatch
 from typing import Tuple, List, Union
+
+import qiskit
+
 from .symbolic.qiskit_expressions import expression_from_qiskit, QISKIT_DIALECT
 from .symbolic.sympy_expressions import expression_from_sympy, SYMPY_DIALECT
 from .symbolic.translations import translate_expression
-import qiskit
 from .. import (
     X,
     Y,
@@ -117,7 +119,7 @@ def convert_to_qiskit(obj, num_qubits_in_circuit: int) -> QiskitOperation:
 
 
 @convert_to_qiskit.register
-def convert_orquestra_gate_to_qiskit(
+def _convert_orquestra_gate_to_qiskit(
     gate: Gate, num_qubits_in_circuit: int
 ) -> QiskitOperation:
     try:
@@ -133,3 +135,20 @@ def convert_orquestra_gate_to_qiskit(
         return qiskit_gate_cls(*qiskit_params), qiskit_qubits, []
     except KeyError:
         raise NotImplementedError(f"Conversion of {gate} to Qiskit is not supported.")
+
+
+def _orq_circuit_size(circuit: Circuit):
+    return max(circuit.qubits) + 1
+
+
+@convert_to_qiskit.register
+def _convert_orquestra_circuit_to_qiskit(
+    orq_circuit: Circuit
+):
+    n_qubits = _orq_circuit_size(orq_circuit)
+    qiskit_circuit = qiskit.QuantumCircuit(n_qubits)
+    for qiskit_gate, qiskit_qubits, qiskit_clbits in [convert_to_qiskit(orq_gate, n_qubits)
+                                                      for orq_gate in orq_circuit.gates]:
+        qiskit_circuit.append(qiskit_gate, qiskit_qubits, qiskit_clbits)
+
+    return qiskit_circuit

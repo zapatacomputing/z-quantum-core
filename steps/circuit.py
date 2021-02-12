@@ -52,8 +52,12 @@ def combine_ansatz_params(params1: str, params2: str):
 
 
 # Build circuit from ansatz
-def build_ansatz_circuit(ansatz_specs: Dict, params: Union[str, List] = "None"):
-    ansatz = create_object(json.loads(ansatz_specs))
+def build_ansatz_circuit(
+    ansatz_specs: Union[Dict, str], params: Union[str, List] = "None"
+):
+    if isinstance(ansatz_specs, str):
+        ansatz_specs = json.loads(ansatz_specs)
+    ansatz = create_object(ansatz_specs)
     if params != "None":  # TODO Non issue in worklow v1
         if isinstance(params, str):
             parameters = load_circuit_template_params(params)

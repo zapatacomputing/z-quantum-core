@@ -137,17 +137,14 @@ def _convert_orquestra_gate_to_qiskit(
         raise NotImplementedError(f"Conversion of {gate} to Qiskit is not supported.")
 
 
-def _orq_circuit_size(circuit: Circuit):
-    return max(circuit.qubits) + 1
 
 
 @convert_to_qiskit.register
 def _convert_orquestra_circuit_to_qiskit(
     orq_circuit: Circuit
 ):
-    n_qubits = _orq_circuit_size(orq_circuit)
-    qiskit_circuit = qiskit.QuantumCircuit(n_qubits)
-    for qiskit_gate, qiskit_qubits, qiskit_clbits in [convert_to_qiskit(orq_gate, n_qubits)
+    qiskit_circuit = qiskit.QuantumCircuit(orq_circuit.n_qubits)
+    for qiskit_gate, qiskit_qubits, qiskit_clbits in [convert_to_qiskit(orq_gate, orq_circuit.n_qubits)
                                                       for orq_gate in orq_circuit.gates]:
         qiskit_circuit.append(qiskit_gate, qiskit_qubits, qiskit_clbits)
 

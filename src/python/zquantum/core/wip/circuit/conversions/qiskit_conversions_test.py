@@ -153,7 +153,7 @@ TEST_CASES_WITH_SYMBOLIC_PARAMS = [
 
 
 def _single_qubit_qiskit_circuit():
-    qc = qiskit.QuantumCircuit(4)
+    qc = qiskit.QuantumCircuit(6)
     qc.x(0)
     qc.z(3)
     return qc
@@ -176,19 +176,19 @@ EQUIVALENT_CIRCUITS = [
         Circuit([
             X(0),
             Z(3),
-        ]),
+        ], 6),
         _single_qubit_qiskit_circuit(),
     ),
     (
         Circuit([
             CNOT(1, 3),
-        ]),
+        ], 4),
         _two_qubit_qiskit_circuit(),
     ),
     (
         Circuit([
             RX(2, np.pi),
-        ]),
+        ], 4),
         _parametric_qiskit_circuit(),
     ),
 ]

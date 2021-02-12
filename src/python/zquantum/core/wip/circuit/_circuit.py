@@ -1,46 +1,29 @@
 import json
+from typing import List, Dict, Union, TextIO, Iterable, Any
 from .gates import Gate
 from ...utils import SCHEMA_VERSION
-from typing import List, Dict, Union, TextIO, Any
 
 import sympy
 
 
-class Circuit(object):
-    """Base class for quantum circuits.
-    
-    Attributes:
-        gates (List[Gate]): The sequence of gates to be applied
-        qubits (tuple(int)): The set of qubits that the circuit acts on
-        symbolic_params (set(sympy.Symbol)): A set of the parameter names used in the circuit. If the circuit
-            does not contain parameterized gates, this value is the empty set.
-    """
+class Circuit:
+    """Orquestra representation of a quantum circuit."""
 
-    def __init__(self, gates: List[Gate] = None):
-        """Initialize a quantum circuit 
-
-        Args:
-            gates (List[Gate]): See class definition
-            qubits (tuple(int)): See class definition
-        """
-        if gates is None:
-            self.gates = []
-        else:
-            self.gates = gates
+    def __init__(self, gates: Iterable[Gate], n_qubits: int):
+        self._gates = gates
+        self._n_qubits = n_qubits
 
     @property
-    def qubits(self):
-        """ The qubits that are used by the gates in the circuit
+    def gates(self):
+        """Sequence of quantum gates to apply to qubits in this circuit."""
+        return self._gates
 
-        Returns:
-            tuple(int)
+    @property
+    def n_qubits(self):
+        """Number of qubits in this circuit.
+        Not every qubit has to be used by a gate.
         """
-        qubits = {
-            qubit
-            for gate in self.gates
-            for qubit in gate.qubits
-        }
-        return tuple(sorted(qubits))
+        return self._n_qubits
 
     @property
     def symbolic_params(self):
@@ -56,22 +39,14 @@ class Circuit(object):
 
         return set(symbolic_params)
 
-    def __eq__(self, another_circuit):
-        """Comparison between two Circuit objects.
-        """
-        # TODO: figure out if this check is redundant when reworking Circuit
-        if self.qubits != another_circuit.qubits:
+    def __eq__(self, other: "Circuit"):
+        if not isinstance(other, type(self)):
             return False
 
-        if len(self.gates) != len(another_circuit.gates):
+        if self.n_qubits != other.n_qubits:
             return False
 
-        for i in range(len(self.gates)):
-            if self.gates[i] != another_circuit.gates[i]:
-                return False
-
-        # TODO: figure out if this check is redundant when reworking Circuit
-        if len(self.symbolic_params) != len(another_circuit.symbolic_params):
+        if list(self.gates) != list(other.gates):
             return False
 
         return True

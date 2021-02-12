@@ -50,11 +50,16 @@ def combine_ansatz_params(params1: str, params2: str):
 
 
 # Build circuit from ansatz
-def build_ansatz_circuit(ansatz_specs: Specs, params: Optional[str] = None):
+def build_ansatz_circuit(
+    ansatz_specs: Specs, params: Optional[Union[str, List]] = None
+):
     ansatz = load_from_specs(ansatz_specs)
     if params is not None:
-        parameters = load_circuit_template_params(params)
-        circuit = ansatz.get_executable_circuit(parameters)
+        if isinstance(params, str):
+            params = load_circuit_template_params(params)
+        else:
+            params = np.arrary(params)
+        circuit = ansatz.get_executable_circuit(params)
     elif ansatz.supports_parametrized_circuits:
         circuit = ansatz.parametrized_circuit
     else:

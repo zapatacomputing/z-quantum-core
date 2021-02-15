@@ -384,12 +384,7 @@ def test_symbolic_params_are_correct_for_multiple_gates_with_overlapping_paramet
     ],
 )
 def test_circuit_eq_same_gates(circuit1, circuit2):
-    """The Circuit class should be able to be able to compare two equal circuit"""
-    # When
-    are_equal = circuit1 == circuit2
-
-    # Then
-    assert are_equal
+    assert circuit1 == circuit2
 
 
 @pytest.mark.parametrize(

@@ -94,7 +94,7 @@ def _convert_operation_from_qiskit(operation: QiskitOperation) -> Gate:
             for intermediate_expr in map(expression_from_qiskit, qiskit_op.params)
         ]
         return orquestra_gate_cls(
-            *(qubit.index for qubit in reversed(qiskit_qubits)), *orquestra_params
+            *(qubit.index for qubit in qiskit_qubits), *orquestra_params
         )
     except KeyError:
         raise NotImplementedError(
@@ -125,7 +125,7 @@ def _convert_orquestra_gate_to_qiskit(
     try:
         qiskit_qubits = [
             qiskit_qubit(qubit, num_qubits_in_circuit)
-            for qubit in reversed(gate.qubits)
+            for qubit in gate.qubits
         ]
         qiskit_gate_cls = ORQUESTRA_TO_QISKIT_MAPPING[type(gate)]
         qiskit_params = [
@@ -140,10 +140,11 @@ def _convert_orquestra_gate_to_qiskit(
 @convert_to_qiskit.register
 def _convert_orquestra_circuit_to_qiskit(orq_circuit: Circuit):
     qiskit_circuit = qiskit.QuantumCircuit(orq_circuit.n_qubits)
-    for qiskit_gate, qiskit_qubits, qiskit_clbits in [
+    qiskit_triplets = [
         convert_to_qiskit(orq_gate, orq_circuit.n_qubits)
         for orq_gate in orq_circuit.gates
-    ]:
+    ]
+    for qiskit_gate, qiskit_qubits, qiskit_clbits in qiskit_triplets:
         qiskit_circuit.append(qiskit_gate, qiskit_qubits, qiskit_clbits)
 
     return qiskit_circuit

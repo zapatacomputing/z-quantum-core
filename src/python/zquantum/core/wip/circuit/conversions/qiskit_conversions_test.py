@@ -90,15 +90,15 @@ TEST_CASES_WITHOUT_SYMBOLIC_PARAMS = [
     ],
     *[
         (
-            orquestra_gate(*qubits),
+            orquestra_gate(*qubit_pair),
             (
                 qiskit_gate(),
-                [qiskit_qubit(qubit, max(qubits) + 1) for qubit in reversed(qubits)],
+                [qiskit_qubit(qubit, max(qubit_pair) + 1) for qubit in qubit_pair],
                 [],
             ),
         )
         for orquestra_gate, qiskit_gate in EQUIVALENT_NONPARAMETRIC_TWO_QUBIT_GATES
-        for qubits in [(0, 1), (3, 4), (10, 1)]
+        for qubit_pair in [(0, 1), (3, 4), (10, 1)]
     ],
     *[
         (
@@ -111,15 +111,15 @@ TEST_CASES_WITHOUT_SYMBOLIC_PARAMS = [
     ],
     *[
         (
-            orquestra_gate(*qubits, angle),
+            orquestra_gate(*qubit_pair, angle),
             (
                 qiskit_gate(angle),
-                [qiskit_qubit(qubit, max(qubits) + 1) for qubit in reversed(qubits)],
+                [qiskit_qubit(qubit, max(qubit_pair) + 1) for qubit in qubit_pair],
                 [],
             ),
         )
         for orquestra_gate, qiskit_gate in EQUIVALENT_TWO_QUBIT_ROTATION_GATES
-        for qubits in [(0, 1), (3, 4), (10, 1)]
+        for qubit_pair in [(0, 1), (3, 4), (10, 1)]
         for angle in [0, np.pi, np.pi / 2, 0.4, np.pi / 5]
     ],
 ]
@@ -137,36 +137,44 @@ TEST_CASES_WITH_SYMBOLIC_PARAMS = [
     ],
     *[
         (
-            orquestra_gate(*qubits, orquestra_angle),
+            orquestra_gate(*qubit_pair, orquestra_angle),
             (
                 qiskit_gate(qiskit_angle),
-                [qiskit_qubit(qubit, max(qubits) + 1) for qubit in reversed(qubits)],
+                [qiskit_qubit(qubit, max(qubit_pair) + 1) for qubit in qubit_pair],
                 [],
             ),
         )
         for orquestra_gate, qiskit_gate in EQUIVALENT_TWO_QUBIT_ROTATION_GATES
-        for qubits in [(0, 1), (3, 4), (10, 1)]
+        for qubit_pair in [(0, 1), (3, 4), (10, 1)]
         for orquestra_angle, qiskit_angle in EXAMPLE_SYMBOLIC_ANGLES
     ],
 ]
 
 
+# NOTE: In Qiskit, 0 is the most significant qubit,
+# whereas in Orquestra, 0 is the least significant qubit.
+# This is we need to flip the indices.
+#
+# See more at
+# https://qiskit.org/documentation/tutorials/circuits/1_getting_started_with_qiskit.html#Visualize-Circuit
+
+
 def _single_qubit_qiskit_circuit():
     qc = qiskit.QuantumCircuit(6)
     qc.x(0)
-    qc.z(3)
+    qc.z(2)
     return qc
 
 
 def _two_qubit_qiskit_circuit():
     qc = qiskit.QuantumCircuit(4)
-    qc.cnot(1, 3)
+    qc.cnot(0, 1)
     return qc
 
 
 def _parametric_qiskit_circuit():
     qc = qiskit.QuantumCircuit(4)
-    qc.rx(np.pi, 2)
+    qc.rx(np.pi, 0)
     return qc
 
 
@@ -175,7 +183,7 @@ EQUIVALENT_CIRCUITS = [
         Circuit(
             [
                 X(0),
-                Z(3),
+                Z(2),
             ],
             6,
         ),
@@ -184,7 +192,7 @@ EQUIVALENT_CIRCUITS = [
     (
         Circuit(
             [
-                CNOT(1, 3),
+                CNOT(0, 1),
             ],
             4,
         ),
@@ -193,7 +201,7 @@ EQUIVALENT_CIRCUITS = [
     (
         Circuit(
             [
-                RX(2, np.pi),
+                RX(0, np.pi),
             ],
             4,
         ),
@@ -291,6 +299,6 @@ class TestCircuitConversion:
     ):
         converted = convert_to_qiskit(orquestra_circuit)
         assert converted == qiskit_circuit, (
-            f"Converted circuit:\n{_draw_qiskit_circuit(converted)}\n isn't equal"
+            f"Converted circuit:\n{_draw_qiskit_circuit(converted)}\n isn't equal "
             f"to {_draw_qiskit_circuit(qiskit_circuit)}"
         )

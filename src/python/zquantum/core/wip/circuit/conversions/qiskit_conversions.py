@@ -28,6 +28,7 @@ from .. import (
     XX,
     YY,
     ZZ,
+    ControlledGate,
 )
 
 QiskitOperation = Tuple[
@@ -54,11 +55,22 @@ ORQUESTRA_TO_QISKIT_MAPPING = {
     XX: qiskit.extensions.RXXGate,
     YY: qiskit.extensions.RYYGate,
     ZZ: qiskit.extensions.RZZGate,
+    # TODO: add CustomGate mapping after we decide on "Gate|GateOperation" split
 }
 
 
+def _make_controlled_gate_factory(gate_cls):
+    def _factory(control, *gate_args):
+        return ControlledGate(gate_cls(*gate_args), control)
+
+    return _factory
+
+
 QISKIT_TO_ORQUESTRA_MAPPING = {
-    value: key for key, value in ORQUESTRA_TO_QISKIT_MAPPING.items()
+    **{
+        value: key for key, value in ORQUESTRA_TO_QISKIT_MAPPING.items()
+    },
+    qiskit.extensions.CRXGate: _make_controlled_gate_factory(RX),
 }
 
 
@@ -118,6 +130,7 @@ def convert_to_qiskit(obj, num_qubits_in_circuit: int) -> QiskitOperation:
     raise NotImplementedError(f"Convertion of {obj} to qiskit is not supported.")
 
 
+
 @convert_to_qiskit.register
 def _convert_orquestra_gate_to_qiskit(
     gate: Gate, num_qubits_in_circuit: int
@@ -135,6 +148,17 @@ def _convert_orquestra_gate_to_qiskit(
         return qiskit_gate_cls(*qiskit_params), qiskit_qubits, []
     except KeyError:
         raise NotImplementedError(f"Conversion of {gate} to Qiskit is not supported.")
+
+
+@convert_to_qiskit.register
+def _convert_controlled_gate_to_qiskit(
+    gate: ControlledGate, num_qubits_in_circuit: int
+) -> QiskitOperation:
+    target_gate, _, _ = convert_to_qiskit(gate.target_gate, num_qubits_in_circuit)
+    # NOTE: We're assuming that Orquestra only supports singly-controlled gates.
+    controlled_gate = target_gate.control(1)
+    qiskit_qubits = [qiskit_qubit(qubit, num_qubits_in_circuit) for qubit in gate.qubits]
+    return controlled_gate, qiskit_qubits, []
 
 
 @convert_to_qiskit.register

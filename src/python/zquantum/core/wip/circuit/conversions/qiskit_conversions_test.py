@@ -23,12 +23,16 @@ from .. import (
     YY,
     ZZ,
     Circuit,
+    ControlledGate,
 )
 from .qiskit_conversions import convert_to_qiskit, convert_from_qiskit, qiskit_qubit
 
 
+THETA = sympy.Symbol("theta")
+
+
 EXAMPLE_SYMBOLIC_ANGLES = [
-    (sympy.Symbol("theta"), qiskit.circuit.Parameter("theta")),
+    (THETA, qiskit.circuit.Parameter("theta")),
     (
         sympy.Symbol("x") + sympy.Symbol("y"),
         qiskit.circuit.Parameter("x") + qiskit.circuit.Parameter("y"),
@@ -48,7 +52,6 @@ EQUIVALENT_NONPARAMETRIC_SINGLE_QUBIT_GATES = [
 
 
 EQUIVALENT_NONPARAMETRIC_TWO_QUBIT_GATES = [
-    # TODO: use non-deprecated CXGate
     (CNOT, qiskit.extensions.CXGate),
     (CZ, qiskit.extensions.CZGate),
     (SWAP, qiskit.extensions.SwapGate),
@@ -151,6 +154,32 @@ TEST_CASES_WITH_SYMBOLIC_PARAMS = [
 ]
 
 
+TEST_CASES_FOR_CONTROLLED_GATES = [
+    (
+        ControlledGate(X(0), 1),
+        (
+            qiskit.extensions.XGate().control(1),
+            [
+                qiskit_qubit(1, 2),
+                qiskit_qubit(0, 2),
+            ],
+            [],
+        )
+    ),
+    (
+        ControlledGate(RX(1, THETA), 3),
+        (
+            qiskit.extensions.RXGate(qiskit.circuit.Parameter("theta")).control(1),
+            [
+                qiskit_qubit(3, 4),
+                qiskit_qubit(1, 4),
+            ],
+            [],
+        ),
+    ),
+]
+
+
 # NOTE: In Qiskit, 0 is the most significant qubit,
 # whereas in Orquestra, 0 is the least significant qubit.
 # This is we need to flip the indices.
@@ -175,6 +204,12 @@ def _two_qubit_qiskit_circuit():
 def _parametric_qiskit_circuit():
     qc = qiskit.QuantumCircuit(4)
     qc.rx(np.pi, 0)
+    return qc
+
+
+def _qiskit_circuit_with_controlled_gate():
+    qc = qiskit.QuantumCircuit(4)
+    qc.append(qiskit.extensions.SwapGate().control(1), [1, 0, 2])
     return qc
 
 
@@ -204,6 +239,15 @@ EQUIVALENT_CIRCUITS = [
                 RX(0, np.pi),
             ],
             4,
+        ),
+        _parametric_qiskit_circuit(),
+    ),
+    (
+        Circuit(
+            [
+                ControlledGate(SWAP(0, 2), 1),
+            ],
+            5,
         ),
         _parametric_qiskit_circuit(),
     ),
@@ -274,6 +318,24 @@ class TestQiskitQubit:
     "orquestra_gate, qiskit_operation", TEST_CASES_WITH_SYMBOLIC_PARAMS
 )
 class TestGateConversionWithSymbolicParameters:
+    def test_converting_orquestra_gate_to_qiskit_gives_expected_operation(
+        self, orquestra_gate, qiskit_operation
+    ):
+        assert _are_qiskit_operations_equal(
+            convert_to_qiskit(orquestra_gate, max(orquestra_gate.qubits) + 1),
+            qiskit_operation,
+        )
+
+    def test_converting_qiskit_operation_to_orquestra_gives_expected_gate(
+        self, orquestra_gate, qiskit_operation
+    ):
+        assert convert_from_qiskit(qiskit_operation) == orquestra_gate
+
+
+@pytest.mark.parametrize(
+    "orquestra_gate, qiskit_operation", TEST_CASES_FOR_CONTROLLED_GATES
+)
+class TestGateConversionForControlledGates:
     def test_converting_orquestra_gate_to_qiskit_gives_expected_operation(
         self, orquestra_gate, qiskit_operation
     ):

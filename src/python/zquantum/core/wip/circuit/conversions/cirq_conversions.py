@@ -35,7 +35,7 @@ RotationGateFactory = Callable[[Param], cirq.EigenGate]
 def make_rotation_factory(
     eigengate_cls: Type[cirq.EigenGate], global_shift: float = 0
 ) -> RotationGateFactory:
-    """Construct a factor for rotation gate based on given EigenGate subclass.
+    """Construct a factory for rotation gate based on given EigenGate subclass.
 
     This function might be thought of as a partial which freezes global_shift
     parameter but also scales the exponent parameter of eigengate_cls initializer.

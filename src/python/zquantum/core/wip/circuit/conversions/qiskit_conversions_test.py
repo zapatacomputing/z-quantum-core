@@ -3,7 +3,6 @@ import numpy as np
 import sympy
 import pytest
 
-from ..gates import ControlledGate, CustomGate
 from .. import (
     X,
     Y,
@@ -173,22 +172,31 @@ def _parametric_qiskit_circuit():
 
 EQUIVALENT_CIRCUITS = [
     (
-        Circuit([
-            X(0),
-            Z(3),
-        ], 6),
+        Circuit(
+            [
+                X(0),
+                Z(3),
+            ],
+            6,
+        ),
         _single_qubit_qiskit_circuit(),
     ),
     (
-        Circuit([
-            CNOT(1, 3),
-        ], 4),
+        Circuit(
+            [
+                CNOT(1, 3),
+            ],
+            4,
+        ),
         _two_qubit_qiskit_circuit(),
     ),
     (
-        Circuit([
-            RX(2, np.pi),
-        ], 4),
+        Circuit(
+            [
+                RX(2, np.pi),
+            ],
+            4,
+        ),
         _parametric_qiskit_circuit(),
     ),
 ]
@@ -273,14 +281,16 @@ class TestGateConversionWithSymbolicParameters:
 
 
 def _draw_qiskit_circuit(circuit):
-    return qiskit.visualization.circuit_drawer(circuit, output='text')
+    return qiskit.visualization.circuit_drawer(circuit, output="text")
 
 
-@pytest.mark.parametrize(
-    "orquestra_circuit, qiskit_circuit", EQUIVALENT_CIRCUITS
-)
+@pytest.mark.parametrize("orquestra_circuit, qiskit_circuit", EQUIVALENT_CIRCUITS)
 class TestCircuitConversion:
-    def test_converting_orquestra_circuit_to_qiskit_gives_expected_circuit(self, orquestra_circuit, qiskit_circuit):
+    def test_converting_orquestra_circuit_to_qiskit_gives_expected_circuit(
+        self, orquestra_circuit, qiskit_circuit
+    ):
         converted = convert_to_qiskit(orquestra_circuit)
-        assert converted == qiskit_circuit, \
-            f"Converted circuit:\n{_draw_qiskit_circuit(converted)}\n isn't equal to {_draw_qiskit_circuit(qiskit_circuit)}"
+        assert converted == qiskit_circuit, (
+            f"Converted circuit:\n{_draw_qiskit_circuit(converted)}\n isn't equal"
+            f"to {_draw_qiskit_circuit(qiskit_circuit)}"
+        )

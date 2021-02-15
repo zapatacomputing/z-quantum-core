@@ -8,26 +8,8 @@ import pyquil
 import pyquil.gates
 import sympy
 
-from .. import Circuit, Gate, ControlledGate
-from ..gates import (
-    X,
-    Y,
-    Z,
-    RX,
-    RY,
-    RZ,
-    PHASE,
-    T,
-    I,
-    H,
-    Dagger,
-    CZ,
-    CNOT,
-    CPHASE,
-    SWAP,
-    CustomGate,
-    XY
-)
+
+from ... import circuit
 from .symbolic.sympy_expressions import expression_from_sympy
 from .symbolic.translations import translate_expression
 from .symbolic.pyquil_expressions import QUIL_DIALECT, expression_from_pyquil
@@ -35,41 +17,41 @@ from .symbolic.sympy_expressions import SYMPY_DIALECT
 
 
 ORQUESTRA_CLS_TO_PYQUIL_FUNCTION = {
-    X: pyquil.gates.X,
-    Y: pyquil.gates.Y,
-    Z: pyquil.gates.Z,
-    I: pyquil.gates.I,
-    T: pyquil.gates.T,
-    H: pyquil.gates.H,
-    RX: pyquil.gates.RX,
-    RY: pyquil.gates.RY,
-    RZ: pyquil.gates.RZ,
-    PHASE: pyquil.gates.PHASE,
-    CZ: pyquil.gates.CZ,
-    CNOT: pyquil.gates.CNOT,
-    SWAP: pyquil.gates.SWAP,
-    CPHASE: pyquil.gates.CPHASE,
-    XY: pyquil.gates.XY
+    circuit.X: pyquil.gates.X,
+    circuit.Y: pyquil.gates.Y,
+    circuit.Z: pyquil.gates.Z,
+    circuit.I: pyquil.gates.I,
+    circuit.T: pyquil.gates.T,
+    circuit.H: pyquil.gates.H,
+    circuit.RX: pyquil.gates.RX,
+    circuit.RY: pyquil.gates.RY,
+    circuit.RZ: pyquil.gates.RZ,
+    circuit.PHASE: pyquil.gates.PHASE,
+    circuit.CZ: pyquil.gates.CZ,
+    circuit.CNOT: pyquil.gates.CNOT,
+    circuit.SWAP: pyquil.gates.SWAP,
+    circuit.CPHASE: pyquil.gates.CPHASE,
+    circuit.XY: pyquil.gates.XY
 }
 
 
 # A Mapping from PyQuil gate names to the Orquestra classes.
 PYQUIL_NAME_TO_ORQUESTRA_CLS = {
-    "X": X,
-    "Y": Y,
-    "Z": Z,
-    "T": T,
-    "I": I,
-    "H": H,
-    "RX": RX,
-    "RY": RY,
-    "RZ": RZ,
-    "PHASE": PHASE,
-    "CZ": CZ,
-    "CNOT": CNOT,
-    "CPHASE": CPHASE,
-    "SWAP": SWAP,
-    "XY": XY
+    "X": circuit.X,
+    "Y": circuit.Y,
+    "Z": circuit.Z,
+    "T": circuit.T,
+    "I": circuit.I,
+    "H": circuit.H,
+    "RX": circuit.RX,
+    "RY": circuit.RY,
+    "RZ": circuit.RZ,
+    "PHASE": circuit.PHASE,
+    "CZ": circuit.CZ,
+    "CNOT": circuit.CNOT,
+    "CPHASE": circuit.CPHASE,
+    "SWAP": circuit.SWAP,
+    "XY": circuit.XY
 }
 
 
@@ -78,13 +60,13 @@ def pyquil_qubits_to_numbers(qubits: Iterable[pyquil.quil.Qubit]):
 
 
 @overload
-def convert_to_pyquil(obj: Circuit) -> pyquil.Program:
+def convert_to_pyquil(obj: circuit.Circuit) -> pyquil.Program:
     pass
 
 
 @overload
 def convert_to_pyquil(
-    obj: Gate, program: Optional[pyquil.Program] = None
+    obj: circuit.Gate, program: Optional[pyquil.Program] = None
 ) -> pyquil.quil.Gate:
     pass
 
@@ -96,7 +78,7 @@ def convert_to_pyquil(obj, program: Optional[pyquil.Program] = None):
 
 @convert_to_pyquil.register
 def convert_gate_to_pyquil(
-    gate: Gate, program: Optional[pyquil.Program] = None
+    gate: circuit.Gate, program: Optional[pyquil.Program] = None
 ) -> pyquil.gates.Gate:
     required_declarations = (
         pyquil.quil.Declare(str(param), "REAL") for param in gate.symbolic_params
@@ -108,7 +90,7 @@ def convert_gate_to_pyquil(
 
 
 def _convert_ordinary_gate_to_pyquil(
-    gate: Gate, _program: Optional[pyquil.Program] = None
+    gate: circuit.Gate, _program: Optional[pyquil.Program] = None
 ) -> pyquil.gates.Gate:
     pyquil_function = ORQUESTRA_CLS_TO_PYQUIL_FUNCTION[type(gate)]
     translated_params = [
@@ -120,7 +102,7 @@ def _convert_ordinary_gate_to_pyquil(
 
 @singledispatch
 def _convert_gate_to_pyquil(
-    gate: Gate, _program: Optional[pyquil.Program] = None
+    gate: circuit.Gate, _program: Optional[pyquil.Program] = None
 ) -> pyquil.gates.Gate:
     try:
         return _convert_ordinary_gate_to_pyquil(gate, _program)
@@ -130,9 +112,9 @@ def _convert_gate_to_pyquil(
 
 @_convert_gate_to_pyquil.register
 def convert_controlled_gate_to_pyquil(
-    gate: ControlledGate, _program: Optional[pyquil.Program]
+    gate: circuit.ControlledGate, _program: Optional[pyquil.Program]
 ) -> pyquil.gates.Gate:
-    if type(gate) in (CZ, CNOT, CPHASE):
+    if type(gate) in (circuit.CZ, circuit.CNOT, circuit.CPHASE):
         return _convert_ordinary_gate_to_pyquil(gate, _program)
     else:
         return convert_to_pyquil(gate.target_gate, _program).controlled(gate.control)
@@ -140,14 +122,14 @@ def convert_controlled_gate_to_pyquil(
 
 @_convert_gate_to_pyquil.register
 def convert_dagger_to_pyquil(
-    gate: Dagger, _program: Optional[pyquil.Program]
+    gate: circuit.Dagger, _program: Optional[pyquil.Program]
 ) -> pyquil.gates.Gate:
     return convert_to_pyquil(gate.gate, _program).dagger()
 
 
-@_convert_gate_to_pyquil.register(CustomGate)
+@_convert_gate_to_pyquil.register(circuit.CustomGate)
 def convert_custom_gate_to_pyquil(
-    gate: CustomGate, program: Optional[pyquil.Program]
+    gate: circuit.CustomGate, program: Optional[pyquil.Program]
 ) -> pyquil.gates.Gate:
     gate_definition = None
 
@@ -185,9 +167,9 @@ def convert_custom_gate_to_pyquil(
     return new_gate
 
 
-@convert_to_pyquil.register(Circuit)
+@convert_to_pyquil.register(circuit.Circuit)
 def convert_circuit_to_pyquil(
-    circuit: Circuit, _program: Optional[pyquil.Program] = None
+    circuit: circuit.Circuit, _program: Optional[pyquil.Program] = None
 ) -> pyquil.Program:
     program = pyquil.Program()
     for gate in circuit.gates:
@@ -228,7 +210,7 @@ def custom_gate_factory_from_pyquil_defgate(gate: pyquil.quil.DefGate):
 
     def _factory(*args):
         qubits = args[:num_qubits]
-        orquestra_gate = CustomGate(sympy_matrix, qubits=tuple(qubits), name=gate.name)
+        orquestra_gate = circuit.CustomGate(sympy_matrix, qubits=tuple(qubits), name=gate.name)
         if len(args) != num_qubits:
             parameters = args[num_qubits:]
 
@@ -241,7 +223,7 @@ def custom_gate_factory_from_pyquil_defgate(gate: pyquil.quil.DefGate):
 
 
 @convert_from_pyquil.register
-def convert_gate_from_pyquil(gate: pyquil.quil.Gate, custom_gates=None) -> Gate:
+def convert_gate_from_pyquil(gate: pyquil.quil.Gate, custom_gates=None) -> circuit.Gate:
     number_of_control_modifiers = gate.modifiers.count("CONTROLLED")
 
     all_qubits = pyquil_qubits_to_numbers(gate.qubits)
@@ -265,7 +247,7 @@ def convert_gate_from_pyquil(gate: pyquil.quil.Gate, custom_gates=None) -> Gate:
         # Control qubits need to be applied in reverse because in PyQuil they
         # are prepended to the list when applying control modifier.
         for qubit in reversed(control_qubits):
-            result = ControlledGate(result, qubit)
+            result = circuit.ControlledGate(result, qubit)
 
         # PyQuil allows multiple DAGGER modifiers in gate's definition.
         # Since two daggers cancel out, we only need to apply it if
@@ -300,6 +282,6 @@ def convert_pyquil_program_to_orquestra(program: pyquil.Program, custom_gates=No
         if isinstance(instruction, pyquil.quil.Gate)
     ]
 
-    return Circuit(
+    return circuit.Circuit(
         [convert_from_pyquil(gate, custom_gates) for gate in gates_in_program]
     )

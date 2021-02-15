@@ -20,5 +20,7 @@ from .gates import (
     SWAP,
     XY,
     ISWAP,
+    Dagger,
+    CustomGate
 )
 from ._circuit import *

@@ -484,11 +484,7 @@ def test_circuit_eq_same_gates(circuit1, circuit2):
 )
 def test_gate_eq_not_same_gates(circuit1, circuit2):
     """The Circuit class should be able to be able to compare two unequal circuits"""
-    # When
-    are_equal = circuit1 == circuit2
-
-    # Then
-    assert not are_equal
+    assert circuit1 != circuit2
 
 
 #### __add__ ####
@@ -532,11 +528,7 @@ def test_gate_eq_not_same_gates(circuit1, circuit2):
 )
 def test_add_circuits(circuit1, circuit2, expected_circuit):
     """The Circuit class should be able to handling adding circuits together"""
-    # When
-    new_circuit = circuit1 + circuit2
-
-    # Then
-    assert new_circuit == expected_circuit
+    assert circuit1 + circuit2 == expected_circuit
 
 
 #### evaluate ####
@@ -726,13 +718,13 @@ def test_circuit_is_successfully_loaded_from_a_file(circuit):
 
 
 @pytest.mark.parametrize("circuit", CIRCUITS)
-def test_circuit_is_successfully_loaded_from_a_dict(circuit):
-    for serializable in [True, False]:
-        # Given
-        circuit_dict = circuit.to_dict(serializable=serializable)
+@pytest.mark.parametrize("serializable", [True, False])
+def test_circuit_is_successfully_loaded_from_a_dict(circuit, serializable):
+    # Given
+    circuit_dict = circuit.to_dict(serializable=serializable)
 
-        # When
-        new_circuit = Circuit.load(circuit_dict)
+    # When
+    new_circuit = Circuit.load(circuit_dict)
 
-        # Then
-        assert circuit == new_circuit
+    # Then
+    assert circuit == new_circuit

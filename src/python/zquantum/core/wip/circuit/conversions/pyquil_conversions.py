@@ -31,7 +31,7 @@ ORQUESTRA_CLS_TO_PYQUIL_FUNCTION = {
     circuit.CNOT: pyquil.gates.CNOT,
     circuit.SWAP: pyquil.gates.SWAP,
     circuit.CPHASE: pyquil.gates.CPHASE,
-    circuit.XY: pyquil.gates.XY
+    circuit.XY: pyquil.gates.XY,
 }
 
 
@@ -51,7 +51,7 @@ PYQUIL_NAME_TO_ORQUESTRA_CLS = {
     "CNOT": circuit.CNOT,
     "CPHASE": circuit.CPHASE,
     "SWAP": circuit.SWAP,
-    "XY": circuit.XY
+    "XY": circuit.XY,
 }
 
 
@@ -210,7 +210,9 @@ def custom_gate_factory_from_pyquil_defgate(gate: pyquil.quil.DefGate):
 
     def _factory(*args):
         qubits = args[:num_qubits]
-        orquestra_gate = circuit.CustomGate(sympy_matrix, qubits=tuple(qubits), name=gate.name)
+        orquestra_gate = circuit.CustomGate(
+            sympy_matrix, qubits=tuple(qubits), name=gate.name
+        )
         if len(args) != num_qubits:
             parameters = args[num_qubits:]
 

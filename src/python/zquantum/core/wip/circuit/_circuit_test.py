@@ -531,31 +531,52 @@ def test_add_circuits(circuit1, circuit2, expected_circuit):
     assert circuit1 + circuit2 == expected_circuit
 
 
-#### evaluate ####
-def test_circuit_evaluate_with_all_params_specified():
-    # Given
-    symbols_map = {"theta_0": 0.5, "theta_1": 0.6}
-    RYGateQubit0 = RY(0).evaluate(symbols_map)
-    RZGateQubit0 = RZ(0).evaluate(symbols_map)
-    RZGateQubit0DifferentAngle = RZ(0).evaluate({"theta_1": 0.4})
+# Evaluation
+
+
+def test_circuit_evaluated_with_all_params_comprises_evaluated_gates():
+    theta1, theta2, theta3 = sympy.symbols("theta1:4")
     circuit = Circuit(
         gates=[
-            RX(0),
-            RYGateQubit0,
-            RZGateQubit0,
-            RZGateQubit0DifferentAngle,
+            RX(0, theta1),
+            RY(1, theta2),
+            RZ(0, theta3),
+            RX(0, theta3),
         ]
     )
 
-    target_circuit = Circuit(
-        gates=[RX(0), RYGateQubit0, RZGateQubit0, RZGateQubit0DifferentAngle]
+    symbols_map = {"theta1": 0.5, "theta2": 3.14, "theta3": 0}
+
+    expected_circuit = Circuit(
+        gates=[
+            RX(0, theta1).evaluate(symbols_map),
+            RY(1, theta2).evaluate(symbols_map),
+            RZ(0, theta3).evaluate(symbols_map),
+            RX(0, theta3).evaluate(symbols_map),
+        ]
     )
 
-    # When
     evaluated_circuit = circuit.evaluate(symbols_map)
 
-    # Then
-    assert evaluated_circuit == target_circuit
+    assert evaluated_circuit == expected_circuit
+
+
+def test_circuit_evaluated_with_all_params_has_no_free_params():
+    alpha, beta, gamma = sympy.symbols("alpha,beta,gamma")
+    circuit = Circuit(
+        gates=[
+            RX(0, alpha),
+            RY(1, beta),
+            RZ(0, gamma),
+            RX(0, gamma),
+        ]
+    )
+
+    symbols_map = {"alpha": 0.5, "beta": 3.14, "gamma": 0}
+
+    evaluated_circuit = circuit.evaluate(symbols_map)
+
+    assert not evaluated_circuit.symbolic_params
 
 
 @pytest.mark.xfail

@@ -38,7 +38,7 @@ class Circuit:
     @property
     def symbolic_params(self):
         """Set of all the sympy symbols used as params of gates in the circuit."""
-        return reduce(set.union, (set(gate.symbolic_params) for gate in self._gates))
+        return reduce(set.union, (set(gate.symbolic_params) for gate in self._gates), set())
 
     def __eq__(self, other: "Circuit"):
         if not isinstance(other, type(self)):
@@ -58,7 +58,7 @@ class Circuit:
         new_circuit.gates = self.gates + other_circuit.gates
         return new_circuit
 
-    def evaluate(self, symbols_map: Dict):
+    def evaluate(self, symbols_map: Dict["sympy.Symbol", Any]):
         """Create a copy of the current Circuit with the parameters of each gate evaluated to the values
         provided in the input symbols map
 

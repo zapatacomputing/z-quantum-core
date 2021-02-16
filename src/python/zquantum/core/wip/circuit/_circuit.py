@@ -1,6 +1,6 @@
 import json
-from typing import Dict, Union, TextIO, Iterable, Optional
-from functools import reduce
+from typing import Dict, Union, TextIO, Iterable, Optional, Any
+from functools import reduce, singledispatch
 
 from .gates import Gate
 from ...utils import SCHEMA_VERSION
@@ -12,6 +12,9 @@ def _circuit_size_by_gates(gates):
         if not gates
         else max(qubit_index for gate in gates for qubit_index in gate.qubits) + 1
     )
+
+
+CIRCUIT_SCHEMA = SCHEMA_VERSION + "-circuit"
 
 
 class Circuit:
@@ -52,11 +55,9 @@ class Circuit:
 
         return True
 
-    def __add__(self, other_circuit):
-        """Add two circuits."""
-        new_circuit = type(self)()
-        new_circuit.gates = self.gates + other_circuit.gates
-        return new_circuit
+
+    def __add__(self, other: Union["Circuit"]):
+        return _append_to_circuit(other, self)
 
     def evaluate(self, symbols_map: Dict["sympy.Symbol", Any]):
         """Create a copy of the current Circuit with the parameters of each gate evaluated to the values
@@ -122,3 +123,19 @@ class Circuit:
 
     def __repr__(self):
         return f"{type(self).__name__}(gates={self.gates}, n_qubits={self.n_qubits})"
+
+
+@singledispatch
+def _append_to_circuit(other, circuit: Circuit):
+    raise NotImplementedError()
+
+
+@_append_to_circuit.register
+def _append_gate(other: Gate, circuit: Circuit):
+    n_qubits_by_gate = max(other.qubits) + 1
+    return type(circuit)(gates=[*circuit.gates, other], n_qubits=max(circuit.n_qubits, n_qubits_by_gate))
+
+
+@_append_to_circuit.register
+def _append_circuit(other: Circuit, circuit: Circuit):
+    return type(circuit)(gates=[*circuit.gates, *other.gates], n_qubits=max(circuit.n_qubits, other.n_qubits))

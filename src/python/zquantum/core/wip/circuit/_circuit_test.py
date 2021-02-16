@@ -205,11 +205,11 @@ def test_appending_to_circuit_works():
     expected_circuit = Circuit(gates=[H(0), CNOT(0, 1)])
     # When
     circuit = Circuit(gates=[])
-    circuit.gates.append(H(0))
-    circuit.gates.append(CNOT(0, 1))
+    circuit += H(0)
+    circuit += CNOT(0, 1)
     # Then
     assert circuit.gates == expected_circuit.gates
-    assert circuit.qubits == expected_circuit.qubits
+    assert circuit.n_qubits == expected_circuit.n_qubits
 
 
 #### qubits ####
@@ -240,7 +240,7 @@ def test_creating_circuit_has_correct_qubits_with_gaps():
     circuit = Circuit(gates=[X(0), CNOT(0, 1), CNOT(0, 9)])
 
     # Then
-    assert circuit.qubits == (0, 1, 9)
+    assert circuit.n_qubits == 10
 
 
 #### symbolic_params ####
@@ -670,20 +670,6 @@ def test_circuit_evaluate_with_wrong_params():
 
 
 #### to_dict ####
-@pytest.mark.parametrize("circuit", CIRCUITS)
-def test_circuit_is_successfully_converted_to_dict_form(circuit):
-    """The Circuit class should be able to be converted to a dict with the underlying gates
-    also converted to dictionaries"""
-    # When
-    circuit_dict = circuit.to_dict(serializable=False)
-
-    # Then
-    assert circuit_dict["schema"] == SCHEMA_VERSION + "-circuit"
-    assert circuit_dict["qubits"] == circuit.qubits
-    assert circuit_dict["symbolic_params"] == circuit.symbolic_params
-    assert isinstance(circuit_dict["gates"], list)
-    for gate_dict, gate in zip(circuit_dict["gates"], circuit.gates):
-        assert gate_dict == gate.to_dict(serializable=False)
 
 
 @pytest.mark.parametrize("circuit", CIRCUITS)

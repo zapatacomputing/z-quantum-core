@@ -6,7 +6,7 @@ import sympy
 import json
 import copy
 import warnings
-from typing import Tuple, Union, Dict, TextIO, Set, Any, Optional
+from typing import Tuple, Union, Dict, TextIO, Set, Any, Optional, Iterable
 from ....utils import SCHEMA_VERSION
 
 
@@ -45,7 +45,7 @@ class Gate(ABC):
         return ()
 
     @property
-    def symbolic_params(self) -> Set[str]:
+    def symbolic_params(self) -> Iterable[str]:
         """Free symbols present in gate's matrix."""
         symbols = set(
             symbol

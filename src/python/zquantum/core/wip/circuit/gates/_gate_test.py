@@ -131,13 +131,13 @@ def test_matrix_of_custom_gate_is_a_copy_of_matrix_passed_to_initializer(matrix)
             sympy.Matrix(
                 [[sympy.Symbol("theta_0"), 0], [0, 3 * sympy.Symbol("theta_0")]]
             ),
-            {sympy.Symbol("theta_0")},
+            [sympy.Symbol("theta_0")],
         ),
         (
             sympy.Matrix(
                 [[sympy.Symbol("theta_0"), 0], [0, 3 * sympy.Symbol("theta_1")]]
             ),
-            {sympy.Symbol("theta_0"), sympy.Symbol("theta_1")},
+            [sympy.Symbol("theta_0"), sympy.Symbol("theta_1")],
         ),
     ],
 )

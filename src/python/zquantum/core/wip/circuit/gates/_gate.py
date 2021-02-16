@@ -47,12 +47,13 @@ class Gate(ABC):
     @property
     def symbolic_params(self) -> Set[str]:
         """Free symbols present in gate's matrix."""
-        return set(
+        symbols = set(
             symbol
             for element in self.matrix
             if isinstance(element, sympy.Expr)
             for symbol in element.free_symbols
         )
+        return sorted(symbols, key=str)
 
     @staticmethod
     def is_valid_operator(matrix: sympy.Matrix, qubits: Tuple[int, ...]) -> bool:

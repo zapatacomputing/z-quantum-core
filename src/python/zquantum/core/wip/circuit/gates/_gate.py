@@ -382,7 +382,10 @@ class Dagger(SpecializedGate):
 
 
 class HermitianMixin:
-    """Add this to inheritance hierarchy of your class to make dagger behave as identity."""
+    """Add this to inheritance hierarchy of your class to make dagger behave as identity.
+
+    For an example application see Pauli gates (X, Y, Z).
+    """
 
     @property
     def dagger(self):

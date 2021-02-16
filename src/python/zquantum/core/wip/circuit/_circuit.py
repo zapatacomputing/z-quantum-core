@@ -1,17 +1,27 @@
 import json
-from typing import Dict, Union, TextIO, Iterable
+from typing import Dict, Union, TextIO, Iterable, Optional
 from functools import reduce
 
 from .gates import Gate
 from ...utils import SCHEMA_VERSION
 
 
+def _circuit_size_by_gates(gates):
+    return (
+        0
+        if not gates
+        else max(qubit_index for gate in gates for qubit_index in gate.qubits) + 1
+    )
+
+
 class Circuit:
     """Orquestra representation of a quantum circuit."""
 
-    def __init__(self, gates: Iterable[Gate], n_qubits: int):
+    def __init__(self, gates: Iterable[Gate], n_qubits: Optional[int] = None):
         self._gates = gates
-        self._n_qubits = n_qubits
+        self._n_qubits = (
+            n_qubits if n_qubits is not None else _circuit_size_by_gates(gates)
+        )
 
     @property
     def gates(self):

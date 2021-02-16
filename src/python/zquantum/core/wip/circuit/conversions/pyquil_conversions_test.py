@@ -683,7 +683,7 @@ def test_converting_circuit_to_pyquil_gives_program_with_the_same_gates(
 
 
 def test_pyquil_circuit_obtained_from_empty_circuit_is_also_empty():
-    circuit = Circuit()
+    circuit = Circuit(gates=[])
 
     pyquil_circuit = convert_to_pyquil(circuit)
 

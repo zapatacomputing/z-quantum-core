@@ -213,29 +213,25 @@ def test_appending_to_circuit_works():
 
 
 #### qubits ####
+
+
 @pytest.mark.parametrize(
-    "gates, qubits",
+    "gates, n_qubits",
     [
-        ([], tuple()),
-        ([X(0)], (0,)),
-        ([X(1)], (1,)),
-        (
-            [X(0), X(1)],
-            (
-                0,
-                1,
-            ),
-        ),
-        ([CNOT(0, 1)], (0, 1)),
-        ([X(0), X(0), CNOT(0, 1), X(0)], (0, 1)),
+        ([], 0),
+        ([X(0)], 1),
+        ([X(1)], 2),
+        ([X(0), X(1)], 2),
+        ([CNOT(0, 1)], 2),
+        ([X(0), X(0), CNOT(0, 1), X(0)], 2),
     ],
 )
-def test_creating_circuit_has_correct_qubits(gates, qubits):
+def test_creating_circuit_has_correct_number_of_qubits(gates, n_qubits):
     """The Circuit class should have the correct qubits based on the gates that are passed in"""
     # When
     circuit = Circuit(gates=gates)
     # Then
-    assert circuit.qubits == qubits
+    assert circuit.n_qubits == n_qubits
 
 
 def test_creating_circuit_has_correct_qubits_with_gaps():
@@ -695,11 +691,11 @@ def test_gate_is_successfully_converted_to_serializable_dict_form(circuit):
     """The Circuit class should be able to be converted to a serializable dict with the underlying gates
     also converted to serializable dictionaries"""
     # When
-    circuit_dict = circuit.to_dict(serializable=True)
+    circuit_dict = circuit.to_dict()
 
     # Then
     assert circuit_dict["schema"] == SCHEMA_VERSION + "-circuit"
-    assert circuit_dict["qubits"] == list(circuit.qubits)
+    assert circuit_dict["n_qubits"] == circuit.n_qubits
     assert circuit_dict["symbolic_params"] == [
         str(param) for param in circuit.symbolic_params
     ]
@@ -718,7 +714,7 @@ def test_circuit_is_successfully_saved_to_a_file(circuit):
 
     # Then
     assert saved_data["schema"] == SCHEMA_VERSION + "-circuit"
-    assert saved_data["qubits"] == list(circuit.qubits)
+    assert saved_data["n_qubits"] == circuit.n_qubits
     assert saved_data["gates"] == [
         gate.to_dict(serializable=True) for gate in circuit.gates
     ]
@@ -745,10 +741,9 @@ def test_circuit_is_successfully_loaded_from_a_file(circuit):
 
 
 @pytest.mark.parametrize("circuit", CIRCUITS)
-@pytest.mark.parametrize("serializable", [True, False])
-def test_circuit_is_successfully_loaded_from_a_dict(circuit, serializable):
+def test_circuit_is_successfully_loaded_from_a_dict(circuit):
     # Given
-    circuit_dict = circuit.to_dict(serializable=serializable)
+    circuit_dict = circuit.to_dict()
 
     # When
     new_circuit = Circuit.load(circuit_dict)

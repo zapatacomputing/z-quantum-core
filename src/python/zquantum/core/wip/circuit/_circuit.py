@@ -70,31 +70,27 @@ class Circuit:
         evaluated_circuit = circuit_class(gates=evaluated_gate_list)
         return evaluated_circuit
 
-    def to_dict(self, serializable: bool = True):
+    def to_dict(self):
         """Creates a dictionary representing a circuit.
+        The dictionary is serializable to JSON.
 
-        Args:
-            serializable (bool): If true, the returned dictionary is serializable so that it can be stored
-                in JSON format
         Returns:
-            Dict: keys are schema, qubits, gates, and symbolic_params
+            A mapping with keys:
+                - "schema"
+                - "n_qubits"
+                - "symbolic_params"
+                - "gates"
         """
-        circuit_dict = {"schema": SCHEMA_VERSION + "-circuit"}
-        if serializable:
-            circuit_dict["qubits"] = list(self.qubits)
-            circuit_dict["gates"] = [
-                gate.to_dict(serializable=True) for gate in self.gates
-            ]
-            circuit_dict["symbolic_params"] = [
+        return {
+            "schema": CIRCUIT_SCHEMA,
+            "n_qubits": self.n_qubits,
+            "symbolic_params": [
                 str(param) for param in self.symbolic_params
-            ]
-        else:
-            circuit_dict["qubits"] = self.qubits
-            circuit_dict["gates"] = [
-                gate.to_dict(serializable=False) for gate in self.gates
-            ]
-            circuit_dict["symbolic_params"] = self.symbolic_params
-        return circuit_dict
+            ],
+            "gates": [
+                gate.to_dict(serializable=True) for gate in self.gates
+            ],
+        }
 
     def save(self, filename: str):
         """Save the Circuit object to file in JSON format
@@ -103,7 +99,7 @@ class Circuit:
             filename (str): The path to the file to store the Circuit
         """
         with open(filename, "w") as f:
-            f.write(json.dumps(self.to_dict(serializable=True), indent=2))
+            f.write(json.dumps(self.to_dict(), indent=2))
 
     @classmethod
     def load(cls, data: Union[Dict, TextIO]):

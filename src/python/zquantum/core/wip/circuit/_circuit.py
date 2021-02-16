@@ -2,6 +2,8 @@ import json
 from typing import Dict, Union, TextIO, Iterable, Optional, Any
 from functools import reduce, singledispatch
 
+import sympy
+
 from .gates import Gate
 from ...utils import SCHEMA_VERSION
 
@@ -55,11 +57,10 @@ class Circuit:
 
         return True
 
-
     def __add__(self, other: Union["Circuit"]):
         return _append_to_circuit(other, self)
 
-    def evaluate(self, symbols_map: Dict["sympy.Symbol", Any]):
+    def evaluate(self, symbols_map: Dict[sympy.Symbol, Any]):
         """Create a copy of the current Circuit with the parameters of each gate evaluated to the values
         provided in the input symbols map
 
@@ -89,7 +90,7 @@ class Circuit:
                 str(param) for param in self.symbolic_params
             ],
             "gates": [
-                gate.to_dict(serializable=True) for gate in self.gates
+                gate.to_dict() for gate in self.gates
             ],
         }
 

@@ -673,7 +673,7 @@ def test_circuit_evaluate_with_wrong_params():
 
 
 @pytest.mark.parametrize("circuit", CIRCUITS)
-def test_gate_is_successfully_converted_to_serializable_dict_form(circuit):
+def test_gate_is_successfully_converted_to_dict_form(circuit):
     """The Circuit class should be able to be converted to a serializable dict with the underlying gates
     also converted to serializable dictionaries"""
     # When
@@ -687,7 +687,7 @@ def test_gate_is_successfully_converted_to_serializable_dict_form(circuit):
     ]
     assert isinstance(circuit_dict["gates"], list)
     for gate_dict, gate in zip(circuit_dict["gates"], circuit.gates):
-        assert gate_dict == gate.to_dict(serializable=True)
+        assert gate_dict == gate.to_dict()
 
 
 #### save ####
@@ -702,7 +702,7 @@ def test_circuit_is_successfully_saved_to_a_file(circuit):
     assert saved_data["schema"] == SCHEMA_VERSION + "-circuit"
     assert saved_data["n_qubits"] == circuit.n_qubits
     assert saved_data["gates"] == [
-        gate.to_dict(serializable=True) for gate in circuit.gates
+        gate.to_dict() for gate in circuit.gates
     ]
     assert saved_data["symbolic_params"] == [
         str(param) for param in circuit.symbolic_params

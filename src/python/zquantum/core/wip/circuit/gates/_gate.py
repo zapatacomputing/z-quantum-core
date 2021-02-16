@@ -19,6 +19,21 @@ def _evaluate_parameter(param, symbol_map: Dict[sympy.Expr, Any]):
         return param
 
 
+GATE_SCHEMA = SCHEMA_VERSION + "-gate"
+MATRIX_SCHEMA = SCHEMA_VERSION + "-matrix"
+
+
+def _matrix_to_dict(matrix: sympy.Matrix):
+    return {
+        "schema": MATRIX_SCHEMA,
+        "rows": [
+            {"elements": [str(element)
+                          for element in matrix.row(i)]}
+            for i in range(matrix.shape[0])
+        ]
+    }
+
+
 class Gate(ABC):
     """Base class for quantum Gates.
 
@@ -136,32 +151,23 @@ class Gate(ABC):
             return False
         return True
 
-    def to_dict(self, serializable: bool = True):
-        """Convert the Gate object into a dictionary.
-
-        Args:
-            serializable (bool): If true, the returned dictionary is serializable so that it can be stored
-                in JSON format
+    def to_dict(self) -> Dict[str, Any]:
+        """Creates a dictionary representation of this gate.
+        The dictionary is serializable to JSON.
 
         Returns:
-            Dict: keys are schema, qubits, matrix, and symbolic_params.
+            A mapping with keys:
+                - "schema" - serialization schema identifier
+                - "qubits" - list of qubit indices
+                - "matrix" - gate matrix serialized according to `MATRIX_SCHEMA`
+                - "symbolic_params" - list of stringified gate parameters
         """
-
-        gate_dict = {"schema": SCHEMA_VERSION + "-gate"}
-        if serializable:
-            gate_dict["qubits"] = list(self.qubits)
-            gate_dict["matrix"] = [
-                {"elements": [str(element) for element in self.matrix.row(i)]}
-                for i in range(self.matrix.shape[0])
-            ]
-            gate_dict["symbolic_params"] = [
-                str(param) for param in self.symbolic_params
-            ]
-        else:
-            gate_dict["qubits"] = self.qubits
-            gate_dict["matrix"] = self.matrix
-            gate_dict["symbolic_params"] = self.symbolic_params
-        return gate_dict
+        return {
+            "schema": GATE_SCHEMA,
+            "qubits": list(self.qubits),
+            "matrix": _matrix_to_dict(self.matrix),
+            "symbolic_params": [str(param) for param in self.symbolic_params],
+        }
 
     def save(self, filename: str):
         """Save the Gate object to file in JSON format
@@ -170,7 +176,7 @@ class Gate(ABC):
             filename (str): The path to the file to store the Gate
         """
         with open(filename, "w") as f:
-            json.dump(self.to_dict(serializable=True), f, indent=2)
+            json.dump(self.to_dict(), f, indent=2)
 
     @staticmethod
     def load(data: Union[Dict, TextIO, str]):

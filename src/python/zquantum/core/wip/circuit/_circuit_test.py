@@ -1,4 +1,5 @@
 import numpy as np
+import numpy.random
 import pytest
 import json
 import os
@@ -142,6 +143,10 @@ RandomGateList = [
     CustomParameterizedGate,
 ]
 
+
+RNG = np.random.default_rng(42)
+
+
 CIRCUITS = [
     Circuit(gates=[]),
     Circuit(gates=[X(0)]),
@@ -166,13 +171,14 @@ CIRCUITS = [
         ]
     ),
     Circuit(gates=[I(0) for _ in range(100)]),
-    Circuit(gates=[random.choice(RandomGateList) for _ in range(100)]),
-    Circuit(gates=[random.choice(RandomGateList) for _ in range(1000)]),
-    Circuit(gates=[random.choice(RandomGateList) for _ in range(10000)]),
+    Circuit(gates=list(RNG.choice(RandomGateList, size=100, replace=True))),
+    Circuit(gates=list(RNG.choice(RandomGateList, size=1000, replace=True))),
 ]
 
 
 #### __init__ ####
+
+
 @pytest.mark.parametrize(
     "gates",
     [

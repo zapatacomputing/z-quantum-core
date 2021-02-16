@@ -361,6 +361,9 @@ class ControlledGate(SpecializedGate):
         target_matrix = self.target_gate.matrix
         return sympy.Matrix.diag(sympy.eye(target_matrix.shape[0]), target_matrix)
 
+    def __repr__(self):
+        return f"{type(self).__name__}(target_gate={self.target_gate}, control={self.control})"
+
 
 class Dagger(SpecializedGate):
     def __init__(self, gate: Gate):

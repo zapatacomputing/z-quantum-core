@@ -113,3 +113,6 @@ class Circuit:
 
         gates = [Gate.load(gate_data) for gate_data in data["gates"]]
         return cls(gates=gates)
+
+    def __repr__(self):
+        return f"{type(self).__name__}(gates={self.gates}, n_qubits={self.n_qubits})"

@@ -10,7 +10,7 @@ from typing import Tuple, Union, Dict, TextIO, Set, Any, Optional
 from ....utils import SCHEMA_VERSION
 
 
-def _evaluate_parameter(param, symbol_map):
+def _evaluate_parameter(param, symbol_map: Dict[sympy.Expr, Any]):
     if isinstance(param, sympy.Symbol):
         return symbol_map.get(param, param)
     elif isinstance(param, sympy.Expr):
@@ -217,7 +217,7 @@ class Gate(ABC):
         """
         return Dagger(self)
 
-    def evaluate(self, symbols_map: Dict[str, Any]) -> "Gate":
+    def evaluate(self, symbols_map: Dict[sympy.Symbol, Any]) -> "Gate":
         new_params = [_evaluate_parameter(param, symbols_map) for param in self.params]
         return type(self)(*self.qubits, *new_params)
 

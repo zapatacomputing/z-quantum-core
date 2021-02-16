@@ -1,7 +1,9 @@
 import json
 from .gates import Gate
 from ...utils import SCHEMA_VERSION
-from typing import List, Dict, Union, TextIO
+from typing import List, Dict, Union, TextIO, Any
+
+import sympy
 
 
 class Circuit(object):
@@ -81,8 +83,8 @@ class Circuit(object):
         new_circuit.gates = self.gates + other_circuit.gates
         return new_circuit
 
-    def evaluate(self, symbols_map: Dict):
-        """ Create a copy of the current Circuit with the parameters of each gate evaluated to the values 
+    def evaluate(self, symbols_map: Dict["sympy.Symbol", Any]):
+        """Create a copy of the current Circuit with the parameters of each gate evaluated to the values
         provided in the input symbols map
 
         Args:

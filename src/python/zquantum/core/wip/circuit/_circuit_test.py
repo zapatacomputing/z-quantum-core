@@ -545,7 +545,7 @@ def test_circuit_evaluated_with_all_params_comprises_evaluated_gates():
         ]
     )
 
-    symbols_map = {"theta1": 0.5, "theta2": 3.14, "theta3": 0}
+    symbols_map = {theta1: 0.5, theta2: 3.14, theta3: 0}
 
     expected_circuit = Circuit(
         gates=[
@@ -572,7 +572,7 @@ def test_circuit_evaluated_with_all_params_has_no_free_params():
         ]
     )
 
-    symbols_map = {"alpha": 0.5, "beta": 3.14, "gamma": 0}
+    symbols_map = {alpha: 0.5, beta: 3.14, gamma: 0}
 
     evaluated_circuit = circuit.evaluate(symbols_map)
 

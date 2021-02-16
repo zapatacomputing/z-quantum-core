@@ -208,7 +208,7 @@ def _parametric_qiskit_circuit():
 
 
 def _qiskit_circuit_with_controlled_gate():
-    qc = qiskit.QuantumCircuit(4)
+    qc = qiskit.QuantumCircuit(5)
     qc.append(qiskit.extensions.SwapGate().control(1), [1, 0, 2])
     return qc
 
@@ -249,7 +249,7 @@ EQUIVALENT_CIRCUITS = [
             ],
             5,
         ),
-        _parametric_qiskit_circuit(),
+        _qiskit_circuit_with_controlled_gate(),
     ),
 ]
 

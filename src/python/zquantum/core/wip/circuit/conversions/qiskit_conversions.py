@@ -71,6 +71,11 @@ QISKIT_TO_ORQUESTRA_MAPPING = {
         value: key for key, value in ORQUESTRA_TO_QISKIT_MAPPING.items()
     },
     qiskit.extensions.CRXGate: _make_controlled_gate_factory(RX),
+    qiskit.extensions.CRYGate: _make_controlled_gate_factory(RY),
+    qiskit.extensions.CRZGate: _make_controlled_gate_factory(RZ),
+    qiskit.extensions.CSwapGate: _make_controlled_gate_factory(SWAP),
+    # TODO: search through Qiskit gates, find all specialized subclasses for
+    # controlled gates and add them here
 }
 
 
@@ -93,8 +98,12 @@ def convert_from_qiskit(
     """
     if isinstance(obj, tuple):
         return _convert_operation_from_qiskit(obj)
+    elif isinstance(obj, qiskit.QuantumCircuit):
+        return _convert_circuit_from_qiskit(obj)
     else:
-        raise NotImplementedError()
+        raise NotImplementedError(
+            f"Cannot convert {obj} to Orquestra"
+        )
 
 
 def _convert_operation_from_qiskit(operation: QiskitOperation) -> Gate:
@@ -112,6 +121,11 @@ def _convert_operation_from_qiskit(operation: QiskitOperation) -> Gate:
         raise NotImplementedError(
             f"Cannot convert {operation} to Orquestra, unknown operation."
         )
+
+
+def _convert_circuit_from_qiskit(circuit: qiskit.QuantumCircuit) -> Circuit:
+    orq_gates = [convert_from_qiskit(triplet) for triplet in circuit.data]
+    return Circuit(gates=orq_gates, n_qubits=circuit.num_qubits)
 
 
 @singledispatch

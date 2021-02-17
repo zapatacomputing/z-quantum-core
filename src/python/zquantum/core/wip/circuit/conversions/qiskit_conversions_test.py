@@ -364,3 +364,9 @@ class TestCircuitConversion:
             f"Converted circuit:\n{_draw_qiskit_circuit(converted)}\n isn't equal "
             f"to\n{_draw_qiskit_circuit(qiskit_circuit)}"
         )
+
+    def test_converting_qiskit_circuit_to_orquestra_gives_expected_circuit(
+        self, orquestra_circuit, qiskit_circuit
+    ):
+        converted = convert_from_qiskit(qiskit_circuit)
+        assert converted == orquestra_circuit

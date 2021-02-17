@@ -23,8 +23,8 @@ CIRCUIT_SCHEMA = SCHEMA_VERSION + "-circuit"
 class Circuit:
     """Orquestra representation of a quantum circuit."""
 
-    def __init__(self, gates: Iterable[Gate], n_qubits: Optional[int] = None):
-        self._gates = list(gates)
+    def __init__(self, gates: Optional[Iterable[Gate]] = None, n_qubits: Optional[int] = None):
+        self._gates = list(gates) if gates is not None else []
         self._n_qubits = (
             n_qubits if n_qubits is not None else _circuit_size_by_gates(self._gates)
         )

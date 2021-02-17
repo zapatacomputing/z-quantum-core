@@ -148,7 +148,7 @@ RNG = np.random.default_rng(42)
 
 
 CIRCUITS = [
-    Circuit(gates=[]),
+    Circuit(),
     Circuit(gates=[X(0)]),
     Circuit(gates=[X(1)]),
     Circuit(gates=[X(0), X(1)]),
@@ -204,7 +204,7 @@ def test_appending_to_circuit_works():
     # Given
     expected_circuit = Circuit(gates=[H(0), CNOT(0, 1)])
     # When
-    circuit = Circuit(gates=[])
+    circuit = Circuit()
     circuit += H(0)
     circuit += CNOT(0, 1)
     # Then
@@ -354,8 +354,8 @@ def test_symbolic_params_are_correct_for_multiple_gates_with_overlapping_paramet
     "circuit1, circuit2",
     [
         [
-            Circuit(gates=[]),
-            Circuit(gates=[]),
+            Circuit(),
+            Circuit(),
         ],
         [
             Circuit(gates=[X(0), H(0), CNOT(0, 1)]),
@@ -393,12 +393,12 @@ def test_circuit_eq_same_gates(circuit1, circuit2):
     "circuit1, circuit2",
     [
         [
-            Circuit(gates=[]),
+            Circuit(),
             Circuit(gates=[H(0)]),
         ],
         [
             Circuit(gates=[H(0)]),
-            Circuit(gates=[]),
+            Circuit(),
         ],
         [
             Circuit(
@@ -494,18 +494,18 @@ def test_gate_eq_not_same_gates(circuit1, circuit2):
     "circuit1, circuit2, expected_circuit",
     [
         [
-            Circuit(gates=[]),
+            Circuit(),
             Circuit(gates=[H(0)]),
             Circuit(gates=[H(0)]),
         ],
         [
-            Circuit(gates=[]),
-            Circuit(gates=[]),
-            Circuit(gates=[]),
+            Circuit(),
+            Circuit(),
+            Circuit(),
         ],
         [
             Circuit(gates=[H(0)]),
-            Circuit(gates=[]),
+            Circuit(),
             Circuit(gates=[H(0)]),
         ],
         [

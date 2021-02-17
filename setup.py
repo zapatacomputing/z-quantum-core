@@ -33,7 +33,7 @@ setuptools.setup(
         "openfermioncirq==0.4.0",
         "lea>=3.2.0",
         "pyquil>=2.17.0",
-        "cirq==0.9.1",
+        "cirq>=0.9.1",
         "qiskit==0.23.2",
         "overrides>=3.1.0",
     ],

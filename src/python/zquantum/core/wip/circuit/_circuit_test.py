@@ -584,10 +584,14 @@ def test_circuit_evaluated_with_all_params_has_no_free_params():
 @pytest.mark.xfail
 def test_circuit_evaluate_with_too_many_params_specified():
     # Given
-    symbols_map = {"theta_0": 0.5, "theta_1": 0.6, "theta_2": 0.7}
+    symbols_map = {
+        sympy.Symbol("theta_0"): 0.5,
+        sympy.Symbol("theta_1"): 0.6,
+        sympy.Symbol("theta_2"): 0.7
+    }
     RYGateQubit0 = RY(0).evaluate(symbols_map)
     RZGateQubit0 = RZ(0).evaluate(symbols_map)
-    RZGateQubit0DifferentAngle = RZ(0).evaluate({"theta_1": 0.4})
+    RZGateQubit0DifferentAngle = RZ(0).evaluate({sympy.Symbol("theta_1"): 0.4})
     circuit = Circuit(
         gates=[
             RX(0),
@@ -613,10 +617,10 @@ def test_circuit_evaluate_with_too_many_params_specified():
 
 def test_circuit_evaluate_with_some_params_specified():
     # Given
-    symbols_map = {"theta_0": 0.5}
+    symbols_map = {sympy.Symbol("theta_0"): 0.5}
     RYGateQubit0 = RY(0).evaluate(symbols_map)
     RZGateQubit0 = RZ(0).evaluate(symbols_map)
-    RZGateQubit0DifferentAngle = RZ(0).evaluate({"theta_1": 0.4})
+    RZGateQubit0DifferentAngle = RZ(0).evaluate({sympy.Symbol("theta_1"): 0.4})
     circuit = Circuit(
         gates=[
             RX(0),
@@ -643,8 +647,8 @@ def test_circuit_evaluate_with_some_params_specified():
 
 def test_circuit_evaluate_with_wrong_params():
     # Given
-    symbols_map = {"theta_2": 0.7}
-    RZGateQubit0DifferentAngle = RZ(0).evaluate({"theta_1": 0.4})
+    symbols_map = {sympy.Symbol("theta_2"): 0.7}
+    RZGateQubit0DifferentAngle = RZ(0).evaluate({sympy.Symbol("theta_1"): 0.4})
     circuit = Circuit(
         gates=[
             RX(0),

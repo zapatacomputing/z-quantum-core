@@ -1,10 +1,10 @@
-import pytest
-from optimize import optimize_parametrized_circuit_for_ground_state_of_operator
 import os
 import json
+import sys
 from openfermion import QubitOperator
-import sympy
-import numpy as np
+
+sys.path.append("../..")
+from steps.optimize import optimize_parametrized_circuit_for_ground_state_of_operator
 
 TARGET_OPERATOR = QubitOperator("X0 X1 Z2 Y4", 1.5)
 
@@ -104,9 +104,6 @@ def test_optimize_parametrized_circuit_for_ground_state_of_operator_optimizer_sp
             )
         )
     backend_specs = '{"module_name": "zquantum.core.interfaces.mock_objects", "function_name": "MockQuantumSimulator", "n_samples": 10000}'
-    estimator_specs = "None"
-    epsilon = "None"
-    delta = "None"
     initial_parameters = "initial_parameters.json"
     with open(initial_parameters, "w") as f:
         f.write(
@@ -125,10 +122,7 @@ def test_optimize_parametrized_circuit_for_ground_state_of_operator_optimizer_sp
         target_operator,
         circuit,
         backend_specs,
-        estimator_specs,
-        epsilon,
-        delta,
-        initial_parameters,
+        initial_parameters=initial_parameters,
         fixed_parameters=fixed_parameters,
         parameter_precision=0.001,
         parameter_precision_seed=1234,
@@ -137,3 +131,4 @@ def test_optimize_parametrized_circuit_for_ground_state_of_operator_optimizer_sp
     os.remove("optimization_results.json")
     os.remove("circuit.json")
     os.remove("initial_parameters.json")
+    os.remove("fixed_parameters.json")

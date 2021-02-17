@@ -1,5 +1,4 @@
 import numpy as np
-import json
 from zquantum.core.circuit import (
     build_circuit_layers_and_connectivity as _build_circuit_layers_and_connectivity,
     add_ancilla_register_to_circuit as _add_ancilla_register_to_circuit,
@@ -16,30 +15,29 @@ from zquantum.core.circuit import (
     Circuit,
     save_circuit_set,
 )
-from zquantum.core.utils import create_object
 from zquantum.core.testing import create_random_circuit as _create_random_circuit
-from typing import Dict, Union
+from typing import Union, List, Optional
+from .utils import Specs, load_from_specs
+
 
 # Generate random parameters for an ansatz
 def generate_random_ansatz_params(
-    ansatz_specs: Dict,
-    number_of_parameters: Union[str, int] = "None",
+    ansatz_specs: Optional[Specs] = None,
+    number_of_parameters: Optional[int] = None,
     min_value: float = -np.pi * 0.5,
     max_value: float = np.pi * 0.5,
-    seed: Union[str, int] = "None",
+    seed: Optional[int] = None,
 ):
-    if ansatz_specs != "None":  # TODO None issue in workflow v1
-        if isinstance(ansatz_specs, str):
-            ansatz_specs_dict = json.loads(ansatz_specs)
-        else:
-            ansatz_specs_dict = ansatz_specs
-        ansatz = create_object(ansatz_specs_dict)
-        number_of_params = ansatz.number_of_params
-    elif number_of_parameters != "None":
-        number_of_params = number_of_parameters
-    if seed != "None":
+    assert (ansatz_specs is None) != (number_of_parameters is None)
+
+    if ansatz_specs is not None:
+        ansatz = load_from_specs(ansatz_specs)
+        number_of_parameters = ansatz.number_of_params
+
+    if seed is not None:
         np.random.seed(seed)
-    params = np.random.uniform(min_value, max_value, number_of_params)
+
+    params = np.random.uniform(min_value, max_value, number_of_parameters)
     save_circuit_template_params(params, "params.json")
 
 
@@ -52,11 +50,16 @@ def combine_ansatz_params(params1: str, params2: str):
 
 
 # Build circuit from ansatz
-def build_ansatz_circuit(ansatz_specs: Dict, params: str = "None"):
-    ansatz = create_object(json.loads(ansatz_specs))
-    if params != "None":  # TODO Non issue in worklow v1
-        parameters = load_circuit_template_params(params)
-        circuit = ansatz.get_executable_circuit(parameters)
+def build_ansatz_circuit(
+    ansatz_specs: Specs, params: Optional[Union[str, List]] = None
+):
+    ansatz = load_from_specs(ansatz_specs)
+    if params is not None:
+        if isinstance(params, str):
+            params = load_circuit_template_params(params)
+        else:
+            params = np.arrary(params)
+        circuit = ansatz.get_executable_circuit(params)
     elif ansatz.supports_parametrized_circuits:
         circuit = ansatz.parametrized_circuit
     else:
@@ -70,17 +73,19 @@ def build_ansatz_circuit(ansatz_specs: Dict, params: str = "None"):
 
 # Build uniform parameter grid
 def build_uniform_param_grid(
-    ansatz_specs: Dict,
-    number_of_params_per_layer: Union[str, int] = "None",
+    ansatz_specs: Optional[Specs] = None,
+    number_of_params_per_layer: Optional[int] = None,
     number_of_layers: int = 1,
     min_value: float = 0,
     max_value: float = 2 * np.pi,
     step: float = np.pi / 5,
 ):
-    if ansatz_specs != "None":  # TODO None issue in workflow v1
-        ansatz = create_object(json.loads(ansatz_specs))
+    assert (ansatz_specs is None) != (number_of_params_per_layer is None)
+
+    if ansatz_specs is not None:
+        ansatz = load_from_specs(ansatz_specs)
         number_of_params = ansatz.number_of_params
-    elif number_of_params_per_layer != "None":
+    else:
         number_of_params = number_of_params_per_layer
 
     grid = _build_uniform_param_grid(
@@ -92,10 +97,9 @@ def build_uniform_param_grid(
 # Build circuit layers and connectivity
 def build_circuit_layers_and_connectivity(
     x_dimension: int,
-    y_dimension: Union[int, str] = "None",
+    y_dimension: Optional[int] = None,
     layer_type: str = "nearest-neighbor",
 ):
-    # TODO None issue in workflow v1
     connectivity, layers = _build_circuit_layers_and_connectivity(
         x_dimension, y_dimension, layer_type
     )
@@ -105,46 +109,48 @@ def build_circuit_layers_and_connectivity(
 
 # Create random circuit
 def create_random_circuit(
-    number_of_qubits: int, number_of_gates: int, seed: Union[str, int] = "None"
+    number_of_qubits: int, number_of_gates: int, seed: Optional[int] = None
 ):
     circuit = _create_random_circuit(number_of_qubits, number_of_gates, seed=seed)
     save_circuit(circuit, "circuit.json")
 
 
 # Add register of ancilla qubits to circuit
-def add_ancilla_register_to_circuit(number_of_ancilla_qubits: int, circuit: str):
-    circuit_object = load_circuit(circuit)
+def add_ancilla_register_to_circuit(
+    number_of_ancilla_qubits: int, circuit: Union[Circuit, str]
+):
+    if isinstance(circuit, str):
+        circuit = load_circuit(circuit)
     extended_circuit = _add_ancilla_register_to_circuit(
-        circuit_object, number_of_ancilla_qubits
+        circuit, number_of_ancilla_qubits
     )
     save_circuit(extended_circuit, "extended-circuit.json")
 
 
 # Concatenate circuits in a circuitset to create a composite circuit
-def concatenate_circuits(circuit_set: str):
-    circuit_set_object = load_circuit_set(circuit_set)
+def concatenate_circuits(circuit_set: Union[str, List[Circuit]]):
+    if isinstance(circuit_set, str):
+        circuit_set = load_circuit_set(circuit_set)
     result_circuit = Circuit()
-    for circuit in circuit_set_object:
+    for circuit in circuit_set:
         result_circuit += circuit
     save_circuit(result_circuit, "result-circuit.json")
 
 
-# Create circuitset from circuit artifacts
-def create_circuit_set_from_circuit_artifacts(
-    circuit1: str,
-    circuit2: str = "None",
-    circuit3: str = "None",
-    circuit4: str = "None",
-    circuit_set: str = "None",
+# Create one circuitset from circuit and circuitset objects
+def batch_circuits(
+    circuits: List[Union[str, Circuit]],
+    circuit_set: Optional[Union[str, List[Circuit]]] = None,
 ):
-    if circuit_set != "None":  # TODO None isse in workflow v1
-        circuit_set_object = load_circuit_set(circuit_set)
+    if circuit_set is None:
+        circuit_set = []
     else:
-        circuit_set_object = []
+        if isinstance(circuit_set, str):
+            circuit_set = load_circuit_set(circuit_set)
 
-    object_names = [circuit1, circuit2, circuit3, circuit4]
-    for object in object_names:
-        if object != "None":
-            circuit_set_object.append(load_circuit(object))
+    for circuit in circuits:
+        if isinstance(circuit, str):
+            circuit = load_circuit(circuit)
+        circuit_set.append(circuit)
 
-    save_circuit_set(circuit_set_object, "circuit-set.json")
+    save_circuit_set(circuit_set, "circuit-set.json")

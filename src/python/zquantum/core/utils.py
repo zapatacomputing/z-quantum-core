@@ -17,7 +17,7 @@ from networkx.readwrite import json_graph
 import lea
 import collections
 import scipy
-from typing import List, Tuple, Optional
+from typing import List, Tuple, Optional, Iterable
 import importlib
 
 
@@ -561,6 +561,37 @@ def load_nmeas_estimate(filename: str) -> Tuple[float, int, np.ndarray]:
     nterms = data["nterms"]
 
     return K_coeff, nterms, frame_meas
+
+
+def scale_and_discretize(values: Iterable[float], total: int) -> List[int]:
+    """Convert a list of floats to a list of integers such that the total equals
+    a given value and the ratios of elements are approximately preserved.
+
+    Args:
+        values: The list of floats to be scaled and discretized.
+        total: The desired total which the resulting values should sum to.
+
+    Returns:
+        A list of integers whose sum is equal to the given total, where the
+            ratios of the list elements are approximately equal to the ratios
+            of the input list elements.
+    """
+
+    scale_factor = total / sum(values)
+
+    result = [np.floor(value * scale_factor) for value in values]
+    remainders = [
+        value * scale_factor - np.floor(value * scale_factor) for value in values
+    ]
+    indexes_sorted_by_remainder = np.argsort(remainders)[::-1]
+    for index in range(int(round(total - sum(result)))):
+        result[indexes_sorted_by_remainder[index]] += 1
+
+    result = [int(value) for value in result]
+
+    assert sum(result) == total, "The scaled list does not sum to the desired total."
+
+    return result
 
 
 def hf_rdm(n_alpha: int, n_beta: int, n_orbitals: int) -> InteractionRDM:

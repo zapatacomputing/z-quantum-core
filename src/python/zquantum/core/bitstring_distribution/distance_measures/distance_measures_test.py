@@ -25,7 +25,7 @@ def test_clipped_negative_log_likelihood_is_computed_correctly():
 def test_uses_epsilon_instead_of_zero_in_target_distribution():
     """Computing clipped negative log likelihood uses epsilon instead of zeros in log."""
     log_spy = mock.Mock(wraps=math.log)
-    with mock.patch("core.bitstring_distribution.math.log", log_spy):
+    with mock.patch("zquantum.core.bitstring_distribution.math.log", log_spy):
         target_distr = BitstringDistribution({"000": 0.5, "111": 0.4, "010": 0.0})
         measured_dist = BitstringDistribution({"000": 0.1, "111": 0.9, "010": 0.0})
         distance_measure_params = {"epsilon": 0.01}
@@ -160,7 +160,7 @@ def test_jensen_shannon_divergence_is_computed_correctly():
 def test_uses_epsilon_instead_of_zero_in_target_distribution():
     """Computing jensen shannon divergence uses epsilon instead of zeros in log."""
     log_spy = mock.Mock(wraps=math.log)
-    with mock.patch("core.bitstring_distribution.math.log", log_spy):
+    with mock.patch("zquantum.core.bitstring_distribution.math.log", log_spy):
         target_distr = BitstringDistribution({"000": 0.5, "111": 0.4, "010": 0.0})
         measured_dist = BitstringDistribution({"000": 0.1, "111": 0.9, "010": 0.0})
         distance_measure_params = {"epsilon": 0.01}

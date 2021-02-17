@@ -32,8 +32,9 @@ class MockQuantumBackend(QuantumBackend):
             n_samples = self.n_samples
         for _ in range(n_samples):
             measurements.bitstrings += [
-                tuple([random.randint(0, 1) for j in range(n_qubits)])
+                tuple(random.randint(0, 1) for j in range(n_qubits))
             ]
+
         return measurements
 
     def get_wavefunction(self, circuit):
@@ -154,8 +155,6 @@ class MockEstimator(Estimator):
         circuit: Circuit,
         target_operator: SymbolicOperator,
         n_samples: Optional[int],
-        epsilon: Optional[float],
-        delta: Optional[float],
     ) -> ExpectationValues:
         return backend.get_expectation_values(circuit, target_operator)
 

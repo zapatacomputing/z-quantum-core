@@ -66,6 +66,16 @@ def _make_controlled_gate_factory(gate_cls):
     return _factory
 
 
+# NOTE:
+# Qiskit implements a special subclasses for some of the controlled gate variants:
+# https://github.com/Qiskit/qiskit-terra/blob/0.16.4/qiskit/circuit/add_control.py#L72
+# We'll support most of them eventually. The development plan is:
+# 1. Add mapping for some most common cases (done).
+# 2. Support most of the Qiskit controlled gates via our CustomGate when it's reworked.
+# 3. Add specialized gate subclasses on our side if there's a need for handling special
+#     cases explicitly.
+
+
 QISKIT_TO_ORQUESTRA_MAPPING = {
     **{
         value: key for key, value in ORQUESTRA_TO_QISKIT_MAPPING.items()
@@ -74,8 +84,6 @@ QISKIT_TO_ORQUESTRA_MAPPING = {
     qiskit.extensions.CRYGate: _make_controlled_gate_factory(RY),
     qiskit.extensions.CRZGate: _make_controlled_gate_factory(RZ),
     qiskit.extensions.CSwapGate: _make_controlled_gate_factory(SWAP),
-    # TODO: search through Qiskit gates, find all specialized subclasses for
-    # controlled gates and add them here
 }
 
 

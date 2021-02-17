@@ -171,8 +171,8 @@ CIRCUITS = [
         ]
     ),
     Circuit(gates=[I(0) for _ in range(100)]),
-    Circuit(gates=list(RNG.choice(RandomGateList, size=100, replace=True))),
-    Circuit(gates=list(RNG.choice(RandomGateList, size=1000, replace=True))),
+    Circuit(gates=RNG.choice(RandomGateList, size=100, replace=True)),
+    Circuit(gates=RNG.choice(RandomGateList, size=1000, replace=True)),
 ]
 
 

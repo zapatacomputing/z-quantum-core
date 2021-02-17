@@ -27,11 +27,23 @@ def _matrix_to_dict(matrix: sympy.Matrix):
     return {
         "schema": MATRIX_SCHEMA,
         "rows": [
-            {"elements": [str(element)
-                          for element in matrix.row(i)]}
+            {"elements": [
+                str(element) if isinstance(element, sympy.Expr) else element
+                for element in matrix.row(i)
+            ]}
             for i in range(matrix.shape[0])
         ]
     }
+
+
+def _deserialize_matrix_element(element_repr):
+    return sympy.sympify(element_repr) if isinstance(element_repr, str) else element_repr
+
+
+def _matrix_from_dict(matrix_dict: Dict[str, Any]) -> sympy.Matrix:
+    return sympy.Matrix(
+        [[_deserialize_matrix_element(element) for element in row["elements"]] for row in matrix_dict["rows"]]
+    )
 
 
 class Gate(ABC):
@@ -195,25 +207,10 @@ class Gate(ABC):
         elif not isinstance(data, dict):
             data = json.load(data)
 
-        qubits = tuple(data["qubits"])
-        symbols = {
-            symbol: sympy.Symbol(symbol) if isinstance(symbol, str) else symbol
-            for symbol in data["symbolic_params"]
-        }
-        if not isinstance(data["matrix"], sympy.Matrix):
-            matrix = sympy.Matrix(
-                [
-                    [
-                        sympy.sympify(element, locals=symbols)
-                        for element in row["elements"]
-                    ]
-                    for row in data["matrix"]
-                ]
-            )
-        else:
-            matrix = data["matrix"]
-
-        return CustomGate(matrix, qubits)
+        return CustomGate(
+            _matrix_from_dict(data["matrix"]),
+            tuple(data["qubits"])
+        )
 
     @property
     def dagger(self) -> "Gate":

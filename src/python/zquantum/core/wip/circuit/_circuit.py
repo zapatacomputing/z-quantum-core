@@ -1,4 +1,5 @@
 import json
+from pathlib import Path
 from typing import Dict, Union, TextIO, Iterable, Optional, Any
 from functools import reduce, singledispatch
 
@@ -104,7 +105,7 @@ class Circuit:
             f.write(json.dumps(self.to_dict(), indent=2))
 
     @classmethod
-    def load(cls, data: Union[Dict, TextIO]):
+    def load(cls, data: Union[Dict, TextIO, str, Path]):
         """Load a Circuit object from either a file/file-like object or a dictionary
 
         Args:

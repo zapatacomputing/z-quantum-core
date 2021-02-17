@@ -172,7 +172,7 @@ def test_passed_measure_is_used_for_evaluating_distribution_distance():
 def mock_open():
     mock_open = mock.mock_open()
     with mock.patch(
-        "core.bitstring_distribution._bitstring_distribution.open", mock_open
+        "zquantum.core.bitstring_distribution._bitstring_distribution.open", mock_open
     ):
         yield mock_open
 

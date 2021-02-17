@@ -4,7 +4,7 @@ import json
 import os
 import sympy
 from ....utils import SCHEMA_VERSION
-from ._gate import Gate, CustomGate, ControlledGate, _matrix_to_dict
+from ._gate import Gate, CustomGate, matrix_to_dict
 
 THETA = sympy.Symbol("theta")
 
@@ -466,13 +466,8 @@ class TestGateSerialization:
 
         assert gate_dict["schema"] == SCHEMA_VERSION + "-gate"
         assert gate_dict["qubits"] == list(qubits)
+        assert gate_dict["matrix"] == matrix_to_dict(matrix.evalf())
         # matrix is another object serialized on its own, so it's not easy to compare
-        expected_matrix_dict = _matrix_to_dict(matrix)
-        assert all(
-            Gate.are_elements_equal(first, second)
-            for row1, row2 in zip(gate_dict["matrix"]["rows"], expected_matrix_dict["rows"])
-            for first, second in zip(row1["elements"], row2["elements"])
-        )
         assert gate_dict["symbolic_params"] == list(map(str, gate.symbolic_params))
 
     def test_gates_matrix_is_expanded(

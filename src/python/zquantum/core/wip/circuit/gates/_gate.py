@@ -25,7 +25,7 @@ GATE_SCHEMA = SCHEMA_VERSION + "-gate"
 MATRIX_SCHEMA = SCHEMA_VERSION + "-matrix"
 
 
-def _matrix_to_dict(matrix: sympy.Matrix):
+def matrix_to_dict(matrix: sympy.Matrix):
     return {
         "schema": MATRIX_SCHEMA,
         "rows": [
@@ -182,7 +182,7 @@ class Gate(ABC):
         return {
             "schema": GATE_SCHEMA,
             "qubits": list(self.qubits),
-            "matrix": _matrix_to_dict(self.matrix),
+            "matrix": matrix_to_dict(self.matrix),
             "symbolic_params": [str(param) for param in self.symbolic_params],
         }
 

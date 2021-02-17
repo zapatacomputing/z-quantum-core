@@ -1,6 +1,8 @@
 """Base classes for implementing quantum gates."""
 from abc import abstractmethod, ABC
 import inspect
+from numbers import Number
+
 import numpy as np
 import sympy
 import json
@@ -28,7 +30,7 @@ def _matrix_to_dict(matrix: sympy.Matrix):
         "schema": MATRIX_SCHEMA,
         "rows": [
             {"elements": [
-                str(element) if isinstance(element, sympy.Expr) else element
+                str(element)
                 for element in matrix.row(i)
             ]}
             for i in range(matrix.shape[0])
@@ -36,13 +38,16 @@ def _matrix_to_dict(matrix: sympy.Matrix):
     }
 
 
-def _deserialize_matrix_element(element_repr):
-    return sympy.sympify(element_repr) if isinstance(element_repr, str) else element_repr
+def _deserialize_matrix_element(element_repr: Union[sympy.Expr, Number], symbols_map: Dict[str, sympy.Symbol]):
+    # We pass symbols_map because some commonly used symbol names (e.g. gamma) are
+    # by default parsed as functions from sympy instead of symbols.
+    return sympy.sympify(element_repr, locals=symbols_map) if isinstance(element_repr, str) else element_repr
 
 
-def _matrix_from_dict(matrix_dict: Dict[str, Any]) -> sympy.Matrix:
+def _matrix_from_dict(matrix_dict: Dict[str, Any], symbols_names: Iterable[str]) -> sympy.Matrix:
+    symbols_map = {name: sympy.Symbol(name) for name in symbols_names}
     return sympy.Matrix(
-        [[_deserialize_matrix_element(element) for element in row["elements"]] for row in matrix_dict["rows"]]
+        [[_deserialize_matrix_element(element, symbols_map) for element in row["elements"]] for row in matrix_dict["rows"]]
     )
 
 
@@ -208,7 +213,7 @@ class Gate(ABC):
             data = json.load(data)
 
         return CustomGate(
-            _matrix_from_dict(data["matrix"]),
+            _matrix_from_dict(data["matrix"], data["symbolic_params"]),
             tuple(data["qubits"])
         )
 

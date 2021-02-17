@@ -107,8 +107,6 @@ class BasicEstimator(Estimator):
         target_operator: SymbolicOperator,
         n_samples: Optional[int] = None,
         n_total_samples: Optional[int] = None,
-        epsilon: Optional[float] = None,
-        delta: Optional[float] = None,
         shot_allocation_strategy: str = "uniform",
     ) -> ExpectationValues:
         """Given a circuit, backend, and target operators, this method produces expectation values
@@ -123,8 +121,6 @@ class BasicEstimator(Estimator):
             n_total_samples: Total number of measurements to be performed across
                 all frames. Exactly one of n_samples and n_total_samples must be
                 provided.
-            epsilon: Inherited from Estimator, not used.
-            delta: Inherited from Estimator, not used.
             shot_allocation_strategy: Strategy for allocating shots to groups.
                 - "uniform": The number of shots specified by n_samples is used
                     for each group.
@@ -210,8 +206,6 @@ class ExactEstimator(Estimator):
         circuit: Circuit,
         target_operator: SymbolicOperator,
         n_samples: Optional[int] = None,
-        epsilon: Optional[float] = None,
-        delta: Optional[float] = None,
     ) -> ExpectationValues:
         """Given a circuit, backend, and target operators, this method produces expectation values
         for each target operator using the get_exact_expectation_values method built into the provided QuantumBackend.
@@ -221,8 +215,6 @@ class ExactEstimator(Estimator):
             circuit (Circuit): the circuit that prepares the state.
             target_operator (List[SymbolicOperator]): List of target functions to be estimated.
             n_samples (int): Number of measurements done on the unknown quantum state.
-            epsilon (float): an error term.
-            delta (float): a confidence term.
 
         Raises:
             AttributeError: If backend is not a QuantumSimulator.

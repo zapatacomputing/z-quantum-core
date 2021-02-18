@@ -17,7 +17,7 @@ from zquantum.core.circuit import (
 )
 from zquantum.core.testing import create_random_circuit as _create_random_circuit
 from typing import Union, List, Optional
-from .utils import Specs, load_from_specs
+from utils import Specs, load_from_specs
 
 
 # Generate random parameters for an ansatz

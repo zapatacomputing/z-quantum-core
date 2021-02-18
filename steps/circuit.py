@@ -76,7 +76,7 @@ def build_ansatz_circuit(
         if isinstance(params, str):
             params = load_circuit_template_params(params)
         else:
-            params = np.arrary(params)
+            params = np.array(params)
         circuit = ansatz.get_executable_circuit(params)
     elif ansatz.supports_parametrized_circuits:
         circuit = ansatz.parametrized_circuit

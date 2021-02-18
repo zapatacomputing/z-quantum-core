@@ -17,8 +17,7 @@ def optimize_parametrized_circuit_for_ground_state_of_operator(
     parametrized_circuit: Union[Circuit, str],
     backend_specs: Union[Dict, str],
     estimator_specs: Optional[Union[Dict, str]] = None,
-    epsilon: Optional[float] = None,
-    delta: Optional[float] = None,
+    estimator_kwargs: Optional[Union[Dict, str]] = None,
     initial_parameters: Union[str, np.ndarray, List[float]] = None,
     fixed_parameters: Optional[Union[np.ndarray, str]] = None,
     parameter_precision: Optional[float] = None,
@@ -33,19 +32,21 @@ def optimize_parametrized_circuit_for_ground_state_of_operator(
         backend_specs (Union[Dict, str]): The specs of the quantum backend (or simulator) to use to run the circuits
         estimator_specs (Union[Dict, str]): The estimator to use to estimate the expectation value of the operator.
             The default is the BasicEstimator.
-        epsilon (Optional[float]): an additive/multiplicative error term. The cost function should be computed to within this error term.
-        delta (Optional[float]): a confidence term. If theoretical upper bounds are known for the estimation technique,
-            the final estimate should be within the epsilon term, with probability 1 - delta.
+        estimator_kwargs (dict): kwargs required to run get_estimated_expectation_values method of the estimator.
         initial_parameters (Union[str, np.ndarray, List[float]]): The initial parameter values to begin optimization
         fixed_parameters (Optional[Union[np.ndarray, str]]): values for the circuit parameters that should be fixed.
         parameter_precision (float): the standard deviation of the Gaussian noise to add to each parameter, if any.
         parameter_precision_seed (int): seed for randomly generating parameter deviation if using parameter_precision
 
-        epsilon (Optional[float]):
-        delta (Optional[float] = None,
         initial_parameters (Union[str, np.ndarray, List[float]] = None,
     """
-    # for input_argument in [estimator_specs, epsilon, delta, initial_parameters]:
+    if estimator_kwargs is not None:
+        if isinstance(estimator_kwargs, str):
+            estimator_kwargs = json.loads(estimator_kwargs)
+        estimator = create_object(estimator_kwargs)
+    else:
+        estimator_kwargs = {}
+
     if isinstance(optimizer_specs, str):
         optimizer_specs = json.loads(optimizer_specs)
     optimizer = create_object(optimizer_specs)
@@ -81,8 +82,7 @@ def optimize_parametrized_circuit_for_ground_state_of_operator(
         parametrized_circuit,
         backend,
         estimator=estimator,
-        epsilon=epsilon,
-        delta=delta,
+        estimator_kwargs=estimator_kwargs,
         fixed_parameters=fixed_parameters,
         parameter_precision=parameter_precision,
         parameter_precision_seed=parameter_precision_seed,

@@ -7,7 +7,7 @@ from .gradients import finite_differences_gradient
 from .estimator import BasicEstimator
 from .utils import create_symbols_map, ValueEstimate
 from .measurement import ExpectationValues
-from typing import Optional, Callable
+from typing import Optional, Callable, Dict
 import numpy as np
 from openfermion import SymbolicOperator
 
@@ -17,8 +17,7 @@ def get_ground_state_cost_function(
     parametrized_circuit: Circuit,
     backend: QuantumBackend,
     estimator: Estimator = BasicEstimator(),
-    epsilon: Optional[float] = None,
-    delta: Optional[float] = None,
+    estimator_kwargs: Optional[Dict] = None,
     fixed_parameters: Optional[np.ndarray] = None,
     parameter_precision: Optional[float] = None,
     parameter_precision_seed: Optional[int] = None,
@@ -34,9 +33,7 @@ def get_ground_state_cost_function(
         parametrized_circuit (zquantum.core.circuit.Circuit): parameterized circuit to prepare quantum states
         backend (zquantum.core.interfaces.backend.QuantumBackend): backend used for evaluation
         estimator: (zquantum.core.interfaces.estimator.Estimator) = estimator used to compute expectation value of target operator
-        epsilon (float): an additive/multiplicative error term. The cost function should be computed to within this error term.
-        delta (float): a confidence term. If theoretical upper bounds are known for the estimation technique,
-            the final estimate should be within the epsilon term, with probability 1 - delta.
+        estimator_kwargs (dict): kwargs required to run get_estimated_expectation_values method of the estimator.
         gradient_function (Callable): a function which returns a function used to compute the gradient of the cost function
             (see from zquantum.core.gradients.finite_differences_gradient for reference)
         fixed_parameters (np.ndarray): values for the circuit parameters that should be fixed.
@@ -46,7 +43,8 @@ def get_ground_state_cost_function(
     Returns:
         Callable
     """
-
+    if estimator_kwargs is None:
+        estimator_kwargs = {}
     circuit_symbols = list(parametrized_circuit.symbolic_params)
 
     def ground_state_cost_function(
@@ -76,8 +74,7 @@ def get_ground_state_cost_function(
             circuit,
             target_operator,
             n_samples=backend.n_samples,
-            epsilon=epsilon,
-            delta=delta,
+            **estimator_kwargs
         )
 
         return ValueEstimate(np.sum(expectation_values.values))
@@ -131,9 +128,7 @@ class AnsatzBasedCostFunction:
         backend (zquantum.core.interfaces.backend.QuantumBackend): backend used for evaluation
         estimator: (zquantum.core.interfaces.estimator.Estimator) = estimator used to compute expectation value of target operator
         n_samples (int): number of samples (i.e. measurements) to be used in the estimator.
-        epsilon (float): an additive/multiplicative error term. The cost function should be computed to within this error term.
-        delta (float): a confidence term. If theoretical upper bounds are known for the estimation technique,
-            the final estimate should be within the epsilon term, with probability 1 - delta.
+        estimator_kwargs(dict): kwargs required to run get_estimated_expectation_values method of the estimator.
         fixed_parameters (np.ndarray): values for the circuit parameters that should be fixed.
         parameter_precision (float): the standard deviation of the Gaussian noise to add to each parameter, if any.
         parameter_precision_seed (int): seed for randomly generating parameter deviation if using parameter_precision
@@ -142,9 +137,8 @@ class AnsatzBasedCostFunction:
         target_operator (openfermion.SymbolicOperator): see Args
         ansatz (zquantum.core.interfaces.ansatz.Ansatz): see Args
         backend (zquantum.core.interfaces.backend.QuantumBackend): see Args
-        estimator: (zquantum.core.interfaces.estimator.Estimator) = see Args
-        n_samples (int): see Args
-        epsilon (float): see Args
+        estimator (zquantum.core.interfaces.estimator.Estimator): see Args
+        estimator_kwargs(dict): see Args
         delta (float): see Args
         fixed_parameters (np.ndarray): see Args
         parameter_precision (float): see Args
@@ -158,8 +152,7 @@ class AnsatzBasedCostFunction:
         backend: QuantumBackend,
         estimator: Estimator = None,
         n_samples: Optional[int] = None,
-        epsilon: Optional[float] = None,
-        delta: Optional[float] = None,
+        estimator_kwargs: Optional[Dict] = None,
         fixed_parameters: Optional[np.ndarray] = None,
         parameter_precision: Optional[float] = None,
         parameter_precision_seed: Optional[int] = None,
@@ -172,8 +165,11 @@ class AnsatzBasedCostFunction:
         else:
             self.estimator = estimator
         self.n_samples = n_samples
-        self.epsilon = epsilon
-        self.delta = delta
+
+        if estimator_kwargs is None:
+            self.estimator_kwargs = {}
+        else:
+            self.estimator_kwargs = estimator_kwargs
         self.fixed_parameters = fixed_parameters
         self.parameter_precision = parameter_precision
         self.parameter_precision_seed = parameter_precision_seed
@@ -203,8 +199,7 @@ class AnsatzBasedCostFunction:
             circuit,
             self.target_operator,
             n_samples=self.n_samples,
-            epsilon=self.epsilon,
-            delta=self.delta,
+            **self.estimator_kwargs
         )
 
         return sum_expectation_values(expectation_values)

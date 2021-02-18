@@ -16,8 +16,17 @@ from zquantum.core.circuit import (
     save_circuit_set,
 )
 from zquantum.core.testing import create_random_circuit as _create_random_circuit
-from typing import Union, List, Optional
-from .utils import Specs, load_from_specs
+from zquantum.core.utils import create_object
+import json
+from typing import Union, List, Optional, Dict
+
+Specs = Union[str, Dict]
+
+
+def load_from_specs(specs):
+    if isinstance(specs, str):
+        specs = json.loads(specs)
+    return create_object(specs)
 
 
 # Generate random parameters for an ansatz
@@ -58,7 +67,7 @@ def build_ansatz_circuit(
         if isinstance(params, str):
             params = load_circuit_template_params(params)
         else:
-            params = np.arrary(params)
+            params = np.array(params)
         circuit = ansatz.get_executable_circuit(params)
     elif ansatz.supports_parametrized_circuits:
         circuit = ansatz.parametrized_circuit

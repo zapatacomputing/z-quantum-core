@@ -586,7 +586,7 @@ def test_circuit_evaluate_with_too_many_params_specified():
     symbols_map = {
         sympy.Symbol("theta_0"): 0.5,
         sympy.Symbol("theta_1"): 0.6,
-        sympy.Symbol("theta_2"): 0.7
+        sympy.Symbol("theta_2"): 0.7,
     }
     RYGateQubit0 = RY(0).evaluate(symbols_map)
     RZGateQubit0 = RZ(0).evaluate(symbols_map)
@@ -704,9 +704,7 @@ def test_circuit_is_successfully_saved_to_a_file(circuit):
     # Then
     assert saved_data["schema"] == SCHEMA_VERSION + "-circuit"
     assert saved_data["n_qubits"] == circuit.n_qubits
-    assert saved_data["gates"] == [
-        gate.to_dict() for gate in circuit.gates
-    ]
+    assert saved_data["gates"] == [gate.to_dict() for gate in circuit.gates]
     assert saved_data["symbolic_params"] == [
         str(param) for param in circuit.symbolic_params
     ]

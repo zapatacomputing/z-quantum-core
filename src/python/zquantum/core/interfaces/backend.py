@@ -89,7 +89,7 @@ class QuantumBackend(ABC):
                 for circuit, n_samples_for_circuit in zip(circuit_set, n_samples):
                     measurement_set.append(
                         self.run_circuit_and_measure(
-                            circuit, n_samples_for_circuit, **kwargs
+                            circuit, n_samples=n_samples_for_circuit, **kwargs
                         )
                     )
             else:

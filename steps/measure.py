@@ -18,6 +18,7 @@ from zquantum.core.circuit import (
     load_circuit_connectivity,
     load_circuit_template_params,
     load_circuit_set,
+    Circuit,
 )
 from zquantum.core.bitstring_distribution import save_bitstring_distribution
 from zquantum.core.openfermion import (
@@ -25,12 +26,12 @@ from zquantum.core.openfermion import (
     load_interaction_rdm,
     load_qubit_operator_set,
 )
-from typing import Dict, Optional
+from typing import Dict, Optional, Union
 
 
 def run_circuit_and_measure(
     backend_specs: Dict,
-    circuit: str,
+    circuit: Union[str, Dict],
     noise_model: Optional[str] = None,
     device_connectivity: Optional[str] = None,
 ):
@@ -44,7 +45,10 @@ def run_circuit_and_measure(
         )
 
     backend = create_object(backend_specs)
-    circuit = load_circuit(circuit)
+    if isinstance(circuit, str):
+        circuit = load_circuit(circuit)
+    else:
+        circuit = Circuit.from_dict(circuit)
 
     measurements = backend.run_circuit_and_measure(circuit)
     measurements.save("measurements.json")
@@ -171,8 +175,7 @@ def hamiltonian_analysis(
 
 
 def grouped_hamiltonian_analysis(
-    groups: str,
-    expectation_values: Optional[str] = None,
+    groups: str, expectation_values: Optional[str] = None,
 ):
     """Calculates the number of measurements required for computing
     the expectation value of a qubit hamiltonian, where co-measurable terms
@@ -217,9 +220,7 @@ def grouped_hamiltonian_analysis(
 
 
 def expectation_values_from_rdms(
-    interactionrdm: str,
-    qubit_operator: str,
-    sort_terms: bool = False,
+    interactionrdm: str, qubit_operator: str, sort_terms: bool = False,
 ):
     operator = load_qubit_operator(qubit_operator)
     rdms = load_interaction_rdm(interactionrdm)

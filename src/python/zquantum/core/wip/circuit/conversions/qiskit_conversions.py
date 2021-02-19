@@ -1,4 +1,4 @@
-"""Conversions between Qiskit and Orquestra objects."""
+"""Conversions between Qiskit and ZQuantum objects."""
 from functools import singledispatch
 from typing import Tuple, List, Union
 
@@ -96,13 +96,13 @@ def qiskit_qubit(index: int, num_qubits_in_circuit: int) -> qiskit.circuit.Qubit
 def convert_from_qiskit(
     obj: Union[QiskitOperation, qiskit.QuantumCircuit]
 ) -> Union[Gate, Circuit]:
-    """Convert Qiskit object to a corresponding one in Orquestra.
+    """Convert Qiskit object to a corresponding one in ZQuantum.
 
     Args:
         obj: Qiskit object to convert. Currently, only gate operations are supported.
 
     Returns:
-        Orquestra object converted from the `obj`.
+        ZQuantum object converted from the `obj`.
     """
     if isinstance(obj, tuple):
         return _convert_operation_from_qiskit(obj)
@@ -110,7 +110,7 @@ def convert_from_qiskit(
         return _convert_circuit_from_qiskit(obj)
     else:
         raise NotImplementedError(
-            f"Cannot convert {obj} to Orquestra"
+            f"Cannot convert {obj} to ZQuantum"
         )
 
 
@@ -127,7 +127,7 @@ def _convert_operation_from_qiskit(operation: QiskitOperation) -> Gate:
         )
     except KeyError:
         raise NotImplementedError(
-            f"Cannot convert {operation} to Orquestra, unknown operation."
+            f"Cannot convert {operation} to ZQuantum, unknown operation."
         )
 
 
@@ -138,12 +138,12 @@ def _convert_circuit_from_qiskit(circuit: qiskit.QuantumCircuit) -> Circuit:
 
 @singledispatch
 def convert_to_qiskit(obj, num_qubits_in_circuit: int) -> QiskitOperation:
-    """Convert Orquestra object to a corresponding one in Qiskit.
+    """Convert ZQuantum object to a corresponding one in Qiskit.
 
     Args:
         obj: Object to convert. Currenly, only gates are supported.
         num_qubits_in_circuit: Number of qubits in target Qiskit circuit. It's
-            needed because Orquestra gates don't contain information about
+            needed because ZQuantum gates don't contain information about
             number of qubits in circuit, but Qiskit operations do.
 
     Returns:
@@ -177,7 +177,7 @@ def _convert_controlled_gate_to_qiskit(
     gate: ControlledGate, num_qubits_in_circuit: int
 ) -> QiskitOperation:
     target_gate, _, _ = convert_to_qiskit(gate.target_gate, num_qubits_in_circuit)
-    # NOTE: We're assuming that Orquestra only supports singly-controlled gates.
+    # NOTE: We're assuming that ZQuantum only supports singly-controlled gates.
     controlled_gate = target_gate.control(1)
     qiskit_qubits = [qiskit_qubit(qubit, num_qubits_in_circuit) for qubit in gate.qubits]
     return controlled_gate, qiskit_qubits, []

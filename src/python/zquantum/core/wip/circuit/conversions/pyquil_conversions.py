@@ -35,7 +35,7 @@ ZQUANTUM_CLS_TO_PYQUIL_FUNCTION = {
 }
 
 
-# A Mapping from PyQuil gate names to the Orquestra classes.
+# A Mapping from PyQuil gate names to the ZQuantum classes.
 PYQUIL_NAME_TO_ZQUANTUM_CLS = {
     "X": circuit.X,
     "Y": circuit.Y,
@@ -261,11 +261,11 @@ def convert_gate_from_pyquil(gate: pyquil.quil.Gate, custom_gates=None) -> circu
     except TypeError:
         raise ValueError(
             f"Cannot convert {gate}. Please check that you haven't reimplemented "
-            "predefined gate. If this is not the case, contact Orquestra support."
+            "predefined gate. If this is not the case, contact ZQuantum support."
         )
     except KeyError:
         raise ValueError(
-            f"Conversion to Orquestra is not supported for {gate.name} gate. "
+            f"Conversion to ZQuantum is not supported for {gate.name} gate. "
             "If this is a custom gate, make sure to convert it together with "
             "a corresponding PyQuil program."
         )

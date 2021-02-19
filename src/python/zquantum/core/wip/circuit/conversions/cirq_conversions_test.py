@@ -70,7 +70,7 @@ TWO_QUBIT_ROTATION_GATE_FACTORIES = [
 
 
 # Here we combine multiple testcases of the form
-# (Orquestra gate, Cirq operation)
+# (ZQuantum gate, Cirq operation)
 # We do this for easier parametrization in tests that follow.
 TEST_CASES_WITHOUT_SYMBOLIC_PARAMS = (
     [

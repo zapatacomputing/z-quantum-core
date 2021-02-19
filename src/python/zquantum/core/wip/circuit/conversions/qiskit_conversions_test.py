@@ -181,7 +181,7 @@ TEST_CASES_FOR_CONTROLLED_GATES = [
 
 
 # NOTE: In Qiskit, 0 is the most significant qubit,
-# whereas in Orquestra, 0 is the least significant qubit.
+# whereas in ZQuantum, 0 is the least significant qubit.
 # This is we need to flip the indices.
 #
 # See more at

@@ -70,7 +70,7 @@ TWO_QUBIT_ROTATION_GATE_FACTORIES = [
 
 
 # Here we combine multiple testcases of the form
-# (Orquestra gate, Cirq operation)
+# (ZQuantum gate, Cirq operation)
 # We do this for easier parametrization in tests that follow.
 TEST_CASES_WITHOUT_SYMBOLIC_PARAMS = (
     [
@@ -118,39 +118,39 @@ TEST_CASES_WITH_SYMBOLIC_PARAMS = [
 
 
 @pytest.mark.parametrize(
-    "orquestra_gate, cirq_operation", TEST_CASES_WITHOUT_SYMBOLIC_PARAMS
+    "zquantum_gate, cirq_operation", TEST_CASES_WITHOUT_SYMBOLIC_PARAMS
 )
 class TestGateConversionWithoutSymbolicParameters:
-    def test_converting_orquestra_gate_to_cirq_gives_expected_operation(
-        self, orquestra_gate, cirq_operation
+    def test_converting_zquantum_gate_to_cirq_gives_expected_operation(
+        self, zquantum_gate, cirq_operation
     ):
-        assert convert_to_cirq(orquestra_gate) == cirq_operation
+        assert convert_to_cirq(zquantum_gate) == cirq_operation
 
-    def test_converting_cirq_operation_to_orquestra_gives_expected_gate(
-        self, orquestra_gate, cirq_operation
+    def test_converting_cirq_operation_to_zquantum_gives_expected_gate(
+        self, zquantum_gate, cirq_operation
     ):
-        assert convert_from_cirq(cirq_operation) == orquestra_gate
+        assert convert_from_cirq(cirq_operation) == zquantum_gate
 
-    def test_orquestra_gate_and_cirq_gate_have_the_same_matrix(
-        self, orquestra_gate, cirq_operation
+    def test_zquantum_gate_and_cirq_gate_have_the_same_matrix(
+        self, zquantum_gate, cirq_operation
     ):
         # This is to ensure that we are indeed converting the same gate.
         assert np.allclose(
-            np.array(orquestra_gate.matrix).astype(np.complex128),
+            np.array(zquantum_gate.matrix).astype(np.complex128),
             cirq.unitary(cirq_operation.gate),
         )
 
 
 @pytest.mark.parametrize(
-    "orquestra_gate, cirq_operation", TEST_CASES_WITH_SYMBOLIC_PARAMS
+    "zquantum_gate, cirq_operation", TEST_CASES_WITH_SYMBOLIC_PARAMS
 )
 class TestGateConversionWithSymbolicParameters:
-    def test_converting_orquestra_gate_to_cirq_gives_expected_operation(
-        self, orquestra_gate, cirq_operation
+    def test_converting_zquantum_gate_to_cirq_gives_expected_operation(
+        self, zquantum_gate, cirq_operation
     ):
-        assert convert_to_cirq(orquestra_gate) == cirq_operation
+        assert convert_to_cirq(zquantum_gate) == cirq_operation
 
-    def test_converting_cirq_operation_to_orquestra_gives_expected_gate(
-        self, orquestra_gate, cirq_operation
+    def test_converting_cirq_operation_to_zquantum_gives_expected_gate(
+        self, zquantum_gate, cirq_operation
     ):
-        assert convert_from_cirq(cirq_operation) == orquestra_gate
+        assert convert_from_cirq(cirq_operation) == zquantum_gate

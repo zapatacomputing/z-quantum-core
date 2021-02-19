@@ -57,9 +57,9 @@ def make_rotation_factory(
     return _rotation
 
 
-# Mapping between Orquestra gate classes and Cirq gates.
+# Mapping between ZQuantum gate classes and Cirq gates.
 # Note that not all gates are included, those require special treatment.
-ORQUESTRA_TO_CIRQ_MAPPING = {
+ZQUANTUM_TO_CIRQ_MAPPING = {
     X: cirq.X,
     Y: cirq.Y,
     Z: cirq.Z,
@@ -138,7 +138,7 @@ def angle_to_exponent(angle: Param) -> Param:
 
 @singledispatch
 def convert_to_cirq(obj):
-    """Convert native Orquestra object to its closest Cirq counterpart.
+    """Convert native ZQuantum object to its closest Cirq counterpart.
 
     TODO: add longer description once all conversions are done.
     """
@@ -146,34 +146,34 @@ def convert_to_cirq(obj):
 
 
 @convert_to_cirq.register
-def convert_orquestra_gate_to_cirq(gate: Gate) -> cirq.GateOperation:
-    """Convert native Orquestra get to its Cirq counterpart."""
+def convert_zquantum_gate_to_cirq(gate: Gate) -> cirq.GateOperation:
+    """Convert native ZQuantum get to its Cirq counterpart."""
     try:
-        cirq_gate = ORQUESTRA_TO_CIRQ_MAPPING[type(gate)]
+        cirq_gate = ZQUANTUM_TO_CIRQ_MAPPING[type(gate)]
         if gate.params:
             cirq_gate = cirq_gate(*gate.params)
         return cirq_gate(*(cirq.LineQubit(qubit) for qubit in gate.qubits))
     except KeyError:
         raise NotImplementedError(
-            f"Cannot convert Orquestra gate {gate} to cirq. This is probably a bug, "
-            "please reach out to the Orquestra support."
+            f"Cannot convert ZQuantum gate {gate} to cirq. This is probably a bug, "
+            "please reach out to the ZQuantum support."
         )
 
 
 @singledispatch
 def convert_from_cirq(obj):
-    """Convert Cirq object to its closes Orquestra counterpart.
+    """Convert Cirq object to its closes ZQuantum counterpart.
 
     TODO: add longer description once all conversions are done.
     """
     raise NotImplementedError(
-        f"Conversion from cirq to Orquestra not supported for {obj}."
+        f"Conversion from cirq to ZQuantum not supported for {obj}."
     )
 
 
 @singledispatch
-def orquestra_gate_factory_from_cirq_gate(gate: cirq.Gate) -> Callable[..., Gate]:
-    """Create a function that constructs orquestra Gate based on Cirq Gate.
+def zquantum_gate_factory_from_cirq_gate(gate: cirq.Gate) -> Callable[..., Gate]:
+    """Create a function that constructs zquantum Gate based on Cirq Gate.
 
     Args:
           gate: Cirq gate to base the factory on.
@@ -181,16 +181,16 @@ def orquestra_gate_factory_from_cirq_gate(gate: cirq.Gate) -> Callable[..., Gate
           function of the form f(*qubits) -> Gate. For most variants of this
           function those will be just respective classes initializers.
     """
-    raise NotImplementedError(f"Don't know Orquestra factory for gate: {gate}.")
+    raise NotImplementedError(f"Don't know ZQuantum factory for gate: {gate}.")
 
 
-@orquestra_gate_factory_from_cirq_gate.register
+@zquantum_gate_factory_from_cirq_gate.register
 def identity_gate_factory_from_cirq_identity(_gate: cirq.IdentityGate) -> Type[I]:
     return I
 
 
-@orquestra_gate_factory_from_cirq_gate.register
-def orquestra_gate_factory_from_eigengate(gate: cirq.EigenGate) -> Callable[..., Gate]:
+@zquantum_gate_factory_from_cirq_gate.register
+def zquantum_gate_factory_from_eigengate(gate: cirq.EigenGate) -> Callable[..., Gate]:
     key = (type(gate), gate.global_shift, gate.exponent)
     if key in EIGENGATE_SPECIAL_CASES:
         return EIGENGATE_SPECIAL_CASES[key]
@@ -205,31 +205,31 @@ def orquestra_gate_factory_from_eigengate(gate: cirq.EigenGate) -> Callable[...,
 
 
 @convert_from_cirq.register
-def convert_cirq_gate_operation_to_orquestra_gate(
+def convert_cirq_gate_operation_to_zquantum_gate(
     operation: cirq.GateOperation,
 ) -> Gate:
-    """Convert Cirq GateOperation to native Orquestra Gate.
+    """Convert Cirq GateOperation to native ZQuantum Gate.
 
     Note that Cirq distinguishes concept of GateOperation and Gate. The correspondence
     between terminology in Cirq is as follows:
 
-    Cirq Gate <-> Orquestra Gate subclass
-    Cirq GateOperation <-> A concrete instance of some Orquestra Gate,
+    Cirq Gate <-> ZQuantum Gate subclass
+    Cirq GateOperation <-> A concrete instance of some ZQuantum Gate,
 
     which is why this function accepts GateOperation instead of Gate.
 
     Args:
         operation: operation to be converted.
     Returns:
-        Native Orquestra Gate.
+        Native ZQuantum Gate.
     """
     if not all(isinstance(qubit, cirq.LineQubit) for qubit in operation.qubits):
         raise NotImplementedError(
-            "Currently conversions from cirq to Orquestra is supported only for "
+            "Currently conversions from cirq to ZQuantum is supported only for "
             "gate operations with LineQubits."
         )
 
-    orquestra_gate_factory = orquestra_gate_factory_from_cirq_gate(operation.gate)
-    orquestra_qubits = [qubit.x for qubit in operation.qubits]
+    zquantum_gate_factory = zquantum_gate_factory_from_cirq_gate(operation.gate)
+    zquantum_qubits = [qubit.x for qubit in operation.qubits]
 
-    return orquestra_gate_factory(*orquestra_qubits)
+    return zquantum_gate_factory(*zquantum_qubits)

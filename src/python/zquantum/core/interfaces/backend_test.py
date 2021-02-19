@@ -306,7 +306,9 @@ class QuantumBackendGatesTests:
             # When
             estimator = BasicEstimator()
             expectation_value = estimator.get_estimated_expectation_values(
-                backend_for_gates_test, circuit, operator,
+                backend_for_gates_test,
+                circuit,
+                operator,
             ).values[0]
 
             # Then
@@ -347,7 +349,9 @@ class QuantumBackendGatesTests:
             # When
             estimator = BasicEstimator()
             expectation_value = estimator.get_estimated_expectation_values(
-                backend_for_gates_test, circuit, operator,
+                backend_for_gates_test,
+                circuit,
+                operator,
             ).values[0]
 
             # Then
@@ -389,7 +393,9 @@ class QuantumBackendGatesTests:
             operator = QubitOperator(operator)
             estimator = BasicEstimator()
             expectation_value = estimator.get_estimated_expectation_values(
-                backend_for_gates_test, circuit, operator,
+                backend_for_gates_test,
+                circuit,
+                operator,
             ).values[0]
 
             # Then
@@ -432,7 +438,9 @@ class QuantumBackendGatesTests:
             operator = QubitOperator(operator)
             estimator = BasicEstimator()
             expectation_value = estimator.get_estimated_expectation_values(
-                backend_for_gates_test, circuit, operator,
+                backend_for_gates_test,
+                circuit,
+                operator,
             ).values[0]
 
             # Then

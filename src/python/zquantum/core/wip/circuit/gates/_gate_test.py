@@ -4,7 +4,7 @@ import json
 import os
 import sympy
 from ....utils import SCHEMA_VERSION
-from ._gate import Gate, CustomGate, ControlledGate
+from ._gate import Gate, CustomGate, matrix_to_dict
 
 THETA = sympy.Symbol("theta")
 
@@ -462,19 +462,20 @@ class TestGateSerialization:
     ):
         gate = CustomGate(matrix, qubits)
 
-        gate_dict = gate.to_dict(serializable=False)
+        gate_dict = gate.to_dict()
 
         assert gate_dict["schema"] == SCHEMA_VERSION + "-gate"
-        assert gate_dict["qubits"] == qubits
-        assert gate_dict["matrix"] == matrix
-        assert gate_dict["symbolic_params"] == gate.symbolic_params
+        assert gate_dict["qubits"] == list(qubits)
+        assert gate_dict["matrix"] == matrix_to_dict(matrix.evalf())
+        # matrix is another object serialized on its own, so it's not easy to compare
+        assert gate_dict["symbolic_params"] == list(map(str, gate.symbolic_params))
 
-    def test_gates_matrix_is_expanded_if_serializable_is_set_to_true(
+    def test_gates_matrix_is_expanded(
         self, matrix, qubits
     ):
         gate = CustomGate(matrix, qubits)
 
-        gate_dict = gate.to_dict(serializable=True)
+        gate_dict = gate.to_dict()
 
         assert gate_dict["schema"] == SCHEMA_VERSION + "-gate"
         assert gate_dict["qubits"] == list(qubits)
@@ -483,7 +484,7 @@ class TestGateSerialization:
             symbol: sympy.Symbol(symbol) for symbol in gate_dict["symbolic_params"]
         }
 
-        for row_index, row in enumerate(gate_dict["matrix"]):
+        for row_index, row in enumerate(gate_dict["matrix"]["rows"]):
             for col_index, element in enumerate(row["elements"]):
                 assert (
                     sympy.sympify(element, locals=symbols)
@@ -493,7 +494,7 @@ class TestGateSerialization:
             str(param) for param in gate.symbolic_params
         ]
 
-    def test_saving_gate_to_a_file_outputs_the_same_dictionary_as_to_dict_with_serializable_set_to_true(
+    def test_saving_gate_to_a_file_outputs_the_same_dictionary_as_to_dict(
         self, matrix, qubits
     ):
         gate = CustomGate(matrix, qubits)
@@ -503,7 +504,7 @@ class TestGateSerialization:
         with open("gate.json", "r") as f:
             saved_data = json.load(f)
 
-        assert saved_data == gate.to_dict(serializable=True)
+        assert saved_data == gate.to_dict()
 
         os.remove("gate.json")
 
@@ -518,12 +519,11 @@ class TestGateSerialization:
         os.remove("gate.json")
 
     def test_loading_gate_from_dict_gives_the_same_gate(self, matrix, qubits):
-        for serializable in [True, False]:
-            gate = CustomGate(matrix, qubits)
+        gate = CustomGate(matrix, qubits)
 
-            gate_dict = gate.to_dict(serializable=serializable)
+        gate_dict = gate.to_dict()
 
-            assert gate == Gate.load(gate_dict)
+        assert gate == Gate.load(gate_dict)
 
 
 @pytest.mark.parametrize(

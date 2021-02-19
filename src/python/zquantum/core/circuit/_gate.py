@@ -388,14 +388,20 @@ class Gate(object):
         if self.name == "ISWAP":
             return cirq.ISWAP(cirq_qubits[0], cirq_qubits[1])
         if self.name == "XX":
-            return cirq.XX(cirq_qubits[0], cirq_qubits[1]) ** (params[0] * 2 / pi)
+            return cirq.XXPowGate(exponent=(params[0] * 2 / pi), global_shift=-1 / 2)(
+                cirq_qubits[0], cirq_qubits[1]
+            )
         if self.name == "YY":
-            return cirq.YY(cirq_qubits[0], cirq_qubits[1]) ** (params[0] * 2 / pi)
+            return cirq.YYPowGate(exponent=(params[0] * 2 / pi), global_shift=-1 / 2)(
+                cirq_qubits[0], cirq_qubits[1]
+            )
         if self.name == "ZZ":
-            return cirq.ZZ(cirq_qubits[0], cirq_qubits[1]) ** (params[0] * 2 / pi)
+            return cirq.ZZPowGate(exponent=(params[0] * 2 / pi), global_shift=-1 / 2)(
+                cirq_qubits[0], cirq_qubits[1]
+            )
         if self.name == "XY":
-            return cirq.ISwapPowGate(cirq_qubits[0], cirq_qubits[1]) ** (
-                -params[0] * 4 / pi
+            return cirq.ISwapPowGate(exponent=(-params[0] * 4 / pi))(
+                cirq_qubits[0], cirq_qubits[1]
             )
 
     def to_qiskit(self, qreg, creg):

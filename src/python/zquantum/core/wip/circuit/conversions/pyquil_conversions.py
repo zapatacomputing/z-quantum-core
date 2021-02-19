@@ -183,7 +183,7 @@ def convert_from_pyquil(
     obj: Union[pyquil.Program, pyquil.quil.Gate], custom_gates=None
 ):
     raise NotImplementedError(
-        f"Conversion from pyquil to orquestra not implemented for {obj}"
+        f"Conversion from pyquil to zquantum not implemented for {obj}"
     )
 
 
@@ -210,16 +210,16 @@ def custom_gate_factory_from_pyquil_defgate(gate: pyquil.quil.DefGate):
 
     def _factory(*args):
         qubits = args[:num_qubits]
-        orquestra_gate = circuit.CustomGate(
+        zquantum_gate = circuit.CustomGate(
             sympy_matrix, qubits=tuple(qubits), name=gate.name
         )
         if len(args) != num_qubits:
             parameters = args[num_qubits:]
 
-            orquestra_gate = orquestra_gate.evaluate(
+            zquantum_gate = zquantum_gate.evaluate(
                 {symbol: value for symbol, value in zip(symbols, parameters)}
             )
-        return orquestra_gate
+        return zquantum_gate
 
     return _factory
 
@@ -232,19 +232,19 @@ def convert_gate_from_pyquil(gate: pyquil.quil.Gate, custom_gates=None) -> circu
     control_qubits = all_qubits[:number_of_control_modifiers]
     target_qubits = all_qubits[number_of_control_modifiers:]
 
-    orquestra_params = tuple(
+    zquantum_params = tuple(
         translate_expression(expression_from_pyquil(param), SYMPY_DIALECT)
         for param in gate.params
     )
 
-    pyquil_name_to_orquestra_cls = copy(PYQUIL_NAME_TO_ZQUANTUM_CLS)
+    pyquil_name_to_zquantum_cls = copy(PYQUIL_NAME_TO_ZQUANTUM_CLS)
 
     if custom_gates is not None:
-        pyquil_name_to_orquestra_cls.update(custom_gates)
+        pyquil_name_to_zquantum_cls.update(custom_gates)
 
     try:
-        gate_cls = pyquil_name_to_orquestra_cls[gate.name]
-        result = gate_cls(*target_qubits, *orquestra_params)
+        gate_cls = pyquil_name_to_zquantum_cls[gate.name]
+        result = gate_cls(*target_qubits, *zquantum_params)
 
         # Control qubits need to be applied in reverse because in PyQuil they
         # are prepended to the list when applying control modifier.
@@ -272,7 +272,7 @@ def convert_gate_from_pyquil(gate: pyquil.quil.Gate, custom_gates=None) -> circu
 
 
 @convert_from_pyquil.register
-def convert_pyquil_program_to_orquestra(program: pyquil.Program, custom_gates=None):
+def convert_pyquil_program_to_zquantum(program: pyquil.Program, custom_gates=None):
     custom_gates = {
         definition.name: custom_gate_factory_from_pyquil_defgate(definition)
         for definition in program.defined_gates

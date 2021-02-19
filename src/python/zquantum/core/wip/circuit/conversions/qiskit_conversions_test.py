@@ -87,41 +87,41 @@ TWO_QUBIT_SWAP_MATRIX = np.array(
 
 TEST_CASES_WITHOUT_SYMBOLIC_PARAMS = [
     *[
-        (orquestra_gate(qubit), (qiskit_gate(), [qiskit_qubit(qubit, qubit + 1)], []))
-        for orquestra_gate, qiskit_gate in EQUIVALENT_NONPARAMETRIC_SINGLE_QUBIT_GATES
+        (zquantum_gate(qubit), (qiskit_gate(), [qiskit_qubit(qubit, qubit + 1)], []))
+        for zquantum_gate, qiskit_gate in EQUIVALENT_NONPARAMETRIC_SINGLE_QUBIT_GATES
         for qubit in [0, 1, 4, 10]
     ],
     *[
         (
-            orquestra_gate(*qubit_pair),
+            zquantum_gate(*qubit_pair),
             (
                 qiskit_gate(),
                 [qiskit_qubit(qubit, max(qubit_pair) + 1) for qubit in qubit_pair],
                 [],
             ),
         )
-        for orquestra_gate, qiskit_gate in EQUIVALENT_NONPARAMETRIC_TWO_QUBIT_GATES
+        for zquantum_gate, qiskit_gate in EQUIVALENT_NONPARAMETRIC_TWO_QUBIT_GATES
         for qubit_pair in [(0, 1), (3, 4), (10, 1)]
     ],
     *[
         (
-            orquestra_gate(qubit, angle),
+            zquantum_gate(qubit, angle),
             (qiskit_gate(angle), [qiskit_qubit(qubit, qubit + 1)], []),
         )
-        for orquestra_gate, qiskit_gate in EQUIVALENT_SINGLE_QUBIT_ROTATION_GATES
+        for zquantum_gate, qiskit_gate in EQUIVALENT_SINGLE_QUBIT_ROTATION_GATES
         for qubit in [0, 1, 4, 10]
         for angle in [0, np.pi, np.pi / 2, 0.4, np.pi / 5]
     ],
     *[
         (
-            orquestra_gate(*qubit_pair, angle),
+            zquantum_gate(*qubit_pair, angle),
             (
                 qiskit_gate(angle),
                 [qiskit_qubit(qubit, max(qubit_pair) + 1) for qubit in qubit_pair],
                 [],
             ),
         )
-        for orquestra_gate, qiskit_gate in EQUIVALENT_TWO_QUBIT_ROTATION_GATES
+        for zquantum_gate, qiskit_gate in EQUIVALENT_TWO_QUBIT_ROTATION_GATES
         for qubit_pair in [(0, 1), (3, 4), (10, 1)]
         for angle in [0, np.pi, np.pi / 2, 0.4, np.pi / 5]
     ],
@@ -131,25 +131,25 @@ TEST_CASES_WITHOUT_SYMBOLIC_PARAMS = [
 TEST_CASES_WITH_SYMBOLIC_PARAMS = [
     *[
         (
-            orquestra_gate(qubit, orquestra_angle),
+            zquantum_gate(qubit, zquantum_angle),
             (qiskit_gate(qiskit_angle), [qiskit_qubit(qubit, qubit + 1)], []),
         )
-        for orquestra_gate, qiskit_gate in EQUIVALENT_SINGLE_QUBIT_ROTATION_GATES
+        for zquantum_gate, qiskit_gate in EQUIVALENT_SINGLE_QUBIT_ROTATION_GATES
         for qubit in [0, 1, 4, 10]
-        for orquestra_angle, qiskit_angle in EXAMPLE_SYMBOLIC_ANGLES
+        for zquantum_angle, qiskit_angle in EXAMPLE_SYMBOLIC_ANGLES
     ],
     *[
         (
-            orquestra_gate(*qubit_pair, orquestra_angle),
+            zquantum_gate(*qubit_pair, zquantum_angle),
             (
                 qiskit_gate(qiskit_angle),
                 [qiskit_qubit(qubit, max(qubit_pair) + 1) for qubit in qubit_pair],
                 [],
             ),
         )
-        for orquestra_gate, qiskit_gate in EQUIVALENT_TWO_QUBIT_ROTATION_GATES
+        for zquantum_gate, qiskit_gate in EQUIVALENT_TWO_QUBIT_ROTATION_GATES
         for qubit_pair in [(0, 1), (3, 4), (10, 1)]
-        for orquestra_angle, qiskit_angle in EXAMPLE_SYMBOLIC_ANGLES
+        for zquantum_angle, qiskit_angle in EXAMPLE_SYMBOLIC_ANGLES
     ],
 ]
 
@@ -277,31 +277,31 @@ def _are_qiskit_operations_equal(operation_1, operation_2):
 
 
 @pytest.mark.parametrize(
-    "orquestra_gate, qiskit_operation", TEST_CASES_WITHOUT_SYMBOLIC_PARAMS
+    "zquantum_gate, qiskit_operation", TEST_CASES_WITHOUT_SYMBOLIC_PARAMS
 )
 class TestGateConversionWithoutSymbolicParameters:
-    def test_converting_orquestra_gate_to_qiskit_gives_expected_operation(
-        self, orquestra_gate, qiskit_operation
+    def test_converting_zquantum_gate_to_qiskit_gives_expected_operation(
+        self, zquantum_gate, qiskit_operation
     ):
         assert (
-            convert_to_qiskit(orquestra_gate, max(orquestra_gate.qubits) + 1)
+            convert_to_qiskit(zquantum_gate, max(zquantum_gate.qubits) + 1)
             == qiskit_operation
         )
 
-    def test_converting_qiskit_operation_to_orquestra_gives_expected_gate(
-        self, orquestra_gate, qiskit_operation
+    def test_converting_qiskit_operation_to_zquantum_gives_expected_gate(
+        self, zquantum_gate, qiskit_operation
     ):
-        assert convert_from_qiskit(qiskit_operation) == orquestra_gate
+        assert convert_from_qiskit(qiskit_operation) == zquantum_gate
 
-    def test_orquestra_gate_and_qiskit_gate_have_the_same_matrix(
-        self, orquestra_gate, qiskit_operation
+    def test_zquantum_gate_and_qiskit_gate_have_the_same_matrix(
+        self, zquantum_gate, qiskit_operation
     ):
-        orquestra_matrix = np.array(orquestra_gate.matrix).astype(np.complex128)
-        if len(orquestra_gate.qubits) == 2:
-            orquestra_matrix = (
-                TWO_QUBIT_SWAP_MATRIX @ orquestra_matrix @ TWO_QUBIT_SWAP_MATRIX
+        zquantum_matrix = np.array(zquantum_gate.matrix).astype(np.complex128)
+        if len(zquantum_gate.qubits) == 2:
+            zquantum_matrix = (
+                TWO_QUBIT_SWAP_MATRIX @ zquantum_matrix @ TWO_QUBIT_SWAP_MATRIX
             )
-        np.testing.assert_allclose(orquestra_matrix, qiskit_operation[0].to_matrix())
+        np.testing.assert_allclose(zquantum_matrix, qiskit_operation[0].to_matrix())
 
 
 class TestQiskitQubit:
@@ -315,58 +315,58 @@ class TestQiskitQubit:
 
 
 @pytest.mark.parametrize(
-    "orquestra_gate, qiskit_operation", TEST_CASES_WITH_SYMBOLIC_PARAMS
+    "zquantum_gate, qiskit_operation", TEST_CASES_WITH_SYMBOLIC_PARAMS
 )
 class TestGateConversionWithSymbolicParameters:
-    def test_converting_orquestra_gate_to_qiskit_gives_expected_operation(
-        self, orquestra_gate, qiskit_operation
+    def test_converting_zquantum_gate_to_qiskit_gives_expected_operation(
+        self, zquantum_gate, qiskit_operation
     ):
         assert _are_qiskit_operations_equal(
-            convert_to_qiskit(orquestra_gate, max(orquestra_gate.qubits) + 1),
+            convert_to_qiskit(zquantum_gate, max(zquantum_gate.qubits) + 1),
             qiskit_operation,
         )
 
-    def test_converting_qiskit_operation_to_orquestra_gives_expected_gate(
-        self, orquestra_gate, qiskit_operation
+    def test_converting_qiskit_operation_to_zquantum_gives_expected_gate(
+        self, zquantum_gate, qiskit_operation
     ):
-        assert convert_from_qiskit(qiskit_operation) == orquestra_gate
+        assert convert_from_qiskit(qiskit_operation) == zquantum_gate
 
 
 @pytest.mark.parametrize(
-    "orquestra_gate, qiskit_operation", TEST_CASES_FOR_CONTROLLED_GATES
+    "zquantum_gate, qiskit_operation", TEST_CASES_FOR_CONTROLLED_GATES
 )
 class TestGateConversionForControlledGates:
-    def test_converting_orquestra_gate_to_qiskit_gives_expected_operation(
-        self, orquestra_gate, qiskit_operation
+    def test_converting_zquantum_gate_to_qiskit_gives_expected_operation(
+        self, zquantum_gate, qiskit_operation
     ):
         assert _are_qiskit_operations_equal(
-            convert_to_qiskit(orquestra_gate, max(orquestra_gate.qubits) + 1),
+            convert_to_qiskit(zquantum_gate, max(zquantum_gate.qubits) + 1),
             qiskit_operation,
         )
 
-    def test_converting_qiskit_operation_to_orquestra_gives_expected_gate(
-        self, orquestra_gate, qiskit_operation
+    def test_converting_qiskit_operation_to_zquantum_gives_expected_gate(
+        self, zquantum_gate, qiskit_operation
     ):
-        assert convert_from_qiskit(qiskit_operation) == orquestra_gate
+        assert convert_from_qiskit(qiskit_operation) == zquantum_gate
 
 
 def _draw_qiskit_circuit(circuit):
     return qiskit.visualization.circuit_drawer(circuit, output="text")
 
 
-@pytest.mark.parametrize("orquestra_circuit, qiskit_circuit", EQUIVALENT_CIRCUITS)
+@pytest.mark.parametrize("zquantum_circuit, qiskit_circuit", EQUIVALENT_CIRCUITS)
 class TestCircuitConversion:
-    def test_converting_orquestra_circuit_to_qiskit_gives_expected_circuit(
-        self, orquestra_circuit, qiskit_circuit
+    def test_converting_zquantum_circuit_to_qiskit_gives_expected_circuit(
+        self, zquantum_circuit, qiskit_circuit
     ):
-        converted = convert_to_qiskit(orquestra_circuit)
+        converted = convert_to_qiskit(zquantum_circuit)
         assert converted == qiskit_circuit, (
             f"Converted circuit:\n{_draw_qiskit_circuit(converted)}\n isn't equal "
             f"to\n{_draw_qiskit_circuit(qiskit_circuit)}"
         )
 
-    def test_converting_qiskit_circuit_to_orquestra_gives_expected_circuit(
-        self, orquestra_circuit, qiskit_circuit
+    def test_converting_qiskit_circuit_to_zquantum_gives_expected_circuit(
+        self, zquantum_circuit, qiskit_circuit
     ):
         converted = convert_from_qiskit(qiskit_circuit)
-        assert converted == orquestra_circuit
+        assert converted == zquantum_circuit

@@ -117,13 +117,13 @@ def convert_from_qiskit(
 def _convert_operation_from_qiskit(operation: QiskitOperation) -> Gate:
     try:
         qiskit_op, qiskit_qubits, _ = operation
-        orquestra_gate_cls = QISKIT_TO_ZQUANTUM_MAPPING[type(qiskit_op)]
-        orquestra_params = [
+        zquantum_gate_cls = QISKIT_TO_ZQUANTUM_MAPPING[type(qiskit_op)]
+        zquantum_params = [
             translate_expression(intermediate_expr, SYMPY_DIALECT)
             for intermediate_expr in map(expression_from_qiskit, qiskit_op.params)
         ]
-        return orquestra_gate_cls(
-            *(qubit.index for qubit in qiskit_qubits), *orquestra_params
+        return zquantum_gate_cls(
+            *(qubit.index for qubit in qiskit_qubits), *zquantum_params
         )
     except KeyError:
         raise NotImplementedError(
@@ -154,7 +154,7 @@ def convert_to_qiskit(obj, num_qubits_in_circuit: int) -> QiskitOperation:
 
 
 @convert_to_qiskit.register
-def _convert_orquestra_gate_to_qiskit(
+def _convert_zquantum_gate_to_qiskit(
     gate: Gate, num_qubits_in_circuit: int
 ) -> QiskitOperation:
     try:
@@ -184,7 +184,7 @@ def _convert_controlled_gate_to_qiskit(
 
 
 @convert_to_qiskit.register
-def _convert_orquestra_circuit_to_qiskit(orq_circuit: Circuit):
+def _convert_zquantum_circuit_to_qiskit(orq_circuit: Circuit):
     qiskit_circuit = qiskit.QuantumCircuit(orq_circuit.n_qubits)
     qiskit_triplets = [
         convert_to_qiskit(orq_gate, orq_circuit.n_qubits)

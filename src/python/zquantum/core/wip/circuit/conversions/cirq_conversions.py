@@ -146,7 +146,7 @@ def convert_to_cirq(obj):
 
 
 @convert_to_cirq.register
-def convert_orquestra_gate_to_cirq(gate: Gate) -> cirq.GateOperation:
+def convert_zquantum_gate_to_cirq(gate: Gate) -> cirq.GateOperation:
     """Convert native Orquestra get to its Cirq counterpart."""
     try:
         cirq_gate = ZQUANTUM_TO_CIRQ_MAPPING[type(gate)]
@@ -172,8 +172,8 @@ def convert_from_cirq(obj):
 
 
 @singledispatch
-def orquestra_gate_factory_from_cirq_gate(gate: cirq.Gate) -> Callable[..., Gate]:
-    """Create a function that constructs orquestra Gate based on Cirq Gate.
+def zquantum_gate_factory_from_cirq_gate(gate: cirq.Gate) -> Callable[..., Gate]:
+    """Create a function that constructs zquantum Gate based on Cirq Gate.
 
     Args:
           gate: Cirq gate to base the factory on.
@@ -184,13 +184,13 @@ def orquestra_gate_factory_from_cirq_gate(gate: cirq.Gate) -> Callable[..., Gate
     raise NotImplementedError(f"Don't know Orquestra factory for gate: {gate}.")
 
 
-@orquestra_gate_factory_from_cirq_gate.register
+@zquantum_gate_factory_from_cirq_gate.register
 def identity_gate_factory_from_cirq_identity(_gate: cirq.IdentityGate) -> Type[I]:
     return I
 
 
-@orquestra_gate_factory_from_cirq_gate.register
-def orquestra_gate_factory_from_eigengate(gate: cirq.EigenGate) -> Callable[..., Gate]:
+@zquantum_gate_factory_from_cirq_gate.register
+def zquantum_gate_factory_from_eigengate(gate: cirq.EigenGate) -> Callable[..., Gate]:
     key = (type(gate), gate.global_shift, gate.exponent)
     if key in EIGENGATE_SPECIAL_CASES:
         return EIGENGATE_SPECIAL_CASES[key]
@@ -205,7 +205,7 @@ def orquestra_gate_factory_from_eigengate(gate: cirq.EigenGate) -> Callable[...,
 
 
 @convert_from_cirq.register
-def convert_cirq_gate_operation_to_orquestra_gate(
+def convert_cirq_gate_operation_to_zquantum_gate(
     operation: cirq.GateOperation,
 ) -> Gate:
     """Convert Cirq GateOperation to native Orquestra Gate.
@@ -229,7 +229,7 @@ def convert_cirq_gate_operation_to_orquestra_gate(
             "gate operations with LineQubits."
         )
 
-    orquestra_gate_factory = orquestra_gate_factory_from_cirq_gate(operation.gate)
-    orquestra_qubits = [qubit.x for qubit in operation.qubits]
+    zquantum_gate_factory = zquantum_gate_factory_from_cirq_gate(operation.gate)
+    zquantum_qubits = [qubit.x for qubit in operation.qubits]
 
-    return orquestra_gate_factory(*orquestra_qubits)
+    return zquantum_gate_factory(*zquantum_qubits)

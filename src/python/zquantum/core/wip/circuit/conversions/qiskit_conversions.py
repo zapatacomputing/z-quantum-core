@@ -36,7 +36,7 @@ QiskitOperation = Tuple[
 ]
 
 
-ORQUESTRA_TO_QISKIT_MAPPING = {
+ZQUANTUM_TO_QISKIT_MAPPING = {
     X: qiskit.extensions.XGate,
     Y: qiskit.extensions.YGate,
     Z: qiskit.extensions.ZGate,
@@ -76,9 +76,9 @@ def _make_controlled_gate_factory(gate_cls):
 #     cases explicitly.
 
 
-QISKIT_TO_ORQUESTRA_MAPPING = {
+QISKIT_TO_ZQUANTUM_MAPPING = {
     **{
-        value: key for key, value in ORQUESTRA_TO_QISKIT_MAPPING.items()
+        value: key for key, value in ZQUANTUM_TO_QISKIT_MAPPING.items()
     },
     qiskit.extensions.CRXGate: _make_controlled_gate_factory(RX),
     qiskit.extensions.CRYGate: _make_controlled_gate_factory(RY),
@@ -117,7 +117,7 @@ def convert_from_qiskit(
 def _convert_operation_from_qiskit(operation: QiskitOperation) -> Gate:
     try:
         qiskit_op, qiskit_qubits, _ = operation
-        orquestra_gate_cls = QISKIT_TO_ORQUESTRA_MAPPING[type(qiskit_op)]
+        orquestra_gate_cls = QISKIT_TO_ZQUANTUM_MAPPING[type(qiskit_op)]
         orquestra_params = [
             translate_expression(intermediate_expr, SYMPY_DIALECT)
             for intermediate_expr in map(expression_from_qiskit, qiskit_op.params)
@@ -162,7 +162,7 @@ def _convert_orquestra_gate_to_qiskit(
             qiskit_qubit(qubit, num_qubits_in_circuit)
             for qubit in gate.qubits
         ]
-        qiskit_gate_cls = ORQUESTRA_TO_QISKIT_MAPPING[type(gate)]
+        qiskit_gate_cls = ZQUANTUM_TO_QISKIT_MAPPING[type(gate)]
         qiskit_params = [
             translate_expression(intermediate_expr, QISKIT_DIALECT)
             for intermediate_expr in map(expression_from_sympy, gate.params)

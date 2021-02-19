@@ -16,7 +16,7 @@ from .symbolic.pyquil_expressions import QUIL_DIALECT, expression_from_pyquil
 from .symbolic.sympy_expressions import SYMPY_DIALECT
 
 
-ORQUESTRA_CLS_TO_PYQUIL_FUNCTION = {
+ZQUANTUM_CLS_TO_PYQUIL_FUNCTION = {
     circuit.X: pyquil.gates.X,
     circuit.Y: pyquil.gates.Y,
     circuit.Z: pyquil.gates.Z,
@@ -36,7 +36,7 @@ ORQUESTRA_CLS_TO_PYQUIL_FUNCTION = {
 
 
 # A Mapping from PyQuil gate names to the Orquestra classes.
-PYQUIL_NAME_TO_ORQUESTRA_CLS = {
+PYQUIL_NAME_TO_ZQUANTUM_CLS = {
     "X": circuit.X,
     "Y": circuit.Y,
     "Z": circuit.Z,
@@ -92,7 +92,7 @@ def convert_gate_to_pyquil(
 def _convert_ordinary_gate_to_pyquil(
     gate: circuit.Gate, _program: Optional[pyquil.Program] = None
 ) -> pyquil.gates.Gate:
-    pyquil_function = ORQUESTRA_CLS_TO_PYQUIL_FUNCTION[type(gate)]
+    pyquil_function = ZQUANTUM_CLS_TO_PYQUIL_FUNCTION[type(gate)]
     translated_params = [
         translate_expression(expression_from_sympy(param), QUIL_DIALECT)
         for param in gate.params
@@ -237,7 +237,7 @@ def convert_gate_from_pyquil(gate: pyquil.quil.Gate, custom_gates=None) -> circu
         for param in gate.params
     )
 
-    pyquil_name_to_orquestra_cls = copy(PYQUIL_NAME_TO_ORQUESTRA_CLS)
+    pyquil_name_to_orquestra_cls = copy(PYQUIL_NAME_TO_ZQUANTUM_CLS)
 
     if custom_gates is not None:
         pyquil_name_to_orquestra_cls.update(custom_gates)

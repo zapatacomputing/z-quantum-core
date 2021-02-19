@@ -59,7 +59,7 @@ def make_rotation_factory(
 
 # Mapping between Orquestra gate classes and Cirq gates.
 # Note that not all gates are included, those require special treatment.
-ORQUESTRA_TO_CIRQ_MAPPING = {
+ZQUANTUM_TO_CIRQ_MAPPING = {
     X: cirq.X,
     Y: cirq.Y,
     Z: cirq.Z,
@@ -149,7 +149,7 @@ def convert_to_cirq(obj):
 def convert_orquestra_gate_to_cirq(gate: Gate) -> cirq.GateOperation:
     """Convert native Orquestra get to its Cirq counterpart."""
     try:
-        cirq_gate = ORQUESTRA_TO_CIRQ_MAPPING[type(gate)]
+        cirq_gate = ZQUANTUM_TO_CIRQ_MAPPING[type(gate)]
         if gate.params:
             cirq_gate = cirq_gate(*gate.params)
         return cirq_gate(*(cirq.LineQubit(qubit) for qubit in gate.qubits))

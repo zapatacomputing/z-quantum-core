@@ -33,7 +33,7 @@ import numpy as np
 import pytest
 
 
-ORQUESTRA_GATE_TYPE_TO_PYQUIL_NAME = {
+ZQUANTUM_GATE_TYPE_TO_PYQUIL_NAME = {
     X: "X",
     Y: "Y",
     Z: "Z",
@@ -374,7 +374,7 @@ class TestCorrectnessOfGateTypeAndMatrix:
     ):
         pyquil_gate = convert_to_pyquil(gate)
 
-        assert pyquil_gate.name == ORQUESTRA_GATE_TYPE_TO_PYQUIL_NAME[type(gate)]
+        assert pyquil_gate.name == ZQUANTUM_GATE_TYPE_TO_PYQUIL_NAME[type(gate)]
         assert np.allclose(
             pyquil_gate_matrix(pyquil_gate),
             np.array(gate.matrix.tolist(), dtype=complex),
@@ -405,7 +405,7 @@ class TestCorrectnessOfGateTypeAndMatrix:
     ):
         orquestra_gate = convert_from_pyquil(pyquil_gate)
 
-        assert pyquil_gate.name == ORQUESTRA_GATE_TYPE_TO_PYQUIL_NAME[type(orquestra_gate)]
+        assert pyquil_gate.name == ZQUANTUM_GATE_TYPE_TO_PYQUIL_NAME[type(orquestra_gate)]
         assert np.allclose(
             pyquil_gate_matrix(pyquil_gate),
             np.array(orquestra_gate.matrix.tolist(), dtype=complex),

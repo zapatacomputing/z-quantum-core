@@ -142,8 +142,12 @@ RandomGateList = [
     CustomParameterizedGate,
 ]
 
+
+RNG = np.random.default_rng(42)
+
+
 CIRCUITS = [
-    Circuit(gates=[]),
+    Circuit(),
     Circuit(gates=[X(0)]),
     Circuit(gates=[X(1)]),
     Circuit(gates=[X(0), X(1)]),
@@ -166,13 +170,14 @@ CIRCUITS = [
         ]
     ),
     Circuit(gates=[I(0) for _ in range(100)]),
-    Circuit(gates=[random.choice(RandomGateList) for _ in range(100)]),
-    Circuit(gates=[random.choice(RandomGateList) for _ in range(1000)]),
-    Circuit(gates=[random.choice(RandomGateList) for _ in range(10000)]),
+    Circuit(gates=RNG.choice(RandomGateList, size=100, replace=True)),
+    Circuit(gates=RNG.choice(RandomGateList, size=1000, replace=True)),
 ]
 
 
 #### __init__ ####
+
+
 @pytest.mark.parametrize(
     "gates",
     [
@@ -198,38 +203,34 @@ def test_appending_to_circuit_works():
     # Given
     expected_circuit = Circuit(gates=[H(0), CNOT(0, 1)])
     # When
-    circuit = Circuit(gates=[])
-    circuit.gates.append(H(0))
-    circuit.gates.append(CNOT(0, 1))
+    circuit = Circuit()
+    circuit += H(0)
+    circuit += CNOT(0, 1)
     # Then
     assert circuit.gates == expected_circuit.gates
-    assert circuit.qubits == expected_circuit.qubits
+    assert circuit.n_qubits == expected_circuit.n_qubits
 
 
 #### qubits ####
+
+
 @pytest.mark.parametrize(
-    "gates, qubits",
+    "gates, n_qubits",
     [
-        ([], tuple()),
-        ([X(0)], (0,)),
-        ([X(1)], (1,)),
-        (
-            [X(0), X(1)],
-            (
-                0,
-                1,
-            ),
-        ),
-        ([CNOT(0, 1)], (0, 1)),
-        ([X(0), X(0), CNOT(0, 1), X(0)], (0, 1)),
+        ([], 0),
+        ([X(0)], 1),
+        ([X(1)], 2),
+        ([X(0), X(1)], 2),
+        ([CNOT(0, 1)], 2),
+        ([X(0), X(0), CNOT(0, 1), X(0)], 2),
     ],
 )
-def test_creating_circuit_has_correct_qubits(gates, qubits):
+def test_creating_circuit_has_correct_number_of_qubits(gates, n_qubits):
     """The Circuit class should have the correct qubits based on the gates that are passed in"""
     # When
     circuit = Circuit(gates=gates)
     # Then
-    assert circuit.qubits == qubits
+    assert circuit.n_qubits == n_qubits
 
 
 def test_creating_circuit_has_correct_qubits_with_gaps():
@@ -238,7 +239,7 @@ def test_creating_circuit_has_correct_qubits_with_gaps():
     circuit = Circuit(gates=[X(0), CNOT(0, 1), CNOT(0, 9)])
 
     # Then
-    assert circuit.qubits == (0, 1, 9)
+    assert circuit.n_qubits == 10
 
 
 #### symbolic_params ####
@@ -352,8 +353,8 @@ def test_symbolic_params_are_correct_for_multiple_gates_with_overlapping_paramet
     "circuit1, circuit2",
     [
         [
-            Circuit(gates=[]),
-            Circuit(gates=[]),
+            Circuit(),
+            Circuit(),
         ],
         [
             Circuit(gates=[X(0), H(0), CNOT(0, 1)]),
@@ -391,12 +392,12 @@ def test_circuit_eq_same_gates(circuit1, circuit2):
     "circuit1, circuit2",
     [
         [
-            Circuit(gates=[]),
+            Circuit(),
             Circuit(gates=[H(0)]),
         ],
         [
             Circuit(gates=[H(0)]),
-            Circuit(gates=[]),
+            Circuit(),
         ],
         [
             Circuit(
@@ -492,18 +493,18 @@ def test_gate_eq_not_same_gates(circuit1, circuit2):
     "circuit1, circuit2, expected_circuit",
     [
         [
-            Circuit(gates=[]),
+            Circuit(),
             Circuit(gates=[H(0)]),
             Circuit(gates=[H(0)]),
         ],
         [
-            Circuit(gates=[]),
-            Circuit(gates=[]),
-            Circuit(gates=[]),
+            Circuit(),
+            Circuit(),
+            Circuit(),
         ],
         [
             Circuit(gates=[H(0)]),
-            Circuit(gates=[]),
+            Circuit(),
             Circuit(gates=[H(0)]),
         ],
         [
@@ -582,10 +583,14 @@ def test_circuit_evaluated_with_all_params_has_no_free_params():
 @pytest.mark.xfail
 def test_circuit_evaluate_with_too_many_params_specified():
     # Given
-    symbols_map = {"theta_0": 0.5, "theta_1": 0.6, "theta_2": 0.7}
+    symbols_map = {
+        sympy.Symbol("theta_0"): 0.5,
+        sympy.Symbol("theta_1"): 0.6,
+        sympy.Symbol("theta_2"): 0.7,
+    }
     RYGateQubit0 = RY(0).evaluate(symbols_map)
     RZGateQubit0 = RZ(0).evaluate(symbols_map)
-    RZGateQubit0DifferentAngle = RZ(0).evaluate({"theta_1": 0.4})
+    RZGateQubit0DifferentAngle = RZ(0).evaluate({sympy.Symbol("theta_1"): 0.4})
     circuit = Circuit(
         gates=[
             RX(0),
@@ -611,10 +616,10 @@ def test_circuit_evaluate_with_too_many_params_specified():
 
 def test_circuit_evaluate_with_some_params_specified():
     # Given
-    symbols_map = {"theta_0": 0.5}
+    symbols_map = {sympy.Symbol("theta_0"): 0.5}
     RYGateQubit0 = RY(0).evaluate(symbols_map)
     RZGateQubit0 = RZ(0).evaluate(symbols_map)
-    RZGateQubit0DifferentAngle = RZ(0).evaluate({"theta_1": 0.4})
+    RZGateQubit0DifferentAngle = RZ(0).evaluate({sympy.Symbol("theta_1"): 0.4})
     circuit = Circuit(
         gates=[
             RX(0),
@@ -641,8 +646,8 @@ def test_circuit_evaluate_with_some_params_specified():
 
 def test_circuit_evaluate_with_wrong_params():
     # Given
-    symbols_map = {"theta_2": 0.7}
-    RZGateQubit0DifferentAngle = RZ(0).evaluate({"theta_1": 0.4})
+    symbols_map = {sympy.Symbol("theta_2"): 0.7}
+    RZGateQubit0DifferentAngle = RZ(0).evaluate({sympy.Symbol("theta_1"): 0.4})
     circuit = Circuit(
         gates=[
             RX(0),
@@ -668,38 +673,24 @@ def test_circuit_evaluate_with_wrong_params():
 
 
 #### to_dict ####
-@pytest.mark.parametrize("circuit", CIRCUITS)
-def test_circuit_is_successfully_converted_to_dict_form(circuit):
-    """The Circuit class should be able to be converted to a dict with the underlying gates
-    also converted to dictionaries"""
-    # When
-    circuit_dict = circuit.to_dict(serializable=False)
-
-    # Then
-    assert circuit_dict["schema"] == SCHEMA_VERSION + "-circuit"
-    assert circuit_dict["qubits"] == circuit.qubits
-    assert circuit_dict["symbolic_params"] == circuit.symbolic_params
-    assert isinstance(circuit_dict["gates"], list)
-    for gate_dict, gate in zip(circuit_dict["gates"], circuit.gates):
-        assert gate_dict == gate.to_dict(serializable=False)
 
 
 @pytest.mark.parametrize("circuit", CIRCUITS)
-def test_gate_is_successfully_converted_to_serializable_dict_form(circuit):
+def test_gate_is_successfully_converted_to_dict_form(circuit):
     """The Circuit class should be able to be converted to a serializable dict with the underlying gates
     also converted to serializable dictionaries"""
     # When
-    circuit_dict = circuit.to_dict(serializable=True)
+    circuit_dict = circuit.to_dict()
 
     # Then
     assert circuit_dict["schema"] == SCHEMA_VERSION + "-circuit"
-    assert circuit_dict["qubits"] == list(circuit.qubits)
+    assert circuit_dict["n_qubits"] == circuit.n_qubits
     assert circuit_dict["symbolic_params"] == [
         str(param) for param in circuit.symbolic_params
     ]
     assert isinstance(circuit_dict["gates"], list)
     for gate_dict, gate in zip(circuit_dict["gates"], circuit.gates):
-        assert gate_dict == gate.to_dict(serializable=True)
+        assert gate_dict == gate.to_dict()
 
 
 #### save ####
@@ -712,10 +703,8 @@ def test_circuit_is_successfully_saved_to_a_file(circuit):
 
     # Then
     assert saved_data["schema"] == SCHEMA_VERSION + "-circuit"
-    assert saved_data["qubits"] == list(circuit.qubits)
-    assert saved_data["gates"] == [
-        gate.to_dict(serializable=True) for gate in circuit.gates
-    ]
+    assert saved_data["n_qubits"] == circuit.n_qubits
+    assert saved_data["gates"] == [gate.to_dict() for gate in circuit.gates]
     assert saved_data["symbolic_params"] == [
         str(param) for param in circuit.symbolic_params
     ]
@@ -739,10 +728,9 @@ def test_circuit_is_successfully_loaded_from_a_file(circuit):
 
 
 @pytest.mark.parametrize("circuit", CIRCUITS)
-@pytest.mark.parametrize("serializable", [True, False])
-def test_circuit_is_successfully_loaded_from_a_dict(circuit, serializable):
+def test_circuit_is_successfully_loaded_from_a_dict(circuit):
     # Given
-    circuit_dict = circuit.to_dict(serializable=serializable)
+    circuit_dict = circuit.to_dict()
 
     # When
     new_circuit = Circuit.load(circuit_dict)

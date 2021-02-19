@@ -25,12 +25,18 @@ class CNOT(HermitianMixin, ControlledGate):
     def __init__(self, control: int, target: int):
         super().__init__(X(target), control)
 
+    __repr__ = SpecializedGate.__repr__
+    __str__ = SpecializedGate.__str__
+
 
 class CZ(HermitianMixin, ControlledGate):
     """"Controlled Z gate."""
 
     def __init__(self, control: int, target: int):
         super().__init__(Z(target), control)
+
+    __repr__ = SpecializedGate.__repr__
+    __str__ = SpecializedGate.__str__
 
 
 class CPHASE(ControlledGate):
@@ -44,6 +50,9 @@ class CPHASE(ControlledGate):
     ):
         super().__init__(PHASE(target, angle), control)
         self.angle = angle
+
+    __repr__ = SpecializedGate.__repr__
+    __str__ = SpecializedGate.__str__
 
 
 class SWAP(HermitianMixin, SpecializedGate):

@@ -1,6 +1,8 @@
 """Base classes for implementing quantum gates."""
 from abc import abstractmethod, ABC
 import inspect
+from numbers import Number
+
 import numpy as np
 import sympy
 import json
@@ -17,6 +19,36 @@ def _evaluate_parameter(param, symbol_map: Dict[sympy.Expr, Any]):
         return param.subs(symbol_map)
     else:
         return param
+
+
+GATE_SCHEMA = SCHEMA_VERSION + "-gate"
+MATRIX_SCHEMA = SCHEMA_VERSION + "-matrix"
+
+
+def matrix_to_dict(matrix: sympy.Matrix):
+    return {
+        "schema": MATRIX_SCHEMA,
+        "rows": [
+            {"elements": [
+                str(element)
+                for element in matrix.row(i)
+            ]}
+            for i in range(matrix.shape[0])
+        ]
+    }
+
+
+def _deserialize_matrix_element(element_repr: Union[sympy.Expr, Number], symbols_map: Dict[str, sympy.Symbol]):
+    # We pass symbols_map because some commonly used symbol names (e.g. gamma) are
+    # by default parsed as functions from sympy instead of symbols.
+    return sympy.sympify(element_repr, locals=symbols_map) if isinstance(element_repr, str) else element_repr
+
+
+def _matrix_from_dict(matrix_dict: Dict[str, Any], symbols_names: Iterable[str]) -> sympy.Matrix:
+    symbols_map = {name: sympy.Symbol(name) for name in symbols_names}
+    return sympy.Matrix(
+        [[_deserialize_matrix_element(element, symbols_map) for element in row["elements"]] for row in matrix_dict["rows"]]
+    )
 
 
 class Gate(ABC):
@@ -136,32 +168,23 @@ class Gate(ABC):
             return False
         return True
 
-    def to_dict(self, serializable: bool = True):
-        """Convert the Gate object into a dictionary.
-
-        Args:
-            serializable (bool): If true, the returned dictionary is serializable so that it can be stored
-                in JSON format
+    def to_dict(self) -> Dict[str, Any]:
+        """Creates a dictionary representation of this gate.
+        The dictionary is serializable to JSON.
 
         Returns:
-            Dict: keys are schema, qubits, matrix, and symbolic_params.
+            A mapping with keys:
+                - "schema" - serialization schema identifier
+                - "qubits" - list of qubit indices
+                - "matrix" - gate matrix serialized according to `MATRIX_SCHEMA`
+                - "symbolic_params" - list of stringified gate parameters
         """
-
-        gate_dict = {"schema": SCHEMA_VERSION + "-gate"}
-        if serializable:
-            gate_dict["qubits"] = list(self.qubits)
-            gate_dict["matrix"] = [
-                {"elements": [str(element) for element in self.matrix.row(i)]}
-                for i in range(self.matrix.shape[0])
-            ]
-            gate_dict["symbolic_params"] = [
-                str(param) for param in self.symbolic_params
-            ]
-        else:
-            gate_dict["qubits"] = self.qubits
-            gate_dict["matrix"] = self.matrix
-            gate_dict["symbolic_params"] = self.symbolic_params
-        return gate_dict
+        return {
+            "schema": GATE_SCHEMA,
+            "qubits": list(self.qubits),
+            "matrix": matrix_to_dict(self.matrix),
+            "symbolic_params": [str(param) for param in self.symbolic_params],
+        }
 
     def save(self, filename: str):
         """Save the Gate object to file in JSON format
@@ -170,7 +193,7 @@ class Gate(ABC):
             filename (str): The path to the file to store the Gate
         """
         with open(filename, "w") as f:
-            json.dump(self.to_dict(serializable=True), f, indent=2)
+            json.dump(self.to_dict(), f, indent=2)
 
     @staticmethod
     def load(data: Union[Dict, TextIO, str]):
@@ -189,25 +212,10 @@ class Gate(ABC):
         elif not isinstance(data, dict):
             data = json.load(data)
 
-        qubits = tuple(data["qubits"])
-        symbols = {
-            symbol: sympy.Symbol(symbol) if isinstance(symbol, str) else symbol
-            for symbol in data["symbolic_params"]
-        }
-        if not isinstance(data["matrix"], sympy.Matrix):
-            matrix = sympy.Matrix(
-                [
-                    [
-                        sympy.sympify(element, locals=symbols)
-                        for element in row["elements"]
-                    ]
-                    for row in data["matrix"]
-                ]
-            )
-        else:
-            matrix = data["matrix"]
-
-        return CustomGate(matrix, qubits)
+        return CustomGate(
+            _matrix_from_dict(data["matrix"], data["symbolic_params"]),
+            tuple(data["qubits"])
+        )
 
     @property
     def dagger(self) -> "Gate":
@@ -360,6 +368,9 @@ class ControlledGate(SpecializedGate):
     def _create_matrix(self) -> sympy.Matrix:
         target_matrix = self.target_gate.matrix
         return sympy.Matrix.diag(sympy.eye(target_matrix.shape[0]), target_matrix)
+
+    def __repr__(self):
+        return f"{type(self).__name__}(target_gate={self.target_gate}, control={self.control})"
 
 
 class Dagger(SpecializedGate):

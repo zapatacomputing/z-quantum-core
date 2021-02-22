@@ -24,7 +24,10 @@ class Optimizer(ABC):
 
     @abstractmethod
     def minimize(
-        self, cost_function: CallableWithGradient, initial_params: np.ndarray, **kwargs
+        self,
+        cost_function: Union[CallableWithGradient, callable],
+        initial_params: np.ndarray,
+        **kwargs
     ) -> OptimizeResult:
         """Finds the parameters which minimize given cost function.
 

@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 import scipy
 from scipy.optimize import OptimizeResult
 from zquantum.core.interfaces.functions import CallableWithGradient
-from typing import Optional, Dict
+from typing import Optional, Dict, Union
 import numpy as np
 
 

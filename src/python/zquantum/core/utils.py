@@ -17,7 +17,7 @@ from networkx.readwrite import json_graph
 import lea
 import collections
 import scipy
-from typing import List, Tuple, Optional, Iterable
+from typing import List, Tuple, Optional, Iterable, Union
 import importlib
 
 
@@ -620,3 +620,9 @@ def hf_rdm(n_alpha: int, n_beta: int, n_orbitals: int) -> InteractionRDM:
                 two_body_tensor[i, j, i, j] = -1
 
     return InteractionRDM(one_body_tensor, two_body_tensor)
+
+
+def load_from_specs(specs: Union[str, Dict]):
+    if isinstance(specs, str):
+        specs = json.loads(specs)
+    return create_object(specs)

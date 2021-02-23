@@ -17,7 +17,7 @@ from networkx.readwrite import json_graph
 import lea
 import collections
 import scipy
-from typing import List, Tuple, Optional, Iterable, Union
+from typing import List, Tuple, Optional, Iterable, Union, Dict
 import importlib
 
 

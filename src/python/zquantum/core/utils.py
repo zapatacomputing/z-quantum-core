@@ -19,7 +19,7 @@ import collections
 import scipy
 from typing import List, Tuple, Optional, Iterable, Union, Dict
 import importlib
-
+import copy
 
 SCHEMA_VERSION = "zapata-v1"
 RNDSEED = 12345
@@ -433,6 +433,7 @@ def create_object(specs, **kwargs):
     Returns:
         object: object of any type
     """
+    specs = copy.copy(specs)
     module_name = specs.pop("module_name")
     module = importlib.import_module(module_name)
     creator_name = specs.pop("function_name")

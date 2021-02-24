@@ -2,6 +2,7 @@
 import math
 from dataclasses import dataclass
 import typing as t
+from typing_extensions import Protocol, abstractproperty
 from functools import singledispatch
 
 import sympy
@@ -11,6 +12,10 @@ import sympy
 class GateApplication:
     gate: "Gate"
     qubit_indices: t.Iterable[int]
+
+    def propagate(self, wave_function):
+        # lift gate matrix for the whole wave function
+        ...
 
 
 # TODO: figure out what should be the concrete type for the Wave Function.
@@ -28,8 +33,21 @@ class OpaqueOperation:
     transformation: t.Callable[[WaveFunction], WaveFunction]
     qubit_indices: t.Iterable[int]
 
+    def propagate(self, wave_function):
+        # can't be done because wave functions don't work that way
+        # superposition and entanglement, yo
+        # return self.transformation(wave_function[self.qubit_indices])
+        return self.transformation(wave_function)
 
-QuantumOperation = t.Union[GateApplication, OpaqueOperation]
+
+class QuantumOperation(Protocol):
+    @abstractproperty
+    def qubit_indices(self):
+        ...
+
+    def propagate(self, wave_function: WaveFunction) -> WaveFunction:
+        """Allows running on a simulator backend or in the REPL"""
+        ...
 
 
 @dataclass(frozen=True)
@@ -68,8 +86,6 @@ def make_parametric_gate_factory(
         )
 
     return _gate_factory
-
-
 
 
 @dataclass(frozen=True)

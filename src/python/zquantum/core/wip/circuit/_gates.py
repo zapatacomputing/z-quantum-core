@@ -2,6 +2,7 @@
 import math
 from dataclasses import dataclass
 import typing as t
+from functools import singledispatch
 
 import sympy
 
@@ -10,6 +11,25 @@ import sympy
 class GateApplication:
     gate: "Gate"
     qubit_indices: t.Iterable[int]
+
+
+# TODO: figure out what should be the concrete type for the Wave Function.
+# The chosen type should fit nicely with the simulator backends that we indend to use.
+# It doesn't matter for quantum hardware backends, because we only support transpiling
+# circuits composed of well-defined quantum gates to a quantum computer.
+#
+# WF is a vector containing 2^(n_qubits) complex numbers that describes a quantum state,
+# before a quantum collapse.
+WaveFunction = t.Any
+
+
+@dataclass(frozen=True)
+class OpaqueOperation:
+    transformation: t.Callable[[WaveFunction], WaveFunction]
+    qubit_indices: t.Iterable[int]
+
+
+QuantumOperation = t.Union[GateApplication, OpaqueOperation]
 
 
 @dataclass(frozen=True)
@@ -48,3 +68,30 @@ def make_parametric_gate_factory(
         )
 
     return _gate_factory
+
+
+
+
+@dataclass(frozen=True)
+class Circuit:
+    operations: t.Iterable[QuantumOperation]
+    n_qubits: int
+
+    def __add__(self, other: "Circuit"):
+        return _append_to_circuit(other, self)
+
+
+@singledispatch
+def _append_to_circuit(other, circuit: Circuit):
+    raise NotImplementedError()
+
+
+@_append_to_circuit.register
+def _append_gate(other_gate: Gate, circuit: Circuit):
+    n_qubits_by_gate = max(other_gate.qubits) + 1
+    return type(circuit)(operations=[*circuit.operations, other_gate], n_qubits=max(circuit.n_qubits, n_qubits_by_gate))
+
+
+@_append_to_circuit.register
+def _append_circuit(other_circuit: Circuit, circuit: Circuit):
+    return type(circuit)(gates=[*circuit.gates, *other_circuit.gates], n_qubits=max(circuit.n_qubits, other_circuit.n_qubits))

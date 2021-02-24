@@ -88,3 +88,36 @@ def phase_matrix(angle):
             [0, sympy.exp(1j * angle)],
         ]
     )
+
+
+# --- non-parametric two qubit gates ---
+
+
+def cnot_matrix():
+    return sympy.Matrix(
+        [
+            [1, 0, 0, 0],
+            [0, 1, 0, 0],
+            [0, 0, 0, 1],
+            [0, 0, 1, 0],
+        ]
+    )
+
+
+def cz_matrix():
+    return sympy.Matrix(
+        [
+            [1, 0, 0, 0],
+            [0, 1, 0, 0],
+            [0, 0, 1, 0],
+            [0, 0, 0, -1],
+        ]
+    )
+
+
+def swap_matrix():
+    return sympy.Matrix([[1, 0, 0, 0], [0, 0, 1, 0], [0, 1, 0, 0], [0, 0, 0, 1]])
+
+
+def iswap_matrix():
+    return sympy.Matrix([[1, 0, 0, 0], [0, 0, 1j, 0], [0, 1j, 0, 0], [0, 0, 0, 1]])

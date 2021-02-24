@@ -1,113 +1,182 @@
 """Class hierarchy for base gates."""
 import math
-from dataclasses import dataclass
-import typing as t
-from typing_extensions import Protocol, abstractproperty
-from functools import singledispatch
+from dataclasses import dataclass, field
+from numbers import Number
+from typing import Tuple, Union, Callable, Optional
 
 import sympy
+from typing_extensions import Protocol
+
+Parameter = Union[sympy.Symbol, Number]
+
+
+class Gate(Protocol):
+    """Quantum gate representable by a matrix, translatable to other frameworks and backends."""
+
+    @property
+    def name(self) -> str:
+        """Name of the gate.
+
+        Name is used in textual representation and dispatching in conversion between
+        frameworks, therefore implementers of this protocol should make sure
+        the default gate names are not used.
+        """
+        raise NotImplementedError()
+
+    @property
+    def params(self) -> Tuple[Parameter]:
+        """Value of parameters bound to this gate.
+
+        Length of `params` should be equal to number of parameters in gate's initializer.
+        In particular, nonparametric gates should always return ().
+
+        We need it for translations to other frameworks.
+        """
+        raise NotImplementedError()
+
+    @property
+    def num_qubits(self) -> int:
+        """Number of qubits this gate acts on.
+        We need it because matrix is computed lazily, and we don't want to create matrix
+        just to know the number of qubits.
+        """
+        raise NotImplementedError()
+
+    @property
+    def matrix(self) -> sympy.Matrix:
+        """Unitary matrix describing gate's action on state vector.
+
+        We need it to be able to implement .propagate() on the operation class.
+        """
+        raise NotImplementedError()
 
 
 @dataclass(frozen=True)
-class GateApplication:
-    gate: "Gate"
-    qubit_indices: t.Iterable[int]
-
-    def propagate(self, wave_function):
-        # lift gate matrix for the whole wave function
-        ...
-
-
-# TODO: figure out what should be the concrete type for the Wave Function.
-# The chosen type should fit nicely with the simulator backends that we indend to use.
-# It doesn't matter for quantum hardware backends, because we only support transpiling
-# circuits composed of well-defined quantum gates to a quantum computer.
-#
-# WF is a vector containing 2^(n_qubits) complex numbers that describes a quantum state,
-# before a quantum collapse.
-WaveFunction = t.Any
-
-
-@dataclass(frozen=True)
-class OpaqueOperation:
-    transformation: t.Callable[[WaveFunction], WaveFunction]
-    qubit_indices: t.Iterable[int]
-
-    def propagate(self, wave_function):
-        # can't be done because wave functions don't work that way
-        # superposition and entanglement, yo
-        # return self.transformation(wave_function[self.qubit_indices])
-        return self.transformation(wave_function)
-
-
-class QuantumOperation(Protocol):
-    @abstractproperty
-    def qubit_indices(self):
-        ...
-
-    def propagate(self, wave_function: WaveFunction) -> WaveFunction:
-        """Allows running on a simulator backend or in the REPL"""
-        ...
-
-
-@dataclass(frozen=True)
-class Gate:
-    """Quantum gate defined with a matrix.
+class CustomGate:
+    """Custom gate defined using matrix factory.
 
     Args:
         name: Name of this gate. Implementers of new gates should make sure that the names are
             unique.
-        matrix: Unitary matrix defining action of this gate.
+        matrix_factory: a callable mapping arbitrary number of parameters into gate matrix.
+            Implementers of new gates should make sure the returned matrices are
+            square and of dimension being 2 ** `num_qubits`.
+        params: params boumd to this instance of gate. Actual matrix of this gate will be
+            constructed, upon request, by passing params to `matrix_factory`.
+        num_qubits: number of qubits this gate acts on.
     """
 
     name: str
-    matrix: sympy.Matrix
+    matrix_factory: Callable[..., sympy.Matrix]
+    params: Tuple[Parameter, ...]
+    num_qubits: int
 
-    def __call__(self, *qubit_indices) -> "GateApplication":
-        return GateApplication(self, qubit_indices)
+    @property
+    def matrix(self) -> sympy.Matrix:
+        """Unitary matrix defining action of this gate.
 
+        This is a computed property using `self.matrix_factory` called
+        with parameters bound to this gate.
+        """
+        self.matrix_factory(*self.params)
 
-def _n_qubits_for_matrix(matrix_shape):
-    n_qubits = math.floor(math.log2(matrix_shape[0]))
-    if 2 ** n_qubits != matrix_shape[0] or 2 ** n_qubits != matrix_shape[1]:
-        raise ValueError("Gate's matrix has to be square with dimension 2^N")
-
-    return n_qubits
-
-
-def make_parametric_gate_factory(
-    name: str,
-    matrix_factory
-):
-    def _gate_factory(*params):
-        return Gate(
-            name=name,
-            matrix=matrix_factory(*params)
+    def bind(self, symbols_map) -> "CustomGate":
+        new_symbols = [param.subs(symbols_map) for param in self.params]
+        return type(self)(
+            name=self.name,
+            matrix_factory=self.matrix_factory,
+            params=new_symbols,
+            num_qubits=self.num_qubits
         )
 
-    return _gate_factory
+    def __str__(self):
+        return (
+            f"{self.name}({', '.join(map(str,self.params))})"
+            if self.params
+            else self.name
+        )
 
 
 @dataclass(frozen=True)
-class Circuit:
-    operations: t.Iterable[QuantumOperation]
-    n_qubits: int
+class ControlledGate:
+    gate: Gate
 
-    def __add__(self, other: "Circuit"):
-        return _append_to_circuit(other, self)
+    # (forward all properties to the wrapped gate)
+    @property
+    def num_controlled_qubits(self):
+        pass
+
+# TODO: Dagger
+
+def _matrix_substitution_func(matrix: sympy.Matrix, symbols):
+    """Create a function that substitutes value for free params to given matrix.
+
+    This is meant to be used as a factory function in CustomGates, where
+    one already has a matrix.
+
+    Args:
+        matrix: a matrix with symbolic parameters.
+        symbols: an iterable comprising all symbolic (free) params of matrix.
+    Returns:
+        A callable f such that f(param1, ..., paramn) returns matrix resulting
+        from substituting free symbols in `matrix` with param1,...,paramn
+        in the order specified by `symbols`.
+    """
+
+    def _substitution_func(*params):
+        return matrix.subs({symbol: arg for symbol, arg in zip(symbols, params)})
+
+    return _substitution_func
 
 
-@singledispatch
-def _append_to_circuit(other, circuit: Circuit):
-    raise NotImplementedError()
+def define_gate_with_matrix(
+    name: str, matrix: sympy.Matrix, symbols_ordering: Tuple[sympy.Symbol, ...]
+) -> Callable[..., CustomGate]:
+    """Makes it easy to define custom gates.
 
+    Define new gate specified by a (possibly parametrized) matrix.
 
-@_append_to_circuit.register
-def _append_gate(other_gate: Gate, circuit: Circuit):
-    n_qubits_by_gate = max(other_gate.qubits) + 1
-    return type(circuit)(operations=[*circuit.operations, other_gate], n_qubits=max(circuit.n_qubits, n_qubits_by_gate))
+    Note that this is slightly less efficient, but more convenient, than creating
+    a callable that returns a matrix and passing it to CustomGate.
 
+    Args:
+        name: name of the gate.
+        matrix: matrix of the gate. It should a matrix of shape 2 ** N x 2 ** N,
+            where N is the number of qubits this gate acts on.
+        symbols_ordering: tuple defining order in which symbols should be passed to the gates
+            initializer.
+            For instance:
+            >>>U = define_gate(
+                "U",
+                Matrix([
+                    [Symbol("a"), 0],
+                    [0, Symbol("b")]
+                ]),
+                (Symbol("a"), Symbol("b"))
+            )
+            then, when binding:
+            >>>V = U.bind(-0.5, 0.7)
+            V will be defined by substituting a=-0.5 and b=0.7,
+            resulting in a gate V identical to
+            >>>V = CustomGate(
+                "U",
+                lambda a, b: Matrix([
+                    [a, 0],
+                    [0, b]
+                ]),
+                (-0.5, 0.7)
+            )
 
-@_append_to_circuit.register
-def _append_circuit(other_circuit: Circuit, circuit: Circuit):
-    return type(circuit)(gates=[*circuit.gates, *other_circuit.gates], n_qubits=max(circuit.n_qubits, other_circuit.n_qubits))
+    Returns:
+        Callable mapping parameters into an instance of the defined gate.
+    """
+    n_qubits = math.floor(math.log2(matrix.shape[0]))
+    if 2 ** n_qubits != matrix.shape[0] or 2 ** n_qubits != matrix.shape[1]:
+        raise ValueError("Gate's matrix has to be square with dimension 2^N")
+
+    def _gate(*params):
+        return CustomGate(
+            name, _matrix_substitution_func(matrix, symbols_ordering), params, n_qubits
+        )
+
+    return _gate

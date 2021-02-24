@@ -37,4 +37,14 @@ circuit += bg.RY(theta)(2)
 ...
 circuit += bg.RY(theta)(99)
 
-circuit.bind({theta: np.pi})
+
+
+
+
+circuit = circuit.bind({theta: np.pi})
+
+c2 = g.Circuit([], 7)
+theta = sympy.Symbol("theta")
+c2 += bg.RY(theta).bind({theta: np.pi * 2})(0)
+c2 += bg.RY(theta).bind({theta: np.pi * 3})(0)
+# c2 += bg.RY(theta)(1).bind({theta: np.pi})

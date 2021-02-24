@@ -139,11 +139,11 @@ def define_gate(
 
     n_qubits = _n_qubits_for_matrix(matrix.shape)
 
-    def _gate_factory(*args):
+    def _gate_factory(*params):
         return CustomGate(
             name=name,
             matrix_factory=_matrix_substitution_func(matrix, free_symbols),
-            params=args,
+            params=params,
             num_qubits=n_qubits
         )
 
@@ -156,11 +156,27 @@ def define_nonparametric_gate(
 ):
     n_qubits = _n_qubits_for_matrix(matrix.shape)
 
-    def _gate_factory(*args):
+    def _gate_factory():
         return CustomGate(
             name=name,
             matrix_factory=lambda: matrix,
             params=(),
+            num_qubits=n_qubits
+        )
+
+    return _gate_factory
+
+
+def define_one_param_gate(
+    name: str,
+    matrix_factory,
+    n_qubits
+):
+    def _gate_factory(param):
+        return CustomGate(
+            name=name,
+            matrix_factory=matrix_factory,
+            params=(param,),
             num_qubits=n_qubits
         )
 

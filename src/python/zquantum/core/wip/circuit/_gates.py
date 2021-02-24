@@ -1,4 +1,5 @@
 """Class hierarchy for base gates."""
+import math
 from dataclasses import dataclass, field
 from numbers import Number
 from typing import Tuple, Union, Callable, Optional
@@ -80,3 +81,51 @@ class CustomGate:
             f"{self.name}({', '.join(map(str,self.params))})" if self.params
             else self.name
         )
+
+
+def _matrix_substitution_func(matrix: sympy.Matrix, symbols):
+    """Create a function that substitutes value for free params to given matrix.
+
+    This is meant to be used as a factory function in CustomGates, where
+    one already has a matrix.
+
+    Args:
+        matrix: a matrix with symbolic parameters.
+        symbols: an iterable comprising all symbolic (free) params of matrix.
+    Returns:
+        A callable f such that f(param1, ..., paramn) returns matrix resulting
+        from substituting free symbols in `matrix` with param1,...,paramn
+        in the order specified by `symbols`.
+    """
+    def _substitution_func(*args):
+        return matrix.subs({symbol: arg for symbol, arg in zip(symbols, args)})
+    return _substitution_func
+
+
+def define_gate(
+    name: str, matrix: sympy.Matrix, free_symbols: Tuple[sympy.Symbol, ...]
+) -> Callable[..., CustomGate]:
+    """Define new gate specified by a (possibly parametrized) matrix.
+
+    Note that this is slightly less efficient, but more convenient, than creating
+    a callable that returns a matrix and passing it to CustomGate.
+
+    Args:
+        name: name of the gate.
+        matrix: matrix of the gate. It should a matrix of shape 2 ** N x 2 ** N,
+            where N is the number of qubits this gate acts on.
+        free_symbols: tuple defining order in which symbols should be passed to the gates
+            initializer.
+            For instances, if U = define_gate("U", some_matrix, (Symbol("a"), Symbol("b")))
+            then matrix of U(1, 2) will be defined by substitute a=1 and b=2
+            into some_matrix.
+    Returns:
+        Callable mapping parameters into an instance of the defined gate.
+    """
+    n_qubits = math.floor(math.log2(matrix.shape[0]))
+    if 2 ** n_qubits != matrix.shape[0] or 2 ** n_qubits != matrix.shape[1]:
+        raise ValueError("Gate's matrix has to be square with dimension 2^N")
+
+    def _gate(*args):
+        return CustomGate(name, _matrix_substitution_func(matrix, free_symbols), args, n_qubits)
+    return _gate

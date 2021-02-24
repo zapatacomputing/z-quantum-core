@@ -1,5 +1,8 @@
 """Definition of predefined gate matrices and related utility functions."""
 import sympy
+import numpy as np
+
+# --- non-parametric gates ---
 
 
 def x_matrix():
@@ -12,6 +15,31 @@ def y_matrix():
 
 def z_matrix():
     return sympy.Matrix([[1, 0], [0, -1]])
+
+
+def h_matrix():
+    return sympy.Matrix(
+        [
+            [(1 / np.sqrt(2)), (1 / np.sqrt(2))],
+            [(1 / np.sqrt(2)), (-1 / np.sqrt(2))],
+        ]
+    )
+
+
+def i_matrix():
+    return sympy.Matrix([[1, 0], [0, 1]])
+
+
+def t_matrix():
+    return sympy.Matrix(
+        [
+            [1, 0],
+            [0, sympy.exp(1j * np.pi / 4)],
+        ]
+    )
+
+
+# --- gates with a single param ---
 
 
 def rx_matrix(angle):
@@ -49,5 +77,14 @@ def rz_matrix(angle):
                 0,
                 sympy.exp(sympy.I * angle / 2),
             ],
+        ]
+    )
+
+
+def phase_matrix(angle):
+    return sympy.Matrix(
+        [
+            [1, 0],
+            [0, sympy.exp(1j * angle)],
         ]
     )

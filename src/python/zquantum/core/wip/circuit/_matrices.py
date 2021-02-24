@@ -7,7 +7,9 @@ def x_matrix():
 
 
 def rx_matrix(angle):
-    return sympy.Matrix([
-        [sympy.cos(angle / 2), -1j * sympy.sin(angle / 2)],
-        [-1j * sympy.sin(angle / 2), sympy.cos(angle / 2)]
-    ])
+    return sympy.Matrix(
+        [
+            [sympy.cos(angle / 2), -1j * sympy.sin(angle / 2)],
+            [-1j * sympy.sin(angle / 2), sympy.cos(angle / 2)],
+        ]
+    )

@@ -57,6 +57,7 @@ class CustomGate:
             constructed, upon request, by passing params to `matrix_factory`.
         num_qubits: number of qubits this gate acts on.
     """
+
     name: str
     matrix_factory: Callable[..., sympy.Matrix]
     params: Tuple[Parameter, ...]
@@ -78,7 +79,8 @@ class CustomGate:
 
     def __repr__(self):
         return (
-            f"{self.name}({', '.join(map(str,self.params))})" if self.params
+            f"{self.name}({', '.join(map(str,self.params))})"
+            if self.params
             else self.name
         )
 
@@ -97,8 +99,10 @@ def _matrix_substitution_func(matrix: sympy.Matrix, symbols):
         from substituting free symbols in `matrix` with param1,...,paramn
         in the order specified by `symbols`.
     """
+
     def _substitution_func(*args):
         return matrix.subs({symbol: arg for symbol, arg in zip(symbols, args)})
+
     return _substitution_func
 
 
@@ -127,5 +131,8 @@ def define_gate(
         raise ValueError("Gate's matrix has to be square with dimension 2^N")
 
     def _gate(*args):
-        return CustomGate(name, _matrix_substitution_func(matrix, free_symbols), args, n_qubits)
+        return CustomGate(
+            name, _matrix_substitution_func(matrix, free_symbols), args, n_qubits
+        )
+
     return _gate

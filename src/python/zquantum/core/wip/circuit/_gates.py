@@ -52,8 +52,16 @@ class Gate(Protocol):
 
 
 @dataclass(frozen=True)
-class CustomGate:
-    """Custom gate defined using matrix factory.
+class MatrixFactoryGate:
+    """Gate with a deferred matrix construction.
+
+    Most built-in gates are instances of this class.
+
+    Keeping a `matrix_factory` instead of a plain gate matrix allows us to defer matrix
+    construction to _after_ parameter binding. This saves unnecessary work in scenarios
+    where we construct a quantum circuit and immediately bind parameter values. When done
+    multiple times, e.g. for every gate in each optimization step, this can lead to major
+    performance issues.
 
     Args:
         name: Name of this gate. Implementers of new gates should make sure that the names are
@@ -99,7 +107,7 @@ class CustomGate:
 
 @dataclass(frozen=True)
 class ControlledGate:
-    gate: Gate
+    wrapped_gate: Gate
 
     # (forward all properties to the wrapped gate)
     @property
@@ -131,7 +139,7 @@ def _matrix_substitution_func(matrix: sympy.Matrix, symbols):
 
 def define_gate_with_matrix(
     name: str, matrix: sympy.Matrix, symbols_ordering: Tuple[sympy.Symbol, ...]
-) -> Callable[..., CustomGate]:
+) -> Callable[..., MatrixFactoryGate]:
     """Makes it easy to define custom gates.
 
     Define new gate specified by a (possibly parametrized) matrix.
@@ -175,7 +183,7 @@ def define_gate_with_matrix(
         raise ValueError("Gate's matrix has to be square with dimension 2^N")
 
     def _gate(*params):
-        return CustomGate(
+        return MatrixFactoryGate(
             name, _matrix_substitution_func(matrix, symbols_ordering), params, n_qubits
         )
 

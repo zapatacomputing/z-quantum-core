@@ -1,12 +1,8 @@
 """Class hierarchy for base gates."""
 import math
-from dataclasses import dataclass, field
-from numbers import Number
-from typing import Tuple, Union, Callable, Optional
+from dataclasses import dataclass
 
 import sympy
-
-Parameter = Union[sympy.Symbol, Number]
 
 
 @dataclass(frozen=True)

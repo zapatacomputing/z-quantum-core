@@ -1,8 +1,15 @@
 """Class hierarchy for base gates."""
 import math
 from dataclasses import dataclass
+import typing as t
 
 import sympy
+
+
+@dataclass(frozen=True)
+class GateApplication:
+    gate: "Gate"
+    qubit_indices: t.Iterable[int]
 
 
 @dataclass(frozen=True)
@@ -17,6 +24,9 @@ class Gate:
 
     name: str
     matrix: sympy.Matrix
+
+    def __call__(self, *qubit_indices) -> "GateApplication":
+        return GateApplication(self, qubit_indices)
 
 
 def _n_qubits_for_matrix(matrix_shape):

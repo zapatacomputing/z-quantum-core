@@ -121,3 +121,62 @@ def swap_matrix():
 
 def iswap_matrix():
     return sympy.Matrix([[1, 0, 0, 0], [0, 0, 1j, 0], [0, 1j, 0, 0], [0, 0, 0, 1]])
+
+
+# --- parametric two qubit gates ---
+
+
+def cphase_matrix(angle):
+    return sympy.Matrix(
+        [
+            [1, 0, 0, 0],
+            [0, 1, 0, 0],
+            [0, 0, 1, 0],
+            [0, 0, 0, sympy.exp(1j * angle)],
+        ]
+    )
+
+
+def xx_matrix(angle):
+    return sympy.Matrix(
+        [
+            [sympy.cos(angle / 2), 0, 0, -1j * sympy.sin(angle / 2)],
+            [0, sympy.cos(angle / 2), -1j * sympy.sin(angle / 2), 0],
+            [0, -1j * sympy.sin(angle / 2), sympy.cos(angle / 2), 0],
+            [-1j * sympy.sin(angle / 2), 0, 0, sympy.cos(angle / 2)],
+        ]
+    )
+
+
+def yy_matrix(angle):
+    return sympy.Matrix(
+        [
+            [sympy.cos(angle / 2), 0, 0, 1j * sympy.sin(angle / 2)],
+            [0, sympy.cos(angle / 2), -1j * sympy.sin(angle / 2), 0],
+            [0, -1j * sympy.sin(angle / 2), sympy.cos(angle / 2), 0],
+            [1j * sympy.sin(angle / 2), 0, 0, sympy.cos(angle / 2)],
+        ]
+    )
+
+
+def zz_matrix(angle):
+    arg = angle / 2
+    return sympy.Matrix(
+        [
+            [sympy.cos(arg) - 1j * sympy.sin(arg), 0, 0, 0],
+            [0, sympy.cos(arg) + 1j * sympy.sin(arg), 0, 0],
+            [0, 0, sympy.cos(arg) + 1j * sympy.sin(arg), 0],
+            [0, 0, 0, sympy.cos(arg) - 1j * sympy.sin(arg)],
+        ]
+    )
+
+
+def xy_matrix(angle):
+    return sympy.Matrix(
+        [
+            [1, 0, 0, 0],
+            [0, sympy.cos(angle / 2), 1j * sympy.sin(angle / 2), 0],
+            [0, 1j * sympy.sin(angle / 2), sympy.cos(angle / 2), 0],
+            [0, 0, 0, 1],
+        ]
+    )

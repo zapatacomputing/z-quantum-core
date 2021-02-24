@@ -31,14 +31,14 @@ def _n_qubits_for_matrix(matrix_shape):
     return n_qubits
 
 
-def make_one_param_gate_factory(
+def make_parametric_gate_factory(
     name: str,
     matrix_factory
 ):
-    def _gate_factory(param):
+    def _gate_factory(*params):
         return Gate(
             name=name,
-            matrix=matrix_factory(param)
+            matrix=matrix_factory(*params)
         )
 
     return _gate_factory

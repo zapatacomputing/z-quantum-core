@@ -100,10 +100,18 @@ def _matrix_substitution_func(matrix: sympy.Matrix, symbols):
         in the order specified by `symbols`.
     """
 
-    def _substitution_func(*args):
-        return matrix.subs({symbol: arg for symbol, arg in zip(symbols, args)})
+    def _substitution_func(*values):
+        return matrix.subs({symbol: value for symbol, value in zip(symbols, values)})
 
     return _substitution_func
+
+
+def _n_qubits_for_matrix(matrix_shape):
+    n_qubits = math.floor(math.log2(matrix_shape[0]))
+    if 2 ** n_qubits != matrix_shape[0] or 2 ** n_qubits != matrix_shape[1]:
+        raise ValueError("Gate's matrix has to be square with dimension 2^N")
+
+    return n_qubits
 
 
 def define_gate(
@@ -111,8 +119,7 @@ def define_gate(
 ) -> Callable[..., CustomGate]:
     """Define new gate specified by a (possibly parametrized) matrix.
 
-    Note that this is slightly less efficient, but more convenient, than creating
-    a callable that returns a matrix and passing it to CustomGate.
+    Consider it a helper that handles constructing a `matrix_factory` for CustomGate init.
 
     Args:
         name: name of the gate.
@@ -126,13 +133,35 @@ def define_gate(
     Returns:
         Callable mapping parameters into an instance of the defined gate.
     """
-    n_qubits = math.floor(math.log2(matrix.shape[0]))
-    if 2 ** n_qubits != matrix.shape[0] or 2 ** n_qubits != matrix.shape[1]:
-        raise ValueError("Gate's matrix has to be square with dimension 2^N")
+    # n_qubits = math.floor(math.log2(matrix.shape[0]))
+    # if 2 ** n_qubits != matrix.shape[0] or 2 ** n_qubits != matrix.shape[1]:
+    #     raise ValueError("Gate's matrix has to be square with dimension 2^N")
 
-    def _gate(*args):
+    n_qubits = _n_qubits_for_matrix(matrix.shape)
+
+    def _gate_factory(*args):
         return CustomGate(
-            name, _matrix_substitution_func(matrix, free_symbols), args, n_qubits
+            name=name,
+            matrix_factory=_matrix_substitution_func(matrix, free_symbols),
+            params=args,
+            num_qubits=n_qubits
         )
 
-    return _gate
+    return _gate_factory
+
+
+def define_nonparametric_gate(
+    name: str,
+    matrix: sympy.Matrix
+):
+    n_qubits = _n_qubits_for_matrix(matrix.shape)
+
+    def _gate_factory(*args):
+        return CustomGate(
+            name=name,
+            matrix_factory=lambda: matrix,
+            params=(),
+            num_qubits=n_qubits
+        )
+
+    return _gate_factory

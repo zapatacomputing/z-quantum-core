@@ -25,7 +25,7 @@ class Gate(Protocol):
         raise NotImplementedError()
 
     @property
-    def params(self) -> Tuple[Parameter]:
+    def params(self) -> Tuple[Parameter, ...]:
         """Value of parameters bound to this gate.
 
         Length of `params` should be equal to number of parameters in gate's initializer.
@@ -50,6 +50,10 @@ class Gate(Protocol):
         We need it to be able to implement .propagate() on the operation class.
         """
         raise NotImplementedError()
+
+    def controlled(self, num_control_qubits: int) -> "Gate":
+        raise NotImplementedError()
+
 
 @singledispatch
 def _sub_symbols(parameter, symbols_map: Dict[sympy.Symbol, Parameter]) -> Parameter:
@@ -117,6 +121,9 @@ class MatrixFactoryGate:
             num_qubits=self.num_qubits
         )
 
+    def controlled(self, num_controlled_qubits: int) -> Gate:
+        return ControlledGate(self, num_controlled_qubits)
+
     def __str__(self):
         return (
             f"{self.name}({', '.join(map(str,self.params))})"
@@ -128,9 +135,32 @@ class MatrixFactoryGate:
 @dataclass(frozen=True)
 class ControlledGate:
     wrapped_gate: Gate
-    num_controlled_qubits: int
+    num_control_qubits: int
 
+    @property
+    def name(self):
+        return "control"
 
+    @property
+    def num_qubits(self):
+        return self.wrapped_gate.num_qubits + self.num_control_qubits
+
+    @property
+    def matrix(self):
+        return sympy.Matrix.diag(
+            sympy.eye(2 ** self.num_qubits - 2 ** self.wrapped_gate.num_qubits),
+            self.wrapped_gate.matrix
+        )
+
+    @property
+    def params(self):
+        return self.wrapped_gate.params
+
+    def controlled(self, num_control_qubits: int) -> "ControlledGate":
+        return ControlledGate(
+            wrapped_gate=self.wrapped_gate,
+            num_control_qubits=self.num_control_qubits + num_control_qubits
+        )
 # TODO: Dagger
 
 def _matrix_substitution_func(matrix: sympy.Matrix, symbols):

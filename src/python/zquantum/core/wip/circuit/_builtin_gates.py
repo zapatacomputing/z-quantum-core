@@ -1,37 +1,45 @@
+from typing import Callable
+
 from . import _gates as g
 from . import _matrices as m
 
 
 # --- non-parametric, single qubit gates ---
 
-X = g.Gate("X", m.x_matrix())
-Y = g.Gate("Y", m.y_matrix())
-Z = g.Gate("Z", m.z_matrix())
-H = g.Gate("H", m.h_matrix())
-I = g.Gate("I", m.i_matrix())
-T = g.Gate("T", m.t_matrix())
+X = g.MatrixFactoryGate("X", m.x_matrix, (), 1)
+Y = g.MatrixFactoryGate("Y", m.y_matrix, (), 1)
+Z = g.MatrixFactoryGate("Z", m.z_matrix, (), 1)
+H = g.MatrixFactoryGate("H", m.h_matrix, (), 1)
+I = g.MatrixFactoryGate("I", m.i_matrix, (), 1)
+T = g.MatrixFactoryGate("T", m.t_matrix, (), 1)
 
 
 # --- parametric, single qubit gates ---
 
-RX = g.make_parametric_gate_factory("RX", matrix_factory=m.rx_matrix)
-RY = g.make_parametric_gate_factory("RY", matrix_factory=m.ry_matrix)
-RZ = g.make_parametric_gate_factory("RZ", matrix_factory=m.rz_matrix)
-PHASE = g.make_parametric_gate_factory("PHASE", matrix_factory=m.phase_matrix)
+def make_parametric_gate_factory(name, matrix_factory, num_qubits) -> Callable[..., g.MatrixFactoryGate]:
+    def _factory(*gate_parameters):
+        return g.MatrixFactoryGate(name, matrix_factory, gate_parameters, num_qubits)
+    return _factory
+
+
+RX = make_parametric_gate_factory("RX", m.rx_matrix, 1)
+RY = make_parametric_gate_factory("RY", m.ry_matrix, 1)
+RZ = make_parametric_gate_factory("RZ", m.rz_matrix, 1)
+PHASE = make_parametric_gate_factory("PHASE", m.phase_matrix, 1)
 
 
 # --- non-parametric, two qubit gates ---
 
-CNOT = g.Gate("CNOT", m.cnot_matrix())
-CZ = g.Gate("CZ", m.cz_matrix())
-SWAP = g.Gate("SWAP", m.swap_matrix())
-ISWAP = g.Gate("ISWAP", m.iswap_matrix())
+CNOT = g.MatrixFactoryGate("CNOT", m.cnot_matrix, (), 2)
+CZ = g.MatrixFactoryGate("CZ", m.cz_matrix, (), 2)
+SWAP = g.MatrixFactoryGate("SWAP", m.swap_matrix, (), 2)
+ISWAP = g.MatrixFactoryGate("ISWAP", m.iswap_matrix, (), 2)
 
 
 # --- parametric, two qubit gates ---
 
-CPHASE = g.make_parametric_gate_factory("CPHASE", matrix_factory=m.cphase_matrix)
-XX = g.make_parametric_gate_factory("XX", matrix_factory=m.xx_matrix)
-YY = g.make_parametric_gate_factory("YY", matrix_factory=m.yy_matrix)
-ZZ = g.make_parametric_gate_factory("ZZ", matrix_factory=m.zz_matrix)
-XY = g.make_parametric_gate_factory("XY", matrix_factory=m.xy_matrix)
+CPHASE = make_parametric_gate_factory("CPHASE", m.cphase_matrix, 2)
+XX = make_parametric_gate_factory("XX", m.xx_matrix, 2)
+YY = make_parametric_gate_factory("YY", m.yy_matrix, 2)
+ZZ = make_parametric_gate_factory("ZZ", m.zz_matrix, 2)
+XY = make_parametric_gate_factory("XY", m.xy_matrix, 2)

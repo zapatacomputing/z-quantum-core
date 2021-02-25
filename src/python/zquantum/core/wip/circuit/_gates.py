@@ -54,6 +54,10 @@ class Gate(Protocol):
     def controlled(self, num_control_qubits: int) -> "Gate":
         raise NotImplementedError()
 
+    @property
+    def dagger(self) -> "Gate":
+        raise NotImplementedError()
+
 
 @singledispatch
 def _sub_symbols(parameter, symbols_map: Dict[sympy.Symbol, Parameter]) -> Parameter:
@@ -102,7 +106,8 @@ class MatrixFactoryGate:
     matrix_factory: Callable[..., sympy.Matrix]
     params: Tuple[Parameter, ...]
     num_qubits: int
-
+    is_hermitian: bool = False
+    
     @property
     def matrix(self) -> sympy.Matrix:
         """Unitary matrix defining action of this gate.

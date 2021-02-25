@@ -6,11 +6,11 @@ from . import _matrices as m
 
 # --- non-parametric, single qubit gates ---
 
-X = g.MatrixFactoryGate("X", m.x_matrix, (), 1)
-Y = g.MatrixFactoryGate("Y", m.y_matrix, (), 1)
-Z = g.MatrixFactoryGate("Z", m.z_matrix, (), 1)
-H = g.MatrixFactoryGate("H", m.h_matrix, (), 1)
-I = g.MatrixFactoryGate("I", m.i_matrix, (), 1)
+X = g.MatrixFactoryGate("X", m.x_matrix, (), 1, is_hermitian=True)
+Y = g.MatrixFactoryGate("Y", m.y_matrix, (), 1, is_hermitian=True)
+Z = g.MatrixFactoryGate("Z", m.z_matrix, (), 1, is_hermitian=True)
+H = g.MatrixFactoryGate("H", m.h_matrix, (), 1, is_hermitian=True)
+I = g.MatrixFactoryGate("I", m.i_matrix, (), 1, is_hermitian=True)
 T = g.MatrixFactoryGate("T", m.t_matrix, (), 1)
 
 
@@ -30,9 +30,9 @@ PHASE = make_parametric_gate_factory("PHASE", m.phase_matrix, 1)
 
 # --- non-parametric, two qubit gates ---
 
-CNOT = g.MatrixFactoryGate("CNOT", m.cnot_matrix, (), 2)
-CZ = g.MatrixFactoryGate("CZ", m.cz_matrix, (), 2)
-SWAP = g.MatrixFactoryGate("SWAP", m.swap_matrix, (), 2)
+CNOT = g.MatrixFactoryGate("CNOT", m.cnot_matrix, (), 2, is_hermitian=True)
+CZ = g.MatrixFactoryGate("CZ", m.cz_matrix, (), 2, is_hermitian=True)
+SWAP = g.MatrixFactoryGate("SWAP", m.swap_matrix, (), 2, is_hermitian=True)
 ISWAP = g.MatrixFactoryGate("ISWAP", m.iswap_matrix, (), 2)
 
 

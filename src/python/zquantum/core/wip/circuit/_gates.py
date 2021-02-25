@@ -154,7 +154,7 @@ def define_gate_with_matrix(
         symbols_ordering: tuple defining order in which symbols should be passed to the gates
             initializer.
             For instance:
-            >>>U = define_gate(
+            >>>U = define_gate_with_matrix(
                 "U",
                 Matrix([
                     [Symbol("a"), 0],
@@ -162,11 +162,11 @@ def define_gate_with_matrix(
                 ]),
                 (Symbol("a"), Symbol("b"))
             )
-            then, when binding:
-            >>>V = U.bind(-0.5, 0.7)
+            then, when runniing:
+            >>>V = U(-0.5, 0.7)
             V will be defined by substituting a=-0.5 and b=0.7,
             resulting in a gate V identical to
-            >>>V = CustomGate(
+            >>>V = MatrixFactoryGate(
                 "U",
                 lambda a, b: Matrix([
                     [a, 0],

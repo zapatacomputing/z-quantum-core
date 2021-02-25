@@ -17,9 +17,9 @@ from networkx.readwrite import json_graph
 import lea
 import collections
 import scipy
-from typing import List, Tuple, Optional, Iterable
+from typing import List, Tuple, Optional, Iterable, Union, Dict
 import importlib
-
+import copy
 
 SCHEMA_VERSION = "zapata-v1"
 RNDSEED = 12345
@@ -433,6 +433,7 @@ def create_object(specs, **kwargs):
     Returns:
         object: object of any type
     """
+    specs = copy.copy(specs)
     module_name = specs.pop("module_name")
     module = importlib.import_module(module_name)
     creator_name = specs.pop("function_name")
@@ -620,3 +621,9 @@ def hf_rdm(n_alpha: int, n_beta: int, n_orbitals: int) -> InteractionRDM:
                 two_body_tensor[i, j, i, j] = -1
 
     return InteractionRDM(one_body_tensor, two_body_tensor)
+
+
+def load_from_specs(specs: Union[str, Dict]):
+    if isinstance(specs, str):
+        specs = json.loads(specs)
+    return create_object(specs)

@@ -31,6 +31,7 @@ from typing import Dict, Optional
 def run_circuit_and_measure(
     backend_specs: Dict,
     circuit: str,
+    n_samples: Optional[int] = None,
     noise_model: Optional[str] = None,
     device_connectivity: Optional[str] = None,
 ):
@@ -46,13 +47,14 @@ def run_circuit_and_measure(
     backend = create_object(backend_specs)
     circuit = load_circuit(circuit)
 
-    measurements = backend.run_circuit_and_measure(circuit)
+    measurements = backend.run_circuit_and_measure(circuit, n_samples=n_samples)
     measurements.save("measurements.json")
 
 
 def run_circuitset_and_measure(
     backend_specs: Dict,
     circuitset: str,
+    n_samples: Optional[int] = None,
     noise_model: Optional[str] = None,
     device_connectivity: Optional[str] = None,
 ):
@@ -69,7 +71,9 @@ def run_circuitset_and_measure(
     circuit_set = load_circuit_set(circuitset)
     backend = create_object(backend_specs)
 
-    measurements_set = backend.run_circuitset_and_measure(circuit_set)
+    measurements_set = backend.run_circuitset_and_measure(
+        circuit_set, n_samples=n_samples
+    )
     list_of_measurements = [measurement.bitstrings for measurement in measurements_set]
     save_list(list_of_measurements, "measurements-set.json")
 

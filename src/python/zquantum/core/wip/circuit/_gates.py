@@ -58,6 +58,9 @@ class Gate(Protocol):
     def dagger(self) -> "Gate":
         raise NotImplementedError()
 
+    def bind(self, symbols_map: Dict[sympy.Symbol, Parameter]) -> "Gate":
+        raise NotImplementedError()
+
 
 @singledispatch
 def _sub_symbols(parameter, symbols_map: Dict[sympy.Symbol, Parameter]) -> Parameter:
@@ -177,6 +180,9 @@ class ControlledGate:
             wrapped_gate=self.wrapped_gate.dagger,
             num_control_qubits=self.num_control_qubits
         )
+
+    def bind(self, symbols_map) -> "Gate":
+        return self.wrapped_gate.bind(symbols_map).controlled(self.num_control_qubits)
 
 
 @dataclass(frozen=True)

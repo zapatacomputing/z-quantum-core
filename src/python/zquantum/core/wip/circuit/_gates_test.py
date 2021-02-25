@@ -110,9 +110,9 @@ class TestMatrixFactoryGate:
         bg.CNOT,
         bg.SWAP,
         bg.ISWAP,
-        bg.XX(0.1),
+        bg.XX(sympy.cos(sympy.Symbol("phi"))),
         bg.YY(sympy.pi),
-        bg.ZZ(0.2),
+        bg.ZZ(sympy.Symbol("x") + sympy.Symbol("y")),
         bg.CPHASE(1.5)
     ]
 )
@@ -149,3 +149,8 @@ class TestControlledGate:
         controlled_gate = gate.controlled(4)
 
         assert controlled_gate.dagger == gate.dagger.controlled(4)
+
+    def test_binding_parameters_in_control_gate_is_propagated_to_wrapped_gate(self, gate):
+        controlled_gate = gate.controlled(2)
+        symbols_map = {sympy.Symbol("theta"): 0.5, sympy.Symbol("x"): 3}
+        assert controlled_gate.bind(symbols_map) == gate.bind(symbols_map).controlled(2)

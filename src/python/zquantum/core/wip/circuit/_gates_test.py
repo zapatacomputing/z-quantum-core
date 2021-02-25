@@ -92,6 +92,12 @@ class TestMatrixFactoryGate:
         gate = MatrixFactoryGate("V", example_one_qubit_matrix_factory, (1, 0), 1, is_hermitian=True)
         assert gate.dagger is gate
 
+    def test_binding_gates_in_dagger_is_propagated_to_wrapped_gate(self):
+        theta = sympy.Symbol("theta")
+        gate = MatrixFactoryGate("V", example_one_qubit_matrix_factory, (theta, 0), 1)
+
+        assert gate.dagger.bind({theta: 0.5}) == gate.bind({theta: 0.5}).dagger
+
 
 @pytest.mark.parametrize(
     "gate",

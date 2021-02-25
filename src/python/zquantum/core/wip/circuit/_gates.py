@@ -208,6 +208,9 @@ class Dagger:
     def controlled(self, num_control_qubits: int) -> Gate:
         return self.wrapped_gate.controlled(num_control_qubits).dagger
 
+    def bind(self, symbols_map) -> "Gate":
+        return self.wrapped_gate.bind(symbols_map).dagger
+
 
 def _matrix_substitution_func(matrix: sympy.Matrix, symbols):
     """Create a function that substitutes value for free params to given matrix.

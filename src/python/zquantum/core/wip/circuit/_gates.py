@@ -1,9 +1,9 @@
 """Class hierarchy for base gates."""
 import math
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from functools import singledispatch
 from numbers import Number
-from typing import Tuple, Union, Callable, Optional, Dict
+from typing import Tuple, Union, Callable, Dict
 
 import sympy
 from typing_extensions import Protocol
@@ -93,7 +93,7 @@ class MatrixFactoryGate:
         matrix_factory: a callable mapping arbitrary number of parameters into gate matrix.
             Implementers of new gates should make sure the returned matrices are
             square and of dimension being 2 ** `num_qubits`.
-        params: params boumd to this instance of gate. Actual matrix of this gate will be
+        params: params bound to this instance of gate. Actual matrix of this gate will be
             constructed, upon request, by passing params to `matrix_factory`.
         num_qubits: number of qubits this gate acts on.
     """
@@ -173,8 +173,8 @@ def _matrix_substitution_func(matrix: sympy.Matrix, symbols):
         matrix: a matrix with symbolic parameters.
         symbols: an iterable comprising all symbolic (free) params of matrix.
     Returns:
-        A callable f such that f(param1, ..., paramn) returns matrix resulting
-        from substituting free symbols in `matrix` with param1,...,paramn
+        A callable f such that f(param_1, ..., param_n) returns matrix resulting
+        from substituting free symbols in `matrix` with param_1,...,param_n
         in the order specified by `symbols`.
     """
 

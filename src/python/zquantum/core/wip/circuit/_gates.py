@@ -107,7 +107,7 @@ class MatrixFactoryGate:
     params: Tuple[Parameter, ...]
     num_qubits: int
     is_hermitian: bool = False
-    
+
     @property
     def matrix(self) -> sympy.Matrix:
         """Unitary matrix defining action of this gate.
@@ -128,6 +128,10 @@ class MatrixFactoryGate:
 
     def controlled(self, num_controlled_qubits: int) -> Gate:
         return ControlledGate(self, num_controlled_qubits)
+
+    @property
+    def dagger(self) -> Gate:
+        return self if self.is_hermitian else Dagger(self)
 
     def __str__(self):
         return (
@@ -166,7 +170,38 @@ class ControlledGate:
             wrapped_gate=self.wrapped_gate,
             num_control_qubits=self.num_control_qubits + num_control_qubits
         )
-# TODO: Dagger
+
+    @property
+    def dagger(self) -> "ControlledGate":
+        return ControlledGate(
+            wrapped_gate=self.wrapped_gate.dagger,
+            num_control_qubits=self.num_control_qubits
+        )
+
+
+@dataclass(frozen=True)
+class Dagger:
+    wrapped_gate: Gate
+
+    @property
+    def matrix(self) -> sympy.Matrix:
+        return self.wrapped_gate.matrix.adjoint()
+
+    @property
+    def params(self) -> Tuple[Parameter, ...]:
+        return self.wrapped_gate.params
+
+    @property
+    def num_qubits(self) -> int:
+        return self.wrapped_gate.num_qubits
+
+    @property
+    def name(self):
+        return "dagger"
+
+    def controlled(self, num_control_qubits: int) -> Gate:
+        return self.wrapped_gate.controlled(num_control_qubits).dagger
+
 
 def _matrix_substitution_func(matrix: sympy.Matrix, symbols):
     """Create a function that substitutes value for free params to given matrix.

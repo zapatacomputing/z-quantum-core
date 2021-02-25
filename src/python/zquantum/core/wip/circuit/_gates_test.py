@@ -75,6 +75,23 @@ class TestMatrixFactoryGate:
 
         assert new_gate.params == (1, 2)
 
+    def test_daggers_matrix_is_adjoint_of_original_gates_matrix(self):
+        gate = MatrixFactoryGate("V", example_one_qubit_matrix_factory, (1, 2), 1)
+        assert gate.dagger.matrix == gate.matrix.adjoint()
+
+    def test_dagger_has_the_same_params_and_num_qubits_as_wrapped_gate(self):
+        gate = MatrixFactoryGate("U", example_two_qubit_matrix_factory, (0.5, 0.1, sympy.Symbol("a")), 2)
+        assert gate.dagger.num_qubits == gate.num_qubits
+        assert gate.dagger.params == gate.params
+
+    def test_dagger_is_named_dagger(self):
+        gate = MatrixFactoryGate("V", example_one_qubit_matrix_factory, (0.5, 2.5), 1)
+        assert gate.dagger.name == "dagger"
+
+    def test_dagger_of_hermitian_gate_is_the_same_gate(self):
+        gate = MatrixFactoryGate("V", example_one_qubit_matrix_factory, (1, 0), 1, is_hermitian=True)
+        assert gate.dagger is gate
+
 
 class TestControlledGate:
 
@@ -90,7 +107,7 @@ class TestControlledGate:
 
         assert controlled_cz.num_qubits == cz.num_qubits + 3
 
-    def test_has_matrix_with_ones_oo_the_diagonal_and_wrapped_gates_matrix_as_bottom_left_block(self):
+    def test_has_matrix_with_ones_on_the_diagonal_and_wrapped_gates_matrix_as_bottom_left_block(self):
         xx = bg.XX(0.5)
         controlled_xx = xx.controlled(2)
 
@@ -128,3 +145,9 @@ class TestControlledGate:
         controlled_gate = gate.controlled(4)
 
         assert controlled_gate.params == gate.params
+
+    def test_dagger_of_controlled_gate_is_controlled_gate_wrapping_dagger(self):
+        gate = MatrixFactoryGate("U", example_two_qubit_matrix_factory, (0.5, sympy.Symbol("theta"), 2), 2)
+        controlled_gate = gate.controlled(4)
+
+        assert controlled_gate.dagger == gate.dagger.controlled(4)

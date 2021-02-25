@@ -1,8 +1,9 @@
 """Class hierarchy for base gates."""
 import math
 from dataclasses import dataclass, field
+from functools import singledispatch
 from numbers import Number
-from typing import Tuple, Union, Callable, Optional
+from typing import Tuple, Union, Callable, Optional, Dict
 
 import sympy
 from typing_extensions import Protocol
@@ -50,6 +51,25 @@ class Gate(Protocol):
         """
         raise NotImplementedError()
 
+@singledispatch
+def _sub_symbols(parameter, symbols_map: Dict[sympy.Symbol, Parameter]) -> Parameter:
+    raise NotImplementedError()
+
+
+@_sub_symbols.register
+def _sub_symbols_in_number(parameter: Number, symbols_map: Dict[sympy.Symbol, Parameter]) -> Number:
+    return parameter
+
+
+@_sub_symbols.register
+def _sub_symbols_in_expression(parameter: sympy.Expr, symbols_map: Dict[sympy.Symbol, Parameter]) -> sympy.Expr:
+    return parameter.subs(symbols_map)
+
+
+@_sub_symbols.register
+def _sub_symbols_in_symbol(parameter: sympy.Symbol, symbols_map: Dict[sympy.Symbol, Parameter]) -> Parameter:
+    return symbols_map.get(parameter, parameter)
+
 
 @dataclass(frozen=True)
 class MatrixFactoryGate:
@@ -89,7 +109,7 @@ class MatrixFactoryGate:
         return self.matrix_factory(*self.params)
 
     def bind(self, symbols_map) -> "MatrixFactoryGate":
-        new_symbols = tuple(param.subs(symbols_map) for param in self.params)
+        new_symbols = tuple(_sub_symbols(param, symbols_map) for param in self.params)
         return MatrixFactoryGate(
             name=self.name,
             matrix_factory=self.matrix_factory,

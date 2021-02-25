@@ -86,7 +86,7 @@ class MatrixFactoryGate:
         This is a computed property using `self.matrix_factory` called
         with parameters bound to this gate.
         """
-        self.matrix_factory(*self.params)
+        return self.matrix_factory(*self.params)
 
     def bind(self, symbols_map) -> "CustomGate":
         new_symbols = [param.subs(symbols_map) for param in self.params]

@@ -93,61 +93,59 @@ class TestMatrixFactoryGate:
         assert gate.dagger is gate
 
 
+@pytest.mark.parametrize(
+    "gate",
+    [
+        bg.X,
+        bg.Y,
+        bg.Z,
+        bg.T,
+        bg.H,
+        bg.I,
+        bg.RX(sympy.Symbol("theta")),
+        bg.RY(0.5),
+        bg.RZ(0),
+        bg.PHASE(sympy.pi / 5),
+        bg.CZ,
+        bg.CNOT,
+        bg.SWAP,
+        bg.ISWAP,
+        bg.XX(0.1),
+        bg.YY(sympy.pi),
+        bg.ZZ(0.2),
+        bg.CPHASE(1.5)
+    ]
+)
 class TestControlledGate:
 
-    def test_is_named_control(self):
-        rx = bg.RX(0.5)
-        controlled_rx = rx.controlled(2)
+    def test_is_named_control(self, gate):
+        assert gate.controlled(2).name == "control"
 
-        assert controlled_rx.name == "control"
+    def test_has_number_of_qubits_equal_to_wrapped_gates_num_qubits_plus_num_controlled_qubits(self, gate):
+        assert gate.controlled(3).num_qubits == gate.num_qubits + 3
 
-    def test_has_number_of_qubits_equal_to_wrapped_gates_num_qubits_plus_num_controlled_qubits(self):
-        cz = bg.CZ
-        controlled_cz = cz.controlled(3)
+    def test_has_matrix_with_ones_on_the_diagonal_and_wrapped_gates_matrix_as_bottom_left_block(self, gate):
+        controlled_gate = gate.controlled(2)
+        n = gate.matrix.shape[0]
+        assert gate.matrix.shape[1] == n
+        assert controlled_gate.matrix[0:-n, 0:-n] == sympy.eye(2 ** controlled_gate.num_qubits - n)
+        assert controlled_gate.matrix[-n:, -n:] == gate.matrix
 
-        assert controlled_cz.num_qubits == cz.num_qubits + 3
+    def test_controlled_of_controlled_gate_is_controlled_gate_with_summed_number_of_control_qubits(self, gate):
+        controlled_gate = gate.controlled(2)
+        double_controlled_gate = controlled_gate.controlled(3)
 
-    def test_has_matrix_with_ones_on_the_diagonal_and_wrapped_gates_matrix_as_bottom_left_block(self):
-        xx = bg.XX(0.5)
-        controlled_xx = xx.controlled(2)
+        assert double_controlled_gate.wrapped_gate == gate
+        assert double_controlled_gate.num_qubits == gate.num_qubits + 2 + 3
+        assert double_controlled_gate.num_control_qubits == 2 + 3
+        assert double_controlled_gate.matrix.shape == 2 * (2 ** (gate.num_qubits + 2 + 3),)
 
-        assert controlled_xx.matrix == sympy.Matrix([
-            [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, sympy.cos(0.25), 0, 0, -1j * sympy.sin(0.25)],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, sympy.cos(0.25), -1j * sympy.sin(0.25), 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1j * sympy.sin(0.25), sympy.cos(0.25), 0],
-            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1j * sympy.sin(0.25), 0, 0, sympy.cos(0.25)]
-        ])
-
-    def test_controlled_of_controlled_gate_is_controlled_gate_with_summed_number_of_control_qubits(self):
-        yy = bg.YY(sympy.Symbol("theta"))
-        controlled_yy = yy.controlled(2)
-        controlled_controlled_yy = controlled_yy.controlled(3)
-
-        assert controlled_controlled_yy.wrapped_gate == yy
-        assert controlled_controlled_yy.num_qubits == yy.num_qubits + 2 + 3
-        assert controlled_controlled_yy.num_control_qubits == 2 + 3
-        assert controlled_controlled_yy.matrix.shape == 2 * (2 ** (yy.num_qubits + 2 + 3),)
-
-    def test_has_the_same_parameters_as_wrapped_gate(self):
-        gate = MatrixFactoryGate("U", example_two_qubit_matrix_factory, (0.5, sympy.Symbol("theta"), 2), 2)
+    def test_has_the_same_parameters_as_wrapped_gate(self, gate):
         controlled_gate = gate.controlled(4)
 
         assert controlled_gate.params == gate.params
 
-    def test_dagger_of_controlled_gate_is_controlled_gate_wrapping_dagger(self):
-        gate = MatrixFactoryGate("U", example_two_qubit_matrix_factory, (0.5, sympy.Symbol("theta"), 2), 2)
+    def test_dagger_of_controlled_gate_is_controlled_gate_wrapping_dagger(self, gate):
         controlled_gate = gate.controlled(4)
 
         assert controlled_gate.dagger == gate.dagger.controlled(4)

@@ -108,11 +108,8 @@ class MatrixFactoryGate:
 @dataclass(frozen=True)
 class ControlledGate:
     wrapped_gate: Gate
+    num_controlled_qubits: int
 
-    # (forward all properties to the wrapped gate)
-    @property
-    def num_controlled_qubits(self):
-        pass
 
 # TODO: Dagger
 

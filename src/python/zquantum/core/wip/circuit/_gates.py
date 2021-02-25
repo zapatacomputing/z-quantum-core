@@ -83,7 +83,7 @@ def _sub_symbols_in_symbol(parameter: sympy.Symbol, symbols_map: Dict[sympy.Symb
 
 
 @dataclass(frozen=True)
-class MatrixFactoryGate(Gate):
+class MatrixFactoryGate:
     """Gate with a deferred matrix construction.
 
     Most built-in gates are instances of this class.

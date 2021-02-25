@@ -88,9 +88,9 @@ class MatrixFactoryGate:
         """
         return self.matrix_factory(*self.params)
 
-    def bind(self, symbols_map) -> "CustomGate":
-        new_symbols = [param.subs(symbols_map) for param in self.params]
-        return type(self)(
+    def bind(self, symbols_map) -> "MatrixFactoryGate":
+        new_symbols = tuple(param.subs(symbols_map) for param in self.params)
+        return MatrixFactoryGate(
             name=self.name,
             matrix_factory=self.matrix_factory,
             params=new_symbols,

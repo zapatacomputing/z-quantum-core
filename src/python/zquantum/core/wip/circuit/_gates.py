@@ -186,7 +186,7 @@ class ControlledGate:
 
 
 @dataclass(frozen=True)
-class Dagger:
+class Dagger(Gate):
     wrapped_gate: Gate
 
     @property
@@ -210,6 +210,10 @@ class Dagger:
 
     def bind(self, symbols_map) -> "Gate":
         return self.wrapped_gate.bind(symbols_map).dagger
+
+    @property
+    def dagger(self) -> "Gate":
+        return self.wrapped_gate
 
 
 def _matrix_substitution_func(matrix: sympy.Matrix, symbols):

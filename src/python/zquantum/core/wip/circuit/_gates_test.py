@@ -98,6 +98,10 @@ class TestMatrixFactoryGate:
 
         assert gate.dagger.bind({theta: 0.5}) == gate.bind({theta: 0.5}).dagger
 
+    def test_dagger_of_dagger_is_the_same_as_original_gate(self):
+        gate = MatrixFactoryGate("V", example_one_qubit_matrix_factory, (1, 0), 1)
+        assert gate.dagger.dagger is gate
+
 
 @pytest.mark.parametrize(
     "gate",

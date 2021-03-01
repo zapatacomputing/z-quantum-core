@@ -3,7 +3,7 @@ import math
 from dataclasses import dataclass
 from functools import singledispatch
 from numbers import Number
-from typing import Tuple, Union, Callable, Dict
+from typing import Tuple, Union, Callable, Dict, NamedTuple
 
 import sympy
 from typing_extensions import Protocol
@@ -61,6 +61,16 @@ class Gate(Protocol):
     def bind(self, symbols_map: Dict[sympy.Symbol, Parameter]) -> "Gate":
         raise NotImplementedError()
 
+    def __call__(self, *qubit_indices: Tuple[int, ...]) -> "GateOperation":
+        """Apply this gate on qubits in a circuit."""
+        return GateOperation(self, qubit_indices)
+
+
+@dataclass(frozen=True)
+class GateOperation:
+    gate: Gate
+    qubit_indices: Tuple[int, ...]
+
 
 @singledispatch
 def _sub_symbols(parameter, symbols_map: Dict[sympy.Symbol, Parameter]) -> Parameter:
@@ -84,7 +94,7 @@ def _sub_symbols_in_symbol(parameter: sympy.Symbol, symbols_map: Dict[sympy.Symb
 
 @dataclass(frozen=True)
 class MatrixFactoryGate:
-    """Gate with a deferred matrix construction.
+    """`Gate` protocol implementation with a deferred matrix construction.
 
     Most built-in gates are instances of this class.
 
@@ -142,6 +152,8 @@ class MatrixFactoryGate:
             if self.params
             else self.name
         )
+
+    __call__ = Gate.__call__
 
 
 @dataclass(frozen=True)

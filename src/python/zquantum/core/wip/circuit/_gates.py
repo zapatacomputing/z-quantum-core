@@ -78,17 +78,23 @@ def _sub_symbols(parameter, symbols_map: Dict[sympy.Symbol, Parameter]) -> Param
 
 
 @_sub_symbols.register
-def _sub_symbols_in_number(parameter: Number, symbols_map: Dict[sympy.Symbol, Parameter]) -> Number:
+def _sub_symbols_in_number(
+    parameter: Number, symbols_map: Dict[sympy.Symbol, Parameter]
+) -> Number:
     return parameter
 
 
 @_sub_symbols.register
-def _sub_symbols_in_expression(parameter: sympy.Expr, symbols_map: Dict[sympy.Symbol, Parameter]) -> sympy.Expr:
+def _sub_symbols_in_expression(
+    parameter: sympy.Expr, symbols_map: Dict[sympy.Symbol, Parameter]
+) -> sympy.Expr:
     return parameter.subs(symbols_map)
 
 
 @_sub_symbols.register
-def _sub_symbols_in_symbol(parameter: sympy.Symbol, symbols_map: Dict[sympy.Symbol, Parameter]) -> Parameter:
+def _sub_symbols_in_symbol(
+    parameter: sympy.Symbol, symbols_map: Dict[sympy.Symbol, Parameter]
+) -> Parameter:
     return symbols_map.get(parameter, parameter)
 
 
@@ -136,7 +142,6 @@ class MatrixFactoryGate:
             name=self.name,
             matrix_factory=self.matrix_factory,
             params=new_symbols,
-            num_qubits=self.num_qubits
         )
 
     def controlled(self, num_controlled_qubits: int) -> Gate:
@@ -173,7 +178,7 @@ class ControlledGate(Gate):
     def matrix(self):
         return sympy.Matrix.diag(
             sympy.eye(2 ** self.num_qubits - 2 ** self.wrapped_gate.num_qubits),
-            self.wrapped_gate.matrix
+            self.wrapped_gate.matrix,
         )
 
     @property
@@ -183,14 +188,14 @@ class ControlledGate(Gate):
     def controlled(self, num_control_qubits: int) -> "ControlledGate":
         return ControlledGate(
             wrapped_gate=self.wrapped_gate,
-            num_control_qubits=self.num_control_qubits + num_control_qubits
+            num_control_qubits=self.num_control_qubits + num_control_qubits,
         )
 
     @property
     def dagger(self) -> "ControlledGate":
         return ControlledGate(
             wrapped_gate=self.wrapped_gate.dagger,
-            num_control_qubits=self.num_control_qubits
+            num_control_qubits=self.num_control_qubits,
         )
 
     def bind(self, symbols_map) -> "Gate":
@@ -306,16 +311,28 @@ def _circuit_size_by_operations(operations):
     return (
         0
         if not operations
-        else max(qubit_index for operation in operations for qubit_index in operation.qubit_indices) + 1
+        else max(
+            qubit_index
+            for operation in operations
+            for qubit_index in operation.qubit_indices
+        )
+        + 1
     )
 
 
 class Circuit:
     """ZQuantum representation of a quantum circuit."""
-    def __init__(self, operations: Optional[Iterable[GateOperation]] = None, n_qubits: Optional[int] = None):
+
+    def __init__(
+        self,
+        operations: Optional[Iterable[GateOperation]] = None,
+        n_qubits: Optional[int] = None,
+    ):
         self._operations = list(operations) if operations is not None else []
         self._n_qubits = (
-            n_qubits if n_qubits is not None else _circuit_size_by_operations(self._operations)
+            n_qubits
+            if n_qubits is not None
+            else _circuit_size_by_operations(self._operations)
         )
 
     @property
@@ -333,7 +350,9 @@ class Circuit:
     @property
     def symbolic_params(self):
         """Set of all the sympy symbols used as params of gates in the circuit."""
-        return reduce(set.union, (set(gate.symbolic_params) for gate in self._operations), set())
+        return reduce(
+            set.union, (set(gate.symbolic_params) for gate in self._operations), set()
+        )
 
     def __eq__(self, other: "Circuit"):
         if not isinstance(other, type(self)):

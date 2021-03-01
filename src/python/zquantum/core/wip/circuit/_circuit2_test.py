@@ -31,22 +31,67 @@ def test_creating_circuit_has_correct_operations():
     assert circuit.operations == list(EXAMPLE_OPERATIONS)
 
 
-def test_appending_to_circuit_yields_correct_operations():
-    circuit = Circuit()
-    circuit += H(0)
-    circuit += CNOT(0, 2)
+class TestCircuitConcatenation:
+    def test_appending_to_circuit_yields_correct_operations(self):
+        circuit = Circuit()
+        circuit += H(0)
+        circuit += CNOT(0, 2)
 
-    assert circuit.operations == [H(0), CNOT(0, 2)]
-    assert circuit.n_qubits == 3
+        assert circuit.operations == [H(0), CNOT(0, 2)]
+        assert circuit.n_qubits == 3
+
+    def test_circuits_sum_yields_correct_operations(self):
+        circuit1 = Circuit()
+        circuit1 += H(0)
+        circuit1 += CNOT(0, 2)
+
+        circuit2 = Circuit([X(2), YY(sympy.Symbol("theta"))(5)])
+
+        res_circuit = circuit1 + circuit2
+        assert res_circuit.operations == [H(0), CNOT(0, 2), X(2), YY(sympy.Symbol("theta"))(5)]
+        assert res_circuit.n_qubits == 6
 
 
-def test_circuits_sum_yields_correct_operations():
-    circuit1 = Circuit()
-    circuit1 += H(0)
-    circuit1 += CNOT(0, 2)
+class TestBindingParams:
+    def test_circuit_bound_with_all_params_comprises_bound_gates(self):
+        theta1, theta2, theta3 = sympy.symbols("theta1:4")
+        circuit = Circuit(
+            [
+                RX(theta1)(0),
+                RY(theta2)(1),
+                RZ(theta3)(0),
+                RX(theta3)(0),
+            ]
+        )
 
-    circuit2 = Circuit([X(2), YY(sympy.Symbol("theta"))(5)])
+        symbols_map = {theta1: 0.5, theta2: 3.14, theta3: 0}
 
-    res_circuit = circuit1 + circuit2
-    assert res_circuit.operations == [H(0), CNOT(0, 2), X(2), YY(sympy.Symbol("theta"))(5)]
-    assert res_circuit.n_qubits == 6
+        expected_circuit = Circuit(
+            [
+                RX(theta1).bind(symbols_map)(0),
+                RY(theta2).bind(symbols_map)(1),
+                RZ(theta3).bind(symbols_map)(0),
+                RX(theta3).bind(symbols_map)(0)
+            ]
+        )
+
+        bound_circuit = circuit.bind(symbols_map)
+
+        assert bound_circuit == expected_circuit
+
+    def test_circuit_bound_with_all_params_bound_has_no_free_symbols(self):
+        alpha, beta, gamma = sympy.symbols("alpha,beta,gamma")
+        circuit = Circuit(
+            [
+                RX(alpha)(0),
+                RY(beta)(1),
+                RZ(gamma)(0),
+                RX(gamma)(0),
+            ]
+        )
+
+        symbols_map = {alpha: 0.5, beta: 3.14, gamma: 0}
+
+        bound_circuit = circuit.bind(symbols_map)
+
+        assert not bound_circuit.free_symbols

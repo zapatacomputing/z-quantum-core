@@ -98,6 +98,16 @@ def _sub_symbols_in_symbol(
     return symbols_map.get(parameter, parameter)
 
 
+def _free_symbols(params):
+    symbols = set(
+        symbol
+        for param in params
+        if isinstance(param, sympy.Expr)
+        for symbol in param.free_symbols
+    )
+    return sorted(symbols, key=str)
+
+
 @dataclass(frozen=True)
 class MatrixFactoryGate:
     """`Gate` protocol implementation with a deferred matrix construction.
@@ -111,13 +121,13 @@ class MatrixFactoryGate:
     performance issues.
 
     Args:
-        name: Name of this gate. Implementers of new gates should make sure that the names are
-            unique.
-        matrix_factory: a callable mapping arbitrary number of parameters into gate matrix.
-            Implementers of new gates should make sure the returned matrices are
+        name: Name of this gate. Implementers of new gates should make sure that the names
+            are unique.
+        matrix_factory: a callable mapping arbitrary number of parameters into gate
+            matrix. Implementers of new gates should make sure the returned matrices are
             square and of dimension being 2 ** `num_qubits`.
-        params: params bound to this instance of gate. Actual matrix of this gate will be
-            constructed, upon request, by passing params to `matrix_factory`.
+        params: gate parameters - either concrete values or opaque symbols.
+            Will be passed to `matrix_factory` when `matrix` property is requested.
         num_qubits: number of qubits this gate acts on.
     """
 
@@ -321,6 +331,10 @@ def _circuit_size_by_operations(operations):
     )
 
 
+def _bind_operation(op: GateOperation, symbols_map) -> GateOperation:
+    return op.gate.bind(symbols_map)(*op.qubit_indices)
+
+
 class Circuit:
     """ZQuantum representation of a quantum circuit."""
 
@@ -349,10 +363,10 @@ class Circuit:
         return self._n_qubits
 
     @property
-    def symbolic_params(self):
+    def free_symbols(self):
         """Set of all the sympy symbols used as params of gates in the circuit."""
         return reduce(
-            set.union, (set(gate.symbolic_params) for gate in self._operations), set()
+            set.union, (_free_symbols(operation.gate.params) for operation in self._operations), set()
         )
 
     def __eq__(self, other: "Circuit"):
@@ -371,13 +385,16 @@ class Circuit:
         return _append_to_circuit(other, self)
 
     def bind(self, symbols_map: Dict[sympy.Symbol, Any]):
-        """Create a copy of the current Circuit with the parameters of each gate evaluated to the values
-        provided in the input symbols map
+        """Create a copy of the current circuit with the parameters of each gate bound to
+        the values provided in the input symbols map
 
         Args:
-            symbols_map (Dict): A map of the symbols/gate parameters to new values
+            symbols_map: A map of the symbols/gate parameters to new values
         """
-        raise NotImplementedError()
+        return type(self)(
+            operations=[_bind_operation(op, symbols_map) for op in self.operations],
+            n_qubits=self.n_qubits,
+        )
 
     def to_dict(self):
         """Creates a dictionary representing a circuit.

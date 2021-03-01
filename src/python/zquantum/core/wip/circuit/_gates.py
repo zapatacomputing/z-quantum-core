@@ -1,9 +1,9 @@
 """Class hierarchy for base gates."""
 import math
 from dataclasses import dataclass
-from functools import singledispatch
+from functools import singledispatch, reduce
 from numbers import Number
-from typing import Tuple, Union, Callable, Dict, NamedTuple
+from typing import Tuple, Union, Callable, Dict, Optional, Iterable, Any
 
 import sympy
 from typing_extensions import Protocol
@@ -61,7 +61,7 @@ class Gate(Protocol):
     def bind(self, symbols_map: Dict[sympy.Symbol, Parameter]) -> "Gate":
         raise NotImplementedError()
 
-    def __call__(self, *qubit_indices: Tuple[int, ...]) -> "GateOperation":
+    def __call__(self, *qubit_indices: int) -> "GateOperation":
         """Apply this gate on qubits in a circuit."""
         return GateOperation(self, qubit_indices)
 
@@ -300,3 +300,83 @@ def define_gate_with_matrix(
         )
 
     return _gate
+
+
+def _circuit_size_by_operations(operations):
+    return (
+        0
+        if not operations
+        else max(qubit_index for operation in operations for qubit_index in operation.qubit_indices) + 1
+    )
+
+
+class Circuit:
+    """ZQuantum representation of a quantum circuit."""
+    def __init__(self, operations: Optional[Iterable[GateOperation]] = None, n_qubits: Optional[int] = None):
+        self._operations = list(operations) if operations is not None else []
+        self._n_qubits = (
+            n_qubits if n_qubits is not None else _circuit_size_by_operations(self._operations)
+        )
+
+    @property
+    def operations(self):
+        """Sequence of quantum gates to apply to qubits in this circuit."""
+        return self._operations
+
+    @property
+    def n_qubits(self):
+        """Number of qubits in this circuit.
+        Not every qubit has to be used by a gate.
+        """
+        return self._n_qubits
+
+    @property
+    def symbolic_params(self):
+        """Set of all the sympy symbols used as params of gates in the circuit."""
+        return reduce(set.union, (set(gate.symbolic_params) for gate in self._operations), set())
+
+    def __eq__(self, other: "Circuit"):
+        if not isinstance(other, type(self)):
+            return False
+
+        if self.n_qubits != other.n_qubits:
+            return False
+
+        if list(self.operations) != list(other.operations):
+            return False
+
+        return True
+
+    def __add__(self, other: Union["Circuit"]):
+        return _append_to_circuit(other, self)
+
+    def bind(self, symbols_map: Dict[sympy.Symbol, Any]):
+        """Create a copy of the current Circuit with the parameters of each gate evaluated to the values
+        provided in the input symbols map
+
+        Args:
+            symbols_map (Dict): A map of the symbols/gate parameters to new values
+        """
+        raise NotImplementedError()
+
+    def to_dict(self):
+        """Creates a dictionary representing a circuit.
+        The dictionary is serializable to JSON.
+
+        Returns:
+            A mapping with keys:
+                - "schema"
+                - "n_qubits"
+                - "symbolic_params"
+                - "gates"
+        """
+        raise NotImplementedError()
+
+    @classmethod
+    def from_dict(cls, json_dict):
+        raise NotImplementedError()
+
+
+@singledispatch
+def _append_to_circuit(other, circuit: Circuit):
+    raise NotImplementedError()

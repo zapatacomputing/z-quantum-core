@@ -142,6 +142,7 @@ class MatrixFactoryGate:
             name=self.name,
             matrix_factory=self.matrix_factory,
             params=new_symbols,
+            num_qubits=self.num_qubits,
         )
 
     def controlled(self, num_controlled_qubits: int) -> Gate:

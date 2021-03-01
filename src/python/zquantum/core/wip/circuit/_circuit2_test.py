@@ -26,7 +26,15 @@ EXAMPLE_OPERATIONS = tuple([
 ])
 
 
-def test_creating_circuit_has_correct_gates():
-    """The Circuit class should have the correct gates that are passed in"""
+def test_creating_circuit_has_correct_operations():
     circuit = Circuit(operations=EXAMPLE_OPERATIONS)
     assert circuit.operations == list(EXAMPLE_OPERATIONS)
+
+
+def test_appending_to_circuit_yields_correct_operations():
+    circuit = Circuit()
+    circuit += H(0)
+    circuit += CNOT(0, 2)
+
+    assert circuit.operations == [H(0), CNOT(0, 2)]
+    assert circuit.n_qubits == 3

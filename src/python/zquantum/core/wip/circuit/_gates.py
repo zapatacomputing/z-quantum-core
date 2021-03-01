@@ -380,3 +380,20 @@ class Circuit:
 @singledispatch
 def _append_to_circuit(other, circuit: Circuit):
     raise NotImplementedError()
+
+
+@_append_to_circuit.register
+def _append_operation(other: GateOperation, circuit: Circuit):
+    n_qubits_by_operation = max(other.qubit_indices) + 1
+    return type(circuit)(
+        operations=[*circuit.operations, other],
+        n_qubits=max(circuit.n_qubits, n_qubits_by_operation),
+    )
+
+
+@_append_to_circuit.register
+def _append_circuit(other: Circuit, circuit: Circuit):
+    return type(circuit)(
+        operations=[*circuit.operations, *other.operations],
+        n_qubits=max(circuit.n_qubits, other.n_qubits),
+    )

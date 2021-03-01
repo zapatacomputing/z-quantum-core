@@ -38,3 +38,15 @@ def test_appending_to_circuit_yields_correct_operations():
 
     assert circuit.operations == [H(0), CNOT(0, 2)]
     assert circuit.n_qubits == 3
+
+
+def test_circuits_sum_yields_correct_operations():
+    circuit1 = Circuit()
+    circuit1 += H(0)
+    circuit1 += CNOT(0, 2)
+
+    circuit2 = Circuit([X(2), YY(sympy.Symbol("theta"))(5)])
+
+    res_circuit = circuit1 + circuit2
+    assert res_circuit.operations == [H(0), CNOT(0, 2), X(2), YY(sympy.Symbol("theta"))(5)]
+    assert res_circuit.n_qubits == 6

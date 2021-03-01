@@ -366,7 +366,9 @@ class Circuit:
     def free_symbols(self):
         """Set of all the sympy symbols used as params of gates in the circuit."""
         return reduce(
-            set.union, (_free_symbols(operation.gate.params) for operation in self._operations), set()
+            set.union,
+            (_free_symbols(operation.gate.params) for operation in self._operations),
+            set(),
         )
 
     def __eq__(self, other: "Circuit"):

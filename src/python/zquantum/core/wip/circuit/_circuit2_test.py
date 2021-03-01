@@ -83,8 +83,10 @@ class TestCircuitConcatenation:
 
 
 class TestBindingParams:
-    def test_circuit_bound_with_all_params_comprises_bound_gates(self):
+    def test_circuit_bound_with_all_params_contains_bound_gates(self):
         theta1, theta2, theta3 = sympy.symbols("theta1:4")
+        symbols_map = {theta1: 0.5, theta2: 3.14, theta3: 0}
+
         circuit = Circuit(
             [
                 RX(theta1)(0),
@@ -93,8 +95,7 @@ class TestBindingParams:
                 RX(theta3)(0),
             ]
         )
-
-        symbols_map = {theta1: 0.5, theta2: 3.14, theta3: 0}
+        bound_circuit = circuit.bind(symbols_map)
 
         expected_circuit = Circuit(
             [
@@ -105,11 +106,9 @@ class TestBindingParams:
             ]
         )
 
-        bound_circuit = circuit.bind(symbols_map)
-
         assert bound_circuit == expected_circuit
 
-    def test_circuit_bound_with_all_params_bound_has_no_free_symbols(self):
+    def test_binding_all_params_leaves_no_free_symbols(self):
         alpha, beta, gamma = sympy.symbols("alpha,beta,gamma")
         circuit = Circuit(
             [
@@ -119,9 +118,35 @@ class TestBindingParams:
                 RX(gamma)(0),
             ]
         )
-
-        symbols_map = {alpha: 0.5, beta: 3.14, gamma: 0}
-
-        bound_circuit = circuit.bind(symbols_map)
+        bound_circuit = circuit.bind({alpha: 0.5, beta: 3.14, gamma: 0})
 
         assert not bound_circuit.free_symbols
+
+    def test_binding_some_params_leaves_free_params(self):
+        theta1, theta2, theta3 = sympy.symbols("theta1:4")
+        circuit = Circuit(
+            [
+                RX(theta1)(0),
+                RY(theta2)(1),
+                RZ(theta3)(0),
+                RX(theta2)(0),
+            ]
+        )
+
+        bound_circuit = circuit.bind({theta1: 0.5, theta3: 3.14})
+        assert bound_circuit.free_symbols == {theta2}
+
+    def test_binding_excessive_params_binds_only_the_existing_ones(self):
+        theta1, theta2, theta3 = sympy.symbols("theta1:4")
+        other_param = sympy.symbols("other_param")
+        circuit = Circuit(
+            [
+                RX(theta1)(0),
+                RY(theta2)(1),
+                RZ(theta3)(0),
+                RX(theta2)(0),
+            ]
+        )
+
+        bound_circuit = circuit.bind({theta1: -np.pi, other_param: 42})
+        assert bound_circuit.free_symbols == {theta2, theta3}

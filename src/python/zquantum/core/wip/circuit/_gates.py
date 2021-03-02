@@ -112,7 +112,9 @@ def _free_symbols(params):
 class MatrixFactoryGate:
     """`Gate` protocol implementation with a deferred matrix construction.
 
-    Most built-in gates are instances of this class.
+    Most built-in gates are instances of this class. It's faster than CustomGate,
+    but requires the gate definition to be present during deserialization, so it's not
+    easily applicable for gates defined in Orquestra steps.
 
     Keeping a `matrix_factory` instead of a plain gate matrix allows us to defer matrix
     construction to _after_ parameter binding. This saves unnecessary work in scenarios
@@ -436,3 +438,26 @@ def _append_circuit(other: Circuit, circuit: Circuit):
         operations=[*circuit.operations, *other.operations],
         n_qubits=max(circuit.n_qubits, other.n_qubits),
     )
+
+
+def gate_from_dict(dict_):
+    """Prototype implementation of circuit deserialization"""
+    if dict_["namespace"] == "zquantum.core.builtin_gates":
+        # 1. Plain gate like X
+        # 2. parametrized like RX
+        # 3. composite, like ControlledGate(Dagger(X))
+        # 4. composite with custom, like ControlledGate(Dagger(CustomGate(...)))
+
+        from . import _builtin_gates
+
+        # 1 and 2
+        assert hasattr(_builtin_gates, dict_["name"])
+        ...
+    elif dict_["namespace"] == "zquantum.core.composite_gates":
+        # 3 and 4
+        if dict_["name"] == "ControlledGate":
+            ...
+        elif dict_["name"] == "Dagger":
+            ...
+    else:
+        return CustomGate(...)

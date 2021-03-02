@@ -102,6 +102,15 @@ class TestMatrixFactoryGate:
         gate = MatrixFactoryGate("V", example_one_qubit_matrix_factory, (1, 0), 1)
         assert gate.dagger.dagger is gate
 
+    def test_applying_gate_returns_operation_with_correct_gate_and_indices(self):
+        theta = sympy.Symbol("theta")
+        gamma = sympy.Symbol("gamma")
+        gate = MatrixFactoryGate("A", example_two_qubit_matrix_factory, (theta, gamma, 42), 2)
+        operation = gate(4, 1)
+
+        assert operation.gate == gate
+        assert operation.qubit_indices == (4, 1)
+
 
 @pytest.mark.parametrize(
     "gate",

@@ -20,7 +20,7 @@ import scipy
 from typing import List, Tuple, Optional, Iterable, Union, Dict
 import importlib
 import copy
-from .typing import LoadSource, DumpTarget, Specs
+from .typing import LoadSource, AnyPath, Specs
 
 SCHEMA_VERSION = "zapata-v1"
 RNDSEED = 12345
@@ -340,7 +340,7 @@ def load_value_estimate(file: LoadSource) -> ValueEstimate:
     return ValueEstimate.from_dict(data)
 
 
-def save_value_estimate(value_estimate: ValueEstimate, filename: str):
+def save_value_estimate(value_estimate: ValueEstimate, filename: AnyPath):
     """Saves value estimate to a file.
 
     Args:
@@ -373,7 +373,7 @@ def load_list(file: LoadSource) -> List:
     return data["list"]
 
 
-def save_list(array: List, filename: DumpTarget, artifact_name: str = ""):
+def save_list(array: List, filename: AnyPath, artifact_name: str = ""):
     """Save expectation values to a file.
 
     Args:
@@ -389,7 +389,7 @@ def save_list(array: List, filename: DumpTarget, artifact_name: str = ""):
         f.write(json.dumps(dictionary, indent=2))
 
 
-def save_generic_dict(dictionary: Dict, filename: str):
+def save_generic_dict(dictionary: Dict, filename: AnyPath):
     """Save dictionary as json
 
     Args:
@@ -507,7 +507,7 @@ def create_symbols_map(
     return [(symbol, param) for symbol, param in zip(symbols, params.tolist())]
 
 
-def save_timing(walltime: float, filename: str) -> None:
+def save_timing(walltime: float, filename: AnyPath) -> None:
     """
     Saves timing information.
 
@@ -522,7 +522,7 @@ def save_timing(walltime: float, filename: str) -> None:
 
 
 def save_nmeas_estimate(
-    nmeas: float, nterms: int, filename: str, frame_meas: np.ndarray = None
+    nmeas: float, nterms: int, filename: AnyPath, frame_meas: np.ndarray = None
 ) -> None:
     """Save an estimate of the number of measurements to a file
 
@@ -543,7 +543,7 @@ def save_nmeas_estimate(
         f.write(json.dumps(data, indent=2))
 
 
-def load_nmeas_estimate(filename: str) -> Tuple[float, int, np.ndarray]:
+def load_nmeas_estimate(filename: AnyPath) -> Tuple[float, int, np.ndarray]:
     """Load an estimate of the number of measurements from a file.
 
     Args:

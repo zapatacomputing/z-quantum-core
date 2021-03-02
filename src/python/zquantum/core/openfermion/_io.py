@@ -14,6 +14,7 @@ from ..utils import (
     convert_dict_to_array,
     convert_array_to_dict,
 )
+from .typing import AnyPath
 from zquantum.core.typing import LoadSource
 
 
@@ -69,7 +70,7 @@ def load_interaction_operator(file: LoadSource) -> InteractionOperator:
 
 
 def save_interaction_operator(
-    interaction_operator: InteractionOperator, filename: str
+    interaction_operator: InteractionOperator, filename: AnyPath
 ) -> None:
     """Save an interaction operator to file.
     Args:
@@ -135,7 +136,7 @@ def convert_dict_to_operator(
     return full_operator
 
 
-def save_qubit_operator(qubit_operator: QubitOperator, filename: str) -> None:
+def save_qubit_operator(qubit_operator: QubitOperator, filename: AnyPath) -> None:
     """Save a qubit operator to file.
     Args:
         qubit_operator (QubitOperator): the operator to be saved
@@ -164,7 +165,7 @@ def load_qubit_operator(file: LoadSource) -> QubitOperator:
 
 
 def save_qubit_operator_set(
-    qubit_operator_set: List[QubitOperator], filename: str
+    qubit_operator_set: List[QubitOperator], filename: AnyPath
 ) -> None:
     """Save a set of qubit operators to a file.
 
@@ -269,7 +270,7 @@ def load_ising_operator(file: LoadSource) -> IsingOperator:
     return convert_dict_to_isingop(data)
 
 
-def save_ising_operator(ising_operator: IsingOperator, filename: str) -> None:
+def save_ising_operator(ising_operator: IsingOperator, filename: AnyPath) -> None:
     """Save an Ising operator to file.
 
     Args:
@@ -348,7 +349,7 @@ def load_interaction_rdm(file: LoadSource) -> InteractionRDM:
     return convert_dict_to_interaction_rdm(data)
 
 
-def save_interaction_rdm(interaction_rdm: InteractionRDM, filename: str) -> None:
+def save_interaction_rdm(interaction_rdm: InteractionRDM, filename: AnyPath) -> None:
     """Save an interaction operator to file.
     Args:
         interaction_operator: the operator to be saved

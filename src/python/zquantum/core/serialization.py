@@ -10,6 +10,7 @@ from .interfaces.optimizer import optimization_result
 from .history.recorder import HistoryEntry, HistoryEntryWithArtifacts
 from .bitstring_distribution import BitstringDistribution, is_bitstring_distribution
 from .utils import convert_array_to_dict, ValueEstimate, SCHEMA_VERSION
+from .typing import AnyPath
 
 
 def has_numerical_keys(dictionary):
@@ -88,12 +89,12 @@ class OrquestraDecoder(json.JSONDecoder):
             return obj
 
 
-def save_optimization_results(optimization_results, filename):
+def save_optimization_results(optimization_results: dict, filename: AnyPath):
     optimization_results["schema"] = SCHEMA_VERSION + "-optimization_result"
     with open(filename, "wt") as target_file:
         json.dump(optimization_results, target_file, cls=OrquestraEncoder)
 
 
-def load_optimization_results(filename):
+def load_optimization_results(filename: AnyPath):
     with open(filename, "rt") as source_file:
         return json.load(source_file, cls=OrquestraDecoder)

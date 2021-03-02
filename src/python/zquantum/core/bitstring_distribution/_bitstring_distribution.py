@@ -4,6 +4,7 @@ import warnings
 import json
 import numpy as np
 from ..utils import SCHEMA_VERSION, convert_tuples_to_bitstrings
+from .typing import AnyPath
 from collections import Counter
 from typing import Dict, Callable
 
@@ -147,7 +148,7 @@ def normalize_bitstring_distribution(bitstring_distribution: Dict) -> Dict:
 
 
 def save_bitstring_distribution(
-    distribution: BitstringDistribution, filename: str
+    distribution: BitstringDistribution, filename: AnyPath
 ) -> None:
     """Save a bistring distribution to a file.
 
@@ -219,18 +220,18 @@ def evaluate_distribution_distance(
     **kwargs,
 ) -> float:
     """Evaluate the distance between two bitstring distributions - the target distribution and the one predicted (measured) by your model -
-       based on the given distance measure
+    based on the given distance measure
 
-       Args:
-            target_distribution (BitstringDistribution): The target bitstring probability distribution
-            measured_distribution (BitstringDistribution): The measured bitstring probability distribution
-            distance_measure_function (function): function used to calculate the distance measure
-                Currently implemented: clipped negative log-likelihood, maximum mean discrepancy (MMD).
+    Args:
+         target_distribution (BitstringDistribution): The target bitstring probability distribution
+         measured_distribution (BitstringDistribution): The measured bitstring probability distribution
+         distance_measure_function (function): function used to calculate the distance measure
+             Currently implemented: clipped negative log-likelihood, maximum mean discrepancy (MMD).
 
-            Additional distance measure parameters can be passed as key word arguments.
+         Additional distance measure parameters can be passed as key word arguments.
 
-       Returns:
-            float: The value of the distance measure
+    Returns:
+         float: The value of the distance measure
     """
     # Check inputs are BitstringDistribution objects
     if not isinstance(target_distribution, BitstringDistribution) or not isinstance(

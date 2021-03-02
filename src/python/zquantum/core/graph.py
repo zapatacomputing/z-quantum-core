@@ -5,10 +5,10 @@ import random
 from random import uniform
 from .utils import SCHEMA_VERSION
 from typing import Optional
-from zquantum.core.typing import LoadSource
+from zquantum.core.typing import LoadSource, AnyPath
 
 
-def save_graph(graph: nx.Graph, filename: str):
+def save_graph(graph: nx.Graph, filename: AnyPath):
     """Saves a NetworkX graph object to JSON file.
 
     Args:

@@ -9,6 +9,7 @@ import sympy
 from typing_extensions import Protocol
 
 from ...utils import SCHEMA_VERSION
+from . import _builtin_gates
 
 Parameter = Union[sympy.Symbol, Number]
 
@@ -75,8 +76,24 @@ class Gate(Protocol):
     def to_dict(self):
         return {
             "name": self.name,
-            **({"params": list(map(_jsonify_param, self.params))} if self.params else {}),
+            **(
+                {"params": list(map(_jsonify_param, self.params))}
+                if self.params
+                else {}
+            ),
         }
+
+
+def gate_from_dict(dict_):
+    """Prototype implementation of circuit deserialization"""
+    builtin_gate = _builtin_gates.builtin_gate_by_name(dict_["name"])
+    if builtin_gate is not None:
+        return builtin_gate
+
+    # TODO:
+    # - controlled gate
+    # - dagger
+    # - custom gate
 
 
 @dataclass(frozen=True)
@@ -86,9 +103,25 @@ class GateOperation:
 
     def to_dict(self):
         return {
+            "type": "gate_operation",
             "gate": self.gate.to_dict(),
             "qubit_indices": list(self.qubit_indices),
         }
+
+    @classmethod
+    def from_dict(cls, dict_):
+        return cls(
+            gate=gate_from_dict(dict_["gate"]),
+            qubit_indices=tuple(dict_["qubit_indices"]),
+        )
+
+
+GATE_OPERATION_DESERIALIZERS = {"gate_operation": GateOperation.from_dict}
+
+
+def _gate_operation_from_dict(dict_):
+    # Add deserializers here when we need to support custom, non-gate operations
+    return GATE_OPERATION_DESERIALIZERS[dict_["type"]](dict_)
 
 
 @singledispatch
@@ -345,6 +378,40 @@ def _n_qubits(matrix):
     return n_qubits
 
 
+def _matrix_to_dict(matrix: sympy.Matrix):
+    return [
+        [str(element) for element in matrix.row(row_i)]
+        for row_i in range(matrix.shape[0])
+    ]
+
+
+def _deserialize_matrix_element(
+    element_repr: Union[sympy.Expr, Number], symbols_map: Dict[str, sympy.Symbol]
+):
+    # We pass symbols_map because some commonly used symbol names (e.g. gamma) are
+    # by default parsed as functions from sympy instead of symbols.
+    return (
+        sympy.sympify(element_repr, locals=symbols_map)
+        if isinstance(element_repr, str)
+        else element_repr
+    )
+
+
+def _matrix_from_dict(
+    dict_: Dict[str, Any], symbols_names: Iterable[str]
+) -> sympy.Matrix:
+    symbols_map = {name: sympy.Symbol(name) for name in symbols_names}
+    return sympy.Matrix(
+        [
+            [
+                _deserialize_matrix_element(element, symbols_map)
+                for element in row["elements"]
+            ]
+            for row in dict_["rows"]
+        ]
+    )
+
+
 @dataclass(frozen=True)
 class CustomGateDefinition:
     gate_name: str
@@ -361,6 +428,22 @@ class CustomGateDefinition:
             _matrix_substitution_func(self.matrix, self.params_ordering),
             params,
             self._n_qubits,
+        )
+
+    def to_dict(self):
+        return {
+            "gate_name": self.gate_name,
+            "matrix": _matrix_to_dict(self.matrix),
+            "params_ordering": list(map(_jsonify_param, self.params_ordering)),
+        }
+
+    @classmethod
+    def from_dict(cls, dict_):
+        params_ordering = dict_.get("params_ordering", [])
+        return cls(
+            gate_name=dict_["gate_name"],
+            matrix=_matrix_from_dict(dict_["matrix"], params_ordering),
+            params_ordering=params_ordering,
         )
 
 
@@ -384,10 +467,6 @@ def _bind_operation(op: GateOperation, symbols_map) -> GateOperation:
 CIRCUIT_SCHEMA = SCHEMA_VERSION + "-circuit"
 
 
-def _matrix_to_dict(matrix: sympy.Matrix):
-    return [
-        [str(element) for element in matrix.row(row_i)] for row_i in range(matrix.shape[0])
-    ]
 class Circuit:
     """ZQuantum representation of a quantum circuit."""
 
@@ -484,29 +563,33 @@ class Circuit:
             ),
             **(
                 {
-                    "custom_gate_definitions": {
-                        gate_def.gate_name: _matrix_to_dict(gate_def.matrix)
-                        for gate_def in self.custom_gate_definitions
-                    }
+                    "custom_gate_definitions": [
+                        gate_def.to_dict() for gate_def in self.custom_gate_definitions
+                    ]
                 }
                 if self.custom_gate_definitions
                 else {}
             ),
-            **({"free_symbols": sorted(map(str, self.free_symbols))} if self.free_symbols else {}),
-            # "symbolic_params": [
-            #     str(param) for param in self.symbolic_params
-            # ],
-            # "gates": [
-            #     gate.to_dict() for gate in self.gates
-            # ],
+            **(
+                {"free_symbols": sorted(map(str, self.free_symbols))}
+                if self.free_symbols
+                else {}
+            ),
         }
 
     @classmethod
-    def from_dict(cls, json_dict):
-        raise NotImplementedError()
+    def from_dict(cls, dict_):
+        return cls(
+            operations=[
+                _gate_operation_from_dict(op_dict)
+                for op_dict in dict_.get("operations", [])
+            ],
+            n_qubits=dict_["n_qubits"],
+            custom_gate_definitions=None,
+        )
 
-    # def __repr__(self):
-    #     return f"{type(self).__name__}(gates={self.gates}, n_qubits={self.n_qubits})"
+    def __repr__(self):
+        return f"{type(self).__name__}(operations={self.operations}, n_qubits={self.n_qubits}, custom_gate_definitions={self.custom_gate_definitions})"
 
 
 @singledispatch
@@ -529,26 +612,3 @@ def _append_circuit(other: Circuit, circuit: Circuit):
         operations=[*circuit.operations, *other.operations],
         n_qubits=max(circuit.n_qubits, other.n_qubits),
     )
-
-
-def gate_from_dict(dict_):
-    """Prototype implementation of circuit deserialization"""
-    if dict_["namespace"] == "zquantum.core.builtin_gates":
-        # 1. Plain gate like X
-        # 2. parametrized like RX
-        # 3. composite, like ControlledGate(Dagger(X))
-        # 4. composite with custom, like ControlledGate(Dagger(CustomGate(...)))
-
-        from . import _builtin_gates
-
-        # 1 and 2
-        assert hasattr(_builtin_gates, dict_["name"])
-        ...
-    elif dict_["namespace"] == "zquantum.core.composite_gates":
-        # 3 and 4
-        if dict_["name"] == "ControlledGate":
-            ...
-        elif dict_["name"] == "Dagger":
-            ...
-    else:
-        return CustomGate(...)

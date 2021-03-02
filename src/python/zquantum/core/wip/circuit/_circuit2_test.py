@@ -183,6 +183,7 @@ CUSTOM_U_GATE = CustomGateDefinition(
                 "schema": "zapata-v1-circuit",
                 "operations": [
                     {
+                        "type": "gate_operation",
                         "gate": {
                             "name": "X",
                         },
@@ -198,12 +199,14 @@ CUSTOM_U_GATE = CustomGateDefinition(
                 "schema": "zapata-v1-circuit",
                 "operations": [
                     {
+                        "type": "gate_operation",
                         "gate": {
                             "name": "X",
                         },
                         "qubit_indices": [2],
                     },
                     {
+                        "type": "gate_operation",
                         "gate": {
                             "name": "Y",
                         },
@@ -225,18 +228,21 @@ CUSTOM_U_GATE = CustomGateDefinition(
                 "schema": "zapata-v1-circuit",
                 "operations": [
                     {
+                        "type": "gate_operation",
                         "gate": {
                             "name": "H",
                         },
                         "qubit_indices": [0],
                     },
                     {
+                        "type": "gate_operation",
                         "gate": {
                             "name": "CNOT",
                         },
                         "qubit_indices": [0, 1],
                     },
                     {
+                        "type": "gate_operation",
                         "gate": {
                             "name": "RX",
                             "params": ["0"],
@@ -260,12 +266,14 @@ CUSTOM_U_GATE = CustomGateDefinition(
                 "schema": "zapata-v1-circuit",
                 "operations": [
                     {
+                        "type": "gate_operation",
                         "gate": {
                             "name": "T",
                         },
                         "qubit_indices": [0],
                     },
                     {
+                        "type": "gate_operation",
                         "gate": {
                             "name": "U",
                             "params": ["1", "-1"],
@@ -273,6 +281,7 @@ CUSTOM_U_GATE = CustomGateDefinition(
                         "qubit_indices": [3],
                     },
                     {
+                        "type": "gate_operation",
                         "gate": {
                             "name": "U",
                             "params": ["alpha", "-1"],
@@ -281,12 +290,16 @@ CUSTOM_U_GATE = CustomGateDefinition(
                     }
                 ],
                 "n_qubits": 4,
-                "custom_gate_definitions": {
-                    "U": [
-                        ["theta", "gamma"],
-                        ["-gamma", "theta"],
-                    ]
-                },
+                "custom_gate_definitions": [
+                    {
+                        "gate_name": "U",
+                        "matrix": [
+                            ["theta", "gamma"],
+                            ["-gamma", "theta"],
+                        ],
+                        "params_ordering": ["theta", "gamma"]
+                    }
+                ],
                 "free_symbols": ["alpha"],
             },
         )
@@ -295,3 +308,6 @@ CUSTOM_U_GATE = CustomGateDefinition(
 class TestSerialization:
     def test_serialized_dict_has_expected_form(self, circuit, dict_):
         assert circuit.to_dict() == dict_
+
+    def test_deserializing_dict_gives_circuit(self, circuit, dict_):
+        assert Circuit.from_dict(dict_) == circuit

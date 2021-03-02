@@ -15,6 +15,7 @@ from .utils import (
 from typing import Optional, List, Tuple, TextIO, Iterable, Dict
 from collections import Counter
 from .bitstring_distribution import BitstringDistribution
+from zquantum.core.typing import LoadSource
 
 
 def save_expectation_values(
@@ -33,7 +34,7 @@ def save_expectation_values(
         f.write(json.dumps(dictionary, indent=2))
 
 
-def load_expectation_values(file: TextIO) -> ExpectationValues:
+def load_expectation_values(file: LoadSource) -> ExpectationValues:
     """Load an array from a file.
 
     Args:
@@ -52,7 +53,7 @@ def load_expectation_values(file: TextIO) -> ExpectationValues:
     return ExpectationValues.from_dict(data)
 
 
-def load_wavefunction(file: TextIO) -> Wavefunction:
+def load_wavefunction(file: LoadSource) -> Wavefunction:
     """Load a qubit wavefunction from a file.
 
     Args:
@@ -239,7 +240,7 @@ def save_parities(parities: Parities, filename: str) -> None:
         f.write(json.dumps(data, indent=2))
 
 
-def load_parities(file: TextIO) -> Parities:
+def load_parities(file: LoadSource) -> Parities:
     """Load parities from a file.
 
     Args:

@@ -20,6 +20,7 @@ import scipy
 from typing import List, Tuple, Optional, Iterable, Union, Dict
 import importlib
 import copy
+from .typing import LoadSource, DumpTarget, Specs
 
 SCHEMA_VERSION = "zapata-v1"
 RNDSEED = 12345
@@ -30,7 +31,7 @@ def convert_dict_to_array(dictionary: dict) -> np.ndarray:
 
     Args:
         dictionary (dict): the dict containing the data
-    
+
     Returns:
         array (numpy.array): a numpy array
     """
@@ -48,7 +49,7 @@ def convert_array_to_dict(array: np.ndarray) -> dict:
 
     Args:
         array (numpy.array): a numpy array
-    
+
     Returns:
         dictionary (dict): the dict containing the data
     """
@@ -121,7 +122,7 @@ pauli_z = np.array([[1.0, 0.0], [0.0, -1.0]])
 identity = np.array([[1.0, 0.0], [0.0, 1.0]])
 
 
-def is_identity(u, tol=1e-15):
+def is_identity(u: np.ndarray, tol=1e-15) -> bool:
     """Test if a matrix is identity.
 
     Args:
@@ -138,7 +139,7 @@ def is_identity(u, tol=1e-15):
     return np.allclose(u, np.eye(u.shape[0]), atol=tol)
 
 
-def is_unitary(u, tol=1e-15):
+def is_unitary(u: np.ndarray, tol=1e-15) -> bool:
     """Test if a matrix is unitary.
 
     Args:
@@ -163,7 +164,7 @@ def compare_unitary(u1: np.ndarray, u2: np.ndarray, tol: float = 1e-15) -> bool:
         u1 (numpy.ndarray): First unitary operator.
         u2 (numpy.ndarray): Second unitary operator.
         tol (float): Threshold below which two matrix elements are considered equal.
-    
+
     Returns:
         bool: True if the unitaries are equal to within the tolerance, ignoring
             differences in global phase.
@@ -188,7 +189,7 @@ def sample_from_probability_distribution(
     Args:
         probabilty_distribution: The discrete probability distribution to be used
         for sampling. This should be a dictionary
-        
+
         n_samples (int): The number of samples desired
 
     Returns:
@@ -207,7 +208,7 @@ def sample_from_probability_distribution(
         )
 
 
-def convert_bitstrings_to_tuples(bitstrings):
+def convert_bitstrings_to_tuples(bitstrings: List[str]) -> List[Tuple[int]]:
     """Given the measured bitstrings, convert each bitstring to tuple format
 
     Args:
@@ -227,7 +228,7 @@ def convert_bitstrings_to_tuples(bitstrings):
     return measurements
 
 
-def convert_tuples_to_bitstrings(tuples):
+def convert_tuples_to_bitstrings(tuples: List[Tuple[int]]) -> List[str]:
     """Given a set of measurement tuples, convert each to a little endian
     string.
 
@@ -320,12 +321,12 @@ class ValueEstimate(float):
             return cls(value)
 
 
-def load_value_estimate(file):
+def load_value_estimate(file: LoadSource) -> ValueEstimate:
     """Loads value estimate from a faile.
 
     Args:
         file (str or file-like object): the name of the file, or a file-like object.
-    
+
     Returns:
         array (numpy.array): the array
     """
@@ -339,7 +340,7 @@ def load_value_estimate(file):
     return ValueEstimate.from_dict(data)
 
 
-def save_value_estimate(value_estimate, filename):
+def save_value_estimate(value_estimate: ValueEstimate, filename: DumpTarget):
     """Saves value estimate to a file.
 
     Args:
@@ -353,12 +354,12 @@ def save_value_estimate(value_estimate, filename):
         f.write(json.dumps(dictionary, indent=2))
 
 
-def load_list(file):
+def load_list(file: LoadSource) -> List:
     """Load an array from a file.
 
     Args:
         file (str or file-like object): the name of the file, or a file-like object.
-    
+
     Returns:
         array (list): the list
     """
@@ -372,7 +373,7 @@ def load_list(file):
     return data["list"]
 
 
-def save_list(array, filename, artifact_name=""):
+def save_list(array: List, filename: DumpTarget, artifact_name: str = ""):
     """Save expectation values to a file.
 
     Args:
@@ -388,7 +389,7 @@ def save_list(array, filename, artifact_name=""):
         f.write(json.dumps(dictionary, indent=2))
 
 
-def save_generic_dict(dictionary, filename):
+def save_generic_dict(dictionary: Dict, filename: str):
     """Save dictionary as json
 
     Args:
@@ -401,14 +402,14 @@ def save_generic_dict(dictionary, filename):
         f.write(json.dumps(dictionary_stored, indent=2))
 
 
-def get_func_from_specs(specs):
+def get_func_from_specs(specs: Dict):
     """
     Return function based on given specs.
     Args:
         specs (dict): dictionary containing the following keys:
             module_name: specifies from which module an function comes.
             function_name: specifies the name of the function.
-    
+
     Returns:
         callable: function defined by specs
 
@@ -419,17 +420,17 @@ def get_func_from_specs(specs):
     return getattr(module, function_name)
 
 
-def create_object(specs, **kwargs):
+def create_object(specs: Dict, **kwargs):
     """
     Creates an object based on given specs.
-    Specs include information about module and function necessary to create the object, 
+    Specs include information about module and function necessary to create the object,
     as well as any additional input parameters for it.
 
     Args:
         specs (dict): dictionary containing the following keys:
             module_name: specifies from which module an object comes.
             function_name: specifies the name of the function used to create object.
-    
+
     Returns:
         object: object of any type
     """
@@ -442,14 +443,14 @@ def create_object(specs, **kwargs):
     return created_object
 
 
-def load_noise_model(file):
+def load_noise_model(file: LoadSource):
     """Load a noise model from file
 
     Args:
         file (str or file-like object): the name of the file, or a file-like object.
-    
+
     Returns:
-        noise model 
+        noise model
     """
 
     if isinstance(file, str):
@@ -470,9 +471,9 @@ def save_noise_model(noise_model_data, module_name, function_name, filename):
         module_name (str): the module name with the function to load the noise model
         function_name (str): the function to load the noise model data into a noise model
         filename (str or file-like object): the name of the file, or a file-like object.
-    
+
     Returns:
-        noise model 
+        noise model
     """
 
     data = {
@@ -523,7 +524,7 @@ def save_timing(walltime: float, filename: str) -> None:
 def save_nmeas_estimate(
     nmeas: float, nterms: int, filename: str, frame_meas: np.ndarray = None
 ) -> None:
-    """ Save an estimate of the number of measurements to a file
+    """Save an estimate of the number of measurements to a file
 
     Args:
         nmeas: total number of measurements for epsilon = 1.0
@@ -602,7 +603,7 @@ def hf_rdm(n_alpha: int, n_beta: int, n_orbitals: int) -> InteractionRDM:
         n_alpha (int): number of spin-up electrons
         n_beta (int): number of spin-down electrons
         n_orbitals (int): number of spatial orbitals (not spin orbitals)
-    
+
     Returns:
         openfermion.ops.InteractionRDM: the reduced density matrix
     """
@@ -623,7 +624,7 @@ def hf_rdm(n_alpha: int, n_beta: int, n_orbitals: int) -> InteractionRDM:
     return InteractionRDM(one_body_tensor, two_body_tensor)
 
 
-def load_from_specs(specs: Union[str, Dict]):
+def load_from_specs(specs: Specs):
     if isinstance(specs, str):
         specs = json.loads(specs)
     return create_object(specs)

@@ -60,13 +60,11 @@ class OrquestraDecoder(json.JSONDecoder):
 
     SCHEMA_MAP = {
         "zapata-v1-value_estimate": ValueEstimate.from_dict,
-        "zapata-v1-optimization_result": lambda obj: optimization_result(**obj)
+        "zapata-v1-optimization_result": lambda obj: optimization_result(**obj),
     }
 
     def __init__(self, *args, **kwargs):
-        json.JSONDecoder.__init__(
-            self, object_hook=self.object_hook, *args, **kwargs
-        )
+        json.JSONDecoder.__init__(self, object_hook=self.object_hook, *args, **kwargs)
 
     def object_hook(self, obj):
         # Parts of the below if-elif-else are sketchy, because for some objects there is

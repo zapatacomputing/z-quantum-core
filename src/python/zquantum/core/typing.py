@@ -1,6 +1,6 @@
 """Types commonly encountered in zquantum repositories."""
 from os import PathLike
-from typing import Union
+from typing import Union, Dict
 
 from typing_extensions import Protocol
 
@@ -17,6 +17,8 @@ class Writeable(Protocol):
 
 AnyPath = Union[str, bytes, PathLike]
 
-Loadable = Union[Readable, AnyPath]
+LoadSource = Union[Readable, AnyPath]
 
-Dumpable = Union[Writeable, AnyPath]
+DumpTarget = Union[Writeable, AnyPath]
+
+Specs = Union[str, Dict]

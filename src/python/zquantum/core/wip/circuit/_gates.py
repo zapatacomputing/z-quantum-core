@@ -8,6 +8,8 @@ from typing import Tuple, Union, Callable, Dict, Optional, Iterable, Any
 import sympy
 from typing_extensions import Protocol
 
+from ...utils import SCHEMA_VERSION
+
 Parameter = Union[sympy.Symbol, Number]
 
 
@@ -17,22 +19,13 @@ class Gate(Protocol):
 
     @property
     def name(self) -> str:
-        """Name of the gate.
+        """Globally unique name of the gate.
 
         Name is used in textual representation and dispatching in conversion between
         frameworks. Defining different gates with the same name as built-in ones
         is discouraged.
         """
         raise NotImplementedError()
-
-
-    # @property
-    # def namespace(self) -> str:
-    #     """Namespace the gate was defined in.
-
-    #     Decreases chance for name conflicts between user-defined gates and built-in ones.
-    #     """
-    #     raise NotImplementedError()
 
     @property
     def params(self) -> Tuple[Parameter, ...]:
@@ -75,11 +68,23 @@ class Gate(Protocol):
         """Apply this gate on qubits in a circuit."""
         return GateOperation(self, qubit_indices)
 
+    def to_dict(self):
+        return {
+            "name": self.name,
+            **({"params": list(self.params)} if self.params else {}),
+        }
+
 
 @dataclass(frozen=True)
 class GateOperation:
     gate: Gate
     qubit_indices: Tuple[int, ...]
+
+    def to_dict(self):
+        return {
+            "gate": self.gate.to_dict(),
+            "qubit_indices": list(self.qubit_indices),
+        }
 
 
 @singledispatch
@@ -122,8 +127,8 @@ def _free_symbols(params):
 class MatrixFactoryGate:
     """`Gate` protocol implementation with a deferred matrix construction.
 
-    Most built-in gates are instances of this class. It's faster than CustomGate,
-    but requires the gate definition to be present during deserialization, so it's not
+    Most built-in gates are instances of this class.
+    It requires the gate definition to be present during deserialization, so it's not
     easily applicable for gates defined in Orquestra steps.
 
     Keeping a `matrix_factory` instead of a plain gate matrix allows us to defer matrix
@@ -144,7 +149,6 @@ class MatrixFactoryGate:
     """
 
     name: str
-    namespace: str
     matrix_factory: Callable[..., sympy.Matrix]
     params: Tuple[Parameter, ...]
     num_qubits: int
@@ -182,7 +186,11 @@ class MatrixFactoryGate:
             else self.name
         )
 
+    # Normally, we'd use the default implementations by inheriting from the Gate protocol.
+    # We can't do that because of __init__ arg default value issues, this is
+    # the workaround.
     __call__ = Gate.__call__
+    to_dict = Gate.to_dict
 
 
 @dataclass(frozen=True)
@@ -348,6 +356,9 @@ def _bind_operation(op: GateOperation, symbols_map) -> GateOperation:
     return op.gate.bind(symbols_map)(*op.qubit_indices)
 
 
+CIRCUIT_SCHEMA = SCHEMA_VERSION + "-circuit"
+
+
 class Circuit:
     """ZQuantum representation of a quantum circuit."""
 
@@ -422,17 +433,25 @@ class Circuit:
                 - "symbolic_params"
                 - "gates"
         """
-        # return {
-        #     "schema": CIRCUIT_SCHEMA,
-        #     "n_qubits": self.n_qubits,
-        #     "symbolic_params": [
-        #         str(param) for param in self.symbolic_params
-        #     ],
-        #     "gates": [
-        #         gate.to_dict() for gate in self.gates
-        #     ],
-        # }
-        raise NotImplementedError()
+        return {
+            "schema": CIRCUIT_SCHEMA,
+            "n_qubits": self.n_qubits,
+            **(
+                {
+                    "operations": [
+                        operation.to_dict() for operation in self.operations
+                    ],
+                }
+                if self.operations
+                else {}
+            ),
+            # "symbolic_params": [
+            #     str(param) for param in self.symbolic_params
+            # ],
+            # "gates": [
+            #     gate.to_dict() for gate in self.gates
+            # ],
+        }
 
     @classmethod
     def from_dict(cls, json_dict):

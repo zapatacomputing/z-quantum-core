@@ -14,46 +14,7 @@ I = g.MatrixFactoryGate("I", m.i_matrix, (), 1, is_hermitian=True)
 T = g.MatrixFactoryGate("T", m.t_matrix, (), 1)
 
 
-class XOperation:
-    """"""
-    gate = XGate
-    # is_hermitian = True
-
-    # def matrix_factory(self):
-    #     return []
-
-# X = XGate()
-
-X = XOperation
-X.__name__
-X.__module__
-
-
-class YOperation:
-    gate = YGate
-
-Y = YOperation
-
-
-
-class RX(Gate):
-    def __init__(self, angle):
-        pass
-
-
-# gate1, gate2
-
-# ==?
-
-
-circuit = [
-    # X()(0),
-    X(0),
-    RX(np.pi)(0),
-]
-
 # gate1.namespace == gate2.namespace and gate1.name == gate2.name
-
 
 
 # ("X", "zquantum.core.wip.circuit._builtin_gates")

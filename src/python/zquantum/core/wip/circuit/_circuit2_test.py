@@ -152,28 +152,88 @@ class TestBindingParams:
         assert bound_circuit.free_symbols == {theta2, theta3}
 
 
-@pytest.mark.parametrize("circuit,dict_", [
-    (Circuit(), {"operations": [], "n_qubits": 0}),
-    (Circuit([X(0)]), {"operations": [{
-        "gate": {
-            "name": "X",
-        },
-        "qubit_indices": [0]
-    }], "n_qubits": 1}),
-    (Circuit([X(1)]), {}),
-    (Circuit([X(0), X(1)]), {}),
-    (Circuit(
-        [
-            H(0),
-            CNOT(0, 1),
-            RX(0)(5),
-            CNOT(0, 1),
-            H(0),
-        ]
+@pytest.mark.parametrize(
+    "circuit,dict_",
+    [
+        (
+            Circuit(),
+            {
+                "schema": "zapata-v1-circuit",
+                "n_qubits": 0,
+            },
         ),
-     {}),
-    (Circuit([I(0) for _ in range(100)]), {}),
-])
+        (
+            Circuit([X(0)]),
+            {
+                "schema": "zapata-v1-circuit",
+                "operations": [
+                    {
+                        "gate": {
+                            "name": "X",
+                        },
+                        "qubit_indices": [0],
+                    }
+                ],
+                "n_qubits": 1,
+            },
+        ),
+        (
+            Circuit([X(2), Y(1)]),
+            {
+                "schema": "zapata-v1-circuit",
+                "operations": [
+                    {
+                        "gate": {
+                            "name": "X",
+                        },
+                        "qubit_indices": [2],
+                    },
+                    {
+                        "gate": {
+                            "name": "Y",
+                        },
+                        "qubit_indices": [1],
+                    },
+                ],
+                "n_qubits": 3,
+            },
+        ),
+        (
+            Circuit(
+                [
+                    H(0),
+                    CNOT(0, 1),
+                    RX(0)(5),
+                ]
+            ),
+            {
+                "schema": "zapata-v1-circuit",
+                "operations": [
+                    {
+                        "gate": {
+                            "name": "H",
+                        },
+                        "qubit_indices": [0],
+                    },
+                    {
+                        "gate": {
+                            "name": "CNOT",
+                        },
+                        "qubit_indices": [0, 1],
+                    },
+                    {
+                        "gate": {
+                            "name": "RX",
+                            "params": [0],
+                        },
+                        "qubit_indices": [5],
+                    },
+                ],
+                "n_qubits": 6,
+            },
+        )
+    ],
+)
 class TestSerialization:
     def test_serialized_dict_has_expected_form(self, circuit, dict_):
-        assert circuit == dict_
+        assert circuit.to_dict() == dict_

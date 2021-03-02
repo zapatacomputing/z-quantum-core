@@ -28,8 +28,7 @@ class Gate(Protocol):
 
         Name is used in textual representation and dispatching in conversion between
         frameworks. Defining different gates with the same name as built-in ones
-        is discouraged.
-        """
+        is discouraged. """
         raise NotImplementedError()
 
     @property
@@ -39,9 +38,24 @@ class Gate(Protocol):
         Length of `params` should be equal to number of parameters in gate's initializer.
         In particular, nonparametric gates should always return ().
 
-        We need it for translations to other frameworks.
+        We need it for translations to other frameworks and for serialization.
         """
         raise NotImplementedError()
+
+    @property
+    def free_symbols(self):
+        """Unbound symbols.
+
+        Number of free symbols is greater or equal to number of params - you can use
+        a single Sympy expression with multiple symbols as a single param.
+        """
+        symbols = set(
+            symbol
+            for param in self.params
+            if isinstance(param, sympy.Expr)
+            for symbol in param.free_symbols
+        )
+        return sorted(symbols, key=str)
 
     @property
     def num_qubits(self) -> int:
@@ -81,14 +95,26 @@ class Gate(Protocol):
                 if self.params
                 else {}
             ),
+            **(
+                {"free_symbols": sorted(map(str, self.free_symbols))}
+                if self.free_symbols
+                else {}
+            ),
         }
 
 
-def gate_from_dict(dict_):
+def _gate_from_dict(dict_):
     """Prototype implementation of circuit deserialization"""
-    builtin_gate = _builtin_gates.builtin_gate_by_name(dict_["name"])
-    if builtin_gate is not None:
-        return builtin_gate
+    gate_ref = _builtin_gates.builtin_gate_by_name(dict_["name"])
+    if gate_ref is not None:
+        # ATM we don't have a better way to check if the serialized gate was parametric
+        # or not
+        if isinstance(gate_ref, MatrixFactoryGate):
+            return gate_ref
+        else:
+            symbols_map = _make_symbols_map(dict_.get("free_symbols", []))
+            return gate_ref(*[_deserialize_term(param, symbols_map)
+                              for param in dict_["params"]])
 
     # TODO:
     # - controlled gate
@@ -111,7 +137,7 @@ class GateOperation:
     @classmethod
     def from_dict(cls, dict_):
         return cls(
-            gate=gate_from_dict(dict_["gate"]),
+            gate=_gate_from_dict(dict_["gate"]),
             qubit_indices=tuple(dict_["qubit_indices"]),
         )
 
@@ -148,16 +174,6 @@ def _sub_symbols_in_symbol(
     parameter: sympy.Symbol, symbols_map: Dict[sympy.Symbol, Parameter]
 ) -> Parameter:
     return symbols_map.get(parameter, parameter)
-
-
-def _free_symbols(params):
-    symbols = set(
-        symbol
-        for param in params
-        if isinstance(param, sympy.Expr)
-        for symbol in param.free_symbols
-    )
-    return sorted(symbols, key=str)
 
 
 @dataclass(frozen=True)
@@ -226,6 +242,7 @@ class MatrixFactoryGate:
     # Normally, we'd use the default implementations by inheriting from the Gate protocol.
     # We can't do that because of __init__ arg default value issues, this is
     # the workaround.
+    free_symbols = Gate.free_symbols
     __call__ = Gate.__call__
     to_dict = Gate.to_dict
 
@@ -323,52 +340,9 @@ def _matrix_substitution_func(matrix: sympy.Matrix, symbols):
     return _substitution_func
 
 
-def define_gate_with_matrix(
-    name: str, matrix: sympy.Matrix, symbols_ordering: Tuple[sympy.Symbol, ...]
-) -> Callable[..., MatrixFactoryGate]:
-    """Make a user-defined gate specified by a (possibly parametrized) matrix.
 
-    Args:
-        name: name of the gate.
-        matrix: matrix of the gate. It should a matrix of shape 2 ** N x 2 ** N,
-            where N is the number of qubits this gate acts on.
-        symbols_ordering: tuple defining order in which symbols should be passed to the gates
-            initializer.
-            For instance:
-            >>>U = define_gate_with_matrix(
-                "U",
-                Matrix([
-                    [Symbol("a"), 0],
-                    [0, Symbol("b")]
-                ]),
-                (Symbol("a"), Symbol("b"))
-            )
-            then, when runniing:
-            >>>V = U(-0.5, 0.7)
-            V will be defined by substituting a=-0.5 and b=0.7,
-            resulting in a gate V identical to
-            >>>V = MatrixFactoryGate(
-                "U",
-                lambda a, b: Matrix([
-                    [a, 0],
-                    [0, b]
-                ]),
-                (-0.5, 0.7)
-            )
 
-    Returns:
-        Callable mapping parameters into an instance of the defined gate.
-    """
-    n_qubits = math.floor(math.log2(matrix.shape[0]))
-    if 2 ** n_qubits != matrix.shape[0] or 2 ** n_qubits != matrix.shape[1]:
-        raise ValueError("Gate's matrix has to be square with dimension 2^N")
 
-    def _gate(*params):
-        return MatrixFactoryGate(
-            name, _matrix_substitution_func(matrix, symbols_ordering), params, n_qubits
-        )
-
-    return _gate
 
 
 def _n_qubits(matrix):
@@ -385,26 +359,30 @@ def _matrix_to_dict(matrix: sympy.Matrix):
     ]
 
 
-def _deserialize_matrix_element(
-    element_repr: Union[sympy.Expr, Number], symbols_map: Dict[str, sympy.Symbol]
+def _make_symbols_map(symbol_names):
+    return {name: sympy.Symbol(name) for name in symbol_names}
+
+
+def _deserialize_term(
+    term: Union[str, Number], symbols_map: Dict[str, sympy.Symbol]
 ):
     # We pass symbols_map because some commonly used symbol names (e.g. gamma) are
     # by default parsed as functions from sympy instead of symbols.
     return (
-        sympy.sympify(element_repr, locals=symbols_map)
-        if isinstance(element_repr, str)
-        else element_repr
+        sympy.sympify(term, locals=symbols_map)
+        if isinstance(term, str)
+        else term
     )
 
 
 def _matrix_from_dict(
     dict_: Dict[str, Any], symbols_names: Iterable[str]
 ) -> sympy.Matrix:
-    symbols_map = {name: sympy.Symbol(name) for name in symbols_names}
+    symbols_map = _make_symbols_map(symbols_names)
     return sympy.Matrix(
         [
             [
-                _deserialize_matrix_element(element, symbols_map)
+                _deserialize_term(element, symbols_map)
                 for element in row["elements"]
             ]
             for row in dict_["rows"]
@@ -507,7 +485,7 @@ class Circuit:
         """Set of all the sympy symbols used as params of gates in the circuit."""
         return reduce(
             set.union,
-            (_free_symbols(operation.gate.params) for operation in self._operations),
+            (operation.gate.free_symbols for operation in self._operations),
             set(),
         )
 
@@ -568,11 +546,6 @@ class Circuit:
                     ]
                 }
                 if self.custom_gate_definitions
-                else {}
-            ),
-            **(
-                {"free_symbols": sorted(map(str, self.free_symbols))}
-                if self.free_symbols
                 else {}
             ),
         }

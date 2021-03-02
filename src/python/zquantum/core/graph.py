@@ -142,7 +142,7 @@ def weight_graph_edges(
     Returns:
         A networkx.Graph object
     """
-    assert not (graph.is_multigraph()), "Cannot deal with multigraphs"
+    assert not graph.is_multigraph(), "Cannot deal with multigraphs"
 
     random.seed(seed)
     if random_weights:

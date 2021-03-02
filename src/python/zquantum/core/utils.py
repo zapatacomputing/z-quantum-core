@@ -340,7 +340,7 @@ def load_value_estimate(file: LoadSource) -> ValueEstimate:
     return ValueEstimate.from_dict(data)
 
 
-def save_value_estimate(value_estimate: ValueEstimate, filename: DumpTarget):
+def save_value_estimate(value_estimate: ValueEstimate, filename: str):
     """Saves value estimate to a file.
 
     Args:

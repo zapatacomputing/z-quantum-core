@@ -12,17 +12,27 @@ Parameter = Union[sympy.Symbol, Number]
 
 
 class Gate(Protocol):
-    """Quantum gate representable by a matrix, translatable to other frameworks and backends."""
+    """Quantum gate representable by a matrix, translatable to other frameworks
+    and backends."""
 
     @property
     def name(self) -> str:
         """Name of the gate.
 
         Name is used in textual representation and dispatching in conversion between
-        frameworks, therefore implementers of this protocol should make sure
-        the default gate names are not used.
+        frameworks. Defining different gates with the same name as built-in ones
+        is discouraged.
         """
         raise NotImplementedError()
+
+
+    # @property
+    # def namespace(self) -> str:
+    #     """Namespace the gate was defined in.
+
+    #     Decreases chance for name conflicts between user-defined gates and built-in ones.
+    #     """
+    #     raise NotImplementedError()
 
     @property
     def params(self) -> Tuple[Parameter, ...]:
@@ -134,6 +144,7 @@ class MatrixFactoryGate:
     """
 
     name: str
+    namespace: str
     matrix_factory: Callable[..., sympy.Matrix]
     params: Tuple[Parameter, ...]
     num_qubits: int
@@ -411,11 +422,24 @@ class Circuit:
                 - "symbolic_params"
                 - "gates"
         """
+        # return {
+        #     "schema": CIRCUIT_SCHEMA,
+        #     "n_qubits": self.n_qubits,
+        #     "symbolic_params": [
+        #         str(param) for param in self.symbolic_params
+        #     ],
+        #     "gates": [
+        #         gate.to_dict() for gate in self.gates
+        #     ],
+        # }
         raise NotImplementedError()
 
     @classmethod
     def from_dict(cls, json_dict):
         raise NotImplementedError()
+
+    # def __repr__(self):
+    #     return f"{type(self).__name__}(gates={self.gates}, n_qubits={self.n_qubits})"
 
 
 @singledispatch

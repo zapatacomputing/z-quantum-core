@@ -56,7 +56,7 @@ def test_creating_circuit_has_correct_operations():
     assert circuit.operations == list(EXAMPLE_OPERATIONS)
 
 
-class TestCircuitConcatenation:
+class TestConcatenation:
     def test_appending_to_circuit_yields_correct_operations(self):
         circuit = Circuit()
         circuit += H(0)
@@ -150,3 +150,30 @@ class TestBindingParams:
 
         bound_circuit = circuit.bind({theta1: -np.pi, other_param: 42})
         assert bound_circuit.free_symbols == {theta2, theta3}
+
+
+@pytest.mark.parametrize("circuit,dict_", [
+    (Circuit(), {"operations": [], "n_qubits": 0}),
+    (Circuit([X(0)]), {"operations": [{
+        "gate": {
+            "name": "X",
+        },
+        "qubit_indices": [0]
+    }], "n_qubits": 1}),
+    (Circuit([X(1)]), {}),
+    (Circuit([X(0), X(1)]), {}),
+    (Circuit(
+        [
+            H(0),
+            CNOT(0, 1),
+            RX(0)(5),
+            CNOT(0, 1),
+            H(0),
+        ]
+        ),
+     {}),
+    (Circuit([I(0) for _ in range(100)]), {}),
+])
+class TestSerialization:
+    def test_serialized_dict_has_expected_form(self, circuit, dict_):
+        assert circuit == dict_

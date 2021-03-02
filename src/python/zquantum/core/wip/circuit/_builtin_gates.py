@@ -14,10 +14,102 @@ I = g.MatrixFactoryGate("I", m.i_matrix, (), 1, is_hermitian=True)
 T = g.MatrixFactoryGate("T", m.t_matrix, (), 1)
 
 
+class XOperation:
+    """"""
+    gate = XGate
+    # is_hermitian = True
+
+    # def matrix_factory(self):
+    #     return []
+
+# X = XGate()
+
+X = XOperation
+X.__name__
+X.__module__
+
+
+class YOperation:
+    gate = YGate
+
+Y = YOperation
+
+
+
+class RX(Gate):
+    def __init__(self, angle):
+        pass
+
+
+# gate1, gate2
+
+# ==?
+
+
+circuit = [
+    # X()(0),
+    X(0),
+    RX(np.pi)(0),
+]
+
+# gate1.namespace == gate2.namespace and gate1.name == gate2.name
+
+
+
+# ("X", "zquantum.core.wip.circuit._builtin_gates")
+# ("X", "zqe.basf.gates")
+# ("X")
+
+
+# # problem 2
+
+# X = def_gate("X", [[0, 1], [1, 0]])
+# Y = def_gate("X", [[0, 1], [1, 0]])
+# Z = def_gate("X", [[-2, -2], [-2, -2]])
+
+# X == Y ?
+# X == Z ?
+
+
+#     return f"{gate.namespace}.{gate.name}"
+
+
+# # 1. zquantum built-in gate <-> pyquil built-in gate
+# {
+#     "name": "X",
+#     "namespace": "zquantum",
+#     "namespace": "",
+#     "namespace": None,
+#     "namespace": __module__,
+# }
+# <->
+# pyquil.X
+
+# # 2. zquantum built-in gate <-> pyquil custom gate
+# {
+#     "name": "XX",
+#     "namespace": "zquantum",
+#     # "namespace": __module__,
+#     "namespace": "zquantum.gates",
+# }
+# <->
+# # pyquil.DefGate("zquantum.XX")
+# # pyquil.DefGate("zquantum.core.circuit._builtin_gates.XX")
+# pyquil.DefGate("zquantum.gates.XX")
+
+# # 3. zquantum custom gate <-> pyquil custom gate
+# {
+#     "name": "G",
+#     "namespace": "coca-cola.gates",
+# }
+# pyquil.DefGate("coca-cola.G")
+
+
 # --- parametric, single qubit gates ---
 
 def make_parametric_gate_factory(name, matrix_factory, num_qubits) -> Callable[..., g.MatrixFactoryGate]:
     def _factory(*gate_parameters):
+        # TODO: check if len(gate_parameters) == len(arguments of matrix_factory)
         return g.MatrixFactoryGate(name, matrix_factory, gate_parameters, num_qubits)
     return _factory
 

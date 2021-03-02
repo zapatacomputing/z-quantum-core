@@ -14,7 +14,7 @@ from ..utils import (
     convert_dict_to_array,
     convert_array_to_dict,
 )
-from .typing import AnyPath
+from ..typing import AnyPath
 from zquantum.core.typing import LoadSource
 
 

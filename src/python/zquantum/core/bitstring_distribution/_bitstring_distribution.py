@@ -4,7 +4,7 @@ import warnings
 import json
 import numpy as np
 from ..utils import SCHEMA_VERSION, convert_tuples_to_bitstrings
-from .typing import AnyPath
+from ..typing import AnyPath
 from collections import Counter
 from typing import Dict, Callable
 

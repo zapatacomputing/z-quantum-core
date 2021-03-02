@@ -22,7 +22,7 @@ from ._builtin_gates import (
     YY,
     ZZ,
 )
-from ._gates import Circuit
+from ._gates import Circuit, CustomGateDefinition
 
 
 RNG = np.random.default_rng(42)
@@ -152,6 +152,21 @@ class TestBindingParams:
         assert bound_circuit.free_symbols == {theta2, theta3}
 
 
+ALPHA = sympy.Symbol("alpha")
+GAMMA = sympy.Symbol("gamma")
+THETA = sympy.Symbol("theta")
+
+
+CUSTOM_U_GATE = CustomGateDefinition(
+    "U",
+    sympy.Matrix([
+        [THETA, GAMMA],
+        [-GAMMA, THETA],
+    ]),
+    (THETA, GAMMA)
+)
+
+
 @pytest.mark.parametrize(
     "circuit,dict_",
     [
@@ -224,12 +239,55 @@ class TestBindingParams:
                     {
                         "gate": {
                             "name": "RX",
-                            "params": [0],
+                            "params": ["0"],
                         },
                         "qubit_indices": [5],
                     },
                 ],
                 "n_qubits": 6,
+            },
+        ),
+        (
+            Circuit(
+                operations=[
+                    T(0),
+                    CUSTOM_U_GATE(1, -1)(3),
+                    CUSTOM_U_GATE(ALPHA, -1)(2),
+                ],
+                custom_gate_definitions=[CUSTOM_U_GATE],
+            ),
+            {
+                "schema": "zapata-v1-circuit",
+                "operations": [
+                    {
+                        "gate": {
+                            "name": "T",
+                        },
+                        "qubit_indices": [0],
+                    },
+                    {
+                        "gate": {
+                            "name": "U",
+                            "params": ["1", "-1"],
+                        },
+                        "qubit_indices": [3],
+                    },
+                    {
+                        "gate": {
+                            "name": "U",
+                            "params": ["alpha", "-1"],
+                        },
+                        "qubit_indices": [2],
+                    }
+                ],
+                "n_qubits": 4,
+                "custom_gate_definitions": {
+                    "U": [
+                        ["theta", "gamma"],
+                        ["-gamma", "theta"],
+                    ]
+                },
+                "free_symbols": ["alpha"],
             },
         )
     ],

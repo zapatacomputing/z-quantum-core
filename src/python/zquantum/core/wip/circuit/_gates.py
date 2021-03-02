@@ -13,6 +13,10 @@ from ...utils import SCHEMA_VERSION
 Parameter = Union[sympy.Symbol, Number]
 
 
+def _jsonify_param(param: Parameter):
+    return str(param)
+
+
 class Gate(Protocol):
     """Quantum gate representable by a matrix, translatable to other frameworks
     and backends."""
@@ -71,7 +75,7 @@ class Gate(Protocol):
     def to_dict(self):
         return {
             "name": self.name,
-            **({"params": list(self.params)} if self.params else {}),
+            **({"params": list(map(_jsonify_param, self.params))} if self.params else {}),
         }
 
 
@@ -289,12 +293,7 @@ def _matrix_substitution_func(matrix: sympy.Matrix, symbols):
 def define_gate_with_matrix(
     name: str, matrix: sympy.Matrix, symbols_ordering: Tuple[sympy.Symbol, ...]
 ) -> Callable[..., MatrixFactoryGate]:
-    """Makes it easy to define custom gates.
-
-    Define new gate specified by a (possibly parametrized) matrix.
-
-    Note that this is slightly less efficient, but more convenient, than creating
-    a callable that returns a matrix and passing it to CustomGate.
+    """Make a user-defined gate specified by a (possibly parametrized) matrix.
 
     Args:
         name: name of the gate.
@@ -339,6 +338,32 @@ def define_gate_with_matrix(
     return _gate
 
 
+def _n_qubits(matrix):
+    n_qubits = math.floor(math.log2(matrix.shape[0]))
+    if 2 ** n_qubits != matrix.shape[0] or 2 ** n_qubits != matrix.shape[1]:
+        raise ValueError("Gate's matrix has to be square with dimension 2^N")
+    return n_qubits
+
+
+@dataclass(frozen=True)
+class CustomGateDefinition:
+    gate_name: str
+    matrix: sympy.Matrix
+    params_ordering: Tuple[sympy.Symbol, ...]
+
+    def __post_init__(self):
+        n_qubits = _n_qubits(self.matrix)
+        object.__setattr__(self, "_n_qubits", n_qubits)
+
+    def __call__(self, *params):
+        return MatrixFactoryGate(
+            self.gate_name,
+            _matrix_substitution_func(self.matrix, self.params_ordering),
+            params,
+            self._n_qubits,
+        )
+
+
 def _circuit_size_by_operations(operations):
     return (
         0
@@ -359,6 +384,10 @@ def _bind_operation(op: GateOperation, symbols_map) -> GateOperation:
 CIRCUIT_SCHEMA = SCHEMA_VERSION + "-circuit"
 
 
+def _matrix_to_dict(matrix: sympy.Matrix):
+    return [
+        [str(element) for element in matrix.row(row_i)] for row_i in range(matrix.shape[0])
+    ]
 class Circuit:
     """ZQuantum representation of a quantum circuit."""
 
@@ -366,6 +395,7 @@ class Circuit:
         self,
         operations: Optional[Iterable[GateOperation]] = None,
         n_qubits: Optional[int] = None,
+        custom_gate_definitions: Optional[Iterable[CustomGateDefinition]] = None,
     ):
         self._operations = list(operations) if operations is not None else []
         self._n_qubits = (
@@ -373,11 +403,18 @@ class Circuit:
             if n_qubits is not None
             else _circuit_size_by_operations(self._operations)
         )
+        self._custom_gate_definitions = (
+            list(custom_gate_definitions) if custom_gate_definitions else []
+        )
 
     @property
     def operations(self):
         """Sequence of quantum gates to apply to qubits in this circuit."""
         return self._operations
+
+    @property
+    def custom_gate_definitions(self):
+        return self._custom_gate_definitions
 
     @property
     def n_qubits(self):
@@ -445,6 +482,17 @@ class Circuit:
                 if self.operations
                 else {}
             ),
+            **(
+                {
+                    "custom_gate_definitions": {
+                        gate_def.gate_name: _matrix_to_dict(gate_def.matrix)
+                        for gate_def in self.custom_gate_definitions
+                    }
+                }
+                if self.custom_gate_definitions
+                else {}
+            ),
+            **({"free_symbols": sorted(map(str, self.free_symbols))} if self.free_symbols else {}),
             # "symbolic_params": [
             #     str(param) for param in self.symbolic_params
             # ],

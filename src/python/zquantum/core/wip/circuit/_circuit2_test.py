@@ -180,6 +180,7 @@ CUSTOM_U_GATE = CustomGateDefinition(
                 H(0),
                 CNOT(0, 1),
                 RX(0)(5),
+                RX(np.pi)(2),
             ]
         ),
         Circuit(
@@ -214,6 +215,28 @@ CUSTOM_U_GATE = CustomGateDefinition(
         Circuit(
             [
                 RY(ALPHA * GAMMA).controlled(1)(3, 2),
+            ]
+        ),
+        Circuit(
+            [
+                X.dagger(2),
+                I.dagger(4),
+                Y.dagger(1),
+                Z.dagger(2),
+                T.dagger(7),
+            ]
+        ),
+        Circuit(
+            [
+                RX(-np.pi).dagger(2),
+                RY(-np.pi / 2).dagger(1),
+                RZ(0).dagger(0),
+                PHASE(np.pi / 5).dagger(2),
+            ]
+        ),
+        Circuit(
+            [
+                RX(GAMMA * ALPHA).dagger(1),
             ]
         ),
     ],

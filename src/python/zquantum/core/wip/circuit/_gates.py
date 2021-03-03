@@ -133,8 +133,9 @@ def _gate_from_dict(dict_, custom_gate_defs):
         wrapped_gate = _gate_from_dict(dict_["wrapped_gate"], custom_gate_defs)
         return ControlledGate(wrapped_gate, dict_["num_control_qubits"])
 
-    if dict_["name"] == Dagger.__name__:
-        raise NotImplementedError()
+    if dict_["name"] == DAGGER_GATE_NAME:
+        wrapped_gate = _gate_from_dict(dict_["wrapped_gate"], custom_gate_defs)
+        return Dagger(wrapped_gate)
 
     gate_def = next(
         (
@@ -353,6 +354,9 @@ class ControlledGate(Gate):
         }
 
 
+DAGGER_GATE_NAME = "Dagger"
+
+
 @dataclass(frozen=True)
 class Dagger(Gate):
     wrapped_gate: Gate
@@ -371,7 +375,7 @@ class Dagger(Gate):
 
     @property
     def name(self):
-        return "dagger"
+        return DAGGER_GATE_NAME
 
     def controlled(self, num_control_qubits: int) -> Gate:
         return self.wrapped_gate.controlled(num_control_qubits).dagger
@@ -382,6 +386,12 @@ class Dagger(Gate):
     @property
     def dagger(self) -> "Gate":
         return self.wrapped_gate
+
+    def to_dict(self):
+        return {
+            "name": self.name,
+            "wrapped_gate": self.wrapped_gate.to_dict(),
+        }
 
 
 def _matrix_substitution_func(matrix: sympy.Matrix, symbols):

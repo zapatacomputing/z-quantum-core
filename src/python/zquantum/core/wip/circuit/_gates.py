@@ -216,6 +216,10 @@ def _sub_symbols_in_symbol(
     return symbols_map.get(parameter, parameter)
 
 
+def _all_attrs_equal(obj, other_obj, attrs):
+    return all(getattr(obj, attr) == getattr(other_obj, attr) for attr in attrs)
+
+
 @dataclass(frozen=True)
 class MatrixFactoryGate:
     """`Gate` protocol implementation with a deferred matrix construction.
@@ -283,9 +287,10 @@ class MatrixFactoryGate:
         if type(self) != type(other):
             return False
 
-        for attr in set(self.__dataclass_fields__) - set(["params"]):
-            if getattr(self, attr) != getattr(other, attr):
-                return False
+        if not _all_attrs_equal(
+            self, other, set(self.__dataclass_fields__) - {"params"}
+        ):
+            return False
 
         if len(self.params) != len(other.params):
             return False

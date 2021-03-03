@@ -123,7 +123,10 @@ def _gate_from_dict(dict_, custom_gate_defs):
             return gate_ref
         else:
             return gate_ref(
-                *[deserialize_expr(param, dict_.get("free_symbols", [])) for param in dict_["params"]]
+                *[
+                    deserialize_expr(param, dict_.get("free_symbols", []))
+                    for param in dict_["params"]
+                ]
             )
 
     if dict_["name"] == CONTROLLED_GATE_NAME:
@@ -279,15 +282,17 @@ class MatrixFactoryGate:
         if type(self) != type(other):
             return False
 
-        for attr in set(self.__dataclass_fields__) - set(['params']):
+        for attr in set(self.__dataclass_fields__) - set(["params"]):
             if getattr(self, attr) != getattr(other, attr):
                 return False
 
         if len(self.params) != len(other.params):
             return False
 
-        return all(_are_matrix_elements_equal(p1, p2)
-                   for p1, p2 in zip(self.params, other.params))
+        return all(
+            _are_matrix_elements_equal(p1, p2)
+            for p1, p2 in zip(self.params, other.params)
+        )
 
     # Normally, we'd use the default implementations by inheriting from the Gate protocol.
     # We can't do that because of __init__ arg default value issues, this is
@@ -431,7 +436,9 @@ class FixedMatrixFactory:
     params_ordering: Tuple[Parameter, ...]
 
     def __call__(self, *gate_params):
-        return self.matrix.subs({symbol: arg for symbol, arg in zip(self.params_ordering, gate_params)})
+        return self.matrix.subs(
+            {symbol: arg for symbol, arg in zip(self.params_ordering, gate_params)}
+        )
 
     def __eq__(self, other):
         if type(self) != type(other):
@@ -517,10 +524,9 @@ def _are_matrix_elements_equal(element, another_element):
 
 def _are_matrices_equal(matrix, another_matrix):
     return all(
-            _are_matrix_elements_equal(element, another_element)
-            for element, another_element in zip(matrix, another_matrix)
-        )
-
+        _are_matrix_elements_equal(element, another_element)
+        for element, another_element in zip(matrix, another_matrix)
+    )
 
 
 def _circuit_size_by_operations(operations):

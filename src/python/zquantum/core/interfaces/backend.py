@@ -198,7 +198,9 @@ class QuantumSimulator(QuantumBackend):
         self.number_of_jobs_run += 1
 
     @overrides
-    def get_expectation_values(self, circuit, operator: SymbolicOperator, **kwargs):
+    def get_expectation_values(
+        self, circuit, operator: SymbolicOperator, **kwargs
+    ) -> ExpectationValues:
         """Run a circuit and measure the expectation values with respect to a
         given operator. Note: the number of bitstrings measured is derived
         from self.n_samples - if self.n_samples = None, then this will use

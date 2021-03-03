@@ -399,27 +399,6 @@ class Dagger(Gate):
         }
 
 
-def _matrix_substitution_func(matrix: sympy.Matrix, symbols):
-    """Create a function that substitutes value for free params to given matrix.
-
-    This is meant to be used as a factory function in CustomGates, where
-    one already has a matrix.
-
-    Args:
-        matrix: a matrix with symbolic parameters.
-        symbols: an iterable comprising all symbolic (free) params of matrix.
-    Returns:
-        A callable f such that f(param_1, ..., param_n) returns matrix resulting
-        from substituting free symbols in `matrix` with param_1,...,param_n
-        in the order specified by `symbols`.
-    """
-
-    def _substitution_func(*params):
-        return matrix.subs({symbol: arg for symbol, arg in zip(symbols, params)})
-
-    return _substitution_func
-
-
 def _n_qubits(matrix):
     n_qubits = math.floor(math.log2(matrix.shape[0]))
     if 2 ** n_qubits != matrix.shape[0] or 2 ** n_qubits != matrix.shape[1]:

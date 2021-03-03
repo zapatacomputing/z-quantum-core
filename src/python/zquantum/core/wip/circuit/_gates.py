@@ -126,8 +126,9 @@ def _gate_from_dict(dict_, custom_gate_defs):
                 *[deserialize_expr(param, dict_.get("free_symbols", [])) for param in dict_["params"]]
             )
 
-    if dict_["name"] == ControlledGate.__name__:
-        raise NotImplementedError()
+    if dict_["name"] == CONTROLLED_GATE_NAME:
+        wrapped_gate = _gate_from_dict(dict_["wrapped_gate"], custom_gate_defs)
+        return ControlledGate(wrapped_gate, dict_["num_control_qubits"])
 
     if dict_["name"] == Dagger.__name__:
         raise NotImplementedError()
@@ -296,6 +297,9 @@ class MatrixFactoryGate:
     to_dict = Gate.to_dict
 
 
+CONTROLLED_GATE_NAME = "Control"
+
+
 @dataclass(frozen=True)
 class ControlledGate(Gate):
     wrapped_gate: Gate
@@ -303,7 +307,7 @@ class ControlledGate(Gate):
 
     @property
     def name(self):
-        return "control"
+        return CONTROLLED_GATE_NAME
 
     @property
     def num_qubits(self):
@@ -335,6 +339,13 @@ class ControlledGate(Gate):
 
     def bind(self, symbols_map) -> "Gate":
         return self.wrapped_gate.bind(symbols_map).controlled(self.num_control_qubits)
+
+    def to_dict(self):
+        return {
+            "name": self.name,
+            "wrapped_gate": self.wrapped_gate.to_dict(),
+            "num_control_qubits": self.num_control_qubits,
+        }
 
 
 @dataclass(frozen=True)

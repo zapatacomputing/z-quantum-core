@@ -201,6 +201,21 @@ CUSTOM_U_GATE = CustomGateDefinition(
             ],
             custom_gate_definitions=[CUSTOM_U_GATE],
         ),
+        Circuit(
+            [
+                H.controlled(1)(0, 1),
+            ]
+        ),
+        Circuit(
+            [
+                Z.controlled(2)(4, 3, 0),
+            ]
+        ),
+        Circuit(
+            [
+                RY(ALPHA * GAMMA).controlled(1)(3, 2),
+            ]
+        ),
     ],
 )
 class TestCircuitSerialization:

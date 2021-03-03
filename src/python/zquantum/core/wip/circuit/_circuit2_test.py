@@ -170,215 +170,50 @@ CUSTOM_U_GATE = CustomGateDefinition(
 
 
 @pytest.mark.parametrize(
-    "circuit,dict_",
+    "circuit",
     [
-        (
-            Circuit(),
-            {
-                "schema": "zapata-v1-circuit",
-                "n_qubits": 0,
-            },
+        Circuit(),
+        Circuit([X(0)]),
+        Circuit([X(2), Y(1)]),
+        Circuit(
+            [
+                H(0),
+                CNOT(0, 1),
+                RX(0)(5),
+            ]
         ),
-        (
-            Circuit([X(0)]),
-            {
-                "schema": "zapata-v1-circuit",
-                "operations": [
-                    {
-                        "type": "gate_operation",
-                        "gate": {
-                            "name": "X",
-                        },
-                        "qubit_indices": [0],
-                    }
-                ],
-                "n_qubits": 1,
-            },
+        Circuit(
+            [
+                RX(GAMMA * 2)(3),
+            ]
         ),
-        (
-            Circuit([X(2), Y(1)]),
-            {
-                "schema": "zapata-v1-circuit",
-                "operations": [
-                    {
-                        "type": "gate_operation",
-                        "gate": {
-                            "name": "X",
-                        },
-                        "qubit_indices": [2],
-                    },
-                    {
-                        "type": "gate_operation",
-                        "gate": {
-                            "name": "Y",
-                        },
-                        "qubit_indices": [1],
-                    },
-                ],
-                "n_qubits": 3,
-            },
+        Circuit(
+            operations=[
+                T(0),
+                CUSTOM_U_GATE(1, -1)(3),
+                CUSTOM_U_GATE(ALPHA, -1)(2),
+            ],
+            custom_gate_definitions=[CUSTOM_U_GATE],
         ),
-        (
-            Circuit(
-                [
-                    H(0),
-                    CNOT(0, 1),
-                    RX(0)(5),
-                ]
-            ),
-            {
-                "schema": "zapata-v1-circuit",
-                "operations": [
-                    {
-                        "type": "gate_operation",
-                        "gate": {
-                            "name": "H",
-                        },
-                        "qubit_indices": [0],
-                    },
-                    {
-                        "type": "gate_operation",
-                        "gate": {
-                            "name": "CNOT",
-                        },
-                        "qubit_indices": [0, 1],
-                    },
-                    {
-                        "type": "gate_operation",
-                        "gate": {
-                            "name": "RX",
-                            "params": ["0"],
-                        },
-                        "qubit_indices": [5],
-                    },
-                ],
-                "n_qubits": 6,
-            },
-        ),
-        (
-            Circuit(
-                [
-                    RX(GAMMA * 2)(3),
-                ]
-            ),
-            {
-                "schema": "zapata-v1-circuit",
-                "operations": [
-                    {
-                        "type": "gate_operation",
-                        "gate": {
-                            "name": "RX",
-                            "params": ["2*gamma"],
-                            "free_symbols": ["gamma"],
-                        },
-                        "qubit_indices": [3],
-                    },
-                ],
-                "n_qubits": 4,
-            },
-        ),
-        (
-            Circuit(
-                operations=[
-                    T(0),
-                    CUSTOM_U_GATE(1, -1)(3),
-                    CUSTOM_U_GATE(ALPHA, -1)(2),
-                ],
-                custom_gate_definitions=[CUSTOM_U_GATE],
-            ),
-            {
-                "schema": "zapata-v1-circuit",
-                "operations": [
-                    {
-                        "type": "gate_operation",
-                        "gate": {
-                            "name": "T",
-                        },
-                        "qubit_indices": [0],
-                    },
-                    {
-                        "type": "gate_operation",
-                        "gate": {
-                            "name": "U",
-                            "params": ["1", "-1"],
-                        },
-                        "qubit_indices": [3],
-                    },
-                    {
-                        "type": "gate_operation",
-                        "gate": {
-                            "name": "U",
-                            "params": ["alpha", "-1"],
-                            "free_symbols": ["alpha"],
-                        },
-                        "qubit_indices": [2],
-                    },
-                ],
-                "n_qubits": 4,
-                "custom_gate_definitions": [
-                    {
-                        "gate_name": "U",
-                        "matrix": [
-                            ["theta", "gamma"],
-                            ["-gamma", "theta"],
-                        ],
-                        "params_ordering": ["theta", "gamma"],
-                    }
-                ],
-            },
-        ),
-        (
-            Circuit(
-                operations=[
-                    CUSTOM_U_GATE(2 + 3j, -1)(2),
-                ],
-                custom_gate_definitions=[CUSTOM_U_GATE],
-            ),
-            {
-                "schema": "zapata-v1-circuit",
-                "operations": [
-                    {
-                        "type": "gate_operation",
-                        "gate": {
-                            "name": "U",
-                            "params": ["2+3j", "-1"],
-                            "free_symbols": [],
-                        },
-                        "qubit_indices": [2],
-                    },
-                ],
-                "n_qubits": 3,
-                "custom_gate_definitions": [
-                    {
-                        "gate_name": "U",
-                        "matrix": [
-                            ["theta", "gamma"],
-                            ["-gamma", "theta"],
-                        ],
-                        "params_ordering": ["theta", "gamma"],
-                    }
-                ],
-            },
+        Circuit(
+            operations=[
+                CUSTOM_U_GATE(2 + 3j, -1)(2),
+            ],
+            custom_gate_definitions=[CUSTOM_U_GATE],
         ),
     ],
 )
 class TestCircuitSerialization:
-    def test_serialized_dict_has_expected_form(self, circuit, dict_):
-        assert circuit.to_dict() == dict_
+    def test_roundrip_results_in_same_circuit(self, circuit):
+        serialized = circuit.to_dict()
+        assert Circuit.from_dict(serialized) == circuit
 
-    def test_deserialized_gates_produce_matrices(self, circuit, dict_):
-        circuit = Circuit.from_dict(dict_)
-        for operation in circuit.operations:
+    def test_deserialized_gates_produce_matrices(self, circuit):
+        deserialized_circuit = Circuit.from_dict(circuit.to_dict())
+        for operation in deserialized_circuit.operations:
             # matrices are computed lazily, so we have to call the getter to know if
             # we deserialized parameters properly
             operation.gate.matrix
-
-    def test_deserializing_dict_gives_circuit(self, circuit, dict_):
-        assert Circuit.from_dict(dict_) == circuit
-
-    def test_roundrip_results_in_same_circuit(self, circuit, dict_):
-        serialized = circuit.to_dict()
-        assert Circuit.from_dict(serialized) == circuit
 
 
 class TestCustomGateDefinitionSerialization:

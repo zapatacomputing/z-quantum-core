@@ -22,7 +22,7 @@ from ._builtin_gates import (
     YY,
     ZZ,
 )
-from ._gates import Circuit, CustomGateDefinition
+from ._gates import Circuit, CustomGateDefinition, serialize_expr, deserialize_expr
 
 
 RNG = np.random.default_rng(42)
@@ -228,3 +228,25 @@ class TestCustomGateDefinitionSerialization:
     def test_roundtrip_gives_back_same_def(self, gate_def):
         dict_ = gate_def.to_dict()
         assert CustomGateDefinition.from_dict(dict_) == gate_def
+
+
+class TestExpressionSerialization:
+    @pytest.mark.parametrize(
+        "expr,symbol_names",
+        [
+            (0, []),
+            (1, []),
+            (-1, []),
+            (THETA, ["theta"]),
+            (GAMMA, ["gamma"]),
+            (THETA * GAMMA + 1, ["gamma", "theta"]),
+            (2 + 3j, []),
+            ((-1 + 2j) * THETA * GAMMA, ["gamma", "theta"]),
+        ],
+    )
+    def test_roundtrip_results_in_equivalent_expression(self, expr, symbol_names):
+        serialized = serialize_expr(expr)
+        deserialized = deserialize_expr(serialized, symbol_names)
+        # `deserialized == expr` wouldn't work here for complex literals because of
+        # how Sympy compares expressions
+        assert deserialized - expr == 0

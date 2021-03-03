@@ -15,8 +15,17 @@ from . import _builtin_gates
 Parameter = Union[sympy.Symbol, Number]
 
 
-def _jsonify_param(param: Parameter):
-    return str(param)
+def serialize_expr(expr):
+    return str(expr)
+
+
+def _make_symbols_map(symbol_names):
+    return {name: sympy.Symbol(name) for name in symbol_names}
+
+
+def deserialize_expr(expr_str, symbol_names):
+    symbols_map = _make_symbols_map(symbol_names)
+    return sympy.sympify(expr_str, locals=symbols_map)
 
 
 class Gate(Protocol):
@@ -92,7 +101,7 @@ class Gate(Protocol):
         return {
             "name": self.name,
             **(
-                {"params": list(map(_jsonify_param, self.params))}
+                {"params": list(map(serialize_expr, self.params))}
                 if self.params
                 else {}
             ),
@@ -113,9 +122,8 @@ def _gate_from_dict(dict_, custom_gate_defs):
         if isinstance(gate_ref, MatrixFactoryGate):
             return gate_ref
         else:
-            symbols_map = _make_symbols_map(dict_.get("free_symbols", []))
             return gate_ref(
-                *[_deserialize_term(param, symbols_map) for param in dict_["params"]]
+                *[deserialize_expr(param, dict_.get("free_symbols", [])) for param in dict_["params"]]
             )
 
     if dict_["name"] == ControlledGate.__name__:
@@ -137,9 +145,9 @@ def _gate_from_dict(dict_, custom_gate_defs):
             f"Custom gate definition for {dict_['name']} missing from serialized dict"
         )
 
-    symbols_map = _make_symbols_map(map(str, gate_def.params_ordering))
+    symbol_names = map(serialize_expr, gate_def.params_ordering)
     return gate_def(
-        *[_deserialize_term(param, symbols_map) for param in dict_["params"]]
+        *[deserialize_expr(param, symbol_names) for param in dict_["params"]]
     )
     # TODO:
     # - controlled gate
@@ -390,28 +398,17 @@ def _n_qubits(matrix):
 
 def _matrix_to_json(matrix: sympy.Matrix):
     return [
-        [str(element) for element in matrix.row(row_i)]
+        [serialize_expr(element) for element in matrix.row(row_i)]
         for row_i in range(matrix.shape[0])
     ]
-
-
-def _make_symbols_map(symbol_names):
-    return {name: sympy.Symbol(name) for name in symbol_names}
-
-
-def _deserialize_term(term: Union[str, Number], symbols_map: Dict[str, sympy.Symbol]):
-    # We pass symbols_map because some commonly used symbol names (e.g. gamma) are
-    # by default parsed as functions from sympy instead of symbols.
-    return sympy.sympify(term, locals=symbols_map) if isinstance(term, str) else term
 
 
 def _matrix_from_json(
     json_rows: List[List[str]], symbols_names: Iterable[str]
 ) -> sympy.Matrix:
-    symbols_map = _make_symbols_map(symbols_names)
     return sympy.Matrix(
         [
-            [_deserialize_term(element, symbols_map) for element in json_row]
+            [deserialize_expr(element, symbols_names) for element in json_row]
             for json_row in json_rows
         ]
     )
@@ -460,7 +457,7 @@ class CustomGateDefinition:
         return {
             "gate_name": self.gate_name,
             "matrix": _matrix_to_json(self.matrix),
-            "params_ordering": list(map(_jsonify_param, self.params_ordering)),
+            "params_ordering": list(map(serialize_expr, self.params_ordering)),
         }
 
     @classmethod

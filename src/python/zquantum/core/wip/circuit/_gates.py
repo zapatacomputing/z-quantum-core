@@ -426,6 +426,7 @@ def _matrix_from_json(
 
 @dataclass(frozen=True)
 class FixedMatrixFactory:
+    """Can be passed as `matrix_factory` when a gate matrix isn't lazily evaluated."""
     matrix: sympy.Matrix
     params_ordering: Tuple[Parameter, ...]
 
@@ -449,6 +450,20 @@ class FixedMatrixFactory:
 
 @dataclass(frozen=True)
 class CustomGateDefinition:
+    """Use this class to define a non-built-in gate.
+
+    User-defined gates are treated differently than the built-in ones,
+    because the built-in ones are defined in `zquantum.core` library, and so
+    we can assume that the definitions will be available during circuit deserialization.
+
+    User-provided gates can be defined in one repo (e.g. Orquestra step), serialized,
+    and passed to another project for deserialization. The other project must have access
+    to gate details, e.g. the gate matrix. This class is designed to keep track of
+    the gate details needed for deserialization.
+
+    Instances of this class are serialized by the Circuit objects, additionally to
+    Circuit operations.
+    """
     gate_name: str
     matrix: sympy.Matrix
     params_ordering: Tuple[sympy.Symbol, ...]

@@ -343,6 +343,10 @@ class TestCircuitSerialization:
     def test_deserializing_dict_gives_circuit(self, circuit, dict_):
         assert Circuit.from_dict(dict_) == circuit
 
+    def test_roundrip_results_in_same_circuit(self, circuit, dict_):
+        serialized = circuit.to_dict()
+        assert Circuit.from_dict(serialized) == circuit
+
 
 class TestCustomGateDefinitionSerialization:
     @pytest.mark.parametrize(

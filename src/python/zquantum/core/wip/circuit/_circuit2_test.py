@@ -159,11 +159,13 @@ THETA = sympy.Symbol("theta")
 
 CUSTOM_U_GATE = CustomGateDefinition(
     "U",
-    sympy.Matrix([
-        [THETA, GAMMA],
-        [-GAMMA, THETA],
-    ]),
-    (THETA, GAMMA)
+    sympy.Matrix(
+        [
+            [THETA, GAMMA],
+            [-GAMMA, THETA],
+        ]
+    ),
+    (THETA, GAMMA),
 )
 
 
@@ -310,7 +312,7 @@ CUSTOM_U_GATE = CustomGateDefinition(
                             "free_symbols": ["alpha"],
                         },
                         "qubit_indices": [2],
-                    }
+                    },
                 ],
                 "n_qubits": 4,
                 "custom_gate_definitions": [
@@ -320,14 +322,14 @@ CUSTOM_U_GATE = CustomGateDefinition(
                             ["theta", "gamma"],
                             ["-gamma", "theta"],
                         ],
-                        "params_ordering": ["theta", "gamma"]
+                        "params_ordering": ["theta", "gamma"],
                     }
                 ],
             },
-        )
+        ),
     ],
 )
-class TestSerialization:
+class TestCircuitSerialization:
     def test_serialized_dict_has_expected_form(self, circuit, dict_):
         assert circuit.to_dict() == dict_
 
@@ -338,5 +340,19 @@ class TestSerialization:
             # we deserialized parameters properly
             operation.gate.matrix
 
-    # def test_deserializing_dict_gives_circuit(self, circuit, dict_):
-    #     assert Circuit.from_dict(dict_) == circuit
+    def test_deserializing_dict_gives_circuit(self, circuit, dict_):
+        assert Circuit.from_dict(dict_) == circuit
+
+
+class TestCustomGateDefinitionSerialization:
+    @pytest.mark.parametrize(
+        "gate_def",
+        [
+            CustomGateDefinition(
+                "V", sympy.Matrix([[THETA, GAMMA], [-GAMMA, THETA]]), (THETA, GAMMA)
+            )
+        ],
+    )
+    def test_roundtrip_gives_back_same_def(self, gate_def):
+        dict_ = gate_def.to_dict()
+        assert CustomGateDefinition.from_dict(dict_) == gate_def

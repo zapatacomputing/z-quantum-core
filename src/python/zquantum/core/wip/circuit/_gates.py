@@ -136,7 +136,7 @@ def _gate_from_dict(dict_, custom_gate_defs):
             f"Custom gate definition for {dict_['name']} missing from serialized dict"
         )
 
-    symbols_map = _make_symbols_map(gate_def.params_ordering)
+    symbols_map = _make_symbols_map(map(str, gate_def.params_ordering))
     return gate_def(
         *[_deserialize_term(param, symbols_map) for param in dict_["params"]]
     )
@@ -163,6 +163,9 @@ class GateOperation:
             gate=_gate_from_dict(dict_["gate"], custom_gate_defs),
             qubit_indices=tuple(dict_["qubit_indices"]),
         )
+
+    def __str__(self):
+        return f"{self.gate}({','.join(map(str, self.qubit_indices))})"
 
 
 GATE_OPERATION_DESERIALIZERS = {"gate_operation": GateOperation.from_dict}
@@ -400,6 +403,15 @@ def _matrix_from_json(
 
 
 @dataclass(frozen=True)
+class FixedMatrixFactory:
+    matrix: sympy.Matrix
+    params_ordering: Tuple[Parameter, ...]
+
+    def __call__(self, *gate_params):
+        return self.matrix.subs({symbol: arg for symbol, arg in zip(self.params_ordering, gate_params)})
+
+
+@dataclass(frozen=True)
 class CustomGateDefinition:
     gate_name: str
     matrix: sympy.Matrix
@@ -412,7 +424,7 @@ class CustomGateDefinition:
     def __call__(self, *params):
         return MatrixFactoryGate(
             self.gate_name,
-            _matrix_substitution_func(self.matrix, self.params_ordering),
+            FixedMatrixFactory(self.matrix, self.params_ordering),
             params,
             self._n_qubits,
         )
@@ -426,11 +438,11 @@ class CustomGateDefinition:
 
     @classmethod
     def from_dict(cls, dict_):
-        params_ordering = dict_.get("params_ordering", [])
+        symbols = [sympy.Symbol(term) for term in dict_.get("params_ordering", [])]
         return cls(
             gate_name=dict_["gate_name"],
-            matrix=_matrix_from_json(dict_["matrix"], params_ordering),
-            params_ordering=params_ordering,
+            matrix=_matrix_from_json(dict_["matrix"], dict_.get("params_ordering", [])),
+            params_ordering=tuple(symbols),
         )
 
 
@@ -575,7 +587,7 @@ class Circuit:
         )
 
     def __repr__(self):
-        return f"{type(self).__name__}(operations={self.operations}, n_qubits={self.n_qubits}, custom_gate_definitions={self.custom_gate_definitions})"
+        return f"{type(self).__name__}(operations=[{', '.join(map(str, self.operations))}], n_qubits={self.n_qubits}, custom_gate_definitions={self.custom_gate_definitions})"
 
 
 @singledispatch

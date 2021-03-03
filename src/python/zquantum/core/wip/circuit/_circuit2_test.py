@@ -327,6 +327,39 @@ CUSTOM_U_GATE = CustomGateDefinition(
                 ],
             },
         ),
+        (
+            Circuit(
+                operations=[
+                    CUSTOM_U_GATE(2 + 3j, -1)(2),
+                ],
+                custom_gate_definitions=[CUSTOM_U_GATE],
+            ),
+            {
+                "schema": "zapata-v1-circuit",
+                "operations": [
+                    {
+                        "type": "gate_operation",
+                        "gate": {
+                            "name": "U",
+                            "params": ["2+3j", "-1"],
+                            "free_symbols": [],
+                        },
+                        "qubit_indices": [2],
+                    },
+                ],
+                "n_qubits": 3,
+                "custom_gate_definitions": [
+                    {
+                        "gate_name": "U",
+                        "matrix": [
+                            ["theta", "gamma"],
+                            ["-gamma", "theta"],
+                        ],
+                        "params_ordering": ["theta", "gamma"],
+                    }
+                ],
+            },
+        ),
     ],
 )
 class TestCircuitSerialization:

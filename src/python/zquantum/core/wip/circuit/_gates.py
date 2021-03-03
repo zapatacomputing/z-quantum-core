@@ -7,6 +7,7 @@ from typing import Tuple, Union, Callable, Dict, Optional, Iterable, Any, List
 
 import sympy
 from typing_extensions import Protocol
+import numpy as np
 
 from ...utils import SCHEMA_VERSION
 from . import _builtin_gates
@@ -265,6 +266,20 @@ class MatrixFactoryGate:
             else self.name
         )
 
+    def __eq__(self, other):
+        if type(self) != type(other):
+            return False
+
+        for attr in set(self.__dataclass_fields__) - set(['params']):
+            if getattr(self, attr) != getattr(other, attr):
+                return False
+
+        if len(self.params) != len(other.params):
+            return False
+
+        return all(_are_matrix_elements_equal(p1, p2)
+                   for p1, p2 in zip(self.params, other.params))
+
     # Normally, we'd use the default implementations by inheriting from the Gate protocol.
     # We can't do that because of __init__ arg default value issues, this is
     # the workaround.
@@ -410,6 +425,18 @@ class FixedMatrixFactory:
     def __call__(self, *gate_params):
         return self.matrix.subs({symbol: arg for symbol, arg in zip(self.params_ordering, gate_params)})
 
+    def __eq__(self, other):
+        if type(self) != type(other):
+            return False
+
+        if self.params_ordering != other.params_ordering:
+            return False
+
+        if not _are_matrices_equal(self.matrix, other.matrix):
+            return False
+
+        return True
+
 
 @dataclass(frozen=True)
 class CustomGateDefinition:
@@ -444,6 +471,48 @@ class CustomGateDefinition:
             matrix=_matrix_from_json(dict_["matrix"], dict_.get("params_ordering", [])),
             params_ordering=tuple(symbols),
         )
+
+    def __eq__(self, other):
+        if type(self) != type(other):
+            return False
+
+        if self.gate_name != other.gate_name:
+            return False
+
+        if self.params_ordering != other.params_ordering:
+            return False
+
+        if not _are_matrices_equal(self.matrix, other.matrix):
+            return False
+
+        return True
+
+
+def _are_matrix_elements_equal(element, another_element):
+    """Determine if two elements from gates' matrices are equal.
+
+    This is to be used in __eq__ method when comparing matrices elementwise.
+
+    Args:
+        element: first value to compare. It can be float, complex or some sympy expression.
+        another_element: second value to compare.
+    """
+    difference = sympy.N(sympy.expand(element) - sympy.expand(another_element))
+
+    try:
+        return np.allclose(
+            float(sympy.re(difference)) + 1j * float(sympy.im(difference)), 0
+        )
+    except TypeError:
+        return False
+
+
+def _are_matrices_equal(matrix, another_matrix):
+    return all(
+            _are_matrix_elements_equal(element, another_element)
+            for element, another_element in zip(matrix, another_matrix)
+        )
+
 
 
 def _circuit_size_by_operations(operations):

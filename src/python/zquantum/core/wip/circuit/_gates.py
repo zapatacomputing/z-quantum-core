@@ -443,6 +443,7 @@ def _matrix_from_json(
 @dataclass(frozen=True)
 class FixedMatrixFactory:
     """Can be passed as `matrix_factory` when a gate matrix isn't lazily evaluated."""
+
     matrix: sympy.Matrix
     params_ordering: Tuple[Parameter, ...]
 
@@ -480,6 +481,7 @@ class CustomGateDefinition:
     Instances of this class are serialized by the Circuit objects, additionally to
     Circuit operations.
     """
+
     gate_name: str
     matrix: sympy.Matrix
     params_ordering: Tuple[sympy.Symbol, ...]

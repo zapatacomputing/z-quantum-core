@@ -84,18 +84,14 @@ EQUIVALENT_CIRCUITS = [
     ),
     (
         g.Circuit(
-            [
-                bg.SWAP.controlled(1)(2, 0, 3)
-            ],
+            [bg.SWAP.controlled(1)(2, 0, 3)],
             5,
         ),
         _qiskit_circuit_with_controlled_gate(),
     ),
     (
         g.Circuit(
-            [
-                bg.Y.controlled(2)(4, 5, 2)
-            ],
+            [bg.Y.controlled(2)(4, 5, 2)],
             6,
         ),
         _qiskit_circuit_with_multicontrolled_gate(),
@@ -131,10 +127,10 @@ class TestQiskitCircuitConversion:
             f"to\n{_draw_qiskit_circuit(qiskit_circuit)}"
         )
 
-    @pytest.mark.parametrize("zquantum_circuit, qiskit_circuit", EQUIVALENT_PARAMETRIZED_CIRCUITS)
-    def test_converting_parametrized_circuit_(
-        self, zquantum_circuit, qiskit_circuit
-    ):
+    @pytest.mark.parametrize(
+        "zquantum_circuit, qiskit_circuit", EQUIVALENT_PARAMETRIZED_CIRCUITS
+    )
+    def test_converting_parametrized_circuit_(self, zquantum_circuit, qiskit_circuit):
         # NOTE: parametrized circuit conversion is unsupported broken because qiskit
         # requires using singleton parameter objects
         with pytest.raises(NotImplementedError):

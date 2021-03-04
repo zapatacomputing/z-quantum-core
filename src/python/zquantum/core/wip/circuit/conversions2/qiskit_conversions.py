@@ -60,11 +60,17 @@ def _convert_gate_to_qiskit(gate, applied_qubit_indices, n_qubits_in_circuit):
 
 
 @_convert_gate_to_qiskit.register
-def _convert_controlled_gate_to_qiskit(gate: g.ControlledGate, applied_qubit_indices, n_qubits_in_circuit):
-    target_indices = applied_qubit_indices[gate.num_control_qubits:]
-    target_gate, _, _ = _convert_gate_to_qiskit(gate.wrapped_gate, target_indices, n_qubits_in_circuit)
+def _convert_controlled_gate_to_qiskit(
+    gate: g.ControlledGate, applied_qubit_indices, n_qubits_in_circuit
+):
+    target_indices = applied_qubit_indices[gate.num_control_qubits :]
+    target_gate, _, _ = _convert_gate_to_qiskit(
+        gate.wrapped_gate, target_indices, n_qubits_in_circuit
+    )
     controlled_gate = target_gate.control(gate.num_control_qubits)
-    qiskit_qubits = [qiskit_qubit(qubit_i, n_qubits_in_circuit) for qubit_i in applied_qubit_indices]
+    qiskit_qubits = [
+        qiskit_qubit(qubit_i, n_qubits_in_circuit) for qubit_i in applied_qubit_indices
+    ]
     return controlled_gate, qiskit_qubits, []
 
 

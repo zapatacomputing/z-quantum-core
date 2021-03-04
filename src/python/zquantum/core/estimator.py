@@ -133,7 +133,10 @@ class BasicEstimator(Estimator):
         Returns:
             ExpectationValues: expectation values for each term in the target operator.
         """
-        if shot_allocation_strategy not in ("optimal", "uniform",):
+        if shot_allocation_strategy not in (
+            "optimal",
+            "uniform",
+        ):
             raise ValueError(
                 f"Invalid shot allocation stratgey: ${shot_allocation_strategy}"
             )

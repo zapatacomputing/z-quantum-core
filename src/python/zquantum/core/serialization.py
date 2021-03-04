@@ -10,6 +10,7 @@ from .interfaces.optimizer import optimization_result
 from .history.recorder import HistoryEntry, HistoryEntryWithArtifacts
 from .bitstring_distribution import BitstringDistribution, is_bitstring_distribution
 from .utils import convert_array_to_dict, ValueEstimate, SCHEMA_VERSION
+from .typing import AnyPath
 
 
 def has_numerical_keys(dictionary):
@@ -60,13 +61,11 @@ class OrquestraDecoder(json.JSONDecoder):
 
     SCHEMA_MAP = {
         "zapata-v1-value_estimate": ValueEstimate.from_dict,
-        "zapata-v1-optimization_result": lambda obj: optimization_result(**obj)
+        "zapata-v1-optimization_result": lambda obj: optimization_result(**obj),
     }
 
     def __init__(self, *args, **kwargs):
-        json.JSONDecoder.__init__(
-            self, object_hook=self.object_hook, *args, **kwargs
-        )
+        json.JSONDecoder.__init__(self, object_hook=self.object_hook, *args, **kwargs)
 
     def object_hook(self, obj):
         # Parts of the below if-elif-else are sketchy, because for some objects there is
@@ -90,12 +89,12 @@ class OrquestraDecoder(json.JSONDecoder):
             return obj
 
 
-def save_optimization_results(optimization_results, filename):
+def save_optimization_results(optimization_results: dict, filename: AnyPath):
     optimization_results["schema"] = SCHEMA_VERSION + "-optimization_result"
     with open(filename, "wt") as target_file:
         json.dump(optimization_results, target_file, cls=OrquestraEncoder)
 
 
-def load_optimization_results(filename):
+def load_optimization_results(filename: AnyPath):
     with open(filename, "rt") as source_file:
         return json.load(source_file, cls=OrquestraDecoder)

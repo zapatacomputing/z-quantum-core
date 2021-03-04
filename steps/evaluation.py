@@ -36,10 +36,11 @@ from zquantum.core.openfermion import (
     save_parameter_grid_evaluation,
     evaluate_qubit_operator_list as _evaluate_qubit_operator_list,
 )
+from zquantum.core.typing import Specs
 
 
 def get_expectation_values_for_qubit_operator(
-    backend_specs: Union[Dict, str],
+    backend_specs: Specs,
     circuit: Union[str, Circuit],
     qubit_operator: Union[str, SymbolicOperator],
 ):
@@ -79,8 +80,8 @@ def get_ground_state_rdm_from_qubit_operator(
 
 
 def evaluate_operator_for_parameter_grid(
-    ansatz_specs: Union[Dict, str],
-    backend_specs: Union[Dict, str],
+    ansatz_specs: Specs,
+    backend_specs: Specs,
     grid: Union[str, ParameterGrid],
     operator: Union[str, SymbolicOperator],
     fixed_parameters: Union[List[float], np.ndarray, str] = None,

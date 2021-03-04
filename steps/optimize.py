@@ -9,14 +9,15 @@ from zquantum.core.cost_function import get_ground_state_cost_function
 from zquantum.core.estimator import BasicEstimator
 from zquantum.core.serialization import save_optimization_results
 from zquantum.core.utils import create_object
+from zquantum.core.typing import Specs
 
 
 def optimize_parametrized_circuit_for_ground_state_of_operator(
-    optimizer_specs: Union[Dict, str],
+    optimizer_specs: Specs,
     target_operator: Union[SymbolicOperator, str],
     parametrized_circuit: Union[Circuit, str],
-    backend_specs: Union[Dict, str],
-    estimator_specs: Optional[Union[Dict, str]] = None,
+    backend_specs: Specs,
+    estimator_specs: Optional[Specs] = None,
     estimator_kwargs: Optional[Union[Dict, str]] = None,
     initial_parameters: Union[str, np.ndarray, List[float]] = None,
     fixed_parameters: Optional[Union[np.ndarray, str]] = None,

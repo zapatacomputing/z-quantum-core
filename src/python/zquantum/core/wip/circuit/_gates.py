@@ -10,7 +10,6 @@ from typing_extensions import Protocol
 import numpy as np
 
 from ...utils import SCHEMA_VERSION
-from . import _builtin_gates
 
 Parameter = Union[sympy.Symbol, Number]
 
@@ -123,9 +122,16 @@ class Gate(Protocol):
         }
 
 
+def _builtin_gate_by_name(name):
+    # quickfix for circular imports errors
+    import zquantum.core.wip.circuit._builtin_gates
+
+    return zquantum.core.wip.circuit._builtin_gates.builtin_gate_by_name(name)
+
+
 def _gate_from_dict(dict_, custom_gate_defs):
     """Prototype implementation of circuit deserialization"""
-    gate_ref = _builtin_gates.builtin_gate_by_name(dict_["name"])
+    gate_ref = _builtin_gate_by_name(dict_["name"])
     if gate_ref is not None:
         # ATM we don't have a better way to check if the serialized gate was parametric
         # or not

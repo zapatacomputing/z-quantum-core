@@ -115,6 +115,15 @@ EQUIVALENT_PARAMETRIZED_CIRCUITS = [
         ),
         _parametric_qiskit_circuit(QISKIT_THETA),
     ),
+    (
+        g.Circuit(
+            [
+                bg.RX(SYMPY_THETA * SYMPY_GAMMA)(1),
+            ],
+            4,
+        ),
+        _parametric_qiskit_circuit(QISKIT_THETA * QISKIT_GAMMA),
+    ),
 ]
 
 
@@ -136,11 +145,13 @@ class TestConvertingToQiskit:
     @pytest.mark.parametrize(
         "zquantum_circuit, qiskit_circuit", EQUIVALENT_PARAMETRIZED_CIRCUITS
     )
-    def test_converting_parametrized_circuit_results_in_same_parameters(
+    def test_converting_parametrized_circuit_doesnt_change_symbol_names(
         self, zquantum_circuit, qiskit_circuit
     ):
         converted = convert_to_qiskit(zquantum_circuit)
-        assert list(map(str, converted.parameters)) == list(map(str, zquantum_circuit.free_symbols))
+        converted_names = sorted(map(str, converted.parameters))
+        initial_names = sorted(map(str, zquantum_circuit.free_symbols))
+        assert converted_names == initial_names
 
     @pytest.mark.parametrize(
         "zquantum_circuit, qiskit_circuit", EQUIVALENT_PARAMETRIZED_CIRCUITS
@@ -157,7 +168,10 @@ class TestConvertingToQiskit:
             param: EXAMPLE_PARAM_VALUES[str(param)]
             for param in qiskit_circuit.parameters
         })
-        assert converted_bound == ref_bound
+        assert converted_bound == ref_bound, (
+            f"Converted circuit:\n{_draw_qiskit_circuit(converted_bound)}\n isn't equal "
+            f"to\n{_draw_qiskit_circuit(ref_bound)}"
+        )
 
     @pytest.mark.parametrize(
         "zquantum_circuit, qiskit_circuit", EQUIVALENT_PARAMETRIZED_CIRCUITS
@@ -174,7 +188,10 @@ class TestConvertingToQiskit:
             param: EXAMPLE_PARAM_VALUES[str(param)]
             for param in qiskit_circuit.parameters
         })
-        assert bound_converted == ref_bound
+        assert bound_converted == ref_bound, (
+            f"Converted circuit:\n{_draw_qiskit_circuit(bound_converted)}\n isn't equal "
+            f"to\n{_draw_qiskit_circuit(ref_bound)}"
+        )
 
     def test_converting_circuit_with_daggers_fails_explicitly(self):
         # NOTE: Qiskit doesn't natively support dagger gates

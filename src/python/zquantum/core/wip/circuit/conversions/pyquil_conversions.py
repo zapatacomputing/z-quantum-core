@@ -10,10 +10,10 @@ import sympy
 
 
 from ... import circuit
-from .symbolic.sympy_expressions import expression_from_sympy
-from .symbolic.translations import translate_expression
-from .symbolic.pyquil_expressions import QUIL_DIALECT, expression_from_pyquil
-from .symbolic.sympy_expressions import SYMPY_DIALECT
+from ..symbolic.sympy_expressions import expression_from_sympy
+from ..symbolic.translations import translate_expression
+from ..symbolic.pyquil_expressions import QUIL_DIALECT, expression_from_pyquil
+from ..symbolic.sympy_expressions import SYMPY_DIALECT
 
 
 ZQUANTUM_CLS_TO_PYQUIL_FUNCTION = {

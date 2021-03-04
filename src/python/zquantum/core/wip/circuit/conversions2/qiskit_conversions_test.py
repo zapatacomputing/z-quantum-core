@@ -53,6 +53,12 @@ QISKIT_THETA = qiskit.circuit.Parameter("theta")
 QISKIT_GAMMA = qiskit.circuit.Parameter("gamma")
 
 
+EXAMPLE_PARAM_VALUES = {
+    "gamma": 0.3,
+    "theta": -5,
+}
+
+
 EQUIVALENT_CIRCUITS = [
     (
         g.Circuit(
@@ -116,7 +122,7 @@ def _draw_qiskit_circuit(circuit):
     return qiskit.visualization.circuit_drawer(circuit, output="text")
 
 
-class TestQiskitCircuitConversion:
+class TestConvertingToQiskit:
     @pytest.mark.parametrize("zquantum_circuit, qiskit_circuit", EQUIVALENT_CIRCUITS)
     def test_converting_circuit_gives_equivalent_circuit(
         self, zquantum_circuit, qiskit_circuit
@@ -130,13 +136,45 @@ class TestQiskitCircuitConversion:
     @pytest.mark.parametrize(
         "zquantum_circuit, qiskit_circuit", EQUIVALENT_PARAMETRIZED_CIRCUITS
     )
-    def test_converting_parametrized_circuit_fails_explicitly(
+    def test_converting_parametrized_circuit_results_in_same_parameters(
         self, zquantum_circuit, qiskit_circuit
     ):
-        # NOTE: parametrized circuit conversion is unsupported broken because qiskit
-        # requires using singleton parameter objects
-        with pytest.raises(NotImplementedError):
-            convert_to_qiskit(zquantum_circuit)
+        converted = convert_to_qiskit(zquantum_circuit)
+        assert list(map(str, converted.parameters)) == list(map(str, zquantum_circuit.free_symbols))
+
+    @pytest.mark.parametrize(
+        "zquantum_circuit, qiskit_circuit", EQUIVALENT_PARAMETRIZED_CIRCUITS
+    )
+    def test_converting_and_binding_parametrized_circuit_results_in_equivalent_circuit(
+        self, zquantum_circuit, qiskit_circuit
+    ):
+        converted = convert_to_qiskit(zquantum_circuit)
+        converted_bound = converted.bind_parameters({
+            param: EXAMPLE_PARAM_VALUES[str(param)]
+            for param in converted.parameters
+        })
+        ref_bound = qiskit_circuit.bind_parameters({
+            param: EXAMPLE_PARAM_VALUES[str(param)]
+            for param in qiskit_circuit.parameters
+        })
+        assert converted_bound == ref_bound
+
+    @pytest.mark.parametrize(
+        "zquantum_circuit, qiskit_circuit", EQUIVALENT_PARAMETRIZED_CIRCUITS
+    )
+    def test_binding_and_converting_parametrized_circuit_results_in_equivalent_circuit(
+        self, zquantum_circuit, qiskit_circuit
+    ):
+        bound = zquantum_circuit.bind({
+            symbol: EXAMPLE_PARAM_VALUES[str(symbol)]
+            for symbol in zquantum_circuit.free_symbols
+        })
+        bound_converted = convert_to_qiskit(bound)
+        ref_bound = qiskit_circuit.bind_parameters({
+            param: EXAMPLE_PARAM_VALUES[str(param)]
+            for param in qiskit_circuit.parameters
+        })
+        assert bound_converted == ref_bound
 
     def test_converting_circuit_with_daggers_fails_explicitly(self):
         # NOTE: Qiskit doesn't natively support dagger gates

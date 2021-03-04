@@ -75,10 +75,6 @@ def _convert_controlled_gate_to_qiskit(
 
 
 def convert_to_qiskit(circuit: g.Circuit) -> qiskit.QuantumCircuit:
-    if circuit.free_symbols:
-        raise NotImplementedError(
-            "Converting parametrized circuits to Qiskit is unsupported"
-        )
 
     q_circuit = qiskit.QuantumCircuit(circuit.n_qubits)
     q_triplets = [

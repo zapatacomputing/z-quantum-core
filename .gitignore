@@ -111,3 +111,6 @@ dmypy.json
 
 # virtual env kept in project dir
 venv
+
+# macOS
+.DS_Store

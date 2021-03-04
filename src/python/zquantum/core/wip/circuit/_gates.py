@@ -48,16 +48,26 @@ class Gate(Protocol):
         Length of `params` should be equal to number of parameters in gate's initializer.
         In particular, nonparametric gates should always return ().
 
+        Examples:
+        - an `H` gate has no params
+        - a `RX(np.pi)` gate has a single param with value of `np.pi`
+        - a `RX(sympy.Symbol("theta"))` gate has a single symbolic param `theta`
+        - a `RX(sympy.sympify("theta * alpha"))` gate has a single symbolic expression param `theta*alpha`
+
         We need it for translations to other frameworks and for serialization.
         """
         raise NotImplementedError()
 
     @property
     def free_symbols(self):
-        """Unbound symbols.
+        """Unbound symbols in the gate matrix.
 
-        Number of free symbols is greater or equal to number of params - you can use
-        a single Sympy expression with multiple symbols as a single param.
+        Examples:
+        - an `H` gate has no free symbols
+        - a `RX(np.pi)` gate has no free symbols
+        - a `RX(sympy.Symbol("theta"))` gate has a single free symbol `theta`
+        - a `RX(sympy.sympify("theta * alpha"))` gate has two free symbols, `alpha` and `theta`
+        - a `RX(sympy.sympify("theta * alpha")).bind({sympy.Symbol("theta"): 0.42})` gate has one free symbol, `alpha`
         """
         symbols = set(
             symbol

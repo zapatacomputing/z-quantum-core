@@ -84,10 +84,6 @@ class TestMatrixFactoryGate:
         assert gate.dagger.num_qubits == gate.num_qubits
         assert gate.dagger.params == gate.params
 
-    def test_dagger_is_named_dagger(self):
-        gate = MatrixFactoryGate("V", example_one_qubit_matrix_factory, (0.5, 2.5), 1)
-        assert gate.dagger.name == "dagger"
-
     def test_dagger_of_hermitian_gate_is_the_same_gate(self):
         gate = MatrixFactoryGate("V", example_one_qubit_matrix_factory, (1, 0), 1, is_hermitian=True)
         assert gate.dagger is gate
@@ -136,9 +132,6 @@ class TestMatrixFactoryGate:
     ]
 )
 class TestControlledGate:
-
-    def test_is_named_control(self, gate):
-        assert gate.controlled(2).name == "control"
 
     def test_has_number_of_qubits_equal_to_wrapped_gates_num_qubits_plus_num_controlled_qubits(self, gate):
         assert gate.controlled(3).num_qubits == gate.num_qubits + 3

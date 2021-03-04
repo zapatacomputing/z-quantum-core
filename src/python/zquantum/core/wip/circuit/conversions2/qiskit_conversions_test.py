@@ -37,7 +37,13 @@ def _parametric_qiskit_circuit(angle):
 
 def _qiskit_circuit_with_controlled_gate():
     qc = qiskit.QuantumCircuit(5)
-    qc.append(qiskit.extensions.SwapGate().control(1), [2, 0, 3])
+    qc.append(qiskit.circuit.library.SwapGate().control(1), [2, 0, 3])
+    return qc
+
+
+def _qiskit_circuit_with_multicontrolled_gate():
+    qc = qiskit.QuantumCircuit(6)
+    qc.append(qiskit.circuit.library.YGate().control(2), [4, 5, 2])
     return qc
 
 
@@ -76,15 +82,24 @@ EQUIVALENT_CIRCUITS = [
         ),
         _parametric_qiskit_circuit(np.pi),
     ),
-    # (
-    #     g.Circuit(
-    #         [
-    #             bg.SWAP.controlled(1)(2, 0, 3)
-    #         ],
-    #         5,
-    #     ),
-    #     _qiskit_circuit_with_controlled_gate(),
-    # ),
+    (
+        g.Circuit(
+            [
+                bg.SWAP.controlled(1)(2, 0, 3)
+            ],
+            5,
+        ),
+        _qiskit_circuit_with_controlled_gate(),
+    ),
+    (
+        g.Circuit(
+            [
+                bg.Y.controlled(2)(4, 5, 2)
+            ],
+            6,
+        ),
+        _qiskit_circuit_with_multicontrolled_gate(),
+    ),
 ]
 
 

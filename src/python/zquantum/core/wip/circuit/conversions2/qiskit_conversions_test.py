@@ -130,8 +130,16 @@ class TestQiskitCircuitConversion:
     @pytest.mark.parametrize(
         "zquantum_circuit, qiskit_circuit", EQUIVALENT_PARAMETRIZED_CIRCUITS
     )
-    def test_converting_parametrized_circuit_(self, zquantum_circuit, qiskit_circuit):
+    def test_converting_parametrized_circuit_fails_explicitly(
+        self, zquantum_circuit, qiskit_circuit
+    ):
         # NOTE: parametrized circuit conversion is unsupported broken because qiskit
         # requires using singleton parameter objects
+        with pytest.raises(NotImplementedError):
+            convert_to_qiskit(zquantum_circuit)
+
+    def test_converting_circuit_with_daggers_fails_explicitly(self):
+        # NOTE: Qiskit doesn't natively support dagger gates
+        zquantum_circuit = g.Circuit([bg.X.dagger(2), bg.T.dagger(1)], 3)
         with pytest.raises(NotImplementedError):
             convert_to_qiskit(zquantum_circuit)

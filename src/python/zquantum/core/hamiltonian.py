@@ -4,6 +4,25 @@ from typing import Tuple, List, Optional, Callable
 
 from .measurement import ExpectationValues, expectation_values_to_real
 
+def split_qubit_operator(
+    qubit_operator: QubitOperator, sort_terms: bool = False
+) -> List[QubitOperator]:
+    """Split a qubit operator into groups each containing a single Pauli string.
+       The function is meant for debugging/testing.
+    Args:
+        qubit_operator: the operator whose terms are to be grouped
+        Returns:
+        A list of qubit operators.
+    """
+    groups = []  # List of QubitOperators
+    for term, coefficient in qubit_operator.items():
+        # Identity should not be in a group
+        if term == ():
+            continue
+        groups.append(QubitOperator(term, coefficient))
+
+    return groups
+
 
 def is_comeasureable(
     term_1: Tuple[Tuple[int, str], ...], term_2: Tuple[Tuple[int, str], ...]
@@ -76,6 +95,7 @@ def group_comeasureable_terms_greedy(
 
 DECOMPOSITION_METHODS = {
     "greedy": group_comeasureable_terms_greedy,
+    "ungrouped": split_qubit_operator,
     "greedy-sorted": lambda qubit_operator: group_comeasureable_terms_greedy(
         qubit_operator, True
     ),

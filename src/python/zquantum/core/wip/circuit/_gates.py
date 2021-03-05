@@ -122,7 +122,7 @@ class Gate(Protocol):
         }
 
 
-def _builtin_gate_by_name(name):
+def builtin_gate_by_name(name):
     # quickfix for circular imports errors
     import zquantum.core.wip.circuit._builtin_gates
 
@@ -131,7 +131,7 @@ def _builtin_gate_by_name(name):
 
 def _gate_from_dict(dict_, custom_gate_defs):
     """Prototype implementation of circuit deserialization"""
-    gate_ref = _builtin_gate_by_name(dict_["name"])
+    gate_ref = builtin_gate_by_name(dict_["name"])
     if gate_ref is not None:
         # ATM we don't have a better way to check if the serialized gate was parametric
         # or not

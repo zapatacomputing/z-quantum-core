@@ -3,7 +3,7 @@ import numpy as np
 import qiskit
 import pytest
 
-from .qiskit_conversions import convert_to_qiskit
+from .qiskit_conversions import convert_to_qiskit, convert_from_qiskit
 from .. import _gates as g
 from .. import _builtin_gates as bg
 
@@ -198,3 +198,12 @@ class TestConvertingToQiskit:
         zquantum_circuit = g.Circuit([bg.X.dagger(2), bg.T.dagger(1)], 3)
         with pytest.raises(NotImplementedError):
             convert_to_qiskit(zquantum_circuit)
+
+
+class TestConvertingFromQiskit:
+    @pytest.mark.parametrize("zquantum_circuit, qiskit_circuit", EQUIVALENT_CIRCUITS)
+    def test_converting_circuit_gives_equivalent_circuit(
+        self, zquantum_circuit, qiskit_circuit
+    ):
+        converted = convert_from_qiskit(qiskit_circuit)
+        assert converted == zquantum_circuit

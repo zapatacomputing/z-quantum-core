@@ -24,6 +24,11 @@ def _qiskit_expr_from_zquantum(expr):
     return translate_expression(intermediate, QISKIT_DIALECT)
 
 
+def _zquantum_expr_from_qiskit(expr):
+    intermediate = expression_from_qiskit(expr)
+    return translate_expression(intermediate, SYMPY_DIALECT)
+
+
 ZQUANTUM_QISKIT_GATE_MAP = {
     "X": qiskit.circuit.library.XGate,
     "Y": qiskit.circuit.library.YGate,
@@ -43,6 +48,13 @@ ZQUANTUM_QISKIT_GATE_MAP = {
     "XX": qiskit.circuit.library.RXXGate,
     "YY": qiskit.circuit.library.RYYGate,
     "ZZ": qiskit.circuit.library.RZZGate,
+}
+
+QISKIT_ZQUANTUM_GATE_MAP = {
+    **{
+        cls: name for name, cls in ZQUANTUM_QISKIT_GATE_MAP.items()
+    },
+    # qiskit.circuit.library.CRXGate:
 }
 
 
@@ -74,8 +86,23 @@ def _convert_controlled_gate_to_qiskit(
     return controlled_gate, qiskit_qubits, []
 
 
-def convert_to_qiskit(circuit: g.Circuit) -> qiskit.QuantumCircuit:
+def _convert_qiskit_triplet_to_op(qiskit_triplet: QiskitOperation) -> g.GateOperation:
+    qiskit_op, qiskit_qubits, _ = qiskit_triplet
+    try:
+        zquantum_name = QISKIT_ZQUANTUM_GATE_MAP[type(qiskit_op)]
+        gate = g.builtin_gate_by_name(zquantum_name)
+    except KeyError:
+        raise NotImplementedError(f"Conversion of {qiskit_op} from Qiskit is unsupported.")
 
+    zquantum_params = [_zquantum_expr_from_qiskit(param) for param in qiskit_op.params]
+    indices = [*(qubit.index for qubit in qiskit_qubits), *zquantum_params]
+    return g.GateOperation(
+        gate=gate,
+        qubit_indices=tuple(indices)
+    )
+
+
+def convert_to_qiskit(circuit: g.Circuit) -> qiskit.QuantumCircuit:
     q_circuit = qiskit.QuantumCircuit(circuit.n_qubits)
     q_triplets = [
         _convert_gate_to_qiskit(gate_op.gate, gate_op.qubit_indices, circuit.n_qubits)
@@ -84,3 +111,8 @@ def convert_to_qiskit(circuit: g.Circuit) -> qiskit.QuantumCircuit:
     for q_gate, q_qubits, q_clbits in q_triplets:
         q_circuit.append(q_gate, q_qubits, q_clbits)
     return q_circuit
+
+
+def convert_from_qiskit(circuit: qiskit.QuantumCircuit) -> g.Circuit:
+    q_ops = [_convert_qiskit_triplet_to_op(triplet) for triplet in circuit.data]
+    return g.Circuit(operations=q_ops, n_qubits=circuit.num_qubits)

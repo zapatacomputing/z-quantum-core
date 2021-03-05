@@ -3,9 +3,9 @@ import numpy as np
 import qiskit
 import pytest
 
-from .qiskit_conversions import convert_to_qiskit, convert_from_qiskit
-from .. import _gates as g
-from .. import _builtin_gates as bg
+from zquantum.core.wip.circuit.conversions2.qiskit_conversions import convert_to_qiskit, convert_from_qiskit
+from zquantum.core.wip.circuit import _gates as g
+from zquantum.core.wip.circuit import _builtin_gates as bg
 
 
 # NOTE: In Qiskit, 0 is the most significant qubit,

@@ -29,5 +29,6 @@ setuptools.setup(
         "cirq>=0.9.1",
         "qiskit==0.23.2",
         "overrides>=3.1.0",
+        "ruamel.yaml"
     ],
 )

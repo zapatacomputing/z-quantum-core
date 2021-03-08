@@ -144,7 +144,7 @@ def evaluate_ansatz_based_cost_function(
                 {
                     "measurements": measurements.get_counts(),
                     "circuit": circuit.to_dict(serialize_gate_params=True),
-                    "number_of_multiqubit_gates": circuit.n_multiqubit_gates(),
+                    "number_of_multiqubit_gates": circuit.n_multiqubit_gates,
                     "number_of_gates": len(circuit.gates),
                 }
             )

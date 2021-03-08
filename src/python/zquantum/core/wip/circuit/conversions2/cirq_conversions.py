@@ -1,5 +1,6 @@
 """Orquestra <-> Cirq conversions."""
 from functools import singledispatch
+from operator import attrgetter
 import cirq
 
 from .. import _builtin_gates as bg
@@ -9,7 +10,8 @@ from .. import _gates as g
 ORQUESTRA_BUILTIN_GATE_NAME_TO_CIRQ_GATE = {
     "X": cirq.X,
     "Y": cirq.Y,
-    "Z": cirq.Z
+    "Z": cirq.Z,
+    "I": cirq.I
 }
 
 
@@ -18,6 +20,8 @@ EIGENGATE_SPECIAL_CASES = {
     (type(cirq.Y), cirq.Y.global_shift, cirq.Y.exponent): bg.Y,
     (type(cirq.Z), cirq.Z.global_shift, cirq.Z.exponent): bg.Z,
 }
+
+qubit_index = attrgetter("x")
 
 
 @singledispatch
@@ -53,10 +57,15 @@ def convert_eigengate_to_orquestra_gate(eigengate: cirq.EigenGate) -> g.Gate:
 
 
 @convert_from_cirq.register
+def convert_cirq_identity_gate_to_orquestra_gate(identity_gate: cirq.IdentityGate) -> g.Gate:
+    return bg.I
+
+
+@convert_from_cirq.register
 def convert_gate_operation_to_orquestra(operation: cirq.GateOperation) -> g.GateOperation:
     if not all(isinstance(qubit, cirq.LineQubit) for qubit in operation.qubits):
         raise NotImplementedError(
             f"Failed to convert {operation}. Grid qubits are not yet supported."
         )
 
-    return convert_from_cirq(operation.gate)(*(qubit.x for qubit in operation.qubits))
+    return convert_from_cirq(operation.gate)(*map(qubit_index, operation.qubits))

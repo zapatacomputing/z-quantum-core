@@ -11,7 +11,8 @@ from .. import _builtin_gates as bg
     [
         (bg.X(1), cirq.X(cirq.LineQubit(1))),
         (bg.Y(2), cirq.Y(cirq.LineQubit(2))),
-        (bg.Z(0), cirq.Z(cirq.LineQubit(0)))
+        (bg.Z(0), cirq.Z(cirq.LineQubit(0))),
+        (bg.I(5), cirq.I(cirq.LineQubit(5))),
     ]
 )
 class TestBuiltinGateOperationConversion:

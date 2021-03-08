@@ -75,7 +75,7 @@ def _convert_gate_to_qiskit(gate, applied_qubit_indices, n_qubits_in_circuit):
 def _convert_controlled_gate_to_qiskit(
     gate: g.ControlledGate, applied_qubit_indices, n_qubits_in_circuit
 ):
-    target_indices = applied_qubit_indices[gate.num_control_qubits :]
+    target_indices = applied_qubit_indices[gate.num_control_qubits:]
     target_gate, _, _ = _convert_gate_to_qiskit(
         gate.wrapped_gate, target_indices, n_qubits_in_circuit
     )
@@ -86,19 +86,34 @@ def _convert_controlled_gate_to_qiskit(
     return controlled_gate, qiskit_qubits, []
 
 
+def _make_gate_instance(gate_ref, gate_params) -> g.Gate:
+    """Returns a gate instance that's applicable to qubits.
+    For non-parametric gate refs like X, returns just the `X`
+    For parametric gate factories like `RX`, returns the produced gate, like `RX(0.2)`
+    """
+    if g.is_non_parametric(gate_ref):
+        return gate_ref
+    else:
+        return gate_ref(*gate_params)
+
+
 def _convert_qiskit_triplet_to_op(qiskit_triplet: QiskitOperation) -> g.GateOperation:
     qiskit_op, qiskit_qubits, _ = qiskit_triplet
     try:
         zquantum_name = QISKIT_ZQUANTUM_GATE_MAP[type(qiskit_op)]
-        gate = g.builtin_gate_by_name(zquantum_name)
+        gate_ref = g.builtin_gate_by_name(zquantum_name)
     except KeyError:
         raise NotImplementedError(f"Conversion of {qiskit_op} from Qiskit is unsupported.")
 
+    # values to consider:
+    # - gate matrix parameters (only parametric gates)
+    # - gate application indices (all gates)
     zquantum_params = [_zquantum_expr_from_qiskit(param) for param in qiskit_op.params]
-    indices = [*(qubit.index for qubit in qiskit_qubits), *zquantum_params]
+    qubit_indices = [qubit.index for qubit in qiskit_qubits]
+    gate = _make_gate_instance(gate_ref, zquantum_params)
     return g.GateOperation(
         gate=gate,
-        qubit_indices=tuple(indices)
+        qubit_indices=tuple(qubit_indices)
     )
 
 

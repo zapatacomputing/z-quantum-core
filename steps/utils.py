@@ -6,12 +6,6 @@ from zquantum.core.utils import save_list, create_object
 Specs = Union[str, Dict]
 
 
-def load_from_specs(specs):
-    if isinstance(specs, str):
-        specs = json.loads(specs)
-    return create_object(specs)
-
-
 # Generate random list of integers
 def generate_random_list_of_integers(seed: Union[None, int] = None, **kwargs):
     """Generate a random list of integers. Docs can be found at the link below, but the keyword arugment "low" is mandatory.

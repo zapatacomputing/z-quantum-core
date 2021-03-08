@@ -25,12 +25,14 @@ from zquantum.core.openfermion import (
     load_interaction_rdm,
     load_qubit_operator_set,
 )
+from zquantum.core.typing import Specs
 from typing import Dict, Optional
 
 
 def run_circuit_and_measure(
-    backend_specs: Dict,
+    backend_specs: Specs,
     circuit: str,
+    n_samples: Optional[int] = None,
     noise_model: Optional[str] = None,
     device_connectivity: Optional[str] = None,
 ):
@@ -46,13 +48,14 @@ def run_circuit_and_measure(
     backend = create_object(backend_specs)
     circuit = load_circuit(circuit)
 
-    measurements = backend.run_circuit_and_measure(circuit)
+    measurements = backend.run_circuit_and_measure(circuit, n_samples=n_samples)
     measurements.save("measurements.json")
 
 
 def run_circuitset_and_measure(
-    backend_specs: Dict,
+    backend_specs: Specs,
     circuitset: str,
+    n_samples: Optional[int] = None,
     noise_model: Optional[str] = None,
     device_connectivity: Optional[str] = None,
 ):
@@ -69,13 +72,15 @@ def run_circuitset_and_measure(
     circuit_set = load_circuit_set(circuitset)
     backend = create_object(backend_specs)
 
-    measurements_set = backend.run_circuitset_and_measure(circuit_set)
+    measurements_set = backend.run_circuitset_and_measure(
+        circuit_set, n_samples=n_samples
+    )
     list_of_measurements = [measurement.bitstrings for measurement in measurements_set]
     save_list(list_of_measurements, "measurements-set.json")
 
 
 def get_bitstring_distribution(
-    backend_specs: Dict,
+    backend_specs: Specs,
     circuit: str,
     noise_model: Optional[str] = None,
     device_connectivity: Optional[str] = None,
@@ -97,10 +102,10 @@ def get_bitstring_distribution(
 
 
 def evaluate_ansatz_based_cost_function(
-    ansatz_specs: str,
-    backend_specs: str,
-    cost_function_specs: str,
-    ansatz_parameters: str,
+    ansatz_specs: Specs,
+    backend_specs: Specs,
+    cost_function_specs: Specs,
+    ansatz_parameters: Specs,
     qubit_operator: str,
     noise_model: Optional[str] = None,
     device_connectivity: Optional[str] = None,

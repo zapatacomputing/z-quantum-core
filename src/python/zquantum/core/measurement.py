@@ -15,10 +15,11 @@ from .utils import (
 from typing import Optional, List, Tuple, TextIO, Iterable, Dict
 from collections import Counter
 from .bitstring_distribution import BitstringDistribution
+from zquantum.core.typing import LoadSource, AnyPath
 
 
 def save_expectation_values(
-    expectation_values: ExpectationValues, filename: str
+    expectation_values: ExpectationValues, filename: AnyPath
 ) -> None:
     """Save expectation values to a file.
 
@@ -33,7 +34,7 @@ def save_expectation_values(
         f.write(json.dumps(dictionary, indent=2))
 
 
-def load_expectation_values(file: TextIO) -> ExpectationValues:
+def load_expectation_values(file: LoadSource) -> ExpectationValues:
     """Load an array from a file.
 
     Args:
@@ -52,7 +53,7 @@ def load_expectation_values(file: TextIO) -> ExpectationValues:
     return ExpectationValues.from_dict(data)
 
 
-def load_wavefunction(file: TextIO) -> Wavefunction:
+def load_wavefunction(file: LoadSource) -> Wavefunction:
     """Load a qubit wavefunction from a file.
 
     Args:
@@ -72,7 +73,7 @@ def load_wavefunction(file: TextIO) -> Wavefunction:
     return wavefunction
 
 
-def save_wavefunction(wavefunction: Wavefunction, filename: str) -> None:
+def save_wavefunction(wavefunction: Wavefunction, filename: AnyPath) -> None:
     """Save a wavefunction object to a file.
 
     Args:
@@ -225,7 +226,7 @@ class Parities:
         return cls(values, correlations)
 
 
-def save_parities(parities: Parities, filename: str) -> None:
+def save_parities(parities: Parities, filename: AnyPath) -> None:
     """Save parities to a file.
 
     Args:
@@ -239,7 +240,7 @@ def save_parities(parities: Parities, filename: str) -> None:
         f.write(json.dumps(data, indent=2))
 
 
-def load_parities(file: TextIO) -> Parities:
+def load_parities(file: LoadSource) -> Parities:
     """Load parities from a file.
 
     Args:
@@ -508,7 +509,7 @@ class Measurements:
 
         return cls(bitstrings=bitstrings)
 
-    def save(self, filename: str):
+    def save(self, filename: AnyPath):
         """Serialize the Measurements object into a file in JSON format.
 
         Args:

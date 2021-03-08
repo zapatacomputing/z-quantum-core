@@ -7,13 +7,15 @@ from openfermion import (
     SymbolicOperator,
     InteractionRDM,
 )
-from typing import TextIO, Callable, List
+from typing import Callable, List
 
 from ..utils import (
     SCHEMA_VERSION,
     convert_dict_to_array,
     convert_array_to_dict,
 )
+from ..typing import AnyPath
+from zquantum.core.typing import LoadSource
 
 
 def convert_interaction_op_to_dict(op: InteractionOperator) -> dict:
@@ -49,7 +51,7 @@ def convert_dict_to_interaction_op(dictionary: dict) -> InteractionOperator:
     return InteractionOperator(constant, one_body_tensor, two_body_tensor)
 
 
-def load_interaction_operator(file: TextIO) -> InteractionOperator:
+def load_interaction_operator(file: LoadSource) -> InteractionOperator:
     """Load an interaction operator object from a file.
     Args:
         file (str or file-like object): the name of the file, or a file-like object.
@@ -68,7 +70,7 @@ def load_interaction_operator(file: TextIO) -> InteractionOperator:
 
 
 def save_interaction_operator(
-    interaction_operator: InteractionOperator, filename: str
+    interaction_operator: InteractionOperator, filename: AnyPath
 ) -> None:
     """Save an interaction operator to file.
     Args:
@@ -134,7 +136,7 @@ def convert_dict_to_operator(
     return full_operator
 
 
-def save_qubit_operator(qubit_operator: QubitOperator, filename: str) -> None:
+def save_qubit_operator(qubit_operator: QubitOperator, filename: AnyPath) -> None:
     """Save a qubit operator to file.
     Args:
         qubit_operator (QubitOperator): the operator to be saved
@@ -145,7 +147,7 @@ def save_qubit_operator(qubit_operator: QubitOperator, filename: str) -> None:
         f.write(json.dumps(convert_qubitop_to_dict(qubit_operator), indent=2))
 
 
-def load_qubit_operator(file: TextIO) -> QubitOperator:
+def load_qubit_operator(file: LoadSource) -> QubitOperator:
     """Load an operator object from a file.
     Args:
         file (str or file-like object): the name of the file, or a file-like object.
@@ -163,7 +165,7 @@ def load_qubit_operator(file: TextIO) -> QubitOperator:
 
 
 def save_qubit_operator_set(
-    qubit_operator_set: List[QubitOperator], filename: str
+    qubit_operator_set: List[QubitOperator], filename: AnyPath
 ) -> None:
     """Save a set of qubit operators to a file.
 
@@ -180,7 +182,7 @@ def save_qubit_operator_set(
         f.write(json.dumps(dictionary, indent=2))
 
 
-def load_qubit_operator_set(file: TextIO) -> List[QubitOperator]:
+def load_qubit_operator_set(file: LoadSource) -> List[QubitOperator]:
     """Load a set of qubit operators from a file.
 
     Args:
@@ -249,7 +251,7 @@ def convert_dict_to_isingop(dictionary: dict) -> IsingOperator:
     return convert_dict_to_operator(dictionary, IsingOperator)
 
 
-def load_ising_operator(file: TextIO) -> IsingOperator:
+def load_ising_operator(file: LoadSource) -> IsingOperator:
     """Load an Ising operator object from a file.
 
     Args:
@@ -268,7 +270,7 @@ def load_ising_operator(file: TextIO) -> IsingOperator:
     return convert_dict_to_isingop(data)
 
 
-def save_ising_operator(ising_operator: IsingOperator, filename: str) -> None:
+def save_ising_operator(ising_operator: IsingOperator, filename: AnyPath) -> None:
     """Save an Ising operator to file.
 
     Args:
@@ -329,7 +331,7 @@ def convert_dict_to_interaction_rdm(dictionary):
     return InteractionRDM(one_body_tensor, two_body_tensor)
 
 
-def load_interaction_rdm(file: TextIO) -> InteractionRDM:
+def load_interaction_rdm(file: LoadSource) -> InteractionRDM:
     """Load an interaction RDM object from a file.
     Args:
         file: a file-like object to load the interaction RDM from.
@@ -347,7 +349,7 @@ def load_interaction_rdm(file: TextIO) -> InteractionRDM:
     return convert_dict_to_interaction_rdm(data)
 
 
-def save_interaction_rdm(interaction_rdm: InteractionRDM, filename: str) -> None:
+def save_interaction_rdm(interaction_rdm: InteractionRDM, filename: AnyPath) -> None:
     """Save an interaction operator to file.
     Args:
         interaction_operator: the operator to be saved

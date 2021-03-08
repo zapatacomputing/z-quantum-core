@@ -5,6 +5,7 @@ from zquantum.core.utils import (
     save_value_estimate,
     save_nmeas_estimate,
     save_list,
+    SCHEMA_VERSION,
 )
 from zquantum.core.measurement import load_expectation_values, save_expectation_values
 from zquantum.core.hamiltonian import (
@@ -132,6 +133,25 @@ def evaluate_ansatz_based_cost_function(
 
     backend = create_object(backend_specs)
 
+    ### Patching the backend to record measurements somewhere
+    unwrapped = backend.run_circuitset_and_measure
+    backend_usage_data = []
+
+    def wrapped_run_circuitset_and_measure(circuit_set, n_samples, **kwargs):
+        measurements_set = unwrapped(circuit_set, n_samples, **kwargs)
+        for circuit, measurements in zip(circuit_set, measurements_set):
+            backend_usage_data.append(
+                {
+                    "measurements": measurements.get_counts(),
+                    "circuit": circuit.to_dict(serialize_gate_params=True),
+                    "number_of_multiqubit_gates": circuit.n_multiqubit_gates(),
+                    "number_of_gates": len(circuit.gates),
+                }
+            )
+        return measurements_set
+
+    backend.run_circuitset_and_measure = wrapped_run_circuitset_and_measure
+
     if isinstance(cost_function_specs, str):
         cost_function_specs = json.loads(cost_function_specs)
     estimator_specs = cost_function_specs.pop("estimator-specs", None)
@@ -151,6 +171,13 @@ def evaluate_ansatz_based_cost_function(
     value_estimate = cost_function(ansatz_parameters)
 
     save_value_estimate(value_estimate, "value_estimate.json")
+
+    with open("backend-usage-data.json", "w") as f:
+        data = {
+            "schema": SCHEMA_VERSION + "-backend-usage-data",
+            "backend-usage-data": backend_usage_data,
+        }
+        f.write(json.dumps(data))
 
 
 def hamiltonian_analysis(
@@ -176,8 +203,7 @@ def hamiltonian_analysis(
 
 
 def grouped_hamiltonian_analysis(
-    groups: str,
-    expectation_values: Optional[str] = None,
+    groups: str, expectation_values: Optional[str] = None,
 ):
     """Calculates the number of measurements required for computing
     the expectation value of a qubit hamiltonian, where co-measurable terms
@@ -222,9 +248,7 @@ def grouped_hamiltonian_analysis(
 
 
 def expectation_values_from_rdms(
-    interactionrdm: str,
-    qubit_operator: str,
-    sort_terms: bool = False,
+    interactionrdm: str, qubit_operator: str, sort_terms: bool = False,
 ):
     operator = load_qubit_operator(qubit_operator)
     rdms = load_interaction_rdm(interactionrdm)

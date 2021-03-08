@@ -11,7 +11,9 @@ ORQUESTRA_BUILTIN_GATE_NAME_TO_CIRQ_GATE = {
     "X": cirq.X,
     "Y": cirq.Y,
     "Z": cirq.Z,
-    "I": cirq.I
+    "I": cirq.I,
+    "H": cirq.H,
+    "T": cirq.T
 }
 
 
@@ -19,6 +21,8 @@ EIGENGATE_SPECIAL_CASES = {
     (type(cirq.X), cirq.X.global_shift, cirq.X.exponent): bg.X,
     (type(cirq.Y), cirq.Y.global_shift, cirq.Y.exponent): bg.Y,
     (type(cirq.Z), cirq.Z.global_shift, cirq.Z.exponent): bg.Z,
+    (type(cirq.T), cirq.T.global_shift, cirq.T.exponent): bg.T,
+    (type(cirq.H), cirq.H.global_shift, cirq.H.exponent): bg.H,
 }
 
 qubit_index = attrgetter("x")

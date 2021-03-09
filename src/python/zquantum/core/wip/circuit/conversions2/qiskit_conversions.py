@@ -131,14 +131,21 @@ def _import_qiskit_triplet(qiskit_triplet: QiskitOperation) -> g.GateOperation:
     return _import_qiskit_op(qiskit_op, qiskit_qubits)
 
 
-@singledispatch
 def _import_qiskit_op(qiskit_op, qiskit_qubits) -> g.GateOperation:
-    raise NotImplementedError(f"Importing {type(qiskit_op)} from Qiskit is unsupported.")
+    # We always wanna try importing via mapping to handle complex gate structures
+    # represented by a single class, like CNOT (Control + X) or CSwap (Control + Swap).
+    try:
+        return _import_qiskit_op_via_mapping(qiskit_op, qiskit_qubits)
+    except NotImplementedError:
+        pass
+
+    if isinstance(qiskit_op, qiskit.circuit.ControlledGate):
+        return _import_controlled_qiskit_op(qiskit_op, qiskit_qubits)
+    else:
+        raise NotImplementedError(f"Importing {type(qiskit_op)} from Qiskit is unsupported.")
 
 
-@_import_qiskit_op.register
-def _import_simple_qiskit_op(qiskit_gate: qiskit.circuit.Instruction, qiskit_qubits: [qiskit.circuit.Qubit]) -> g.GateOperation:
-    # qiskit_op, qiskit_qubits, _ = qiskit_triplet
+def _import_qiskit_op_via_mapping(qiskit_gate: qiskit.circuit.Instruction, qiskit_qubits: [qiskit.circuit.Qubit]) -> g.GateOperation:
     try:
         gate_ref = QISKIT_ZQUANTUM_GATE_MAP[type(qiskit_gate)]
     except KeyError:
@@ -156,7 +163,6 @@ def _import_simple_qiskit_op(qiskit_gate: qiskit.circuit.Instruction, qiskit_qub
     )
 
 
-@_import_qiskit_op.register
 def _import_controlled_qiskit_op(qiskit_gate: qiskit.circuit.ControlledGate, qiskit_qubits: [qiskit.circuit.Qubit]) -> g.GateOperation:
     wrapped_qubits = qiskit_qubits[qiskit_gate.num_ctrl_qubits:]
     wrapped_op = _import_qiskit_op(qiskit_gate.base_gate, wrapped_qubits)

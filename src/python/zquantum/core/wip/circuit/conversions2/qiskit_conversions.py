@@ -4,6 +4,7 @@ from functools import singledispatch
 import qiskit
 
 from .. import _gates as g
+from .. import _builtin_gates as bg
 from ..symbolic.sympy_expressions import expression_from_sympy, SYMPY_DIALECT
 from ..symbolic.qiskit_expressions import expression_from_qiskit, QISKIT_DIALECT
 from ..symbolic.translations import translate_expression
@@ -19,6 +20,10 @@ def qiskit_qubit(index: int, num_qubits_in_circuit: int) -> qiskit.circuit.Qubit
     )
 
 
+def _import_qiskit_qubit(qubit: qiskit.circuit.Qubit) -> int:
+    return qubit.index
+
+
 def _qiskit_expr_from_zquantum(expr):
     intermediate = expression_from_sympy(expr)
     return translate_expression(intermediate, QISKIT_DIALECT)
@@ -30,32 +35,61 @@ def _zquantum_expr_from_qiskit(expr):
 
 
 ZQUANTUM_QISKIT_GATE_MAP = {
-    "X": qiskit.circuit.library.XGate,
-    "Y": qiskit.circuit.library.YGate,
-    "Z": qiskit.circuit.library.ZGate,
-    "T": qiskit.circuit.library.TGate,
-    "H": qiskit.circuit.library.HGate,
-    "I": qiskit.circuit.library.IGate,
-    "CNOT": qiskit.circuit.library.CXGate,
-    "CZ": qiskit.circuit.library.CZGate,
-    "SWAP": qiskit.circuit.library.SwapGate,
-    "ISWAP": qiskit.circuit.library.iSwapGate,
-    "RX": qiskit.circuit.library.RXGate,
-    "RY": qiskit.circuit.library.RYGate,
-    "RZ": qiskit.circuit.library.RZGate,
-    "PHASE": qiskit.circuit.library.PhaseGate,
-    "CPHASE": qiskit.circuit.library.CPhaseGate,
-    "XX": qiskit.circuit.library.RXXGate,
-    "YY": qiskit.circuit.library.RYYGate,
-    "ZZ": qiskit.circuit.library.RZZGate,
+    bg.X: qiskit.circuit.library.XGate,
+    bg.Y: qiskit.circuit.library.YGate,
+    bg.Z: qiskit.circuit.library.ZGate,
+    bg.T: qiskit.circuit.library.TGate,
+    bg.H: qiskit.circuit.library.HGate,
+    bg.I: qiskit.circuit.library.IGate,
+    bg.CNOT: qiskit.circuit.library.CXGate,
+    bg.CZ: qiskit.circuit.library.CZGate,
+    bg.SWAP: qiskit.circuit.library.SwapGate,
+    bg.ISWAP: qiskit.circuit.library.iSwapGate,
+    bg.RX: qiskit.circuit.library.RXGate,
+    bg.RY: qiskit.circuit.library.RYGate,
+    bg.RZ: qiskit.circuit.library.RZGate,
+    bg.PHASE: qiskit.circuit.library.PhaseGate,
+    bg.CPHASE: qiskit.circuit.library.CPhaseGate,
+    bg.XX: qiskit.circuit.library.RXXGate,
+    bg.YY: qiskit.circuit.library.RYYGate,
+    bg.ZZ: qiskit.circuit.library.RZZGate,
 }
+
+
+def _make_gate_instance(gate_ref, gate_params) -> g.Gate:
+    """Returns a gate instance that's applicable to qubits.
+    For non-parametric gate refs like X, returns just the `X`
+    For parametric gate factories like `RX`, returns the produced gate, like `RX(0.2)`
+    """
+    if g.is_non_parametric(gate_ref):
+        return gate_ref
+    else:
+        return gate_ref(*gate_params)
+
+
+def _make_controlled_gate_prototype(wrapped_gate_ref, num_control_qubits):
+    def _factory(*gate_params):
+        return g.ControlledGate(_make_gate_instance(wrapped_gate_ref, gate_params), num_control_qubits)
+    return _factory
+
 
 QISKIT_ZQUANTUM_GATE_MAP = {
     **{
-        cls: name for name, cls in ZQUANTUM_QISKIT_GATE_MAP.items()
+        q_cls: z_ref for z_ref, q_cls in ZQUANTUM_QISKIT_GATE_MAP.items()
     },
-    # qiskit.circuit.library.CRXGate:
+    qiskit.circuit.library.CSwapGate: _make_controlled_gate_prototype(bg.SWAP, num_control_qubits=1),
 }
+
+
+def convert_to_qiskit(circuit: g.Circuit) -> qiskit.QuantumCircuit:
+    q_circuit = qiskit.QuantumCircuit(circuit.n_qubits)
+    q_triplets = [
+        _convert_gate_to_qiskit(gate_op.gate, gate_op.qubit_indices, circuit.n_qubits)
+        for gate_op in circuit.operations
+    ]
+    for q_gate, q_qubits, q_clbits in q_triplets:
+        q_circuit.append(q_gate, q_qubits, q_clbits)
+    return q_circuit
 
 
 @singledispatch
@@ -65,7 +99,7 @@ def _convert_gate_to_qiskit(gate, applied_qubit_indices, n_qubits_in_circuit):
         qiskit_qubit(qubit_i, n_qubits_in_circuit) for qubit_i in applied_qubit_indices
     ]
     try:
-        qiskit_cls = ZQUANTUM_QISKIT_GATE_MAP[gate.name]
+        qiskit_cls = ZQUANTUM_QISKIT_GATE_MAP[bg.builtin_gate_by_name(gate.name)]
         return qiskit_cls(*qiskit_params), qiskit_qubits, []
     except KeyError:
         raise NotImplementedError(f"Conversion of {gate} to Qiskit is unsupported.")
@@ -86,30 +120,35 @@ def _convert_controlled_gate_to_qiskit(
     return controlled_gate, qiskit_qubits, []
 
 
-def _make_gate_instance(gate_ref, gate_params) -> g.Gate:
-    """Returns a gate instance that's applicable to qubits.
-    For non-parametric gate refs like X, returns just the `X`
-    For parametric gate factories like `RX`, returns the produced gate, like `RX(0.2)`
-    """
-    if g.is_non_parametric(gate_ref):
-        return gate_ref
-    else:
-        return gate_ref(*gate_params)
+def import_from_qiskit(circuit: qiskit.QuantumCircuit) -> g.Circuit:
+    q_ops = [_import_qiskit_triplet(triplet) for triplet in circuit.data]
+    return g.Circuit(operations=q_ops, n_qubits=circuit.num_qubits)
 
 
-def _convert_qiskit_triplet_to_op(qiskit_triplet: QiskitOperation) -> g.GateOperation:
+def _import_qiskit_triplet(qiskit_triplet: QiskitOperation) -> g.GateOperation:
     qiskit_op, qiskit_qubits, _ = qiskit_triplet
+
+    return _import_qiskit_op(qiskit_op, qiskit_qubits)
+
+
+@singledispatch
+def _import_qiskit_op(qiskit_op, qiskit_qubits) -> g.GateOperation:
+    raise NotImplementedError(f"Importing {type(qiskit_op)} from Qiskit is unsupported.")
+
+
+@_import_qiskit_op.register
+def _import_simple_qiskit_op(qiskit_gate: qiskit.circuit.Instruction, qiskit_qubits: [qiskit.circuit.Qubit]) -> g.GateOperation:
+    # qiskit_op, qiskit_qubits, _ = qiskit_triplet
     try:
-        zquantum_name = QISKIT_ZQUANTUM_GATE_MAP[type(qiskit_op)]
-        gate_ref = g.builtin_gate_by_name(zquantum_name)
+        gate_ref = QISKIT_ZQUANTUM_GATE_MAP[type(qiskit_gate)]
     except KeyError:
-        raise NotImplementedError(f"Conversion of {qiskit_op} from Qiskit is unsupported.")
+        raise NotImplementedError(f"Conversion of {qiskit_gate} from Qiskit is unsupported.")
 
     # values to consider:
     # - gate matrix parameters (only parametric gates)
     # - gate application indices (all gates)
-    zquantum_params = [_zquantum_expr_from_qiskit(param) for param in qiskit_op.params]
-    qubit_indices = [qubit.index for qubit in qiskit_qubits]
+    zquantum_params = [_zquantum_expr_from_qiskit(param) for param in qiskit_gate.params]
+    qubit_indices = [_import_qiskit_qubit(qubit) for qubit in qiskit_qubits]
     gate = _make_gate_instance(gate_ref, zquantum_params)
     return g.GateOperation(
         gate=gate,
@@ -117,17 +156,9 @@ def _convert_qiskit_triplet_to_op(qiskit_triplet: QiskitOperation) -> g.GateOper
     )
 
 
-def convert_to_qiskit(circuit: g.Circuit) -> qiskit.QuantumCircuit:
-    q_circuit = qiskit.QuantumCircuit(circuit.n_qubits)
-    q_triplets = [
-        _convert_gate_to_qiskit(gate_op.gate, gate_op.qubit_indices, circuit.n_qubits)
-        for gate_op in circuit.operations
-    ]
-    for q_gate, q_qubits, q_clbits in q_triplets:
-        q_circuit.append(q_gate, q_qubits, q_clbits)
-    return q_circuit
-
-
-def convert_from_qiskit(circuit: qiskit.QuantumCircuit) -> g.Circuit:
-    q_ops = [_convert_qiskit_triplet_to_op(triplet) for triplet in circuit.data]
-    return g.Circuit(operations=q_ops, n_qubits=circuit.num_qubits)
+@_import_qiskit_op.register
+def _import_controlled_qiskit_op(qiskit_gate: qiskit.circuit.ControlledGate, qiskit_qubits: [qiskit.circuit.Qubit]) -> g.GateOperation:
+    wrapped_qubits = qiskit_qubits[qiskit_gate.num_ctrl_qubits:]
+    wrapped_op = _import_qiskit_op(qiskit_gate.base_gate, wrapped_qubits)
+    qubit_indices = map(_import_qiskit_qubit, qiskit_qubits)
+    return wrapped_op.gate.controlled(qiskit_gate.num_ctrl_qubits)(*qubit_indices)

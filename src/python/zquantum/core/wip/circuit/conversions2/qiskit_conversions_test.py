@@ -3,7 +3,7 @@ import numpy as np
 import qiskit
 import pytest
 
-from zquantum.core.wip.circuit.conversions2.qiskit_conversions import convert_to_qiskit, convert_from_qiskit
+from zquantum.core.wip.circuit.conversions2.qiskit_conversions import convert_to_qiskit, import_from_qiskit
 from zquantum.core.wip.circuit import _gates as g
 from zquantum.core.wip.circuit import _builtin_gates as bg
 
@@ -205,5 +205,5 @@ class TestConvertingFromQiskit:
     def test_converting_circuit_gives_equivalent_circuit(
         self, zquantum_circuit, qiskit_circuit
     ):
-        converted = convert_from_qiskit(qiskit_circuit)
+        converted = import_from_qiskit(qiskit_circuit)
         assert converted == zquantum_circuit

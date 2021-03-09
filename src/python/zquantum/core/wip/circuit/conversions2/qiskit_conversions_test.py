@@ -1,6 +1,7 @@
 import sympy
 import numpy as np
 import qiskit
+import qiskit.circuit.random
 import pytest
 
 from zquantum.core.wip.circuit.conversions2.qiskit_conversions import (
@@ -208,10 +209,32 @@ class TestConvertingToQiskit:
             convert_to_qiskit(zquantum_circuit)
 
 
-class TestConvertingFromQiskit:
+class TestImportingFromQiskit:
     @pytest.mark.parametrize("zquantum_circuit, qiskit_circuit", EQUIVALENT_CIRCUITS)
-    def test_converting_circuit_gives_equivalent_circuit(
+    def test_importing_circuit_gives_equivalent_circuit(
         self, zquantum_circuit, qiskit_circuit
     ):
-        converted = import_from_qiskit(qiskit_circuit)
-        assert converted == zquantum_circuit
+        imported = import_from_qiskit(qiskit_circuit)
+        assert imported == zquantum_circuit
+
+    @pytest.mark.parametrize("zquantum_circuit, qiskit_circuit", EQUIVALENT_CIRCUITS)
+    def test_importing_circuit_with_unimplemented_gates_gives_circuit_with_custom_gates(
+        self, zquantum_circuit, qiskit_circuit
+    ):
+        imported = import_from_qiskit(qiskit_circuit)
+        assert imported == zquantum_circuit
+
+    @pytest.mark.parametrize(
+        "qiskit_circuit",
+        [
+            qiskit.circuit.random.random_circuit(
+                num_qubits, depth, conditional=conditional, seed=seed
+            )
+            for num_qubits in [1, 2, 4, 5]
+            for depth in [1, 2, 4, 5]
+            for conditional in [False, True]
+            for seed in [0, 42, 1337]
+        ],
+    )
+    def test_importing_random_circuit_doesnt_raise(self, qiskit_circuit):
+        import_from_qiskit(qiskit_circuit)

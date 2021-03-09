@@ -69,15 +69,18 @@ def _make_gate_instance(gate_ref, gate_params) -> g.Gate:
 
 def _make_controlled_gate_prototype(wrapped_gate_ref, num_control_qubits):
     def _factory(*gate_params):
-        return g.ControlledGate(_make_gate_instance(wrapped_gate_ref, gate_params), num_control_qubits)
+        return g.ControlledGate(
+            _make_gate_instance(wrapped_gate_ref, gate_params), num_control_qubits
+        )
+
     return _factory
 
 
 QISKIT_ZQUANTUM_GATE_MAP = {
-    **{
-        q_cls: z_ref for z_ref, q_cls in ZQUANTUM_QISKIT_GATE_MAP.items()
-    },
-    qiskit.circuit.library.CSwapGate: _make_controlled_gate_prototype(bg.SWAP, num_control_qubits=1),
+    **{q_cls: z_ref for z_ref, q_cls in ZQUANTUM_QISKIT_GATE_MAP.items()},
+    qiskit.circuit.library.CSwapGate: _make_controlled_gate_prototype(
+        bg.SWAP, num_control_qubits=1
+    ),
 }
 
 
@@ -109,7 +112,7 @@ def _convert_gate_to_qiskit(gate, applied_qubit_indices, n_qubits_in_circuit):
 def _convert_controlled_gate_to_qiskit(
     gate: g.ControlledGate, applied_qubit_indices, n_qubits_in_circuit
 ):
-    target_indices = applied_qubit_indices[gate.num_control_qubits:]
+    target_indices = applied_qubit_indices[gate.num_control_qubits :]
     target_gate, _, _ = _convert_gate_to_qiskit(
         gate.wrapped_gate, target_indices, n_qubits_in_circuit
     )
@@ -142,29 +145,36 @@ def _import_qiskit_op(qiskit_op, qiskit_qubits) -> g.GateOperation:
     if isinstance(qiskit_op, qiskit.circuit.ControlledGate):
         return _import_controlled_qiskit_op(qiskit_op, qiskit_qubits)
     else:
-        raise NotImplementedError(f"Importing {type(qiskit_op)} from Qiskit is unsupported.")
+        raise NotImplementedError(
+            f"Importing {type(qiskit_op)} from Qiskit is unsupported."
+        )
 
 
-def _import_qiskit_op_via_mapping(qiskit_gate: qiskit.circuit.Instruction, qiskit_qubits: [qiskit.circuit.Qubit]) -> g.GateOperation:
+def _import_qiskit_op_via_mapping(
+    qiskit_gate: qiskit.circuit.Instruction, qiskit_qubits: [qiskit.circuit.Qubit]
+) -> g.GateOperation:
     try:
         gate_ref = QISKIT_ZQUANTUM_GATE_MAP[type(qiskit_gate)]
     except KeyError:
-        raise NotImplementedError(f"Conversion of {qiskit_gate} from Qiskit is unsupported.")
+        raise NotImplementedError(
+            f"Conversion of {qiskit_gate} from Qiskit is unsupported."
+        )
 
     # values to consider:
     # - gate matrix parameters (only parametric gates)
     # - gate application indices (all gates)
-    zquantum_params = [_zquantum_expr_from_qiskit(param) for param in qiskit_gate.params]
+    zquantum_params = [
+        _zquantum_expr_from_qiskit(param) for param in qiskit_gate.params
+    ]
     qubit_indices = [_import_qiskit_qubit(qubit) for qubit in qiskit_qubits]
     gate = _make_gate_instance(gate_ref, zquantum_params)
-    return g.GateOperation(
-        gate=gate,
-        qubit_indices=tuple(qubit_indices)
-    )
+    return g.GateOperation(gate=gate, qubit_indices=tuple(qubit_indices))
 
 
-def _import_controlled_qiskit_op(qiskit_gate: qiskit.circuit.ControlledGate, qiskit_qubits: [qiskit.circuit.Qubit]) -> g.GateOperation:
-    wrapped_qubits = qiskit_qubits[qiskit_gate.num_ctrl_qubits:]
+def _import_controlled_qiskit_op(
+    qiskit_gate: qiskit.circuit.ControlledGate, qiskit_qubits: [qiskit.circuit.Qubit]
+) -> g.GateOperation:
+    wrapped_qubits = qiskit_qubits[qiskit_gate.num_ctrl_qubits :]
     wrapped_op = _import_qiskit_op(qiskit_gate.base_gate, wrapped_qubits)
     qubit_indices = map(_import_qiskit_qubit, qiskit_qubits)
     return wrapped_op.gate.controlled(qiskit_gate.num_ctrl_qubits)(*qubit_indices)

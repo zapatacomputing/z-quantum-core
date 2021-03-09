@@ -3,7 +3,10 @@ import numpy as np
 import qiskit
 import pytest
 
-from zquantum.core.wip.circuit.conversions2.qiskit_conversions import convert_to_qiskit, import_from_qiskit
+from zquantum.core.wip.circuit.conversions2.qiskit_conversions import (
+    convert_to_qiskit,
+    import_from_qiskit,
+)
 from zquantum.core.wip.circuit import _gates as g
 from zquantum.core.wip.circuit import _builtin_gates as bg
 
@@ -160,14 +163,15 @@ class TestConvertingToQiskit:
         self, zquantum_circuit, qiskit_circuit
     ):
         converted = convert_to_qiskit(zquantum_circuit)
-        converted_bound = converted.bind_parameters({
-            param: EXAMPLE_PARAM_VALUES[str(param)]
-            for param in converted.parameters
-        })
-        ref_bound = qiskit_circuit.bind_parameters({
-            param: EXAMPLE_PARAM_VALUES[str(param)]
-            for param in qiskit_circuit.parameters
-        })
+        converted_bound = converted.bind_parameters(
+            {param: EXAMPLE_PARAM_VALUES[str(param)] for param in converted.parameters}
+        )
+        ref_bound = qiskit_circuit.bind_parameters(
+            {
+                param: EXAMPLE_PARAM_VALUES[str(param)]
+                for param in qiskit_circuit.parameters
+            }
+        )
         assert converted_bound == ref_bound, (
             f"Converted circuit:\n{_draw_qiskit_circuit(converted_bound)}\n isn't equal "
             f"to\n{_draw_qiskit_circuit(ref_bound)}"
@@ -179,15 +183,19 @@ class TestConvertingToQiskit:
     def test_binding_and_converting_parametrized_circuit_results_in_equivalent_circuit(
         self, zquantum_circuit, qiskit_circuit
     ):
-        bound = zquantum_circuit.bind({
-            symbol: EXAMPLE_PARAM_VALUES[str(symbol)]
-            for symbol in zquantum_circuit.free_symbols
-        })
+        bound = zquantum_circuit.bind(
+            {
+                symbol: EXAMPLE_PARAM_VALUES[str(symbol)]
+                for symbol in zquantum_circuit.free_symbols
+            }
+        )
         bound_converted = convert_to_qiskit(bound)
-        ref_bound = qiskit_circuit.bind_parameters({
-            param: EXAMPLE_PARAM_VALUES[str(param)]
-            for param in qiskit_circuit.parameters
-        })
+        ref_bound = qiskit_circuit.bind_parameters(
+            {
+                param: EXAMPLE_PARAM_VALUES[str(param)]
+                for param in qiskit_circuit.parameters
+            }
+        )
         assert bound_converted == ref_bound, (
             f"Converted circuit:\n{_draw_qiskit_circuit(bound_converted)}\n isn't equal "
             f"to\n{_draw_qiskit_circuit(ref_bound)}"

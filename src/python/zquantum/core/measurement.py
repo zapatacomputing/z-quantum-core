@@ -1,5 +1,6 @@
 from __future__ import annotations
 import json
+import copy
 from pyquil.wavefunction import Wavefunction
 import numpy as np
 from openfermion.ops import IsingOperator
@@ -14,10 +15,11 @@ from .utils import (
 from typing import Optional, List, Tuple, TextIO, Iterable, Dict
 from collections import Counter
 from .bitstring_distribution import BitstringDistribution
+from zquantum.core.typing import LoadSource, AnyPath
 
 
 def save_expectation_values(
-    expectation_values: ExpectationValues, filename: str
+    expectation_values: ExpectationValues, filename: AnyPath
 ) -> None:
     """Save expectation values to a file.
 
@@ -32,7 +34,7 @@ def save_expectation_values(
         f.write(json.dumps(dictionary, indent=2))
 
 
-def load_expectation_values(file: TextIO) -> ExpectationValues:
+def load_expectation_values(file: LoadSource) -> ExpectationValues:
     """Load an array from a file.
 
     Args:
@@ -51,7 +53,7 @@ def load_expectation_values(file: TextIO) -> ExpectationValues:
     return ExpectationValues.from_dict(data)
 
 
-def load_wavefunction(file: TextIO) -> Wavefunction:
+def load_wavefunction(file: LoadSource) -> Wavefunction:
     """Load a qubit wavefunction from a file.
 
     Args:
@@ -71,7 +73,7 @@ def load_wavefunction(file: TextIO) -> Wavefunction:
     return wavefunction
 
 
-def save_wavefunction(wavefunction: Wavefunction, filename: str) -> None:
+def save_wavefunction(wavefunction: Wavefunction, filename: AnyPath) -> None:
     """Save a wavefunction object to a file.
 
     Args:
@@ -224,7 +226,7 @@ class Parities:
         return cls(values, correlations)
 
 
-def save_parities(parities: Parities, filename: str) -> None:
+def save_parities(parities: Parities, filename: AnyPath) -> None:
     """Save parities to a file.
 
     Args:
@@ -238,7 +240,7 @@ def save_parities(parities: Parities, filename: str) -> None:
         f.write(json.dumps(data, indent=2))
 
 
-def load_parities(file: TextIO) -> Parities:
+def load_parities(file: LoadSource) -> Parities:
     """Load parities from a file.
 
     Args:
@@ -447,6 +449,48 @@ class Measurements:
         return measurements
 
     @classmethod
+    def get_measurements_representing_distribution(
+        cls, bitstring_distribution: BitstringDistribution, number_of_samples: int
+    ):
+        """Create an instance of the Measurements class that exactly (or as closely as possible) resembles the input
+        bitstring distribution.
+
+        Args:
+            bitstring_distribution (zquantum.core.bitstring_distribution.BitstringDistribution): the bitstring
+                distribution to be sampled
+            number_of_samples (int): the number of measurements
+        """
+        distribution = copy.deepcopy(bitstring_distribution.distribution_dict)
+
+        bitstring_samples = []
+        for state in distribution:
+            bitstring = tuple([int(measurement_value) for measurement_value in state])
+
+            bitstring_samples += [bitstring] * int(
+                distribution[state] * number_of_samples
+            )
+
+        if len(bitstring_samples) != number_of_samples:
+            leftover_distribution = BitstringDistribution(
+                {
+                    states: (distribution[states] * number_of_samples) % 1
+                    for states in distribution
+                },
+                True,
+            )
+
+            samples = sample_from_probability_distribution(
+                leftover_distribution.distribution_dict,
+                number_of_samples - len(bitstring_samples),
+            )
+            bitstring_samples += [
+                tuple([int(measurement_value) for measurement_value in sample])
+                for sample in samples
+            ]
+
+        return cls(bitstring_samples)
+
+    @classmethod
     def load_from_file(cls, file: TextIO):
         """Load a set of measurements from file
 
@@ -465,7 +509,7 @@ class Measurements:
 
         return cls(bitstrings=bitstrings)
 
-    def save(self, filename: str):
+    def save(self, filename: AnyPath):
         """Serialize the Measurements object into a file in JSON format.
 
         Args:
@@ -601,7 +645,11 @@ def concatenate_expectation_values(
         The combined expectation values.
     """
 
-    combined_expectation_values = ExpectationValues(np.zeros(0,))
+    combined_expectation_values = ExpectationValues(
+        np.zeros(
+            0,
+        )
+    )
 
     for expectation_values in expectation_values_set:
         combined_expectation_values.values = np.concatenate(

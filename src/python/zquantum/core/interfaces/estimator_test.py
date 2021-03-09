@@ -1,28 +1,23 @@
-import unittest
+import pytest
 from ..measurement import ExpectationValues
 
 
-class EstimatorTests(object):
-    # To run tests with this base class, the following variables need to be properly initialized in the child class:
-    # self.estimators
-    # self.backend
-    # self.circuit
-    # self.operator
-    # self.n_samples
-    # self.epsilon
-    # self.delta
-
-    def test_get_estimated_expectation_values_returns_expectation_values(self):
-        for estimator in self.estimators:
-            # Given
-            # When
-            value = estimator.get_estimated_expectation_values(
-                self.backend,
-                self.circuit,
-                self.operator,
-                n_samples=self.n_samples,
-                epsilon=self.epsilon,
-                delta=self.delta,
-            )
-            # Then
-            self.assertIsInstance(value, ExpectationValues)
+class EstimatorTests:
+    def test_get_estimated_expectation_values_returns_expectation_values(
+        self,
+        estimator,
+        backend,
+        circuit,
+        target_operator,
+        n_samples,
+        **estimator_kwargs
+    ):
+        value = estimator.get_estimated_expectation_values(
+            backend=backend,
+            circuit=circuit,
+            target_operator=target_operator,
+            n_samples=n_samples,
+            **estimator_kwargs
+        )
+        # Then
+        assert type(value) is ExpectationValues

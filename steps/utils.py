@@ -1,6 +1,10 @@
 import numpy as np
-from typing import Union
-from zquantum.core.utils import save_list
+import json
+from typing import Union, Dict
+from zquantum.core.utils import save_list, create_object
+
+Specs = Union[str, Dict]
+
 
 # Generate random list of integers
 def generate_random_list_of_integers(seed: Union[None, int] = None, **kwargs):

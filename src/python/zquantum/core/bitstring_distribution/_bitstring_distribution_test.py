@@ -22,6 +22,7 @@ from ._bitstring_distribution import (
     evaluate_distribution_distance,
     BitstringDistribution,
 )
+
 from ..utils import SCHEMA_VERSION
 
 

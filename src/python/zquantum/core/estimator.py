@@ -6,7 +6,8 @@ from .measurement import (
     expectation_values_to_real,
     concatenate_expectation_values,
 )
-from .hamiltonian import get_decomposition_function
+from .hamiltonian import get_decomposition_function, estimate_nmeas_for_frames
+from .utils import scale_and_discretize
 from openfermion import SymbolicOperator, IsingOperator, QubitOperator
 from overrides import overrides
 import logging
@@ -16,6 +17,7 @@ from typing import Tuple, Optional, Callable, List
 
 logger = logging.getLogger(__name__)
 
+
 def get_context_selection_circuit(
     term: Tuple[Tuple[int, str], ...]
 ) -> Tuple[Circuit, IsingOperator]:
@@ -24,7 +26,7 @@ def get_context_selection_circuit(
 
     Args:
         term: The Pauli term, expressed using the OpenFermion convention.
-    
+
     Returns:
         Tuple containing:
         - The context selection circuit.
@@ -51,7 +53,7 @@ def get_context_selection_circuit_for_group(
 
     Args:
         term: The Pauli term, expressed using the OpenFermion convention.
-    
+
     Returns:
         Tuple containing:
         - The context selection circuit.
@@ -84,15 +86,18 @@ def get_context_selection_circuit_for_group(
 
 class BasicEstimator(Estimator):
     """An estimator that uses the standard approach to computing expectation values of an operator.
-    
-        Attributes:
-            decomposition_method (str): Which Hamiltonian decomposition method
-                to use. Available options are: 'greedy-sorted' (default) and
-                'greedy'.
+
+    Attributes:
+        decomposition_method (str): Which Hamiltonian decomposition method
+            to use. Available options are: 'greedy-sorted' (default) and
+            'greedy'.
     """
 
-    def __init__(self, decomposition_method: str = "greedy-sorted"):
+    def __init__(
+        self, decomposition_method: str = "greedy-sorted", prior_expectation_values=None
+    ):
         self.decomposition_method = decomposition_method
+        self.prior_expectation_values = prior_expectation_values
 
     @overrides
     def get_estimated_expectation_values(
@@ -101,23 +106,41 @@ class BasicEstimator(Estimator):
         circuit: Circuit,
         target_operator: SymbolicOperator,
         n_samples: Optional[int] = None,
-        epsilon: Optional[float] = None,
-        delta: Optional[float] = None,
+        n_total_samples: Optional[int] = None,
+        shot_allocation_strategy: str = "uniform",
     ) -> ExpectationValues:
-        """Given a circuit, backend, and target operators, this method produces expectation values 
-        for each target operator using the get_expectation_values method built into the provided QuantumBackend. 
+        """Given a circuit, backend, and target operators, this method produces expectation values
+        for each target operator using the get_expectation_values method built into the provided QuantumBackend.
 
         Args:
-            backend (QuantumBackend): the backend that will be used to run the circuit
-            circuit (Circuit): the circuit that prepares the state.
-            target_operator (List[SymbolicOperator]): List of target functions to be estimated.
-            n_samples (int): Number of measurements done. 
-            epsilon (float): an error term.
-            delta (float): a confidence term.
+            backend: the backend that will be used to run the circuit
+            circuit: the circuit that prepares the state.
+            target_operator): List of target functions to be estimated.
+            n_samples: Number of measurements to be performed on each frame.
+                Exactly one of n_samples and n_total_samples must be provided.
+            n_total_samples: Total number of measurements to be performed across
+                all frames. Exactly one of n_samples and n_total_samples must be
+                provided.
+            shot_allocation_strategy: Strategy for allocating shots to groups.
+                - "uniform": The number of shots specified by n_samples is used
+                    for each group.
+                - "optimal": The number of shots specified by n_samples is
+                    divided amongst the groups optimally. If
+                    self.prior_expectation_values is set, it will be used to
+                    account for variances. Otherwise the upper bound on
+                    variances is used. Covariances are assumed to be zero.
 
         Returns:
             ExpectationValues: expectation values for each term in the target operator.
         """
+        if shot_allocation_strategy not in (
+            "optimal",
+            "uniform",
+        ):
+            raise ValueError(
+                f"Invalid shot allocation stratgey: ${shot_allocation_strategy}"
+            )
+
         frame_operators = []
         frame_circuits = []
         groups = get_decomposition_function(self.decomposition_method)(target_operator)
@@ -128,17 +151,35 @@ class BasicEstimator(Estimator):
             frame_circuits.append(circuit + frame_circuit)
             frame_operators.append(frame_operator)
 
-        if n_samples is not None:
-            logger.warning(
-                f"""Using n_samples={n_samples} (argument passed to get_estimated_expectation_values). 
-                    Ignoring backend.n_samples={backend.n_samples}"""
+        if shot_allocation_strategy == "uniform":
+            if n_total_samples is not None:
+                raise ValueError(
+                    "Uniform sampling does not yet support n_total_samples."
+                )
+            if n_samples is not None:
+                measurements_per_frame = (n_samples,) * len(frame_circuits)
+            else:
+                measurements_per_frame = None
+
+        elif shot_allocation_strategy == "optimal":
+            if n_total_samples is None:
+                raise ValueError(
+                    "For optimal shot allocation, n_total_samples must be provided."
+                )
+            if n_samples is not None:
+                raise ValueError(
+                    "Optimal shot allocation does not support n_samples; use n_total_samples instead."
+                )
+            _, _, measurements_per_frame = estimate_nmeas_for_frames(
+                frame_operators, self.prior_expectation_values
             )
-            saved_n_samples = backend.n_samples
-            backend.n_samples = n_samples
-            measurements_set = backend.run_circuitset_and_measure(frame_circuits)
-            backend.n_samples = saved_n_samples
-        else:
-            measurements_set = backend.run_circuitset_and_measure(frame_circuits)
+            measurements_per_frame = scale_and_discretize(
+                measurements_per_frame, n_total_samples
+            )
+
+        measurements_set = backend.run_circuitset_and_measure(
+            frame_circuits, measurements_per_frame
+        )
 
         expectation_values_set = []
         for frame_operator, measurements in zip(frame_operators, measurements_set):
@@ -159,8 +200,7 @@ class BasicEstimator(Estimator):
 
 
 class ExactEstimator(Estimator):
-    """An estimator that exactly computes the expectation values of an operator. This estimator must run on a quantum simulator. 
-    """
+    """An estimator that exactly computes the expectation values of an operator. This estimator must run on a quantum simulator."""
 
     @overrides
     def get_estimated_expectation_values(
@@ -169,22 +209,18 @@ class ExactEstimator(Estimator):
         circuit: Circuit,
         target_operator: SymbolicOperator,
         n_samples: Optional[int] = None,
-        epsilon: Optional[float] = None,
-        delta: Optional[float] = None,
     ) -> ExpectationValues:
-        """Given a circuit, backend, and target operators, this method produces expectation values 
-        for each target operator using the get_exact_expectation_values method built into the provided QuantumBackend. 
+        """Given a circuit, backend, and target operators, this method produces expectation values
+        for each target operator using the get_exact_expectation_values method built into the provided QuantumBackend.
 
         Args:
             backend (QuantumBackend): the backend that will be used to run the circuit
             circuit (Circuit): the circuit that prepares the state.
             target_operator (List[SymbolicOperator]): List of target functions to be estimated.
-            n_samples (int): Number of measurements done on the unknown quantum state. 
-            epsilon (float): an error term.
-            delta (float): a confidence term.
+            n_samples (int): Number of measurements done on the unknown quantum state.
 
         Raises:
-            AttributeError: If backend is not a QuantumSimulator. 
+            AttributeError: If backend is not a QuantumSimulator.
 
         Returns:
             ExpectationValues: expectation values for each term in the target operator.

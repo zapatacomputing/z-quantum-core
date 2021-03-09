@@ -27,7 +27,7 @@ setuptools.setup(
         "lea>=3.2.0",
         "pyquil>=2.17.0",
         "cirq>=0.9.1",
-        "qiskit==0.23.2",
+        "qiskit>=0.24.0",
         "overrides>=3.1.0",
     ],
 )

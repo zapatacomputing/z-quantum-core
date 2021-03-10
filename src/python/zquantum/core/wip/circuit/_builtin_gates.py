@@ -18,12 +18,6 @@ def builtin_gate_by_name(name) -> Optional[Union[g.Gate, GatePrototype]]:
     return globals().get(name)
 
 
-def is_non_parametric(gate_ref):
-    """True if `gate_ref` is a non-parametric (e.g. for `X`). False otherwise (e.g. for `RX`)"""
-    # NOTE: we don't have a better way to check this ATM.
-    return isinstance(gate_ref, g.MatrixFactoryGate)
-
-
 # --- non-parametric, single qubit gates ---
 
 X = g.MatrixFactoryGate("X", m.x_matrix, (), 1, is_hermitian=True)

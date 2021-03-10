@@ -22,7 +22,7 @@ EQUIVALENT_NON_PARAMETRIC_GATES = [
     (bg.H, qiskit.circuit.library.HGate()),
     (bg.I, qiskit.circuit.library.IGate()),
     (bg.T, qiskit.circuit.library.TGate()),
-    # (bg.CNOT, qiskit.extensions.CXGate()),  # FIXME
+    (bg.CNOT, qiskit.extensions.CXGate()),
     (bg.CZ, qiskit.extensions.CZGate()),
     (bg.SWAP, qiskit.extensions.SwapGate()),
     (bg.ISWAP, qiskit.extensions.iSwapGate()),
@@ -44,6 +44,29 @@ EQUIVALENT_SINGLE_QUBIT_PARAMETRIC_GATES = [
 ]
 
 
+TWO_QUBIT_SWAP_MATRIX = np.array(
+    [
+        [1, 0, 0, 0],
+        [0, 0, 1, 0],
+        [0, 1, 0, 0],
+        [0, 0, 0, 1],
+    ]
+)
+
+
+def _fix_qubit_ordering(qiskit_matrix):
+    """Import qiskit matrix to ZQuantum matrix convention.
+
+    Qiskit uses different qubit ordering than we do.
+    It causes multi-qubit matrices to look different on first sight."""
+    if len(qiskit_matrix) == 2:
+        return qiskit_matrix
+    if len(qiskit_matrix) == 4:
+        return TWO_QUBIT_SWAP_MATRIX @ qiskit_matrix @ TWO_QUBIT_SWAP_MATRIX
+    else:
+        raise ValueError(f"Unsupported matrix size: {len(qiskit_matrix)}")
+
+
 class TestGateConversion:
     @pytest.mark.parametrize(
         "zq_gate,q_gate",
@@ -54,7 +77,8 @@ class TestGateConversion:
     )
     def test_matrices_are_equal(self, zq_gate, q_gate):
         zq_matrix = np.array(zq_gate.matrix).astype(np.complex128)
-        np.testing.assert_allclose(zq_matrix, q_gate.to_matrix())
+        q_matrix = _fix_qubit_ordering(q_gate.to_matrix())
+        np.testing.assert_allclose(zq_matrix, q_matrix)
 
 
 # circuits ---------

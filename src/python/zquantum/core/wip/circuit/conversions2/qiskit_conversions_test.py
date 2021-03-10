@@ -29,7 +29,8 @@ EQUIVALENT_NON_PARAMETRIC_GATES = [
 ]
 
 EQUIVALENT_SINGLE_QUBIT_PARAMETRIC_GATES = [
-    (zq_cls(theta), q_cls(theta)) for zq_cls, q_cls in [
+    (zq_cls(theta), q_cls(theta))
+    for zq_cls, q_cls in [
         (bg.RX, qiskit.circuit.library.RXGate),
         (bg.RY, qiskit.circuit.library.RYGate),
         (bg.RZ, qiskit.circuit.library.RZGate),
@@ -44,10 +45,13 @@ EQUIVALENT_SINGLE_QUBIT_PARAMETRIC_GATES = [
 
 
 class TestGateConversion:
-    @pytest.mark.parametrize("zq_gate,q_gate", [
-        *EQUIVALENT_NON_PARAMETRIC_GATES,
-        *EQUIVALENT_SINGLE_QUBIT_PARAMETRIC_GATES,
-    ])
+    @pytest.mark.parametrize(
+        "zq_gate,q_gate",
+        [
+            *EQUIVALENT_NON_PARAMETRIC_GATES,
+            *EQUIVALENT_SINGLE_QUBIT_PARAMETRIC_GATES,
+        ],
+    )
     def test_matrices_are_equal(self, zq_gate, q_gate):
         zq_matrix = np.array(zq_gate.matrix).astype(np.complex128)
         np.testing.assert_allclose(zq_matrix, q_gate.to_matrix())
@@ -272,9 +276,7 @@ class TestImportingFromQiskit:
         imported = import_from_qiskit(qiskit_circuit)
         assert imported == zquantum_circuit
 
-    @pytest.mark.parametrize(
-        "qiskit_circuit", FOREIGN_QISKIT_CIRCUITS
-    )
+    @pytest.mark.parametrize("qiskit_circuit", FOREIGN_QISKIT_CIRCUITS)
     def test_importing_circuit_with_unsupported_gates_raises(self, qiskit_circuit):
         with pytest.raises(NotImplementedError):
             import_from_qiskit(qiskit_circuit)

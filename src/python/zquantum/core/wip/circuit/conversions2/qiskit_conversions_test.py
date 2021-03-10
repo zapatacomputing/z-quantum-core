@@ -353,6 +353,7 @@ class TestExportingToQiskit:
             f"to\n{_draw_qiskit_circuit(qiskit_circuit)}"
         )
 
+
 class TestImportingFromQiskit:
     @pytest.mark.parametrize(
         "zquantum_circuit, qiskit_circuit", EQUIVALENT_NON_PARAMETRIZED_CIRCUITS
@@ -412,10 +413,12 @@ class TestImportingFromQiskit:
         bound_imported = import_from_qiskit(bound)
 
         # 3. Bind the ref
-        ref_bound = zquantum_circuit.bind({
-            symbol: EXAMPLE_PARAM_VALUES[str(symbol)]
-            for symbol in zquantum_circuit.free_symbols
-        })
+        ref_bound = zquantum_circuit.bind(
+            {
+                symbol: EXAMPLE_PARAM_VALUES[str(symbol)]
+                for symbol in zquantum_circuit.free_symbols
+            }
+        )
         assert bound_imported == ref_bound
 
     @pytest.mark.parametrize("qiskit_circuit", FOREIGN_QISKIT_CIRCUITS)

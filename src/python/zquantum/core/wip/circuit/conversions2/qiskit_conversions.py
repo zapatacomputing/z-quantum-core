@@ -94,7 +94,7 @@ def export_to_qiskit(circuit: _gates.Circuit) -> qiskit.QuantumCircuit:
             gate_op.gate,
             applied_qubit_indices=gate_op.qubit_indices,
             n_qubits_in_circuit=circuit.n_qubits,
-            custom_names=custom_names
+            custom_names=custom_names,
         )
         for gate_op in circuit.operations
     ]
@@ -104,23 +104,26 @@ def export_to_qiskit(circuit: _gates.Circuit) -> qiskit.QuantumCircuit:
 
 
 def _export_gate_to_qiskit(
-        gate,
-        applied_qubit_indices,
-        n_qubits_in_circuit,
-        custom_names
+    gate, applied_qubit_indices, n_qubits_in_circuit, custom_names
 ):
     try:
-        return _export_gate_via_mapping(gate, applied_qubit_indices, n_qubits_in_circuit, custom_names)
+        return _export_gate_via_mapping(
+            gate, applied_qubit_indices, n_qubits_in_circuit, custom_names
+        )
     except ValueError:
         pass
 
     try:
-        return _export_controlled_gate(gate, applied_qubit_indices, n_qubits_in_circuit, custom_names)
+        return _export_controlled_gate(
+            gate, applied_qubit_indices, n_qubits_in_circuit, custom_names
+        )
     except ValueError:
         pass
 
     try:
-        return _export_custom_gate(gate, applied_qubit_indices, n_qubits_in_circuit, custom_names)
+        return _export_custom_gate(
+            gate, applied_qubit_indices, n_qubits_in_circuit, custom_names
+        )
     except ValueError:
         pass
 
@@ -128,10 +131,7 @@ def _export_gate_to_qiskit(
 
 
 def _export_gate_via_mapping(
-        gate,
-        applied_qubit_indices,
-        n_qubits_in_circuit,
-        custom_names
+    gate, applied_qubit_indices, n_qubits_in_circuit, custom_names
 ):
     try:
         qiskit_cls = ZQUANTUM_QISKIT_GATE_MAP[bg.builtin_gate_by_name(gate.name)]
@@ -162,7 +162,7 @@ def _export_controlled_gate(
         gate.wrapped_gate,
         applied_qubit_indices=target_indices,
         n_qubits_in_circuit=n_qubits_in_circuit,
-        custom_names=custom_names
+        custom_names=custom_names,
     )
     controlled_gate = target_gate.control(gate.num_control_qubits)
     qiskit_qubits = [
@@ -172,16 +172,17 @@ def _export_controlled_gate(
 
 
 def _export_custom_gate(
-    gate: g.MatrixFactoryGate,
-    applied_qubit_indices,
-    n_qubits_in_circuit,
-    custom_names
+    gate: g.MatrixFactoryGate, applied_qubit_indices, n_qubits_in_circuit, custom_names
 ):
     if gate.name not in custom_names:
-        raise ValueError(f"Can't export gate {gate} as a custom gate, the circuit is missing its definition")
+        raise ValueError(
+            f"Can't export gate {gate} as a custom gate, the circuit is missing its definition"
+        )
 
     if gate.params:
-        raise ValueError(f"Can't export parametrized gate {gate}, Qiskit doesn't support parametrized custom gates")
+        raise ValueError(
+            f"Can't export parametrized gate {gate}, Qiskit doesn't support parametrized custom gates"
+        )
     # At that time of writing it, Qiskit doesn't support parametrized gates defined with a symbolic matrix
     # See https://github.com/Qiskit/qiskit-terra/issues/4751 for more info.
 
@@ -189,7 +190,11 @@ def _export_custom_gate(
         qiskit_qubit(qubit_i, n_qubits_in_circuit) for qubit_i in applied_qubit_indices
     ]
     qiskit_matrix = np.array(gate.matrix)
-    return qiskit.extensions.UnitaryGate(qiskit_matrix, label=gate.name), qiskit_qubits, []
+    return (
+        qiskit.extensions.UnitaryGate(qiskit_matrix, label=gate.name),
+        qiskit_qubits,
+        [],
+    )
 
 
 def import_from_qiskit(circuit: qiskit.QuantumCircuit) -> _gates.Circuit:

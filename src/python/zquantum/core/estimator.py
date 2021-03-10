@@ -94,7 +94,7 @@ class BasicEstimator(Estimator):
     """
 
     def __init__(
-        self, decomposition_method: str = "greedy-sorted", prior_expectation_values=None
+        self, decomposition_method: str = "ungrouped", prior_expectation_values=None
     ):
         self.decomposition_method = decomposition_method
         self.prior_expectation_values = prior_expectation_values

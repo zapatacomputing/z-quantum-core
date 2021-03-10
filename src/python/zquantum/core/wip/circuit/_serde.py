@@ -154,7 +154,7 @@ def _dagger_gate_to_dict(gate: g.Dagger):
 
 def circuit_from_dict(dict_):
     defs = [
-        _custom_gate_def_from_dict(def_dict)
+        custom_gate_def_from_dict(def_dict)
         for def_dict in dict_.get("custom_gate_definitions", [])
     ]
     return g.Circuit(
@@ -218,7 +218,7 @@ def _special_gate_from_dict(dict_, custom_gate_defs) -> g.Gate:
         raise KeyError()
 
 
-def _custom_gate_def_from_dict(dict_) -> g.CustomGateDefinition:
+def custom_gate_def_from_dict(dict_) -> g.CustomGateDefinition:
     symbols = [sympy.Symbol(term) for term in dict_.get("params_ordering", [])]
     return g.CustomGateDefinition(
         gate_name=dict_["gate_name"],

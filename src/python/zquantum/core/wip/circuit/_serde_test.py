@@ -4,7 +4,7 @@ import numpy as np
 
 from . import _gates as g
 from . import _builtin_gates as bg
-from ._serde import serialize_expr, deserialize_expr, circuit_from_dict, to_dict
+from ._serde import serialize_expr, deserialize_expr, circuit_from_dict, custom_gate_def_from_dict, to_dict
 
 
 ALPHA = sympy.Symbol("alpha")
@@ -109,37 +109,37 @@ class TestCircuitSerialization:
             operation.gate.matrix
 
 
-# class TestCustomGateDefinitionSerialization:
-#     @pytest.mark.parametrize(
-#         "gate_def",
-#         [
-#             g.CustomGateDefinition(
-#                 "V", sympy.Matrix([[THETA, GAMMA], [-GAMMA, THETA]]), (THETA, GAMMA)
-#             )
-#         ],
-#     )
-#     def test_roundtrip_gives_back_same_def(self, gate_def):
-#         dict_ = gate_def.to_dict()
-#         assert g.CustomGateDefinition.from_dict(dict_) == gate_def
+class TestCustomGateDefinitionSerialization:
+    @pytest.mark.parametrize(
+        "gate_def",
+        [
+            g.CustomGateDefinition(
+                "V", sympy.Matrix([[THETA, GAMMA], [-GAMMA, THETA]]), (THETA, GAMMA)
+            )
+        ],
+    )
+    def test_roundtrip_gives_back_same_def(self, gate_def):
+        dict_ = to_dict(gate_def)
+        assert custom_gate_def_from_dict(dict_) == gate_def
 
 
-# class TestExpressionSerialization:
-#     @pytest.mark.parametrize(
-#         "expr,symbol_names",
-#         [
-#             (0, []),
-#             (1, []),
-#             (-1, []),
-#             (THETA, ["theta"]),
-#             (GAMMA, ["gamma"]),
-#             (THETA * GAMMA + 1, ["gamma", "theta"]),
-#             (2 + 3j, []),
-#             ((-1 + 2j) * THETA * GAMMA, ["gamma", "theta"]),
-#         ],
-#     )
-#     def test_roundtrip_results_in_equivalent_expression(self, expr, symbol_names):
-#         serialized = serialize_expr(expr)
-#         deserialized = deserialize_expr(serialized, symbol_names)
-#         # `deserialized == expr` wouldn't work here for complex literals because of
-#         # how Sympy compares expressions
-#         assert deserialized - expr == 0
+class TestExpressionSerialization:
+    @pytest.mark.parametrize(
+        "expr,symbol_names",
+        [
+            (0, []),
+            (1, []),
+            (-1, []),
+            (THETA, ["theta"]),
+            (GAMMA, ["gamma"]),
+            (THETA * GAMMA + 1, ["gamma", "theta"]),
+            (2 + 3j, []),
+            ((-1 + 2j) * THETA * GAMMA, ["gamma", "theta"]),
+        ],
+    )
+    def test_roundtrip_results_in_equivalent_expression(self, expr, symbol_names):
+        serialized = serialize_expr(expr)
+        deserialized = deserialize_expr(serialized, symbol_names)
+        # `deserialized == expr` wouldn't work here for complex literals because of
+        # how Sympy compares expressions
+        assert deserialized - expr == 0

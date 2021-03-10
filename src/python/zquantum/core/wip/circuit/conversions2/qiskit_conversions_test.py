@@ -237,7 +237,7 @@ CUSTOM_GATE_DEF = g.CustomGateDefinition("A", sympy.Matrix([[0, 1], [1, 0]]), []
 EQUIVALENT_CUSTOM_GATE_CIRCUITS = [
     (
         g.Circuit(
-            operations=[CUSTOM_GATE_DEF()(0)],
+            operations=[CUSTOM_GATE_DEF()(1)],
             n_qubits=4,
             custom_gate_definitions=[CUSTOM_GATE_DEF],
         ),
@@ -341,6 +341,17 @@ class TestExportingToQiskit:
         with pytest.raises(NotImplementedError):
             export_to_qiskit(zquantum_circuit)
 
+    @pytest.mark.parametrize(
+        "zquantum_circuit, qiskit_circuit", EQUIVALENT_CUSTOM_GATE_CIRCUITS
+    )
+    def test_exporting_circuit_with_custom_gates_gives_equivalent_circuit(
+        self, zquantum_circuit, qiskit_circuit
+    ):
+        converted = export_to_qiskit(zquantum_circuit)
+        assert converted == qiskit_circuit, (
+            f"Converted circuit:\n{_draw_qiskit_circuit(converted)}\n isn't equal "
+            f"to\n{_draw_qiskit_circuit(qiskit_circuit)}"
+        )
 
 class TestImportingFromQiskit:
     @pytest.mark.parametrize(

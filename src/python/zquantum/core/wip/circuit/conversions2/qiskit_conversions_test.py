@@ -81,7 +81,7 @@ class TestGateConversion:
         np.testing.assert_allclose(zquantum_matrix, qiskit_matrix)
 
 
-# circuits ---------
+# --------- circuits ---------
 
 # NOTE: In Qiskit, 0 is the most significant qubit,
 # whereas in ZQuantum, 0 is the least significant qubit.
@@ -91,41 +91,18 @@ class TestGateConversion:
 # https://qiskit.org/documentation/tutorials/circuits/1_getting_started_with_qiskit.html#Visualize-Circuit
 
 
-def _single_qubit_qiskit_circuit():
-    qc = qiskit.QuantumCircuit(6)
-    qc.x(0)
-    qc.z(2)
-    return qc
-
-
-def _two_qubit_qiskit_circuit():
-    qc = qiskit.QuantumCircuit(4)
-    qc.cnot(0, 1)
-    return qc
-
-
-def _parametric_qiskit_circuit(angle):
-    qc = qiskit.QuantumCircuit(4)
-    qc.rx(angle, 1)
-    return qc
-
-
-def _qiskit_circuit_with_controlled_gate():
-    qc = qiskit.QuantumCircuit(5)
-    qc.append(qiskit.circuit.library.SwapGate().control(1), [2, 0, 3])
-    return qc
-
-
-def _qiskit_circuit_with_multicontrolled_gate():
-    qc = qiskit.QuantumCircuit(6)
-    qc.append(qiskit.circuit.library.YGate().control(2), [4, 5, 2])
-    return qc
-
-
 def _qiskit_circuit_with_u1_gates():
     qc = qiskit.QuantumCircuit(7)
     qc.u1(0.42, 2)
     qc.u1(QISKIT_THETA, 1)
+    return qc
+
+
+def _make_qiskit_circuit(n_qubits, commands):
+    qc = qiskit.QuantumCircuit(n_qubits)
+    for method_name, method_args in commands:
+        method = getattr(qc, method_name)
+        method(*method_args)
     return qc
 
 
@@ -150,7 +127,10 @@ EQUIVALENT_CIRCUITS = [
             ],
             6,
         ),
-        _single_qubit_qiskit_circuit(),
+        _make_qiskit_circuit(6, [
+            ('x', (0,)),
+            ('z', (2,)),
+        ]),
     ),
     (
         _gates.Circuit(
@@ -159,7 +139,9 @@ EQUIVALENT_CIRCUITS = [
             ],
             4,
         ),
-        _two_qubit_qiskit_circuit(),
+        _make_qiskit_circuit(4, [
+            ('cnot', (0, 1)),
+        ]),
     ),
     (
         _gates.Circuit(
@@ -168,21 +150,27 @@ EQUIVALENT_CIRCUITS = [
             ],
             4,
         ),
-        _parametric_qiskit_circuit(np.pi),
+        _make_qiskit_circuit(4, [
+            ('rx', (np.pi, 1)),
+        ]),
     ),
     (
         _gates.Circuit(
             [_builtin_gates.SWAP.controlled(1)(2, 0, 3)],
             5,
         ),
-        _qiskit_circuit_with_controlled_gate(),
+        _make_qiskit_circuit(5, [
+            ('append', (qiskit.circuit.library.SwapGate().control(1), [2, 0, 3])),
+        ]),
     ),
     (
         _gates.Circuit(
             [_builtin_gates.Y.controlled(2)(4, 5, 2)],
             6,
         ),
-        _qiskit_circuit_with_multicontrolled_gate(),
+        _make_qiskit_circuit(6, [
+            ('append', (qiskit.circuit.library.YGate().control(2), [4, 5, 2])),
+        ]),
     ),
 ]
 
@@ -195,7 +183,9 @@ EQUIVALENT_PARAMETRIZED_CIRCUITS = [
             ],
             4,
         ),
-        _parametric_qiskit_circuit(QISKIT_THETA),
+        _make_qiskit_circuit(4, [
+            ('rx', (QISKIT_THETA, 1)),
+        ]),
     ),
     (
         _gates.Circuit(
@@ -204,7 +194,9 @@ EQUIVALENT_PARAMETRIZED_CIRCUITS = [
             ],
             4,
         ),
-        _parametric_qiskit_circuit(QISKIT_THETA * QISKIT_GAMMA),
+        _make_qiskit_circuit(4, [
+            ('rx', (QISKIT_THETA * QISKIT_GAMMA, 1)),
+        ]),
     ),
 ]
 

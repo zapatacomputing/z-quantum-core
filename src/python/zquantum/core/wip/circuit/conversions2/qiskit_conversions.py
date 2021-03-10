@@ -85,10 +85,10 @@ QISKIT_ZQUANTUM_GATE_MAP = {
 }
 
 
-def convert_to_qiskit(circuit: g.Circuit) -> qiskit.QuantumCircuit:
+def export_to_qiskit(circuit: g.Circuit) -> qiskit.QuantumCircuit:
     q_circuit = qiskit.QuantumCircuit(circuit.n_qubits)
     q_triplets = [
-        _convert_gate_to_qiskit(gate_op.gate, gate_op.qubit_indices, circuit.n_qubits)
+        _export_gate_to_qiskit(gate_op.gate, gate_op.qubit_indices, circuit.n_qubits)
         for gate_op in circuit.operations
     ]
     for q_gate, q_qubits, q_clbits in q_triplets:
@@ -97,7 +97,7 @@ def convert_to_qiskit(circuit: g.Circuit) -> qiskit.QuantumCircuit:
 
 
 @singledispatch
-def _convert_gate_to_qiskit(gate, applied_qubit_indices, n_qubits_in_circuit):
+def _export_gate_to_qiskit(gate, applied_qubit_indices, n_qubits_in_circuit):
     qiskit_params = [_qiskit_expr_from_zquantum(param) for param in gate.params]
     qiskit_qubits = [
         qiskit_qubit(qubit_i, n_qubits_in_circuit) for qubit_i in applied_qubit_indices
@@ -109,12 +109,12 @@ def _convert_gate_to_qiskit(gate, applied_qubit_indices, n_qubits_in_circuit):
         raise NotImplementedError(f"Conversion of {gate} to Qiskit is unsupported.")
 
 
-@_convert_gate_to_qiskit.register
-def _convert_controlled_gate_to_qiskit(
+@_export_gate_to_qiskit.register
+def _export_controlled_gate_to_qiskit(
     gate: g.ControlledGate, applied_qubit_indices, n_qubits_in_circuit
 ):
     target_indices = applied_qubit_indices[gate.num_control_qubits :]
-    target_gate, _, _ = _convert_gate_to_qiskit(
+    target_gate, _, _ = _export_gate_to_qiskit(
         gate.wrapped_gate, target_indices, n_qubits_in_circuit
     )
     controlled_gate = target_gate.control(gate.num_control_qubits)

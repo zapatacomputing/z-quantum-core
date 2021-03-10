@@ -5,7 +5,7 @@ import qiskit.circuit.random
 import pytest
 
 from zquantum.core.wip.circuit.conversions2.qiskit_conversions import (
-    convert_to_qiskit,
+    export_to_qiskit,
     import_from_qiskit,
 )
 from zquantum.core.wip.circuit import _gates as g
@@ -147,12 +147,12 @@ def _draw_qiskit_circuit(circuit):
     return qiskit.visualization.circuit_drawer(circuit, output="text")
 
 
-class TestConvertingToQiskit:
+class TestExportingToQiskit:
     @pytest.mark.parametrize("zquantum_circuit, qiskit_circuit", EQUIVALENT_CIRCUITS)
-    def test_converting_circuit_gives_equivalent_circuit(
+    def test_exporting_circuit_gives_equivalent_circuit(
         self, zquantum_circuit, qiskit_circuit
     ):
-        converted = convert_to_qiskit(zquantum_circuit)
+        converted = export_to_qiskit(zquantum_circuit)
         assert converted == qiskit_circuit, (
             f"Converted circuit:\n{_draw_qiskit_circuit(converted)}\n isn't equal "
             f"to\n{_draw_qiskit_circuit(qiskit_circuit)}"
@@ -161,10 +161,10 @@ class TestConvertingToQiskit:
     @pytest.mark.parametrize(
         "zquantum_circuit, qiskit_circuit", EQUIVALENT_PARAMETRIZED_CIRCUITS
     )
-    def test_converting_parametrized_circuit_doesnt_change_symbol_names(
+    def test_exporting_parametrized_circuit_doesnt_change_symbol_names(
         self, zquantum_circuit, qiskit_circuit
     ):
-        converted = convert_to_qiskit(zquantum_circuit)
+        converted = export_to_qiskit(zquantum_circuit)
         converted_names = sorted(map(str, converted.parameters))
         initial_names = sorted(map(str, zquantum_circuit.free_symbols))
         assert converted_names == initial_names
@@ -172,10 +172,10 @@ class TestConvertingToQiskit:
     @pytest.mark.parametrize(
         "zquantum_circuit, qiskit_circuit", EQUIVALENT_PARAMETRIZED_CIRCUITS
     )
-    def test_converting_and_binding_parametrized_circuit_results_in_equivalent_circuit(
+    def test_exporting_and_binding_parametrized_circuit_results_in_equivalent_circuit(
         self, zquantum_circuit, qiskit_circuit
     ):
-        converted = convert_to_qiskit(zquantum_circuit)
+        converted = export_to_qiskit(zquantum_circuit)
         converted_bound = converted.bind_parameters(
             {param: EXAMPLE_PARAM_VALUES[str(param)] for param in converted.parameters}
         )
@@ -193,7 +193,7 @@ class TestConvertingToQiskit:
     @pytest.mark.parametrize(
         "zquantum_circuit, qiskit_circuit", EQUIVALENT_PARAMETRIZED_CIRCUITS
     )
-    def test_binding_and_converting_parametrized_circuit_results_in_equivalent_circuit(
+    def test_binding_and_exporting_parametrized_circuit_results_in_equivalent_circuit(
         self, zquantum_circuit, qiskit_circuit
     ):
         bound = zquantum_circuit.bind(
@@ -202,7 +202,7 @@ class TestConvertingToQiskit:
                 for symbol in zquantum_circuit.free_symbols
             }
         )
-        bound_converted = convert_to_qiskit(bound)
+        bound_converted = export_to_qiskit(bound)
         ref_bound = qiskit_circuit.bind_parameters(
             {
                 param: EXAMPLE_PARAM_VALUES[str(param)]
@@ -218,7 +218,7 @@ class TestConvertingToQiskit:
         # NOTE: Qiskit doesn't natively support dagger gates
         zquantum_circuit = g.Circuit([bg.X.dagger(2), bg.T.dagger(1)], 3)
         with pytest.raises(NotImplementedError):
-            convert_to_qiskit(zquantum_circuit)
+            export_to_qiskit(zquantum_circuit)
 
 
 class TestImportingFromQiskit:

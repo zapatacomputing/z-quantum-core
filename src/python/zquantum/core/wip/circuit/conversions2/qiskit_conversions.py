@@ -78,7 +78,7 @@ def _make_controlled_gate_prototype(wrapped_gate_ref, num_control_qubits=1):
 
 QISKIT_ZQUANTUM_GATE_MAP = {
     **{q_cls: z_ref for z_ref, q_cls in ZQUANTUM_QISKIT_GATE_MAP.items()},
-    qiskit.circuit.library.CSwapGate: _make_controlled_gate_prototype(bg.SWAP),
+    qiskit.circuit.library.CSwapGate: bg.SWAP.controlled(1),
     qiskit.circuit.library.CRXGate: _make_controlled_gate_prototype(bg.RX),
     qiskit.circuit.library.CRYGate: _make_controlled_gate_prototype(bg.RY),
     qiskit.circuit.library.CRZGate: _make_controlled_gate_prototype(bg.RZ),

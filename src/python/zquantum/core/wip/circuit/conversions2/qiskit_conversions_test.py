@@ -118,7 +118,11 @@ EXAMPLE_PARAM_VALUES = {
 }
 
 
-EQUIVALENT_CIRCUITS = [
+EQUIVALENT_NON_PARAMETRIZED_CIRCUITS = [
+    (
+        g.Circuit([], 3),
+        _make_qiskit_circuit(3, []),
+    ),
     (
         _gates.Circuit(
             [
@@ -127,10 +131,13 @@ EQUIVALENT_CIRCUITS = [
             ],
             6,
         ),
-        _make_qiskit_circuit(6, [
-            ('x', (0,)),
-            ('z', (2,)),
-        ]),
+        _make_qiskit_circuit(
+            6,
+            [
+                ("x", (0,)),
+                ("z", (2,)),
+            ],
+        ),
     ),
     (
         _gates.Circuit(
@@ -139,9 +146,12 @@ EQUIVALENT_CIRCUITS = [
             ],
             4,
         ),
-        _make_qiskit_circuit(4, [
-            ('cnot', (0, 1)),
-        ]),
+        _make_qiskit_circuit(
+            4,
+            [
+                ("cnot", (0, 1)),
+            ],
+        ),
     ),
     (
         _gates.Circuit(
@@ -150,27 +160,36 @@ EQUIVALENT_CIRCUITS = [
             ],
             4,
         ),
-        _make_qiskit_circuit(4, [
-            ('rx', (np.pi, 1)),
-        ]),
+        _make_qiskit_circuit(
+            4,
+            [
+                ("rx", (np.pi, 1)),
+            ],
+        ),
     ),
     (
         _gates.Circuit(
             [_builtin_gates.SWAP.controlled(1)(2, 0, 3)],
             5,
         ),
-        _make_qiskit_circuit(5, [
-            ('append', (qiskit.circuit.library.SwapGate().control(1), [2, 0, 3])),
-        ]),
+        _make_qiskit_circuit(
+            5,
+            [
+                ("append", (qiskit.circuit.library.SwapGate().control(1), [2, 0, 3])),
+            ],
+        ),
     ),
     (
         _gates.Circuit(
             [_builtin_gates.Y.controlled(2)(4, 5, 2)],
             6,
         ),
-        _make_qiskit_circuit(6, [
-            ('append', (qiskit.circuit.library.YGate().control(2), [4, 5, 2])),
-        ]),
+        _make_qiskit_circuit(
+            6,
+            [
+                ("append", (qiskit.circuit.library.YGate().control(2), [4, 5, 2])),
+            ],
+        ),
     ),
 ]
 
@@ -183,9 +202,12 @@ EQUIVALENT_PARAMETRIZED_CIRCUITS = [
             ],
             4,
         ),
-        _make_qiskit_circuit(4, [
-            ('rx', (QISKIT_THETA, 1)),
-        ]),
+        _make_qiskit_circuit(
+            4,
+            [
+                ("rx", (QISKIT_THETA, 1)),
+            ],
+        ),
     ),
     (
         _gates.Circuit(
@@ -194,9 +216,12 @@ EQUIVALENT_PARAMETRIZED_CIRCUITS = [
             ],
             4,
         ),
-        _make_qiskit_circuit(4, [
-            ('rx', (QISKIT_THETA * QISKIT_GAMMA, 1)),
-        ]),
+        _make_qiskit_circuit(
+            4,
+            [
+                ("rx", (QISKIT_THETA * QISKIT_GAMMA, 1)),
+            ],
+        ),
     ),
 ]
 
@@ -206,12 +231,34 @@ FOREIGN_QISKIT_CIRCUITS = [
 ]
 
 
+CUSTOM_GATE_DEF = g.CustomGateDefinition("A", sympy.Matrix([[0, 1], [1, 0]]), [])
+
+
+EQUIVALENT_CUSTOM_GATE_CIRCUITS = [
+    (
+        g.Circuit(
+            operations=[CUSTOM_GATE_DEF()(0)],
+            n_qubits=4,
+            custom_gate_definitions=[CUSTOM_GATE_DEF],
+        ),
+        _make_qiskit_circuit(
+            4,
+            [
+                ("unitary", (np.array([[0, 1], [1, 0]]), 1)),
+            ],
+        ),
+    )
+]
+
+
 def _draw_qiskit_circuit(circuit):
     return qiskit.visualization.circuit_drawer(circuit, output="text")
 
 
 class TestExportingToQiskit:
-    @pytest.mark.parametrize("zquantum_circuit, qiskit_circuit", EQUIVALENT_CIRCUITS)
+    @pytest.mark.parametrize(
+        "zquantum_circuit, qiskit_circuit", EQUIVALENT_NON_PARAMETRIZED_CIRCUITS
+    )
     def test_exporting_circuit_gives_equivalent_circuit(
         self, zquantum_circuit, qiskit_circuit
     ):
@@ -222,10 +269,11 @@ class TestExportingToQiskit:
         )
 
     @pytest.mark.parametrize(
-        "zquantum_circuit, qiskit_circuit", EQUIVALENT_PARAMETRIZED_CIRCUITS
+        "zquantum_circuit",
+        [zquantum_circuit for zquantum_circuit, _ in EQUIVALENT_PARAMETRIZED_CIRCUITS],
     )
     def test_exporting_parametrized_circuit_doesnt_change_symbol_names(
-        self, zquantum_circuit, qiskit_circuit
+        self, zquantum_circuit
     ):
         converted = export_to_qiskit(zquantum_circuit)
         converted_names = sorted(map(str, converted.parameters))
@@ -287,12 +335,26 @@ class TestExportingToQiskit:
 
 
 class TestImportingFromQiskit:
-    @pytest.mark.parametrize("zquantum_circuit, qiskit_circuit", EQUIVALENT_CIRCUITS)
+    @pytest.mark.parametrize(
+        "zquantum_circuit, qiskit_circuit", EQUIVALENT_NON_PARAMETRIZED_CIRCUITS
+    )
     def test_importing_circuit_gives_equivalent_circuit(
         self, zquantum_circuit, qiskit_circuit
     ):
         imported = import_from_qiskit(qiskit_circuit)
         assert imported == zquantum_circuit
+
+    @pytest.mark.parametrize(
+        "qiskit_circuit",
+        [q_circuit for _, q_circuit in EQUIVALENT_PARAMETRIZED_CIRCUITS],
+    )
+    def test_importing_parametrized_circuit_doesnt_change_symbol_names(
+        self, qiskit_circuit
+    ):
+        imported = import_from_qiskit(qiskit_circuit)
+        assert sorted(map(str, imported.free_symbols)) == sorted(
+            map(str, qiskit_circuit.parameters)
+        )
 
     @pytest.mark.parametrize("qiskit_circuit", FOREIGN_QISKIT_CIRCUITS)
     def test_importing_circuit_with_unsupported_gates_raises(self, qiskit_circuit):

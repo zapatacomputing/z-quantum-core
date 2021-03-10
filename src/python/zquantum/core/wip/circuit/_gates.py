@@ -3,7 +3,7 @@ import math
 from dataclasses import dataclass
 from functools import singledispatch, reduce
 from numbers import Number
-from typing import Tuple, Union, Callable, Dict, Optional, Iterable, Any, List
+from typing import Tuple, Union, Callable, Dict, Optional, Iterable, Any
 
 import sympy
 from typing_extensions import Protocol
@@ -12,19 +12,6 @@ import numpy as np
 from ...utils import SCHEMA_VERSION
 
 Parameter = Union[sympy.Symbol, Number]
-
-
-def serialize_expr(expr):
-    return str(expr)
-
-
-def _make_symbols_map(symbol_names):
-    return {name: sympy.Symbol(name) for name in symbol_names}
-
-
-def deserialize_expr(expr_str, symbol_names):
-    symbols_map = _make_symbols_map(symbol_names)
-    return sympy.sympify(expr_str, locals=symbols_map)
 
 
 class Gate(Protocol):
@@ -106,75 +93,9 @@ class Gate(Protocol):
         """Apply this gate on qubits in a circuit."""
         return GateOperation(self, qubit_indices)
 
-    def to_dict(self):
-        return {
-            "name": self.name,
-            **(
-                {"params": list(map(serialize_expr, self.params))}
-                if self.params
-                else {}
-            ),
-            **(
-                {"free_symbols": sorted(map(str, self.free_symbols))}
-                if self.free_symbols
-                else {}
-            ),
-        }
-
-
-def builtin_gate_by_name(name):
-    # quickfix for circular imports errors
-    import zquantum.core.wip.circuit._builtin_gates
-
-    return zquantum.core.wip.circuit._builtin_gates.builtin_gate_by_name(name)
-
 
 def gate_is_parametric(gate_ref, gate_params):
     return not not gate_params
-
-
-def _gate_from_dict(dict_, custom_gate_defs):
-    """Prototype implementation of circuit deserialization"""
-    gate_ref = builtin_gate_by_name(dict_["name"])
-    if gate_ref is not None:
-        if gate_is_parametric(gate_ref, dict_.get("params")):
-            return gate_ref(
-                *[
-                    deserialize_expr(param, dict_.get("free_symbols", []))
-                    for param in dict_["params"]
-                ]
-            )
-        else:
-            return gate_ref
-
-    if dict_["name"] == CONTROLLED_GATE_NAME:
-        wrapped_gate = _gate_from_dict(dict_["wrapped_gate"], custom_gate_defs)
-        return ControlledGate(wrapped_gate, dict_["num_control_qubits"])
-
-    if dict_["name"] == DAGGER_GATE_NAME:
-        wrapped_gate = _gate_from_dict(dict_["wrapped_gate"], custom_gate_defs)
-        return Dagger(wrapped_gate)
-
-    gate_def = next(
-        (
-            gate_def
-            for gate_def in custom_gate_defs
-            if gate_def.gate_name == dict_["name"]
-        ),
-        None,
-    )
-    if gate_def is None:
-        raise ValueError(
-            f"Custom gate definition for {dict_['name']} missing from serialized dict"
-        )
-
-    symbol_names = map(serialize_expr, gate_def.params_ordering)
-    return gate_def(
-        *[deserialize_expr(param, symbol_names) for param in dict_["params"]]
-    )
-    # TODO:
-    # - controlled gate
-    # - dagger
 
 
 @dataclass(frozen=True)
@@ -182,30 +103,8 @@ class GateOperation:
     gate: Gate
     qubit_indices: Tuple[int, ...]
 
-    def to_dict(self):
-        return {
-            "type": "gate_operation",
-            "gate": self.gate.to_dict(),
-            "qubit_indices": list(self.qubit_indices),
-        }
-
-    @classmethod
-    def from_dict(cls, dict_, custom_gate_defs):
-        return cls(
-            gate=_gate_from_dict(dict_["gate"], custom_gate_defs),
-            qubit_indices=tuple(dict_["qubit_indices"]),
-        )
-
     def __str__(self):
         return f"{self.gate}({','.join(map(str, self.qubit_indices))})"
-
-
-GATE_OPERATION_DESERIALIZERS = {"gate_operation": GateOperation.from_dict}
-
-
-def _gate_operation_from_dict(dict_, custom_gate_defs):
-    # Add deserializers here when we need to support custom, non-gate operations
-    return GATE_OPERATION_DESERIALIZERS[dict_["type"]](dict_, custom_gate_defs)
 
 
 @singledispatch
@@ -323,7 +222,6 @@ class MatrixFactoryGate:
     # the workaround.
     free_symbols = Gate.free_symbols
     __call__ = Gate.__call__
-    to_dict = Gate.to_dict
 
 
 CONTROLLED_GATE_NAME = "Control"
@@ -369,13 +267,6 @@ class ControlledGate(Gate):
     def bind(self, symbols_map) -> "Gate":
         return self.wrapped_gate.bind(symbols_map).controlled(self.num_control_qubits)
 
-    def to_dict(self):
-        return {
-            "name": self.name,
-            "wrapped_gate": self.wrapped_gate.to_dict(),
-            "num_control_qubits": self.num_control_qubits,
-        }
-
 
 DAGGER_GATE_NAME = "Dagger"
 
@@ -410,36 +301,12 @@ class Dagger(Gate):
     def dagger(self) -> "Gate":
         return self.wrapped_gate
 
-    def to_dict(self):
-        return {
-            "name": self.name,
-            "wrapped_gate": self.wrapped_gate.to_dict(),
-        }
-
 
 def _n_qubits(matrix):
     n_qubits = math.floor(math.log2(matrix.shape[0]))
     if 2 ** n_qubits != matrix.shape[0] or 2 ** n_qubits != matrix.shape[1]:
         raise ValueError("Gate's matrix has to be square with dimension 2^N")
     return n_qubits
-
-
-def _matrix_to_json(matrix: sympy.Matrix):
-    return [
-        [serialize_expr(element) for element in matrix.row(row_i)]
-        for row_i in range(matrix.shape[0])
-    ]
-
-
-def _matrix_from_json(
-    json_rows: List[List[str]], symbols_names: Iterable[str]
-) -> sympy.Matrix:
-    return sympy.Matrix(
-        [
-            [deserialize_expr(element, symbols_names) for element in json_row]
-            for json_row in json_rows
-        ]
-    )
 
 
 @dataclass(frozen=True)
@@ -498,22 +365,6 @@ class CustomGateDefinition:
             FixedMatrixFactory(self.matrix, self.params_ordering),
             params,
             self._n_qubits,
-        )
-
-    def to_dict(self):
-        return {
-            "gate_name": self.gate_name,
-            "matrix": _matrix_to_json(self.matrix),
-            "params_ordering": list(map(serialize_expr, self.params_ordering)),
-        }
-
-    @classmethod
-    def from_dict(cls, dict_):
-        symbols = [sympy.Symbol(term) for term in dict_.get("params_ordering", [])]
-        return cls(
-            gate_name=dict_["gate_name"],
-            matrix=_matrix_from_json(dict_["matrix"], dict_.get("params_ordering", [])),
-            params_ordering=tuple(symbols),
         )
 
     def __eq__(self, other):
@@ -647,55 +498,6 @@ class Circuit:
         return type(self)(
             operations=[_bind_operation(op, symbols_map) for op in self.operations],
             n_qubits=self.n_qubits,
-        )
-
-    def to_dict(self):
-        """Creates a dictionary representing a circuit.
-        The dictionary is serializable to JSON.
-
-        Returns:
-            A mapping with keys:
-                - "schema"
-                - "n_qubits"
-                - "symbolic_params"
-                - "gates"
-        """
-        return {
-            "schema": CIRCUIT_SCHEMA,
-            "n_qubits": self.n_qubits,
-            **(
-                {
-                    "operations": [
-                        operation.to_dict() for operation in self.operations
-                    ],
-                }
-                if self.operations
-                else {}
-            ),
-            **(
-                {
-                    "custom_gate_definitions": [
-                        gate_def.to_dict() for gate_def in self.custom_gate_definitions
-                    ]
-                }
-                if self.custom_gate_definitions
-                else {}
-            ),
-        }
-
-    @classmethod
-    def from_dict(cls, dict_):
-        defs = [
-            CustomGateDefinition.from_dict(def_dict)
-            for def_dict in dict_.get("custom_gate_definitions", [])
-        ]
-        return cls(
-            operations=[
-                _gate_operation_from_dict(op_dict, defs)
-                for op_dict in dict_.get("operations", [])
-            ],
-            n_qubits=dict_["n_qubits"],
-            custom_gate_definitions=defs,
         )
 
     def __repr__(self):

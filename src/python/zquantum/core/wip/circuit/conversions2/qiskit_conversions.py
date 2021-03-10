@@ -146,7 +146,6 @@ def _export_gate_via_mapping(
     return qiskit_cls(*qiskit_params), qiskit_qubits, []
 
 
-# @_export_gate_to_qiskit.register
 def _export_controlled_gate(
     gate: _gates.ControlledGate,
     applied_qubit_indices,
@@ -178,8 +177,13 @@ def _export_custom_gate(
     n_qubits_in_circuit,
     custom_names
 ):
-    if gate.name not in custom_names or gate.params:
+    if gate.name not in custom_names:
         raise ValueError(f"Can't export gate {gate} as a custom gate, the circuit is missing its definition")
+
+    if gate.params:
+        raise ValueError(f"Can't export parametrized gate {gate}, Qiskit doesn't support parametrized custom gates")
+    # At that time of writing it, Qiskit doesn't support parametrized gates defined with a symbolic matrix
+    # See https://github.com/Qiskit/qiskit-terra/issues/4751 for more info.
 
     qiskit_qubits = [
         qiskit_qubit(qubit_i, n_qubits_in_circuit) for qubit_i in applied_qubit_indices

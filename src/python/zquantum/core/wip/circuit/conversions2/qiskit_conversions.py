@@ -185,7 +185,7 @@ def _export_custom_gate(
         qiskit_qubit(qubit_i, n_qubits_in_circuit) for qubit_i in applied_qubit_indices
     ]
     qiskit_matrix = np.array(gate.matrix)
-    return qiskit.extensions.UnitaryGate(qiskit_matrix), qiskit_qubits, []
+    return qiskit.extensions.UnitaryGate(qiskit_matrix, label=gate.name), qiskit_qubits, []
 
 
 def import_from_qiskit(circuit: qiskit.QuantumCircuit) -> _gates.Circuit:

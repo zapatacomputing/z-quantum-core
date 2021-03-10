@@ -231,7 +231,7 @@ FOREIGN_QISKIT_CIRCUITS = [
 ]
 
 
-CUSTOM_GATE_DEF = g.CustomGateDefinition("A", sympy.Matrix([[0, 1], [1, 0]]), [])
+CUSTOM_GATE_DEF = g.CustomGateDefinition("custom.A", sympy.Matrix([[0, 1], [1, 0]]), [])
 
 
 EQUIVALENT_CUSTOM_GATE_CIRCUITS = [
@@ -244,7 +244,7 @@ EQUIVALENT_CUSTOM_GATE_CIRCUITS = [
         _make_qiskit_circuit(
             4,
             [
-                ("unitary", (np.array([[0, 1], [1, 0]]), 1)),
+                ("unitary", (np.array([[0, 1], [1, 0]]), 1, "custom.A")),
             ],
         ),
     )

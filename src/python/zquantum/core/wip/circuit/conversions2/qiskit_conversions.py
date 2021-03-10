@@ -61,10 +61,10 @@ def _make_gate_instance(gate_ref, gate_params) -> g.Gate:
     For non-parametric gate refs like X, returns just the `X`
     For parametric gate factories like `RX`, returns the produced gate, like `RX(0.2)`
     """
-    if g.is_non_parametric(gate_ref):
-        return gate_ref
-    else:
+    if g.gate_is_parametric(gate_ref, gate_params):
         return gate_ref(*gate_params)
+    else:
+        return gate_ref
 
 
 def _make_controlled_gate_prototype(wrapped_gate_ref, num_control_qubits=1):

@@ -129,26 +129,23 @@ def builtin_gate_by_name(name):
     return zquantum.core.wip.circuit._builtin_gates.builtin_gate_by_name(name)
 
 
-def is_non_parametric(gate_ref):
-    """True if `gate_ref` is a non-parametric (e.g. for `X`).
-    False otherwise (e.g. for `RX`)"""
-    # NOTE: we don't have a better way to check this ATM.
-    return isinstance(gate_ref, MatrixFactoryGate)
+def gate_is_parametric(gate_ref, gate_params):
+    return not not gate_params
 
 
 def _gate_from_dict(dict_, custom_gate_defs):
     """Prototype implementation of circuit deserialization"""
     gate_ref = builtin_gate_by_name(dict_["name"])
     if gate_ref is not None:
-        if is_non_parametric(gate_ref):
-            return gate_ref
-        else:
+        if gate_is_parametric(gate_ref, dict_.get("params")):
             return gate_ref(
                 *[
                     deserialize_expr(param, dict_.get("free_symbols", []))
                     for param in dict_["params"]
                 ]
             )
+        else:
+            return gate_ref
 
     if dict_["name"] == CONTROLLED_GATE_NAME:
         wrapped_gate = _gate_from_dict(dict_["wrapped_gate"], custom_gate_defs)

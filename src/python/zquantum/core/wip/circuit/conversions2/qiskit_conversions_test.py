@@ -12,6 +12,28 @@ from zquantum.core.wip.circuit import _gates as g
 from zquantum.core.wip.circuit import _builtin_gates as bg
 
 
+# --------- gates ---------
+
+
+EQUIVALENT_NON_PARAMETRIC_GATES = [
+    (bg.X, qiskit.circuit.library.XGate()),
+    (bg.Y, qiskit.circuit.library.YGate()),
+    (bg.Z, qiskit.circuit.library.ZGate()),
+    (bg.H, qiskit.circuit.library.HGate()),
+    (bg.I, qiskit.circuit.library.IGate()),
+    (bg.T, qiskit.circuit.library.TGate()),
+]
+
+
+class TestGateConversion:
+    @pytest.mark.parametrize("zq_gate,q_gate", EQUIVALENT_NON_PARAMETRIC_GATES)
+    def test_matrices_are_equal(self, zq_gate, q_gate):
+        zq_matrix = np.array(zq_gate.matrix).astype(np.complex128)
+        np.testing.assert_allclose(zq_matrix, q_gate.to_matrix())
+
+
+# circuits ---------
+
 # NOTE: In Qiskit, 0 is the most significant qubit,
 # whereas in ZQuantum, 0 is the least significant qubit.
 # This is we need to flip the indices.

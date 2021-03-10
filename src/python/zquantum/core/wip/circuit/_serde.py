@@ -73,9 +73,6 @@ def _circuit_to_dict(circuit: g.Circuit):
         "n_qubits": circuit.n_qubits,
         **(
             {
-                # "operations": [
-                #     operation.to_dict() for operation in circuit.operations
-                # ],
                 "operations": _mapv(to_dict, circuit.operations),
             }
             if circuit.operations
@@ -83,9 +80,6 @@ def _circuit_to_dict(circuit: g.Circuit):
         ),
         **(
             {
-                # "custom_gate_definitions": [
-                #     gate_def.to_dict() for gate_def in circuit.custom_gate_definitions
-                # ]
                 "custom_gate_definitions": _mapv(to_dict, circuit.custom_gate_definitions),
             }
             if circuit.custom_gate_definitions

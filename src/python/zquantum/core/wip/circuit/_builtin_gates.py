@@ -5,6 +5,7 @@ from . import _matrices as m
 
 
 GatePrototype = Callable[..., g.MatrixFactoryGate]
+GateRef = Union[g.Gate, GatePrototype]
 
 
 def make_parametric_gate_prototype(name, matrix_factory, num_qubits) -> GatePrototype:
@@ -14,7 +15,7 @@ def make_parametric_gate_prototype(name, matrix_factory, num_qubits) -> GateProt
     return _factory
 
 
-def builtin_gate_by_name(name) -> Optional[Union[g.Gate, GatePrototype]]:
+def builtin_gate_by_name(name) -> Optional[GateRef]:
     return globals().get(name)
 
 

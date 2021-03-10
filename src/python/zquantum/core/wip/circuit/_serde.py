@@ -139,9 +139,6 @@ def _dagger_gate_to_dict(gate: g.Dagger):
         "wrapped_gate": to_dict(gate.wrapped_gate),
     }
 
-# @to_dict.register
-# def _custom_gate_def_to_dict(gate_def: g.CustomGateDefinition):
-
 
 # ---------- deserialization ----------
 
@@ -169,7 +166,10 @@ def _gate_operation_from_dict(dict_, custom_gate_defs):
 
 
 def _gate_from_dict(dict_, custom_gate_defs):
-    """Prototype implementation of circuit deserialization"""
+    """Generic gate deserializer.
+
+    Pass it a JSON dictionary and it'll try its best to return you a proper gate
+    instance, regardless of the given gate type."""
     try:
         return _builtin_gate_from_dict(dict_)
     except KeyError:

@@ -15,7 +15,7 @@ def split_qubit_operator(
         A list of qubit operators.
     """
     groups = []  # List of QubitOperators
-    for term, coefficient in qubit_operator.items():
+    for term, coefficient in qubit_operator.terms.items():
         # Identity should not be in a group
         if term == ():
             continue

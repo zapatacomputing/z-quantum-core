@@ -359,11 +359,11 @@ class CustomGateDefinition:
         n_qubits = _n_qubits(self.matrix)
         object.__setattr__(self, "_n_qubits", n_qubits)
 
-    def __call__(self, *params):
+    def __call__(self, *gate_params):
         return MatrixFactoryGate(
             self.gate_name,
             FixedMatrixFactory(self.matrix, self.params_ordering),
-            params,
+            gate_params,
             self._n_qubits,
         )
 

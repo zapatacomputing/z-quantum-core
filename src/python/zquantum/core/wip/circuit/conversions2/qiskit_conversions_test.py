@@ -22,11 +22,32 @@ EQUIVALENT_NON_PARAMETRIC_GATES = [
     (bg.H, qiskit.circuit.library.HGate()),
     (bg.I, qiskit.circuit.library.IGate()),
     (bg.T, qiskit.circuit.library.TGate()),
+    # (bg.CNOT, qiskit.extensions.CXGate()),  # FIXME
+    (bg.CZ, qiskit.extensions.CZGate()),
+    (bg.SWAP, qiskit.extensions.SwapGate()),
+    (bg.ISWAP, qiskit.extensions.iSwapGate()),
+]
+
+EQUIVALENT_SINGLE_QUBIT_PARAMETRIC_GATES = [
+    (zq_cls(theta), q_cls(theta)) for zq_cls, q_cls in [
+        (bg.RX, qiskit.circuit.library.RXGate),
+        (bg.RY, qiskit.circuit.library.RYGate),
+        (bg.RZ, qiskit.circuit.library.RZGate),
+        (bg.PHASE, qiskit.circuit.library.PhaseGate),
+        (bg.CPHASE, qiskit.extensions.CPhaseGate),
+        (bg.XX, qiskit.extensions.RXXGate),
+        (bg.YY, qiskit.extensions.RYYGate),
+        (bg.ZZ, qiskit.extensions.RZZGate),
+    ]
+    for theta in [0, -1, np.pi / 5, 2 * np.pi]
 ]
 
 
 class TestGateConversion:
-    @pytest.mark.parametrize("zq_gate,q_gate", EQUIVALENT_NON_PARAMETRIC_GATES)
+    @pytest.mark.parametrize("zq_gate,q_gate", [
+        *EQUIVALENT_NON_PARAMETRIC_GATES,
+        *EQUIVALENT_SINGLE_QUBIT_PARAMETRIC_GATES,
+    ])
     def test_matrices_are_equal(self, zq_gate, q_gate):
         zq_matrix = np.array(zq_gate.matrix).astype(np.complex128)
         np.testing.assert_allclose(zq_matrix, q_gate.to_matrix())

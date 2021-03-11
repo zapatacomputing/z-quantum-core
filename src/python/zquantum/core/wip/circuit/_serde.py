@@ -8,6 +8,9 @@ from . import _builtin_gates
 from ...utils import SCHEMA_VERSION
 
 
+CIRCUIT_SCHEMA = SCHEMA_VERSION + "-circuit"
+
+
 def serialize_expr(expr: sympy.Expr):
     return str(expr)
 
@@ -41,9 +44,6 @@ def _matrix_from_json(
             for json_row in json_rows
         ]
     )
-
-
-CIRCUIT_SCHEMA = SCHEMA_VERSION + "-circuit"
 
 
 def _map_eager(fn, iterable: Iterable):

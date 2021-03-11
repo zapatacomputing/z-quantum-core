@@ -231,23 +231,45 @@ FOREIGN_QISKIT_CIRCUITS = [
 ]
 
 
-CUSTOM_GATE_DEF = g.CustomGateDefinition("custom.A", sympy.Matrix([[0, 1], [1, 0]]), [])
+A1_GATE_DEF = g.CustomGateDefinition(
+    "unitary.33c11b461fe67e717e37ac34a568cd1c27a89013703bf5b84194f0732a33a26d",
+    sympy.Matrix([[0, 1], [1, 0]]),
+    tuple(),
+)
+A2_GATE_DEF = g.CustomGateDefinition(
+    "custom.A2.33c11b461fe67e717e37ac34a568cd1c27a89013703bf5b84194f0732a33a26d",
+    sympy.Matrix([[0, 1], [1, 0]]),
+    tuple(),
+)
 
 
 EQUIVALENT_CUSTOM_GATE_CIRCUITS = [
     (
         g.Circuit(
-            operations=[CUSTOM_GATE_DEF()(1)],
+            operations=[A1_GATE_DEF()(1)],
             n_qubits=4,
-            custom_gate_definitions=[CUSTOM_GATE_DEF],
+            custom_gate_definitions=[A1_GATE_DEF],
         ),
         _make_qiskit_circuit(
             4,
             [
-                ("unitary", (np.array([[0, 1], [1, 0]]), 1, "custom.A")),
+                ("unitary", (np.array([[0, 1], [1, 0]]), 1)),
             ],
         ),
-    )
+    ),
+    (
+        g.Circuit(
+            operations=[A2_GATE_DEF()(3)],
+            n_qubits=5,
+            custom_gate_definitions=[A2_GATE_DEF],
+        ),
+        _make_qiskit_circuit(
+            5,
+            [
+                ("unitary", (np.array([[0, 1], [1, 0]]), 3, "custom.A2")),
+            ],
+        ),
+    ),
 ]
 
 
@@ -347,9 +369,9 @@ class TestExportingToQiskit:
     def test_exporting_circuit_with_custom_gates_gives_equivalent_circuit(
         self, zquantum_circuit, qiskit_circuit
     ):
-        converted = export_to_qiskit(zquantum_circuit)
-        assert converted == qiskit_circuit, (
-            f"Converted circuit:\n{_draw_qiskit_circuit(converted)}\n isn't equal "
+        exported = export_to_qiskit(zquantum_circuit)
+        assert exported == qiskit_circuit, (
+            f"Exported circuit:\n{_draw_qiskit_circuit(exported)}\n isn't equal "
             f"to\n{_draw_qiskit_circuit(qiskit_circuit)}"
         )
 
@@ -421,7 +443,11 @@ class TestImportingFromQiskit:
         )
         assert bound_imported == ref_bound
 
-    @pytest.mark.parametrize("qiskit_circuit", FOREIGN_QISKIT_CIRCUITS)
-    def test_importing_circuit_with_unsupported_gates_raises(self, qiskit_circuit):
-        with pytest.raises(NotImplementedError):
-            import_from_qiskit(qiskit_circuit)
+    @pytest.mark.parametrize(
+        "zquantum_circuit, qiskit_circuit", EQUIVALENT_CUSTOM_GATE_CIRCUITS
+    )
+    def test_importing_circuit_with_custom_gates_gives_equivalent_circuit(
+        self, zquantum_circuit, qiskit_circuit
+    ):
+        imported = import_from_qiskit(qiskit_circuit)
+        assert imported == zquantum_circuit

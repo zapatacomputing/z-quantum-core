@@ -1,8 +1,9 @@
-from typing import Tuple, List
-from functools import singledispatch
+from typing import Tuple, List, NamedTuple, Union, Dict
+import hashlib
 
 import qiskit
 import numpy as np
+import sympy
 
 from .. import _gates
 from .. import _builtin_gates
@@ -197,18 +198,61 @@ def _export_custom_gate(
     )
 
 
+class AnonGateOperation(NamedTuple):
+    gate_name: str
+    matrix: sympy.Matrix
+    qubit_indices: Tuple[int, ...]
+
+
+ImportedOperation = Union[g.GateOperation, AnonGateOperation]
+
+
+def _apply_custom_gate(
+    anon_op: AnonGateOperation, custom_defs_map: Dict[str, _gates.CustomGateDefinition]
+) -> _gates.GateOperation:
+    gate_def = custom_defs_map[anon_op.gate_name]
+    # Qiskit doesn't support custom gates with parametrized matrices
+    # so we can assume empty params list.
+    gate_params = tuple()
+    gate = gate_def(*gate_params)
+
+    return gate(*anon_op.qubit_indices)
+
+
 def import_from_qiskit(circuit: qiskit.QuantumCircuit) -> _gates.Circuit:
     q_ops = [_import_qiskit_triplet(triplet) for triplet in circuit.data]
-    return _gates.Circuit(operations=q_ops, n_qubits=circuit.num_qubits)
+    anon_ops = [op for op in q_ops if isinstance(op, AnonGateOperation)]
+
+    # Qiskit doesn't support custom gates with parametrized matrices
+    # so we can assume empty params list.
+    params_ordering = tuple()
+    custom_defs = {
+        anon_op.gate_name: _gates.CustomGateDefinition(
+            gate_name=anon_op.gate_name,
+            matrix=anon_op.matrix,
+            params_ordering=params_ordering,
+        )
+        for anon_op in anon_ops
+    }
+    imported_ops = [
+        _apply_custom_gate(op, custom_defs) if isinstance(op, AnonGateOperation) else op
+        for op in q_ops
+    ]
+    return _gates.Circuit(
+        operations=imported_ops,
+        n_qubits=circuit.num_qubits,
+        custom_gate_definitions=custom_defs.values(),
+    )
 
 
-def _import_qiskit_triplet(qiskit_triplet: QiskitOperation) -> _gates.GateOperation:
+def _import_qiskit_triplet(qiskit_triplet: QiskitOperation) -> ImportedOperation:
+# >>>>>>> Import unsupported gates from qiskit as custom ones with matrix hash
     qiskit_op, qiskit_qubits, _ = qiskit_triplet
 
     return _import_qiskit_op(qiskit_op, qiskit_qubits)
 
 
-def _import_qiskit_op(qiskit_op, qiskit_qubits) -> _gates.GateOperation:
+def _import_qiskit_op(qiskit_op, qiskit_qubits) -> ImportedOperation:
     # We always wanna try importing via mapping to handle complex gate structures
     # represented by a single class, like CNOT (Control + X) or CSwap (Control + Swap).
     try:
@@ -218,10 +262,9 @@ def _import_qiskit_op(qiskit_op, qiskit_qubits) -> _gates.GateOperation:
 
     if isinstance(qiskit_op, qiskit.circuit.ControlledGate):
         return _import_controlled_qiskit_op(qiskit_op, qiskit_qubits)
+
     else:
-        raise NotImplementedError(
-            f"Importing {type(qiskit_op)} from Qiskit is unsupported."
-        )
+        return _import_custom_qiskit_gate(qiskit_op, qiskit_qubits)
 
 
 def _import_qiskit_op_via_mapping(
@@ -252,3 +295,26 @@ def _import_controlled_qiskit_op(
     wrapped_op = _import_qiskit_op(qiskit_gate.base_gate, wrapped_qubits)
     qubit_indices = map(_import_qiskit_qubit, qiskit_qubits)
     return wrapped_op.gate.controlled(qiskit_gate.num_ctrl_qubits)(*qubit_indices)
+
+
+def _hash_hex(bytes_):
+    return hashlib.sha256(bytes_).hexdigest()
+
+
+def _custom_qiskit_gate_name(gate_label: str, gate_name: str, matrix: np.ndarray):
+    matrix_hash = _hash_hex(matrix.tostring())
+    target_name = gate_label or gate_name
+    return f"{target_name}.{matrix_hash}"
+
+
+def _import_custom_qiskit_gate(
+    qiskit_op: qiskit.circuit.Gate, qiskit_qubits
+) -> AnonGateOperation:
+    value_matrix = qiskit_op.to_matrix()
+    return AnonGateOperation(
+        gate_name=_custom_qiskit_gate_name(
+            qiskit_op.label, qiskit_op.name, value_matrix
+        ),
+        matrix=sympy.Matrix(value_matrix),
+        qubit_indices=[_import_qiskit_qubit(qubit) for qubit in qiskit_qubits],
+    )

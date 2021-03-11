@@ -231,12 +231,12 @@ FOREIGN_QISKIT_CIRCUITS = [
 ]
 
 
-A1_GATE_DEF = g.CustomGateDefinition(
+UNITARY_GATE_DEF = g.CustomGateDefinition(
     "unitary.33c11b461fe67e717e37ac34a568cd1c27a89013703bf5b84194f0732a33a26d",
     sympy.Matrix([[0, 1], [1, 0]]),
     tuple(),
 )
-A2_GATE_DEF = g.CustomGateDefinition(
+CUSTOM_A2_GATE_DEF = g.CustomGateDefinition(
     "custom.A2.33c11b461fe67e717e37ac34a568cd1c27a89013703bf5b84194f0732a33a26d",
     sympy.Matrix([[0, 1], [1, 0]]),
     tuple(),
@@ -246,9 +246,9 @@ A2_GATE_DEF = g.CustomGateDefinition(
 EQUIVALENT_CUSTOM_GATE_CIRCUITS = [
     (
         g.Circuit(
-            operations=[A1_GATE_DEF()(1)],
+            operations=[UNITARY_GATE_DEF()(1)],
             n_qubits=4,
-            custom_gate_definitions=[A1_GATE_DEF],
+            custom_gate_definitions=[UNITARY_GATE_DEF],
         ),
         _make_qiskit_circuit(
             4,
@@ -259,14 +259,47 @@ EQUIVALENT_CUSTOM_GATE_CIRCUITS = [
     ),
     (
         g.Circuit(
-            operations=[A2_GATE_DEF()(3)],
+            operations=[CUSTOM_A2_GATE_DEF()(3)],
             n_qubits=5,
-            custom_gate_definitions=[A2_GATE_DEF],
+            custom_gate_definitions=[CUSTOM_A2_GATE_DEF],
         ),
         _make_qiskit_circuit(
             5,
             [
                 ("unitary", (np.array([[0, 1], [1, 0]]), 3, "custom.A2")),
+            ],
+        ),
+    ),
+    (
+        g.Circuit(
+            operations=[UNITARY_GATE_DEF()(1), UNITARY_GATE_DEF()(1)],
+            n_qubits=4,
+            custom_gate_definitions=[UNITARY_GATE_DEF],
+        ),
+        _make_qiskit_circuit(
+            4,
+            [
+                ("unitary", (np.array([[0, 1], [1, 0]]), 1)),
+                ("unitary", (np.array([[0, 1], [1, 0]]), 1)),
+            ],
+        ),
+    ),
+    (
+        g.Circuit(
+            operations=[
+                UNITARY_GATE_DEF()(1),
+                CUSTOM_A2_GATE_DEF()(1),
+                UNITARY_GATE_DEF()(0),
+            ],
+            n_qubits=4,
+            custom_gate_definitions=[UNITARY_GATE_DEF, CUSTOM_A2_GATE_DEF],
+        ),
+        _make_qiskit_circuit(
+            4,
+            [
+                ("unitary", (np.array([[0, 1], [1, 0]]), 1)),
+                ("unitary", (np.array([[0, 1], [1, 0]]), 1, "custom.A2")),
+                ("unitary", (np.array([[0, 1], [1, 0]]), 0)),
             ],
         ),
     ),
@@ -366,7 +399,7 @@ class TestExportingToQiskit:
     @pytest.mark.parametrize(
         "zquantum_circuit, qiskit_circuit", EQUIVALENT_CUSTOM_GATE_CIRCUITS
     )
-    def test_exporting_circuit_with_custom_gates_gives_equivalent_circuit(
+    def test_exporting_circuit_with_custom_gates_gives_equivalent_operator(
         self, zquantum_circuit, qiskit_circuit
     ):
         exported = export_to_qiskit(zquantum_circuit)

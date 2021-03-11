@@ -46,8 +46,8 @@ def _matrix_from_json(
 CIRCUIT_SCHEMA = SCHEMA_VERSION + "-circuit"
 
 
-def _mapv(fn, coll):
-    return list(map(fn, coll))
+def _map_eager(fn, iterable: Iterable):
+    return list(map(fn, iterable))
 
 
 # ---------- serialization ----------
@@ -73,14 +73,16 @@ def _circuit_to_dict(circuit: _gates.Circuit):
         "n_qubits": circuit.n_qubits,
         **(
             {
-                "operations": _mapv(to_dict, circuit.operations),
+                "operations": _map_eager(to_dict, circuit.operations),
             }
             if circuit.operations
             else {}
         ),
         **(
             {
-                "custom_gate_definitions": _mapv(to_dict, circuit.custom_gate_definitions),
+                "custom_gate_definitions": _map_eager(
+                    to_dict, circuit.custom_gate_definitions
+                ),
             }
             if circuit.custom_gate_definitions
             else {}
@@ -101,11 +103,7 @@ def _gate_operation_to_dict(gate_operation: _gates.GateOperation):
 def _basic_gate_to_dict(gate: _gates.MatrixFactoryGate):
     return {
         "name": gate.name,
-        **(
-            {"params": list(map(serialize_expr, gate.params))}
-            if gate.params
-            else {}
-        ),
+        **({"params": _map_eager(serialize_expr, gate.params)} if gate.params else {}),
         **(
             {"free_symbols": sorted(map(str, gate.free_symbols))}
             if gate.free_symbols
@@ -119,7 +117,7 @@ def _custom_gate_def_to_dict(gate_def: _gates.CustomGateDefinition):
     return {
         "gate_name": gate_def.gate_name,
         "matrix": _matrix_to_json(gate_def.matrix),
-        "params_ordering": _mapv(serialize_expr, gate_def.params_ordering),
+        "params_ordering": _map_eager(serialize_expr, gate_def.params_ordering),
     }
 
 

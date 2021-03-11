@@ -4,7 +4,13 @@ import numpy as np
 
 from . import _gates
 from . import _builtin_gates
-from ._serde import serialize_expr, deserialize_expr, circuit_from_dict, custom_gate_def_from_dict, to_dict
+from ._serde import (
+    serialize_expr,
+    deserialize_expr,
+    circuit_from_dict,
+    custom_gate_def_from_dict,
+    to_dict,
+)
 
 
 ALPHA = sympy.Symbol("alpha")

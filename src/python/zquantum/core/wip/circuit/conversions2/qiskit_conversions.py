@@ -103,7 +103,9 @@ def _export_gate_to_qiskit(gate, applied_qubit_indices, n_qubits_in_circuit):
         qiskit_qubit(qubit_i, n_qubits_in_circuit) for qubit_i in applied_qubit_indices
     ]
     try:
-        qiskit_cls = ZQUANTUM_QISKIT_GATE_MAP[_builtin_gates.builtin_gate_by_name(gate.name)]
+        qiskit_cls = ZQUANTUM_QISKIT_GATE_MAP[
+            _builtin_gates.builtin_gate_by_name(gate.name)
+        ]
         return qiskit_cls(*qiskit_params), qiskit_qubits, []
     except KeyError:
         raise NotImplementedError(f"Conversion of {gate} to Qiskit is unsupported.")

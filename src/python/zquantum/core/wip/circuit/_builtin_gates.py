@@ -11,7 +11,10 @@ GateRef = Union[_gates.Gate, GatePrototype]
 def make_parametric_gate_prototype(name, matrix_factory, num_qubits) -> GatePrototype:
     def _factory(*gate_parameters):
         # TODO: check if len(gate_parameters) == len(arguments of matrix_factory)
-        return _gates.MatrixFactoryGate(name, matrix_factory, gate_parameters, num_qubits)
+        return _gates.MatrixFactoryGate(
+            name, matrix_factory, gate_parameters, num_qubits
+        )
+
     return _factory
 
 

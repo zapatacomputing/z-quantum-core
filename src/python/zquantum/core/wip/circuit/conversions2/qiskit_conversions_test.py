@@ -31,7 +31,8 @@ EQUIVALENT_NON_PARAMETRIC_GATES = [
 EQUIVALENT_PARAMETRIC_GATES = [
     (zquantum_cls(theta), qiskit_cls(theta))
     for zquantum_cls, qiskit_cls in [
-        (_builtin_gates.RX, qiskit.circuit.library.RXGate), (_builtin_gates.RY, qiskit.circuit.library.RYGate),
+        (_builtin_gates.RX, qiskit.circuit.library.RXGate),
+        (_builtin_gates.RY, qiskit.circuit.library.RYGate),
         (_builtin_gates.RZ, qiskit.circuit.library.RZGate),
         (_builtin_gates.PHASE, qiskit.circuit.library.PhaseGate),
         (_builtin_gates.CPHASE, qiskit.extensions.CPhaseGate),
@@ -286,7 +287,9 @@ class TestExportingToQiskit:
 
     def test_converting_circuit_with_daggers_fails_explicitly(self):
         # NOTE: Qiskit doesn't natively support dagger gates
-        zquantum_circuit = _gates.Circuit([_builtin_gates.X.dagger(2), _builtin_gates.T.dagger(1)], 3)
+        zquantum_circuit = _gates.Circuit(
+            [_builtin_gates.X.dagger(2), _builtin_gates.T.dagger(1)], 3
+        )
         with pytest.raises(NotImplementedError):
             export_to_qiskit(zquantum_circuit)
 

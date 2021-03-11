@@ -28,11 +28,10 @@ EQUIVALENT_NON_PARAMETRIC_GATES = [
     (bg.ISWAP, qiskit.extensions.iSwapGate()),
 ]
 
-EQUIVALENT_SINGLE_QUBIT_PARAMETRIC_GATES = [
-    (zq_cls(theta), q_cls(theta))
-    for zq_cls, q_cls in [
-        (bg.RX, qiskit.circuit.library.RXGate),
-        (bg.RY, qiskit.circuit.library.RYGate),
+EQUIVALENT_PARAMETRIC_GATES = [
+    (zquantum_cls(theta), qiskit_cls(theta))
+    for zquantum_cls, qiskit_cls in [
+        (bg.RX, qiskit.circuit.library.RXGate), (bg.RY, qiskit.circuit.library.RYGate),
         (bg.RZ, qiskit.circuit.library.RZGate),
         (bg.PHASE, qiskit.circuit.library.PhaseGate),
         (bg.CPHASE, qiskit.extensions.CPhaseGate),
@@ -69,16 +68,16 @@ def _fix_qubit_ordering(qiskit_matrix):
 
 class TestGateConversion:
     @pytest.mark.parametrize(
-        "zq_gate,q_gate",
+        "zquantum_gate,qiskit_gate",
         [
             *EQUIVALENT_NON_PARAMETRIC_GATES,
-            *EQUIVALENT_SINGLE_QUBIT_PARAMETRIC_GATES,
+            *EQUIVALENT_PARAMETRIC_GATES,
         ],
     )
-    def test_matrices_are_equal(self, zq_gate, q_gate):
-        zq_matrix = np.array(zq_gate.matrix).astype(np.complex128)
-        q_matrix = _fix_qubit_ordering(q_gate.to_matrix())
-        np.testing.assert_allclose(zq_matrix, q_matrix)
+    def test_matrices_are_equal(self, zquantum_gate, qiskit_gate):
+        zquantum_matrix = np.array(zquantum_gate.matrix).astype(np.complex128)
+        qiskit_matrix = _fix_qubit_ordering(qiskit_gate.to_matrix())
+        np.testing.assert_allclose(zquantum_matrix, qiskit_matrix)
 
 
 # circuits ---------

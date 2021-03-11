@@ -246,7 +246,6 @@ def import_from_qiskit(circuit: qiskit.QuantumCircuit) -> _gates.Circuit:
 
 
 def _import_qiskit_triplet(qiskit_triplet: QiskitOperation) -> ImportedOperation:
-# >>>>>>> Import unsupported gates from qiskit as custom ones with matrix hash
     qiskit_op, qiskit_qubits, _ = qiskit_triplet
 
     return _import_qiskit_op(qiskit_op, qiskit_qubits)
@@ -257,14 +256,15 @@ def _import_qiskit_op(qiskit_op, qiskit_qubits) -> ImportedOperation:
     # represented by a single class, like CNOT (Control + X) or CSwap (Control + Swap).
     try:
         return _import_qiskit_op_via_mapping(qiskit_op, qiskit_qubits)
-    except NotImplementedError:
+    except ValueError:
         pass
 
-    if isinstance(qiskit_op, qiskit.circuit.ControlledGate):
+    try:
         return _import_controlled_qiskit_op(qiskit_op, qiskit_qubits)
+    except ValueError:
+        pass
 
-    else:
-        return _import_custom_qiskit_gate(qiskit_op, qiskit_qubits)
+    return _import_custom_qiskit_gate(qiskit_op, qiskit_qubits)
 
 
 def _import_qiskit_op_via_mapping(
@@ -273,7 +273,7 @@ def _import_qiskit_op_via_mapping(
     try:
         gate_ref = QISKIT_ZQUANTUM_GATE_MAP[type(qiskit_gate)]
     except KeyError:
-        raise NotImplementedError(
+        raise ValueError(
             f"Conversion of {qiskit_gate} from Qiskit is unsupported."
         )
 
@@ -291,6 +291,11 @@ def _import_qiskit_op_via_mapping(
 def _import_controlled_qiskit_op(
     qiskit_gate: qiskit.circuit.ControlledGate, qiskit_qubits: [qiskit.circuit.Qubit]
 ) -> _gates.GateOperation:
+    if not isinstance(qiskit_gate, qiskit.circuit.ControlledGate):
+        # Raising an exception here is redundant to the type hint, but it allows us
+        # to handle exporting all gates in the same way, regardless of type
+        raise ValueError(f"Can't import gate {qiskit_gate} as a controlled gate")
+
     wrapped_qubits = qiskit_qubits[qiskit_gate.num_ctrl_qubits :]
     wrapped_op = _import_qiskit_op(qiskit_gate.base_gate, wrapped_qubits)
     qubit_indices = map(_import_qiskit_qubit, qiskit_qubits)

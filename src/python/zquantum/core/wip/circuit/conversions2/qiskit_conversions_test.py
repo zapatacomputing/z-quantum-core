@@ -8,36 +8,36 @@ from zquantum.core.wip.circuit.conversions2.qiskit_conversions import (
     export_to_qiskit,
     import_from_qiskit,
 )
-from zquantum.core.wip.circuit import _gates as g
-from zquantum.core.wip.circuit import _builtin_gates as bg
+from zquantum.core.wip.circuit import _gates
+from zquantum.core.wip.circuit import _builtin_gates
 
 
 # --------- gates ---------
 
 
 EQUIVALENT_NON_PARAMETRIC_GATES = [
-    (bg.X, qiskit.circuit.library.XGate()),
-    (bg.Y, qiskit.circuit.library.YGate()),
-    (bg.Z, qiskit.circuit.library.ZGate()),
-    (bg.H, qiskit.circuit.library.HGate()),
-    (bg.I, qiskit.circuit.library.IGate()),
-    (bg.T, qiskit.circuit.library.TGate()),
-    (bg.CNOT, qiskit.extensions.CXGate()),
-    (bg.CZ, qiskit.extensions.CZGate()),
-    (bg.SWAP, qiskit.extensions.SwapGate()),
-    (bg.ISWAP, qiskit.extensions.iSwapGate()),
+    (_builtin_gates.X, qiskit.circuit.library.XGate()),
+    (_builtin_gates.Y, qiskit.circuit.library.YGate()),
+    (_builtin_gates.Z, qiskit.circuit.library.ZGate()),
+    (_builtin_gates.H, qiskit.circuit.library.HGate()),
+    (_builtin_gates.I, qiskit.circuit.library.IGate()),
+    (_builtin_gates.T, qiskit.circuit.library.TGate()),
+    (_builtin_gates.CNOT, qiskit.extensions.CXGate()),
+    (_builtin_gates.CZ, qiskit.extensions.CZGate()),
+    (_builtin_gates.SWAP, qiskit.extensions.SwapGate()),
+    (_builtin_gates.ISWAP, qiskit.extensions.iSwapGate()),
 ]
 
 EQUIVALENT_PARAMETRIC_GATES = [
     (zquantum_cls(theta), qiskit_cls(theta))
     for zquantum_cls, qiskit_cls in [
-        (bg.RX, qiskit.circuit.library.RXGate), (bg.RY, qiskit.circuit.library.RYGate),
-        (bg.RZ, qiskit.circuit.library.RZGate),
-        (bg.PHASE, qiskit.circuit.library.PhaseGate),
-        (bg.CPHASE, qiskit.extensions.CPhaseGate),
-        (bg.XX, qiskit.extensions.RXXGate),
-        (bg.YY, qiskit.extensions.RYYGate),
-        (bg.ZZ, qiskit.extensions.RZZGate),
+        (_builtin_gates.RX, qiskit.circuit.library.RXGate), (_builtin_gates.RY, qiskit.circuit.library.RYGate),
+        (_builtin_gates.RZ, qiskit.circuit.library.RZGate),
+        (_builtin_gates.PHASE, qiskit.circuit.library.PhaseGate),
+        (_builtin_gates.CPHASE, qiskit.extensions.CPhaseGate),
+        (_builtin_gates.XX, qiskit.extensions.RXXGate),
+        (_builtin_gates.YY, qiskit.extensions.RYYGate),
+        (_builtin_gates.ZZ, qiskit.extensions.RZZGate),
     ]
     for theta in [0, -1, np.pi / 5, 2 * np.pi]
 ]
@@ -142,43 +142,43 @@ EXAMPLE_PARAM_VALUES = {
 
 EQUIVALENT_CIRCUITS = [
     (
-        g.Circuit(
+        _gates.Circuit(
             [
-                bg.X(0),
-                bg.Z(2),
+                _builtin_gates.X(0),
+                _builtin_gates.Z(2),
             ],
             6,
         ),
         _single_qubit_qiskit_circuit(),
     ),
     (
-        g.Circuit(
+        _gates.Circuit(
             [
-                bg.CNOT(0, 1),
+                _builtin_gates.CNOT(0, 1),
             ],
             4,
         ),
         _two_qubit_qiskit_circuit(),
     ),
     (
-        g.Circuit(
+        _gates.Circuit(
             [
-                bg.RX(np.pi)(1),
+                _builtin_gates.RX(np.pi)(1),
             ],
             4,
         ),
         _parametric_qiskit_circuit(np.pi),
     ),
     (
-        g.Circuit(
-            [bg.SWAP.controlled(1)(2, 0, 3)],
+        _gates.Circuit(
+            [_builtin_gates.SWAP.controlled(1)(2, 0, 3)],
             5,
         ),
         _qiskit_circuit_with_controlled_gate(),
     ),
     (
-        g.Circuit(
-            [bg.Y.controlled(2)(4, 5, 2)],
+        _gates.Circuit(
+            [_builtin_gates.Y.controlled(2)(4, 5, 2)],
             6,
         ),
         _qiskit_circuit_with_multicontrolled_gate(),
@@ -188,18 +188,18 @@ EQUIVALENT_CIRCUITS = [
 
 EQUIVALENT_PARAMETRIZED_CIRCUITS = [
     (
-        g.Circuit(
+        _gates.Circuit(
             [
-                bg.RX(SYMPY_THETA)(1),
+                _builtin_gates.RX(SYMPY_THETA)(1),
             ],
             4,
         ),
         _parametric_qiskit_circuit(QISKIT_THETA),
     ),
     (
-        g.Circuit(
+        _gates.Circuit(
             [
-                bg.RX(SYMPY_THETA * SYMPY_GAMMA)(1),
+                _builtin_gates.RX(SYMPY_THETA * SYMPY_GAMMA)(1),
             ],
             4,
         ),
@@ -286,7 +286,7 @@ class TestExportingToQiskit:
 
     def test_converting_circuit_with_daggers_fails_explicitly(self):
         # NOTE: Qiskit doesn't natively support dagger gates
-        zquantum_circuit = g.Circuit([bg.X.dagger(2), bg.T.dagger(1)], 3)
+        zquantum_circuit = _gates.Circuit([_builtin_gates.X.dagger(2), _builtin_gates.T.dagger(1)], 3)
         with pytest.raises(NotImplementedError):
             export_to_qiskit(zquantum_circuit)
 

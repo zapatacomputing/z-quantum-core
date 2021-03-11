@@ -3,8 +3,8 @@ from functools import singledispatch
 
 import sympy
 
-from . import _gates as g
-from . import _builtin_gates as bg
+from . import _gates
+from . import _builtin_gates
 from ...utils import SCHEMA_VERSION
 
 
@@ -22,7 +22,7 @@ def deserialize_expr(expr_str, symbol_names):
 
 
 def builtin_gate_by_name(name):
-    return bg.builtin_gate_by_name(name)
+    return _builtin_gates.builtin_gate_by_name(name)
 
 
 def _matrix_to_json(matrix: sympy.Matrix):
@@ -59,7 +59,7 @@ def to_dict(obj):
 
 
 @to_dict.register
-def _circuit_to_dict(circuit: g.Circuit):
+def _circuit_to_dict(circuit: _gates.Circuit):
     """
     Returns:
         A mapping with keys:
@@ -89,7 +89,7 @@ def _circuit_to_dict(circuit: g.Circuit):
 
 
 @to_dict.register
-def _gate_operation_to_dict(gate_operation: g.GateOperation):
+def _gate_operation_to_dict(gate_operation: _gates.GateOperation):
     return {
         "type": "gate_operation",
         "gate": to_dict(gate_operation.gate),
@@ -98,7 +98,7 @@ def _gate_operation_to_dict(gate_operation: g.GateOperation):
 
 
 @to_dict.register
-def _basic_gate_to_dict(gate: g.MatrixFactoryGate):
+def _basic_gate_to_dict(gate: _gates.MatrixFactoryGate):
     return {
         "name": gate.name,
         **(
@@ -115,7 +115,7 @@ def _basic_gate_to_dict(gate: g.MatrixFactoryGate):
 
 
 @to_dict.register
-def _custom_gate_def_to_dict(gate_def: g.CustomGateDefinition):
+def _custom_gate_def_to_dict(gate_def: _gates.CustomGateDefinition):
     return {
         "gate_name": gate_def.gate_name,
         "matrix": _matrix_to_json(gate_def.matrix),
@@ -124,7 +124,7 @@ def _custom_gate_def_to_dict(gate_def: g.CustomGateDefinition):
 
 
 @to_dict.register
-def _controlled_gate_to_dict(gate: g.ControlledGate):
+def _controlled_gate_to_dict(gate: _gates.ControlledGate):
     return {
         "name": gate.name,
         "wrapped_gate": to_dict(gate.wrapped_gate),
@@ -133,7 +133,7 @@ def _controlled_gate_to_dict(gate: g.ControlledGate):
 
 
 @to_dict.register
-def _dagger_gate_to_dict(gate: g.Dagger):
+def _dagger_gate_to_dict(gate: _gates.Dagger):
     return {
         "name": gate.name,
         "wrapped_gate": to_dict(gate.wrapped_gate),
@@ -148,7 +148,7 @@ def circuit_from_dict(dict_):
         custom_gate_def_from_dict(def_dict)
         for def_dict in dict_.get("custom_gate_definitions", [])
     ]
-    return g.Circuit(
+    return _gates.Circuit(
         operations=[
             _gate_operation_from_dict(op_dict, defs)
             for op_dict in dict_.get("operations", [])
@@ -159,7 +159,7 @@ def circuit_from_dict(dict_):
 
 
 def _gate_operation_from_dict(dict_, custom_gate_defs):
-    return g.GateOperation(
+    return _gates.GateOperation(
         gate=_gate_from_dict(dict_["gate"], custom_gate_defs),
         qubit_indices=tuple(dict_["qubit_indices"]),
     )
@@ -183,12 +183,12 @@ def _gate_from_dict(dict_, custom_gate_defs):
     return _custom_gate_instance_from_dict(dict_, custom_gate_defs)
 
 
-def _builtin_gate_from_dict(dict_) -> bg.GateRef:
+def _builtin_gate_from_dict(dict_) -> _builtin_gates.GateRef:
     gate_ref = builtin_gate_by_name(dict_["name"])
     if gate_ref is None:
         raise KeyError()
 
-    if g.gate_is_parametric(gate_ref, dict_.get("params")):
+    if _gates.gate_is_parametric(gate_ref, dict_.get("params")):
         return gate_ref(
             *[
                 deserialize_expr(param, dict_.get("free_symbols", []))
@@ -199,29 +199,29 @@ def _builtin_gate_from_dict(dict_) -> bg.GateRef:
         return gate_ref
 
 
-def _special_gate_from_dict(dict_, custom_gate_defs) -> g.Gate:
-    if dict_["name"] == g.CONTROLLED_GATE_NAME:
+def _special_gate_from_dict(dict_, custom_gate_defs) -> _gates.Gate:
+    if dict_["name"] == _gates.CONTROLLED_GATE_NAME:
         wrapped_gate = _gate_from_dict(dict_["wrapped_gate"], custom_gate_defs)
-        return g.ControlledGate(wrapped_gate, dict_["num_control_qubits"])
+        return _gates.ControlledGate(wrapped_gate, dict_["num_control_qubits"])
 
-    elif dict_["name"] == g.DAGGER_GATE_NAME:
+    elif dict_["name"] == _gates.DAGGER_GATE_NAME:
         wrapped_gate = _gate_from_dict(dict_["wrapped_gate"], custom_gate_defs)
-        return g.Dagger(wrapped_gate)
+        return _gates.Dagger(wrapped_gate)
 
     else:
         raise KeyError()
 
 
-def custom_gate_def_from_dict(dict_) -> g.CustomGateDefinition:
+def custom_gate_def_from_dict(dict_) -> _gates.CustomGateDefinition:
     symbols = [sympy.Symbol(term) for term in dict_.get("params_ordering", [])]
-    return g.CustomGateDefinition(
+    return _gates.CustomGateDefinition(
         gate_name=dict_["gate_name"],
         matrix=_matrix_from_json(dict_["matrix"], dict_.get("params_ordering", [])),
         params_ordering=tuple(symbols),
     )
 
 
-def _custom_gate_instance_from_dict(dict_, custom_gate_defs) -> g.Gate:
+def _custom_gate_instance_from_dict(dict_, custom_gate_defs) -> _gates.Gate:
     gate_def = next(
         (
             gate_def

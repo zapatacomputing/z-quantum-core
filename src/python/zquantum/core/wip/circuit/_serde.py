@@ -8,7 +8,7 @@ from . import _builtin_gates
 from ...utils import SCHEMA_VERSION
 
 
-def serialize_expr(expr):
+def serialize_expr(expr: sympy.Expr):
     return str(expr)
 
 

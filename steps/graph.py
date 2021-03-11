@@ -45,10 +45,10 @@ def generate_complete_graph(
 
 
 def generate_caveman_graph(
-        umber_of_cliques: int, size_of_cliques: int, random_weights: bool = False, seed: Optional[int] = None
+        number_of_cliques: int, size_of_cliques: int, random_weights: bool = False, seed: Optional[int] = None
 ):
     graph = _generate_caveman_graph(
-        umber_of_cliques, size_of_cliques, random_weights, seed
+        number_of_cliques, size_of_cliques, random_weights, seed
     )
     save_graph(graph, "graph.json")
 

@@ -122,16 +122,6 @@ class TestGraph(unittest.TestCase):
 
     def test_generate_caveman_graph(self):
         # Given
-        number_of_cliques = 2
-        size_of_cliques = 3
-
-        # When
-        graph = generate_caveman_graph(number_of_cliques, size_of_cliques)
-
-        # Then
-        assert type(graph) == nx.Graph
-
-        # Given
         number_of_cliques = 3
         size_of_cliques = 4
         random_weights = True
@@ -147,15 +137,6 @@ class TestGraph(unittest.TestCase):
 
     def test_generate_ladder_graph(self):
         # Given
-        length_of_ladder = 3
-
-        # When
-        graph = generate_ladder_graph(length_of_ladder)
-
-        # Then
-        assert type(graph) == nx.Graph
-
-        # Given
         length_of_ladder = 4
         random_weights = True
 
@@ -169,15 +150,6 @@ class TestGraph(unittest.TestCase):
         self.assertEqual(len(graph.nodes), length_of_ladder * 2)
 
     def test_generate_barbell_graph(self):
-        # Given
-        number_of_vertices_complete_graph = 3
-
-        # When
-        graph = generate_barbell_graph(number_of_vertices_complete_graph)
-
-        # Then
-        assert type(graph) == nx.Graph
-
         # Given
         number_of_vertices_complete_graph = 4
         random_weights = True

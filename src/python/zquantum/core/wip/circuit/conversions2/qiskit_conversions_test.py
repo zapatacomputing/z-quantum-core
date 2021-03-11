@@ -370,9 +370,11 @@ class TestExportingToQiskit:
         self, zquantum_circuit, qiskit_circuit
     ):
         exported = export_to_qiskit(zquantum_circuit)
-        assert exported == qiskit_circuit, (
-            f"Exported circuit:\n{_draw_qiskit_circuit(exported)}\n isn't equal "
-            f"to\n{_draw_qiskit_circuit(qiskit_circuit)}"
+        # We can't compare the circuits directly, because the gate names can differ.
+        # Qiskit allows multiple gate operations with the same label. ZQuantum doesn't
+        # allow that, so we append a matrix hash to the name.
+        assert qiskit.quantum_info.Operator(exported) == qiskit.quantum_info.Operator(
+            qiskit_circuit
         )
 
 

@@ -8,16 +8,9 @@ setuptools.setup(
     author_email="info@zapatacomputing.com",
     description="A core library of the scientific code for Orquestra.",
     url="https://github.com/zapatacomputing/z-quantum-core",
-    packages=[
-        "zquantum.core",
-        "zquantum.core.bitstring_distribution",
-        "zquantum.core.bitstring_distribution.distance_measures",
-        "zquantum.core.circuit",
-        "zquantum.core.history",
-        "zquantum.core.interfaces",
-        "zquantum.core.openfermion",
-        "zquantum.core.testing",
-    ],
+    packages=setuptools.find_namespace_packages(
+        include=["zquantum.*"], where="src/python"
+    ),
     package_dir={"": "src/python"},
     classifiers=(
         "Programming Language :: Python :: 3",
@@ -32,9 +25,9 @@ setuptools.setup(
         "openfermion>=1.0.0",
         "openfermioncirq==0.4.0",
         "lea>=3.2.0",
-        "pyquil>=2.17.0",
+        "pyquil~=2.25",
         "cirq>=0.9.1",
-        "qiskit==0.23.2",
+        "qiskit~=0.24",
         "overrides>=3.1.0",
     ],
 )

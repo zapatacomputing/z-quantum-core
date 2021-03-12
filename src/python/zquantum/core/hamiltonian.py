@@ -39,7 +39,7 @@ def group_comeasureable_terms_greedy(
     Args:
         qubit_operator: the operator whose terms are to be grouped
         sort_terms: whether to sort terms by the absolute value of the coefficient when grouping
-	Returns:
+        Returns:
         A list of qubit operators.
     """
 
@@ -89,7 +89,7 @@ def get_decomposition_function(
 
     Args:
         decomposition_method: The name of the Hamiltonian decomposition method.
-    
+
     Returns:
         A callable that performs the decomposition.
     """
@@ -105,14 +105,14 @@ def get_decomposition_function(
 def compute_group_variances(
     groups: List[QubitOperator], expecval: ExpectationValues = None
 ) -> np.array:
-    """Computes the variances of each frame in a grouped operator. 
+    """Computes the variances of each frame in a grouped operator.
 
-    If expectation values are provided, use variances from there, 
+    If expectation values are provided, use variances from there,
     otherwise assume variances are 1 (upper bound). Correlation information
     is ignored in the current implementation, covariances are assumed to be 0.
 
     Args:
-        groups:  A list of QubitOperators that defines a (grouped) operator 
+        groups:  A list of QubitOperators that defines a (grouped) operator
         expecval: An ExpectationValues object containing the expectation
             values of the operators.
     Returns:
@@ -149,8 +149,8 @@ def get_expectation_values_from_rdms_for_qubitoperator_list(
     qubitoperator_list: List[QubitOperator],
     sort_terms: bool = False,
 ) -> ExpectationValues:
-    """Computes expectation values of Pauli strings in a list of QubitOperator given a 
-       fermionic InteractionRDM from OpenFermion. All the expectation values for the 
+    """Computes expectation values of Pauli strings in a list of QubitOperator given a
+       fermionic InteractionRDM from OpenFermion. All the expectation values for the
        operators in the list are returned in a single ExpectationValues object in the
        same order the operators came in.
 
@@ -234,7 +234,7 @@ def estimate_nmeas_for_operator(
             co-measurable groups. See DECOMPOSITION_METHODS.
         expval: Expectation values to be used when accounting for variances. See
             estimate_nmeas_for_frames for details.
-        
+
     Returns:
         See estimate_nmeas_for_frames.
     """
@@ -244,11 +244,12 @@ def estimate_nmeas_for_operator(
 
 
 def estimate_nmeas_for_frames(
-    frame_operators: List[QubitOperator], expecval: Optional[ExpectationValues] = None,
+    frame_operators: List[QubitOperator],
+    expecval: Optional[ExpectationValues] = None,
 ) -> Tuple[float, int, np.array]:
     """Calculates the number of measurements required for computing
     the expectation value of a qubit hamiltonian, where co-measurable terms
-    are grouped in a single QubitOperator, and different groups are different 
+    are grouped in a single QubitOperator, and different groups are different
     members of the list.
 
     We are assuming the exact expectation values are provided
@@ -265,16 +266,16 @@ def estimate_nmeas_for_frames(
         frame_operators (List[QubitOperator]): A list of QubitOperator objects, where each element in
             the list is a group of co-measurable terms.
         expecval (Optional[ExpectationValues]): An ExpectationValues object containing the expectation
-            values of all operators in frame_operators. If absent, variances are assumed to be 
-            maximal, i.e. 1. 
-            NOTE: YOU HAVE TO MAKE SURE THAT THE ORDER OF EXPECTATION VALUES MATCHES 
-            THE ORDER OF THE TERMS IN THE *GROUPED* TARGET QUBIT OPERATOR, OTHERWISE 
+            values of all operators in frame_operators. If absent, variances are assumed to be
+            maximal, i.e. 1.
+            NOTE: YOU HAVE TO MAKE SURE THAT THE ORDER OF EXPECTATION VALUES MATCHES
+            THE ORDER OF THE TERMS IN THE *GROUPED* TARGET QUBIT OPERATOR, OTHERWISE
             THIS FUNCTION WILL NOT RETURN THE CORRECT RESULT.
-        
+
     Returns:
         K2 (float): number of measurements for epsilon = 1.0
         nterms (int): number of groups in frame_operators
-        frame_meas (np.array): Number of optimal measurements per group 
+        frame_meas (np.array): Number of optimal measurements per group
     """
     frame_variances = compute_group_variances(frame_operators, expecval)
     sqrt_lambda = sum(np.sqrt(frame_variances))

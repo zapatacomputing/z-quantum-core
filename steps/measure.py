@@ -26,12 +26,14 @@ from zquantum.core.openfermion import (
     load_interaction_rdm,
     load_qubit_operator_set,
 )
+from zquantum.core.typing import Specs
 from typing import Dict, Optional, Union
 
 
 def run_circuit_and_measure(
-    backend_specs: Dict,
+    backend_specs: Specs,
     circuit: Union[str, Dict],
+    n_samples: Optional[int] = None,
     noise_model: Optional[str] = None,
     device_connectivity: Optional[str] = None,
 ):
@@ -50,13 +52,14 @@ def run_circuit_and_measure(
     else:
         circuit = Circuit.from_dict(circuit)
 
-    measurements = backend.run_circuit_and_measure(circuit)
+    measurements = backend.run_circuit_and_measure(circuit, n_samples=n_samples)
     measurements.save("measurements.json")
 
 
 def run_circuitset_and_measure(
-    backend_specs: Dict,
+    backend_specs: Specs,
     circuitset: str,
+    n_samples: Optional[int] = None,
     noise_model: Optional[str] = None,
     device_connectivity: Optional[str] = None,
 ):
@@ -73,13 +76,15 @@ def run_circuitset_and_measure(
     circuit_set = load_circuit_set(circuitset)
     backend = create_object(backend_specs)
 
-    measurements_set = backend.run_circuitset_and_measure(circuit_set)
+    measurements_set = backend.run_circuitset_and_measure(
+        circuit_set, n_samples=n_samples
+    )
     list_of_measurements = [measurement.bitstrings for measurement in measurements_set]
     save_list(list_of_measurements, "measurements-set.json")
 
 
 def get_bitstring_distribution(
-    backend_specs: Dict,
+    backend_specs: Specs,
     circuit: str,
     noise_model: Optional[str] = None,
     device_connectivity: Optional[str] = None,
@@ -101,10 +106,10 @@ def get_bitstring_distribution(
 
 
 def evaluate_ansatz_based_cost_function(
-    ansatz_specs: str,
-    backend_specs: str,
-    cost_function_specs: str,
-    ansatz_parameters: str,
+    ansatz_specs: Specs,
+    backend_specs: Specs,
+    cost_function_specs: Specs,
+    ansatz_parameters: Specs,
     qubit_operator: str,
     noise_model: Optional[str] = None,
     device_connectivity: Optional[str] = None,
@@ -175,7 +180,8 @@ def hamiltonian_analysis(
 
 
 def grouped_hamiltonian_analysis(
-    groups: str, expectation_values: Optional[str] = None,
+    groups: str,
+    expectation_values: Optional[str] = None,
 ):
     """Calculates the number of measurements required for computing
     the expectation value of a qubit hamiltonian, where co-measurable terms
@@ -220,7 +226,9 @@ def grouped_hamiltonian_analysis(
 
 
 def expectation_values_from_rdms(
-    interactionrdm: str, qubit_operator: str, sort_terms: bool = False,
+    interactionrdm: str,
+    qubit_operator: str,
+    sort_terms: bool = False,
 ):
     operator = load_qubit_operator(qubit_operator)
     rdms = load_interaction_rdm(interactionrdm)

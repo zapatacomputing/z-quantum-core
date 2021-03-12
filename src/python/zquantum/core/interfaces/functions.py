@@ -11,6 +11,7 @@ S = TypeVar("S", contravariant=True)
 
 class StoreArtifact(Protocol):
     """A protocol describing how the artifacts are stored."""
+
     def __call__(self, artifact_name: str, artifact: Any, force: bool = False) -> None:
         pass
 
@@ -19,7 +20,7 @@ class StoreArtifact(Protocol):
 class CallableWithGradient(Protocol):
     """A callable with gradient."""
 
-    def __call__(self, params: np.ndarray):
+    def __call__(self, params: np.ndarray) -> float:
         pass
 
     def gradient(self, params: np.ndarray) -> np.ndarray:
@@ -30,9 +31,7 @@ class CallableWithGradient(Protocol):
 class CallableStoringArtifacts(Protocol[S, T]):
     """A callable that stores artifacts."""
 
-    def __call__(
-        self, params: S, store_artifact: Optional[StoreArtifact]
-    ) -> T:
+    def __call__(self, params: S, store_artifact: Optional[StoreArtifact]) -> T:
         pass
 
 
@@ -41,6 +40,7 @@ class CallableWithGradientStoringArtifacts(
     CallableStoringArtifacts[np.ndarray, T], Protocol
 ):
     """A callable with gradient that stored artifacts."""
+
     def gradient(self, params: np.ndarray) -> np.ndarray:
         pass
 
@@ -62,26 +62,30 @@ def has_store_artifact_param(function) -> bool:
 
 class FunctionWithGradient(NamedTuple):
     """A callable with gradient."""
+
     function: Callable[[np.ndarray], np.ndarray]
     gradient: Callable[[np.ndarray], np.ndarray]
 
-    def __call__(self, params: np.ndarray):
+    def __call__(self, params: np.ndarray) -> float:
         return self.function(params)
 
 
 class FunctionWithGradientStoringArtifacts(NamedTuple):
     """A callable with gradient that also stores artifacts."""
+
     function: CallableStoringArtifacts
     gradient: Callable[[np.ndarray], np.ndarray]
 
-    def __call__(self, params: np.ndarray, store_artifact: StoreArtifact = None):
+    def __call__(
+        self, params: np.ndarray, store_artifact: StoreArtifact = None
+    ) -> float:
         return self.function(params, store_artifact)
 
 
 def function_with_gradient(
     function: Union[Callable[[np.ndarray], float], CallableStoringArtifacts],
-    gradient: Callable[[np.ndarray], np.ndarray]
-):
+    gradient: Callable[[np.ndarray], np.ndarray],
+) -> Callable[[np.ndarray], np.ndarray]:
     """Combine function and gradient into an entity adhering to protocols used by history recorder.
 
     Note that this is a preferred method for adding gradient to your function,

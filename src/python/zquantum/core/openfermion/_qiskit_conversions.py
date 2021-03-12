@@ -38,7 +38,7 @@ def qubitop_to_qiskitpauli(qubit_operator: QubitOperator) -> WeightedPauliOperat
         raise TypeError("qubit_operator must be a OpenFermion " "QubitOperator object")
 
     if qubit_operator == QubitOperator():
-        return WeightedPauliOperator([[1, Pauli.from_label("I")]])
+        return WeightedPauliOperator([])
 
     terms = []
     for qubit_terms, coefficient in qubit_operator.terms.items():

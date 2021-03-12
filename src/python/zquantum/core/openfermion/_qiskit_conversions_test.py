@@ -33,21 +33,6 @@ from qiskit.aqua.operators import WeightedPauliOperator
 from qiskit.quantum_info import Pauli
 
 
-def test_confirm_interface():
-    """
-    Test conversion
-    This checks the conversion between qiskit WeightedPauliOperator
-    with OpenFermion QubitOperators. This checks for fields associated with the
-    conversion between the two objects. Does not check the field types.
-    """
-    op = QubitOperator()
-    assert hasattr(op, "terms")
-    assert isinstance(op.terms, dict)
-
-    op_qiskit = WeightedPauliOperator([])
-    assert hasattr(op_qiskit, "paulis")
-
-
 def test_translation_type_enforcement():
     """
     Make sure type check works
@@ -85,13 +70,9 @@ def test_qubitop_to_qiskitpauli():
 
 
 def test_qubitop_to_qiskitpauli_zero():
-    identity_term = QubitOperator()
-    qiskit_term = qubitop_to_qiskitpauli(identity_term)
-    ground_truth = WeightedPauliOperator(
-        [
-            [1, Pauli.from_label("I")],
-        ]
-    )
+    zero_term = QubitOperator()
+    qiskit_term = qubitop_to_qiskitpauli(zero_term)
+    ground_truth = WeightedPauliOperator([])
 
     assert ground_truth == qiskit_term
 

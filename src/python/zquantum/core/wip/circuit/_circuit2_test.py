@@ -1,4 +1,3 @@
-import pytest
 import numpy as np
 import sympy
 
@@ -22,7 +21,7 @@ from ._builtin_gates import (
     YY,
     ZZ,
 )
-from ._gates import Circuit, CustomGateDefinition, serialize_expr, deserialize_expr
+from ._gates import Circuit
 
 
 RNG = np.random.default_rng(42)
@@ -150,141 +149,3 @@ class TestBindingParams:
 
         bound_circuit = circuit.bind({theta1: -np.pi, other_param: 42})
         assert bound_circuit.free_symbols == {theta2, theta3}
-
-
-ALPHA = sympy.Symbol("alpha")
-GAMMA = sympy.Symbol("gamma")
-THETA = sympy.Symbol("theta")
-
-
-CUSTOM_U_GATE = CustomGateDefinition(
-    "U",
-    sympy.Matrix(
-        [
-            [THETA, GAMMA],
-            [-GAMMA, THETA],
-        ]
-    ),
-    (THETA, GAMMA),
-)
-
-
-@pytest.mark.parametrize(
-    "circuit",
-    [
-        Circuit(),
-        Circuit([X(0)]),
-        Circuit([X(2), Y(1)]),
-        Circuit(
-            [
-                H(0),
-                CNOT(0, 1),
-                RX(0)(5),
-                RX(np.pi)(2),
-            ]
-        ),
-        Circuit(
-            [
-                RX(GAMMA * 2)(3),
-            ]
-        ),
-        Circuit(
-            operations=[
-                T(0),
-                CUSTOM_U_GATE(1, -1)(3),
-                CUSTOM_U_GATE(ALPHA, -1)(2),
-            ],
-            custom_gate_definitions=[CUSTOM_U_GATE],
-        ),
-        Circuit(
-            operations=[
-                CUSTOM_U_GATE(2 + 3j, -1)(2),
-            ],
-            custom_gate_definitions=[CUSTOM_U_GATE],
-        ),
-        Circuit(
-            [
-                H.controlled(1)(0, 1),
-            ]
-        ),
-        Circuit(
-            [
-                Z.controlled(2)(4, 3, 0),
-            ]
-        ),
-        Circuit(
-            [
-                RY(ALPHA * GAMMA).controlled(1)(3, 2),
-            ]
-        ),
-        Circuit(
-            [
-                X.dagger(2),
-                I.dagger(4),
-                Y.dagger(1),
-                Z.dagger(2),
-                T.dagger(7),
-            ]
-        ),
-        Circuit(
-            [
-                RX(-np.pi).dagger(2),
-                RY(-np.pi / 2).dagger(1),
-                RZ(0).dagger(0),
-                PHASE(np.pi / 5).dagger(2),
-            ]
-        ),
-        Circuit(
-            [
-                RX(GAMMA * ALPHA).dagger(1),
-            ]
-        ),
-    ],
-)
-class TestCircuitSerialization:
-    def test_roundrip_results_in_same_circuit(self, circuit):
-        serialized = circuit.to_dict()
-        assert Circuit.from_dict(serialized) == circuit
-
-    def test_deserialized_gates_produce_matrices(self, circuit):
-        deserialized_circuit = Circuit.from_dict(circuit.to_dict())
-        for operation in deserialized_circuit.operations:
-            # matrices are computed lazily, so we have to call the getter to know if
-            # we deserialized parameters properly
-            operation.gate.matrix
-
-
-class TestCustomGateDefinitionSerialization:
-    @pytest.mark.parametrize(
-        "gate_def",
-        [
-            CustomGateDefinition(
-                "V", sympy.Matrix([[THETA, GAMMA], [-GAMMA, THETA]]), (THETA, GAMMA)
-            )
-        ],
-    )
-    def test_roundtrip_gives_back_same_def(self, gate_def):
-        dict_ = gate_def.to_dict()
-        assert CustomGateDefinition.from_dict(dict_) == gate_def
-
-
-class TestExpressionSerialization:
-    @pytest.mark.parametrize(
-        "expr,symbol_names",
-        [
-            (0, []),
-            (1, []),
-            (-1, []),
-            (THETA, ["theta"]),
-            (GAMMA, ["gamma"]),
-            (THETA * GAMMA + 1, ["gamma", "theta"]),
-            (2 + 3j, []),
-            ((-1 + 2j) * THETA * GAMMA, ["gamma", "theta"]),
-        ],
-    )
-    def test_roundtrip_results_in_equivalent_expression(self, expr, symbol_names):
-        serialized = serialize_expr(expr)
-        deserialized = deserialize_expr(serialized, symbol_names)
-        # `deserialized == expr` wouldn't work here for complex literals because of
-        # how Sympy compares expressions
-        assert deserialized - expr == 0

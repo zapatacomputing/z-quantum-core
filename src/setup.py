@@ -23,9 +23,9 @@ setuptools.setup(
         "openfermion>=1.0.0",
         "openfermioncirq==0.4.0",
         "lea>=3.2.0",
-        "pyquil>=2.25.0",
+        "pyquil~=2.25",
         "cirq>=0.9.1",
-        "qiskit>=0.24.0",
+        "qiskit~=0.24",
         "overrides>=3.1.0",
     ],
 )

@@ -3,12 +3,17 @@ import pyquil
 
 from .pyquil_conversions import export_to_pyquil, import_from_pyquil
 from .. import _gates
+from .. import _builtin_gates
 
 
 EQUIVALENT_CIRCUITS = [
     (
         _gates.Circuit([], 0),
         pyquil.Program([]),
+    ),
+    (
+        _gates.Circuit([_builtin_gates.X(2)]),
+        pyquil.Program([pyquil.gates.X(2)]),
     ),
 ]
 

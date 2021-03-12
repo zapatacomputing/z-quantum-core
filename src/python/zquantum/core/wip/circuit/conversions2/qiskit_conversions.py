@@ -135,7 +135,7 @@ def _export_gate_via_mapping(
     gate, applied_qubit_indices, n_qubits_in_circuit, custom_names
 ):
     try:
-        qiskit_cls = ZQUANTUM_QISKIT_GATE_MAP[bg.builtin_gate_by_name(gate.name)]
+        qiskit_cls = ZQUANTUM_QISKIT_GATE_MAP[_builtin_gates.builtin_gate_by_name(gate.name)]
     except KeyError:
         raise ValueError(f"Can't export gate {gate} to Qiskit via mapping")
 
@@ -153,7 +153,7 @@ def _export_controlled_gate(
     n_qubits_in_circuit,
     custom_names
 ):
-    if not isinstance(gate, g.ControlledGate):
+    if not isinstance(gate, _gates.ControlledGate):
         # Raising an exception here is redundant to the type hint, but it allows us
         # to handle exporting all gates in the same way, regardless of type
         raise ValueError(f"Can't export gate {gate} as a controlled gate")
@@ -173,7 +173,7 @@ def _export_controlled_gate(
 
 
 def _export_custom_gate(
-    gate: g.MatrixFactoryGate, applied_qubit_indices, n_qubits_in_circuit, custom_names
+    gate: _gates.MatrixFactoryGate, applied_qubit_indices, n_qubits_in_circuit, custom_names
 ):
     if gate.name not in custom_names:
         raise ValueError(
@@ -204,7 +204,7 @@ class AnonGateOperation(NamedTuple):
     qubit_indices: Tuple[int, ...]
 
 
-ImportedOperation = Union[g.GateOperation, AnonGateOperation]
+ImportedOperation = Union[_gates.GateOperation, AnonGateOperation]
 
 
 def _apply_custom_gate(

@@ -120,7 +120,7 @@ EXAMPLE_PARAM_VALUES = {
 
 EQUIVALENT_NON_PARAMETRIZED_CIRCUITS = [
     (
-        g.Circuit([], 3),
+        _gates.Circuit([], 3),
         _make_qiskit_circuit(3, []),
     ),
     (
@@ -231,12 +231,12 @@ FOREIGN_QISKIT_CIRCUITS = [
 ]
 
 
-UNITARY_GATE_DEF = g.CustomGateDefinition(
+UNITARY_GATE_DEF = _gates.CustomGateDefinition(
     "unitary.33c11b461fe67e717e37ac34a568cd1c27a89013703bf5b84194f0732a33a26d",
     sympy.Matrix([[0, 1], [1, 0]]),
     tuple(),
 )
-CUSTOM_A2_GATE_DEF = g.CustomGateDefinition(
+CUSTOM_A2_GATE_DEF = _gates.CustomGateDefinition(
     "custom.A2.33c11b461fe67e717e37ac34a568cd1c27a89013703bf5b84194f0732a33a26d",
     sympy.Matrix([[0, 1], [1, 0]]),
     tuple(),
@@ -245,7 +245,7 @@ CUSTOM_A2_GATE_DEF = g.CustomGateDefinition(
 
 EQUIVALENT_CUSTOM_GATE_CIRCUITS = [
     (
-        g.Circuit(
+        _gates.Circuit(
             operations=[UNITARY_GATE_DEF()(1)],
             n_qubits=4,
             custom_gate_definitions=[UNITARY_GATE_DEF],
@@ -258,7 +258,7 @@ EQUIVALENT_CUSTOM_GATE_CIRCUITS = [
         ),
     ),
     (
-        g.Circuit(
+        _gates.Circuit(
             operations=[CUSTOM_A2_GATE_DEF()(3)],
             n_qubits=5,
             custom_gate_definitions=[CUSTOM_A2_GATE_DEF],
@@ -271,7 +271,7 @@ EQUIVALENT_CUSTOM_GATE_CIRCUITS = [
         ),
     ),
     (
-        g.Circuit(
+        _gates.Circuit(
             operations=[UNITARY_GATE_DEF()(1), UNITARY_GATE_DEF()(1)],
             n_qubits=4,
             custom_gate_definitions=[UNITARY_GATE_DEF],
@@ -285,7 +285,7 @@ EQUIVALENT_CUSTOM_GATE_CIRCUITS = [
         ),
     ),
     (
-        g.Circuit(
+        _gates.Circuit(
             operations=[
                 UNITARY_GATE_DEF()(1),
                 CUSTOM_A2_GATE_DEF()(1),

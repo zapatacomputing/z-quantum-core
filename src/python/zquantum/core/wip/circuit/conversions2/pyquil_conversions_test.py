@@ -12,9 +12,23 @@ EQUIVALENT_CIRCUITS = [
         pyquil.Program([]),
     ),
     (
-        _gates.Circuit([_builtin_gates.X(2)]),
-        pyquil.Program([pyquil.gates.X(2)]),
+        _gates.Circuit([
+            _builtin_gates.X(2),
+            _builtin_gates.Y(0),
+        ]),
+        pyquil.Program([
+            pyquil.gates.X(2),
+            pyquil.gates.Y(0)
+        ]),
     ),
+    (
+        _gates.Circuit([
+            _builtin_gates.CNOT(3, 1),
+        ]),
+        pyquil.Program([
+            pyquil.gates.CNOT(3, 1),
+        ]),
+    )
 ]
 
 

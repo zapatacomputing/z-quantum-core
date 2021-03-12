@@ -9,7 +9,7 @@ from .. import _builtin_gates
 
 def _n_qubits_by_ops(ops: Iterable[_gates.GateOperation]):
     try:
-        return max(op.qubit_indices for op in ops)
+        return max(qubit_i for op in ops for qubit_i in op.qubit_indices) + 1
     except ValueError:
         return 0
 
@@ -19,8 +19,23 @@ def import_from_pyquil(program: pyquil.Program):
     return _gates.Circuit(ops, _n_qubits_by_ops(ops))
 
 
-def _import_gate(gate: pyquil.gates.Gate):
-    pass
+def _import_gate(gate: pyquil.gates.Gate) -> _gates.GateOperation:
+    try:
+        return _import_gate_via_name(gate)
+    except ValueError:
+        pass
+
+    raise NotImplementedError()
+
+
+def _import_pyquil_qubits(qubits: Iterable[pyquil.quil.Qubit]):
+    return tuple(qubit.index for qubit in qubits)
+
+
+def _import_gate_via_name(gate: pyquil.gates.Gate) -> _gates.GateOperation:
+    zq_gate = _builtin_gates.builtin_gate_by_name(gate.name)
+    all_qubits = _import_pyquil_qubits(gate.qubits)
+    return zq_gate(*all_qubits)
 
 
 def export_to_pyquil(circuit: _gates.Circuit) -> pyquil.Program:
@@ -35,7 +50,7 @@ def _symbol_declaration(symbol: sympy.Symbol):
 
 def _export_gate(gate: _gates.Gate, qubit_indices):
     try:
-        return _export_gate_via_mapping(gate, qubit_indices)
+        return _export_gate_via_name(gate, qubit_indices)
     except ValueError:
         pass
 
@@ -46,7 +61,7 @@ def _pyquil_gate_by_name(name):
     return getattr(pyquil.gates, name)
 
 
-def _export_gate_via_mapping(gate: _gates.Gate, qubit_indices):
+def _export_gate_via_name(gate: _gates.Gate, qubit_indices):
     try:
         pyquil_fn = _pyquil_gate_by_name(gate.name)
     except KeyError:

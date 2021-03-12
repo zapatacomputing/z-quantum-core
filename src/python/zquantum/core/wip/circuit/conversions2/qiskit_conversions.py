@@ -135,7 +135,9 @@ def _export_gate_via_mapping(
     gate, applied_qubit_indices, n_qubits_in_circuit, custom_names
 ):
     try:
-        qiskit_cls = ZQUANTUM_QISKIT_GATE_MAP[_builtin_gates.builtin_gate_by_name(gate.name)]
+        qiskit_cls = ZQUANTUM_QISKIT_GATE_MAP[
+            _builtin_gates.builtin_gate_by_name(gate.name)
+        ]
     except KeyError:
         raise ValueError(f"Can't export gate {gate} to Qiskit via mapping")
 
@@ -151,7 +153,7 @@ def _export_controlled_gate(
     gate: _gates.ControlledGate,
     applied_qubit_indices,
     n_qubits_in_circuit,
-    custom_names
+    custom_names,
 ):
     if not isinstance(gate, _gates.ControlledGate):
         # Raising an exception here is redundant to the type hint, but it allows us
@@ -173,7 +175,10 @@ def _export_controlled_gate(
 
 
 def _export_custom_gate(
-    gate: _gates.MatrixFactoryGate, applied_qubit_indices, n_qubits_in_circuit, custom_names
+    gate: _gates.MatrixFactoryGate,
+    applied_qubit_indices,
+    n_qubits_in_circuit,
+    custom_names,
 ):
     if gate.name not in custom_names:
         raise ValueError(
@@ -273,9 +278,7 @@ def _import_qiskit_op_via_mapping(
     try:
         gate_ref = QISKIT_ZQUANTUM_GATE_MAP[type(qiskit_gate)]
     except KeyError:
-        raise ValueError(
-            f"Conversion of {qiskit_gate} from Qiskit is unsupported."
-        )
+        raise ValueError(f"Conversion of {qiskit_gate} from Qiskit is unsupported.")
 
     # values to consider:
     # - gate matrix parameters (only parametric gates)

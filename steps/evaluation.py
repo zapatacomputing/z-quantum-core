@@ -35,14 +35,15 @@ from zquantum.core.openfermion import (
     save_interaction_rdm,
     save_parameter_grid_evaluation,
     evaluate_qubit_operator_list as _evaluate_qubit_operator_list,
+    convert_dict_to_qubitop,
 )
 from zquantum.core.typing import Specs
 
 
 def get_expectation_values_for_qubit_operator(
     backend_specs: Specs,
-    circuit: Union[str, Circuit],
-    qubit_operator: Union[str, SymbolicOperator],
+    circuit: Union[str, Circuit, Dict],
+    qubit_operator: Union[str, SymbolicOperator, Dict],
 ):
     """Measure the expection values of the terms in an input operator with respect to the state prepared by the input
     circuit on the backend described by the backend_specs. The results are serialized into a JSON under the
@@ -55,8 +56,12 @@ def get_expectation_values_for_qubit_operator(
     """
     if isinstance(circuit, str):
         circuit = load_circuit(circuit)
+    elif isinstance(circuit, dict):
+        circuit = Circuit.from_dict(circuit)
     if isinstance(qubit_operator, str):
         qubit_operator = load_qubit_operator(qubit_operator)
+    elif isinstance(qubit_operator, dict):
+        qubit_operator = convert_dict_to_qubitop(qubit_operator)
     if isinstance(backend_specs, str):
         backend_specs = json.loads(backend_specs)
     backend = create_object(backend_specs)

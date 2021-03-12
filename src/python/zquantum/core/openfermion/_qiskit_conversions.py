@@ -70,9 +70,6 @@ def qiskitpauli_to_qubitop(qiskit_pauli: WeightedPauliOperator) -> QubitOperator
     transformed_term = QubitOperator()
 
     for weight, qiskit_term in qiskit_pauli.paulis:
-        # openfermion_term_string_list = [f"[{term_pauli}{term_qubit}]" if term_pauli != "I" else ""
-        #     for (term_qubit, term_pauli) in enumerate(str(qiskit_term))
-        # ]
         openfermion_term = QubitOperator()
         for (term_qubit, term_pauli) in enumerate(str(qiskit_term)):
             if term_pauli != "I":
@@ -80,8 +77,6 @@ def qiskitpauli_to_qubitop(qiskit_pauli: WeightedPauliOperator) -> QubitOperator
                     openfermion_term = QubitOperator(f"[{term_pauli}{term_qubit}]")
                 else:
                     openfermion_term *= QubitOperator(f"[{term_pauli}{term_qubit}]")
-
-        # openfermion_term = QubitOperator("+".join(openfermion_term_string_list))
 
         transformed_term += openfermion_term * weight
 

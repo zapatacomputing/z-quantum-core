@@ -1,5 +1,6 @@
 """Orquestra <-> Cirq conversions."""
 from functools import singledispatch
+from itertools import chain
 from operator import attrgetter
 from typing import Union, Callable, Type
 
@@ -25,12 +26,36 @@ def angle_to_exponent(angle: Parameter) -> Parameter:
     Notes:
         Scaling of the angle preserves its "type", i.e. numerical angles
         are scaled by numerical approximation of pi, but symbolic ones
-        are scaled by `sympy.pi`.
+        are scaled by `sympy.pi`. Note that in case of sympy numbers,
+        the results is a native float.
 
         This transformation might be viewed as the change of units from
         radians to pi * radians.
     """
+    if isinstance(angle, sympy.Expr) and angle.is_constant():
+        try:
+            angle = float(angle)
+        # This broad except is intentional. I am not sure if it is always
+        # possible to convert constant sympy.Expr to float, therefore
+        # we allow graceful recovery in case the conversion failed.
+        except Exception:
+            pass
     return angle / (sympy.pi if isinstance(angle, sympy.Expr) else np.pi)
+
+
+def exponent_to_angle(exponent: Parameter) -> Parameter:
+    """Convert exponent from Cirq gate to angle usable in rotation gates..
+
+    Args:
+        exponent: Exponent to be converted.
+    Returns:
+        exponent multiplied by pi.
+    Notes:
+        Scaling of the exponent preserves its "type", i.e. numerical exponents
+        are scaled by numerical approximation of pi, but symbolic ones
+        are scaled by sympy.pi
+    """
+    return exponent * (sympy.pi if isinstance(exponent, sympy.Expr) else np.pi)
 
 
 def make_rotation_factory(
@@ -49,6 +74,7 @@ def make_rotation_factory(
         A function that maps angle to EigenGate instance with given global shift
         and an exponent equal to angle divided by a factor of pi.
     """
+
     def _rotation(angle: Parameter) -> cirq.EigenGate:
         return eigengate_cls(
             global_shift=global_shift, exponent=angle_to_exponent(angle)
@@ -64,9 +90,19 @@ ORQUESTRA_BUILTIN_GATE_NAME_TO_CIRQ_GATE = {
     "I": cirq.I,
     "H": cirq.H,
     "T": cirq.T,
+    "RX": cirq.rx,
+    "RY": cirq.ry,
+    "RZ": cirq.rz,
+    "PHASE": make_rotation_factory(cirq.ZPowGate),
     "CNOT": cirq.CNOT,
     "CZ": cirq.CZ,
-    "SWAP": cirq.SWAP
+    "SWAP": cirq.SWAP,
+    "ISWAP": cirq.ISWAP,
+    "CPHASE": cirq.cphase,
+    "XX": make_rotation_factory(cirq.XXPowGate, -0.5),
+    "YY": make_rotation_factory(cirq.YYPowGate, -0.5),
+    "ZZ": make_rotation_factory(cirq.ZZPowGate, -0.5),
+    "XY": make_rotation_factory(cirq.ISwapPowGate, 0.0),
 }
 
 
@@ -79,6 +115,7 @@ EIGENGATE_SPECIAL_CASES = {
     (type(cirq.CNOT), cirq.CNOT.global_shift, cirq.CNOT.exponent): bg.CNOT,
     (type(cirq.CZ), cirq.CZ.global_shift, cirq.CZ.exponent): bg.CZ,
     (type(cirq.SWAP), cirq.SWAP.global_shift, cirq.SWAP.exponent): bg.SWAP,
+    (type(cirq.ISWAP), cirq.ISWAP.global_shift, cirq.ISWAP.exponent): bg.ISWAP,
 }
 
 EIGENGATE_ROTATIONS = {
@@ -93,52 +130,113 @@ EIGENGATE_ROTATIONS = {
     (cirq.ISwapPowGate, 0.0): bg.XY,
 }
 
+CIRQ_GATE_SPECIAL_CASES = {cirq.CSWAP: bg.SWAP.controlled(1)}
 
 qubit_index = attrgetter("x")
 
 
 @singledispatch
-def convert_to_cirq(obj):
-    raise NotImplementedError(f"{obj} not convertible to Cirq object.")
+def export_to_cirq(obj):
+    """Export given native Zquantum object to its Cirq equivalent.
+
+    This should be primarily used with Circuit objects, but
+    also works for builtin gates and gate operations.
+
+    Exporting of user-defined gates is atm not supported.
+    """
+    raise NotImplementedError(f"{obj} can't be exported to Cirq object.")
 
 
-@convert_to_cirq.register
-def convert_matrix_factory_gate_to_cirq(gate: g.MatrixFactoryGate) -> cirq.Gate:
+@export_to_cirq.register
+def export_matrix_factory_gate_to_cirq(gate: g.MatrixFactoryGate) -> cirq.Gate:
     try:
-        return ORQUESTRA_BUILTIN_GATE_NAME_TO_CIRQ_GATE[gate.name]
+        cirq_factory = ORQUESTRA_BUILTIN_GATE_NAME_TO_CIRQ_GATE[gate.name]
+        cirq_params = (
+            float(param) if isinstance(param, sympy.Expr) and param.is_Float else param
+            for param in gate.params
+        )
+        return cirq_factory(*cirq_params) if gate.params else cirq_factory
     except KeyError:
-        raise NotImplementedError(f"Gate {gate} not convertible to Cirq.")
+        raise NotImplementedError(f"Gate {gate} can't be exported to Cirq.")
 
 
-@convert_to_cirq.register
-def convert_gate_operation_to_cirq(operation: g.GateOperation) -> cirq.GateOperation:
-    return convert_to_cirq(operation.gate)(*map(cirq.LineQubit, operation.qubit_indices))
+@export_to_cirq.register
+def export_controlled_gate_to_cirq(gate: g.ControlledGate) -> cirq.Gate:
+    return export_to_cirq(gate.wrapped_gate).controlled(gate.num_control_qubits)
+
+
+@export_to_cirq.register
+def export_dagger_to_cirq(gate: g.Dagger) -> cirq.Gate:
+    return cirq.inverse(export_to_cirq(gate.wrapped_gate))
+
+
+@export_to_cirq.register
+def export_gate_operation_to_cirq(operation: g.GateOperation) -> cirq.GateOperation:
+    return export_to_cirq(operation.gate)(*map(cirq.LineQubit, operation.qubit_indices))
+
+
+@export_to_cirq.register
+def export_circuit_to_cirq(circuit: g.Circuit) -> cirq.Circuit:
+    return cirq.Circuit([export_to_cirq(operation) for operation in circuit.operations])
 
 
 @singledispatch
-def convert_from_cirq(obj):
-    raise NotImplementedError(f"{obj} not convertible to Orquestra object.")
+def import_from_cirq(obj):
+    """Import given Cirq object, converting it to its Zquantum native counterpart.
+
+    Currently we support gates corresponding to Zquantum builtin gates, operations
+    on such gates and circuits composed of such gates.
+
+    Also note that only objects using only LineQubits are supported, as currently
+    there is no notion of GridQubit in Zquantum.
+
+    Raises:
+        NotImplementedError: if the object to be imported is of currenlty unsupported type.
+    """
+    try:
+        return CIRQ_GATE_SPECIAL_CASES[obj]
+    except KeyError:
+        raise NotImplementedError(f"{obj} can't be imported into Zquantum.")
 
 
-@convert_from_cirq.register
+@import_from_cirq.register
 def convert_eigengate_to_orquestra_gate(eigengate: cirq.EigenGate) -> g.Gate:
     key = (type(eigengate), eigengate.global_shift, eigengate.exponent)
     if key in EIGENGATE_SPECIAL_CASES:
         return EIGENGATE_SPECIAL_CASES[key]
+    elif key[0:2] in EIGENGATE_ROTATIONS:
+        return EIGENGATE_ROTATIONS[key[0:2]](exponent_to_angle(eigengate.exponent))
     else:
-        raise NotImplementedError(f"Gate {eigengate} not convertible to Orquestra object.")
+        raise NotImplementedError(f"Gate {eigengate} can't be imported into Zquantum.")
 
 
-@convert_from_cirq.register
-def convert_cirq_identity_gate_to_orquestra_gate(identity_gate: cirq.IdentityGate) -> g.Gate:
+@import_from_cirq.register
+def convert_cirq_identity_gate_to_orquestra_gate(
+    identity_gate: cirq.IdentityGate,
+) -> g.Gate:
     return bg.I
 
 
-@convert_from_cirq.register
-def convert_gate_operation_to_orquestra(operation: cirq.GateOperation) -> g.GateOperation:
+@import_from_cirq.register
+def import_cirq_controlled_gate(controlled_gate: cirq.ControlledGate) -> g.Gate:
+    return import_from_cirq(controlled_gate.sub_gate).controlled(
+        controlled_gate.num_controls()
+    )
+
+
+@import_from_cirq.register(cirq.GateOperation)
+@import_from_cirq.register(cirq.ControlledOperation)
+def convert_gate_operation_to_orquestra(operation) -> g.GateOperation:
     if not all(isinstance(qubit, cirq.LineQubit) for qubit in operation.qubits):
         raise NotImplementedError(
-            f"Failed to convert {operation}. Grid qubits are not yet supported."
+            f"Failed to import {operation}. Grid qubits are not yet supported."
         )
 
-    return convert_from_cirq(operation.gate)(*map(qubit_index, operation.qubits))
+    return import_from_cirq(operation.gate)(*map(qubit_index, operation.qubits))
+
+
+@import_from_cirq.register
+def import_circuit_from_cirq(circuit: cirq.Circuit) -> g.Circuit:
+    return g.Circuit(
+        [import_from_cirq(op) for op in chain.from_iterable(circuit.moments)]
+    )

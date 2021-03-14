@@ -1,138 +1,186 @@
-"""Test cases from Orquestra <-> cirq conversions."""
-import cirq
-import numpy as np
-import pytest
 import sympy
+import numpy as np
+import cirq
 
-from .cirq_conversions import convert_from_cirq, convert_to_cirq, make_rotation_factory
+import pytest
+
+from .cirq_conversions import (
+    export_to_cirq,
+    import_from_cirq,
+    make_rotation_factory,
+)
+from .. import _gates as g
 from .. import _builtin_gates as bg
 
+# --------- gates ---------
 
-THETA = sympy.Symbol("theta")
-
-EXAMPLE_SYMBOLIC_ANGLES = [
-    sympy.Symbol("theta"),
-    sympy.Symbol("x") + sympy.Symbol("y"),
-    sympy.cos(sympy.Symbol("phi") / 2),
-]
-
-
-EQUIVALENT_NONPARAMETRIC_SINGLE_QUBIT_GATES = [
+EQUIVALENT_NON_PARAMETRIC_GATES = [
     (bg.X, cirq.X),
     (bg.Y, cirq.Y),
     (bg.Z, cirq.Z),
-    (bg.T, cirq.T),
-    (bg.I, cirq.I),
     (bg.H, cirq.H),
-]
-
-
-EQUIVALENT_SINGLE_QUBIT_ROTATION_GATES = [
-    (bg.RX, cirq.rx),
-    (bg.RY, cirq.ry),
-    (bg.RZ, cirq.rz),
-    (bg.PHASE, make_rotation_factory(cirq.ZPowGate)),
-]
-
-
-EQUIVALENT_NONPARAMETRIC_TWO_QUBIT_GATES = [
-    (bg.CZ, cirq.CZ),
+    (bg.I, cirq.I),
+    (bg.T, cirq.T),
     (bg.CNOT, cirq.CNOT),
+    (bg.CZ, cirq.CZ),
     (bg.SWAP, cirq.SWAP),
+    (bg.ISWAP, cirq.ISWAP),
+]
+
+EQUIVALENT_PARAMETRIC_GATES = [
+    (zq_cls(theta), cirq_cls(theta))
+    for zq_cls, cirq_cls in [
+        (bg.RX, cirq.rx),
+        (bg.RY, cirq.ry),
+        (bg.RZ, cirq.rz),
+        (bg.PHASE, make_rotation_factory(cirq.ZPowGate)),
+        (bg.CPHASE, cirq.cphase),
+        (bg.XX, make_rotation_factory(cirq.XXPowGate, -0.5)),
+        (bg.YY, make_rotation_factory(cirq.YYPowGate, -0.5)),
+        (bg.ZZ, make_rotation_factory(cirq.ZZPowGate, -0.5)),
+        (bg.XY, make_rotation_factory(cirq.ISwapPowGate, 0.0)),
+    ]
+    for theta in [0, -1, np.pi / 5, 2 * np.pi]
 ]
 
 
-TWO_QUBIT_ROTATION_GATE_FACTORIES = [
-    (bg.CPHASE, make_rotation_factory(cirq.CZPowGate)),
-    (bg.XX, make_rotation_factory(cirq.XXPowGate, global_shift=-0.5)),
-    (bg.YY, make_rotation_factory(cirq.YYPowGate, global_shift=-0.5)),
-    (bg.ZZ, make_rotation_factory(cirq.ZZPowGate, global_shift=-0.5)),
-    (bg.XY, make_rotation_factory(cirq.ISwapPowGate, 0.0))
-]
-
-
-# Here we combine multiple testcases of the form
-# (ZQuantum gate, Cirq operation)
-# We do this for easier parametrization in tests that follow.
-TEST_CASES_WITHOUT_SYMBOLIC_PARAMS = (
+@pytest.mark.parametrize(
+    "zquantum_gate,cirq_gate",
     [
-        (orq_gate(q), cirq_gate.on(cirq.LineQubit(q)))
-        for orq_gate, cirq_gate in EQUIVALENT_NONPARAMETRIC_SINGLE_QUBIT_GATES
-        for q in [0, 1, 5, 13]
-    ]
-    + [
-        (orq_gate(q0, q1), cirq_gate.on(cirq.LineQubit(q0), cirq.LineQubit(q1)))
-        for orq_gate, cirq_gate in EQUIVALENT_NONPARAMETRIC_TWO_QUBIT_GATES
-        for q0, q1 in [(0, 1), (2, 3), (0, 10)]
-    ]
-    + [
-        (orq_gate_factory(angle)(q), cirq_gate_func(angle).on(cirq.LineQubit(q)))
-        for orq_gate_factory, cirq_gate_func in EQUIVALENT_SINGLE_QUBIT_ROTATION_GATES
-        for q in [0, 4, 10, 11]
-        for angle in [0, np.pi, np.pi / 2, 0.4]
-    ]
-    + [
-        (
-            orq_gate_cls(q0, q1, angle),
-            cirq_gate_func(angle).on(cirq.LineQubit(q0), cirq.LineQubit(q1)),
-        )
-        for orq_gate_cls, cirq_gate_func in TWO_QUBIT_ROTATION_GATE_FACTORIES
-        for q0, q1 in [(0, 1), (2, 3), (0, 10)]
-        for angle in [np.pi, np.pi / 2, np.pi / 5, 0.4, 0.1, 0.05, 2.5]
-    ]
+        *EQUIVALENT_NON_PARAMETRIC_GATES,
+        *EQUIVALENT_PARAMETRIC_GATES,
+    ],
 )
+class TestGateConversion:
+    def test_matrices_of_corresponding_zquantum_and_cirq_gates_are_equal(
+        self, zquantum_gate, cirq_gate
+    ):
+        zquantum_matrix = np.array(zquantum_gate.matrix).astype(np.complex128)
+        np.testing.assert_allclose(zquantum_matrix, cirq.unitary(cirq_gate), atol=1e-8)
+
+    def test_exporting_gate_to_cirq_gives_expected_gate(self, zquantum_gate, cirq_gate):
+        assert export_to_cirq(zquantum_gate) == cirq_gate
+
+    def test_importing_gate_from_cirq_gives_expected_gate(self, zquantum_gate, cirq_gate):
+        assert import_from_cirq(cirq_gate) == zquantum_gate
+# circuits ---------
 
 
-TEST_CASES_WITH_SYMBOLIC_PARAMS = [
-    (orq_gate_factory(angle)(q), cirq_gate_func(angle).on(cirq.LineQubit(q)))
-    for orq_gate_factory, cirq_gate_func in EQUIVALENT_SINGLE_QUBIT_ROTATION_GATES
-    for q in [0, 4, 10, 11]
-    for angle in EXAMPLE_SYMBOLIC_ANGLES
-] + [
+THETA = sympy.Symbol("theta")
+GAMMA = sympy.Symbol("gamma")
+
+
+EXAMPLE_PARAM_VALUES = {
+    THETA: 0.3,
+    GAMMA: -5,
+}
+
+
+lq = cirq.LineQubit
+
+EQUIVALENT_CIRCUITS = [
     (
-        orq_gate_factory(angle)(q0, q1),
-        cirq_gate_func(angle).on(cirq.LineQubit(q0), cirq.LineQubit(q1)),
-    )
-    for orq_gate_factory, cirq_gate_func in TWO_QUBIT_ROTATION_GATE_FACTORIES
-    for q0, q1 in [(0, 1), (2, 3), (0, 10)]
-    for angle in EXAMPLE_SYMBOLIC_ANGLES
+        g.Circuit([bg.X(0), bg.Z(2)]),
+        cirq.Circuit([cirq.X(lq(0)), cirq.Z(lq(2))])
+    ),
+    (
+        g.Circuit([bg.CNOT(0, 1)]),
+        cirq.Circuit([cirq.CNOT(lq(0), lq(1))]),
+    ),
+    (
+        g.Circuit([bg.RX(np.pi)(1)]),
+        cirq.Circuit([cirq.rx(np.pi)(lq(1))])
+    ),
+    (
+        g.Circuit([bg.SWAP.controlled(1)(2, 0, 3)]),
+        cirq.Circuit([cirq.SWAP.controlled(1)(lq(2), lq(0), lq(3))]),
+    ),
+    (
+        g.Circuit([bg.Y.controlled(2)(4, 5, 2)]),
+        cirq.Circuit([cirq.Y.controlled(2)(lq(4), lq(5), lq(2))])
+    ),
 ]
 
 
-@pytest.mark.parametrize(
-    "orquestra_operation, cirq_operation", TEST_CASES_WITHOUT_SYMBOLIC_PARAMS
-)
-class TestGateConversionWithoutSymbolicParameters:
-    def test_converting_orquestra_gate_operation_to_cirq_gives_expected_operation(
-        self, orquestra_operation, cirq_operation
-    ):
-        assert convert_to_cirq(orquestra_operation) == cirq_operation
+EQUIVALENT_PARAMETRIZED_CIRCUITS = [
+    (
+        g.Circuit([bg.RX(THETA)(1)]),
+        cirq.Circuit([cirq.rx(THETA)(lq(1))])
+    ),
+    (
+        g.Circuit([bg.RX(THETA * GAMMA)(1)]),
+        cirq.Circuit([cirq.rx(THETA * GAMMA)(lq(1))])
+    ),
+]
 
-    def test_converting_cirq_operation_to_orquestra_gives_expected_gate_operation(
-        self, orquestra_operation, cirq_operation
-    ):
-        assert convert_from_cirq(cirq_operation) == orquestra_operation
 
-    def test_orquestra_gate_and_cirq_gate_have_the_same_matrix(
-        self, orquestra_operation, cirq_operation
+class TestExportingToQiskit:
+    @pytest.mark.parametrize("zquantum_circuit,cirq_circuit", EQUIVALENT_CIRCUITS)
+    def test_exporting_circuit_gives_equivalent_circuit(
+        self, zquantum_circuit, cirq_circuit
     ):
-        # This is to ensure that we are indeed converting the same gate.
-        assert np.allclose(
-            np.array(orquestra_operation.gate.matrix).astype(np.complex128),
-            cirq.unitary(cirq_operation.gate),
+        converted = export_to_cirq(zquantum_circuit)
+        assert converted == cirq_circuit, (
+            f"Converted circuit:\n{converted}\n isn't equal "
+            f"to\n{cirq_circuit}"
+        )
+
+    @pytest.mark.parametrize(
+        "zquantum_circuit, cirq_circuit", EQUIVALENT_PARAMETRIZED_CIRCUITS
+    )
+    def test_exporting_and_binding_parametrized_circuit_results_in_equivalent_circuit(
+        self, zquantum_circuit, cirq_circuit
+    ):
+        converted = export_to_cirq(zquantum_circuit)
+        converted_bound = cirq.resolve_parameters(
+            converted,
+            EXAMPLE_PARAM_VALUES
+        )
+        ref_bound = cirq.resolve_parameters(
+            cirq_circuit,
+            EXAMPLE_PARAM_VALUES
+        )
+        assert converted_bound == ref_bound, (
+            f"Converted circuit:\n{converted_bound}\n isn't equal "
+            f"to\n{ref_bound}"
+        )
+
+    @pytest.mark.parametrize(
+        "zquantum_circuit, cirq_circuit", EQUIVALENT_PARAMETRIZED_CIRCUITS
+    )
+    def test_binding_and_exporting_parametrized_circuit_results_in_equivalent_circuit(
+        self, zquantum_circuit, cirq_circuit
+    ):
+        bound = zquantum_circuit.bind(EXAMPLE_PARAM_VALUES)
+        bound_converted = export_to_cirq(bound)
+        ref_bound = cirq.resolve_parameters(cirq_circuit, {**EXAMPLE_PARAM_VALUES, sympy.pi: 3.14})
+        assert cirq.approx_eq(bound_converted, ref_bound), (
+            f"Converted circuit:\n{bound_converted}\n isn't equal "
+            f"to\n{ref_bound}"
+        )
+
+    def test_daggers_are_converted_to_inverses(self):
+        # NOTE: We don't add this test case to EQUIVALENT_CIRCUITS, because
+        # only Zquantum -> cirq conversion is supported.
+        zquantum_circuit = g.Circuit([bg.X.dagger(2), bg.T.dagger(1)])
+        cirq_circuit = cirq.Circuit([cirq.inverse(cirq.X)(lq(2)), cirq.inverse(cirq.T)(lq(1))])
+        converted = export_to_cirq(zquantum_circuit)
+
+        assert converted == cirq_circuit, (
+            f"Converted circuit:\n{converted}\n isn't equal "
+            f"to\n{cirq_circuit}"
         )
 
 
-@pytest.mark.parametrize(
-    "orquestra_operation, cirq_operation", TEST_CASES_WITH_SYMBOLIC_PARAMS
-)
-class TestGateConversionWithSymbolicParameters:
-    def test_converting_orquestra_gate_operation_to_cirq_gives_expected_operation(
-        self, orquestra_operation, cirq_operation
+class TestImportingFromCirq:
+    @pytest.mark.parametrize("zquantum_circuit, cirq_circuit", EQUIVALENT_CIRCUITS)
+    def test_importing_circuit_gives_equivalent_circuit(
+        self, zquantum_circuit,  cirq_circuit
     ):
-        assert convert_to_cirq(orquestra_operation) == cirq_operation
+        imported = import_from_cirq(cirq_circuit)
+        assert imported == zquantum_circuit
 
-    def test_converting_cirq_operation_to_orquestra_gives_expected_gate_operation(
-        self, orquestra_operation, cirq_operation
-    ):
-        assert convert_from_cirq(cirq_operation) == orquestra_operation
+    # @pytest.mark.parametrize("qiskit_circuit", FOREIGN_QISKIT_CIRCUITS)
+    # def test_importing_circuit_with_unsupported_gates_raises(self, qiskit_circuit):
+    #     with pytest.raises(NotImplementedError):
+    #         import_from_cirq(qiskit_circuit)

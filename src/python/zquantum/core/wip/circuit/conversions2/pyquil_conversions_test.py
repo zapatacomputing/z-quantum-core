@@ -1,11 +1,17 @@
 import numpy as np
 import pytest
 import pyquil
+import sympy
 
 from .pyquil_conversions import export_to_pyquil, import_from_pyquil
 from .. import _gates
 from .. import _builtin_gates
 
+
+SYMPY_THETA = sympy.Symbol("theta")
+SYMPY_GAMMA = sympy.Symbol("gamma")
+QUIL_THETA = pyquil.quil.Parameter("theta")
+QUIL_GAMMA = pyquil.quil.Parameter("gamma")
 
 EQUIVALENT_CIRCUITS = [
     (
@@ -73,8 +79,37 @@ EQUIVALENT_CIRCUITS = [
 ]
 
 
+EQUIVALENT_PARAMETRIZED_CIRCUITS = [
+    (
+        _gates.Circuit(
+            [
+                _builtin_gates.RX(SYMPY_THETA)(1),
+            ],
+        ),
+        pyquil.Program([
+            pyquil.quil.Declare("theta", "REAL"),
+            pyquil.gates.RX(QUIL_THETA, 1)
+        ])
+    ),
+    (
+        _gates.Circuit(
+            [
+                _builtin_gates.RX(sympy.Mul(SYMPY_GAMMA, SYMPY_THETA, evaluate=False))(1),
+            ],
+        ),
+        pyquil.Program([
+            pyquil.quil.Declare("gamma", "REAL"),
+            pyquil.quil.Declare("theta", "REAL"),
+            pyquil.gates.RX(QUIL_GAMMA * QUIL_THETA, 1)
+        ])
+    ),
+]
+
+
 class TestExportingToPyQuil:
-    @pytest.mark.parametrize("zquantum_circuit, pyquil_circuit", EQUIVALENT_CIRCUITS)
+    @pytest.mark.parametrize(
+        "zquantum_circuit, pyquil_circuit",
+        [*EQUIVALENT_CIRCUITS, *EQUIVALENT_PARAMETRIZED_CIRCUITS])
     def test_exporting_circuit_gives_equivalent_circuit(
         self, zquantum_circuit, pyquil_circuit
     ):
@@ -84,7 +119,9 @@ class TestExportingToPyQuil:
 
 
 class TestImportingFromPyQuil:
-    @pytest.mark.parametrize("zquantum_circuit, pyquil_circuit", EQUIVALENT_CIRCUITS)
+    @pytest.mark.parametrize(
+        "zquantum_circuit, pyquil_circuit",
+        [*EQUIVALENT_CIRCUITS, *EQUIVALENT_PARAMETRIZED_CIRCUITS])
     def test_exporting_circuit_gives_equivalent_circuit(
         self, zquantum_circuit, pyquil_circuit
     ):

@@ -6,6 +6,9 @@ import sympy
 
 from .. import _gates
 from .. import _builtin_gates
+from ..symbolic.translations import translate_expression
+from ..symbolic.pyquil_expressions import QUIL_DIALECT, expression_from_pyquil
+from ..symbolic.sympy_expressions import SYMPY_DIALECT, expression_from_sympy
 
 
 def _n_qubits_by_ops(ops: Iterable[_gates.GateOperation]):
@@ -34,9 +37,13 @@ def _import_pyquil_qubits(qubits: Iterable[pyquil.quil.Qubit]):
 
 
 def _import_gate_via_name(gate: pyquil.gates.Gate) -> _gates.GateOperation:
+    zq_params = tuple(
+        translate_expression(expression_from_pyquil(param), SYMPY_DIALECT)
+        for param in gate.params
+    )
     zq_gate = (
-        _builtin_gates.builtin_gate_by_name(gate.name) if not gate.params
-        else _builtin_gates.builtin_gate_by_name(gate.name)(*gate.params)
+        _builtin_gates.builtin_gate_by_name(gate.name) if not zq_params
+        else _builtin_gates.builtin_gate_by_name(gate.name)(*zq_params)
     )
     for modifier in gate.modifiers:
         if modifier == "DAGGER":
@@ -54,7 +61,7 @@ def export_to_pyquil(circuit: _gates.Circuit) -> pyquil.Program:
 
 
 def _symbol_declaration(symbol: sympy.Symbol):
-    return pyquil.quil.Declare(str(symbol))
+    return pyquil.quil.Declare(str(symbol), "REAL")
 
 
 @singledispatch
@@ -91,5 +98,8 @@ def _export_gate_via_name(gate: _gates.Gate, qubit_indices):
         pyquil_fn = _pyquil_gate_by_name(gate.name)
     except KeyError:
         raise ValueError()
-
-    return pyquil_fn(*gate.params, *qubit_indices)
+    pyquil_params = [
+        translate_expression(expression_from_sympy(param), QUIL_DIALECT)
+        for param in gate.params
+    ]
+    return pyquil_fn(*pyquil_params, *qubit_indices)

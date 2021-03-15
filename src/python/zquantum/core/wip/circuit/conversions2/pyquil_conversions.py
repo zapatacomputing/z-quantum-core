@@ -27,8 +27,15 @@ def _export_expression(expr: sympy.Expr):
     return translate_expression(expression_from_sympy(expr), QUIL_DIALECT)
 
 
-def _import_matrix(pyquil_matrix):
-    raise NotImplementedError()
+def _import_matrix(pyquil_matrix: np.ndarray):
+    return sympy.Matrix(
+        [
+            [
+                _import_expression(element) for element in row
+            ]
+            for row in pyquil_matrix.tolist()
+        ]
+    )
 
 
 def _export_matrix(matrix: sympy.Matrix):
@@ -43,7 +50,7 @@ def _import_gate_def(gate_def: pyquil.quilbase.DefGate):
 
     # TODO: make sure PyQuil checks for gate name uniqueness
 
-    pyquil_params = tuple(map(_import_expression, gate_def.parameters))
+    pyquil_params = tuple(map(_import_expression, gate_def.parameters or []))
 
     return _gates.CustomGateDefinition(
         gate_name=gate_def.name,

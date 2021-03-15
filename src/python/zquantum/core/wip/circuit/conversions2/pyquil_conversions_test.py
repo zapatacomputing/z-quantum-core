@@ -176,7 +176,7 @@ class TestImportingFromPyQuil:
         "zquantum_circuit, pyquil_circuit",
         [*EQUIVALENT_CIRCUITS, *EQUIVALENT_PARAMETRIZED_CIRCUITS],
     )
-    def test_exporting_circuit_gives_equivalent_circuit(
+    def test_importing_circuit_gives_equivalent_circuit(
         self, zquantum_circuit, pyquil_circuit
     ):
         imported = import_from_pyquil(pyquil_circuit)

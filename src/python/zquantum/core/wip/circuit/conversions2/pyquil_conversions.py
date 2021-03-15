@@ -3,6 +3,7 @@ from typing import Iterable
 
 import pyquil
 import sympy
+import numpy as np
 
 from .. import _gates
 from .. import _builtin_gates
@@ -54,10 +55,23 @@ def _import_gate_via_name(gate: pyquil.gates.Gate) -> _gates.GateOperation:
     return zq_gate(*all_qubits)
 
 
+def _sympy_matrix_to_numpy(matrix: sympy.Matrix):
+    return np.array(matrix, dtype=complex)
+
+
+def _assign_custom_defs(program: pyquil.Program, custom_gate_defs):
+    p = program
+    for gate_def in custom_gate_defs:
+        p = p.defgate(gate_def.gate_name, _sympy_matrix_to_numpy(gate_def.matrix))
+    return p
+
+
 def export_to_pyquil(circuit: _gates.Circuit) -> pyquil.Program:
     var_declarations = map(_param_declaration, sorted(map(str, circuit.free_symbols)))
-    gate_instructions = [_export_gate(op.gate, op.qubit_indices) for op in circuit.operations]
-    return pyquil.Program([*var_declarations, *gate_instructions])
+    custom_gate_names = {gate_def.gate_name for gate_def in circuit.custom_gate_definitions}
+    gate_instructions = [_export_gate(op.gate, op.qubit_indices, custom_gate_names) for op in circuit.operations]
+    program = pyquil.Program([*var_declarations, *gate_instructions])
+    return _assign_custom_defs(program, circuit.custom_gate_definitions)
 
 
 def _param_declaration(param_name: str):
@@ -65,39 +79,51 @@ def _param_declaration(param_name: str):
 
 
 @singledispatch
-def _export_gate(gate: _gates.Gate, qubit_indices):
+def _export_gate(gate: _gates.Gate, qubit_indices, custom_gate_names):
     try:
-        return _export_gate_via_name(gate, qubit_indices)
+        return _export_gate_via_name(gate, qubit_indices, custom_gate_names)
+    except ValueError:
+        pass
+
+    try:
+        return _export_custom_gate(gate, qubit_indices, custom_gate_names)
     except ValueError:
         pass
 
     raise NotImplementedError()
 
 
+def _export_custom_gate(gate: _gates.Gate, qubit_indices, custom_gate_names):
+    if gate.name not in custom_gate_names:
+        raise ValueError()
+    return (gate.name,) + qubit_indices
+
+
 @_export_gate.register
-def _export_controlled_gate(gate: _gates.ControlledGate, qubit_indices):
+def _export_controlled_gate(gate: _gates.ControlledGate, qubit_indices, custom_gate_names):
     wrapped_qubit_indices = qubit_indices[gate.num_control_qubits:]
     control_qubit_indices = qubit_indices[0:gate.num_control_qubits]
-    exported = _export_gate(gate.wrapped_gate, wrapped_qubit_indices)
+    exported = _export_gate(gate.wrapped_gate, wrapped_qubit_indices, custom_gate_names)
     for index in reversed(control_qubit_indices):
         exported = exported.controlled(index)
     return exported
 
 
 @_export_gate.register
-def _export_dagger(gate: _gates.Dagger, qubit_indices):
-    return _export_gate(gate.wrapped_gate, qubit_indices).dagger()
+def _export_dagger(gate: _gates.Dagger, qubit_indices, custom_gate_names):
+    return _export_gate(gate.wrapped_gate, qubit_indices, custom_gate_names).dagger()
 
 
 def _pyquil_gate_by_name(name):
     return getattr(pyquil.gates, name)
 
 
-def _export_gate_via_name(gate: _gates.Gate, qubit_indices):
+def _export_gate_via_name(gate: _gates.Gate, qubit_indices, custom_gate_names):
     try:
         pyquil_fn = _pyquil_gate_by_name(gate.name)
-    except KeyError:
+    except AttributeError:
         raise ValueError()
+
     pyquil_params = [
         translate_expression(expression_from_sympy(param), QUIL_DIALECT)
         for param in gate.params

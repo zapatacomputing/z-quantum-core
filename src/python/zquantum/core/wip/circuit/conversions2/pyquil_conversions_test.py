@@ -13,6 +13,13 @@ SYMPY_GAMMA = sympy.Symbol("gamma")
 QUIL_THETA = pyquil.quil.Parameter("theta")
 QUIL_GAMMA = pyquil.quil.Parameter("gamma")
 
+SQRT_X_DEF = _gates.CustomGateDefinition(
+     "SQRT-X",
+     sympy.Matrix([[ 0.5+0.5j,  0.5-0.5j],
+                   [ 0.5-0.5j,  0.5+0.5j]]),
+     tuple(),
+)
+
 EQUIVALENT_CIRCUITS = [
     (
         _gates.Circuit([], 0),
@@ -75,6 +82,18 @@ EQUIVALENT_CIRCUITS = [
         pyquil.Program([
             pyquil.gates.RX(0.5, 2).dagger().controlled(1).controlled(3)
         ])
+    ),
+    (
+        _gates.Circuit(
+            [SQRT_X_DEF()(3)],
+            custom_gate_definitions=[SQRT_X_DEF],
+        ),
+        pyquil.Program([
+            ("SQRT-X", 3),
+        ]).defgate("SQRT-X", np.array( [ 
+            [ 0.5+0.5j,  0.5-0.5j], 
+            [ 0.5-0.5j,  0.5+0.5j],
+        ]))
     )
 ]
 

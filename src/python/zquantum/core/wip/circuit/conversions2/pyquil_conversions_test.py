@@ -1,3 +1,4 @@
+import numpy as np
 import pytest
 import pyquil
 
@@ -28,6 +29,22 @@ EQUIVALENT_CIRCUITS = [
         pyquil.Program([
             pyquil.gates.CNOT(3, 1),
         ]),
+    ),
+    (
+        _gates.Circuit([
+            _builtin_gates.RX(np.pi)(1)
+        ]),
+        pyquil.Program([
+            pyquil.gates.RX(np.pi, 1)
+        ])
+    ),
+    (
+        _gates.Circuit(
+            [_builtin_gates.SWAP.controlled(1)(2, 0, 3)],
+        ),
+        pyquil.Program([
+            pyquil.gates.SWAP(0, 3).controlled(2)
+        ])
     )
 ]
 
@@ -38,6 +55,7 @@ class TestExportingToPyQuil:
         self, zquantum_circuit, pyquil_circuit
     ):
         exported = export_to_pyquil(zquantum_circuit)
+        print(exported.instructions, pyquil_circuit.instructions)
         assert exported == pyquil_circuit
 
 

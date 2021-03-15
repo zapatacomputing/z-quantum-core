@@ -19,8 +19,22 @@ def _n_qubits_by_ops(ops: Iterable[_gates.GateOperation]):
         return 0
 
 
-def _numpy_matrix_to_sympy(matrix: np.ndarray):
-    return sympy.Matrix(matrix)
+def _import_expression(pyquil_expr):
+    return translate_expression(expression_from_pyquil(pyquil_expr), SYMPY_DIALECT)
+
+
+def _export_expression(expr: sympy.Expr):
+    return translate_expression(expression_from_sympy(expr), QUIL_DIALECT)
+
+
+def _import_matrix(pyquil_matrix):
+    raise NotImplementedError()
+
+
+def _export_matrix(matrix: sympy.Matrix):
+    return [
+        [_export_expression(element) for element in row] for row in matrix.tolist()
+    ]
 
 
 def _import_gate_def(gate_def: pyquil.quilbase.DefGate):
@@ -29,10 +43,12 @@ def _import_gate_def(gate_def: pyquil.quilbase.DefGate):
 
     # TODO: make sure PyQuil checks for gate name uniqueness
 
+    pyquil_params = tuple(map(_import_expression, gate_def.parameters))
+
     return _gates.CustomGateDefinition(
         gate_name=gate_def.name,
-        matrix=_numpy_matrix_to_sympy(gate_def.matrix),
-        params_ordering=(),
+        matrix=_import_matrix(gate_def.matrix),
+        params_ordering=pyquil_params,
     )
 
 
@@ -70,10 +86,7 @@ def _import_gate_via_name(gate: pyquil.gates.Gate) -> _gates.GateOperation:
     if not zq_gate_ref:
         raise ValueError()
 
-    zq_params = tuple(
-        translate_expression(expression_from_pyquil(param), SYMPY_DIALECT)
-        for param in gate.params
-    )
+    zq_params = tuple(map(_import_expression, gate.params))
     zq_gate = zq_gate_ref(*zq_params) if zq_params else zq_gate_ref
 
     for modifier in gate.modifiers:
@@ -91,21 +104,21 @@ def _import_custom_gate(instruction, custom_gate_defs):
     except KeyError:
         raise ValueError()
 
-    qubit_indices = _import_pyquil_qubits(instruction.qubits)
-    return gate_def(*instruction.params)(*qubit_indices)
+    zq_params = tuple(map(_import_expression, instruction.params))
+    zq_qubits = _import_pyquil_qubits(instruction.qubits)
+    return gate_def(*zq_params)(*zq_qubits)
 
 
 def _import_pyquil_qubits(qubits: Iterable[pyquil.quil.Qubit]):
     return tuple(qubit.index for qubit in qubits)
 
 
-def _sympy_matrix_to_numpy(matrix: sympy.Matrix):
-    return np.array(matrix, dtype=complex)
 
 
 def _assign_custom_defs(program: pyquil.Program, custom_gate_defs):
     def _reducer(prog: pyquil.Program, gate_def: _gates.CustomGateDefinition):
-        return prog.defgate(gate_def.gate_name, _sympy_matrix_to_numpy(gate_def.matrix))
+        pyquil_params = list(map(_export_expression, gate_def.params_ordering))
+        return prog.defgate(gate_def.gate_name, _export_matrix(gate_def.matrix), pyquil_params)
 
     return reduce(_reducer, custom_gate_defs, program)
 
@@ -119,7 +132,7 @@ def export_to_pyquil(circuit: _gates.Circuit) -> pyquil.Program:
         _export_gate(op.gate, op.qubit_indices, custom_gate_names)
         for op in circuit.operations
     ]
-    program = pyquil.Program([*var_declarations, *gate_instructions])
+    program = pyquil.Program(*[*var_declarations, *gate_instructions])
     return _assign_custom_defs(program, circuit.custom_gate_definitions)
 
 
@@ -145,7 +158,8 @@ def _export_gate(gate: _gates.Gate, qubit_indices, custom_gate_names):
 def _export_custom_gate(gate: _gates.Gate, qubit_indices, custom_gate_names):
     if gate.name not in custom_gate_names:
         raise ValueError()
-    return (gate.name,) + qubit_indices
+    pyquil_params = list(map(_export_expression, gate.params))
+    return (gate.name, pyquil_params) + qubit_indices
 
 
 @_export_gate.register
@@ -175,8 +189,5 @@ def _export_gate_via_name(gate: _gates.Gate, qubit_indices, custom_gate_names):
     except AttributeError:
         raise ValueError()
 
-    pyquil_params = [
-        translate_expression(expression_from_sympy(param), QUIL_DIALECT)
-        for param in gate.params
-    ]
+    pyquil_params = map(_export_expression, gate.params)
     return pyquil_fn(*pyquil_params, *qubit_indices)

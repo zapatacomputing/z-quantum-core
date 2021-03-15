@@ -18,6 +18,14 @@ SQRT_X_DEF = _gates.CustomGateDefinition(
     sympy.Matrix([[0.5 + 0.5j, 0.5 - 0.5j], [0.5 - 0.5j, 0.5 + 0.5j]]),
     tuple(),
 )
+CUSTOM_PARAMETRIC_DEF = _gates.CustomGateDefinition(
+    "CUSTOM-PARAMETRIC",
+    sympy.Matrix([
+        [sympy.cos(SYMPY_GAMMA), sympy.sin(SYMPY_GAMMA)],
+        [-sympy.sin(SYMPY_GAMMA), sympy.cos(SYMPY_GAMMA)],
+    ]),
+    (SYMPY_GAMMA,),
+)
 
 EQUIVALENT_CIRCUITS = [
     (
@@ -72,7 +80,7 @@ EQUIVALENT_CIRCUITS = [
             [SQRT_X_DEF()(3)],
             custom_gate_definitions=[SQRT_X_DEF],
         ),
-        pyquil.Program([("SQRT-X", 3),]).defgate(
+        pyquil.Program([("SQRT-X", 3)]).defgate(
             "SQRT-X",
             np.array(
                 [
@@ -83,6 +91,30 @@ EQUIVALENT_CIRCUITS = [
         ),
     ),
 ]
+
+
+def _example_parametric_pyquil_program():
+    gate_def = pyquil.quil.DefGate(
+        "CUSTOM-PARAMETRIC",
+        [
+            [
+                pyquil.quilatom.quil_cos(QUIL_GAMMA),
+                pyquil.quilatom.quil_sin(QUIL_GAMMA),
+            ],
+            [
+                -pyquil.quilatom.quil_sin(QUIL_GAMMA),
+                pyquil.quilatom.quil_cos(QUIL_GAMMA),
+            ],
+        ],
+        [QUIL_GAMMA],
+    )
+    gate_constructor = gate_def.get_constructor()
+
+    return pyquil.Program(
+        pyquil.quil.Declare("theta", "REAL"),
+        gate_def,
+        gate_constructor(QUIL_THETA)(0),
+    )
 
 
 EQUIVALENT_PARAMETRIZED_CIRCUITS = [
@@ -111,6 +143,15 @@ EQUIVALENT_PARAMETRIZED_CIRCUITS = [
                 pyquil.gates.RX(QUIL_GAMMA * QUIL_THETA, 1),
             ]
         ),
+    ),
+    (
+        _gates.Circuit(
+            [
+                CUSTOM_PARAMETRIC_DEF(SYMPY_THETA)(0),
+            ],
+            custom_gate_definitions=[CUSTOM_PARAMETRIC_DEF],
+        ),
+        _example_parametric_pyquil_program(),
     ),
 ]
 

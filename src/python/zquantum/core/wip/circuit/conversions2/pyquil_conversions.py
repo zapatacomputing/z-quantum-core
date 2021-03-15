@@ -45,9 +45,6 @@ def _export_matrix(matrix: sympy.Matrix):
 
 
 def _import_gate_def(gate_def: pyquil.quilbase.DefGate):
-    if gate_def.parameters:
-        raise NotImplementedError(f"Can't import parametric custom gate def {gate_def}")
-
     # TODO: make sure PyQuil checks for gate name uniqueness
 
     pyquil_params = tuple(map(_import_expression, gate_def.parameters or []))

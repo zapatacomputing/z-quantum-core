@@ -30,18 +30,14 @@ def _export_expression(expr: sympy.Expr):
 def _import_matrix(pyquil_matrix: np.ndarray):
     return sympy.Matrix(
         [
-            [
-                _import_expression(element) for element in row
-            ]
+            [_import_expression(element) for element in row]
             for row in pyquil_matrix.tolist()
         ]
     )
 
 
 def _export_matrix(matrix: sympy.Matrix):
-    return [
-        [_export_expression(element) for element in row] for row in matrix.tolist()
-    ]
+    return [[_export_expression(element) for element in row] for row in matrix.tolist()]
 
 
 def _import_gate_def(gate_def: pyquil.quilbase.DefGate):
@@ -60,7 +56,9 @@ def import_from_pyquil(program: pyquil.Program):
         gate_def.name: _import_gate_def(gate_def) for gate_def in program.defined_gates
     }
     if len(custom_names) != len(custom_defs):
-        raise ValueError(f"Can't import circuits with non-unique gate definition names to ZQuantum: {custom_names}")
+        raise ValueError(
+            f"Can't import circuits with non-unique gate definition names to ZQuantum: {custom_names}"
+        )
 
     ops = [
         _import_gate(instr, custom_defs)
@@ -119,12 +117,12 @@ def _import_pyquil_qubits(qubits: Iterable[pyquil.quil.Qubit]):
     return tuple(qubit.index for qubit in qubits)
 
 
-
-
 def _assign_custom_defs(program: pyquil.Program, custom_gate_defs):
     def _reducer(prog: pyquil.Program, gate_def: _gates.CustomGateDefinition):
         pyquil_params = list(map(_export_expression, gate_def.params_ordering))
-        return prog.defgate(gate_def.gate_name, _export_matrix(gate_def.matrix), pyquil_params)
+        return prog.defgate(
+            gate_def.gate_name, _export_matrix(gate_def.matrix), pyquil_params
+        )
 
     return reduce(_reducer, custom_gate_defs, program)
 

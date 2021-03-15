@@ -20,10 +20,12 @@ SQRT_X_DEF = _gates.CustomGateDefinition(
 )
 CUSTOM_PARAMETRIC_DEF = _gates.CustomGateDefinition(
     "CUSTOM-PARAMETRIC",
-    sympy.Matrix([
-        [sympy.cos(SYMPY_GAMMA), sympy.sin(SYMPY_GAMMA)],
-        [-sympy.sin(SYMPY_GAMMA), sympy.cos(SYMPY_GAMMA)],
-    ]),
+    sympy.Matrix(
+        [
+            [sympy.cos(SYMPY_GAMMA), sympy.sin(SYMPY_GAMMA)],
+            [-sympy.sin(SYMPY_GAMMA), sympy.cos(SYMPY_GAMMA)],
+        ]
+    ),
     (SYMPY_GAMMA,),
 )
 

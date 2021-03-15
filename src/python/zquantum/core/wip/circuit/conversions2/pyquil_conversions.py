@@ -37,12 +37,21 @@ def _import_gate_def(gate_def: pyquil.quilbase.DefGate):
 
 
 def import_from_pyquil(program: pyquil.Program):
-    custom_defs = {gate_def.name: _import_gate_def(gate_def) for gate_def in program.defined_gates}
-    ops = [_import_gate(instr, custom_defs) for instr in program.instructions if isinstance(instr, pyquil.gates.Gate)]
+    custom_defs = {
+        gate_def.name: _import_gate_def(gate_def) for gate_def in program.defined_gates
+    }
+    ops = [
+        _import_gate(instr, custom_defs)
+        for instr in program.instructions
+        if isinstance(instr, pyquil.gates.Gate)
+    ]
     return _gates.Circuit(ops, _n_qubits_by_ops(ops), custom_defs.values())
 
 
-def _import_gate(instruction: pyquil.gates.Gate, custom_gate_defs: Mapping[str, _gates.CustomGateDefinition]) -> _gates.GateOperation:
+def _import_gate(
+    instruction: pyquil.gates.Gate,
+    custom_gate_defs: Mapping[str, _gates.CustomGateDefinition],
+) -> _gates.GateOperation:
     try:
         return _import_gate_via_name(instruction)
     except ValueError:
@@ -103,8 +112,13 @@ def _assign_custom_defs(program: pyquil.Program, custom_gate_defs):
 
 def export_to_pyquil(circuit: _gates.Circuit) -> pyquil.Program:
     var_declarations = map(_param_declaration, sorted(map(str, circuit.free_symbols)))
-    custom_gate_names = {gate_def.gate_name for gate_def in circuit.custom_gate_definitions}
-    gate_instructions = [_export_gate(op.gate, op.qubit_indices, custom_gate_names) for op in circuit.operations]
+    custom_gate_names = {
+        gate_def.gate_name for gate_def in circuit.custom_gate_definitions
+    }
+    gate_instructions = [
+        _export_gate(op.gate, op.qubit_indices, custom_gate_names)
+        for op in circuit.operations
+    ]
     program = pyquil.Program([*var_declarations, *gate_instructions])
     return _assign_custom_defs(program, circuit.custom_gate_definitions)
 
@@ -135,9 +149,11 @@ def _export_custom_gate(gate: _gates.Gate, qubit_indices, custom_gate_names):
 
 
 @_export_gate.register
-def _export_controlled_gate(gate: _gates.ControlledGate, qubit_indices, custom_gate_names):
-    wrapped_qubit_indices = qubit_indices[gate.num_control_qubits:]
-    control_qubit_indices = qubit_indices[0:gate.num_control_qubits]
+def _export_controlled_gate(
+    gate: _gates.ControlledGate, qubit_indices, custom_gate_names
+):
+    wrapped_qubit_indices = qubit_indices[gate.num_control_qubits :]
+    control_qubit_indices = qubit_indices[0 : gate.num_control_qubits]
     exported = _export_gate(gate.wrapped_gate, wrapped_qubit_indices, custom_gate_names)
     for index in reversed(control_qubit_indices):
         exported = exported.controlled(index)

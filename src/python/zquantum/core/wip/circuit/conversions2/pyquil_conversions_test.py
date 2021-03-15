@@ -53,6 +53,22 @@ EQUIVALENT_CIRCUITS = [
         pyquil.Program([
             pyquil.gates.Y(2).controlled(1).controlled(3)
         ])
+    ),
+    (
+        _gates.Circuit(
+            [_builtin_gates.RX(0.5).dagger.controlled(2)(3, 1, 2)]
+        ),
+        pyquil.Program([
+            pyquil.gates.RX(0.5, 2).dagger().controlled(1).controlled(3)
+        ])
+    ),
+    (
+        _gates.Circuit(
+            [_builtin_gates.RX(0.5).controlled(2).dagger(3, 1, 2)]
+        ),
+        pyquil.Program([
+            pyquil.gates.RX(0.5, 2).dagger().controlled(1).controlled(3)
+        ])
     )
 ]
 

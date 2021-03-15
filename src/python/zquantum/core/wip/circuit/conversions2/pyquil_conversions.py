@@ -34,14 +34,17 @@ def _import_pyquil_qubits(qubits: Iterable[pyquil.quil.Qubit]):
 
 
 def _import_gate_via_name(gate: pyquil.gates.Gate) -> _gates.GateOperation:
-    zq_gate = _builtin_gates.builtin_gate_by_name(gate.name)
+    zq_gate = (
+        _builtin_gates.builtin_gate_by_name(gate.name) if not gate.params
+        else _builtin_gates.builtin_gate_by_name(gate.name)(*gate.params)
+    )
     for modifier in gate.modifiers:
         if modifier == "DAGGER":
             zq_gate = zq_gate.dagger
         elif modifier == "CONTROLLED":
             zq_gate = zq_gate.controlled(1)
     all_qubits = _import_pyquil_qubits(gate.qubits)
-    return zq_gate(*all_qubits) if not gate.params else zq_gate(*gate.params)(*all_qubits)
+    return zq_gate(*all_qubits)
 
 
 def export_to_pyquil(circuit: _gates.Circuit) -> pyquil.Program:
@@ -72,6 +75,11 @@ def _export_controlled_gate(gate: _gates.ControlledGate, qubit_indices):
     for index in reversed(control_qubit_indices):
         exported = exported.controlled(index)
     return exported
+
+
+@_export_gate.register
+def _export_dagger(gate: _gates.Dagger, qubit_indices):
+    return _export_gate(gate.wrapped_gate, qubit_indices).dagger()
 
 
 def _pyquil_gate_by_name(name):

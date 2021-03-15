@@ -45,8 +45,6 @@ def _export_matrix(matrix: sympy.Matrix):
 
 
 def _import_gate_def(gate_def: pyquil.quilbase.DefGate):
-    # TODO: make sure PyQuil checks for gate name uniqueness
-
     pyquil_params = tuple(map(_import_expression, gate_def.parameters or []))
 
     return _gates.CustomGateDefinition(
@@ -57,9 +55,13 @@ def _import_gate_def(gate_def: pyquil.quilbase.DefGate):
 
 
 def import_from_pyquil(program: pyquil.Program):
+    custom_names = [gate_def.name for gate_def in program.defined_gates]
     custom_defs = {
         gate_def.name: _import_gate_def(gate_def) for gate_def in program.defined_gates
     }
+    if len(custom_names) != len(custom_defs):
+        raise ValueError(f"Can't import circuits with non-unique gate definition names to ZQuantum: {custom_names}")
+
     ops = [
         _import_gate(instr, custom_defs)
         for instr in program.instructions

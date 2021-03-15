@@ -45,6 +45,14 @@ EQUIVALENT_CIRCUITS = [
         pyquil.Program([
             pyquil.gates.SWAP(0, 3).controlled(2)
         ])
+    ),
+    (
+        _gates.Circuit(
+            [_builtin_gates.Y.controlled(2)(3, 1, 2)]
+        ),
+        pyquil.Program([
+            pyquil.gates.Y(2).controlled(1).controlled(3)
+        ])
     )
 ]
 

@@ -55,13 +55,13 @@ def _import_gate_via_name(gate: pyquil.gates.Gate) -> _gates.GateOperation:
 
 
 def export_to_pyquil(circuit: _gates.Circuit) -> pyquil.Program:
-    var_declarations = map(_symbol_declaration, circuit.free_symbols)
+    var_declarations = map(_param_declaration, sorted(map(str, circuit.free_symbols)))
     gate_instructions = [_export_gate(op.gate, op.qubit_indices) for op in circuit.operations]
     return pyquil.Program([*var_declarations, *gate_instructions])
 
 
-def _symbol_declaration(symbol: sympy.Symbol):
-    return pyquil.quil.Declare(str(symbol), "REAL")
+def _param_declaration(param_name: str):
+    return pyquil.quil.Declare(param_name, "REAL")
 
 
 @singledispatch

@@ -114,8 +114,7 @@ class TestExportingToPyQuil:
         self, zquantum_circuit, pyquil_circuit
     ):
         exported = export_to_pyquil(zquantum_circuit)
-        print(exported.instructions, pyquil_circuit.instructions)
-        assert exported == pyquil_circuit
+        assert exported == pyquil_circuit, (exported.instructions, pyquil_circuit.instructions)
 
 
 class TestImportingFromPyQuil:

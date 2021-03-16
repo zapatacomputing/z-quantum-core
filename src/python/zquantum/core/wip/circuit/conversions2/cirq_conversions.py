@@ -191,7 +191,7 @@ def import_from_cirq(obj):
     there is no notion of GridQubit in Zquantum.
 
     Raises:
-        NotImplementedError: if the object to be imported is of currenlty unsupported type.
+        NotImplementedError: if the object to be imported is of currently unsupported type.
     """
     try:
         return CIRQ_GATE_SPECIAL_CASES[obj]

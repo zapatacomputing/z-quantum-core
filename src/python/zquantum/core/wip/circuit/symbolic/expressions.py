@@ -1,6 +1,7 @@
 """Utilities for converting symbolic expressions between different dialects."""
 from numbers import Number
 from typing import NamedTuple, Any, Iterable, Union, Dict, Callable
+from functools import reduce
 
 
 class Symbol(NamedTuple):
@@ -30,3 +31,9 @@ class ExpressionDialect(NamedTuple):
     symbol_factory: Callable[[Symbol], Any]
     number_factory: Callable[[Number], Any]
     known_functions: Dict[str, Callable[..., Any]]
+
+
+def reduction(operator):
+    def _reduction(*args):
+        return reduce(operator, args)
+    return _reduction

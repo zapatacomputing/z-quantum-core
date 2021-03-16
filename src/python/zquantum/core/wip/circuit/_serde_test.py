@@ -4,6 +4,7 @@ import numpy as np
 
 from . import _gates
 from . import _builtin_gates
+from . import _circuit
 from ._serde import (
     serialize_expr,
     deserialize_expr,
@@ -33,10 +34,10 @@ CUSTOM_U_GATE = _gates.CustomGateDefinition(
 @pytest.mark.parametrize(
     "circuit",
     [
-        _gates.Circuit(),
-        _gates.Circuit([_builtin_gates.X(0)]),
-        _gates.Circuit([_builtin_gates.X(2), _builtin_gates.Y(1)]),
-        _gates.Circuit(
+        _circuit.Circuit(),
+        _circuit.Circuit([_builtin_gates.X(0)]),
+        _circuit.Circuit([_builtin_gates.X(2), _builtin_gates.Y(1)]),
+        _circuit.Circuit(
             [
                 _builtin_gates.H(0),
                 _builtin_gates.CNOT(0, 1),
@@ -44,12 +45,12 @@ CUSTOM_U_GATE = _gates.CustomGateDefinition(
                 _builtin_gates.RX(np.pi)(2),
             ]
         ),
-        _gates.Circuit(
+        _circuit.Circuit(
             [
                 _builtin_gates.RX(GAMMA * 2)(3),
             ]
         ),
-        _gates.Circuit(
+        _circuit.Circuit(
             operations=[
                 _builtin_gates.T(0),
                 CUSTOM_U_GATE(1, -1)(3),
@@ -57,28 +58,28 @@ CUSTOM_U_GATE = _gates.CustomGateDefinition(
             ],
             custom_gate_definitions=[CUSTOM_U_GATE],
         ),
-        _gates.Circuit(
+        _circuit.Circuit(
             operations=[
                 CUSTOM_U_GATE(2 + 3j, -1)(2),
             ],
             custom_gate_definitions=[CUSTOM_U_GATE],
         ),
-        _gates.Circuit(
+        _circuit.Circuit(
             [
                 _builtin_gates.H.controlled(1)(0, 1),
             ]
         ),
-        _gates.Circuit(
+        _circuit.Circuit(
             [
                 _builtin_gates.Z.controlled(2)(4, 3, 0),
             ]
         ),
-        _gates.Circuit(
+        _circuit.Circuit(
             [
                 _builtin_gates.RY(ALPHA * GAMMA).controlled(1)(3, 2),
             ]
         ),
-        _gates.Circuit(
+        _circuit.Circuit(
             [
                 _builtin_gates.X.dagger(2),
                 _builtin_gates.I.dagger(4),
@@ -87,7 +88,7 @@ CUSTOM_U_GATE = _gates.CustomGateDefinition(
                 _builtin_gates.T.dagger(7),
             ]
         ),
-        _gates.Circuit(
+        _circuit.Circuit(
             [
                 _builtin_gates.RX(-np.pi).dagger(2),
                 _builtin_gates.RY(-np.pi / 2).dagger(1),
@@ -95,7 +96,7 @@ CUSTOM_U_GATE = _gates.CustomGateDefinition(
                 _builtin_gates.PHASE(np.pi / 5).dagger(2),
             ]
         ),
-        _gates.Circuit(
+        _circuit.Circuit(
             [
                 _builtin_gates.RX(GAMMA * ALPHA).dagger(1),
             ]

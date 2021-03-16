@@ -1,37 +1,55 @@
-import json
-from typing import Dict, Union, TextIO, Iterable, Optional, Any
-from functools import reduce, singledispatch
+from functools import singledispatch, reduce
+from typing import Union, Dict, Optional, Iterable, Any
 
 import sympy
 
-from .gates import Gate
-from ...utils import SCHEMA_VERSION
+from . import _gates
 
 
-def _circuit_size_by_gates(gates):
+def _circuit_size_by_operations(operations):
     return (
         0
-        if not gates
-        else max(qubit_index for gate in gates for qubit_index in gate.qubits) + 1
+        if not operations
+        else max(
+            qubit_index
+            for operation in operations
+            for qubit_index in operation.qubit_indices
+        )
+        + 1
     )
 
 
-CIRCUIT_SCHEMA = SCHEMA_VERSION + "-circuit"
+def _bind_operation(op: _gates.GateOperation, symbols_map) -> _gates.GateOperation:
+    return op.gate.bind(symbols_map)(*op.qubit_indices)
 
 
 class Circuit:
     """ZQuantum representation of a quantum circuit."""
 
-    def __init__(self, gates: Optional[Iterable[Gate]] = None, n_qubits: Optional[int] = None):
-        self._gates = list(gates) if gates is not None else []
+    def __init__(
+        self,
+        operations: Optional[Iterable[_gates.GateOperation]] = None,
+        n_qubits: Optional[int] = None,
+        custom_gate_definitions: Optional[Iterable[_gates.CustomGateDefinition]] = None,
+    ):
+        self._operations = list(operations) if operations is not None else []
         self._n_qubits = (
-            n_qubits if n_qubits is not None else _circuit_size_by_gates(self._gates)
+            n_qubits
+            if n_qubits is not None
+            else _circuit_size_by_operations(self._operations)
+        )
+        self._custom_gate_definitions = (
+            list(custom_gate_definitions) if custom_gate_definitions else []
         )
 
     @property
-    def gates(self):
+    def operations(self):
         """Sequence of quantum gates to apply to qubits in this circuit."""
-        return self._gates
+        return self._operations
+
+    @property
+    def custom_gate_definitions(self):
+        return self._custom_gate_definitions
 
     @property
     def n_qubits(self):
@@ -41,9 +59,13 @@ class Circuit:
         return self._n_qubits
 
     @property
-    def symbolic_params(self):
+    def free_symbols(self):
         """Set of all the sympy symbols used as params of gates in the circuit."""
-        return reduce(set.union, (set(gate.symbolic_params) for gate in self._gates), set())
+        return reduce(
+            set.union,
+            (operation.gate.free_symbols for operation in self._operations),
+            set(),
+        )
 
     def __eq__(self, other: "Circuit"):
         if not isinstance(other, type(self)):
@@ -52,7 +74,7 @@ class Circuit:
         if self.n_qubits != other.n_qubits:
             return False
 
-        if list(self.gates) != list(other.gates):
+        if list(self.operations) != list(other.operations):
             return False
 
         return True
@@ -60,70 +82,25 @@ class Circuit:
     def __add__(self, other: Union["Circuit"]):
         return _append_to_circuit(other, self)
 
-    def evaluate(self, symbols_map: Dict[sympy.Symbol, Any]):
-        """Create a copy of the current Circuit with the parameters of each gate evaluated to the values
-        provided in the input symbols map
+    def bind(self, symbols_map: Dict[sympy.Symbol, Any]):
+        """Create a copy of the current circuit with the parameters of each gate bound to
+        the values provided in the input symbols map
 
         Args:
-            symbols_map (Dict): A map of the symbols/gate parameters to new values
+            symbols_map: A map of the symbols/gate parameters to new values
         """
-        circuit_class = type(self)
-        evaluated_gate_list = [gate.evaluate(symbols_map) for gate in self.gates]
-        evaluated_circuit = circuit_class(gates=evaluated_gate_list)
-        return evaluated_circuit
-
-    def to_dict(self):
-        """Creates a dictionary representing a circuit.
-        The dictionary is serializable to JSON.
-
-        Returns:
-            A mapping with keys:
-                - "schema"
-                - "n_qubits"
-                - "symbolic_params"
-                - "gates"
-        """
-        return {
-            "schema": CIRCUIT_SCHEMA,
-            "n_qubits": self.n_qubits,
-            "symbolic_params": [
-                str(param) for param in self.symbolic_params
-            ],
-            "gates": [
-                gate.to_dict() for gate in self.gates
-            ],
-        }
-
-    def save(self, filename: str):
-        """Save the Circuit object to file in JSON format
-
-        Args:
-            filename (str): The path to the file to store the Circuit
-        """
-        with open(filename, "w") as f:
-            f.write(json.dumps(self.to_dict(), indent=2))
-
-    @classmethod
-    def load(cls, data: Union[Dict, TextIO]):
-        """Load a Circuit object from either a file/file-like object or a dictionary
-
-        Args:
-            data (Union[Dict, TextIO]): The data to load into the Circuit object
-
-        Returns:
-            Circuit
-        """
-        if isinstance(data, str):
-            with open(data, "r") as f:
-                data = json.load(f)
-        elif not isinstance(data, dict):
-            data = json.load(data)
-
-        gates = [Gate.load(gate_data) for gate_data in data["gates"]]
-        return cls(gates=gates)
+        return type(self)(
+            operations=[_bind_operation(op, symbols_map) for op in self.operations],
+            n_qubits=self.n_qubits,
+        )
 
     def __repr__(self):
-        return f"{type(self).__name__}(gates={self.gates}, n_qubits={self.n_qubits})"
+        return (
+            f"{type(self).__name__}"
+            f"(operations=[{', '.join(map(str, self.operations))}], "
+            f"n_qubits={self.n_qubits}, "
+            f"custom_gate_definitions={self.custom_gate_definitions})"
+        )
 
 
 @singledispatch
@@ -132,11 +109,17 @@ def _append_to_circuit(other, circuit: Circuit):
 
 
 @_append_to_circuit.register
-def _append_gate(other: Gate, circuit: Circuit):
-    n_qubits_by_gate = max(other.qubits) + 1
-    return type(circuit)(gates=[*circuit.gates, other], n_qubits=max(circuit.n_qubits, n_qubits_by_gate))
+def _append_operation(other: _gates.GateOperation, circuit: Circuit):
+    n_qubits_by_operation = max(other.qubit_indices) + 1
+    return type(circuit)(
+        operations=[*circuit.operations, other],
+        n_qubits=max(circuit.n_qubits, n_qubits_by_operation),
+    )
 
 
 @_append_to_circuit.register
 def _append_circuit(other: Circuit, circuit: Circuit):
-    return type(circuit)(gates=[*circuit.gates, *other.gates], n_qubits=max(circuit.n_qubits, other.n_qubits))
+    return type(circuit)(
+        operations=[*circuit.operations, *other.operations],
+        n_qubits=max(circuit.n_qubits, other.n_qubits),
+    )

@@ -5,6 +5,7 @@ import sympy
 
 from . import _gates
 from . import _builtin_gates
+from . import _circuit
 from ...utils import SCHEMA_VERSION
 
 
@@ -59,7 +60,7 @@ def to_dict(obj):
 
 
 @to_dict.register
-def _circuit_to_dict(circuit: _gates.Circuit):
+def _circuit_to_dict(circuit: _circuit.Circuit):
     """
     Returns:
         A mapping with keys:
@@ -146,7 +147,7 @@ def circuit_from_dict(dict_):
         custom_gate_def_from_dict(def_dict)
         for def_dict in dict_.get("custom_gate_definitions", [])
     ]
-    return _gates.Circuit(
+    return _circuit.Circuit(
         operations=[
             _gate_operation_from_dict(op_dict, defs)
             for op_dict in dict_.get("operations", [])

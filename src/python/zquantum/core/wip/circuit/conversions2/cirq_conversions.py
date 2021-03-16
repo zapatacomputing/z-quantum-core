@@ -202,11 +202,14 @@ def import_from_cirq(obj):
 @import_from_cirq.register
 def convert_eigengate_to_zquantum_gate(eigengate: cirq.EigenGate) -> _gates.Gate:
     key = (type(eigengate), eigengate.global_shift, eigengate.exponent)
-    if key in EIGENGATE_SPECIAL_CASES:
+    try:
         return EIGENGATE_SPECIAL_CASES[key]
-    elif key[0:2] in EIGENGATE_ROTATIONS:
+    except KeyError:
+        pass
+
+    try:
         return EIGENGATE_ROTATIONS[key[0:2]](exponent_to_angle(eigengate.exponent))
-    else:
+    except KeyError:
         raise NotImplementedError(f"Gate {eigengate} can't be imported into Zquantum.")
 
 

@@ -2,7 +2,7 @@
 from functools import singledispatch
 from itertools import chain
 from operator import attrgetter
-from typing import Union, Callable, Type
+from typing import Union, Callable, Type, overload
 
 import cirq
 import numpy as np
@@ -135,6 +135,23 @@ CIRQ_GATE_SPECIAL_CASES = {cirq.CSWAP: _builtin_gates.SWAP.controlled(1)}
 qubit_index = attrgetter("x")
 
 
+@overload
+def export_to_cirq(
+    gate: Union[_gates.Gate]
+) -> cirq.Gate:
+    pass
+
+
+@overload
+def export_to_cirq(gate_operation: _gates.GateOperation) -> cirq.GateOperation:
+    pass
+
+
+@overload
+def export_to_cirq(circuit: _gates.Circuit) -> cirq.Circuit:
+    pass
+
+
 @singledispatch
 def export_to_cirq(obj):
     """Export given native Zquantum object to its Cirq equivalent.
@@ -178,6 +195,21 @@ def export_gate_operation_to_cirq(operation: _gates.GateOperation) -> cirq.GateO
 @export_to_cirq.register
 def export_circuit_to_cirq(circuit: _gates.Circuit) -> cirq.Circuit:
     return cirq.Circuit([export_to_cirq(operation) for operation in circuit.operations])
+
+
+@overload
+def import_from_cirq(eigengate: cirq.Gate) -> _gates.Gate:
+    pass
+
+
+@overload
+def import_from_cirq(circuit: cirq.Circuit) -> _gates.Circuit:
+    pass
+
+
+@overload
+def import_from_cirq(operation: Union[cirq.GateOperation, cirq.ControlledOperation]) -> _gates.GateOperation:
+    pass
 
 
 @singledispatch

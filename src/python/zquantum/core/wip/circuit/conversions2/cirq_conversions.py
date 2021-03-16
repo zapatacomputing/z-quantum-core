@@ -140,7 +140,7 @@ qubit_index = attrgetter("x")
 
 
 @overload
-def export_to_cirq(gate: Union[_gates.Gate]) -> cirq.Gate:
+def export_to_cirq(gate: _gates.Gate) -> cirq.Gate:
     pass
 
 

@@ -12,8 +12,7 @@ from numbers import Number
 
 import qiskit
 
-from .expressions import ExpressionDialect
-from .helpers import reduction
+from .expressions import ExpressionDialect, reduction
 from .sympy_expressions import expression_from_sympy
 
 

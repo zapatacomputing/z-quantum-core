@@ -1,6 +1,6 @@
 ############################################################################
 #   Copyright 2017 Rigetti Computing, Inc.
-#   Modified by Zapata Computing 2020.
+#   Modified by Zapata Computing 2020 to work for qiskit's WeightedPauliOperator.
 #
 #   Licensed under the Apache License, Version 2.0 (the "License");
 #   you may not use this file except in compliance with the License.
@@ -25,11 +25,12 @@ from openfermion.ops import (
 )
 from openfermion.utils import hermitian_conjugated
 from openfermion.transforms import jordan_wigner
-from ._pyquil_conversions import (
-    pyquilpauli_to_qubitop,
-    qubitop_to_pyquilpauli,
+from ._qiskit_conversions import (
+    qiskitpauli_to_qubitop,
+    qubitop_to_qiskitpauli,
 )
-from pyquil.paulis import PauliTerm, PauliSum
+from qiskit.aqua.operators import WeightedPauliOperator
+from qiskit.quantum_info import Pauli
 
 
 def test_translation_type_enforcement():
@@ -43,22 +44,14 @@ def test_translation_type_enforcement():
     interact_rdm = InteractionRDM(empty_one_body, empty_two_body)
 
     with pytest.raises(TypeError):
-        qubitop_to_pyquilpauli(create_one)
+        qubitop_to_qiskitpauli(create_one)
     with pytest.raises(TypeError):
-        qubitop_to_pyquilpauli(interact_one)
+        qubitop_to_qiskitpauli(interact_one)
     with pytest.raises(TypeError):
-        qubitop_to_pyquilpauli(interact_rdm)
-
-    # don't accept anything other than pyquil PauliSum or PauliTerm
-    with pytest.raises(TypeError):
-        qubitop_to_pyquilpauli(create_one)
-    with pytest.raises(TypeError):
-        qubitop_to_pyquilpauli(interact_one)
-    with pytest.raises(TypeError):
-        qubitop_to_pyquilpauli(interact_rdm)
+        qubitop_to_qiskitpauli(interact_rdm)
 
 
-def test_qubitop_to_paulisum():
+def test_qubitop_to_qiskitpauli():
     """
     Conversion of QubitOperator; accuracy test
     """
@@ -67,31 +60,37 @@ def test_qubitop_to_paulisum():
 
     pauli_term = jordan_wigner(term)
 
-    forest_term = qubitop_to_pyquilpauli(pauli_term)
-    ground_truth = PauliTerm("X", 0) * PauliTerm("Z", 1) * PauliTerm("X", 2)
-    ground_truth += PauliTerm("Y", 0) * PauliTerm("Z", 1) * PauliTerm("Y", 2)
-    ground_truth *= 0.5
+    qiskit_op = qubitop_to_qiskitpauli(pauli_term)
 
-    assert ground_truth == forest_term
+    ground_truth = WeightedPauliOperator(
+        [[0.5, Pauli.from_label("XZX")], [0.5, Pauli.from_label("YZY")]]
+    )
 
-
-def test_qubitop_to_paulisum_zero():
-
-    identity_term = QubitOperator()
-    forest_term = qubitop_to_pyquilpauli(identity_term)
-    ground_truth = PauliTerm("I", 0, 0)
-
-    assert ground_truth == forest_term
+    assert ground_truth == qiskit_op
 
 
-def test_pyquil_to_qubitop():
-    pyquil_term = PauliSum([PauliTerm("X", 0) * PauliTerm("Y", 5)])
+def test_qubitop_to_qiskitpauli_zero():
+    zero_term = QubitOperator()
+    qiskit_term = qubitop_to_qiskitpauli(zero_term)
+    ground_truth = WeightedPauliOperator([])
+
+    assert ground_truth == qiskit_term
+
+
+def test_qiskitpauli_to_qubitop():
+    qiskit_term = WeightedPauliOperator(
+        [
+            [1, Pauli.from_label("XIIIIY")],
+        ]
+    )
+
     op_fermion_term = QubitOperator(((0, "X"), (5, "Y")))
-    test_op_fermion_term = pyquilpauli_to_qubitop(pyquil_term)
+    test_op_fermion_term = qiskitpauli_to_qubitop(qiskit_term)
+
     assert test_op_fermion_term.isclose(op_fermion_term)
 
 
-def test_pyquil_to_qubitop_type_enforced():
+def test_qiskitpauli_to_qubitop_type_enforced():
     """Enforce the appropriate type"""
     create_one = FermionOperator("1^")
     empty_one_body = np.zeros((2, 2))
@@ -100,25 +99,8 @@ def test_pyquil_to_qubitop_type_enforced():
     interact_rdm = InteractionRDM(empty_one_body, empty_two_body)
 
     with pytest.raises(TypeError):
-        pyquilpauli_to_qubitop(create_one)
+        qiskitpauli_to_qubitop(create_one)
     with pytest.raises(TypeError):
-        pyquilpauli_to_qubitop(interact_one)
+        qiskitpauli_to_qubitop(interact_one)
     with pytest.raises(TypeError):
-        pyquilpauli_to_qubitop(interact_rdm)
-
-    # don't accept anything other than pyquil PauliSum or PauliTerm
-    with pytest.raises(TypeError):
-        pyquilpauli_to_qubitop(create_one)
-    with pytest.raises(TypeError):
-        pyquilpauli_to_qubitop(interact_one)
-    with pytest.raises(TypeError):
-        pyquilpauli_to_qubitop(interact_rdm)
-
-
-def test_pyquil_to_qubitop_pauliterm_conversion():
-    """Test if a pauliterm is converted to a pauli sum"""
-    pyquil_term = PauliTerm("X", 0) * PauliTerm("Y", 5)
-    # implicit test of conversion from Term to Sum
-    open_fermion_term = pyquilpauli_to_qubitop(pyquil_term)
-    op_fermion_term = QubitOperator(((0, "X"), (5, "Y")))
-    assert open_fermion_term.isclose(op_fermion_term)
+        qiskitpauli_to_qubitop(interact_rdm)

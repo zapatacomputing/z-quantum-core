@@ -1,35 +1,62 @@
-"""Utilities for converting gates and circuits to and from Cirq objects."""
+"""Zquantum <-> Cirq conversions."""
 from functools import singledispatch
-from typing import Union, Type, Callable
+from itertools import chain
+from operator import attrgetter
+from typing import Union, Callable, Type, overload
 
 import cirq
 import numpy as np
 import sympy
 
-from ...circuit.gates import (
-    Gate,
-    X,
-    Y,
-    Z,
-    RX,
-    RY,
-    RZ,
-    PHASE,
-    T,
-    I,
-    H,
-    CZ,
-    CNOT,
-    CPHASE,
-    SWAP,
-    XX,
-    YY,
-    ZZ,
-    XY,
-)
+from .. import _builtin_gates
+from .. import _gates
+from .. import _circuit
 
-Param = Union[sympy.Expr, float]
-RotationGateFactory = Callable[[Param], cirq.EigenGate]
+
+Parameter = Union[sympy.Expr, float]
+RotationGateFactory = Callable[[Parameter], cirq.EigenGate]
+
+
+def angle_to_exponent(angle: Parameter) -> Parameter:
+    """Convert exponent from Cirq gate to angle usable in rotation gates..
+
+    Args:
+        angle: Exponent to be converted.
+    Returns:
+        angle divided by pi.
+    Notes:
+        Scaling of the angle preserves its "type", i.e. numerical angles
+        are scaled by numerical approximation of pi, but symbolic ones
+        are scaled by `sympy.pi`. Note that in case of sympy numbers,
+        the results is a native float.
+
+        This transformation might be viewed as the change of units from
+        radians to pi * radians.
+    """
+    if isinstance(angle, sympy.Expr) and angle.is_constant():
+        try:
+            angle = float(angle)
+        # This broad except is intentional. I am not sure if it is always
+        # possible to convert constant sympy.Expr to float, therefore
+        # we allow graceful recovery in case the conversion failed.
+        except Exception:
+            pass
+    return angle / (sympy.pi if isinstance(angle, sympy.Expr) else np.pi)
+
+
+def exponent_to_angle(exponent: Parameter) -> Parameter:
+    """Convert exponent from Cirq gate to angle usable in rotation gates..
+
+    Args:
+        exponent: Exponent to be converted.
+    Returns:
+        exponent multiplied by pi.
+    Notes:
+        Scaling of the exponent preserves its "type", i.e. numerical exponents
+        are scaled by numerical approximation of pi, but symbolic ones
+        are scaled by sympy.pi
+    """
+    return exponent * (sympy.pi if isinstance(exponent, sympy.Expr) else np.pi)
 
 
 def make_rotation_factory(
@@ -49,7 +76,7 @@ def make_rotation_factory(
         and an exponent equal to angle divided by a factor of pi.
     """
 
-    def _rotation(angle: Param) -> cirq.EigenGate:
+    def _rotation(angle: Parameter) -> cirq.EigenGate:
         return eigengate_cls(
             global_shift=global_shift, exponent=angle_to_exponent(angle)
         )
@@ -57,179 +84,201 @@ def make_rotation_factory(
     return _rotation
 
 
-# Mapping between ZQuantum gate classes and Cirq gates.
-# Note that not all gates are included, those require special treatment.
-ZQUANTUM_TO_CIRQ_MAPPING = {
-    X: cirq.X,
-    Y: cirq.Y,
-    Z: cirq.Z,
-    RX: cirq.rx,
-    RY: cirq.ry,
-    RZ: cirq.rz,
-    T: cirq.T,
-    I: cirq.I,
-    H: cirq.H,
-    CZ: cirq.CZ,
-    CNOT: cirq.CNOT,
-    SWAP: cirq.SWAP,
-    PHASE: make_rotation_factory(cirq.ZPowGate),
-    CPHASE: make_rotation_factory(cirq.CZPowGate),
-    XX: make_rotation_factory(cirq.XXPowGate, -0.5),
-    YY: make_rotation_factory(cirq.YYPowGate, -0.5),
-    ZZ: make_rotation_factory(cirq.ZZPowGate, -0.5),
-    XY: make_rotation_factory(cirq.ISwapPowGate, 0.0),
+ZQUANTUM_BUILTIN_GATE_NAME_TO_CIRQ_GATE = {
+    "X": cirq.X,
+    "Y": cirq.Y,
+    "Z": cirq.Z,
+    "I": cirq.I,
+    "H": cirq.H,
+    "T": cirq.T,
+    "RX": cirq.rx,
+    "RY": cirq.ry,
+    "RZ": cirq.rz,
+    "PHASE": make_rotation_factory(cirq.ZPowGate),
+    "CNOT": cirq.CNOT,
+    "CZ": cirq.CZ,
+    "SWAP": cirq.SWAP,
+    "ISWAP": cirq.ISWAP,
+    "CPHASE": cirq.cphase,
+    "XX": make_rotation_factory(cirq.XXPowGate, -0.5),
+    "YY": make_rotation_factory(cirq.YYPowGate, -0.5),
+    "ZZ": make_rotation_factory(cirq.ZZPowGate, -0.5),
+    "XY": make_rotation_factory(cirq.ISwapPowGate, 0.0),
 }
 
 
 EIGENGATE_SPECIAL_CASES = {
-    (type(cirq.X), cirq.X.global_shift, cirq.X.exponent): X,
-    (type(cirq.Y), cirq.Y.global_shift, cirq.Y.exponent): Y,
-    (type(cirq.Z), cirq.Z.global_shift, cirq.Z.exponent): Z,
-    (type(cirq.T), cirq.T.global_shift, cirq.T.exponent): T,
-    (type(cirq.H), cirq.H.global_shift, cirq.H.exponent): H,
-    (type(cirq.CNOT), cirq.CNOT.global_shift, cirq.CNOT.exponent): CNOT,
-    (type(cirq.CZ), cirq.CZ.global_shift, cirq.CZ.exponent): CZ,
-    (type(cirq.SWAP), cirq.SWAP.global_shift, cirq.SWAP.exponent): SWAP,
+    (type(cirq.X), cirq.X.global_shift, cirq.X.exponent): _builtin_gates.X,
+    (type(cirq.Y), cirq.Y.global_shift, cirq.Y.exponent): _builtin_gates.Y,
+    (type(cirq.Z), cirq.Z.global_shift, cirq.Z.exponent): _builtin_gates.Z,
+    (type(cirq.T), cirq.T.global_shift, cirq.T.exponent): _builtin_gates.T,
+    (type(cirq.H), cirq.H.global_shift, cirq.H.exponent): _builtin_gates.H,
+    (type(cirq.CNOT), cirq.CNOT.global_shift, cirq.CNOT.exponent): _builtin_gates.CNOT,
+    (type(cirq.CZ), cirq.CZ.global_shift, cirq.CZ.exponent): _builtin_gates.CZ,
+    (type(cirq.SWAP), cirq.SWAP.global_shift, cirq.SWAP.exponent): _builtin_gates.SWAP,
+    (
+        type(cirq.ISWAP),
+        cirq.ISWAP.global_shift,
+        cirq.ISWAP.exponent,
+    ): _builtin_gates.ISWAP,
 }
-
 
 EIGENGATE_ROTATIONS = {
-    (cirq.XPowGate, -0.5): RX,
-    (cirq.YPowGate, -0.5): RY,
-    (cirq.ZPowGate, -0.5): RZ,
-    (cirq.ZPowGate, 0): PHASE,
-    (cirq.CZPowGate, 0): CPHASE,
-    (cirq.XXPowGate, -0.5): XX,
-    (cirq.YYPowGate, -0.5): YY,
-    (cirq.ZZPowGate, -0.5): ZZ,
-    (cirq.ISwapPowGate, 0.0): XY,
+    (cirq.XPowGate, -0.5): _builtin_gates.RX,
+    (cirq.YPowGate, -0.5): _builtin_gates.RY,
+    (cirq.ZPowGate, -0.5): _builtin_gates.RZ,
+    (cirq.ZPowGate, 0): _builtin_gates.PHASE,
+    (cirq.CZPowGate, 0): _builtin_gates.CPHASE,
+    (cirq.XXPowGate, -0.5): _builtin_gates.XX,
+    (cirq.YYPowGate, -0.5): _builtin_gates.YY,
+    (cirq.ZZPowGate, -0.5): _builtin_gates.ZZ,
+    (cirq.ISwapPowGate, 0.0): _builtin_gates.XY,
 }
 
+CIRQ_GATE_SPECIAL_CASES = {cirq.CSWAP: _builtin_gates.SWAP.controlled(1)}
 
-def exponent_to_angle(exponent: Param) -> Param:
-    """Convert exponent from Cirq gate to angle usable in rotation gates..
-
-    Args:
-        exponent: Exponent to be converted.
-    Returns:
-        exponent multiplied by pi.
-    Notes:
-        Scaling of the exponent preserves its "type", i.e. numerical exponents
-        are scaled by numerical approximation of pi, but symbolic ones
-        are scaled by sympy.pi
-    """
-    return exponent * (sympy.pi if isinstance(exponent, sympy.Expr) else np.pi)
+qubit_index = attrgetter("x")
 
 
-def angle_to_exponent(angle: Param) -> Param:
-    """Convert exponent from Cirq gate to angle usable in rotation gates..
+@overload
+def export_to_cirq(gate: _gates.Gate) -> cirq.Gate:
+    pass
 
-    Args:
-        angle: Exponent to be converted.
-    Returns:
-        angle divided by pi.
-    Notes:
-        Scaling of the angle preserves its "type", i.e. numerical angles
-        are scaled by numerical approximation of pi, but symbolic ones
-        are scaled by sympy.pi
-    """
-    return angle / (sympy.pi if isinstance(angle, sympy.Expr) else np.pi)
+
+@overload
+def export_to_cirq(gate_operation: _gates.GateOperation) -> cirq.GateOperation:
+    pass
+
+
+@overload
+def export_to_cirq(circuit: _circuit.Circuit) -> cirq.Circuit:
+    pass
 
 
 @singledispatch
-def convert_to_cirq(obj):
-    """Convert native ZQuantum object to its closest Cirq counterpart.
+def export_to_cirq(obj):
+    """Export given native Zquantum object to its Cirq equivalent.
 
-    TODO: add longer description once all conversions are done.
+    This should be primarily used with Circuit objects, but
+    also works for builtin gates and gate operations.
+
+    Exporting of user-defined gates is atm not supported.
     """
-    raise NotImplementedError(f"Cannot convert {obj} to cirq object.")
+    raise NotImplementedError(f"{obj} can't be exported to Cirq object.")
 
 
-@convert_to_cirq.register
-def convert_zquantum_gate_to_cirq(gate: Gate) -> cirq.GateOperation:
-    """Convert native ZQuantum get to its Cirq counterpart."""
+@export_to_cirq.register
+def export_matrix_factory_gate_to_cirq(gate: _gates.MatrixFactoryGate) -> cirq.Gate:
     try:
-        cirq_gate = ZQUANTUM_TO_CIRQ_MAPPING[type(gate)]
-        if gate.params:
-            cirq_gate = cirq_gate(*gate.params)
-        return cirq_gate(*(cirq.LineQubit(qubit) for qubit in gate.qubits))
-    except KeyError:
-        raise NotImplementedError(
-            f"Cannot convert ZQuantum gate {gate} to cirq. This is probably a bug, "
-            "please reach out to the ZQuantum support."
+        cirq_factory = ZQUANTUM_BUILTIN_GATE_NAME_TO_CIRQ_GATE[gate.name]
+        cirq_params = (
+            float(param) if isinstance(param, sympy.Expr) and param.is_Float else param
+            for param in gate.params
         )
+        return cirq_factory(*cirq_params) if gate.params else cirq_factory
+    except KeyError:
+        raise NotImplementedError(f"Gate {gate} can't be exported to Cirq.")
+
+
+@export_to_cirq.register
+def export_controlled_gate_to_cirq(gate: _gates.ControlledGate) -> cirq.Gate:
+    return export_to_cirq(gate.wrapped_gate).controlled(gate.num_control_qubits)
+
+
+@export_to_cirq.register
+def export_dagger_to_cirq(gate: _gates.Dagger) -> cirq.Gate:
+    return cirq.inverse(export_to_cirq(gate.wrapped_gate))
+
+
+@export_to_cirq.register
+def export_gate_operation_to_cirq(
+    operation: _gates.GateOperation,
+) -> cirq.GateOperation:
+    return export_to_cirq(operation.gate)(*map(cirq.LineQubit, operation.qubit_indices))
+
+
+@export_to_cirq.register
+def export_circuit_to_cirq(circuit: _circuit.Circuit) -> cirq.Circuit:
+    return cirq.Circuit([export_to_cirq(operation) for operation in circuit.operations])
+
+
+@overload
+def import_from_cirq(eigengate: cirq.Gate) -> _gates.Gate:
+    pass
+
+
+@overload
+def import_from_cirq(circuit: cirq.Circuit) -> _circuit.Circuit:
+    pass
+
+
+@overload
+def import_from_cirq(
+    operation: Union[cirq.GateOperation, cirq.ControlledOperation]
+) -> _gates.GateOperation:
+    pass
 
 
 @singledispatch
-def convert_from_cirq(obj):
-    """Convert Cirq object to its closes ZQuantum counterpart.
+def import_from_cirq(obj):
+    """Import given Cirq object, converting it to its Zquantum native counterpart.
 
-    TODO: add longer description once all conversions are done.
+    Currently we support gates corresponding to Zquantum builtin gates, operations
+    on such gates and circuits composed of such gates.
+
+    Also note that only objects using only LineQubits are supported, as currently
+    there is no notion of GridQubit in Zquantum.
+
+    Raises:
+        NotImplementedError: if the object to be imported is of currently unsupported type.
     """
-    raise NotImplementedError(
-        f"Conversion from cirq to ZQuantum not supported for {obj}."
+    try:
+        return CIRQ_GATE_SPECIAL_CASES[obj]
+    except KeyError:
+        raise NotImplementedError(f"{obj} can't be imported into Zquantum.")
+
+
+@import_from_cirq.register
+def convert_eigengate_to_zquantum_gate(eigengate: cirq.EigenGate) -> _gates.Gate:
+    key = (type(eigengate), eigengate.global_shift, eigengate.exponent)
+    try:
+        return EIGENGATE_SPECIAL_CASES[key]
+    except KeyError:
+        pass
+
+    try:
+        return EIGENGATE_ROTATIONS[key[0:2]](exponent_to_angle(eigengate.exponent))
+    except KeyError:
+        raise NotImplementedError(f"Gate {eigengate} can't be imported into Zquantum.")
+
+
+@import_from_cirq.register
+def convert_cirq_identity_gate_to_zquantum_gate(
+    identity_gate: cirq.IdentityGate,
+) -> _gates.Gate:
+    return _builtin_gates.I
+
+
+@import_from_cirq.register
+def import_cirq_controlled_gate(controlled_gate: cirq.ControlledGate) -> _gates.Gate:
+    return import_from_cirq(controlled_gate.sub_gate).controlled(
+        controlled_gate.num_controls()
     )
 
 
-@singledispatch
-def zquantum_gate_factory_from_cirq_gate(gate: cirq.Gate) -> Callable[..., Gate]:
-    """Create a function that constructs zquantum Gate based on Cirq Gate.
-
-    Args:
-          gate: Cirq gate to base the factory on.
-    Returns:
-          function of the form f(*qubits) -> Gate. For most variants of this
-          function those will be just respective classes initializers.
-    """
-    raise NotImplementedError(f"Don't know ZQuantum factory for gate: {gate}.")
-
-
-@zquantum_gate_factory_from_cirq_gate.register
-def identity_gate_factory_from_cirq_identity(_gate: cirq.IdentityGate) -> Type[I]:
-    return I
-
-
-@zquantum_gate_factory_from_cirq_gate.register
-def zquantum_gate_factory_from_eigengate(gate: cirq.EigenGate) -> Callable[..., Gate]:
-    key = (type(gate), gate.global_shift, gate.exponent)
-    if key in EIGENGATE_SPECIAL_CASES:
-        return EIGENGATE_SPECIAL_CASES[key]
-    elif key[0:2] in EIGENGATE_ROTATIONS:
-        return lambda *qubits: EIGENGATE_ROTATIONS[key[0:2]](
-            *qubits, angle=exponent_to_angle(gate.exponent)
-        )
-    else:
-        raise NotImplementedError(
-            f"Conversion of arbitrary {type(gate).__name__} gate not supported yet."
-        )
-
-
-@convert_from_cirq.register
-def convert_cirq_gate_operation_to_zquantum_gate(
-    operation: cirq.GateOperation,
-) -> Gate:
-    """Convert Cirq GateOperation to native ZQuantum Gate.
-
-    Note that Cirq distinguishes concept of GateOperation and Gate. The correspondence
-    between terminology in Cirq is as follows:
-
-    Cirq Gate <-> ZQuantum Gate subclass
-    Cirq GateOperation <-> A concrete instance of some ZQuantum Gate,
-
-    which is why this function accepts GateOperation instead of Gate.
-
-    Args:
-        operation: operation to be converted.
-    Returns:
-        Native ZQuantum Gate.
-    """
+@import_from_cirq.register(cirq.GateOperation)
+@import_from_cirq.register(cirq.ControlledOperation)
+def convert_gate_operation_to_zquantum(operation) -> _gates.GateOperation:
     if not all(isinstance(qubit, cirq.LineQubit) for qubit in operation.qubits):
         raise NotImplementedError(
-            "Currently conversions from cirq to ZQuantum is supported only for "
-            "gate operations with LineQubits."
+            f"Failed to import {operation}. Grid qubits are not yet supported."
         )
 
-    zquantum_gate_factory = zquantum_gate_factory_from_cirq_gate(operation.gate)
-    zquantum_qubits = [qubit.x for qubit in operation.qubits]
+    return import_from_cirq(operation.gate)(*map(qubit_index, operation.qubits))
 
-    return zquantum_gate_factory(*zquantum_qubits)
+
+@import_from_cirq.register
+def import_circuit_from_cirq(circuit: cirq.Circuit) -> _circuit.Circuit:
+    return _circuit.Circuit(
+        [import_from_cirq(op) for op in chain.from_iterable(circuit.moments)]
+    )

@@ -18,6 +18,7 @@ from zquantum.core.circuit import (
     load_circuit_connectivity,
     load_circuit_template_params,
     load_circuit_set,
+    Circuit,
 )
 from zquantum.core.bitstring_distribution import save_bitstring_distribution
 from zquantum.core.openfermion import (
@@ -26,12 +27,12 @@ from zquantum.core.openfermion import (
     load_qubit_operator_set,
 )
 from zquantum.core.typing import Specs
-from typing import Dict, Optional
+from typing import Dict, Optional, Union
 
 
 def run_circuit_and_measure(
     backend_specs: Specs,
-    circuit: str,
+    circuit: Union[str, Dict],
     n_samples: Optional[int] = None,
     noise_model: Optional[str] = None,
     device_connectivity: Optional[str] = None,
@@ -46,7 +47,10 @@ def run_circuit_and_measure(
         )
 
     backend = create_object(backend_specs)
-    circuit = load_circuit(circuit)
+    if isinstance(circuit, str):
+        circuit = load_circuit(circuit)
+    else:
+        circuit = Circuit.from_dict(circuit)
 
     measurements = backend.run_circuit_and_measure(circuit, n_samples=n_samples)
     measurements.save("measurements.json")

@@ -4,7 +4,7 @@ from unittest.mock import Mock
 import pytest
 import sympy
 
-from . import _builtin_gates as bg
+from . import _builtin_gates
 from ._gates import MatrixFactoryGate
 
 
@@ -111,24 +111,24 @@ class TestMatrixFactoryGate:
 @pytest.mark.parametrize(
     "gate",
     [
-        bg.X,
-        bg.Y,
-        bg.Z,
-        bg.T,
-        bg.H,
-        bg.I,
-        bg.RX(sympy.Symbol("theta")),
-        bg.RY(0.5),
-        bg.RZ(0),
-        bg.PHASE(sympy.pi / 5),
-        bg.CZ,
-        bg.CNOT,
-        bg.SWAP,
-        bg.ISWAP,
-        bg.XX(sympy.cos(sympy.Symbol("phi"))),
-        bg.YY(sympy.pi),
-        bg.ZZ(sympy.Symbol("x") + sympy.Symbol("y")),
-        bg.CPHASE(1.5)
+        _builtin_gates.X,
+        _builtin_gates.Y,
+        _builtin_gates.Z,
+        _builtin_gates.T,
+        _builtin_gates.H,
+        _builtin_gates.I,
+        _builtin_gates.RX(sympy.Symbol("theta")),
+        _builtin_gates.RY(0.5),
+        _builtin_gates.RZ(0),
+        _builtin_gates.PHASE(sympy.pi / 5),
+        _builtin_gates.CZ,
+        _builtin_gates.CNOT,
+        _builtin_gates.SWAP,
+        _builtin_gates.ISWAP,
+        _builtin_gates.XX(sympy.cos(sympy.Symbol("phi"))),
+        _builtin_gates.YY(sympy.pi),
+        _builtin_gates.ZZ(sympy.Symbol("x") + sympy.Symbol("y")),
+        _builtin_gates.CPHASE(1.5)
     ]
 )
 class TestControlledGate:

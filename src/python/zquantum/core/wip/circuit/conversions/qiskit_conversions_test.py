@@ -1,77 +1,47 @@
-import qiskit
-import numpy as np
 import sympy
+import numpy as np
+import qiskit
+import qiskit.circuit.random
 import pytest
 
-from .. import (
-    X,
-    Y,
-    Z,
-    I,
-    T,
-    H,
-    CNOT,
-    CZ,
-    SWAP,
-    ISWAP,
-    RX,
-    RY,
-    RZ,
-    PHASE,
-    CPHASE,
-    XX,
-    YY,
-    ZZ,
-    Circuit,
-    ControlledGate,
+from zquantum.core.wip.circuit.conversions.qiskit_conversions import (
+    export_to_qiskit,
+    import_from_qiskit,
 )
-from .qiskit_conversions import convert_to_qiskit, convert_from_qiskit, qiskit_qubit
+from zquantum.core.wip.circuit import _gates
+from zquantum.core.wip.circuit import _builtin_gates
+from zquantum.core.wip.circuit import _circuit
 
 
-THETA = sympy.Symbol("theta")
+# --------- gates ---------
 
 
-EXAMPLE_SYMBOLIC_ANGLES = [
-    (THETA, qiskit.circuit.Parameter("theta")),
-    (
-        sympy.Symbol("x") + sympy.Symbol("y"),
-        qiskit.circuit.Parameter("x") + qiskit.circuit.Parameter("y"),
-    ),
-    (0.5 * sympy.Symbol("phi") + 1, 0.5 * qiskit.circuit.Parameter("phi") + 1),
+EQUIVALENT_NON_PARAMETRIC_GATES = [
+    (_builtin_gates.X, qiskit.circuit.library.XGate()),
+    (_builtin_gates.Y, qiskit.circuit.library.YGate()),
+    (_builtin_gates.Z, qiskit.circuit.library.ZGate()),
+    (_builtin_gates.H, qiskit.circuit.library.HGate()),
+    (_builtin_gates.I, qiskit.circuit.library.IGate()),
+    (_builtin_gates.T, qiskit.circuit.library.TGate()),
+    (_builtin_gates.CNOT, qiskit.extensions.CXGate()),
+    (_builtin_gates.CZ, qiskit.extensions.CZGate()),
+    (_builtin_gates.SWAP, qiskit.extensions.SwapGate()),
+    (_builtin_gates.ISWAP, qiskit.extensions.iSwapGate()),
 ]
 
-
-EQUIVALENT_NONPARAMETRIC_SINGLE_QUBIT_GATES = [
-    (X, qiskit.extensions.XGate),
-    (Y, qiskit.extensions.YGate),
-    (Z, qiskit.extensions.ZGate),
-    (H, qiskit.extensions.HGate),
-    (I, qiskit.extensions.IGate),
-    (T, qiskit.extensions.TGate),
-]
-
-
-EQUIVALENT_NONPARAMETRIC_TWO_QUBIT_GATES = [
-    (CNOT, qiskit.extensions.CXGate),
-    (CZ, qiskit.extensions.CZGate),
-    (SWAP, qiskit.extensions.SwapGate),
-    (ISWAP, qiskit.extensions.iSwapGate),
-]
-
-
-EQUIVALENT_SINGLE_QUBIT_ROTATION_GATES = [
-    (RX, qiskit.extensions.RXGate),
-    (RY, qiskit.extensions.RYGate),
-    (RZ, qiskit.extensions.RZGate),
-    (PHASE, qiskit.extensions.PhaseGate),
-]
-
-
-EQUIVALENT_TWO_QUBIT_ROTATION_GATES = [
-    (CPHASE, qiskit.extensions.CPhaseGate),
-    (XX, qiskit.extensions.RXXGate),
-    (YY, qiskit.extensions.RYYGate),
-    (ZZ, qiskit.extensions.RZZGate),
+EQUIVALENT_PARAMETRIC_GATES = [
+    (zquantum_cls(theta), qiskit_cls(theta))
+    for zquantum_cls, qiskit_cls in [
+        (_builtin_gates.RX, qiskit.circuit.library.RXGate),
+        (_builtin_gates.RY, qiskit.circuit.library.RYGate),
+        (_builtin_gates.RZ, qiskit.circuit.library.RZGate),
+        (_builtin_gates.PHASE, qiskit.circuit.library.PhaseGate),
+        (_builtin_gates.CPHASE, qiskit.extensions.CPhaseGate),
+        (_builtin_gates.XX, qiskit.extensions.RXXGate),
+        (_builtin_gates.YY, qiskit.extensions.RYYGate),
+        (_builtin_gates.ZZ, qiskit.extensions.RZZGate),
+    ]
+    for theta in [0, -1, np.pi / 5, 2 * np.pi]
 ]
 
 
@@ -85,100 +55,34 @@ TWO_QUBIT_SWAP_MATRIX = np.array(
 )
 
 
-TEST_CASES_WITHOUT_SYMBOLIC_PARAMS = [
-    *[
-        (zquantum_gate(qubit), (qiskit_gate(), [qiskit_qubit(qubit, qubit + 1)], []))
-        for zquantum_gate, qiskit_gate in EQUIVALENT_NONPARAMETRIC_SINGLE_QUBIT_GATES
-        for qubit in [0, 1, 4, 10]
-    ],
-    *[
-        (
-            zquantum_gate(*qubit_pair),
-            (
-                qiskit_gate(),
-                [qiskit_qubit(qubit, max(qubit_pair) + 1) for qubit in qubit_pair],
-                [],
-            ),
-        )
-        for zquantum_gate, qiskit_gate in EQUIVALENT_NONPARAMETRIC_TWO_QUBIT_GATES
-        for qubit_pair in [(0, 1), (3, 4), (10, 1)]
-    ],
-    *[
-        (
-            zquantum_gate(qubit, angle),
-            (qiskit_gate(angle), [qiskit_qubit(qubit, qubit + 1)], []),
-        )
-        for zquantum_gate, qiskit_gate in EQUIVALENT_SINGLE_QUBIT_ROTATION_GATES
-        for qubit in [0, 1, 4, 10]
-        for angle in [0, np.pi, np.pi / 2, 0.4, np.pi / 5]
-    ],
-    *[
-        (
-            zquantum_gate(*qubit_pair, angle),
-            (
-                qiskit_gate(angle),
-                [qiskit_qubit(qubit, max(qubit_pair) + 1) for qubit in qubit_pair],
-                [],
-            ),
-        )
-        for zquantum_gate, qiskit_gate in EQUIVALENT_TWO_QUBIT_ROTATION_GATES
-        for qubit_pair in [(0, 1), (3, 4), (10, 1)]
-        for angle in [0, np.pi, np.pi / 2, 0.4, np.pi / 5]
-    ],
-]
+def _fix_qubit_ordering(qiskit_matrix):
+    """Import qiskit matrix to ZQuantum matrix convention.
+
+    Qiskit uses different qubit ordering than we do.
+    It causes multi-qubit matrices to look different on first sight."""
+    if len(qiskit_matrix) == 2:
+        return qiskit_matrix
+    if len(qiskit_matrix) == 4:
+        return TWO_QUBIT_SWAP_MATRIX @ qiskit_matrix @ TWO_QUBIT_SWAP_MATRIX
+    else:
+        raise ValueError(f"Unsupported matrix size: {len(qiskit_matrix)}")
 
 
-TEST_CASES_WITH_SYMBOLIC_PARAMS = [
-    *[
-        (
-            zquantum_gate(qubit, zquantum_angle),
-            (qiskit_gate(qiskit_angle), [qiskit_qubit(qubit, qubit + 1)], []),
-        )
-        for zquantum_gate, qiskit_gate in EQUIVALENT_SINGLE_QUBIT_ROTATION_GATES
-        for qubit in [0, 1, 4, 10]
-        for zquantum_angle, qiskit_angle in EXAMPLE_SYMBOLIC_ANGLES
-    ],
-    *[
-        (
-            zquantum_gate(*qubit_pair, zquantum_angle),
-            (
-                qiskit_gate(qiskit_angle),
-                [qiskit_qubit(qubit, max(qubit_pair) + 1) for qubit in qubit_pair],
-                [],
-            ),
-        )
-        for zquantum_gate, qiskit_gate in EQUIVALENT_TWO_QUBIT_ROTATION_GATES
-        for qubit_pair in [(0, 1), (3, 4), (10, 1)]
-        for zquantum_angle, qiskit_angle in EXAMPLE_SYMBOLIC_ANGLES
-    ],
-]
+class TestGateConversion:
+    @pytest.mark.parametrize(
+        "zquantum_gate,qiskit_gate",
+        [
+            *EQUIVALENT_NON_PARAMETRIC_GATES,
+            *EQUIVALENT_PARAMETRIC_GATES,
+        ],
+    )
+    def test_matrices_are_equal(self, zquantum_gate, qiskit_gate):
+        zquantum_matrix = np.array(zquantum_gate.matrix).astype(np.complex128)
+        qiskit_matrix = _fix_qubit_ordering(qiskit_gate.to_matrix())
+        np.testing.assert_allclose(zquantum_matrix, qiskit_matrix)
 
 
-TEST_CASES_FOR_CONTROLLED_GATES = [
-    (
-        ControlledGate(X(0), 1),
-        (
-            qiskit.extensions.XGate().control(1),
-            [
-                qiskit_qubit(1, 2),
-                qiskit_qubit(0, 2),
-            ],
-            [],
-        )
-    ),
-    (
-        ControlledGate(RX(1, THETA), 3),
-        (
-            qiskit.extensions.RXGate(qiskit.circuit.Parameter("theta")).control(1),
-            [
-                qiskit_qubit(3, 4),
-                qiskit_qubit(1, 4),
-            ],
-            [],
-        ),
-    ),
-]
-
+# --------- circuits ---------
 
 # NOTE: In Qiskit, 0 is the most significant qubit,
 # whereas in ZQuantum, 0 is the least significant qubit.
@@ -188,185 +92,386 @@ TEST_CASES_FOR_CONTROLLED_GATES = [
 # https://qiskit.org/documentation/tutorials/circuits/1_getting_started_with_qiskit.html#Visualize-Circuit
 
 
-def _single_qubit_qiskit_circuit():
-    qc = qiskit.QuantumCircuit(6)
-    qc.x(0)
-    qc.z(2)
+def _make_qiskit_circuit(n_qubits, commands):
+    qc = qiskit.QuantumCircuit(n_qubits)
+    for method_name, method_args in commands:
+        method = getattr(qc, method_name)
+        method(*method_args)
     return qc
 
 
-def _two_qubit_qiskit_circuit():
-    qc = qiskit.QuantumCircuit(4)
-    qc.cnot(0, 1)
-    return qc
+SYMPY_THETA = sympy.Symbol("theta")
+SYMPY_GAMMA = sympy.Symbol("gamma")
+QISKIT_THETA = qiskit.circuit.Parameter("theta")
+QISKIT_GAMMA = qiskit.circuit.Parameter("gamma")
 
 
-def _parametric_qiskit_circuit():
-    qc = qiskit.QuantumCircuit(4)
-    qc.rx(np.pi, 0)
-    return qc
+EXAMPLE_PARAM_VALUES = {
+    "gamma": 0.3,
+    "theta": -5,
+}
 
 
-def _qiskit_circuit_with_controlled_gate():
-    qc = qiskit.QuantumCircuit(5)
-    qc.append(qiskit.extensions.SwapGate().control(1), [1, 0, 2])
-    return qc
-
-
-EQUIVALENT_CIRCUITS = [
+EQUIVALENT_NON_PARAMETRIZED_CIRCUITS = [
     (
-        Circuit(
+        _circuit.Circuit([], 3),
+        _make_qiskit_circuit(3, []),
+    ),
+    (
+        _circuit.Circuit(
             [
-                X(0),
-                Z(2),
+                _builtin_gates.X(0),
+                _builtin_gates.Z(2),
             ],
             6,
         ),
-        _single_qubit_qiskit_circuit(),
+        _make_qiskit_circuit(
+            6,
+            [
+                ("x", (0,)),
+                ("z", (2,)),
+            ],
+        ),
     ),
     (
-        Circuit(
+        _circuit.Circuit(
             [
-                CNOT(0, 1),
+                _builtin_gates.CNOT(0, 1),
             ],
             4,
         ),
-        _two_qubit_qiskit_circuit(),
+        _make_qiskit_circuit(
+            4,
+            [
+                ("cnot", (0, 1)),
+            ],
+        ),
     ),
     (
-        Circuit(
+        _circuit.Circuit(
             [
-                RX(0, np.pi),
+                _builtin_gates.RX(np.pi)(1),
             ],
             4,
         ),
-        _parametric_qiskit_circuit(),
+        _make_qiskit_circuit(
+            4,
+            [
+                ("rx", (np.pi, 1)),
+            ],
+        ),
     ),
     (
-        Circuit(
-            [
-                ControlledGate(SWAP(0, 2), 1),
-            ],
+        _circuit.Circuit(
+            [_builtin_gates.SWAP.controlled(1)(2, 0, 3)],
             5,
         ),
-        _qiskit_circuit_with_controlled_gate(),
+        _make_qiskit_circuit(
+            5,
+            [
+                ("append", (qiskit.circuit.library.SwapGate().control(1), [2, 0, 3])),
+            ],
+        ),
+    ),
+    (
+        _circuit.Circuit(
+            [_builtin_gates.Y.controlled(2)(4, 5, 2)],
+            6,
+        ),
+        _make_qiskit_circuit(
+            6,
+            [
+                ("append", (qiskit.circuit.library.YGate().control(2), [4, 5, 2])),
+            ],
+        ),
     ),
 ]
 
 
-def are_qiskit_parameters_equal(param_1, param_2):
-    return (
-        getattr(param_1, "_symbol_expr", param_1)
-        - getattr(param_2, "_symbol_expr", param_2)
-        == 0
-    )
+EQUIVALENT_PARAMETRIZED_CIRCUITS = [
+    (
+        _circuit.Circuit(
+            [
+                _builtin_gates.RX(SYMPY_THETA)(1),
+            ],
+            4,
+        ),
+        _make_qiskit_circuit(
+            4,
+            [
+                ("rx", (QISKIT_THETA, 1)),
+            ],
+        ),
+    ),
+    (
+        _circuit.Circuit(
+            [
+                _builtin_gates.RX(SYMPY_THETA * SYMPY_GAMMA)(1),
+            ],
+            4,
+        ),
+        _make_qiskit_circuit(
+            4,
+            [
+                ("rx", (QISKIT_THETA * QISKIT_GAMMA, 1)),
+            ],
+        ),
+    ),
+]
 
 
-def are_qiskit_gates_equal(gate_1, gate_2):
-    type_1, type_2 = type(gate_1), type(gate_2)
-    return (issubclass(type_1, type_2) or issubclass(type_2, type_1)) and all(
-        are_qiskit_parameters_equal(param_1, param_2)
-        for param_1, param_2 in zip(gate_1.params, gate_2.params)
-    )
-
-
-def _are_qiskit_operations_equal(operation_1, operation_2):
-    return operation_1[1:] == operation_2[1:] and are_qiskit_gates_equal(
-        operation_1[0], operation_2[0]
-    )
-
-
-@pytest.mark.parametrize(
-    "zquantum_gate, qiskit_operation", TEST_CASES_WITHOUT_SYMBOLIC_PARAMS
+UNITARY_GATE_DEF = _gates.CustomGateDefinition(
+    "unitary.33c11b461fe67e717e37ac34a568cd1c27a89013703bf5b84194f0732a33a26d",
+    sympy.Matrix([[0, 1], [1, 0]]),
+    tuple(),
 )
-class TestGateConversionWithoutSymbolicParameters:
-    def test_converting_zquantum_gate_to_qiskit_gives_expected_operation(
-        self, zquantum_gate, qiskit_operation
-    ):
-        assert (
-            convert_to_qiskit(zquantum_gate, max(zquantum_gate.qubits) + 1)
-            == qiskit_operation
-        )
-
-    def test_converting_qiskit_operation_to_zquantum_gives_expected_gate(
-        self, zquantum_gate, qiskit_operation
-    ):
-        assert convert_from_qiskit(qiskit_operation) == zquantum_gate
-
-    def test_zquantum_gate_and_qiskit_gate_have_the_same_matrix(
-        self, zquantum_gate, qiskit_operation
-    ):
-        zquantum_matrix = np.array(zquantum_gate.matrix).astype(np.complex128)
-        if len(zquantum_gate.qubits) == 2:
-            zquantum_matrix = (
-                TWO_QUBIT_SWAP_MATRIX @ zquantum_matrix @ TWO_QUBIT_SWAP_MATRIX
-            )
-        np.testing.assert_allclose(zquantum_matrix, qiskit_operation[0].to_matrix())
-
-
-class TestQiskitQubit:
-    def test_qiskit_qubit_produces_qubit_with_specified_index(self):
-        qubit = qiskit_qubit(0, 3)
-        assert qubit.index == 0
-
-    def test_qiskit_qubit_produces_qubit_with_register_having_specified_size(self):
-        qubit = qiskit_qubit(1, 4)
-        assert qubit.register.size == 4
-
-
-@pytest.mark.parametrize(
-    "zquantum_gate, qiskit_operation", TEST_CASES_WITH_SYMBOLIC_PARAMS
+CUSTOM_A2_GATE_DEF = _gates.CustomGateDefinition(
+    "custom.A2.33c11b461fe67e717e37ac34a568cd1c27a89013703bf5b84194f0732a33a26d",
+    sympy.Matrix([[0, 1], [1, 0]]),
+    tuple(),
 )
-class TestGateConversionWithSymbolicParameters:
-    def test_converting_zquantum_gate_to_qiskit_gives_expected_operation(
-        self, zquantum_gate, qiskit_operation
-    ):
-        assert _are_qiskit_operations_equal(
-            convert_to_qiskit(zquantum_gate, max(zquantum_gate.qubits) + 1),
-            qiskit_operation,
-        )
-
-    def test_converting_qiskit_operation_to_zquantum_gives_expected_gate(
-        self, zquantum_gate, qiskit_operation
-    ):
-        assert convert_from_qiskit(qiskit_operation) == zquantum_gate
 
 
-@pytest.mark.parametrize(
-    "zquantum_gate, qiskit_operation", TEST_CASES_FOR_CONTROLLED_GATES
-)
-class TestGateConversionForControlledGates:
-    def test_converting_zquantum_gate_to_qiskit_gives_expected_operation(
-        self, zquantum_gate, qiskit_operation
-    ):
-        assert _are_qiskit_operations_equal(
-            convert_to_qiskit(zquantum_gate, max(zquantum_gate.qubits) + 1),
-            qiskit_operation,
-        )
-
-    def test_converting_qiskit_operation_to_zquantum_gives_expected_gate(
-        self, zquantum_gate, qiskit_operation
-    ):
-        assert convert_from_qiskit(qiskit_operation) == zquantum_gate
+EQUIVALENT_CUSTOM_GATE_CIRCUITS = [
+    (
+        _circuit.Circuit(
+            operations=[UNITARY_GATE_DEF()(1)],
+            n_qubits=4,
+            custom_gate_definitions=[UNITARY_GATE_DEF],
+        ),
+        _make_qiskit_circuit(
+            4,
+            [
+                ("unitary", (np.array([[0, 1], [1, 0]]), 1)),
+            ],
+        ),
+    ),
+    (
+        _circuit.Circuit(
+            operations=[CUSTOM_A2_GATE_DEF()(3)],
+            n_qubits=5,
+            custom_gate_definitions=[CUSTOM_A2_GATE_DEF],
+        ),
+        _make_qiskit_circuit(
+            5,
+            [
+                ("unitary", (np.array([[0, 1], [1, 0]]), 3, "custom.A2")),
+            ],
+        ),
+    ),
+    (
+        _circuit.Circuit(
+            operations=[UNITARY_GATE_DEF()(1), UNITARY_GATE_DEF()(1)],
+            n_qubits=4,
+            custom_gate_definitions=[UNITARY_GATE_DEF],
+        ),
+        _make_qiskit_circuit(
+            4,
+            [
+                ("unitary", (np.array([[0, 1], [1, 0]]), 1)),
+                ("unitary", (np.array([[0, 1], [1, 0]]), 1)),
+            ],
+        ),
+    ),
+    (
+        _circuit.Circuit(
+            operations=[
+                UNITARY_GATE_DEF()(1),
+                CUSTOM_A2_GATE_DEF()(1),
+                UNITARY_GATE_DEF()(0),
+            ],
+            n_qubits=4,
+            custom_gate_definitions=[UNITARY_GATE_DEF, CUSTOM_A2_GATE_DEF],
+        ),
+        _make_qiskit_circuit(
+            4,
+            [
+                ("unitary", (np.array([[0, 1], [1, 0]]), 1)),
+                ("unitary", (np.array([[0, 1], [1, 0]]), 1, "custom.A2")),
+                ("unitary", (np.array([[0, 1], [1, 0]]), 0)),
+            ],
+        ),
+    ),
+]
 
 
 def _draw_qiskit_circuit(circuit):
     return qiskit.visualization.circuit_drawer(circuit, output="text")
 
 
-@pytest.mark.parametrize("zquantum_circuit, qiskit_circuit", EQUIVALENT_CIRCUITS)
-class TestCircuitConversion:
-    def test_converting_zquantum_circuit_to_qiskit_gives_expected_circuit(
+class TestExportingToQiskit:
+    @pytest.mark.parametrize(
+        "zquantum_circuit, qiskit_circuit", EQUIVALENT_NON_PARAMETRIZED_CIRCUITS
+    )
+    def test_exporting_circuit_gives_equivalent_circuit(
         self, zquantum_circuit, qiskit_circuit
     ):
-        converted = convert_to_qiskit(zquantum_circuit)
+        converted = export_to_qiskit(zquantum_circuit)
         assert converted == qiskit_circuit, (
             f"Converted circuit:\n{_draw_qiskit_circuit(converted)}\n isn't equal "
             f"to\n{_draw_qiskit_circuit(qiskit_circuit)}"
         )
 
-    def test_converting_qiskit_circuit_to_zquantum_gives_expected_circuit(
+    @pytest.mark.parametrize(
+        "zquantum_circuit",
+        [zquantum_circuit for zquantum_circuit, _ in EQUIVALENT_PARAMETRIZED_CIRCUITS],
+    )
+    def test_exporting_parametrized_circuit_doesnt_change_symbol_names(
+        self, zquantum_circuit
+    ):
+        converted = export_to_qiskit(zquantum_circuit)
+        converted_names = sorted(map(str, converted.parameters))
+        initial_names = sorted(map(str, zquantum_circuit.free_symbols))
+        assert converted_names == initial_names
+
+    @pytest.mark.parametrize(
+        "zquantum_circuit, qiskit_circuit", EQUIVALENT_PARAMETRIZED_CIRCUITS
+    )
+    def test_exporting_and_binding_parametrized_circuit_results_in_equivalent_circuit(
         self, zquantum_circuit, qiskit_circuit
     ):
-        converted = convert_from_qiskit(qiskit_circuit)
-        assert converted == zquantum_circuit
+        # 1. Export
+        converted = export_to_qiskit(zquantum_circuit)
+        # 2. Bind params
+        converted_bound = converted.bind_parameters(
+            {param: EXAMPLE_PARAM_VALUES[str(param)] for param in converted.parameters}
+        )
+
+        # 3. Bind the ref
+        ref_bound = qiskit_circuit.bind_parameters(
+            {
+                param: EXAMPLE_PARAM_VALUES[str(param)]
+                for param in qiskit_circuit.parameters
+            }
+        )
+        assert converted_bound == ref_bound, (
+            f"Converted circuit:\n{_draw_qiskit_circuit(converted_bound)}\n isn't equal "
+            f"to\n{_draw_qiskit_circuit(ref_bound)}"
+        )
+
+    @pytest.mark.parametrize(
+        "zquantum_circuit, qiskit_circuit", EQUIVALENT_PARAMETRIZED_CIRCUITS
+    )
+    def test_binding_and_exporting_parametrized_circuit_results_in_equivalent_circuit(
+        self, zquantum_circuit, qiskit_circuit
+    ):
+        # 1. Bind params
+        bound = zquantum_circuit.bind(
+            {
+                symbol: EXAMPLE_PARAM_VALUES[str(symbol)]
+                for symbol in zquantum_circuit.free_symbols
+            }
+        )
+        # 2. Export
+        bound_converted = export_to_qiskit(bound)
+
+        # 3. Bind the ref
+        ref_bound = qiskit_circuit.bind_parameters(
+            {
+                param: EXAMPLE_PARAM_VALUES[str(param)]
+                for param in qiskit_circuit.parameters
+            }
+        )
+        assert bound_converted == ref_bound, (
+            f"Converted circuit:\n{_draw_qiskit_circuit(bound_converted)}\n isn't equal "
+            f"to\n{_draw_qiskit_circuit(ref_bound)}"
+        )
+
+    def test_converting_circuit_with_daggers_fails_explicitly(self):
+        # NOTE: Qiskit doesn't natively support dagger gates
+        zquantum_circuit = _circuit.Circuit(
+            [_builtin_gates.X.dagger(2), _builtin_gates.T.dagger(1)], 3
+        )
+        with pytest.raises(NotImplementedError):
+            export_to_qiskit(zquantum_circuit)
+
+    @pytest.mark.parametrize(
+        "zquantum_circuit, qiskit_circuit", EQUIVALENT_CUSTOM_GATE_CIRCUITS
+    )
+    def test_exporting_circuit_with_custom_gates_gives_equivalent_operator(
+        self, zquantum_circuit, qiskit_circuit
+    ):
+        exported = export_to_qiskit(zquantum_circuit)
+        # We can't compare the circuits directly, because the gate names can differ.
+        # Qiskit allows multiple gate operations with the same label. ZQuantum doesn't
+        # allow that, so we append a matrix hash to the name.
+        assert qiskit.quantum_info.Operator(exported) == qiskit.quantum_info.Operator(
+            qiskit_circuit
+        )
+
+
+class TestImportingFromQiskit:
+    @pytest.mark.parametrize(
+        "zquantum_circuit, qiskit_circuit", EQUIVALENT_NON_PARAMETRIZED_CIRCUITS
+    )
+    def test_importing_circuit_gives_equivalent_circuit(
+        self, zquantum_circuit, qiskit_circuit
+    ):
+        imported = import_from_qiskit(qiskit_circuit)
+        assert imported == zquantum_circuit
+
+    @pytest.mark.parametrize(
+        "qiskit_circuit",
+        [q_circuit for _, q_circuit in EQUIVALENT_PARAMETRIZED_CIRCUITS],
+    )
+    def test_importing_parametrized_circuit_doesnt_change_symbol_names(
+        self, qiskit_circuit
+    ):
+        imported = import_from_qiskit(qiskit_circuit)
+        assert sorted(map(str, imported.free_symbols)) == sorted(
+            map(str, qiskit_circuit.parameters)
+        )
+
+    @pytest.mark.parametrize(
+        "zquantum_circuit, qiskit_circuit", EQUIVALENT_PARAMETRIZED_CIRCUITS
+    )
+    def test_importing_and_binding_parametrized_circuit_results_in_equivalent_circuit(
+        self, zquantum_circuit, qiskit_circuit
+    ):
+        # 1. Import
+        imported = import_from_qiskit(qiskit_circuit)
+        symbols_map = {
+            symbol: EXAMPLE_PARAM_VALUES[str(symbol)]
+            for symbol in imported.free_symbols
+        }
+        # 2. Bind params
+        imported_bound = imported.bind(symbols_map)
+
+        # 3. Bind the ref
+        ref_bound = zquantum_circuit.bind(symbols_map)
+
+        assert imported_bound == ref_bound
+
+    @pytest.mark.parametrize(
+        "zquantum_circuit, qiskit_circuit", EQUIVALENT_PARAMETRIZED_CIRCUITS
+    )
+    def test_binding_and_importing_parametrized_circuit_results_in_equivalent_circuit(
+        self, zquantum_circuit, qiskit_circuit
+    ):
+        # 1. Bind params
+        bound = qiskit_circuit.bind_parameters(
+            {
+                param: EXAMPLE_PARAM_VALUES[str(param)]
+                for param in qiskit_circuit.parameters
+            }
+        )
+        # 2. Import
+        bound_imported = import_from_qiskit(bound)
+
+        # 3. Bind the ref
+        ref_bound = zquantum_circuit.bind(
+            {
+                symbol: EXAMPLE_PARAM_VALUES[str(symbol)]
+                for symbol in zquantum_circuit.free_symbols
+            }
+        )
+        assert bound_imported == ref_bound
+
+    @pytest.mark.parametrize(
+        "zquantum_circuit, qiskit_circuit", EQUIVALENT_CUSTOM_GATE_CIRCUITS
+    )
+    def test_importing_circuit_with_custom_gates_gives_equivalent_circuit(
+        self, zquantum_circuit, qiskit_circuit
+    ):
+        imported = import_from_qiskit(qiskit_circuit)
+        assert imported == zquantum_circuit

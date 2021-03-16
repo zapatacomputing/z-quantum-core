@@ -21,7 +21,7 @@ from ._builtin_gates import (
     YY,
     ZZ,
 )
-from ._gates import Circuit
+from ._circuit import Circuit
 
 
 RNG = np.random.default_rng(42)

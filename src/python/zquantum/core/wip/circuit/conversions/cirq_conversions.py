@@ -10,6 +10,7 @@ import sympy
 
 from .. import _builtin_gates
 from .. import _gates
+from .. import _circuit
 
 
 Parameter = Union[sympy.Expr, float]
@@ -150,7 +151,7 @@ def export_to_cirq(gate_operation: _gates.GateOperation) -> cirq.GateOperation:
 
 
 @overload
-def export_to_cirq(circuit: _gates.Circuit) -> cirq.Circuit:
+def export_to_cirq(circuit: _circuit.Circuit) -> cirq.Circuit:
     pass
 
 
@@ -197,7 +198,7 @@ def export_gate_operation_to_cirq(
 
 
 @export_to_cirq.register
-def export_circuit_to_cirq(circuit: _gates.Circuit) -> cirq.Circuit:
+def export_circuit_to_cirq(circuit: _circuit.Circuit) -> cirq.Circuit:
     return cirq.Circuit([export_to_cirq(operation) for operation in circuit.operations])
 
 
@@ -207,7 +208,7 @@ def import_from_cirq(eigengate: cirq.Gate) -> _gates.Gate:
 
 
 @overload
-def import_from_cirq(circuit: cirq.Circuit) -> _gates.Circuit:
+def import_from_cirq(circuit: cirq.Circuit) -> _circuit.Circuit:
     pass
 
 
@@ -277,7 +278,7 @@ def convert_gate_operation_to_zquantum(operation) -> _gates.GateOperation:
 
 
 @import_from_cirq.register
-def import_circuit_from_cirq(circuit: cirq.Circuit) -> _gates.Circuit:
-    return _gates.Circuit(
+def import_circuit_from_cirq(circuit: cirq.Circuit) -> _circuit.Circuit:
+    return _circuit.Circuit(
         [import_from_cirq(op) for op in chain.from_iterable(circuit.moments)]
     )

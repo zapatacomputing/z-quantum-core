@@ -7,6 +7,7 @@ import numpy as np
 
 from .. import _gates
 from .. import _builtin_gates
+from .. import _circuit
 from ..symbolic.translations import translate_expression
 from ..symbolic.pyquil_expressions import QUIL_DIALECT, expression_from_pyquil
 from ..symbolic.sympy_expressions import SYMPY_DIALECT, expression_from_sympy
@@ -66,7 +67,7 @@ def import_from_pyquil(program: pyquil.Program):
         for instr in program.instructions
         if isinstance(instr, pyquil.gates.Gate)
     ]
-    return _gates.Circuit(ops, _n_qubits_by_ops(ops), custom_defs.values())
+    return _circuit.Circuit(ops, _n_qubits_by_ops(ops), custom_defs.values())
 
 
 def _import_gate(
@@ -134,7 +135,7 @@ def _assign_custom_defs(
         )
 
 
-def export_to_pyquil(circuit: _gates.Circuit) -> pyquil.Program:
+def export_to_pyquil(circuit: _circuit.Circuit) -> pyquil.Program:
     var_declarations = map(_param_declaration, sorted(map(str, circuit.free_symbols)))
     custom_gate_names = {
         gate_def.gate_name for gate_def in circuit.custom_gate_definitions

@@ -10,6 +10,7 @@ from zquantum.core.wip.circuit.conversions.qiskit_conversions import (
 )
 from zquantum.core.wip.circuit import _gates
 from zquantum.core.wip.circuit import _builtin_gates
+from zquantum.core.wip.circuit import _circuit
 
 
 # --------- gates ---------
@@ -120,11 +121,11 @@ EXAMPLE_PARAM_VALUES = {
 
 EQUIVALENT_NON_PARAMETRIZED_CIRCUITS = [
     (
-        _gates.Circuit([], 3),
+        _circuit.Circuit([], 3),
         _make_qiskit_circuit(3, []),
     ),
     (
-        _gates.Circuit(
+        _circuit.Circuit(
             [
                 _builtin_gates.X(0),
                 _builtin_gates.Z(2),
@@ -140,7 +141,7 @@ EQUIVALENT_NON_PARAMETRIZED_CIRCUITS = [
         ),
     ),
     (
-        _gates.Circuit(
+        _circuit.Circuit(
             [
                 _builtin_gates.CNOT(0, 1),
             ],
@@ -154,7 +155,7 @@ EQUIVALENT_NON_PARAMETRIZED_CIRCUITS = [
         ),
     ),
     (
-        _gates.Circuit(
+        _circuit.Circuit(
             [
                 _builtin_gates.RX(np.pi)(1),
             ],
@@ -168,7 +169,7 @@ EQUIVALENT_NON_PARAMETRIZED_CIRCUITS = [
         ),
     ),
     (
-        _gates.Circuit(
+        _circuit.Circuit(
             [_builtin_gates.SWAP.controlled(1)(2, 0, 3)],
             5,
         ),
@@ -180,7 +181,7 @@ EQUIVALENT_NON_PARAMETRIZED_CIRCUITS = [
         ),
     ),
     (
-        _gates.Circuit(
+        _circuit.Circuit(
             [_builtin_gates.Y.controlled(2)(4, 5, 2)],
             6,
         ),
@@ -196,7 +197,7 @@ EQUIVALENT_NON_PARAMETRIZED_CIRCUITS = [
 
 EQUIVALENT_PARAMETRIZED_CIRCUITS = [
     (
-        _gates.Circuit(
+        _circuit.Circuit(
             [
                 _builtin_gates.RX(SYMPY_THETA)(1),
             ],
@@ -210,7 +211,7 @@ EQUIVALENT_PARAMETRIZED_CIRCUITS = [
         ),
     ),
     (
-        _gates.Circuit(
+        _circuit.Circuit(
             [
                 _builtin_gates.RX(SYMPY_THETA * SYMPY_GAMMA)(1),
             ],
@@ -245,7 +246,7 @@ CUSTOM_A2_GATE_DEF = _gates.CustomGateDefinition(
 
 EQUIVALENT_CUSTOM_GATE_CIRCUITS = [
     (
-        _gates.Circuit(
+        _circuit.Circuit(
             operations=[UNITARY_GATE_DEF()(1)],
             n_qubits=4,
             custom_gate_definitions=[UNITARY_GATE_DEF],
@@ -258,7 +259,7 @@ EQUIVALENT_CUSTOM_GATE_CIRCUITS = [
         ),
     ),
     (
-        _gates.Circuit(
+        _circuit.Circuit(
             operations=[CUSTOM_A2_GATE_DEF()(3)],
             n_qubits=5,
             custom_gate_definitions=[CUSTOM_A2_GATE_DEF],
@@ -271,7 +272,7 @@ EQUIVALENT_CUSTOM_GATE_CIRCUITS = [
         ),
     ),
     (
-        _gates.Circuit(
+        _circuit.Circuit(
             operations=[UNITARY_GATE_DEF()(1), UNITARY_GATE_DEF()(1)],
             n_qubits=4,
             custom_gate_definitions=[UNITARY_GATE_DEF],
@@ -285,7 +286,7 @@ EQUIVALENT_CUSTOM_GATE_CIRCUITS = [
         ),
     ),
     (
-        _gates.Circuit(
+        _circuit.Circuit(
             operations=[
                 UNITARY_GATE_DEF()(1),
                 CUSTOM_A2_GATE_DEF()(1),
@@ -390,7 +391,7 @@ class TestExportingToQiskit:
 
     def test_converting_circuit_with_daggers_fails_explicitly(self):
         # NOTE: Qiskit doesn't natively support dagger gates
-        zquantum_circuit = _gates.Circuit(
+        zquantum_circuit = _circuit.Circuit(
             [_builtin_gates.X.dagger(2), _builtin_gates.T.dagger(1)], 3
         )
         with pytest.raises(NotImplementedError):

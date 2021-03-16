@@ -6,6 +6,7 @@ import sympy
 from .pyquil_conversions import export_to_pyquil, import_from_pyquil
 from .. import _gates
 from .. import _builtin_gates
+from .. import _circuit
 
 
 SYMPY_THETA = sympy.Symbol("theta")
@@ -31,11 +32,11 @@ CUSTOM_PARAMETRIC_DEF = _gates.CustomGateDefinition(
 
 EQUIVALENT_CIRCUITS = [
     (
-        _gates.Circuit([], 0),
+        _circuit.Circuit([], 0),
         pyquil.Program([]),
     ),
     (
-        _gates.Circuit(
+        _circuit.Circuit(
             [
                 _builtin_gates.X(2),
                 _builtin_gates.Y(0),
@@ -44,7 +45,7 @@ EQUIVALENT_CIRCUITS = [
         pyquil.Program([pyquil.gates.X(2), pyquil.gates.Y(0)]),
     ),
     (
-        _gates.Circuit(
+        _circuit.Circuit(
             [
                 _builtin_gates.CNOT(3, 1),
             ]
@@ -56,29 +57,29 @@ EQUIVALENT_CIRCUITS = [
         ),
     ),
     (
-        _gates.Circuit([_builtin_gates.RX(np.pi)(1)]),
+        _circuit.Circuit([_builtin_gates.RX(np.pi)(1)]),
         pyquil.Program([pyquil.gates.RX(np.pi, 1)]),
     ),
     (
-        _gates.Circuit(
+        _circuit.Circuit(
             [_builtin_gates.SWAP.controlled(1)(2, 0, 3)],
         ),
         pyquil.Program([pyquil.gates.SWAP(0, 3).controlled(2)]),
     ),
     (
-        _gates.Circuit([_builtin_gates.Y.controlled(2)(3, 1, 2)]),
+        _circuit.Circuit([_builtin_gates.Y.controlled(2)(3, 1, 2)]),
         pyquil.Program([pyquil.gates.Y(2).controlled(1).controlled(3)]),
     ),
     (
-        _gates.Circuit([_builtin_gates.RX(0.5).dagger.controlled(2)(3, 1, 2)]),
+        _circuit.Circuit([_builtin_gates.RX(0.5).dagger.controlled(2)(3, 1, 2)]),
         pyquil.Program([pyquil.gates.RX(0.5, 2).dagger().controlled(1).controlled(3)]),
     ),
     (
-        _gates.Circuit([_builtin_gates.RX(0.5).controlled(2).dagger(3, 1, 2)]),
+        _circuit.Circuit([_builtin_gates.RX(0.5).controlled(2).dagger(3, 1, 2)]),
         pyquil.Program([pyquil.gates.RX(0.5, 2).dagger().controlled(1).controlled(3)]),
     ),
     (
-        _gates.Circuit(
+        _circuit.Circuit(
             [SQRT_X_DEF()(3)],
             custom_gate_definitions=[SQRT_X_DEF],
         ),
@@ -121,7 +122,7 @@ def _example_parametric_pyquil_program():
 
 EQUIVALENT_PARAMETRIZED_CIRCUITS = [
     (
-        _gates.Circuit(
+        _circuit.Circuit(
             [
                 _builtin_gates.RX(SYMPY_THETA)(1),
             ],
@@ -131,7 +132,7 @@ EQUIVALENT_PARAMETRIZED_CIRCUITS = [
         ),
     ),
     (
-        _gates.Circuit(
+        _circuit.Circuit(
             [
                 _builtin_gates.RX(sympy.Mul(SYMPY_GAMMA, SYMPY_THETA, evaluate=False))(
                     1
@@ -147,7 +148,7 @@ EQUIVALENT_PARAMETRIZED_CIRCUITS = [
         ),
     ),
     (
-        _gates.Circuit(
+        _circuit.Circuit(
             [
                 CUSTOM_PARAMETRIC_DEF(SYMPY_THETA)(0),
             ],

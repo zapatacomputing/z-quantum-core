@@ -7,6 +7,7 @@ import sympy
 
 from .. import _gates
 from .. import _builtin_gates
+from .. import _circuit
 from ..symbolic.sympy_expressions import expression_from_sympy, SYMPY_DIALECT
 from ..symbolic.qiskit_expressions import expression_from_qiskit, QISKIT_DIALECT
 from ..symbolic.translations import translate_expression
@@ -87,7 +88,7 @@ QISKIT_ZQUANTUM_GATE_MAP = {
 }
 
 
-def export_to_qiskit(circuit: _gates.Circuit) -> qiskit.QuantumCircuit:
+def export_to_qiskit(circuit: _circuit.Circuit) -> qiskit.QuantumCircuit:
     q_circuit = qiskit.QuantumCircuit(circuit.n_qubits)
     custom_names = {gate_def.gate_name for gate_def in circuit.custom_gate_definitions}
     q_triplets = [
@@ -224,7 +225,7 @@ def _apply_custom_gate(
     return gate(*anon_op.qubit_indices)
 
 
-def import_from_qiskit(circuit: qiskit.QuantumCircuit) -> _gates.Circuit:
+def import_from_qiskit(circuit: qiskit.QuantumCircuit) -> _circuit.Circuit:
     q_ops = [_import_qiskit_triplet(triplet) for triplet in circuit.data]
     anon_ops = [op for op in q_ops if isinstance(op, AnonGateOperation)]
 
@@ -243,7 +244,7 @@ def import_from_qiskit(circuit: qiskit.QuantumCircuit) -> _gates.Circuit:
         _apply_custom_gate(op, custom_defs) if isinstance(op, AnonGateOperation) else op
         for op in q_ops
     ]
-    return _gates.Circuit(
+    return _circuit.Circuit(
         operations=imported_ops,
         n_qubits=circuit.num_qubits,
         custom_gate_definitions=custom_defs.values(),

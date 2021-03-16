@@ -9,8 +9,8 @@ from .cirq_conversions import (
     import_from_cirq,
     make_rotation_factory,
 )
-from .. import _gates
 from .. import _builtin_gates
+from .. import _circuit
 
 # --------- gates ---------
 
@@ -82,23 +82,23 @@ lq = cirq.LineQubit
 
 EQUIVALENT_CIRCUITS = [
     (
-        _gates.Circuit([_builtin_gates.X(0), _builtin_gates.Z(2)]),
+        _circuit.Circuit([_builtin_gates.X(0), _builtin_gates.Z(2)]),
         cirq.Circuit([cirq.X(lq(0)), cirq.Z(lq(2))]),
     ),
     (
-        _gates.Circuit([_builtin_gates.CNOT(0, 1)]),
+        _circuit.Circuit([_builtin_gates.CNOT(0, 1)]),
         cirq.Circuit([cirq.CNOT(lq(0), lq(1))]),
     ),
     (
-        _gates.Circuit([_builtin_gates.RX(np.pi)(1)]),
+        _circuit.Circuit([_builtin_gates.RX(np.pi)(1)]),
         cirq.Circuit([cirq.rx(np.pi)(lq(1))]),
     ),
     (
-        _gates.Circuit([_builtin_gates.SWAP.controlled(1)(2, 0, 3)]),
+        _circuit.Circuit([_builtin_gates.SWAP.controlled(1)(2, 0, 3)]),
         cirq.Circuit([cirq.SWAP.controlled(1)(lq(2), lq(0), lq(3))]),
     ),
     (
-        _gates.Circuit([_builtin_gates.Y.controlled(2)(4, 5, 2)]),
+        _circuit.Circuit([_builtin_gates.Y.controlled(2)(4, 5, 2)]),
         cirq.Circuit([cirq.Y.controlled(2)(lq(4), lq(5), lq(2))]),
     ),
 ]
@@ -106,11 +106,11 @@ EQUIVALENT_CIRCUITS = [
 
 EQUIVALENT_PARAMETRIZED_CIRCUITS = [
     (
-        _gates.Circuit([_builtin_gates.RX(THETA)(1)]),
+        _circuit.Circuit([_builtin_gates.RX(THETA)(1)]),
         cirq.Circuit([cirq.rx(THETA)(lq(1))]),
     ),
     (
-        _gates.Circuit([_builtin_gates.RX(THETA * GAMMA)(1)]),
+        _circuit.Circuit([_builtin_gates.RX(THETA * GAMMA)(1)]),
         cirq.Circuit([cirq.rx(THETA * GAMMA)(lq(1))]),
     ),
 ]
@@ -186,7 +186,7 @@ class TestExportingToQiskit:
     def test_daggers_are_converted_to_inverses(self):
         # NOTE: We don't add this test case to EQUIVALENT_CIRCUITS, because
         # only Zquantum -> cirq conversion is supported.
-        zquantum_circuit = _gates.Circuit(
+        zquantum_circuit = _circuit.Circuit(
             [_builtin_gates.X.dagger(2), _builtin_gates.T.dagger(1)]
         )
         cirq_circuit = cirq.Circuit(

@@ -7,8 +7,9 @@ from ._gates import (
     ControlledGate,
     Dagger,
     CustomGateDefinition,
-    Circuit,
 )
+
+from ._circuit import Circuit
 
 from ._builtin_gates import (
     X,

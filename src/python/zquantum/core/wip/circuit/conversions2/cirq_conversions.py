@@ -8,8 +8,8 @@ import cirq
 import numpy as np
 import sympy
 
-from .. import _builtin_gates as bg
-from .. import _gates as g
+from .. import _builtin_gates
+from .. import _gates
 
 
 Parameter = Union[sympy.Expr, float]
@@ -107,30 +107,30 @@ ORQUESTRA_BUILTIN_GATE_NAME_TO_CIRQ_GATE = {
 
 
 EIGENGATE_SPECIAL_CASES = {
-    (type(cirq.X), cirq.X.global_shift, cirq.X.exponent): bg.X,
-    (type(cirq.Y), cirq.Y.global_shift, cirq.Y.exponent): bg.Y,
-    (type(cirq.Z), cirq.Z.global_shift, cirq.Z.exponent): bg.Z,
-    (type(cirq.T), cirq.T.global_shift, cirq.T.exponent): bg.T,
-    (type(cirq.H), cirq.H.global_shift, cirq.H.exponent): bg.H,
-    (type(cirq.CNOT), cirq.CNOT.global_shift, cirq.CNOT.exponent): bg.CNOT,
-    (type(cirq.CZ), cirq.CZ.global_shift, cirq.CZ.exponent): bg.CZ,
-    (type(cirq.SWAP), cirq.SWAP.global_shift, cirq.SWAP.exponent): bg.SWAP,
-    (type(cirq.ISWAP), cirq.ISWAP.global_shift, cirq.ISWAP.exponent): bg.ISWAP,
+    (type(cirq.X), cirq.X.global_shift, cirq.X.exponent): _builtin_gates.X,
+    (type(cirq.Y), cirq.Y.global_shift, cirq.Y.exponent): _builtin_gates.Y,
+    (type(cirq.Z), cirq.Z.global_shift, cirq.Z.exponent): _builtin_gates.Z,
+    (type(cirq.T), cirq.T.global_shift, cirq.T.exponent): _builtin_gates.T,
+    (type(cirq.H), cirq.H.global_shift, cirq.H.exponent): _builtin_gates.H,
+    (type(cirq.CNOT), cirq.CNOT.global_shift, cirq.CNOT.exponent): _builtin_gates.CNOT,
+    (type(cirq.CZ), cirq.CZ.global_shift, cirq.CZ.exponent): _builtin_gates.CZ,
+    (type(cirq.SWAP), cirq.SWAP.global_shift, cirq.SWAP.exponent): _builtin_gates.SWAP,
+    (type(cirq.ISWAP), cirq.ISWAP.global_shift, cirq.ISWAP.exponent): _builtin_gates.ISWAP,
 }
 
 EIGENGATE_ROTATIONS = {
-    (cirq.XPowGate, -0.5): bg.RX,
-    (cirq.YPowGate, -0.5): bg.RY,
-    (cirq.ZPowGate, -0.5): bg.RZ,
-    (cirq.ZPowGate, 0): bg.PHASE,
-    (cirq.CZPowGate, 0): bg.CPHASE,
-    (cirq.XXPowGate, -0.5): bg.XX,
-    (cirq.YYPowGate, -0.5): bg.YY,
-    (cirq.ZZPowGate, -0.5): bg.ZZ,
-    (cirq.ISwapPowGate, 0.0): bg.XY,
+    (cirq.XPowGate, -0.5): _builtin_gates.RX,
+    (cirq.YPowGate, -0.5): _builtin_gates.RY,
+    (cirq.ZPowGate, -0.5): _builtin_gates.RZ,
+    (cirq.ZPowGate, 0): _builtin_gates.PHASE,
+    (cirq.CZPowGate, 0): _builtin_gates.CPHASE,
+    (cirq.XXPowGate, -0.5): _builtin_gates.XX,
+    (cirq.YYPowGate, -0.5): _builtin_gates.YY,
+    (cirq.ZZPowGate, -0.5): _builtin_gates.ZZ,
+    (cirq.ISwapPowGate, 0.0): _builtin_gates.XY,
 }
 
-CIRQ_GATE_SPECIAL_CASES = {cirq.CSWAP: bg.SWAP.controlled(1)}
+CIRQ_GATE_SPECIAL_CASES = {cirq.CSWAP: _builtin_gates.SWAP.controlled(1)}
 
 qubit_index = attrgetter("x")
 
@@ -148,7 +148,7 @@ def export_to_cirq(obj):
 
 
 @export_to_cirq.register
-def export_matrix_factory_gate_to_cirq(gate: g.MatrixFactoryGate) -> cirq.Gate:
+def export_matrix_factory_gate_to_cirq(gate: _gates.MatrixFactoryGate) -> cirq.Gate:
     try:
         cirq_factory = ORQUESTRA_BUILTIN_GATE_NAME_TO_CIRQ_GATE[gate.name]
         cirq_params = (
@@ -161,22 +161,22 @@ def export_matrix_factory_gate_to_cirq(gate: g.MatrixFactoryGate) -> cirq.Gate:
 
 
 @export_to_cirq.register
-def export_controlled_gate_to_cirq(gate: g.ControlledGate) -> cirq.Gate:
+def export_controlled_gate_to_cirq(gate: _gates.ControlledGate) -> cirq.Gate:
     return export_to_cirq(gate.wrapped_gate).controlled(gate.num_control_qubits)
 
 
 @export_to_cirq.register
-def export_dagger_to_cirq(gate: g.Dagger) -> cirq.Gate:
+def export_dagger_to_cirq(gate: _gates.Dagger) -> cirq.Gate:
     return cirq.inverse(export_to_cirq(gate.wrapped_gate))
 
 
 @export_to_cirq.register
-def export_gate_operation_to_cirq(operation: g.GateOperation) -> cirq.GateOperation:
+def export_gate_operation_to_cirq(operation: _gates.GateOperation) -> cirq.GateOperation:
     return export_to_cirq(operation.gate)(*map(cirq.LineQubit, operation.qubit_indices))
 
 
 @export_to_cirq.register
-def export_circuit_to_cirq(circuit: g.Circuit) -> cirq.Circuit:
+def export_circuit_to_cirq(circuit: _gates.Circuit) -> cirq.Circuit:
     return cirq.Circuit([export_to_cirq(operation) for operation in circuit.operations])
 
 
@@ -200,7 +200,7 @@ def import_from_cirq(obj):
 
 
 @import_from_cirq.register
-def convert_eigengate_to_orquestra_gate(eigengate: cirq.EigenGate) -> g.Gate:
+def convert_eigengate_to_orquestra_gate(eigengate: cirq.EigenGate) -> _gates.Gate:
     key = (type(eigengate), eigengate.global_shift, eigengate.exponent)
     if key in EIGENGATE_SPECIAL_CASES:
         return EIGENGATE_SPECIAL_CASES[key]
@@ -213,12 +213,12 @@ def convert_eigengate_to_orquestra_gate(eigengate: cirq.EigenGate) -> g.Gate:
 @import_from_cirq.register
 def convert_cirq_identity_gate_to_orquestra_gate(
     identity_gate: cirq.IdentityGate,
-) -> g.Gate:
-    return bg.I
+) -> _gates.Gate:
+    return _builtin_gates.I
 
 
 @import_from_cirq.register
-def import_cirq_controlled_gate(controlled_gate: cirq.ControlledGate) -> g.Gate:
+def import_cirq_controlled_gate(controlled_gate: cirq.ControlledGate) -> _gates.Gate:
     return import_from_cirq(controlled_gate.sub_gate).controlled(
         controlled_gate.num_controls()
     )
@@ -226,7 +226,7 @@ def import_cirq_controlled_gate(controlled_gate: cirq.ControlledGate) -> g.Gate:
 
 @import_from_cirq.register(cirq.GateOperation)
 @import_from_cirq.register(cirq.ControlledOperation)
-def convert_gate_operation_to_orquestra(operation) -> g.GateOperation:
+def convert_gate_operation_to_orquestra(operation) -> _gates.GateOperation:
     if not all(isinstance(qubit, cirq.LineQubit) for qubit in operation.qubits):
         raise NotImplementedError(
             f"Failed to import {operation}. Grid qubits are not yet supported."
@@ -236,7 +236,7 @@ def convert_gate_operation_to_orquestra(operation) -> g.GateOperation:
 
 
 @import_from_cirq.register
-def import_circuit_from_cirq(circuit: cirq.Circuit) -> g.Circuit:
-    return g.Circuit(
+def import_circuit_from_cirq(circuit: cirq.Circuit) -> _gates.Circuit:
+    return _gates.Circuit(
         [import_from_cirq(op) for op in chain.from_iterable(circuit.moments)]
     )

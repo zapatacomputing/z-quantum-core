@@ -9,36 +9,36 @@ from .cirq_conversions import (
     import_from_cirq,
     make_rotation_factory,
 )
-from .. import _gates as g
-from .. import _builtin_gates as bg
+from .. import _gates
+from .. import _builtin_gates
 
 # --------- gates ---------
 
 EQUIVALENT_NON_PARAMETRIC_GATES = [
-    (bg.X, cirq.X),
-    (bg.Y, cirq.Y),
-    (bg.Z, cirq.Z),
-    (bg.H, cirq.H),
-    (bg.I, cirq.I),
-    (bg.T, cirq.T),
-    (bg.CNOT, cirq.CNOT),
-    (bg.CZ, cirq.CZ),
-    (bg.SWAP, cirq.SWAP),
-    (bg.ISWAP, cirq.ISWAP),
+    (_builtin_gates.X, cirq.X),
+    (_builtin_gates.Y, cirq.Y),
+    (_builtin_gates.Z, cirq.Z),
+    (_builtin_gates.H, cirq.H),
+    (_builtin_gates.I, cirq.I),
+    (_builtin_gates.T, cirq.T),
+    (_builtin_gates.CNOT, cirq.CNOT),
+    (_builtin_gates.CZ, cirq.CZ),
+    (_builtin_gates.SWAP, cirq.SWAP),
+    (_builtin_gates.ISWAP, cirq.ISWAP),
 ]
 
 EQUIVALENT_PARAMETRIC_GATES = [
     (zq_cls(theta), cirq_cls(theta))
     for zq_cls, cirq_cls in [
-        (bg.RX, cirq.rx),
-        (bg.RY, cirq.ry),
-        (bg.RZ, cirq.rz),
-        (bg.PHASE, make_rotation_factory(cirq.ZPowGate)),
-        (bg.CPHASE, cirq.cphase),
-        (bg.XX, make_rotation_factory(cirq.XXPowGate, -0.5)),
-        (bg.YY, make_rotation_factory(cirq.YYPowGate, -0.5)),
-        (bg.ZZ, make_rotation_factory(cirq.ZZPowGate, -0.5)),
-        (bg.XY, make_rotation_factory(cirq.ISwapPowGate, 0.0)),
+        (_builtin_gates.RX, cirq.rx),
+        (_builtin_gates.RY, cirq.ry),
+        (_builtin_gates.RZ, cirq.rz),
+        (_builtin_gates.PHASE, make_rotation_factory(cirq.ZPowGate)),
+        (_builtin_gates.CPHASE, cirq.cphase),
+        (_builtin_gates.XX, make_rotation_factory(cirq.XXPowGate, -0.5)),
+        (_builtin_gates.YY, make_rotation_factory(cirq.YYPowGate, -0.5)),
+        (_builtin_gates.ZZ, make_rotation_factory(cirq.ZZPowGate, -0.5)),
+        (_builtin_gates.XY, make_rotation_factory(cirq.ISwapPowGate, 0.0)),
     ]
     for theta in [0, -1, np.pi / 5, 2 * np.pi]
 ]
@@ -80,23 +80,23 @@ lq = cirq.LineQubit
 
 EQUIVALENT_CIRCUITS = [
     (
-        g.Circuit([bg.X(0), bg.Z(2)]),
+        _gates.Circuit([_builtin_gates.X(0), _builtin_gates.Z(2)]),
         cirq.Circuit([cirq.X(lq(0)), cirq.Z(lq(2))])
     ),
     (
-        g.Circuit([bg.CNOT(0, 1)]),
+        _gates.Circuit([_builtin_gates.CNOT(0, 1)]),
         cirq.Circuit([cirq.CNOT(lq(0), lq(1))]),
     ),
     (
-        g.Circuit([bg.RX(np.pi)(1)]),
+        _gates.Circuit([_builtin_gates.RX(np.pi)(1)]),
         cirq.Circuit([cirq.rx(np.pi)(lq(1))])
     ),
     (
-        g.Circuit([bg.SWAP.controlled(1)(2, 0, 3)]),
+        _gates.Circuit([_builtin_gates.SWAP.controlled(1)(2, 0, 3)]),
         cirq.Circuit([cirq.SWAP.controlled(1)(lq(2), lq(0), lq(3))]),
     ),
     (
-        g.Circuit([bg.Y.controlled(2)(4, 5, 2)]),
+        _gates.Circuit([_builtin_gates.Y.controlled(2)(4, 5, 2)]),
         cirq.Circuit([cirq.Y.controlled(2)(lq(4), lq(5), lq(2))])
     ),
 ]
@@ -104,11 +104,11 @@ EQUIVALENT_CIRCUITS = [
 
 EQUIVALENT_PARAMETRIZED_CIRCUITS = [
     (
-        g.Circuit([bg.RX(THETA)(1)]),
+        _gates.Circuit([_builtin_gates.RX(THETA)(1)]),
         cirq.Circuit([cirq.rx(THETA)(lq(1))])
     ),
     (
-        g.Circuit([bg.RX(THETA * GAMMA)(1)]),
+        _gates.Circuit([_builtin_gates.RX(THETA * GAMMA)(1)]),
         cirq.Circuit([cirq.rx(THETA * GAMMA)(lq(1))])
     ),
 ]
@@ -162,7 +162,7 @@ class TestExportingToQiskit:
     def test_daggers_are_converted_to_inverses(self):
         # NOTE: We don't add this test case to EQUIVALENT_CIRCUITS, because
         # only Zquantum -> cirq conversion is supported.
-        zquantum_circuit = g.Circuit([bg.X.dagger(2), bg.T.dagger(1)])
+        zquantum_circuit = _gates.Circuit([_builtin_gates.X.dagger(2), _builtin_gates.T.dagger(1)])
         cirq_circuit = cirq.Circuit([cirq.inverse(cirq.X)(lq(2)), cirq.inverse(cirq.T)(lq(1))])
         converted = export_to_cirq(zquantum_circuit)
 

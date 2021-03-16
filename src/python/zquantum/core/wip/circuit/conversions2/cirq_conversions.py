@@ -115,7 +115,11 @@ EIGENGATE_SPECIAL_CASES = {
     (type(cirq.CNOT), cirq.CNOT.global_shift, cirq.CNOT.exponent): _builtin_gates.CNOT,
     (type(cirq.CZ), cirq.CZ.global_shift, cirq.CZ.exponent): _builtin_gates.CZ,
     (type(cirq.SWAP), cirq.SWAP.global_shift, cirq.SWAP.exponent): _builtin_gates.SWAP,
-    (type(cirq.ISWAP), cirq.ISWAP.global_shift, cirq.ISWAP.exponent): _builtin_gates.ISWAP,
+    (
+        type(cirq.ISWAP),
+        cirq.ISWAP.global_shift,
+        cirq.ISWAP.exponent,
+    ): _builtin_gates.ISWAP,
 }
 
 EIGENGATE_ROTATIONS = {
@@ -136,9 +140,7 @@ qubit_index = attrgetter("x")
 
 
 @overload
-def export_to_cirq(
-    gate: Union[_gates.Gate]
-) -> cirq.Gate:
+def export_to_cirq(gate: Union[_gates.Gate]) -> cirq.Gate:
     pass
 
 
@@ -188,7 +190,9 @@ def export_dagger_to_cirq(gate: _gates.Dagger) -> cirq.Gate:
 
 
 @export_to_cirq.register
-def export_gate_operation_to_cirq(operation: _gates.GateOperation) -> cirq.GateOperation:
+def export_gate_operation_to_cirq(
+    operation: _gates.GateOperation,
+) -> cirq.GateOperation:
     return export_to_cirq(operation.gate)(*map(cirq.LineQubit, operation.qubit_indices))
 
 
@@ -208,7 +212,9 @@ def import_from_cirq(circuit: cirq.Circuit) -> _gates.Circuit:
 
 
 @overload
-def import_from_cirq(operation: Union[cirq.GateOperation, cirq.ControlledOperation]) -> _gates.GateOperation:
+def import_from_cirq(
+    operation: Union[cirq.GateOperation, cirq.ControlledOperation]
+) -> _gates.GateOperation:
     pass
 
 

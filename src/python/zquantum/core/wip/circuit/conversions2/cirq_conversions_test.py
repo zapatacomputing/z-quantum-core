@@ -73,12 +73,10 @@ class TestGateConversion:
 THETA = sympy.Symbol("theta")
 GAMMA = sympy.Symbol("gamma")
 
-
 EXAMPLE_PARAM_VALUES = {
     THETA: 0.3,
     GAMMA: -5,
 }
-
 
 lq = cirq.LineQubit
 
@@ -138,7 +136,6 @@ class CustomGate(cirq.Gate):
 
     def _circuit_diagram_info_(self, args):
         return f"R({self.theta})"
-
 
 
 UNSUPPORTED_CIRQ_CIRCUITS = [

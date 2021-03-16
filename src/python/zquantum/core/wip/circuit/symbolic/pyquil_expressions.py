@@ -4,8 +4,7 @@ import operator
 from numbers import Number
 import pyquil
 from pyquil import quilatom
-from .expressions import ExpressionDialect, Symbol, FunctionCall
-from .helpers import reduction
+from .expressions import ExpressionDialect, Symbol, FunctionCall, reduction
 
 QUIL_BINARY_EXPRESSION_NAMES = {
     quilatom.Add: "add",

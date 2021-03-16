@@ -1,4 +1,4 @@
-from functools import singledispatch, reduce
+from functools import singledispatch
 from typing import Iterable, Mapping
 
 import pyquil
@@ -57,7 +57,8 @@ def import_from_pyquil(program: pyquil.Program):
     }
     if len(custom_names) != len(custom_defs):
         raise ValueError(
-            f"Can't import circuits with non-unique gate definition names to ZQuantum: {custom_names}"
+            "Can't import circuits with non-unique gate definition names to ZQuantum: "
+            f"{custom_names}"
         )
 
     ops = [
@@ -117,14 +118,15 @@ def _import_pyquil_qubits(qubits: Iterable[pyquil.quil.Qubit]):
     return tuple(qubit.index for qubit in qubits)
 
 
-def _assign_custom_defs(program: pyquil.Program, custom_gate_defs):
-    def _reducer(prog: pyquil.Program, gate_def: _gates.CustomGateDefinition):
+def _assign_custom_defs(
+    program: pyquil.Program, custom_gate_defs: Iterable[_gates.CustomGateDefinition]
+):
+    """Mutates `program` to assign ZQuantum custom gate definitions"""
+    for gate_def in custom_gate_defs:
         pyquil_params = list(map(_export_expression, gate_def.params_ordering))
-        return prog.defgate(
+        program.defgate(
             gate_def.gate_name, _export_matrix(gate_def.matrix), pyquil_params
         )
-
-    return reduce(_reducer, custom_gate_defs, program)
 
 
 def export_to_pyquil(circuit: _gates.Circuit) -> pyquil.Program:
@@ -137,7 +139,8 @@ def export_to_pyquil(circuit: _gates.Circuit) -> pyquil.Program:
         for op in circuit.operations
     ]
     program = pyquil.Program(*[*var_declarations, *gate_instructions])
-    return _assign_custom_defs(program, circuit.custom_gate_definitions)
+    _assign_custom_defs(program, circuit.custom_gate_definitions)
+    return program
 
 
 def _param_declaration(param_name: str):

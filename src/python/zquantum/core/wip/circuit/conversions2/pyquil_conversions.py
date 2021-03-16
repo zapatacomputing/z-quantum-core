@@ -83,13 +83,15 @@ def _import_gate(
     except ValueError:
         pass
 
-    raise NotImplementedError()
+    raise NotImplementedError(
+        f"Importing instruction {instruction} from PyQuil is unsupported."
+    )
 
 
 def _import_gate_via_name(gate: pyquil.gates.Gate) -> _gates.GateOperation:
     zq_gate_ref = _builtin_gates.builtin_gate_by_name(gate.name)
     if not zq_gate_ref:
-        raise ValueError()
+        raise ValueError(f"Can't import {gate} as a built-in gate")
 
     zq_params = tuple(map(_import_expression, gate.params))
     zq_gate = zq_gate_ref(*zq_params) if zq_params else zq_gate_ref
@@ -107,7 +109,10 @@ def _import_custom_gate(instruction, custom_gate_defs):
     try:
         gate_def = custom_gate_defs[instruction.name]
     except KeyError:
-        raise ValueError()
+        raise ValueError(
+            f"Custom gate definition for {instruction} is missing from custom gate defs "
+            f"{custom_gate_defs}"
+        )
 
     zq_params = tuple(map(_import_expression, instruction.params))
     zq_qubits = _import_pyquil_qubits(instruction.qubits)
@@ -159,12 +164,14 @@ def _export_gate(gate: _gates.Gate, qubit_indices, custom_gate_names):
     except ValueError:
         pass
 
-    raise NotImplementedError()
+    raise NotImplementedError(f"Exporting gate {gate} to PyQuil is unsupported.")
 
 
 def _export_custom_gate(gate: _gates.Gate, qubit_indices, custom_gate_names):
     if gate.name not in custom_gate_names:
-        raise ValueError()
+        raise ValueError(
+            f"Can't export {gate} as custom gate, custom gate defition is missing"
+        )
     pyquil_params = list(map(_export_expression, gate.params))
     return (gate.name, pyquil_params) + qubit_indices
 
@@ -194,7 +201,7 @@ def _export_gate_via_name(gate: _gates.Gate, qubit_indices, custom_gate_names):
     try:
         pyquil_fn = _pyquil_gate_by_name(gate.name)
     except AttributeError:
-        raise ValueError()
+        raise ValueError(f"Can't export {gate} to PyQuil as a built-in gate")
 
     pyquil_params = map(_export_expression, gate.params)
     return pyquil_fn(*pyquil_params, *qubit_indices)

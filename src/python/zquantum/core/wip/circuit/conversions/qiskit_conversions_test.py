@@ -92,13 +92,6 @@ class TestGateConversion:
 # https://qiskit.org/documentation/tutorials/circuits/1_getting_started_with_qiskit.html#Visualize-Circuit
 
 
-def _qiskit_circuit_with_u1_gates():
-    qc = qiskit.QuantumCircuit(7)
-    qc.u1(0.42, 2)
-    qc.u1(QISKIT_THETA, 1)
-    return qc
-
-
 def _make_qiskit_circuit(n_qubits, commands):
     qc = qiskit.QuantumCircuit(n_qubits)
     for method_name, method_args in commands:
@@ -224,11 +217,6 @@ EQUIVALENT_PARAMETRIZED_CIRCUITS = [
             ],
         ),
     ),
-]
-
-
-FOREIGN_QISKIT_CIRCUITS = [
-    _qiskit_circuit_with_u1_gates(),
 ]
 
 

@@ -58,8 +58,7 @@ def test_expectation_values_io():
     )
 
     assert np.allclose(
-        expectation_values_object.values,
-        expectation_values_object_loaded.values,
+        expectation_values_object.values, expectation_values_object_loaded.values,
     )
     assert len(expectation_values_object.correlations) == len(
         expectation_values_object_loaded.correlations
@@ -182,8 +181,7 @@ def test_get_expectation_values_from_parities():
 
     assert len(expectation_values.estimator_covariances) == 3
     assert np.allclose(
-        expectation_values.estimator_covariances[0],
-        np.array([[0.014705882352941176]]),
+        expectation_values.estimator_covariances[0], np.array([[0.014705882352941176]]),
     )
     assert np.allclose(
         expectation_values.estimator_covariances[1], np.array([[0.00428797]])
@@ -277,16 +275,14 @@ def test_concatenate_expectation_values_with_cov_and_corr():
     combined_expectation_values = concatenate_expectation_values(expectation_values_set)
     assert len(combined_expectation_values.estimator_covariances) == 3
     assert np.allclose(
-        combined_expectation_values.estimator_covariances[0],
-        [[0.1, 0.2], [0.3, 0.4]],
+        combined_expectation_values.estimator_covariances[0], [[0.1, 0.2], [0.3, 0.4]],
     )
     assert np.allclose(combined_expectation_values.estimator_covariances[1], [[0.1]])
     assert np.allclose(combined_expectation_values.estimator_covariances[2], [[0.2]])
 
     assert len(combined_expectation_values.correlations) == 3
     assert np.allclose(
-        combined_expectation_values.correlations[0],
-        [[-0.1, -0.2], [-0.3, -0.4]],
+        combined_expectation_values.correlations[0], [[-0.1, -0.2], [-0.3, -0.4]],
     )
     assert np.allclose(combined_expectation_values.correlations[1], [[-0.1]])
     assert np.allclose(combined_expectation_values.correlations[2], [[-0.2]])
@@ -745,6 +741,29 @@ class TestMeasurements:
                 ),
                 100,
             ),
+            (
+                BitstringDistribution(
+                    {
+                        "0000": 0.06835580857498666,
+                        "1000": 0.060975627112613416,
+                        "0100": 0.05976605586194627,
+                        "1100": 0.07138587439957303,
+                        "0010": 0.06474168297455969,
+                        "1010": 0.0825036470378936,
+                        "0110": 0.09861252446183953,
+                        "1110": 0.0503013698630137,
+                        "0001": 0.04496424123821384,
+                        "1001": 0.07317221135029355,
+                        "0101": 0.08171161714997331,
+                        "1101": 0.03753940579967977,
+                        "0011": 0.05157676570005337,
+                        "1011": 0.05,
+                        "0111": 0.04964419142501335,
+                        "1111": 0.05474897705034692,
+                    }
+                ),
+                5621,
+            ),
         ],
     )
     def test_get_measurements_representing_distribution_returns_right_number_of_samples(
@@ -758,8 +777,16 @@ class TestMeasurements:
     @pytest.mark.parametrize(
         "bitstring_distribution, number_of_samples, expected_counts",
         [
-            (BitstringDistribution({"01": 0.3333333, "11": (1-0.3333333)}), 3, {"01": 1, "11": 2}),
-            (BitstringDistribution({"01": 0.9999999, "11": (1-0.9999999)}), 1, {"01": 1}),
+            (
+                BitstringDistribution({"01": 0.3333333, "11": (1 - 0.3333333)}),
+                3,
+                {"01": 1, "11": 2},
+            ),
+            (
+                BitstringDistribution({"01": 0.9999999, "11": (1 - 0.9999999)}),
+                1,
+                {"01": 1},
+            ),
         ],
     )
     def test_get_measurements_representing_distribution_correctly_samples_leftover_bitstrings(
@@ -788,8 +815,10 @@ class TestMeasurements:
                 bitstring_distribution, number_of_samples
             )
 
-            assert (measurements.get_counts() == {"00": 25, "11": 26} or measurements.get_counts() == {"00": 26, "11": 25})
-
+            assert measurements.get_counts() == {
+                "00": 25,
+                "11": 26,
+            } or measurements.get_counts() == {"00": 26, "11": 25}
 
             if measurements.get_counts() != previous_measurements.get_counts():
                 got_different_measurements = True

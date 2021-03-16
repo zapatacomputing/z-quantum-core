@@ -311,7 +311,7 @@ def _hash_hex(bytes_):
 
 
 def _custom_qiskit_gate_name(gate_label: str, gate_name: str, matrix: np.ndarray):
-    matrix_hash = _hash_hex(matrix.tostring())
+    matrix_hash = _hash_hex(matrix.tobytes())
     target_name = gate_label or gate_name
     return f"{target_name}.{matrix_hash}"
 

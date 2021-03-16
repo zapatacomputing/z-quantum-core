@@ -37,17 +37,17 @@ from ._serde import (
     circuit_from_dict,
 )
 
-from .conversions2.cirq_conversions import (
+from .conversions.cirq_conversions import (
     export_to_cirq,
     import_circuit_from_cirq,
 )
 
-from .conversions2.pyquil_conversions import (
+from .conversions.pyquil_conversions import (
     export_to_pyquil,
     import_from_pyquil,
 )
 
-from .conversions2.qiskit_conversions import (
+from .conversions.qiskit_conversions import (
     export_to_qiskit,
     import_from_qiskit,
 )

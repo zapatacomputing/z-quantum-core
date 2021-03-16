@@ -4,7 +4,7 @@ import qiskit
 import qiskit.circuit.random
 import pytest
 
-from zquantum.core.wip.circuit.conversions2.qiskit_conversions import (
+from zquantum.core.wip.circuit.conversions.qiskit_conversions import (
     export_to_qiskit,
     import_from_qiskit,
 )

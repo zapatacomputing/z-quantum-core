@@ -1,4 +1,4 @@
-"""Orquestra <-> Cirq conversions."""
+"""Zquantum <-> Cirq conversions."""
 from functools import singledispatch
 from itertools import chain
 from operator import attrgetter
@@ -83,7 +83,7 @@ def make_rotation_factory(
     return _rotation
 
 
-ORQUESTRA_BUILTIN_GATE_NAME_TO_CIRQ_GATE = {
+ZQUANTUM_BUILTIN_GATE_NAME_TO_CIRQ_GATE = {
     "X": cirq.X,
     "Y": cirq.Y,
     "Z": cirq.Z,
@@ -150,7 +150,7 @@ def export_to_cirq(obj):
 @export_to_cirq.register
 def export_matrix_factory_gate_to_cirq(gate: _gates.MatrixFactoryGate) -> cirq.Gate:
     try:
-        cirq_factory = ORQUESTRA_BUILTIN_GATE_NAME_TO_CIRQ_GATE[gate.name]
+        cirq_factory = ZQUANTUM_BUILTIN_GATE_NAME_TO_CIRQ_GATE[gate.name]
         cirq_params = (
             float(param) if isinstance(param, sympy.Expr) and param.is_Float else param
             for param in gate.params
@@ -200,7 +200,7 @@ def import_from_cirq(obj):
 
 
 @import_from_cirq.register
-def convert_eigengate_to_orquestra_gate(eigengate: cirq.EigenGate) -> _gates.Gate:
+def convert_eigengate_to_zquantum_gate(eigengate: cirq.EigenGate) -> _gates.Gate:
     key = (type(eigengate), eigengate.global_shift, eigengate.exponent)
     if key in EIGENGATE_SPECIAL_CASES:
         return EIGENGATE_SPECIAL_CASES[key]
@@ -211,7 +211,7 @@ def convert_eigengate_to_orquestra_gate(eigengate: cirq.EigenGate) -> _gates.Gat
 
 
 @import_from_cirq.register
-def convert_cirq_identity_gate_to_orquestra_gate(
+def convert_cirq_identity_gate_to_zquantum_gate(
     identity_gate: cirq.IdentityGate,
 ) -> _gates.Gate:
     return _builtin_gates.I
@@ -226,7 +226,7 @@ def import_cirq_controlled_gate(controlled_gate: cirq.ControlledGate) -> _gates.
 
 @import_from_cirq.register(cirq.GateOperation)
 @import_from_cirq.register(cirq.ControlledOperation)
-def convert_gate_operation_to_orquestra(operation) -> _gates.GateOperation:
+def convert_gate_operation_to_zquantum(operation) -> _gates.GateOperation:
     if not all(isinstance(qubit, cirq.LineQubit) for qubit in operation.qubits):
         raise NotImplementedError(
             f"Failed to import {operation}. Grid qubits are not yet supported."

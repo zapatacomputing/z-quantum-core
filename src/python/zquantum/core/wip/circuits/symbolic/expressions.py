@@ -36,4 +36,5 @@ class ExpressionDialect(NamedTuple):
 def reduction(operator):
     def _reduction(*args):
         return reduce(operator, args)
+
     return _reduction

@@ -67,7 +67,7 @@ def import_from_pyquil(program: pyquil.Program):
         for instr in program.instructions
         if isinstance(instr, pyquil.gates.Gate)
     ]
-    return _circuit.Circuit(ops, _n_qubits_by_ops(ops), custom_defs.values())
+    return _circuit.Circuit(ops, _n_qubits_by_ops(ops))
 
 
 def _import_gate(
@@ -137,15 +137,14 @@ def _assign_custom_defs(
 
 def export_to_pyquil(circuit: _circuit.Circuit) -> pyquil.Program:
     var_declarations = map(_param_declaration, sorted(map(str, circuit.free_symbols)))
-    custom_gate_names = {
-        gate_def.gate_name for gate_def in circuit.custom_gate_definitions
-    }
+    custom_gate_definitions = circuit.collect_custom_gate_definitions()
+    custom_gate_names = {gate_def.gate_name for gate_def in custom_gate_definitions}
     gate_instructions = [
         _export_gate(op.gate, op.qubit_indices, custom_gate_names)
         for op in circuit.operations
     ]
     program = pyquil.Program(*[*var_declarations, *gate_instructions])
-    _assign_custom_defs(program, circuit.custom_gate_definitions)
+    _assign_custom_defs(program, custom_gate_definitions)
     return program
 
 

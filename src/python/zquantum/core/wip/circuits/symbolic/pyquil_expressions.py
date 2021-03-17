@@ -11,7 +11,7 @@ QUIL_BINARY_EXPRESSION_NAMES = {
     quilatom.Sub: "sub",
     quilatom.Mul: "mul",
     quilatom.Div: "div",
-    quilatom.Pow: "pow"
+    quilatom.Pow: "pow",
 }
 
 
@@ -35,8 +35,7 @@ def symbol_from_quil_parameter(parameter: pyquil.quil.Parameter):
 @expression_from_pyquil.register
 def function_call_from_pyquil_function(function: pyquil.quilatom.Function):
     return FunctionCall(
-        function.name.lower(),
-        (expression_from_pyquil(function.expression),)
+        function.name.lower(), (expression_from_pyquil(function.expression),)
     )
 
 
@@ -50,8 +49,8 @@ def function_call_from_pyquil_binary_expression(expression):
         QUIL_BINARY_EXPRESSION_NAMES[type(expression)],
         (
             expression_from_pyquil(expression.op1),
-            expression_from_pyquil(expression.op2)
-        )
+            expression_from_pyquil(expression.op2),
+        ),
     )
 
 

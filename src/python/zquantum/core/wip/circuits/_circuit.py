@@ -1,9 +1,11 @@
 from functools import singledispatch, reduce
+import operator
 from typing import Union, Dict, Optional, Iterable, Any
 
 import sympy
 
-from . import _gates
+from . import _gates, MatrixFactoryGate
+from ._gates import CustomGateMatrixFactory
 
 
 def _circuit_size_by_operations(operations):
@@ -23,6 +25,12 @@ def _bind_operation(op: _gates.GateOperation, symbols_map) -> _gates.GateOperati
     return op.gate.bind(symbols_map)(*op.qubit_indices)
 
 
+def _operation_uses_custom_gate(operation):
+    return isinstance(operation.gate, MatrixFactoryGate) and isinstance(
+        operation.gate.matrix_factory, CustomGateMatrixFactory
+    )
+
+
 class Circuit:
     """ZQuantum representation of a quantum circuit."""
 
@@ -30,7 +38,6 @@ class Circuit:
         self,
         operations: Optional[Iterable[_gates.GateOperation]] = None,
         n_qubits: Optional[int] = None,
-        custom_gate_definitions: Optional[Iterable[_gates.CustomGateDefinition]] = None,
     ):
         self._operations = list(operations) if operations is not None else []
         self._n_qubits = (
@@ -38,18 +45,11 @@ class Circuit:
             if n_qubits is not None
             else _circuit_size_by_operations(self._operations)
         )
-        self._custom_gate_definitions = (
-            list(custom_gate_definitions) if custom_gate_definitions else []
-        )
 
     @property
     def operations(self):
         """Sequence of quantum gates to apply to qubits in this circuit."""
         return self._operations
-
-    @property
-    def custom_gate_definitions(self):
-        return self._custom_gate_definitions
 
     @property
     def n_qubits(self):
@@ -81,6 +81,24 @@ class Circuit:
 
     def __add__(self, other: Union["Circuit"]):
         return _append_to_circuit(other, self)
+
+    def collect_custom_gate_definitions(self):
+        custom_gate_definiions = (
+            operation.gate.matrix_factory.gate_definition
+            for operation in self.operations
+            if _operation_uses_custom_gate(operation)
+        )
+        unique_operation_dict = {}
+        for gate_def in custom_gate_definiions:
+            if gate_def.gate_name not in unique_operation_dict:
+                unique_operation_dict[gate_def.gate_name] = gate_def
+            elif unique_operation_dict[gate_def.gate_name] != gate_def:
+                raise ValueError(
+                    f"Different gate definitions with the same name exist: {gate_def.gate_name}."
+                )
+        return sorted(
+            unique_operation_dict.values(), key=operator.attrgetter("gate_name")
+        )
 
     def bind(self, symbols_map: Dict[sympy.Symbol, Any]):
         """Create a copy of the current circuit with the parameters of each gate bound to

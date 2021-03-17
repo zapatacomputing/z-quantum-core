@@ -237,7 +237,6 @@ EQUIVALENT_CUSTOM_GATE_CIRCUITS = [
         _circuit.Circuit(
             operations=[UNITARY_GATE_DEF()(1)],
             n_qubits=4,
-            custom_gate_definitions=[UNITARY_GATE_DEF],
         ),
         _make_qiskit_circuit(
             4,
@@ -250,7 +249,6 @@ EQUIVALENT_CUSTOM_GATE_CIRCUITS = [
         _circuit.Circuit(
             operations=[CUSTOM_A2_GATE_DEF()(3)],
             n_qubits=5,
-            custom_gate_definitions=[CUSTOM_A2_GATE_DEF],
         ),
         _make_qiskit_circuit(
             5,
@@ -263,7 +261,6 @@ EQUIVALENT_CUSTOM_GATE_CIRCUITS = [
         _circuit.Circuit(
             operations=[UNITARY_GATE_DEF()(1), UNITARY_GATE_DEF()(1)],
             n_qubits=4,
-            custom_gate_definitions=[UNITARY_GATE_DEF],
         ),
         _make_qiskit_circuit(
             4,
@@ -281,7 +278,6 @@ EQUIVALENT_CUSTOM_GATE_CIRCUITS = [
                 UNITARY_GATE_DEF()(0),
             ],
             n_qubits=4,
-            custom_gate_definitions=[UNITARY_GATE_DEF, CUSTOM_A2_GATE_DEF],
         ),
         _make_qiskit_circuit(
             4,

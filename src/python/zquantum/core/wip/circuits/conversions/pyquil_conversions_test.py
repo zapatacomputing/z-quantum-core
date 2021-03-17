@@ -81,7 +81,6 @@ EQUIVALENT_CIRCUITS = [
     (
         _circuit.Circuit(
             [SQRT_X_DEF()(3)],
-            custom_gate_definitions=[SQRT_X_DEF],
         ),
         pyquil.Program([("SQRT-X", 3)]).defgate(
             "SQRT-X",
@@ -152,7 +151,6 @@ EQUIVALENT_PARAMETRIZED_CIRCUITS = [
             [
                 CUSTOM_PARAMETRIC_DEF(SYMPY_THETA)(0),
             ],
-            custom_gate_definitions=[CUSTOM_PARAMETRIC_DEF],
         ),
         _example_parametric_pyquil_program(),
     ),

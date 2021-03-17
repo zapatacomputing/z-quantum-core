@@ -90,7 +90,9 @@ QISKIT_ZQUANTUM_GATE_MAP = {
 
 def export_to_qiskit(circuit: _circuit.Circuit) -> qiskit.QuantumCircuit:
     q_circuit = qiskit.QuantumCircuit(circuit.n_qubits)
-    custom_names = {gate_def.gate_name for gate_def in circuit.custom_gate_definitions}
+    custom_names = {
+        gate_def.gate_name for gate_def in circuit.collect_custom_gate_definitions()
+    }
     q_triplets = [
         _export_gate_to_qiskit(
             gate_op.gate,
@@ -247,7 +249,6 @@ def import_from_qiskit(circuit: qiskit.QuantumCircuit) -> _circuit.Circuit:
     return _circuit.Circuit(
         operations=imported_ops,
         n_qubits=circuit.num_qubits,
-        custom_gate_definitions=custom_defs.values(),
     )
 
 

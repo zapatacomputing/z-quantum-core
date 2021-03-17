@@ -56,13 +56,11 @@ CUSTOM_U_GATE = _gates.CustomGateDefinition(
                 CUSTOM_U_GATE(1, -1)(3),
                 CUSTOM_U_GATE(ALPHA, -1)(2),
             ],
-            custom_gate_definitions=[CUSTOM_U_GATE],
         ),
         _circuit.Circuit(
             operations=[
                 CUSTOM_U_GATE(2 + 3j, -1)(2),
             ],
-            custom_gate_definitions=[CUSTOM_U_GATE],
         ),
         _circuit.Circuit(
             [

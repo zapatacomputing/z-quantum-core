@@ -69,6 +69,7 @@ def _circuit_to_dict(circuit: _circuit.Circuit):
             - "symbolic_params"
             - "gates"
     """
+    custom_gate_definitions = circuit.collect_custom_gate_definitions()
     return {
         "schema": CIRCUIT_SCHEMA,
         "n_qubits": circuit.n_qubits,
@@ -81,11 +82,9 @@ def _circuit_to_dict(circuit: _circuit.Circuit):
         ),
         **(
             {
-                "custom_gate_definitions": _map_eager(
-                    to_dict, circuit.custom_gate_definitions
-                ),
+                "custom_gate_definitions": _map_eager(to_dict, custom_gate_definitions),
             }
-            if circuit.custom_gate_definitions
+            if custom_gate_definitions
             else {}
         ),
     }
@@ -153,7 +152,6 @@ def circuit_from_dict(dict_):
             for op_dict in dict_.get("operations", [])
         ],
         n_qubits=dict_["n_qubits"],
-        custom_gate_definitions=defs,
     )
 
 

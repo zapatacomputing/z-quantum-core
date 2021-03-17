@@ -64,7 +64,10 @@ from .pyquil_expressions import QUIL_DIALECT, expression_from_pyquil
             sympy.sqrt(sympy.Symbol("x") - sympy.Symbol("y")),
             quilatom.quil_sqrt(quil.Parameter("x") - quil.Parameter("y")),
         ),
-        (-5 * sympy.Symbol("x") * sympy.Symbol("y"), -5 * quil.Parameter("x") * quil.Parameter("y")),
+        (
+            -5 * sympy.Symbol("x") * sympy.Symbol("y"),
+            -5 * quil.Parameter("x") * quil.Parameter("y"),
+        ),
     ],
 )
 def test_translating_tree_from_sympy_to_quil_gives_expected_result(

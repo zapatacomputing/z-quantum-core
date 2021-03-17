@@ -310,11 +310,18 @@ def _n_qubits(matrix):
 
 
 @dataclass(frozen=True)
-class FixedMatrixFactory:
+class CustomGateMatrixFactory:
     """Can be passed as `matrix_factory` when a gate matrix isn't lazily evaluated."""
 
-    matrix: sympy.Matrix
-    params_ordering: Tuple[Parameter, ...]
+    gate_definition: "CustomGateDefinition"
+
+    @property
+    def matrix(self) -> sympy.Matrix:
+        return self.gate_definition.matrix
+
+    @property
+    def params_ordering(self) -> Tuple[Parameter, ...]:
+        return self.gate_definition.params_ordering
 
     def __call__(self, *gate_params):
         return self.matrix.subs(
@@ -362,7 +369,7 @@ class CustomGateDefinition:
     def __call__(self, *gate_params):
         return MatrixFactoryGate(
             self.gate_name,
-            FixedMatrixFactory(self.matrix, self.params_ordering),
+            CustomGateMatrixFactory(self),
             gate_params,
             self._n_qubits,
         )
@@ -407,4 +414,3 @@ def _are_matrices_equal(matrix, another_matrix):
         _are_matrix_elements_equal(element, another_element)
         for element, another_element in zip(matrix, another_matrix)
     )
-

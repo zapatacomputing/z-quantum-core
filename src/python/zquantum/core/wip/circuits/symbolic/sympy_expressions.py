@@ -21,7 +21,7 @@ def is_addition_of_negation(sympy_add: sympy.Add) -> bool:
 
 @singledispatch
 def expression_from_sympy(expression):
-    '''Parse Sympy expression into intermediate expression tree.'''
+    """Parse Sympy expression into intermediate expression tree."""
     raise NotImplementedError(
         f"Expression {expression} of type {type(expression)} is currently not supported"
     )
@@ -53,7 +53,9 @@ def native_float_from_sympy_rational(number: sympy.Rational):
 
 
 @expression_from_sympy.register
-def native_imaginary_unit_from_sympy_imaginary_unit(_unit: sympy.core.numbers.ImaginaryUnit):
+def native_imaginary_unit_from_sympy_imaginary_unit(
+    _unit: sympy.core.numbers.ImaginaryUnit,
+):
     return 1j
 
 

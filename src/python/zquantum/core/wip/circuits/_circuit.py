@@ -4,8 +4,7 @@ from typing import Union, Dict, Optional, Iterable, Any
 
 import sympy
 
-from . import _gates, MatrixFactoryGate
-from ._gates import CustomGateMatrixFactory
+from . import _gates
 
 
 def _circuit_size_by_operations(operations):
@@ -26,8 +25,8 @@ def _bind_operation(op: _gates.GateOperation, symbols_map) -> _gates.GateOperati
 
 
 def _operation_uses_custom_gate(operation):
-    return isinstance(operation.gate, MatrixFactoryGate) and isinstance(
-        operation.gate.matrix_factory, CustomGateMatrixFactory
+    return isinstance(operation.gate, _gates.MatrixFactoryGate) and isinstance(
+        operation.gate.matrix_factory, _gates.CustomGateMatrixFactory
     )
 
 

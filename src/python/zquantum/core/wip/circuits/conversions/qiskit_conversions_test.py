@@ -4,13 +4,13 @@ import qiskit
 import qiskit.circuit.random
 import pytest
 
-from zquantum.core.wip.circuit.conversions.qiskit_conversions import (
+from zquantum.core.wip.circuits.conversions.qiskit_conversions import (
     export_to_qiskit,
     import_from_qiskit,
 )
-from zquantum.core.wip.circuit import _gates
-from zquantum.core.wip.circuit import _builtin_gates
-from zquantum.core.wip.circuit import _circuit
+from zquantum.core.wip.circuits import _gates
+from zquantum.core.wip.circuits import _builtin_gates
+from zquantum.core.wip.circuits import _circuit
 
 
 # --------- gates ---------

@@ -8,6 +8,28 @@ from . import _builtin_gates
 from ._gates import MatrixFactoryGate
 
 
+GATES_REPRESENTATIVES = [
+    _builtin_gates.X,
+    _builtin_gates.Y,
+    _builtin_gates.Z,
+    _builtin_gates.T,
+    _builtin_gates.H,
+    _builtin_gates.I,
+    _builtin_gates.RX(sympy.Symbol("theta")),
+    _builtin_gates.RY(0.5),
+    _builtin_gates.RZ(0),
+    _builtin_gates.PHASE(sympy.pi / 5),
+    _builtin_gates.CZ,
+    _builtin_gates.CNOT,
+    _builtin_gates.SWAP,
+    _builtin_gates.ISWAP,
+    _builtin_gates.XX(sympy.cos(sympy.Symbol("phi"))),
+    _builtin_gates.YY(sympy.pi),
+    _builtin_gates.ZZ(sympy.Symbol("x") + sympy.Symbol("y")),
+    _builtin_gates.CPHASE(1.5),
+]
+
+
 def example_one_qubit_matrix_factory(a, b):
     return sympy.Matrix([[a, b], [b, a]])
 
@@ -124,26 +146,7 @@ class TestMatrixFactoryGate:
 
 @pytest.mark.parametrize(
     "gate",
-    [
-        _builtin_gates.X,
-        _builtin_gates.Y,
-        _builtin_gates.Z,
-        _builtin_gates.T,
-        _builtin_gates.H,
-        _builtin_gates.I,
-        _builtin_gates.RX(sympy.Symbol("theta")),
-        _builtin_gates.RY(0.5),
-        _builtin_gates.RZ(0),
-        _builtin_gates.PHASE(sympy.pi / 5),
-        _builtin_gates.CZ,
-        _builtin_gates.CNOT,
-        _builtin_gates.SWAP,
-        _builtin_gates.ISWAP,
-        _builtin_gates.XX(sympy.cos(sympy.Symbol("phi"))),
-        _builtin_gates.YY(sympy.pi),
-        _builtin_gates.ZZ(sympy.Symbol("x") + sympy.Symbol("y")),
-        _builtin_gates.CPHASE(1.5),
-    ],
+    GATES_REPRESENTATIVES
 )
 class TestControlledGate:
     def test_has_number_of_qubits_equal_to_wrapped_gates_num_qubits_plus_num_controlled_qubits(

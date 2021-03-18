@@ -1,6 +1,6 @@
 """Class hierarchy for base gates."""
 import math
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from functools import singledispatch, reduce
 from numbers import Number
 from typing import Tuple, Union, Callable, Dict, Optional, Iterable, Any
@@ -178,13 +178,12 @@ class MatrixFactoryGate:
         return self.matrix_factory(*self.params)
 
     def bind(self, symbols_map) -> "MatrixFactoryGate":
-        new_symbols = tuple(_sub_symbols(param, symbols_map) for param in self.params)
-        return MatrixFactoryGate(
-            name=self.name,
-            matrix_factory=self.matrix_factory,
-            params=new_symbols,
-            num_qubits=self.num_qubits,
+        return self.replace_params(
+            tuple(_sub_symbols(param, symbols_map) for param in self.params)
         )
+
+    def replace_params(self, new_params: Tuple[Parameter, ...]) -> "MatrixFactoryGate":
+        return replace(self, params=new_params)
 
     def controlled(self, num_controlled_qubits: int) -> Gate:
         return ControlledGate(self, num_controlled_qubits)

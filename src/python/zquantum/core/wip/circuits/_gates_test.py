@@ -67,6 +67,14 @@ class TestMatrixFactoryGate:
 
         assert new_gate.params == (1, 2)
 
+    def test_replace_parameters_correctly_gives_instance_with_correctly_set_parameters(self):
+        theta = sympy.Symbol("theta")
+        gate = MatrixFactoryGate("V", example_one_qubit_matrix_factory, (1, 2), 1)
+
+        new_gate = gate.replace_params((theta, 0.5))
+
+        assert new_gate == MatrixFactoryGate("V", example_one_qubit_matrix_factory, (theta, 0.5), 1)
+
     def test_daggers_matrix_is_adjoint_of_original_gates_matrix(self):
         gate = MatrixFactoryGate("V", example_one_qubit_matrix_factory, (1, 2), 1)
         assert gate.dagger.matrix == gate.matrix.adjoint()

@@ -106,6 +106,9 @@ class GateOperation:
     gate: Gate
     qubit_indices: Tuple[int, ...]
 
+    def bind(self, symbols_map: Dict[sympy.Symbol, Parameter]):
+        return GateOperation(self.gate.bind(symbols_map), self.qubit_indices)
+
     def __str__(self):
         return f"{self.gate}({','.join(map(str, self.qubit_indices))})"
 

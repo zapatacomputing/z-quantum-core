@@ -5,8 +5,7 @@ import pytest
 import sympy
 
 from . import _builtin_gates
-from ._gates import MatrixFactoryGate
-
+from ._gates import MatrixFactoryGate, GateOperation
 
 GATES_REPRESENTATIVES = [
     _builtin_gates.X,
@@ -204,4 +203,18 @@ class TestControlledGate:
         assert (
             controlled_gate.replace_params(new_params) ==
             gate.replace_params(new_params).controlled(2)
+        )
+
+
+@pytest.mark.parametrize("gate", GATES_REPRESENTATIVES)
+class TestGateOperation:
+
+    def test_binding_parameters_constructs_operation_of_gate_with_bound_parameters(
+        self, gate
+    ):
+        op = GateOperation(gate, tuple(range(gate.num_qubits)))
+        symbols_map = {sympy.Symbol("phi"): 0.5, sympy.Symbol("y"): 1.1}
+        assert (
+            op.bind(symbols_map) ==
+            GateOperation(gate.bind(symbols_map), tuple(range(gate.num_qubits)))
         )

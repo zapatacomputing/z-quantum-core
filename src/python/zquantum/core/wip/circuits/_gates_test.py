@@ -102,6 +102,14 @@ class TestMatrixFactoryGate:
         gate = MatrixFactoryGate("V", example_one_qubit_matrix_factory, (1, 0), 1)
         assert gate.dagger.dagger is gate
 
+    def test_applying_dagger_and_replacing_parameters_commutes(self):
+        gate = MatrixFactoryGate("V", example_one_qubit_matrix_factory, (1, 0), 1)
+        new_params = (sympy.Symbol("theta"), 4.2)
+        assert (
+            gate.dagger.replace_params(new_params) ==
+            gate.replace_params(new_params).dagger
+        )
+
     def test_applying_gate_returns_operation_with_correct_gate_and_indices(self):
         theta = sympy.Symbol("theta")
         gamma = sympy.Symbol("gamma")

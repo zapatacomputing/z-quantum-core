@@ -302,6 +302,9 @@ class Dagger(Gate):
     def bind(self, symbols_map) -> "Gate":
         return self.wrapped_gate.bind(symbols_map).dagger
 
+    def replace_params(self, new_params: Tuple[Parameter, ...]) -> "Gate":
+        return self.wrapped_gate.replace_params(new_params).dagger
+
     @property
     def dagger(self) -> "Gate":
         return self.wrapped_gate

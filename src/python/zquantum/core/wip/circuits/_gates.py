@@ -89,6 +89,9 @@ class Gate(Protocol):
     def bind(self, symbols_map: Dict[sympy.Symbol, Parameter]) -> "Gate":
         raise NotImplementedError()
 
+    def replace_params(self, new_params: Tuple[Parameter, ...]) -> "Gate":
+        raise NotImplementedError()
+
     def __call__(self, *qubit_indices: int) -> "GateOperation":
         """Apply this gate on qubits in a circuit."""
         return GateOperation(self, qubit_indices)
@@ -265,6 +268,9 @@ class ControlledGate(Gate):
 
     def bind(self, symbols_map) -> "Gate":
         return self.wrapped_gate.bind(symbols_map).controlled(self.num_control_qubits)
+
+    def replace_params(self, new_params: Tuple[Parameter, ...]) -> "Gate":
+        return self.wrapped_gate.replace_params(new_params).controlled(self.num_control_qubits)
 
 
 DAGGER_GATE_NAME = "Dagger"

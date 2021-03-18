@@ -183,3 +183,14 @@ class TestControlledGate:
         controlled_gate = gate.controlled(2)
         symbols_map = {sympy.Symbol("theta"): 0.5, sympy.Symbol("x"): 3}
         assert controlled_gate.bind(symbols_map) == gate.bind(symbols_map).controlled(2)
+
+    def test_constructing_controlled_gate_and_replacing_parameters_commute(
+        self, gate
+    ):
+        controlled_gate = gate.controlled(2)
+        new_params = tuple(3 * param for param in controlled_gate.params)
+
+        assert (
+            controlled_gate.replace_params(new_params) ==
+            gate.replace_params(new_params).controlled(2)
+        )

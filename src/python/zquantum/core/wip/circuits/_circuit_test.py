@@ -1,5 +1,6 @@
 import numpy as np
 import sympy
+import pytest
 
 from ._builtin_gates import (
     X,
@@ -53,6 +54,17 @@ EXAMPLE_OPERATIONS = tuple(
 def test_creating_circuit_has_correct_operations():
     circuit = Circuit(operations=EXAMPLE_OPERATIONS)
     assert circuit.operations == list(EXAMPLE_OPERATIONS)
+
+
+@pytest.mark.parametrize("circuit", [
+    Circuit(),
+    Circuit([]),
+    Circuit([H(0)]),
+    Circuit([H(0)], 5),
+])
+def test_printing_circuit_doesnt_raise_exception(circuit):
+    str(circuit)
+    repr(circuit)
 
 
 class TestConcatenation:

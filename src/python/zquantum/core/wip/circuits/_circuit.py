@@ -115,8 +115,7 @@ class Circuit:
         return (
             f"{type(self).__name__}"
             f"(operations=[{', '.join(map(str, self.operations))}], "
-            f"n_qubits={self.n_qubits}, "
-            f"custom_gate_definitions={self.custom_gate_definitions})"
+            f"n_qubits={self.n_qubits})"
         )
 
 

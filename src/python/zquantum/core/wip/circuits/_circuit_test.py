@@ -62,7 +62,7 @@ def test_creating_circuit_has_correct_operations():
     Circuit([H(0)]),
     Circuit([H(0)], 5),
 ])
-def test_printing_circuit_doesnt_raise(circuit):
+def test_printing_circuit_doesnt_raise_exception(circuit):
     str(circuit)
     repr(circuit)
 

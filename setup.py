@@ -1,5 +1,4 @@
 import setuptools
-import os
 
 setuptools.setup(
     name="zquantum-core",

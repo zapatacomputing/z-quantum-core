@@ -41,6 +41,7 @@ ZQUANTUM_QISKIT_GATE_MAP = {
     _builtin_gates.X: qiskit.circuit.library.XGate,
     _builtin_gates.Y: qiskit.circuit.library.YGate,
     _builtin_gates.Z: qiskit.circuit.library.ZGate,
+    _builtin_gates.S: qiskit.circuit.library.SGate,
     _builtin_gates.T: qiskit.circuit.library.TGate,
     _builtin_gates.H: qiskit.circuit.library.HGate,
     _builtin_gates.I: qiskit.circuit.library.IGate,

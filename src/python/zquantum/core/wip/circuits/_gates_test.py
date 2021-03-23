@@ -218,3 +218,14 @@ class TestGateOperation:
             op.bind(symbols_map) ==
             GateOperation(gate.bind(symbols_map), tuple(range(gate.num_qubits)))
         )
+
+    def test_replacing_parameters_constructs_operation_of_gate_with_new_parameters(
+        self, gate
+    ):
+        op = GateOperation(gate, tuple(range(gate.num_qubits)))
+        new_params = tuple(-1 * param for param in op.params)
+
+        assert (
+            op.replace_params(new_params) ==
+            GateOperation(gate.replace_params(new_params), tuple(range(gate.num_qubits)))
+        )

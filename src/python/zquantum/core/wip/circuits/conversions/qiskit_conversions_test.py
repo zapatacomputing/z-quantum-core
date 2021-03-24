@@ -22,6 +22,7 @@ EQUIVALENT_NON_PARAMETRIC_GATES = [
     (_builtin_gates.Z, qiskit.circuit.library.ZGate()),
     (_builtin_gates.H, qiskit.circuit.library.HGate()),
     (_builtin_gates.I, qiskit.circuit.library.IGate()),
+    (_builtin_gates.S, qiskit.circuit.library.SGate()),
     (_builtin_gates.T, qiskit.circuit.library.TGate()),
     (_builtin_gates.CNOT, qiskit.extensions.CXGate()),
     (_builtin_gates.CZ, qiskit.extensions.CZGate()),

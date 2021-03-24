@@ -29,6 +29,7 @@ Y = _gates.MatrixFactoryGate("Y", _matrices.y_matrix, (), 1, is_hermitian=True)
 Z = _gates.MatrixFactoryGate("Z", _matrices.z_matrix, (), 1, is_hermitian=True)
 H = _gates.MatrixFactoryGate("H", _matrices.h_matrix, (), 1, is_hermitian=True)
 I = _gates.MatrixFactoryGate("I", _matrices.i_matrix, (), 1, is_hermitian=True)
+S = _gates.MatrixFactoryGate("S", _matrices.s_matrix, (), 1)
 T = _gates.MatrixFactoryGate("T", _matrices.t_matrix, (), 1)
 
 

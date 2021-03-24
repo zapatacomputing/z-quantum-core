@@ -16,6 +16,7 @@ class TestBuiltinGatesProperties:
             _builtin_gates.I,
             _builtin_gates.T,
             _builtin_gates.H,
+            _builtin_gates.S,
             _builtin_gates.SWAP,
             _builtin_gates.ISWAP,
             _builtin_gates.RX(0.5),

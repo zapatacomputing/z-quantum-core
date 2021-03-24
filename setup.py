@@ -11,7 +11,7 @@ def _read_readme():
 
 setuptools.setup(
     name="zquantum-core",
-    version="0.2.0dev3",
+    version="0.2.0.dev4",
     license="Apache-2.0",
     author="Zapata Computing, Inc.",
     author_email="info@zapatacomputing.com",

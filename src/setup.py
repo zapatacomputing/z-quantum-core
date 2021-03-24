@@ -2,7 +2,7 @@ import setuptools
 
 setuptools.setup(
     name="zquantum-core",
-    version="0.2.0dev2",
+    version="0.2.0dev3",
     license="Apache-2.0",
     author="Zapata Computing, Inc.",
     author_email="info@zapatacomputing.com",

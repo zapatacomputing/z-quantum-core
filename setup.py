@@ -3,11 +3,11 @@ import setuptools
 setuptools.setup(
     name="zquantum-core",
     version="0.2.0dev2",
+    license="Apache-2.0",
     author="Zapata Computing, Inc.",
     author_email="info@zapatacomputing.com",
     description="A core library of the scientific code for Orquestra.",
     url="https://github.com/zapatacomputing/z-quantum-core",
-    license_files=("LICENSE",),
     packages=setuptools.find_namespace_packages(
         include=["zquantum.*"], where="src/python"
     ),

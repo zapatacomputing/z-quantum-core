@@ -2,7 +2,7 @@ import setuptools
 
 setuptools.setup(
     name="zquantum-core",
-    version="0.2.0-a1",
+    version="0.2.0dev2",
     author="Zapata Computing, Inc.",
     author_email="info@zapatacomputing.com",
     description="A core library of the scientific code for Orquestra.",

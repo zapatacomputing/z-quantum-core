@@ -11,7 +11,7 @@ setuptools.setup(
     packages=setuptools.find_namespace_packages(include=["zquantum.*"]),
     package_dir={"": "python"},
     classifiers=(
-        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.7",
         "Operating System :: OS Independent",
     ),
     install_requires=[

@@ -7,6 +7,7 @@ setuptools.setup(
     author_email="info@zapatacomputing.com",
     description="A core library of the scientific code for Orquestra.",
     url="https://github.com/zapatacomputing/z-quantum-core",
+    license_files=("LICENSE",),
     packages=setuptools.find_namespace_packages(
         include=["zquantum.*"], where="src/python"
     ),

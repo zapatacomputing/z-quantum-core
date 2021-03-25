@@ -209,7 +209,7 @@ class TestControlledGate:
 @pytest.mark.parametrize("gate", GATES_REPRESENTATIVES)
 class TestGateOperation:
 
-    def test_binding_parameters_constructs_operation_of_gate_with_bound_parameters(
+    def test_bound_symbols_are_not_present_in_gate_parameters(
         self, gate
     ):
         op = GateOperation(gate, tuple(range(gate.num_qubits)))

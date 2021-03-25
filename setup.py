@@ -17,6 +17,7 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ),
     install_requires=[
+        "qe-cli-wrapper",
         "pytest>=5.3.5",
         "networkx==2.4",
         "numpy>=1.18.1",

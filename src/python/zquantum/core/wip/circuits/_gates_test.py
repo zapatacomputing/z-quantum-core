@@ -225,7 +225,4 @@ class TestGateOperation:
         op = GateOperation(gate, tuple(range(gate.num_qubits)))
         new_params = tuple(-1 * param for param in op.params)
 
-        assert (
-            op.replace_params(new_params) ==
-            GateOperation(gate.replace_params(new_params), tuple(range(gate.num_qubits)))
-        )
+        assert op.replace_params(new_params).params == new_params

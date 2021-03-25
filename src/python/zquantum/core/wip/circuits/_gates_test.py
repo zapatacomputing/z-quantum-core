@@ -214,9 +214,9 @@ class TestGateOperation:
     ):
         op = GateOperation(gate, tuple(range(gate.num_qubits)))
         symbols_map = {sympy.Symbol("phi"): 0.5, sympy.Symbol("y"): 1.1}
-        assert (
-            op.bind(symbols_map) ==
-            GateOperation(gate.bind(symbols_map), tuple(range(gate.num_qubits)))
+        assert all(
+            symbol not in sympy.sympify(param).atoms(sympy.Symbol)
+            for symbol in symbols_map for param in op.bind(symbols_map).params
         )
 
     def test_replacing_parameters_constructs_operation_of_gate_with_new_parameters(

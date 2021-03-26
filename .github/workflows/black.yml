@@ -1,6 +1,6 @@
 # This is a basic workflow to help you get started with Actions
 
-name: CI
+name: Black checker
 
 # Controls when the action will run. 
 on:
@@ -30,4 +30,4 @@ jobs:
       uses: jpetrucciani/black-check@20.8b1
       with:
         # File or directory to run black on
-        path: # optional, default is .
+        path: .# optional, default is .

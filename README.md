@@ -69,9 +69,17 @@ To install it, you just need to run `pip install -e .` from the main directory.
 
 ## Development and Contribution
 
+- To setup environment including dependencies required in development run `pip install -e '.[dev]'`.
 - If you'd like to report a bug/issue please create a new issue in this repository.
 - If you'd like to contribute, please create a pull request.
 
 ### Running tests
 
 Unit tests for this project can be run using `pytest .` from the main directory.
+
+### Updating dependencies
+
+When you decide to update dependencies:
+
+- (Optionally) bump version constraint in `setup.py`.
+- Run `pip-compile --upgrade-package your-package-name`. For more info, check out [pip-tools](https://github.com/jazzband/pip-tools/).

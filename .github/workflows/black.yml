@@ -4,9 +4,6 @@ name: Black checker
 
 # Controls when the action will run. 
 on:
-  # Triggers the workflow on push or pull request events but only for the master branch
-  push:
-    branches: [ master, dev ]
   pull_request:
     branches: [ master, dev ]
 
@@ -32,4 +29,4 @@ jobs:
       run: pip install black
 
     - name: Run Black
-      run: black src/ --check
+      run: black src --check

@@ -24,5 +24,10 @@ jobs:
     steps:
 
       # Runs a single command using the runners shell
-      - name: Python quality and format checker
-        uses: konstruktoid/action-pylint@v0.0.5
+    - name: Black Check
+      # You may pin to the exact commit or the version.
+      # uses: jpetrucciani/black-check@6ccaad6b470e4f5999d70021474781a53769ed71
+      uses: jpetrucciani/black-check@20.8b1
+      with:
+        # File or directory to run black on
+        path: # optional, default is .

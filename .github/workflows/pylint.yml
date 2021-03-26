@@ -1,0 +1,31 @@
+name: pylint
+
+# Controls when the action will run. 
+on:
+  push:
+    branches: [ master, dev ]
+  pull_request:
+    branches: [ master, dev ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "build"
+  build:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+
+      - name: pylint3-action
+        # You may pin to the exact commit or the version.
+        # uses: LakshitF/pylint3-action@f9ac408de536e64f63009a439a92e0fb9a614941
+        uses: LakshitF/pylint3-action@v2
+        with:
+          # filename
+          filename: src/ 

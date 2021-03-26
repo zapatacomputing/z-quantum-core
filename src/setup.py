@@ -28,6 +28,9 @@ setuptools.setup(
         "overrides>=3.1.0",
     ],
     extras_require={
-        "dev": ["pytest>=5.3.5"],
+        "dev": [
+            "pytest>=5.3.5",
+            "pip-tools>=6.0.1",
+        ],
     },
 )

@@ -17,6 +17,7 @@ from ._builtin_gates import (
     Z,
     H,
     I,
+    S,
     T,
     RX,
     RY,

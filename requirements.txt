@@ -5,9 +5,7 @@
 #    pip-compile
 #
 attrs==20.3.0
-    # via
-    #   jsonschema
-    #   pytest
+    # via jsonschema
 cached-property==1.5.2
     # via h5py
 cachetools==4.2.1
@@ -62,14 +60,9 @@ idna==2.10
 immutables==0.6
     # via pyquil
 importlib-metadata==3.7.3
-    # via
-    #   jsonschema
-    #   pluggy
-    #   pytest
+    # via jsonschema
 inflection==0.5.1
     # via quandl
-iniconfig==1.1.1
-    # via pytest
 ipython-genutils==0.2.0
     # via
     #   nbformat
@@ -147,7 +140,6 @@ packaging==20.9
     # via
     #   deprecation
     #   google-api-core
-    #   pytest
 pandas==1.2.3
     # via
     #   cirq
@@ -157,8 +149,6 @@ pandas==1.2.3
     #   yfinance
 pillow==8.1.2
     # via matplotlib
-pluggy==0.13.1
-    # via pytest
 ply==3.11
     # via qiskit-terra
 protobuf==3.13.0
@@ -172,8 +162,6 @@ psutil==5.8.0
     #   qiskit-terra
 pubchempy==1.0.4
     # via openfermion
-py==1.10.0
-    # via pytest
 pyasn1-modules==0.2.8
     # via google-auth
 pyasn1==0.4.8
@@ -192,8 +180,6 @@ pyquil==2.28.0
     # via z-quantum-core (setup.py)
 pyrsistent==0.17.3
     # via jsonschema
-pytest==6.2.2
-    # via z-quantum-core (setup.py)
 python-constraint==1.4.0
     # via qiskit-terra
 python-dateutil==2.8.1
@@ -296,8 +282,6 @@ sympy==1.7.1
     #   z-quantum-core (setup.py)
 threadpoolctl==2.1.0
     # via scikit-learn
-toml==0.10.2
-    # via pytest
 tqdm==4.59.0
     # via cirq
 traitlets==5.0.5

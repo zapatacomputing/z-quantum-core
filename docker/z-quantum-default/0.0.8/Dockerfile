@@ -1,4 +1,7 @@
 # Dockerfile for the default z-quantum-core docker image
+# Requires running from the repo root, e.g.
+# `docker build -t z-quantum-default:8.0.0 -f docker/z-quantum-default/0.0.8/Dockerfile .`
+
 FROM ubuntu
 WORKDIR /app
 USER root

@@ -28,5 +28,7 @@ jobs:
     - name: Install dependencies
       run: pip install black
 
+    - uses: actions/checkout@v2
+
     - name: Run Black
-      run: black src --check
+      run: black src/ --check

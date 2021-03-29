@@ -2,13 +2,18 @@ from pyquil.wavefunction import Wavefunction
 import json
 import numpy as np
 from typing import Dict, Union, List
-from openfermion import SymbolicOperator
-from openfermion.utils import (
+from openfermion import SymbolicOperator, QubitOperator
+from openfermion.linalg import (
     qubit_operator_sparse,
     jw_get_ground_state_at_particle_number as _jw_get_ground_state_at_particle_number,
 )
 
-from zquantum.core.measurement import save_expectation_values, save_wavefunction
+from zquantum.core.measurement import (
+    save_expectation_values,
+    save_wavefunction,
+    load_expectation_values,
+    ExpectationValues,
+)
 from zquantum.core.circuit import (
     load_circuit,
     load_parameter_grid,
@@ -17,18 +22,28 @@ from zquantum.core.circuit import (
     Circuit,
     ParameterGrid,
 )
-from zquantum.core.utils import create_object, ValueEstimate, save_value_estimate
+from zquantum.core.utils import (
+    create_object,
+    ValueEstimate,
+    save_value_estimate,
+)
 from zquantum.core.openfermion import (
     load_qubit_operator,
+    load_qubit_operator_set,
     evaluate_operator_for_parameter_grid as _evaluate_operator_for_parameter_grid,
+    get_ground_state_rdm_from_qubit_op as _get_ground_state_rdm_from_qubit_op,
+    save_interaction_rdm,
     save_parameter_grid_evaluation,
+    evaluate_qubit_operator_list as _evaluate_qubit_operator_list,
+    convert_dict_to_qubitop,
 )
+from zquantum.core.typing import Specs
 
 
 def get_expectation_values_for_qubit_operator(
-    backend_specs: Union[Dict, str],
-    circuit: Union[str, Circuit],
-    qubit_operator: Union[str, SymbolicOperator],
+    backend_specs: Specs,
+    circuit: Union[str, Circuit, Dict],
+    qubit_operator: Union[str, SymbolicOperator, Dict],
 ):
     """Measure the expection values of the terms in an input operator with respect to the state prepared by the input
     circuit on the backend described by the backend_specs. The results are serialized into a JSON under the
@@ -41,8 +56,12 @@ def get_expectation_values_for_qubit_operator(
     """
     if isinstance(circuit, str):
         circuit = load_circuit(circuit)
+    elif isinstance(circuit, dict):
+        circuit = Circuit.from_dict(circuit)
     if isinstance(qubit_operator, str):
         qubit_operator = load_qubit_operator(qubit_operator)
+    elif isinstance(qubit_operator, dict):
+        qubit_operator = convert_dict_to_qubitop(qubit_operator)
     if isinstance(backend_specs, str):
         backend_specs = json.loads(backend_specs)
     backend = create_object(backend_specs)
@@ -51,9 +70,23 @@ def get_expectation_values_for_qubit_operator(
     save_expectation_values(expectation_values, "expectation-values.json")
 
 
+def get_ground_state_rdm_from_qubit_operator(
+    qubit_operator: Union[str, QubitOperator], n_particles: int
+):
+    """Diagonalize operator and compute the ground state 1- and 2-RDM
+
+    ARGS:
+        qubit_operator (Union[str, QubitOperator]): The openfermion operator to diagonalize
+        n_particles (int): number of particles in the target ground state
+    """
+    qubit_operator = load_qubit_operator(qubit_operator)
+    rdm = _get_ground_state_rdm_from_qubit_op(qubit_operator, n_particles)
+    save_interaction_rdm(rdm, "rdms.json")
+
+
 def evaluate_operator_for_parameter_grid(
-    ansatz_specs: Union[Dict, str],
-    backend_specs: Union[Dict, str],
+    ansatz_specs: Specs,
+    backend_specs: Specs,
     grid: Union[str, ParameterGrid],
     operator: Union[str, SymbolicOperator],
     fixed_parameters: Union[List[float], np.ndarray, str] = None,
@@ -124,4 +157,20 @@ def jw_get_ground_state_at_particle_number(
     value_estimate = ValueEstimate(ground_energy)
 
     save_wavefunction(ground_state, "ground-state.json")
+    save_value_estimate(value_estimate, "value-estimate.json")
+
+
+def evaluate_qubit_operator_list(
+    qubit_operator_list: Union[str, List[QubitOperator]],
+    expectation_values: Union[str, ExpectationValues],
+):
+    if isinstance(qubit_operator_list, str):
+        qubit_operator_list = load_qubit_operator_set(qubit_operator_list)
+    if isinstance(expectation_values, str):
+        expectation_values = load_expectation_values(expectation_values)
+
+    value_estimate = _evaluate_qubit_operator_list(
+        qubit_operator_list, expectation_values
+    )
+
     save_value_estimate(value_estimate, "value-estimate.json")

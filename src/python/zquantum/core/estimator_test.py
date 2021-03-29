@@ -12,6 +12,7 @@ from .estimator import (
     get_context_selection_circuit,
     get_context_selection_circuit_for_group,
 )
+from .measurement import ExpectationValues
 from .circuit import Circuit
 
 
@@ -69,7 +70,7 @@ class TestBasicEstimator(EstimatorTests):
         return BasicEstimator()
 
     @pytest.fixture()
-    def operator(self, request):
+    def target_operator(self, request):
         return QubitOperator("Z0")
 
     @pytest.fixture()
@@ -84,25 +85,15 @@ class TestBasicEstimator(EstimatorTests):
     def n_samples(self, request):
         return 10
 
-    @pytest.fixture()
-    def epsilon(self, request):
-        return None
-
-    @pytest.fixture()
-    def delta(self, request):
-        return None
-
     def test_get_estimated_expectation_values(
-        self, estimator, backend, circuit, operator, n_samples, epsilon, delta
+        self, estimator, backend, circuit, target_operator, n_samples
     ):
         # When
         values = estimator.get_estimated_expectation_values(
             backend=backend,
             circuit=circuit,
-            target_operator=operator,
+            target_operator=target_operator,
             n_samples=n_samples,
-            epsilon=epsilon,
-            delta=delta,
         ).values
         value = values[0]
         # Then
@@ -111,16 +102,18 @@ class TestBasicEstimator(EstimatorTests):
         assert value <= 1
 
     def test_get_estimated_expectation_values_samples_from_backend(
-        self, estimator, backend, circuit, operator, epsilon, delta
+        self,
+        estimator,
+        backend,
+        circuit,
+        target_operator,
     ):
         # Given
         # When
         values = estimator.get_estimated_expectation_values(
             backend=backend,
             circuit=circuit,
-            target_operator=operator,
-            epsilon=epsilon,
-            delta=delta,
+            target_operator=target_operator,
         ).values
         value = values[0]
         # Then
@@ -128,20 +121,18 @@ class TestBasicEstimator(EstimatorTests):
         assert value >= -1
         assert value <= 1
 
-    def test_n_samples_is_restored(
-        self, estimator, backend, circuit, operator, epsilon, delta
-    ):
+    def test_n_samples_is_restored(self, estimator, backend, circuit, target_operator):
         # Given
         backend.n_samples = 5
         # When
         values = estimator.get_estimated_expectation_values(
-            backend, circuit, operator, n_samples=10
+            backend, circuit, target_operator, n_samples=10
         )
         # Then
         assert backend.n_samples == 5
 
     def test_get_estimated_expectation_values_with_constant(
-        self, estimator, backend, circuit, operator, n_samples, epsilon, delta
+        self, estimator, backend, circuit, n_samples
     ):
         # Given
         coefficient = -2
@@ -155,13 +146,88 @@ class TestBasicEstimator(EstimatorTests):
             circuit=circuit,
             target_operator=constant_qubit_operator,
             n_samples=n_samples,
-            epsilon=epsilon,
-            delta=delta,
         ).values
         value = values[1]
         # Then
         assert len(values) == 2
         assert coefficient == value
+
+    def test_get_estimated_expectation_values_optimal_shot_allocation(
+        self, estimator, backend, circuit, target_operator
+    ):
+        # TODO: After a deterministic testing backend is imlemented, this test
+        # should be updated to actually check that shots are being correctly
+        # allocated and the expectation values correctly estimated.
+
+        # Given
+        # When
+        values = estimator.get_estimated_expectation_values(
+            backend=backend,
+            circuit=circuit,
+            target_operator=target_operator,
+            shot_allocation_strategy="optimal",
+            n_total_samples=100,
+        ).values
+        value = values[0]
+        # Then
+        assert len(values) == 1
+        assert value >= -1
+        assert value <= 1
+
+    def test_get_estimated_expectation_values_optimal_shot_allocation_with_prior(
+        self, estimator, backend, circuit, target_operator
+    ):
+        # TODO: After a deterministic testing backend is imlemented, this test
+        # should be updated to actually check that shots are being correctly
+        # allocated and the expectation values correctly estimated.
+
+        # Given
+        # When
+        estimator.prior_expectation_values = ExpectationValues(
+            np.array([0 for _ in target_operator.terms])
+        )
+        values = estimator.get_estimated_expectation_values(
+            backend=backend,
+            circuit=circuit,
+            target_operator=target_operator,
+            shot_allocation_strategy="optimal",
+            n_total_samples=100,
+        ).values
+        value = values[0]
+        # Then
+        assert len(values) == 1
+        assert value >= -1
+        assert value <= 1
+
+    @pytest.mark.parametrize(
+        "n_samples,n_total_samples,shot_allocation_strategy",
+        [
+            (None, 100, "uniform"),
+            (100, None, "optimal"),
+            (100, 100, "optimal"),
+            (100, 100, "uniform"),
+            (100, None, "foo"),
+        ],
+    )
+    def test_get_estimated_expectation_values_invalid_options(
+        self,
+        estimator,
+        backend,
+        circuit,
+        target_operator,
+        n_samples,
+        n_total_samples,
+        shot_allocation_strategy,
+    ):
+        with pytest.raises(ValueError):
+            estimator.get_estimated_expectation_values(
+                backend=backend,
+                circuit=circuit,
+                target_operator=target_operator,
+                shot_allocation_strategy=shot_allocation_strategy,
+                n_total_samples=n_total_samples,
+                n_samples=n_samples,
+            )
 
 
 class TestExactEstimator(EstimatorTests):
@@ -170,7 +236,7 @@ class TestExactEstimator(EstimatorTests):
         return ExactEstimator()
 
     @pytest.fixture()
-    def operator(self, request):
+    def target_operator(self, request):
         return QubitOperator("Z0")
 
     @pytest.fixture()
@@ -185,35 +251,27 @@ class TestExactEstimator(EstimatorTests):
     def n_samples(self, request):
         return None
 
-    @pytest.fixture()
-    def epsilon(self, request):
-        return None
-
-    @pytest.fixture()
-    def delta(self, request):
-        return None
-
-    def test_require_quantum_simulator(self, estimator, backend, circuit, operator):
+    def test_require_quantum_simulator(
+        self, estimator, backend, circuit, target_operator
+    ):
         backend = MockQuantumBackend()
         with pytest.raises(AttributeError):
             value = estimator.get_estimated_expectation_values(
                 backend=backend,
                 circuit=circuit,
-                target_operator=operator,
+                target_operator=target_operator,
             ).values
 
     def test_get_estimated_expectation_values(
-        self, estimator, backend, circuit, operator, epsilon, delta
+        self, estimator, backend, circuit, target_operator
     ):
         # Given
         # When
         values = estimator.get_estimated_expectation_values(
             backend=backend,
             circuit=circuit,
-            target_operator=operator,
+            target_operator=target_operator,
             n_samples=None,
-            epsilon=epsilon,
-            delta=delta,
         ).values
         value = values[0]
         # Then

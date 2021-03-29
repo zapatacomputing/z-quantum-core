@@ -4,8 +4,9 @@ import warnings
 import json
 import numpy as np
 from ..utils import SCHEMA_VERSION, convert_tuples_to_bitstrings
+from ..typing import AnyPath
 from collections import Counter
-from typing import Dict, Callable
+from typing import Dict, Callable, List
 
 
 class BitstringDistribution:
@@ -147,7 +148,7 @@ def normalize_bitstring_distribution(bitstring_distribution: Dict) -> Dict:
 
 
 def save_bitstring_distribution(
-    distribution: BitstringDistribution, filename: str
+    distribution: BitstringDistribution, filename: AnyPath
 ) -> None:
     """Save a bistring distribution to a file.
 
@@ -163,17 +164,35 @@ def save_bitstring_distribution(
         f.write(json.dumps(dictionary, indent=2))
 
 
-def load_bitstring_distribution(file: str, many: bool = False) -> BitstringDistribution:
+def save_bitstring_distribution_set(
+    bitstring_distribution_set: List[BitstringDistribution], filename: str
+) -> None:
+    """Save a set of bitstring distributions to a file.
+
+    Args:
+       bitstring_distribution_set (list): a list of distributions to be saved
+       file (str): the name of the file
+    """
+    dictionary = {}
+    dictionary["schema"] = SCHEMA_VERSION + "-bitstring-probability-distribution-set"
+    dictionary["bitstring_distribution"] = []
+
+    for distribution in bitstring_distribution_set:
+        dictionary["bitstring_distribution"].append(distribution.distribution_dict)
+
+    with open(filename, "w") as f:
+        f.write(json.dumps(dictionary, indent=2))
+
+
+def load_bitstring_distribution(file: str) -> BitstringDistribution:
     """Load an bitstring_distribution from a json file using a schema.
 
     Arguments:
         file (str): the name of the file
-        many (bool): if True, the file is assumend to contain a
-            list of objects obeying the schema
+
     Returns:
         object: a python object loaded from the bitstring_distribution
     """
-
     if isinstance(file, str):
         with open(file, "r") as f:
             data = json.load(f)
@@ -182,6 +201,30 @@ def load_bitstring_distribution(file: str, many: bool = False) -> BitstringDistr
 
     bitstring_distribution = BitstringDistribution(data["bitstring_distribution"])
     return bitstring_distribution
+
+
+def load_bitstring_distribution_set(file: str) -> List[BitstringDistribution]:
+    """Load a list of bitstring_distributions from a json file using a schema.
+
+    Arguments:
+        file (str): the name of the file
+
+    Returns:
+        object: a list of bitstring distributions loaded from the bitstring_distribution
+    """
+    if isinstance(file, str):
+        with open(file, "r") as f:
+            data = json.load(f)
+    else:
+        data = json.load(file)
+
+    bitstring_distribution_list = []
+    for i in range(len(data["bitstring_distribution"])):
+        bitstring_distribution_list.append(
+            BitstringDistribution(data["bitstring_distribution"][i])
+        )
+
+    return bitstring_distribution_list
 
 
 def create_bitstring_distribution_from_probability_distribution(
@@ -219,18 +262,18 @@ def evaluate_distribution_distance(
     **kwargs,
 ) -> float:
     """Evaluate the distance between two bitstring distributions - the target distribution and the one predicted (measured) by your model -
-       based on the given distance measure
+    based on the given distance measure
 
-       Args:
-            target_distribution (BitstringDistribution): The target bitstring probability distribution
-            measured_distribution (BitstringDistribution): The measured bitstring probability distribution
-            distance_measure_function (function): function used to calculate the distance measure
-                Currently implemented: clipped negative log-likelihood, maximum mean discrepancy (MMD).
+    Args:
+         target_distribution (BitstringDistribution): The target bitstring probability distribution
+         measured_distribution (BitstringDistribution): The measured bitstring probability distribution
+         distance_measure_function (function): function used to calculate the distance measure
+             Currently implemented: clipped negative log-likelihood, maximum mean discrepancy (MMD).
 
-            Additional distance measure parameters can be passed as key word arguments.
+         Additional distance measure parameters can be passed as key word arguments.
 
-       Returns:
-            float: The value of the distance measure
+    Returns:
+         float: The value of the distance measure
     """
     # Check inputs are BitstringDistribution objects
     if not isinstance(target_distribution, BitstringDistribution) or not isinstance(

@@ -21,7 +21,10 @@ from ._bitstring_distribution import (
     create_bitstring_distribution_from_probability_distribution,
     evaluate_distribution_distance,
     BitstringDistribution,
+    save_bitstring_distribution_set,
+    load_bitstring_distribution_set,
 )
+
 from ..utils import SCHEMA_VERSION
 
 
@@ -189,6 +192,23 @@ def test_saving_bitstring_distribution_opens_file_for_writing_using_context_mana
     mock_open().__exit__.assert_called_once()
 
 
+def test_saving_bitstring_distribution_set_opens_file_for_writing_using_context_manager(
+    mock_open,
+):
+    """Saving bitstring distribution set opens file for writing using context manager."""
+    distributions = [
+        BitstringDistribution({"000": 0.1, "111": 0.9}),
+        BitstringDistribution({"01000": 0.5, "10110": 0.5}),
+    ]
+    save_bitstring_distribution_set(
+        distributions, "/some/path/to/distribution/set.json"
+    )
+
+    mock_open.assert_called_once_with("/some/path/to/distribution/set.json", "w")
+    mock_open().__enter__.assert_called_once()
+    mock_open().__exit__.assert_called_once()
+
+
 def test_saving_bitstring_distribution_writes_correct_json_data_to_file(mock_open):
     """Saving bitstring distribution writes correct json dictionary to file."""
     distribution = BitstringDistribution({"000": 0.1, "111": 0.9})
@@ -199,6 +219,28 @@ def test_saving_bitstring_distribution_writes_correct_json_data_to_file(mock_ope
     }
 
     save_bitstring_distribution(distribution, "/some/path/to/distribution.json")
+
+    written_data = mock_open().__enter__().write.call_args[0][0]
+    assert json.loads(written_data) == expected_dict
+
+
+def test_saving_bitstring_distribution_set_writes_correct_json_data_to_file(mock_open):
+    """Saving bitstring distribution set writes correct list of json dictionaries to file."""
+    distributions = [
+        BitstringDistribution({"000": 0.1, "111": 0.9}),
+        BitstringDistribution({"01000": 0.5, "10110": 0.5}),
+    ]
+
+    expected_dict = {
+        "bitstring_distribution": [
+            distribution.distribution_dict for distribution in distributions
+        ],
+        "schema": SCHEMA_VERSION + "-bitstring-probability-distribution-set",
+    }
+
+    save_bitstring_distribution_set(
+        distributions, "/some/path/to/distribution/set.json"
+    )
 
     written_data = mock_open().__enter__().write.call_args[0][0]
     assert json.loads(written_data) == expected_dict
@@ -220,6 +262,41 @@ def test_saved_bitstring_distribution_can_be_loaded(mock_open):
     )
 
     assert dist.distribution_dict.keys() == loaded_dist.distribution_dict.keys()
+
+
+def test_saved_bitstring_distribution_set_can_be_loaded(mock_open):
+    """Saved bitstring distribution set can be loaded to obtain the same distribution set."""
+    fake_file = StringIO()
+    mock_open().__enter__.return_value = fake_file
+    distributions = [
+        BitstringDistribution({"000": 0.1, "111": 0.9}),
+        BitstringDistribution({"01000": 0.5, "10110": 0.5}),
+    ]
+
+    save_bitstring_distribution_set(distributions, "distributions.json")
+    fake_file.seek(0)
+
+    loaded_distributions = load_bitstring_distribution_set(fake_file)
+    assert all(
+        (
+            math.isclose(
+                distribution.distribution_dict[key],
+                loaded_distribution.distribution_dict[key],
+            )
+            for key in distribution.distribution_dict.keys()
+        )
+        for distribution, loaded_distribution in zip(
+            distributions, loaded_distributions
+        )
+    )
+
+    assert all(
+        distribution.distribution_dict.keys()
+        == loaded_distribution.distribution_dict.keys()
+        for distribution, loaded_distribution in zip(
+            distributions, loaded_distributions
+        )
+    )
 
 
 @pytest.mark.parametrize(

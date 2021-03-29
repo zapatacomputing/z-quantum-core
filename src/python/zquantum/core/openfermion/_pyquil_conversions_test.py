@@ -32,24 +32,6 @@ from ._pyquil_conversions import (
 from pyquil.paulis import PauliTerm, PauliSum
 
 
-def test_confirm_interface():
-    """
-    Test conversion
-    This checks the conversion between pyQuil PauliTerms/Sums
-    with OpenFermion QubitOperators. This checks for fields associated with the
-    conversion between the two objects. Does not check the field types.
-    """
-    op = QubitOperator()
-    assert hasattr(op, "terms")
-    assert isinstance(op.terms, dict)
-
-    # PauliSum does not allow initialization with an empty value
-    op_pyquil = PauliSum([PauliTerm("X", 1)])
-    assert hasattr(op_pyquil, "terms")
-    # yell if Forest paulis data structure changes
-    assert hasattr(PauliTerm("X", 1), "_ops")
-
-
 def test_translation_type_enforcement():
     """
     Make sure type check works

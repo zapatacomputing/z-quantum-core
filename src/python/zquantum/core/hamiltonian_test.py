@@ -3,6 +3,7 @@ from .hamiltonian import (
     group_comeasureable_terms_greedy,
     compute_group_variances,
     get_expectation_values_from_rdms,
+    get_expectation_values_from_rdms_for_qubitoperator_list,
     estimate_nmeas_for_operator,
     estimate_nmeas_for_frames,
     reorder_fermionic_modes,
@@ -245,7 +246,6 @@ def test_get_expectation_values_from_rdms(interactionrdm, qubitoperator, sort_te
         coeff = np.array(list(qubitoperator.terms.values()))
         coeff = coeff[1:]
     else:
-        sorted_qubitoperator = QubitOperator((), 0.0)
         terms_iterator = sorted(
             qubitoperator.terms.items(), key=lambda x: abs(x[1]), reverse=True
         )
@@ -257,6 +257,41 @@ def test_get_expectation_values_from_rdms(interactionrdm, qubitoperator, sort_te
 
     energy_test = np.sum(coeff * expecval.values) + qubitoperator.terms.get((), 0.0)
     energy_ref = np.real(interactionrdm.expectation(qubitoperator))
+    assert math.isclose(energy_test, energy_ref)
+
+
+@pytest.mark.parametrize(
+    "interactionrdm, qubitoperator_list, sort_terms",
+    [(rdms, h2_hamiltonian_grouped, False,), (rdms, h2_hamiltonian_grouped, True,),],
+)
+def test_get_expectation_values_from_rdms_for_qubitoperator_list(
+    interactionrdm, qubitoperator_list, sort_terms
+):
+    expecval = get_expectation_values_from_rdms_for_qubitoperator_list(
+        interactionrdm, qubitoperator_list, sort_terms
+    )
+    assert len(expecval.values) == np.sum(len(x.terms) for x in qubitoperator_list)
+    if not sort_terms:
+        coeffs = []
+        for qubitoperator in qubitoperator_list:
+            coeffs += list(qubitoperator.terms.values())
+    else:
+        coeffs = []
+        for qubitoperator in qubitoperator_list:
+            terms_iterator = sorted(
+                qubitoperator.terms.items(), key=lambda x: abs(x[1]), reverse=True
+            )
+            coeff = []
+            for term, coefficient in terms_iterator:
+                if term != ():
+                    coeff.append(coefficient)
+            coeffs += coeff
+    coeffs = np.array(coeffs)
+
+    energy_test = np.sum(coeffs * expecval.values)
+    energy_ref = np.sum(
+        [np.real(interactionrdm.expectation(x)) for x in qubitoperator_list]
+    )
     assert math.isclose(energy_test, energy_ref)
 
 
@@ -283,6 +318,14 @@ def test_get_expectation_values_from_rdms(interactionrdm, qubitoperator, sort_te
 def test_compute_group_variances_with_ref(groups, expecval, variances):
     test_variances = compute_group_variances(groups, expecval)
     assert np.allclose(test_variances, variances)
+
+
+def test_compute_group_variances_errors_for_qubit_operator_constant():
+    with pytest.raises(ValueError):
+        compute_group_variances(
+            [QubitOperator("3 [Z0] + 2 [Z0 Z1]"), QubitOperator("[Z0 Z1] + 1.0[]")],
+            None,
+        )
 
 
 @pytest.mark.parametrize(

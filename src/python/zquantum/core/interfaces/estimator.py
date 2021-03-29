@@ -8,8 +8,7 @@ from overrides import EnforceOverrides
 
 
 class Estimator(ABC, EnforceOverrides):
-    """Interface for implementing different estimators.
-    """
+    """Interface for implementing different estimators."""
 
     @abstractmethod
     def get_estimated_expectation_values(
@@ -18,21 +17,18 @@ class Estimator(ABC, EnforceOverrides):
         circuit: Circuit,
         target_operator: SymbolicOperator,
         n_samples: Optional[int] = None,
-        epsilon: Optional[float] = None,
-        delta: Optional[float] = None,
+        **estimator_kwargs
     ) -> ExpectationValues:
         """Estimators take an unknown quantum state (or the circuit that prepares the unknown state) and a list of target functions
-        as input and produce a list of estimations as output. 
+        as input and produce a list of estimations as output.
 
         Args:
             backend (QuantumBackend): The backend used to run quantum circuits, either a simulator or quantum hardware.
             circuit (Circuit): The circuit that prepares the unknown quantum state.
             target_operator (List[SymbolicOperator]): List of target functions to be estimated.
-            n_samples (int): Number of measurements done. 
-            epsilon (float): an error term.
-            delta (float): a confidence term.
+            n_samples (int): Number of measurements done.
 
         Returns:
-            ExpectationValues: The estimations of the terms in the target_operator. 
+            ExpectationValues: The estimations of the terms in the target_operator.
         """
         raise NotImplementedError

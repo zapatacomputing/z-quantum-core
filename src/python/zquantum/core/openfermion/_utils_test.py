@@ -2,6 +2,7 @@ import unittest
 import random
 import numpy as np
 import pyquil
+import os
 
 from cirq import GridQubit, LineQubit, X, Y, Z, PauliSum, PauliString
 from openfermion import (
@@ -12,12 +13,17 @@ from openfermion import (
     get_interaction_operator,
     get_fermion_operator,
     jordan_wigner,
+    get_sparse_operator,
 )
+from openfermion.hamiltonians import fermi_hubbard
+from openfermion.linalg import jw_get_ground_state_at_particle_number
 
 from ..circuit import Circuit, Gate, Qubit, build_uniform_param_grid
 from ..measurement import ExpectationValues
-from ..utils import RNDSEED, create_object
+from ..utils import RNDSEED, create_object, hf_rdm
 from ..interfaces.mock_objects import MockAnsatz
+
+from ._io import load_interaction_operator
 
 from ._utils import (
     generate_random_qubitop,
@@ -25,7 +31,7 @@ from ._utils import (
     evaluate_qubit_operator,
     get_qubitop_from_matrix,
     reverse_qubit_order,
-    expectation,
+    get_expectation_value,
     change_operator_type,
     evaluate_operator_for_parameter_grid,
     get_fermion_number_operator,
@@ -33,6 +39,9 @@ from ._utils import (
     get_polynomial_tensor,
     qubitop_to_paulisum,
     create_circuits_from_qubit_operator,
+    evaluate_qubit_operator_list,
+    get_ground_state_rdm_from_qubit_op,
+    remove_inactive_orbitals,
 )
 
 
@@ -107,6 +116,18 @@ class TestQubitOperator(unittest.TestCase):
         # Then
         self.assertAlmostEqual(value_estimate.value, 0.5)
 
+    def test_evaluate_qubit_operator_list(self):
+        # Given
+        qubit_op_list = [
+            QubitOperator("0.5 [] + 0.5 [Z1]"),
+            QubitOperator("0.3 [X1] + 0.2[Y2]"),
+        ]
+        expectation_values = ExpectationValues([0.5, 0.5, 0.4, 0.6])
+        # When
+        value_estimate = evaluate_qubit_operator_list(qubit_op_list, expectation_values)
+        # Then
+        self.assertAlmostEqual(value_estimate.value, 0.74)
+
     def test_evaluate_operator_for_parameter_grid(self):
         # Given
         ansatz = MockAnsatz(4, 2)
@@ -158,15 +179,15 @@ class TestQubitOperator(unittest.TestCase):
         self.assertEqual(op1, reverse_qubit_order(op2, n_qubits=2))
         self.assertEqual(op2, reverse_qubit_order(op1, n_qubits=2))
 
-    def test_expectation(self):
+    def test_get_expectation_value(self):
         """Check <Z0> and <Z1> for the state |100>"""
         # Given
         wf = pyquil.wavefunction.Wavefunction([0, 1, 0, 0, 0, 0, 0, 0])
         op1 = QubitOperator("Z0")
         op2 = QubitOperator("Z1")
         # When
-        exp_op1 = expectation(op1, wf)
-        exp_op2 = expectation(op2, wf)
+        exp_op1 = get_expectation_value(op1, wf)
+        exp_op2 = get_expectation_value(op2, wf)
 
         # Then
         self.assertAlmostEqual(-1, exp_op1)
@@ -389,3 +410,42 @@ class TestOtherUtils(unittest.TestCase):
         # Then
         self.assertEqual(paulisum.qubits, expected_qubits)
         self.assertEqual(paulisum, expected_paulisum)
+
+    def test_get_ground_state_rdm_from_qubit_op(self):
+        # Given
+        n_sites = 2
+        U = 5.0
+        fhm = fermi_hubbard(
+            x_dimension=n_sites,
+            y_dimension=1,
+            tunneling=1.0,
+            coulomb=U,
+            chemical_potential=U / 2,
+            magnetic_field=0,
+            periodic=False,
+            spinless=False,
+            particle_hole_symmetry=False,
+        )
+        fhm_qubit = jordan_wigner(fhm)
+        fhm_int = get_interaction_operator(fhm)
+        e, wf = jw_get_ground_state_at_particle_number(
+            get_sparse_operator(fhm), n_sites
+        )
+
+        # When
+        rdm = get_ground_state_rdm_from_qubit_op(
+            qubit_operator=fhm_qubit, n_particles=n_sites
+        )
+
+        # Then
+        self.assertAlmostEqual(e, rdm.expectation(fhm_int))
+
+    def test_remove_inactive_orbitals(self):
+        fermion_ham = load_interaction_operator(
+            os.path.dirname(__file__) + "/../testing/hamiltonian_HeH_plus_STO-3G.json"
+        )
+        frozen_ham = remove_inactive_orbitals(fermion_ham, 1, 1)
+        self.assertEqual(frozen_ham.one_body_tensor.shape[0], 2)
+
+        hf_energy = hf_rdm(1, 1, 2).expectation(fermion_ham)
+        self.assertAlmostEqual(frozen_ham.constant, hf_energy)

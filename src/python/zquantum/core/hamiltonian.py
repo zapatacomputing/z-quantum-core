@@ -39,7 +39,7 @@ def group_comeasureable_terms_greedy(
     Args:
         qubit_operator: the operator whose terms are to be grouped
         sort_terms: whether to sort terms by the absolute value of the coefficient when grouping
-	Returns:
+        Returns:
         A list of qubit operators.
     """
 
@@ -89,7 +89,7 @@ def get_decomposition_function(
 
     Args:
         decomposition_method: The name of the Hamiltonian decomposition method.
-    
+
     Returns:
         A callable that performs the decomposition.
     """
@@ -105,27 +105,30 @@ def get_decomposition_function(
 def compute_group_variances(
     groups: List[QubitOperator], expecval: ExpectationValues = None
 ) -> np.array:
-    """Computes the variances of each frame in a grouped operator. 
+    """Computes the variances of each frame in a grouped operator.
 
-    If expectation values are provided, use variances from there, 
+    If expectation values are provided, use variances from there,
     otherwise assume variances are 1 (upper bound). Correlation information
     is ignored in the current implementation, covariances are assumed to be 0.
 
     Args:
-        groups:  A list of QubitOperators that defines a (grouped) objective function
+        groups:  A list of QubitOperators that defines a (grouped) operator
         expecval: An ExpectationValues object containing the expectation
-            values of the operators and their squares. Optionally, contains
-            values of operator products to compute covariances.
+            values of the operators.
     Returns:
         frame_variances: A Numpy array of the computed variances for each frame
     """
 
+    if any([group.terms.get(()) for group in groups]):
+        raise ValueError(
+            "The list of qubitoperators for measurement estimation should not contain a constant term"
+        )
     if expecval is None:
         frame_variances = [
-            np.sum(np.array(list(x.terms.values())) ** 2) for x in groups
+            np.sum(np.array(list(group.terms.values())) ** 2) for group in groups
         ]  # Covariances are ignored; Variances are set to 1
     else:
-        group_sizes = np.array([len(g.terms.keys()) for g in groups])
+        group_sizes = np.array([len(group.terms.keys()) for group in groups])
         assert np.sum(group_sizes) == len(expecval.values)
         real_expecval = expectation_values_to_real(expecval)
         pauli_variances = 1.0 - real_expecval.values ** 2
@@ -139,6 +142,36 @@ def compute_group_variances(
             frame_variances.append(np.sum(coeffs ** 2 * pauli_variances_for_group))
 
     return np.array(frame_variances)
+
+
+def get_expectation_values_from_rdms_for_qubitoperator_list(
+    interactionrdm: InteractionRDM,
+    qubitoperator_list: List[QubitOperator],
+    sort_terms: bool = False,
+) -> ExpectationValues:
+    """Computes expectation values of Pauli strings in a list of QubitOperator given a
+       fermionic InteractionRDM from OpenFermion. All the expectation values for the
+       operators in the list are returned in a single ExpectationValues object in the
+       same order the operators came in.
+
+    Args:
+        interactionrdm (InteractionRDM): interaction RDM to use for the expectation values
+            computation, as an OpenFermion InteractionRDM object
+        qubitoperator_list (List[QubitOperator]): List of qubit operators to compute the expectation values for
+            in the form of OpenFermion QubitOperator objects
+        sort_terms (bool): whether or not each input qubit operator needs to be sorted before calculating expectations
+    Returns:
+        expectation values of Pauli strings in all qubit operators as an ExpectationValues object
+    """
+
+    all_expectations = []
+    for qubitoperator in qubitoperator_list:
+        expectations = get_expectation_values_from_rdms(
+            interactionrdm, qubitoperator, sort_terms=sort_terms
+        )
+        all_expectations += list(expectations.values)
+
+    return ExpectationValues(np.asarray(all_expectations))
 
 
 def get_expectation_values_from_rdms(
@@ -201,7 +234,7 @@ def estimate_nmeas_for_operator(
             co-measurable groups. See DECOMPOSITION_METHODS.
         expval: Expectation values to be used when accounting for variances. See
             estimate_nmeas_for_frames for details.
-        
+
     Returns:
         See estimate_nmeas_for_frames.
     """
@@ -211,11 +244,13 @@ def estimate_nmeas_for_operator(
 
 
 def estimate_nmeas_for_frames(
-    frame_operators: List[QubitOperator], expecval: Optional[ExpectationValues] = None,
+    frame_operators: List[QubitOperator],
+    expecval: Optional[ExpectationValues] = None,
 ) -> Tuple[float, int, np.array]:
     """Calculates the number of measurements required for computing
     the expectation value of a qubit hamiltonian, where co-measurable terms
-    are grouped. 
+    are grouped in a single QubitOperator, and different groups are different
+    members of the list.
 
     We are assuming the exact expectation values are provided
     (i.e. infinite number of measurements or simulations without noise)
@@ -228,23 +263,19 @@ def estimate_nmeas_for_frames(
     cov(O_{a}^{i}, O_{b}^{i}) = <O_{a}^{i} O_{b}^{i}> - <O_{a}^{i}> <O_{b}^{i}> = 0
 
     Args:
-        frame_operators: A list of QubitOperator objects, where each element in
+        frame_operators (List[QubitOperator]): A list of QubitOperator objects, where each element in
             the list is a group of co-measurable terms.
-        expecval: An ExpectationValues object containing the expectation
-            values of the operators and their squares. Optionally, contains
-            values of operator products to compute covariances.
-            If absent, covariances are assumed to be 0 and variances are
-            assumed to be maximal, i.e. 1. It is assumed that the first expectation
-            value corresponds to the constant term in the target operator in line 
-            with the conventions used in the BasicEstimator
-            NOTE: WE HAVE TO MAKE SURE THAT THE ORDER
-            OF EXPECTATION VALUES MATCHES THE ORDER OF THE TERMS IN THE
-            TARGET QUBIT OPERATOR, OTHERWISE THIS FUNCTION WILL NOT WORK CORRECTLY
-        
+        expecval (Optional[ExpectationValues]): An ExpectationValues object containing the expectation
+            values of all operators in frame_operators. If absent, variances are assumed to be
+            maximal, i.e. 1.
+            NOTE: YOU HAVE TO MAKE SURE THAT THE ORDER OF EXPECTATION VALUES MATCHES
+            THE ORDER OF THE TERMS IN THE *GROUPED* TARGET QUBIT OPERATOR, OTHERWISE
+            THIS FUNCTION WILL NOT RETURN THE CORRECT RESULT.
+
     Returns:
-        K2: number of measurements for epsilon = 1.0
-        nterms: number of groups of QWC terms in the target_operator
-        frame_meas: Number of optimal measurements per group 
+        K2 (float): number of measurements for epsilon = 1.0
+        nterms (int): number of groups in frame_operators
+        frame_meas (np.array): Number of optimal measurements per group
     """
     frame_variances = compute_group_variances(frame_operators, expecval)
     sqrt_lambda = sum(np.sqrt(frame_variances))

@@ -1,4 +1,3 @@
-import unittest
 import os
 import random
 import numpy as np
@@ -7,9 +6,14 @@ from scipy.stats import unitary_group
 import sympy
 import json
 
+from zquantum.core.openfermion import (
+    load_interaction_operator,
+)
+
 from .utils import (
     convert_array_to_dict,
     convert_dict_to_array,
+    sample_from_probability_distribution,
     dec2bin,
     bin2dec,
     is_identity,
@@ -31,26 +35,35 @@ from .utils import (
     save_nmeas_estimate,
     load_nmeas_estimate,
     SCHEMA_VERSION,
+    scale_and_discretize,
+    hf_rdm,
 )
 
 
-class TestUtils(unittest.TestCase):
+def remove_file_if_exists(filename):
+    try:
+        os.remove(filename)
+    except OSError:
+        pass
+
+
+class TestUtils:
     def test_real_array_conversion(self):
         arr = np.array([[1.0, 2.0], [3.0, 4.0]])
         dictionary = convert_array_to_dict(arr)
         new_arr = convert_dict_to_array(dictionary)
-        self.assertTrue(np.allclose(arr, new_arr))
+        assert np.allclose(arr, new_arr)
 
     def test_complex_array_conversion(self):
         arr = np.array([[1.0, 2.0], [3.0, 4.0j]])
         dictionary = convert_array_to_dict(arr)
         new_arr = convert_dict_to_array(dictionary)
-        self.assertTrue(np.allclose(arr, new_arr))
+        assert np.allclose(arr, new_arr)
 
     def test_dec_bin_conversion(self):
         integer = random.randint(1, 10 ** 9)
         integer2 = bin2dec(dec2bin(integer, 30))
-        self.assertEqual(integer, integer2)
+        assert integer == integer2
 
     def test_is_identity(self):
         # Given
@@ -60,24 +73,38 @@ class TestUtils(unittest.TestCase):
             [[random.uniform(-1, 1) for x in range(0, 4)] for y in range(0, 4)]
         )
         # When/Then
-        self.assertTrue(is_identity(matrix1))
-        self.assertFalse(is_identity(matrix2))
+        assert is_identity(matrix1)
+        assert not is_identity(matrix2)
 
     def test_is_unitary(self):
         # Given
         U = unitary_group.rvs(4)
         # When/Then
-        self.assertTrue(is_unitary(U))
+        assert is_unitary(U)
 
     def test_compare_unitary(self):
         # Given
         U1 = unitary_group.rvs(4)
         U2 = unitary_group.rvs(4)
         # When/Then
-        self.assertFalse(compare_unitary(U1, U2))
+        assert not compare_unitary(U1, U2)
 
-    def test_sample_from_probability_distribution(self):
-        pass
+    @pytest.mark.parametrize(
+        "distribution, number_of_samples",
+        [
+            ({"00": 0.5, "11": 0.5}, 1),
+            ({"00": 0.5, "11": 0.5}, 10),
+            ({"00": 0.5, "11": 0.5}, 17),
+            ({"00": 0.5, "11": 0.5}, 177),
+            ({"0000": 0.137, "0001": 0.863}, 10),
+            ({"0000": 0.137, "0001": 0.863}, 100),
+        ],
+    )
+    def test_sample_from_probability_distribution_gives_correct_number_of_samples(
+        self, distribution, number_of_samples
+    ):
+        counts = sample_from_probability_distribution(distribution, number_of_samples)
+        assert sum(counts.values()) == number_of_samples
 
     def test_convert_bitstrings_to_tuples(self):
         pass
@@ -99,12 +126,8 @@ class TestUtils(unittest.TestCase):
         value_estimate_object_loaded = load_value_estimate("value_estimate.json")
 
         # Then
-        self.assertEqual(
-            value_estimate_object.value, value_estimate_object_loaded.value
-        )
-        self.assertEqual(
-            value_estimate_object.precision, value_estimate_object_loaded.precision
-        )
+        assert value_estimate_object.value == value_estimate_object_loaded.value
+        assert value_estimate_object.precision == value_estimate_object_loaded.precision
 
         # Given
         value_estimate_object = ValueEstimate(value)
@@ -112,12 +135,8 @@ class TestUtils(unittest.TestCase):
         save_value_estimate(value_estimate_object, "value_estimate.json")
         value_estimate_object_loaded = load_value_estimate("value_estimate.json")
         # Then
-        self.assertEqual(
-            value_estimate_object.value, value_estimate_object_loaded.value
-        )
-        self.assertEqual(
-            value_estimate_object.precision, value_estimate_object_loaded.precision
-        )
+        assert value_estimate_object.value == value_estimate_object_loaded.value
+        assert value_estimate_object.precision == value_estimate_object_loaded.precision
 
         # Given
         value = np.float64(-1.0)
@@ -129,23 +148,19 @@ class TestUtils(unittest.TestCase):
         value_estimate_object_loaded = load_value_estimate("value_estimate.json")
 
         # Then
-        self.assertEqual(
-            value_estimate_object.value, value_estimate_object_loaded.value
-        )
-        self.assertEqual(
-            value_estimate_object.precision, value_estimate_object_loaded.precision
-        )
+        assert value_estimate_object.value == value_estimate_object_loaded.value
+        assert value_estimate_object.precision == value_estimate_object_loaded.precision
 
-        os.remove("value_estimate.json")
+        remove_file_if_exists("value_estimate.json")
 
     def test_value_estimate_to_string(self):
         value = -1.0
         precision = 0.1
         value_estimate = ValueEstimate(value, precision)
-        self.assertEqual(str(value_estimate), f"{value} ± {precision}")
+        assert str(value_estimate) == f"{value} ± {precision}"
 
         value_estimate_no_precision = ValueEstimate(value)
-        self.assertEqual(str(value_estimate_no_precision), f"{value}")
+        assert str(value_estimate_no_precision) == f"{value}"
 
     def test_list_io(self):
         # Given
@@ -154,8 +169,8 @@ class TestUtils(unittest.TestCase):
         save_list(initial_list, "list.json")
         loaded_list = load_list("list.json")
         # Then
-        self.assertListEqual(initial_list, loaded_list)
-        os.remove("list.json")
+        assert initial_list == loaded_list
+        remove_file_if_exists("list.json")
 
     def test_named_list_io(self):
         # Given
@@ -164,7 +179,7 @@ class TestUtils(unittest.TestCase):
         save_list(initial_list, "list.json", "number")
         loaded_list = load_list("list.json")
         # Then
-        self.assertListEqual(initial_list, loaded_list)
+        assert initial_list == loaded_list
         # And
         # After manually loading json
         if isinstance("list.json", str):
@@ -173,8 +188,8 @@ class TestUtils(unittest.TestCase):
         else:
             data = json.load("list.json")
         # Check that
-        self.assertEqual(data["schema"], SCHEMA_VERSION + "-number-list")
-        os.remove("list.json")
+        assert data["schema"] == SCHEMA_VERSION + "-number-list"
+        remove_file_if_exists("list.json")
 
     def test_create_object(self):
         # Given
@@ -190,8 +205,8 @@ class TestUtils(unittest.TestCase):
         mock_simulator = create_object(specs)
 
         # Then
-        self.assertEqual(type(mock_simulator).__name__, function_name)
-        self.assertEqual(mock_simulator.n_samples, n_samples)
+        assert type(mock_simulator).__name__ == function_name
+        assert mock_simulator.n_samples == n_samples
 
     def test_save_generic_dict(self):
         data = {"flavor": "chocolate", "weight": 42}
@@ -199,8 +214,8 @@ class TestUtils(unittest.TestCase):
         with open("dict.json") as f:
             loaded_data = json.load(f)
         for key, value in data.items():
-            self.assertEqual(loaded_data[key], value)
-        os.remove("dict.json")
+            assert loaded_data[key] == value
+        remove_file_if_exists("dict.json")
 
     def test_get_func_from_specs(self):
         # Given
@@ -215,8 +230,8 @@ class TestUtils(unittest.TestCase):
         function = get_func_from_specs(specs)
 
         # Then
-        self.assertEqual(function.__name__, function_name)
-        self.assertEqual(function(data), target_value)
+        assert function.__name__ == function_name
+        assert function(data) == target_value
 
     def test_noise_model_io(self):
         # Given
@@ -226,13 +241,16 @@ class TestUtils(unittest.TestCase):
 
         # When
         save_noise_model(
-            noise_model_data, module_name, function_name, "noise_model.json",
+            noise_model_data,
+            module_name,
+            function_name,
+            "noise_model.json",
         )
         noise_model = load_noise_model("noise_model.json")
 
         # Then
-        self.assertEqual(noise_model, None)
-        os.remove("noise_model.json")
+        assert noise_model is None
+        remove_file_if_exists("noise_model.json")
 
     def test_create_symbols_map_with_correct_input(self):
         # Given
@@ -246,7 +264,7 @@ class TestUtils(unittest.TestCase):
         symbols_map = create_symbols_map(symbols, params)
 
         # Then
-        self.assertEqual(symbols_map, target_symbols_map)
+        assert symbols_map == target_symbols_map
 
     def test_create_symbols_map_with_incorrect_input(self):
         # Given
@@ -255,7 +273,7 @@ class TestUtils(unittest.TestCase):
         params = np.array([1, 2])
 
         # When/Then
-        with self.assertRaises(ValueError):
+        with pytest.raises(ValueError):
             symbols_map = create_symbols_map(symbols, params)
 
     def test_save_timing(self):
@@ -263,9 +281,9 @@ class TestUtils(unittest.TestCase):
         save_timing(walltime, "timing.json")
         with open("timing.json") as f:
             timing = json.load(f)
-        self.assertEqual(timing["walltime"], walltime)
-        self.assertTrue("schema" in timing)
-        os.remove("timing.json")
+        assert timing["walltime"] == walltime
+        assert "schema" in timing
+        remove_file_if_exists("timing.json")
 
     def test_save_nmeas_estimate(self):
         K_coeff = 0.5646124437984263
@@ -282,10 +300,10 @@ class TestUtils(unittest.TestCase):
         K_coeff_, nterms_, frame_meas_ = load_nmeas_estimate(
             "hamiltonian_analysis.json"
         )
-        self.assertEqual(K_coeff, K_coeff_)
-        self.assertEqual(nterms, nterms_)
-        self.assertListEqual(frame_meas.tolist(), frame_meas_.tolist())
-        os.remove("hamiltonian_analysis.json")
+        assert K_coeff == K_coeff_
+        assert nterms == nterms_
+        assert frame_meas.tolist() == frame_meas_.tolist()
+        remove_file_if_exists("hamiltonian_analysis.json")
 
 
 def test_arithmetic_on_value_estimate_and_float_gives_the_same_result_as_arithmetic_on_two_floats():
@@ -341,3 +359,50 @@ def test_value_estimate_is_not_equivalent_to_an_object_of_non_numeric_type(
     estimate, other_obj
 ):
     assert estimate != other_obj
+
+
+@pytest.mark.parametrize(
+    "values,total,expected_result",
+    [
+        ([0.5, 0.3, 0.2], 9, [4, 3, 2]),
+        ([0.5, 0.3, 0.2], 10, [5, 3, 2]),
+        ([0.5, 0.3, 0.2], 11, [6, 3, 2]),
+        ([0.5, 0.3, 0.2], 2, [1, 1, 0]),
+    ],
+)
+def test_scale_and_discretize(values, total, expected_result):
+    assert scale_and_discretize(values, total) == expected_result
+
+
+# Hamiltonians and energies from Psi4 H2 minimal basis
+# first one is RHF, second one is H2- doublet with ROHF
+@pytest.mark.parametrize(
+    "hamiltonian, ref_energy, nalpha",
+    [
+        (
+            load_interaction_operator(
+                os.path.join(
+                    os.path.dirname(__file__),
+                    "testing",
+                    "hamiltonian_H2_minimal_basis.json",
+                )
+            ),
+            -0.8543376267387818,
+            1,
+        ),
+        (
+            load_interaction_operator(
+                os.path.join(
+                    os.path.dirname(__file__),
+                    "testing",
+                    "hamiltonian_H2_minus_ROHF_minimal_basis.json",
+                )
+            ),
+            -0.6857403043904364,
+            2,
+        ),
+    ],
+)
+def test_hf_rdm_energy(hamiltonian, ref_energy, nalpha):
+    rdm = hf_rdm(nalpha, 1, 2)
+    assert np.isclose(ref_energy, rdm.expectation(hamiltonian))

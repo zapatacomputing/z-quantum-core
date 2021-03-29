@@ -24,14 +24,17 @@ class MockQuantumBackend(QuantumBackend):
     def __init__(self, n_samples=None):
         super().__init__(n_samples)
 
-    def run_circuit_and_measure(self, circuit, **kwargs):
+    def run_circuit_and_measure(self, circuit, n_samples=None, **kwargs):
         super(MockQuantumBackend, self).run_circuit_and_measure(circuit)
         n_qubits = len(circuit.qubits)
         measurements = Measurements()
-        for _ in range(self.n_samples):
+        if n_samples is None:
+            n_samples = self.n_samples
+        for _ in range(n_samples):
             measurements.bitstrings += [
-                tuple([random.randint(0, 1) for j in range(n_qubits)])
+                tuple(random.randint(0, 1) for j in range(n_qubits))
             ]
+
         return measurements
 
     def get_wavefunction(self, circuit):
@@ -48,11 +51,13 @@ class MockQuantumSimulator(QuantumSimulator):
     def __init__(self, n_samples: Optional[int] = None):
         super().__init__(n_samples)
 
-    def run_circuit_and_measure(self, circuit: Circuit, **kwargs):
+    def run_circuit_and_measure(self, circuit: Circuit, n_samples=None, **kwargs):
         super(MockQuantumSimulator, self).run_circuit_and_measure(circuit)
         n_qubits = len(circuit.qubits)
         measurements = Measurements()
-        for _ in range(self.n_samples):
+        if n_samples is None:
+            n_samples = self.n_samples
+        for _ in range(n_samples):
             measurements.bitstrings += [
                 tuple([random.randint(0, 1) for j in range(n_qubits)])
             ]
@@ -150,8 +155,6 @@ class MockEstimator(Estimator):
         circuit: Circuit,
         target_operator: SymbolicOperator,
         n_samples: Optional[int],
-        epsilon: Optional[float],
-        delta: Optional[float],
     ) -> ExpectationValues:
         return backend.get_expectation_values(circuit, target_operator)
 

@@ -109,9 +109,7 @@ class TestGraph(unittest.TestCase):
         random_weights = True
 
         # When
-        graph = generate_random_regular_graph(
-            num_nodes, degree, random_weights
-        )
+        graph = generate_random_regular_graph(num_nodes, degree, random_weights)
 
         # Then
         for edge in graph.edges:
@@ -119,27 +117,77 @@ class TestGraph(unittest.TestCase):
 
         self.assertEqual(len(graph.nodes), num_nodes)
 
+    def test_generate_caveman_graph(self):
+        # Given
+        number_of_cliques = 3
+        size_of_cliques = 4
+        random_weights = True
+
+        # When
+        graph = generate_caveman_graph(
+            number_of_cliques, size_of_cliques, random_weights
+        )
+
+        # Then
+        for edge in graph.edges:
+            self.assertIn("weight", graph.edges[edge].keys())
+
+        self.assertEqual(len(graph.nodes), number_of_cliques * 4)
+
+    def test_generate_ladder_graph(self):
+        # Given
+        length_of_ladder = 4
+        random_weights = True
+
+        # When
+        graph = generate_ladder_graph(length_of_ladder, random_weights)
+
+        # Then
+        for edge in graph.edges:
+            self.assertIn("weight", graph.edges[edge].keys())
+
+        self.assertEqual(len(graph.nodes), length_of_ladder * 2)
+
+    def test_generate_barbell_graph(self):
+        # Given
+        number_of_vertices_complete_graph = 4
+        random_weights = True
+
+        # When
+        graph = generate_barbell_graph(
+            number_of_vertices_complete_graph, random_weights
+        )
+
+        # Then
+        for edge in graph.edges:
+            self.assertIn("weight", graph.edges[edge].keys())
+
+        self.assertEqual(len(graph.nodes), number_of_vertices_complete_graph * 2)
+
     def test_seed(self):
         # Given
         num_nodes = 4
         degree = 2
         seed = 123
-        
-        target_graph = generate_random_regular_graph(num_nodes, degree, random_weights = True, seed=seed)
+
+        target_graph = generate_random_regular_graph(
+            num_nodes, degree, random_weights=True, seed=seed
+        )
 
         # When
-        graph = generate_random_regular_graph(num_nodes, degree, random_weights = True, seed=seed)
+        graph = generate_random_regular_graph(
+            num_nodes, degree, random_weights=True, seed=seed
+        )
 
         # Then
         self.assertTrue(compare_graphs(graph, target_graph))
-
 
     def test_generate_graph_from_specs(self):
         # Given
-        specs = {'type_graph':'erdos_renyi', 'num_nodes':3, 'probability':1.}
+        specs = {"type_graph": "erdos_renyi", "num_nodes": 3, "probability": 1.0}
         target_graph = nx.Graph()
         target_graph.add_edges_from([(0, 1), (1, 2), (0, 2)])
-        
+
         # When
         graph = generate_graph_from_specs(specs)
 
@@ -147,30 +195,29 @@ class TestGraph(unittest.TestCase):
         self.assertTrue(compare_graphs(graph, target_graph))
 
         # Given
-        specs = {'type_graph':'regular', 'num_nodes':4 , 'degree':2}
-    
+        specs = {"type_graph": "regular", "num_nodes": 4, "degree": 2}
+
         # When
         graph = generate_graph_from_specs(specs)
-        
+
         # Then
         for n in graph.nodes():
             node_in_edge = [n in e for e in graph.edges()]
             self.assertTrue(sum(node_in_edge) == 2)
-        
+
         # Given
-        specs = {'type_graph':'complete', 'num_nodes': 4}
+        specs = {"type_graph": "complete", "num_nodes": 4}
         target_graph = nx.Graph()
         target_graph.add_edges_from([(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)])
-        
+
         # When
         graph = generate_graph_from_specs(specs)
 
         # Then
         self.assertTrue(compare_graphs(graph, target_graph))
-        
-        # When
-        specs = {'type_graph':'complete', 'num_nodes': 10, 'random_weights': True}
 
+        # When
+        specs = {"type_graph": "complete", "num_nodes": 10, "random_weights": True}
 
         # When
         graph = generate_graph_from_specs(specs)
@@ -181,103 +228,100 @@ class TestGraph(unittest.TestCase):
 
     def test_generate_random_value_from_string_uniform(self):
         # Given
-        specs_float = 'uniform_-5._5.'
+        specs_float = "uniform_-5._5."
 
         # When
         value_float = generate_random_value_from_string(specs_float)
-    
+
         # Then
         self.assertTrue(type(value_float) is float)
         self.assertTrue((value_float > -5) and (value_float < 5))
 
     def test_generate_random_value_from_string_uniformrange(self):
         # Given
-        specs_int = 'uniformrange_5_10'
-        
+        specs_int = "uniformrange_5_10"
+
         # When
         value_int = generate_random_value_from_string(specs_int)
-    
+
         # Then
         self.assertTrue(type(value_int) is int)
         self.assertTrue(value_int in range(5, 10))
 
-        
     def test_generate_random_value_from_string_choice(self):
         # Given
-        specs_float = 'choice_3._5._14.'
-        specs_int = 'choice_3_5_14'
-        
+        specs_float = "choice_3._5._14."
+        specs_int = "choice_3_5_14"
+
         # When
         value_float = generate_random_value_from_string(specs_float)
         value_int = generate_random_value_from_string(specs_int)
-    
+
         # Then
         self.assertTrue(type(value_float) is float)
         self.assertTrue(type(value_int) is int)
-        self.assertTrue(value_float in [3., 5., 14.])
+        self.assertTrue(value_float in [3.0, 5.0, 14.0])
         self.assertTrue(value_int in [3, 5, 14])
-        
+
     def test_generate_random_value_from_string_normal(self):
         # Given
-        specs_float = 'normal_-10._0.0001'
+        specs_float = "normal_-10._0.0001"
         random.seed(123)
 
         # When
         value_float = generate_random_value_from_string(specs_float)
-    
+
         # Then
         self.assertTrue(type(value_float) is float)
-        self.assertTrue((value_float > -11.) and (value_float < -9.))
- 
+        self.assertTrue((value_float > -11.0) and (value_float < -9.0))
+
     def test_generate_random_value_from_string_constant(self):
         # Given
-        specs_float = 'constant_5.'
-        specs_int = 'constant_5'
+        specs_float = "constant_5."
+        specs_int = "constant_5"
 
         # When
         value_float = generate_random_value_from_string(specs_float)
         value_int = generate_random_value_from_string(specs_int)
-    
+
         # Then
         self.assertTrue(type(value_float) is float)
         self.assertTrue(type(value_int) is int)
         self.assertEqual(value_float, 5)
         self.assertTrue(value_int, 5)
-        
+
     def test_generate_random_value_from_string_numerics(self):
         # Given
-        specs_float = 5.
+        specs_float = 5.0
         specs_int = 5
 
         # When
         value_float = generate_random_value_from_string(specs_float)
         value_int = generate_random_value_from_string(specs_int)
-    
+
         # Then
         self.assertTrue(type(value_float) is float)
         self.assertTrue(type(value_int) is int)
         self.assertEqual(value_float, 5)
-        self.assertTrue(value_int, 5)    
+        self.assertTrue(value_int, 5)
 
     def test_generate_random_value_from_string_wrongtype(self):
         # Given
-        specs_float = (5.,)
+        specs_float = (5.0,)
         specs_int = (5,)
 
         # When/Then
         self.assertRaises(
-            AssertionError,
-            lambda: generate_random_value_from_string(specs_float)
+            AssertionError, lambda: generate_random_value_from_string(specs_float)
         )
         self.assertRaises(
-            AssertionError,
-            lambda: generate_random_value_from_string(specs_int)
+            AssertionError, lambda: generate_random_value_from_string(specs_int)
         )
 
     def test_generate_graph_from_specs_with_string_random(self):
         # Given
-        specs = {'type_graph':'regular', 'num_nodes':8, 'degree':'choice_3_4'}
-        
+        specs = {"type_graph": "regular", "num_nodes": 8, "degree": "choice_3_4"}
+
         # When
         graph = generate_graph_from_specs(specs)
 
@@ -289,12 +333,17 @@ class TestGraph(unittest.TestCase):
             self.assertEqual(degree, degree_ref)
 
         # Given
-        specs = {'type_graph':'regular', 'num_nodes':8, 'degree':3, 'random_weights':'uniform_-1_-0.5'}
-    
+        specs = {
+            "type_graph": "regular",
+            "num_nodes": 8,
+            "degree": 3,
+            "random_weights": "uniform_-1_-0.5",
+        }
+
         # When
         graph = generate_graph_from_specs(specs)
-        
+
         # Then
-        for node1, node2, weight in graph.edges(data='weight'):
-            self.assertTrue((weight>-1) and (weight<-0.5))
-        
+        for node1, node2, weight in graph.edges(data="weight"):
+            self.assertTrue((weight > -1) and (weight < -0.5))
+

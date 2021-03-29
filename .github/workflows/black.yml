@@ -19,16 +19,9 @@ jobs:
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-
-    - name: Set up Python
-      uses: actions/setup-python@v2
-      with:
-        python-version: 3.7
-
-    - name: Install dependencies
-      run: pip install black
-
     - uses: actions/checkout@v2
 
-    - name: Run Black
-      run: black src/ --check
+    - name: black
+      uses: lgeiger/black-action@master
+
+

@@ -23,5 +23,5 @@ jobs:
 
     - name: black
       uses: lgeiger/black-action@master
-
-
+      with: 
+        args: . --check

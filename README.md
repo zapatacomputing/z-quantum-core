@@ -6,7 +6,7 @@
 
 `z-quantum-core` provides:
 - core functionalities required to run other Orquestra modules, such as the `Circuit` class.
-- interfaces for implementing other Orquestra modules, such as backends and optimizers.
+- interfaces for implementing other Orquestra modules, such as backends and optimizers. 
 - useful tools to support the development of workflows and other scientific projects; such as time evolution, sampling from probability distribution, etc.
 
 

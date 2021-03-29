@@ -23,6 +23,11 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install .
 
       - name: Python Code Quality and Lint
         # You may pin to the exact commit or the version.
@@ -32,9 +37,9 @@ jobs:
           # A list of all paths to test
           python-root-list: src/
           # Use Pylint
-          use-pylint: true
+          use-pylint: false
           # Use pycodestyle
-          use-pycodestyle: true
+          use-pycodestyle: false
           # Use Flake8
           use-flake8: true
           # Use Black
@@ -48,7 +53,7 @@ jobs:
           # Extra options: pycodestyle $(extra-pycodestyle-options) $(python-root-list)
           # extra-pycodestyle-options: # optional, default is 
           # Extra options: flake8 $(extra-flake8-options) $(python-root-list)
-          # extra-flake8-options: # optional, default is 
+          # extra-flake8-options: --ignore 
           # Extra options: black --check $(extra-black-options) $(python-root-list)
           extra-black-options: --check
           # Extra options: mypy $(extra-mypy-options) $(python-root-list)

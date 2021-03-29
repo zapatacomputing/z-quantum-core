@@ -56,9 +56,17 @@ RUN git clone https://github.com/rigetti/qvm.git && \
                 make QVM_WORKSPACE=10240 qvm && \
                 mv qvm /usr/local/bin
 
-# Install z-quantum-core dependencies
+# Preinstall Python packages:
+# - requirements.txt - z-quantum-core dependencies. We assume that most steps 
+#       will depend on this package, so we can preinstall its deps already
+# - codecarbon - used by Orquestra's Python runtime
+# - cvxpy - z-quantum-qubo's dependency. It takes long to install it so we
+#       want to pre-cache it in the docker image
 COPY requirements.txt .
-RUN python3 -m pip install -r requirements.txt --no-cache-dir
+RUN python3 -m pip install --no-cache-dir \
+    -r requirements.txt \
+    codecarbon==1.1.0 \
+    cvxpy==1.1.11
                     
 WORKDIR /app
 ENTRYPOINT bash

@@ -1,6 +1,6 @@
 """Class hierarchy for base gates."""
 import math
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from functools import singledispatch, reduce
 from numbers import Number
 from typing import Tuple, Union, Callable, Dict, Optional, Iterable, Any
@@ -89,6 +89,9 @@ class Gate(Protocol):
     def bind(self, symbols_map: Dict[sympy.Symbol, Parameter]) -> "Gate":
         raise NotImplementedError()
 
+    def replace_params(self, new_params: Tuple[Parameter, ...]) -> "Gate":
+        raise NotImplementedError()
+
     def __call__(self, *qubit_indices: int) -> "GateOperation":
         """Apply this gate on qubits in a circuit."""
         return GateOperation(self, qubit_indices)
@@ -102,6 +105,16 @@ def gate_is_parametric(gate_ref, gate_params):
 class GateOperation:
     gate: Gate
     qubit_indices: Tuple[int, ...]
+
+    @property
+    def params(self) -> Tuple[Parameter, ...]:
+        return self.gate.params
+
+    def bind(self, symbols_map: Dict[sympy.Symbol, Parameter]) -> "GateOperation":
+        return GateOperation(self.gate.bind(symbols_map), self.qubit_indices)
+
+    def replace_params(self, new_params: Tuple[Parameter, ...]) -> "GateOperation":
+        return GateOperation(self.gate.replace_params(new_params), self.qubit_indices)
 
     def __str__(self):
         return f"{self.gate}({','.join(map(str, self.qubit_indices))})"
@@ -178,13 +191,12 @@ class MatrixFactoryGate:
         return self.matrix_factory(*self.params)
 
     def bind(self, symbols_map) -> "MatrixFactoryGate":
-        new_symbols = tuple(_sub_symbols(param, symbols_map) for param in self.params)
-        return MatrixFactoryGate(
-            name=self.name,
-            matrix_factory=self.matrix_factory,
-            params=new_symbols,
-            num_qubits=self.num_qubits,
+        return self.replace_params(
+            tuple(_sub_symbols(param, symbols_map) for param in self.params)
         )
+
+    def replace_params(self, new_params: Tuple[Parameter, ...]) -> "MatrixFactoryGate":
+        return replace(self, params=new_params)
 
     def controlled(self, num_controlled_qubits: int) -> Gate:
         return ControlledGate(self, num_controlled_qubits)
@@ -267,6 +279,9 @@ class ControlledGate(Gate):
     def bind(self, symbols_map) -> "Gate":
         return self.wrapped_gate.bind(symbols_map).controlled(self.num_control_qubits)
 
+    def replace_params(self, new_params: Tuple[Parameter, ...]) -> "Gate":
+        return self.wrapped_gate.replace_params(new_params).controlled(self.num_control_qubits)
+
 
 DAGGER_GATE_NAME = "Dagger"
 
@@ -296,6 +311,9 @@ class Dagger(Gate):
 
     def bind(self, symbols_map) -> "Gate":
         return self.wrapped_gate.bind(symbols_map).dagger
+
+    def replace_params(self, new_params: Tuple[Parameter, ...]) -> "Gate":
+        return self.wrapped_gate.replace_params(new_params).dagger
 
     @property
     def dagger(self) -> "Gate":

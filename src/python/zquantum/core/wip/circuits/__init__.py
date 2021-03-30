@@ -42,7 +42,7 @@ Examples:
         new_circuit = Circuit(
             operations=[
                 gate_op.gate(*[qubit + 1 for qubit in gate_op.qubits])
-                gate_op for gate_op in circuit.operations
+                for gate_op in circuit.operations
             ],
             n_qubits=circuit.n_qubits
         )

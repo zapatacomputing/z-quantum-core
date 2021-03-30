@@ -1,12 +1,12 @@
 # z-quantum-core
 
-## What is it?
+## What is it? 
 
 `z-quantum-core` is a core library of the scientific code for [Orquestra](https://www.zapatacomputing.com/orquestra/) – the platform developed by [Zapata Computing](https://www.zapatacomputing.com) for performing computations on quantum computers.
 
 `z-quantum-core` provides:
 - core functionalities required to run other Orquestra modules, such as the `Circuit` class.
-- interfaces for implementing other Orquestra modules, such as backends and optimizers.
+- interfaces for implementing other Orquestra modules, such as backends and optimizers. 
 - useful tools to support the development of workflows and other scientific projects; such as time evolution, sampling from probability distribution, etc.
 
 
@@ -69,9 +69,17 @@ To install it, you just need to run `pip install -e .` from the main directory.
 
 ## Development and Contribution
 
+- To setup environment including dependencies required in development run `pip install -e '.[dev]'`.
 - If you'd like to report a bug/issue please create a new issue in this repository.
 - If you'd like to contribute, please create a pull request.
 
 ### Running tests
 
 Unit tests for this project can be run using `pytest .` from the main directory.
+
+### Updating dependencies
+
+When you decide to update dependencies:
+
+- (Optionally) bump version constraint in `setup.py`.
+- Run `pip-compile --upgrade-package your-package-name`. For more info, check out [pip-tools](https://github.com/jazzband/pip-tools/).

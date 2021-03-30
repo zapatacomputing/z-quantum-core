@@ -1,0 +1,9 @@
+# Python virtual envs
+venv
+
+# Python caches
+__pycache__
+.pytest_cache
+
+# macOS metadata
+.DS_Store

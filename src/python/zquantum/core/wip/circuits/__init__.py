@@ -57,8 +57,59 @@ Examples:
         export_to_qiskit(circuit)
         circuit4 = import_from_qiskit(qiskit_quantum_circuit)
 
+    (De)serialization::
+        to_dict(circuit)
+        circuit5 = circuit_from_dict(dict5)
 
-See imports in this module for a list of built-in gates.
+
+Defining new gates
+------------------
+
+To use a gate that isn't already covered by built-in ones you can define a custom gate
+or extend the set of the built-in ones and file a PR to z-quantum-core.
+
+Using custom gates::
+    CustomA = circuits.CustomGateDefinition(
+        gate_name="CustomA",  # names need to be unique
+        matrix=sympy.Matrix(
+            [
+                [-1, 0],
+                [0, 1],
+            ]
+        ),
+        params_ordering=(),
+    )
+
+    CustomB = circuits.CustomGateDefinition(
+        gate_name="CustomB",
+        matrix=sympy.Matrix(
+            [
+                [0, sympy.Symbol("theta") * 2],
+                [sympy.Symbol("gamma") + 3, 1],
+            ]
+        ),
+        params_ordering=(sympy.Symbol("gamma"), sympy.Symbol("theta")),
+    )
+
+    circuit = Circuit()
+    circuit += CustomA()(0)
+    circuit += CustomB(np.pi, np.pi / 2)(0)
+
+
+Extending built-in gates requires:
+
+- Adding its definition to `zquantum.core.wip.circuits._builtin_gates`. Refer to other
+    1- or multi-qubit, parametric/nonparametric gates there to see how it's been done for other gates.
+
+- Adding its matrix to `zquantum.core.wip.circuits._matrices`.
+
+- Adding tests for conversion to other frameworks in:
+    - `zquantum.core.wip.conversions.cirq_conversions_test`
+    - `zquantum.core.wip.conversions.pyquil_conversions_test`
+    - `zquantum.core.wip.conversions.qiskit_conversions_test`
+
+- Implement conversions. Some might work out of the box, e.g. if there's a gate with the same name defined 
+    in PyQuil our converters will use it by default without need for explicit mappings.
 """
 
 from ._gates import (

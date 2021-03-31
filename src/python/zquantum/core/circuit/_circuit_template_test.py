@@ -2,7 +2,7 @@ import unittest
 import os
 import numpy as np
 import cirq
-from ._circuit_template import (
+from zquantum.core.circuit._circuit_template import (
     save_circuit_template,
     load_circuit_template,
     save_circuit_template_params,
@@ -23,8 +23,8 @@ from ._circuit_template import (
     CircuitConnectivity,
     create_layer_of_gates,
 )
-from . import Gate, Qubit, Circuit
-from ..utils import SCHEMA_VERSION, compare_unitary
+from zquantum.core.circuit import Gate, Qubit, Circuit
+from zquantum.core.utils import SCHEMA_VERSION, compare_unitary
 from scipy.optimize import OptimizeResult
 
 

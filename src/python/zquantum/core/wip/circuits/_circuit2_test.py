@@ -2,7 +2,7 @@ import numpy as np
 import sympy
 import pytest
 
-from ._builtin_gates import (
+from zquantum.core.wip.circuits._builtin_gates import (
     X,
     Y,
     Z,
@@ -22,7 +22,7 @@ from ._builtin_gates import (
     YY,
     ZZ,
 )
-from ._circuit import Circuit
+from zquantum.core.wip.circuits._circuit import Circuit
 
 
 RNG = np.random.default_rng(42)

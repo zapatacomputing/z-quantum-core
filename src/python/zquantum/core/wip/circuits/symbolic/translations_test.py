@@ -2,9 +2,9 @@
 from pyquil import quil, quilatom
 import sympy
 import pytest
-from .sympy_expressions import expression_from_sympy, SYMPY_DIALECT
-from .translations import translate_expression
-from .pyquil_expressions import QUIL_DIALECT, expression_from_pyquil
+from zquantum.core.wip.circuits.symbolic.sympy_expressions import expression_from_sympy, SYMPY_DIALECT
+from zquantum.core.wip.circuits.symbolic.translations import translate_expression
+from zquantum.core.wip.circuits.symbolic.pyquil_expressions import QUIL_DIALECT, expression_from_pyquil
 
 
 @pytest.mark.parametrize(

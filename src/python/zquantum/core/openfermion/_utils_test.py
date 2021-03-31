@@ -3,6 +3,7 @@ import random
 import numpy as np
 import pyquil
 import os
+import pkg_resources
 
 from cirq import GridQubit, LineQubit, X, Y, Z, PauliSum, PauliString
 from openfermion import (
@@ -18,14 +19,14 @@ from openfermion import (
 from openfermion.hamiltonians import fermi_hubbard
 from openfermion.linalg import jw_get_ground_state_at_particle_number
 
-from ..circuit import Circuit, Gate, Qubit, build_uniform_param_grid
-from ..measurement import ExpectationValues
-from ..utils import RNDSEED, create_object, hf_rdm
-from ..interfaces.mock_objects import MockAnsatz
+from zquantum.core.circuit import Circuit, Gate, Qubit, build_uniform_param_grid
+from zquantum.core.measurement import ExpectationValues
+from zquantum.core.utils import RNDSEED, create_object, hf_rdm
+from zquantum.core.interfaces.mock_objects import MockAnsatz
 
-from ._io import load_interaction_operator
+from zquantum.core.openfermion._io import load_interaction_operator
 
-from ._utils import (
+from zquantum.core.openfermion._utils import (
     generate_random_qubitop,
     get_qubitop_from_coeffs_and_labels,
     evaluate_qubit_operator,
@@ -442,7 +443,7 @@ class TestOtherUtils(unittest.TestCase):
 
     def test_remove_inactive_orbitals(self):
         fermion_ham = load_interaction_operator(
-            os.path.dirname(__file__) + "/../testing/hamiltonian_HeH_plus_STO-3G.json"
+            pkg_resources.resource_filename("zquantum.core.testing", "hamiltonian_HeH_plus_STO-3G.json")
         )
         frozen_ham = remove_inactive_orbitals(fermion_ham, 1, 1)
         self.assertEqual(frozen_ham.one_body_tensor.shape[0], 2)

@@ -1,7 +1,7 @@
 """Test cases for save conditions."""
 import pytest
 
-from .save_conditions import always, every_nth
+from zquantum.core.history.save_conditions import always, every_nth
 
 
 @pytest.mark.parametrize(

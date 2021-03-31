@@ -1,8 +1,8 @@
 import unittest
 import os
-from ._gate import Gate
-from ._gateset import COMMON_GATES
-from ._qubit import Qubit
+from zquantum.core.circuit._gate import Gate
+from zquantum.core.circuit._gateset import COMMON_GATES
+from zquantum.core.circuit._qubit import Qubit
 from sympy import Symbol
 import qiskit
 from math import pi

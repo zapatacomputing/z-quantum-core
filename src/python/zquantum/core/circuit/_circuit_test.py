@@ -14,7 +14,7 @@ from pyquil.gates import QUANTUM_GATES
 from math import pi, sin, cos
 
 from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister
-from . import (
+from zquantum.core.circuit import (
     load_circuit,
     save_circuit,
     load_circuit_set,
@@ -30,8 +30,8 @@ from . import (
     add_ancilla_register_to_circuit,
 )
 
-from ..utils import compare_unitary, is_identity, is_unitary, RNDSEED
-from ..testing import create_random_circuit
+from zquantum.core.utils import compare_unitary, is_identity, is_unitary, RNDSEED
+from zquantum.core.testing import create_random_circuit
 from qiskit.quantum_info import Operator
 import numpy.linalg as linalg
 

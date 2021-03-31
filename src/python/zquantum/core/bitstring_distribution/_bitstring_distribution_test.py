@@ -9,7 +9,7 @@ import numpy as np
 
 import pytest
 
-from ._bitstring_distribution import (
+from zquantum.core.bitstring_distribution._bitstring_distribution import (
     is_non_negative,
     is_key_length_fixed,
     are_keys_binary_strings,
@@ -25,7 +25,7 @@ from ._bitstring_distribution import (
     load_bitstring_distribution_set,
 )
 
-from ..utils import SCHEMA_VERSION
+from zquantum.core.utils import SCHEMA_VERSION
 
 
 def test_dicts_with_nonnegative_values_are_nonnegative():
@@ -175,7 +175,7 @@ def test_passed_measure_is_used_for_evaluating_distribution_distance():
 def mock_open():
     mock_open = mock.mock_open()
     with mock.patch(
-        "core.bitstring_distribution._bitstring_distribution.open", mock_open
+        "zquantum.core.bitstring_distribution._bitstring_distribution.open", mock_open
     ):
         yield mock_open
 

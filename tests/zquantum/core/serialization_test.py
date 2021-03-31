@@ -6,11 +6,11 @@ import os
 import pytest
 from scipy.optimize import OptimizeResult
 
-from .history.recorder import HistoryEntry, HistoryEntryWithArtifacts
-from .utils import convert_array_to_dict, ValueEstimate
-from .interfaces.optimizer import optimization_result
-from .serialization import OrquestraEncoder, OrquestraDecoder, save_optimization_results, load_optimization_results
-from .bitstring_distribution import BitstringDistribution
+from zquantum.core.history.recorder import HistoryEntry, HistoryEntryWithArtifacts
+from zquantum.core.utils import convert_array_to_dict, ValueEstimate
+from zquantum.core.interfaces.optimizer import optimization_result
+from zquantum.core.serialization import OrquestraEncoder, OrquestraDecoder, save_optimization_results, load_optimization_results
+from zquantum.core.bitstring_distribution import BitstringDistribution
 
 
 # The result constructed below does not make sense.

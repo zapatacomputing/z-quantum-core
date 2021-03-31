@@ -1,7 +1,7 @@
 import unittest
 import json
 import networkx as nx
-from .graph import (
+from zquantum.core.graph import (
     compare_graphs,
     save_graph,
     load_graph,

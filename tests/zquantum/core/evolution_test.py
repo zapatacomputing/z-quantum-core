@@ -3,14 +3,14 @@ import cirq
 from math import pi
 import numpy as np
 
-from .evolution import (
+from zquantum.core.evolution import (
     time_evolution,
     time_evolution_derivatives,
     generate_circuit_sequence,
     time_evolution_for_term,
 )
-from .utils import compare_unitary
-from .testing import create_random_circuit
+from zquantum.core.utils import compare_unitary
+from zquantum.core.testing import create_random_circuit
 from pyquil.paulis import PauliSum, PauliTerm
 import sympy
 

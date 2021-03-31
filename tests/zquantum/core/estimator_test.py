@@ -4,16 +4,16 @@ from openfermion import QubitOperator, qubit_operator_sparse, IsingOperator
 import numpy as np
 import pytest
 
-from .interfaces.estimator_test import EstimatorTests
-from .interfaces.mock_objects import MockQuantumBackend, MockQuantumSimulator
-from .estimator import (
+from zquantum.core.interfaces.estimator_test import EstimatorTests
+from zquantum.core.interfaces.mock_objects import MockQuantumBackend, MockQuantumSimulator
+from zquantum.core.estimator import (
     BasicEstimator,
     ExactEstimator,
     get_context_selection_circuit,
     get_context_selection_circuit_for_group,
 )
-from .measurement import ExpectationValues
-from .circuit import Circuit
+from zquantum.core.measurement import ExpectationValues
+from zquantum.core.circuit import Circuit
 
 
 class TestEstimatorUtils:

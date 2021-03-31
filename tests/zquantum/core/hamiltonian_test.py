@@ -1,4 +1,4 @@
-from .hamiltonian import (
+from zquantum.core.hamiltonian import (
     is_comeasureable,
     group_comeasureable_terms_greedy,
     compute_group_variances,
@@ -8,7 +8,7 @@ from .hamiltonian import (
     estimate_nmeas_for_frames,
     reorder_fermionic_modes,
 )
-from .measurement import ExpectationValues
+from zquantum.core.measurement import ExpectationValues
 import numpy as np
 import math
 import pytest

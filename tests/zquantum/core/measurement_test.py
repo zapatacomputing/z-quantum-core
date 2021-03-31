@@ -4,7 +4,7 @@ import json
 import pytest
 import random
 from openfermion.ops import IsingOperator
-from .measurement import (
+from zquantum.core.measurement import (
     ExpectationValues,
     Parities,
     save_expectation_values,
@@ -25,9 +25,9 @@ from .measurement import (
 )
 from pyquil.wavefunction import Wavefunction
 
-from .bitstring_distribution import BitstringDistribution
-from .testing import create_random_wavefunction
-from .utils import RNDSEED, convert_bitstrings_to_tuples, SCHEMA_VERSION
+from zquantum.core.bitstring_distribution import BitstringDistribution
+from zquantum.core.testing import create_random_wavefunction
+from zquantum.core.utils import RNDSEED, convert_bitstrings_to_tuples, SCHEMA_VERSION
 from collections import Counter
 
 

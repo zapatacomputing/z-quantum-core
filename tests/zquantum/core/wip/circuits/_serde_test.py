@@ -2,10 +2,10 @@ import pytest
 import sympy
 import numpy as np
 
-from . import _gates
-from . import _builtin_gates
-from . import _circuit
-from ._serde import (
+from zquantum.core.wip.circuits import _gates
+from zquantum.core.wip.circuits import _builtin_gates
+from zquantum.core.wip.circuits import _circuit
+from zquantum.core.wip.circuits._serde import (
     serialize_expr,
     deserialize_expr,
     circuit_from_dict,

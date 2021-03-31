@@ -1,6 +1,6 @@
-"""Class hierarchy for base gates."""
+"""Data structures for ZQuantum gates."""
 import math
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from functools import singledispatch, reduce
 from numbers import Number
 from typing import Tuple, Union, Callable, Dict, Optional, Iterable, Any
@@ -15,8 +15,10 @@ Parameter = Union[sympy.Symbol, Number]
 
 
 class Gate(Protocol):
-    """Quantum gate representable by a matrix, translatable to other frameworks
-    and backends."""
+    """Interface of a quantum gate representable by a matrix, translatable to other frameworks and backends.
+
+    See `zquantum.core.wip.circuits` for a list of built-in gates and usage guide.
+    """
 
     @property
     def name(self) -> str:
@@ -89,8 +91,11 @@ class Gate(Protocol):
     def bind(self, symbols_map: Dict[sympy.Symbol, Parameter]) -> "Gate":
         raise NotImplementedError()
 
+    def replace_params(self, new_params: Tuple[Parameter, ...]) -> "Gate":
+        raise NotImplementedError()
+
     def __call__(self, *qubit_indices: int) -> "GateOperation":
-        """Apply this gate on qubits in a circuit."""
+        """Returns representation of applying this gate on qubits in a circuit."""
         return GateOperation(self, qubit_indices)
 
 
@@ -100,8 +105,19 @@ def gate_is_parametric(gate_ref, gate_params):
 
 @dataclass(frozen=True)
 class GateOperation:
+    """Represents applying a `Gate` to 1 or more qubits in a circuit."""
     gate: Gate
     qubit_indices: Tuple[int, ...]
+
+    @property
+    def params(self) -> Tuple[Parameter, ...]:
+        return self.gate.params
+
+    def bind(self, symbols_map: Dict[sympy.Symbol, Parameter]) -> "GateOperation":
+        return GateOperation(self.gate.bind(symbols_map), self.qubit_indices)
+
+    def replace_params(self, new_params: Tuple[Parameter, ...]) -> "GateOperation":
+        return GateOperation(self.gate.replace_params(new_params), self.qubit_indices)
 
     def __str__(self):
         return f"{self.gate}({','.join(map(str, self.qubit_indices))})"
@@ -139,11 +155,14 @@ def _all_attrs_equal(obj, other_obj, attrs):
 
 @dataclass(frozen=True)
 class MatrixFactoryGate:
-    """`Gate` protocol implementation with a deferred matrix construction.
+    """Data structure for a `Gate` with deferred matrix construction.
 
     Most built-in gates are instances of this class.
-    It requires the gate definition to be present during deserialization, so it's not
-    easily applicable for gates defined in Orquestra steps.
+    See `zquantum.core.wip.circuits` for built-in gates and usage guide.
+
+    This class requires the gate definition to be present during deserialization, so it's not
+    easily applicable for gates defined in Orquestra steps. If you want to define a new gate, 
+    check out `CustomGateDefinition` first. 
 
     Keeping a `matrix_factory` instead of a plain gate matrix allows us to defer matrix
     construction to _after_ parameter binding. This saves unnecessary work in scenarios
@@ -178,13 +197,12 @@ class MatrixFactoryGate:
         return self.matrix_factory(*self.params)
 
     def bind(self, symbols_map) -> "MatrixFactoryGate":
-        new_symbols = tuple(_sub_symbols(param, symbols_map) for param in self.params)
-        return MatrixFactoryGate(
-            name=self.name,
-            matrix_factory=self.matrix_factory,
-            params=new_symbols,
-            num_qubits=self.num_qubits,
+        return self.replace_params(
+            tuple(_sub_symbols(param, symbols_map) for param in self.params)
         )
+
+    def replace_params(self, new_params: Tuple[Parameter, ...]) -> "MatrixFactoryGate":
+        return replace(self, params=new_params)
 
     def controlled(self, num_controlled_qubits: int) -> Gate:
         return ControlledGate(self, num_controlled_qubits)
@@ -267,6 +285,9 @@ class ControlledGate(Gate):
     def bind(self, symbols_map) -> "Gate":
         return self.wrapped_gate.bind(symbols_map).controlled(self.num_control_qubits)
 
+    def replace_params(self, new_params: Tuple[Parameter, ...]) -> "Gate":
+        return self.wrapped_gate.replace_params(new_params).controlled(self.num_control_qubits)
+
 
 DAGGER_GATE_NAME = "Dagger"
 
@@ -296,6 +317,9 @@ class Dagger(Gate):
 
     def bind(self, symbols_map) -> "Gate":
         return self.wrapped_gate.bind(symbols_map).dagger
+
+    def replace_params(self, new_params: Tuple[Parameter, ...]) -> "Gate":
+        return self.wrapped_gate.replace_params(new_params).dagger
 
     @property
     def dagger(self) -> "Gate":
@@ -344,6 +368,9 @@ class CustomGateMatrixFactory:
 @dataclass(frozen=True)
 class CustomGateDefinition:
     """Use this class to define a non-built-in gate.
+
+    See "Defining new gates" section in `help(zquantum.core.wip.circuits)` for
+    usage guide.
 
     User-defined gates are treated differently than the built-in ones,
     because the built-in ones are defined in `zquantum.core` library, and so

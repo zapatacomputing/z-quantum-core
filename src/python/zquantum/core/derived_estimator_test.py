@@ -4,16 +4,17 @@ from openfermion import QubitOperator, qubit_operator_sparse, IsingOperator
 import numpy as np
 import pytest
 
-from .interfaces.estimator_test import EstimatorTests
-from .interfaces.mock_objects import MockQuantumBackend, MockQuantumSimulator
-from .estimator import (
+from zquantum.core.interfaces.estimator_test import EstimatorTests
+from zquantum.core.interfaces.mock_objects import MockQuantumBackend, MockQuantumSimulator
+from zquantum.core.estimator import (
     BasicEstimator,
     ExactEstimator,
     get_context_selection_circuit,
     get_context_selection_circuit_for_group,
+    allocate_shots,
 )
-from .measurement import ExpectationValues
-from .circuit import Circuit
+from zquantum.core.measurement import ExpectationValues
+from zquantum.core.circuit import Circuit
 
 
 class TestEstimatorUtils:
@@ -62,6 +63,79 @@ class TestEstimatorUtils:
         )
 
         assert np.allclose(target_unitary.todense(), transformed_unitary)
+
+    @pytest.fixture()
+    def frame_operators(self):
+        operators = [
+            2.0 * IsingOperator((1, "Z")) * IsingOperator((2, "Z")),
+            1.0 * IsingOperator((3, "Z")) * IsingOperator((0, "Z")),
+            -1.0 * IsingOperator((2, "Z")),
+        ]
+
+        return operators
+
+    @pytest.mark.parametrize(
+        "shot_allocation_strategy, n_samples, n_total_samples, prior_expectation_values, ref_measurements",
+        [
+            ("uniform", 100, None, None, [100, 100, 100]),
+            ("optimal", None, 400, None, [200, 100, 100]),
+            (
+                "optimal",
+                None,
+                400,
+                ExpectationValues(np.array([0, 0, 0])),
+                [200, 100, 100],
+            ),
+            (
+                "optimal",
+                None,
+                400,
+                ExpectationValues(np.array([1, 0.3, 0.3])),
+                [0, 200, 200],
+            ),
+        ],
+    )
+    def test_allocate_shots(
+        self,
+        shot_allocation_strategy,
+        frame_operators,
+        n_samples,
+        n_total_samples,
+        prior_expectation_values,
+        ref_measurements,
+    ):
+
+        measurement_list = allocate_shots(
+            shot_allocation_strategy,
+            frame_operators,
+            n_samples=n_samples,
+            n_total_samples=n_total_samples,
+            prior_expectation_values=prior_expectation_values,
+        )
+
+        assert measurement_list == ref_measurements
+
+    @pytest.mark.parametrize(
+        "n_samples, n_total_samples, shot_allocation_strategy",
+        [
+            (None, 100, "uniform"),
+            (100, None, "optimal"),
+            (100, 100, "optimal"),
+            (100, 100, "uniform"),
+            (100, None, "foo"),
+        ],
+    )
+    def test_allocate_shots_invalid_inputs(
+        self, shot_allocation_strategy, n_samples, n_total_samples, frame_operators
+    ):
+
+        with pytest.raises(ValueError):
+            measurements = allocate_shots(
+                shot_allocation_strategy,
+                frame_operators,
+                n_samples=n_samples,
+                n_total_samples=n_total_samples,
+            )
 
 
 class TestBasicEstimator(EstimatorTests):

@@ -4,13 +4,13 @@ import cirq
 
 import pytest
 
-from .cirq_conversions import (
+from zquantum.core.wip.circuits.conversions.cirq_conversions import (
     export_to_cirq,
     import_from_cirq,
     make_rotation_factory,
 )
-from .. import _builtin_gates
-from .. import _circuit
+from zquantum.core.wip.circuits import _builtin_gates
+from zquantum.core.wip.circuits import _circuit
 
 # --------- gates ---------
 

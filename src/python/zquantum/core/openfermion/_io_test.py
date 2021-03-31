@@ -11,12 +11,12 @@ from openfermion import (
     hermitian_conjugated,
     InteractionRDM,
 )
-from ..circuit import build_uniform_param_grid, save_circuit_template_params
-from ..interfaces.mock_objects import MockAnsatz
-from ..utils import SCHEMA_VERSION, convert_dict_to_array, create_object
+from zquantum.core.circuit import build_uniform_param_grid, save_circuit_template_params
+from zquantum.core.interfaces.mock_objects import MockAnsatz
+from zquantum.core.utils import SCHEMA_VERSION, convert_dict_to_array, create_object
 
-from ._utils import evaluate_operator_for_parameter_grid
-from ._io import (
+from zquantum.core.openfermion._utils import evaluate_operator_for_parameter_grid
+from zquantum.core.openfermion._io import (
     load_qubit_operator,
     save_qubit_operator,
     load_qubit_operator_set,

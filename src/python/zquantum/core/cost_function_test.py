@@ -2,14 +2,14 @@ import numpy as np
 import pytest
 from unittest import mock
 from sympy import Symbol
-from .cost_function import (
+from zquantum.core.cost_function import (
     AnsatzBasedCostFunction,
     get_ground_state_cost_function,
     sum_expectation_values,
 )
-from .interfaces.mock_objects import MockQuantumSimulator, MockEstimator, MockAnsatz
+from zquantum.core.interfaces.mock_objects import MockQuantumSimulator, MockEstimator, MockAnsatz
 from openfermion import QubitOperator
-from .measurement import ExpectationValues
+from zquantum.core.measurement import ExpectationValues
 
 RNGSEED = 1234
 

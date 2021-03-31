@@ -25,7 +25,7 @@ from openfermion.ops import (
 )
 from openfermion.utils import hermitian_conjugated
 from openfermion.transforms import jordan_wigner
-from ._pyquil_conversions import (
+from zquantum.core.openfermion._pyquil_conversions import (
     pyquilpauli_to_qubitop,
     qubitop_to_pyquilpauli,
 )

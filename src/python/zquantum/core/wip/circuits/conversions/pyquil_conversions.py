@@ -90,8 +90,9 @@ def _import_gate(
 
 
 def _import_gate_via_name(gate: pyquil.gates.Gate) -> _gates.GateOperation:
-    zq_gate_ref = _builtin_gates.builtin_gate_by_name(gate.name)
-    if not zq_gate_ref:
+    try:
+        zq_gate_ref = _builtin_gates.builtin_gate_by_name(gate.name)
+    except KeyError:
         raise ValueError(f"Can't import {gate} as a built-in gate")
 
     zq_params = tuple(map(_import_expression, gate.params))

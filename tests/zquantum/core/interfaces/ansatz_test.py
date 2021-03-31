@@ -1,4 +1,4 @@
-from ..circuit import Circuit
+from zquantum.core.circuit import Circuit
 import numpy as np
 
 

@@ -1,5 +1,5 @@
 import pytest
-from ..measurement import ExpectationValues
+from zquantum.core.measurement import ExpectationValues
 
 
 class EstimatorTests:

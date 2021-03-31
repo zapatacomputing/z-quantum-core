@@ -6,11 +6,11 @@ from pyquil.gates import X, CNOT, H
 from pyquil.wavefunction import Wavefunction
 from openfermion import QubitOperator, IsingOperator
 
-from ..circuit import Circuit, Qubit, Gate
-from ..measurement import Measurements, ExpectationValues
-from ..bitstring_distribution import BitstringDistribution
-from ..estimator import BasicEstimator
-from ..testing.test_cases_for_backend_tests import *
+from zquantum.core.circuit import Circuit, Qubit, Gate
+from zquantum.core.measurement import Measurements, ExpectationValues
+from zquantum.core.bitstring_distribution import BitstringDistribution
+from zquantum.core.estimator import BasicEstimator
+from zquantum.core.testing.test_cases_for_backend_tests import *
 
 """
 Note regarding testing specific gates.

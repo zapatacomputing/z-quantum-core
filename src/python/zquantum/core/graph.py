@@ -178,7 +178,7 @@ def generate_graph_from_specs(graph_specs: dict) -> nx.Graph:
     """Generate a graph from a specs dictionary
 
     Args:
-        graph_specs: dictionnary
+        graph_specs: dictionary
             Specifications of the graph to generate. It should contain at
             least an entry with key 'type' and one with num_nodes
 

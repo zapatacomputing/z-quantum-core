@@ -69,8 +69,8 @@ To use a gate that isn't already covered by built-in ones you can define a custo
 or extend the set of the built-in ones and file a PR to z-quantum-core.
 
 Using custom gates::
-    CustomA = circuits.CustomGateDefinition(
-        gate_name="CustomA",  # names need to be unique
+    custom_a = circuits.CustomGateDefinition(
+        gate_name="custom_a",  # names need to be unique
         matrix=sympy.Matrix(
             [
                 [-1, 0],
@@ -80,8 +80,8 @@ Using custom gates::
         params_ordering=(),
     )
 
-    CustomB = circuits.CustomGateDefinition(
-        gate_name="CustomB",
+    custom_b = circuits.CustomGateDefinition(
+        gate_name="custom_b",
         matrix=sympy.Matrix(
             [
                 [0, sympy.Symbol("theta") * 2],
@@ -92,8 +92,8 @@ Using custom gates::
     )
 
     circuit = Circuit()
-    circuit += CustomA()(0)
-    circuit += CustomB(np.pi, np.pi / 2)(0)
+    circuit += custom_a()(0)
+    circuit += custom_b(np.pi, np.pi / 2)(0)
 
 
 Extending built-in gates requires:

@@ -1,6 +1,6 @@
 import unittest
 import os
-from ._qubit import Qubit
+from zquantum.core.circuit._qubit import Qubit
 import pyquil
 import cirq
 import qiskit

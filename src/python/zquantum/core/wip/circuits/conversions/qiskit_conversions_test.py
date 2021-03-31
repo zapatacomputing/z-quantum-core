@@ -1,17 +1,13 @@
-import sympy
 import numpy as np
+import pytest
 import qiskit
 import qiskit.circuit.random
-import pytest
-
+import sympy
+from zquantum.core.wip.circuits import _builtin_gates, _circuit, _gates
 from zquantum.core.wip.circuits.conversions.qiskit_conversions import (
     export_to_qiskit,
     import_from_qiskit,
 )
-from zquantum.core.wip.circuits import _gates
-from zquantum.core.wip.circuits import _builtin_gates
-from zquantum.core.wip.circuits import _circuit
-
 
 # --------- gates ---------
 

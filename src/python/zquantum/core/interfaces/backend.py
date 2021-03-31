@@ -1,12 +1,11 @@
 import warnings
-import numpy as np
-
 from abc import ABC, abstractmethod
-from typing import Optional, List, Iterable
+from typing import Iterable, List, Optional
+
+import numpy as np
 from openfermion import IsingOperator, SymbolicOperator
-from pyquil.wavefunction import Wavefunction
 from overrides import overrides
-import warnings
+from pyquil.wavefunction import Wavefunction
 
 from ..bitstring_distribution import (
     BitstringDistribution,
@@ -14,7 +13,7 @@ from ..bitstring_distribution import (
 )
 from ..circuit import Circuit, CircuitConnectivity
 from ..measurement import ExpectationValues, Measurements, expectation_values_to_real
-from ..openfermion import get_expectation_value, change_operator_type
+from ..openfermion import change_operator_type, get_expectation_value
 
 
 class QuantumBackend(ABC):

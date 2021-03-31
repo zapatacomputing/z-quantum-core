@@ -1,31 +1,31 @@
-import unittest
 import os
-import numpy as np
+import unittest
+
 import cirq
+import numpy as np
+from zquantum.core.circuit import Circuit, Gate, Qubit
 from zquantum.core.circuit._circuit_template import (
-    save_circuit_template,
-    load_circuit_template,
-    save_circuit_template_params,
-    load_circuit_template_params,
-    combine_ansatz_params,
-    build_uniform_param_grid,
-    save_parameter_grid,
-    load_parameter_grid,
-    CircuitLayers,
-    save_circuit_layers,
-    load_circuit_layers,
-    ParameterGrid,
-    save_circuit_ordering,
-    load_circuit_ordering,
-    save_circuit_connectivity,
-    load_circuit_connectivity,
-    build_circuit_layers_and_connectivity,
     CircuitConnectivity,
+    CircuitLayers,
+    ParameterGrid,
+    build_circuit_layers_and_connectivity,
+    build_uniform_param_grid,
+    combine_ansatz_params,
     create_layer_of_gates,
+    load_circuit_connectivity,
+    load_circuit_layers,
+    load_circuit_ordering,
+    load_circuit_template,
+    load_circuit_template_params,
+    load_parameter_grid,
+    save_circuit_connectivity,
+    save_circuit_layers,
+    save_circuit_ordering,
+    save_circuit_template,
+    save_circuit_template_params,
+    save_parameter_grid,
 )
-from zquantum.core.circuit import Gate, Qubit, Circuit
 from zquantum.core.utils import SCHEMA_VERSION, compare_unitary
-from scipy.optimize import OptimizeResult
 
 
 class TestCircuitTemplate(unittest.TestCase):

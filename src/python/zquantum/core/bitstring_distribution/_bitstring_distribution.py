@@ -1,12 +1,13 @@
+import json
 import math
 import sys
 import warnings
-import json
+from typing import Callable, Dict, List
+
 import numpy as np
-from ..utils import SCHEMA_VERSION, convert_tuples_to_bitstrings
+
 from ..typing import AnyPath
-from collections import Counter
-from typing import Dict, Callable, List
+from ..utils import SCHEMA_VERSION
 
 
 class BitstringDistribution:

@@ -1,6 +1,5 @@
 """Test cases for save conditions."""
 import pytest
-
 from zquantum.core.history.save_conditions import always, every_nth
 
 

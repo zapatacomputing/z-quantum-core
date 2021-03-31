@@ -1,9 +1,9 @@
 """Protocols describing different kinds of functions."""
 from inspect import signature
-from typing import NamedTuple, Callable, Any, TypeVar, Optional, Union
-from typing_extensions import Protocol, runtime_checkable
-import numpy as np
+from typing import Any, Callable, NamedTuple, Optional, TypeVar, Union
 
+import numpy as np
+from typing_extensions import Protocol, runtime_checkable
 
 T = TypeVar("T", covariant=True)
 S = TypeVar("S", contravariant=True)

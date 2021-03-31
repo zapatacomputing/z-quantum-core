@@ -4,7 +4,8 @@ from functools import singledispatch
 from numbers import Number
 
 import sympy
-from .expressions import Symbol, FunctionCall, ExpressionDialect
+
+from .expressions import ExpressionDialect, FunctionCall, Symbol
 
 
 def is_multiplication_by_reciprocal(sympy_mul: sympy.Mul) -> bool:

@@ -112,57 +112,39 @@ Extending built-in gates requires:
     in PyQuil our converters will use it by default without need for explicit mappings.
 """
 
-from ._gates import (
-    Gate,
-    GateOperation,
-    MatrixFactoryGate,
-    ControlledGate,
-    Dagger,
-    CustomGateDefinition,
-)
-
-from ._circuit import Circuit
-
 from ._builtin_gates import (
-    X,
-    Y,
-    Z,
+    CNOT,
+    CPHASE,
+    CZ,
+    ISWAP,
+    PHASE,
+    RX,
+    RY,
+    RZ,
+    SWAP,
+    XX,
+    XY,
+    YY,
+    ZZ,
     H,
     I,
     S,
     T,
-    RX,
-    RY,
-    RZ,
-    PHASE,
-    CNOT,
-    CZ,
-    SWAP,
-    ISWAP,
-    CPHASE,
-    XX,
-    YY,
-    ZZ,
-    XY,
-    builtin_gate_by_name
+    X,
+    Y,
+    Z,
+    builtin_gate_by_name,
 )
-
-from ._serde import (
-    to_dict,
-    circuit_from_dict,
+from ._circuit import Circuit
+from ._gates import (
+    ControlledGate,
+    CustomGateDefinition,
+    Dagger,
+    Gate,
+    GateOperation,
+    MatrixFactoryGate,
 )
-
-from .conversions.cirq_conversions import (
-    export_to_cirq,
-    import_circuit_from_cirq,
-)
-
-from .conversions.pyquil_conversions import (
-    export_to_pyquil,
-    import_from_pyquil,
-)
-
-from .conversions.qiskit_conversions import (
-    export_to_qiskit,
-    import_from_qiskit,
-)
+from ._serde import circuit_from_dict, to_dict
+from .conversions.cirq_conversions import export_to_cirq, import_circuit_from_cirq
+from .conversions.pyquil_conversions import export_to_pyquil, import_from_pyquil
+from .conversions.qiskit_conversions import export_to_qiskit, import_from_qiskit

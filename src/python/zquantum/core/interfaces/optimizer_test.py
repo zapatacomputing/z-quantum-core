@@ -2,9 +2,9 @@ import numpy as np
 import pytest
 from zquantum.core.interfaces.functions import FunctionWithGradient
 
-from .optimizer import optimization_result
 from ..gradients import finite_differences_gradient
 from ..history.recorder import recorder
+from .optimizer import optimization_result
 
 
 def rosenbrock_function(x):

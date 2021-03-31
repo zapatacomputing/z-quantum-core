@@ -1,12 +1,13 @@
-from pyquil import Program
-from pyquil.gates import *
-from pyquil.wavefunction import Wavefunction
 import math
 import random
+
 import numpy as np
-from openfermion.ops import QubitOperator, IsingOperator
+from openfermion.ops import IsingOperator, QubitOperator
+from pyquil import Program
+from pyquil.gates import CNOT, CPHASE, CZ, PHASE, RX, RY, RZ, SWAP, H, S, T, X, Y, Z
+from pyquil.wavefunction import Wavefunction
+
 from ..circuit import Circuit
-from ..utils import RNDSEED
 
 
 def create_random_circuit(nqubits, ngates, seed=None):

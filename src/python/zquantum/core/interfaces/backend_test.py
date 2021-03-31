@@ -1,16 +1,26 @@
+import functools
+
 import numpy as np
 import pytest
-import functools
+from openfermion import IsingOperator, QubitOperator
 from pyquil import Program
-from pyquil.gates import X, CNOT, H
+from pyquil.gates import CNOT, H, X
 from pyquil.wavefunction import Wavefunction
-from openfermion import QubitOperator, IsingOperator
 
-from ..circuit import Circuit, Qubit, Gate
-from ..measurement import Measurements, ExpectationValues
 from ..bitstring_distribution import BitstringDistribution
+from ..circuit import Circuit, Gate, Qubit
 from ..estimator import BasicEstimator
-from ..testing.test_cases_for_backend_tests import *
+from ..measurement import ExpectationValues, Measurements
+from ..testing.test_cases_for_backend_tests import (
+    one_qubit_non_parametric_gates_amplitudes_test_set,
+    one_qubit_non_parametric_gates_exp_vals_test_set,
+    one_qubit_parametric_gates_amplitudes_test_set,
+    one_qubit_parametric_gates_exp_vals_test_set,
+    two_qubit_non_parametric_gates_amplitudes_test_set,
+    two_qubit_non_parametric_gates_exp_vals_test_set,
+    two_qubit_parametric_gates_amplitudes_test_set,
+    two_qubit_parametric_gates_exp_vals_test_set,
+)
 
 """
 Note regarding testing specific gates.
@@ -186,7 +196,6 @@ class QuantumBackendTests:
         circuit = Circuit(Program(H(0), CNOT(0, 1), CNOT(1, 2)))
         operator = IsingOperator("[]")
         target_expectation_values = np.array([1])
-        n_samples = 1
         # When
         backend.n_samples = 1
         expectation_values = backend.get_expectation_values(circuit, operator)

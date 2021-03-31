@@ -1,32 +1,30 @@
-import numpy as np
-import random
 import itertools
-import cirq
+import random
+from typing import List, Optional, Union
 
+import cirq
+import numpy as np
 from openfermion import (
     FermionOperator,
+    InteractionOperator,
+    InteractionRDM,
+    PolynomialTensor,
     QubitOperator,
     count_qubits,
-    InteractionOperator,
-    PolynomialTensor,
-    number_operator,
-    normal_ordered,
-    get_sparse_operator,
-    get_interaction_operator,
-    InteractionRDM,
 )
 from openfermion import expectation as openfermion_expectation
-from openfermion.linalg import jw_get_ground_state_at_particle_number
-from openfermion.transforms import get_fermion_operator, freeze_orbitals
-from typing import List, Union, Optional
-
-from ..circuit import (
-    Circuit,
-    Gate,
-    Qubit,
+from openfermion import (
+    get_interaction_operator,
+    get_sparse_operator,
+    normal_ordered,
+    number_operator,
 )
-from ..utils import bin2dec, dec2bin, ValueEstimate
+from openfermion.linalg import jw_get_ground_state_at_particle_number
+from openfermion.transforms import freeze_orbitals, get_fermion_operator
+
+from ..circuit import Circuit, Gate, Qubit
 from ..measurement import ExpectationValues, expectation_values_to_real
+from ..utils import ValueEstimate, bin2dec, dec2bin
 
 
 def get_qubitop_from_matrix(operator: List[List]) -> QubitOperator:

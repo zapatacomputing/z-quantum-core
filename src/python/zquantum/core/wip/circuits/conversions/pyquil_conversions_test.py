@@ -1,13 +1,12 @@
 import numpy as np
-import pytest
 import pyquil
+import pytest
 import sympy
-
-from zquantum.core.wip.circuits.conversions.pyquil_conversions import export_to_pyquil, import_from_pyquil
-from zquantum.core.wip.circuits import _gates
-from zquantum.core.wip.circuits import _builtin_gates
-from zquantum.core.wip.circuits import _circuit
-
+from zquantum.core.wip.circuits import _builtin_gates, _circuit, _gates
+from zquantum.core.wip.circuits.conversions.pyquil_conversions import (
+    export_to_pyquil,
+    import_from_pyquil,
+)
 
 SYMPY_THETA = sympy.Symbol("theta")
 SYMPY_GAMMA = sympy.Symbol("gamma")

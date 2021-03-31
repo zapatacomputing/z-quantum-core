@@ -1,16 +1,14 @@
 from functools import singledispatch
 from typing import Iterable, Mapping
 
+import numpy as np
 import pyquil
 import sympy
-import numpy as np
 
-from .. import _gates
-from .. import _builtin_gates
-from .. import _circuit
-from ..symbolic.translations import translate_expression
+from .. import _builtin_gates, _circuit, _gates
 from ..symbolic.pyquil_expressions import QUIL_DIALECT, expression_from_pyquil
 from ..symbolic.sympy_expressions import SYMPY_DIALECT, expression_from_sympy
+from ..symbolic.translations import translate_expression
 
 
 def _n_qubits_by_ops(ops: Iterable[_gates.GateOperation]):

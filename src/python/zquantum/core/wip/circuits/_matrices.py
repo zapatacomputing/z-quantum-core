@@ -1,6 +1,6 @@
 """Definition of predefined gate matrices and related utility functions."""
-import sympy
 import numpy as np
+import sympy
 
 # --- non-parametric gates ---
 

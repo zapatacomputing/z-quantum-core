@@ -1,7 +1,7 @@
+from typing import Dict, Union
+
 import numpy as np
-import json
-from typing import Union, Dict
-from zquantum.core.utils import save_list, create_object
+from zquantum.core.utils import save_list
 
 Specs = Union[str, Dict]
 

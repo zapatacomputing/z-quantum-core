@@ -1,20 +1,21 @@
+import random
+from typing import Optional
+
+import numpy as np
+import sympy
+from openfermion import SymbolicOperator
+from overrides import overrides
+from pyquil import Program
+from pyquil.gates import RX, X
+
+from ..circuit import Circuit
+from ..measurement import ExpectationValues, Measurements
+from ..utils import create_symbols_map
 from .ansatz import Ansatz
 from .ansatz_utils import ansatz_property
 from .backend import QuantumBackend, QuantumSimulator
-from .optimizer import Optimizer, optimization_result
 from .estimator import Estimator
-from ..measurement import ExpectationValues, Measurements
-from ..circuit import Circuit
-from ..utils import create_symbols_map
-import random
-from scipy.optimize import OptimizeResult
-import numpy as np
-from openfermion import SymbolicOperator
-from pyquil import Program
-from pyquil.gates import RX, X
-import sympy
-from overrides import overrides
-from typing import Optional
+from .optimizer import Optimizer, optimization_result
 
 
 class MockQuantumBackend(QuantumBackend):

@@ -1,26 +1,18 @@
 """General-purpose utilities."""
-import warnings
-
-import numpy as np
-from scipy.linalg import expm
-import random
-import math
-import operator
-import sys
-import json
-import openfermion
-import sympy
-from openfermion import hermitian_conjugated
-from openfermion import InteractionRDM
-from openfermion.ops import SymbolicOperator
-from networkx.readwrite import json_graph
-import lea
 import collections
-import scipy
-from typing import List, Tuple, Optional, Iterable, Union, Dict
-import importlib
 import copy
-from .typing import LoadSource, AnyPath, Specs
+import importlib
+import json
+import sys
+import warnings
+from typing import Dict, Iterable, List, Optional, Tuple
+
+import lea
+import numpy as np
+import sympy
+from openfermion import InteractionRDM, hermitian_conjugated
+
+from .typing import AnyPath, LoadSource, Specs
 
 SCHEMA_VERSION = "zapata-v1"
 RNDSEED = 12345

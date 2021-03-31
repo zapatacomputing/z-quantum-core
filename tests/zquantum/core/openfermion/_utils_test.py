@@ -3,6 +3,7 @@ import random
 import numpy as np
 import pyquil
 import os
+import pkg_resources
 
 from cirq import GridQubit, LineQubit, X, Y, Z, PauliSum, PauliString
 from openfermion import (
@@ -442,7 +443,7 @@ class TestOtherUtils(unittest.TestCase):
 
     def test_remove_inactive_orbitals(self):
         fermion_ham = load_interaction_operator(
-            os.path.dirname(__file__) + "/../testing/hamiltonian_HeH_plus_STO-3G.json"
+            pkg_resources.resource_filename("zquantum.core.testing", "hamiltonian_HeH_plus_STO-3G.json")
         )
         frozen_ham = remove_inactive_orbitals(fermion_ham, 1, 1)
         self.assertEqual(frozen_ham.one_body_tensor.shape[0], 2)

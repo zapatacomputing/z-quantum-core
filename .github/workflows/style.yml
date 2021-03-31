@@ -53,7 +53,7 @@ jobs:
           # Extra options: pycodestyle $(extra-pycodestyle-options) $(python-root-list)
           # extra-pycodestyle-options: # optional, default is 
           # Extra options: flake8 $(extra-flake8-options) $(python-root-list)
-          extra-flake8-options: --ignore=E203,E266,F401
+          extra-flake8-options: --ignore=E203,E266,F401 --max-line-length=88
           # Extra options: black --check $(extra-black-options) $(python-root-list)
           extra-black-options: --check
           # Extra options: mypy $(extra-mypy-options) $(python-root-list)

@@ -26,6 +26,7 @@ setuptools.setup(
         "Operating System :: OS Independent",
     ),
     install_requires=[
+        "pytest>=5.3.5",
         "networkx==2.4",
         "numpy>=1.18.1",
         "scipy>=1.4.1",
@@ -38,10 +39,4 @@ setuptools.setup(
         "qiskit~=0.24",
         "overrides>=3.1.0",
     ],
-    extras_require={
-        "dev": [
-            "pytest>=5.3.5",
-            "pip-tools>=6.0.1",
-        ],
-    },
 )

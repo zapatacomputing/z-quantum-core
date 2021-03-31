@@ -110,13 +110,6 @@ def allocate_shots(
     Returns:
         List of integers giving the number of shots for each frame operator.
     """
-    if shot_allocation_strategy not in (
-        "optimal",
-        "uniform",
-    ):
-        raise ValueError(
-            f"Invalid shot allocation stratgey: ${shot_allocation_strategy}"
-        )
 
     if shot_allocation_strategy == "uniform":
         if n_total_samples is not None:
@@ -140,6 +133,10 @@ def allocate_shots(
         )
         measurements_per_frame = scale_and_discretize(
             measurements_per_frame, n_total_samples
+        )
+    else:
+        raise ValueError(
+            f"Invalid shot allocation stratgey: ${shot_allocation_strategy}"
         )
 
     return measurements_per_frame

@@ -2,9 +2,9 @@
 from unittest.mock import Mock, call
 import numpy as np
 import pytest
-from .example_functions import sum_of_squares, function_1, Function2
-from .recorder import recorder
-from .save_conditions import every_nth, SaveCondition
+from zquantum.core.history.example_functions import sum_of_squares, function_1, Function2
+from zquantum.core.history.recorder import recorder
+from zquantum.core.history.save_conditions import every_nth, SaveCondition
 
 
 @pytest.mark.parametrize(

@@ -1,9 +1,9 @@
 """Test cases for recording functions with gradients."""
 import pytest
 import numpy as np
-from .example_functions import function_1, Function2, Function5
-from .recorder import recorder
-from ..interfaces.functions import CallableWithGradient
+from zquantum.core.history.example_functions import function_1, Function2, Function5
+from zquantum.core.history.recorder import recorder
+from zquantum.core.interfaces.functions import CallableWithGradient
 
 
 @pytest.mark.parametrize(
@@ -19,4 +19,4 @@ def test_recorder_propagates_calls_to_wrapped_functions_and_its_gradient(
 ):
     target = recorder(function)
     assert target(params) == function(params)
-    assert np.array_equal(target.gradient(params), function.gradient(params))
+    np.testing.assert_array_almost_equal(target.gradient(params), function.gradient(params))

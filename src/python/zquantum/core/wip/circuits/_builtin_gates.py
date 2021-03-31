@@ -18,8 +18,13 @@ def make_parametric_gate_prototype(name, matrix_factory, num_qubits) -> GateProt
     return _factory
 
 
-def builtin_gate_by_name(name) -> Optional[GateRef]:
-    return globals().get(name)
+def builtin_gate_by_name(name) -> GateRef:
+    """Retrieves gate factory by its name.
+
+    Raises:
+        KeyError: when there's no built-in gate for this name.
+    """
+    return globals()[name]
 
 
 # --- non-parametric, single qubit gates ---

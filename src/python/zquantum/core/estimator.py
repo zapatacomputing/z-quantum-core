@@ -84,6 +84,64 @@ def get_context_selection_circuit_for_group(
     return context_selection_circuit, transformed_operator
 
 
+def allocate_shots(
+    shot_allocation_strategy: str,
+    frame_operators: List[IsingOperator],
+    n_samples: Optional[int] = None,
+    n_total_samples: Optional[int] = None,
+    prior_expectation_values: Optional[ExpectationValues] = None,
+) -> List[int]:
+    """Generates the number of shots for each frame operator, using either the "uniform"
+    or the "optimal" shot allocation.
+
+    Args:
+        shot_allocation_strategy: Which shot allocation strategy to use. "uniform" attributes the same
+                                  number of shots to each frame operator, whereas "optimal" divides the
+                                  shots among all frame_operators according to their coefficients and
+                                  variances if prior expectation values are provided.
+        frame_operators: The list of IsingOperators that will be evaluated
+        n_samples: The number of samples per frame operator using the uniform allocation strategy
+                   Exactly one of n_samples or n_total_samples must be provided
+        n_total_samples: The total number of samples across all frame operators when using the optimal
+                         allocation strategy.
+                         Exactly one of n_samples or n_total_samples must be provided
+        prior_expectation_values: If given, this is used to estimate the variances of the frame operators when
+                                  doing optimal shot allocation.
+    Returns:
+        List of integers giving the number of shots for each frame operator.
+    """
+
+    if shot_allocation_strategy == "uniform":
+        if n_total_samples is not None:
+            raise ValueError("Uniform sampling does not yet support n_total_samples.")
+        if n_samples is not None:
+            measurements_per_frame = [n_samples for _ in range(len(frame_operators))]
+        else:
+            measurements_per_frame = None
+
+    elif shot_allocation_strategy == "optimal":
+        if n_total_samples is None:
+            raise ValueError(
+                "For optimal shot allocation, n_total_samples must be provided."
+            )
+        if n_samples is not None:
+            raise ValueError(
+                "Optimal shot allocation does not support n_samples; use n_total_samples instead."
+            )
+        _, _, measurements_per_frame = estimate_nmeas_for_frames(
+            frame_operators, prior_expectation_values
+        )
+        measurements_per_frame = scale_and_discretize(
+            measurements_per_frame, n_total_samples
+        )
+    else:
+        raise ValueError(
+            f"Invalid shot allocation stratgey: ${shot_allocation_strategy}"
+        )
+
+    return measurements_per_frame
+
+
 class BasicEstimator(Estimator):
     """An estimator that uses the standard approach to computing expectation values of an operator.
 
@@ -133,14 +191,6 @@ class BasicEstimator(Estimator):
         Returns:
             ExpectationValues: expectation values for each term in the target operator.
         """
-        if shot_allocation_strategy not in (
-            "optimal",
-            "uniform",
-        ):
-            raise ValueError(
-                f"Invalid shot allocation stratgey: ${shot_allocation_strategy}"
-            )
-
         frame_operators = []
         frame_circuits = []
         groups = get_decomposition_function(self.decomposition_method)(target_operator)
@@ -151,31 +201,13 @@ class BasicEstimator(Estimator):
             frame_circuits.append(circuit + frame_circuit)
             frame_operators.append(frame_operator)
 
-        if shot_allocation_strategy == "uniform":
-            if n_total_samples is not None:
-                raise ValueError(
-                    "Uniform sampling does not yet support n_total_samples."
-                )
-            if n_samples is not None:
-                measurements_per_frame = (n_samples,) * len(frame_circuits)
-            else:
-                measurements_per_frame = None
-
-        elif shot_allocation_strategy == "optimal":
-            if n_total_samples is None:
-                raise ValueError(
-                    "For optimal shot allocation, n_total_samples must be provided."
-                )
-            if n_samples is not None:
-                raise ValueError(
-                    "Optimal shot allocation does not support n_samples; use n_total_samples instead."
-                )
-            _, _, measurements_per_frame = estimate_nmeas_for_frames(
-                frame_operators, self.prior_expectation_values
-            )
-            measurements_per_frame = scale_and_discretize(
-                measurements_per_frame, n_total_samples
-            )
+        measurements_per_frame = allocate_shots(
+            shot_allocation_strategy,
+            frame_operators,
+            n_samples,
+            n_total_samples,
+            self.prior_expectation_values,
+        )
 
         measurements_set = backend.run_circuitset_and_measure(
             frame_circuits, measurements_per_frame

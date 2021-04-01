@@ -1,17 +1,3 @@
-import numpy as np
-import pytest
-import functools
-from pyquil import Program
-from pyquil.gates import X, CNOT, H
-from pyquil.wavefunction import Wavefunction
-from openfermion import QubitOperator, IsingOperator
-
-from ..circuit import Circuit, Qubit, Gate
-from ..measurement import Measurements, ExpectationValues
-from ..bitstring_distribution import BitstringDistribution
-from ..estimator import BasicEstimator
-from ..testing.test_cases_for_backend_tests import *
-
 """
 Note regarding testing specific gates.
 
@@ -39,6 +25,21 @@ Gates tests use `backend_for_gates_test` instead of `backend` as an input parame
 a) it has high chance of failing for noisy backends
 b) having execution time in mind it's a good idea to use lower number of samples.
 """
+
+
+import numpy as np
+import pytest
+import functools
+from pyquil import Program
+from pyquil.gates import X, CNOT, H
+from pyquil.wavefunction import Wavefunction
+from openfermion import QubitOperator, IsingOperator
+
+from ..circuit import Circuit, Qubit, Gate
+from ..measurement import Measurements, ExpectationValues
+from ..bitstring_distribution import BitstringDistribution
+from ..estimator import BasicEstimator
+from ..testing.test_cases_for_backend_tests import *
 
 
 def skip_tests_for_excluded_gates(func):

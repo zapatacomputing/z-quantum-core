@@ -18,7 +18,7 @@ repos:
       - id: pyupgrade
         args: [--py37-plus, --keep-runtime-typing]
 
-  # this one is debatable, it automatically fixed flake8 errors like unused imports
+  # this one is debatable, it automatically fixes unused imports
   - repo: https://github.com/myint/autoflake.git
     rev: v1.4
     hooks:

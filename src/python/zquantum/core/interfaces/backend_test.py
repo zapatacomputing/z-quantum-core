@@ -1,4 +1,8 @@
-"""
+"""Test case prototypes that can be used in other projects.
+
+Note that this file won't be executed on its own by pytest.
+You need to define your own test cases that inherit from the ones defined here.
+
 Note regarding testing specific gates.
 
 To test that a gate is properly implemented, we can ask for its matrix representation 

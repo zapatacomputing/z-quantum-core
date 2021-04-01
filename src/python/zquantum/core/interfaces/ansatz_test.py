@@ -1,3 +1,10 @@
+"""Test case prototypes that can be used in other projects.
+
+Note that this file won't be executed on its own by pytest.
+You need to define your own test cases that inherit from the ones defined here.
+"""
+
+
 from ..circuit import Circuit
 import numpy as np
 

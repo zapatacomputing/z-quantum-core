@@ -5,7 +5,10 @@ import numpy as np
 import pytest
 
 from zquantum.core.interfaces.estimator_test import EstimatorTests
-from zquantum.core.interfaces.mock_objects import MockQuantumBackend, MockQuantumSimulator
+from zquantum.core.interfaces.mock_objects import (
+    MockQuantumBackend,
+    MockQuantumSimulator,
+)
 from zquantum.core.estimator import (
     BasicEstimator,
     ExactEstimator,

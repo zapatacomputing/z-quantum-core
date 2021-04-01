@@ -5,7 +5,7 @@ import setuptools
 
 def _read_readme():
     this_path = os.path.abspath(os.path.dirname(__file__))
-    with open(os.path.join(this_path, 'README.md'), encoding='utf-8') as f:
+    with open(os.path.join(this_path, "README.md"), encoding="utf-8") as f:
         return f.read()
 
 

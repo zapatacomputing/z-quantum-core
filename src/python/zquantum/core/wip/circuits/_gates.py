@@ -106,6 +106,7 @@ def gate_is_parametric(gate_ref, gate_params):
 @dataclass(frozen=True)
 class GateOperation:
     """Represents applying a `Gate` to 1 or more qubits in a circuit."""
+
     gate: Gate
     qubit_indices: Tuple[int, ...]
 
@@ -161,8 +162,8 @@ class MatrixFactoryGate:
     See `zquantum.core.wip.circuits` for built-in gates and usage guide.
 
     This class requires the gate definition to be present during deserialization, so it's not
-    easily applicable for gates defined in Orquestra steps. If you want to define a new gate, 
-    check out `CustomGateDefinition` first. 
+    easily applicable for gates defined in Orquestra steps. If you want to define a new gate,
+    check out `CustomGateDefinition` first.
 
     Keeping a `matrix_factory` instead of a plain gate matrix allows us to defer matrix
     construction to _after_ parameter binding. This saves unnecessary work in scenarios
@@ -286,7 +287,9 @@ class ControlledGate(Gate):
         return self.wrapped_gate.bind(symbols_map).controlled(self.num_control_qubits)
 
     def replace_params(self, new_params: Tuple[Parameter, ...]) -> "Gate":
-        return self.wrapped_gate.replace_params(new_params).controlled(self.num_control_qubits)
+        return self.wrapped_gate.replace_params(new_params).controlled(
+            self.num_control_qubits
+        )
 
 
 DAGGER_GATE_NAME = "Dagger"

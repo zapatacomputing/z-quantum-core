@@ -382,14 +382,19 @@ def test_scale_and_discretize(values, total, expected_result):
     [
         (
             load_interaction_operator(
-                pkg_resources.resource_filename("zquantum.core.testing", "hamiltonian_H2_minimal_basis.json")
+                pkg_resources.resource_filename(
+                    "zquantum.core.testing", "hamiltonian_H2_minimal_basis.json"
+                )
             ),
             -0.8543376267387818,
             1,
         ),
         (
             load_interaction_operator(
-                pkg_resources.resource_filename("zquantum.core.testing", "hamiltonian_H2_minus_ROHF_minimal_basis.json")
+                pkg_resources.resource_filename(
+                    "zquantum.core.testing",
+                    "hamiltonian_H2_minus_ROHF_minimal_basis.json",
+                )
             ),
             -0.6857403043904364,
             2,

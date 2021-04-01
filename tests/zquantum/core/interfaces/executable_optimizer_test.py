@@ -1,3 +1,7 @@
+"""Optimizer tests that are runnable by pytest, contrary to
+`zquantum.core.estimator.optimizer_test` bundled with the library.
+"""
+
 from zquantum.core.interfaces.optimizer import optimization_result
 
 

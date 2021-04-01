@@ -3,15 +3,14 @@ import os
 import setuptools
 
 test_requires = [
-    "pytest>=3.7.1",
-    "pytest-cov>=2.5.1",
-    "tox>=3.2.1",
-    "flake8>=3.7.9",
-    "black>=19.3b0",
-    "pre_commit>=2.10.1",
+    "pytest>=6.2.2",
+    "pytest-cov>=2.1.1",
+    "tox>=3.23.0",
 ]
+dev_requires = test_requires + ["pre_commit>=2.10.1", "black>=20.8b1", "flake8>=3.8.4"]
 
 extras_require = {
+    "dev": dev_requires,
     "test": test_requires,
 }
 

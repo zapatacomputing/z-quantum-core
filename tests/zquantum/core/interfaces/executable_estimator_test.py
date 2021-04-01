@@ -1,3 +1,8 @@
+"""Estimator tests that are runnable by pytest, contrary to
+`zquantum.core.estimator.estimator_test` bundled with the library.
+"""
+
+
 from pyquil import Program
 from pyquil.gates import X
 from openfermion import QubitOperator, qubit_operator_sparse, IsingOperator

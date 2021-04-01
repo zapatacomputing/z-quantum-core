@@ -1,18 +1,8 @@
-import numpy as np
-import pytest
-import functools
-from pyquil import Program
-from pyquil.gates import X, CNOT, H
-from pyquil.wavefunction import Wavefunction
-from openfermion import QubitOperator, IsingOperator
+"""Test case prototypes that can be used in other projects.
 
-from ..circuit import Circuit, Qubit, Gate
-from ..measurement import Measurements, ExpectationValues
-from ..bitstring_distribution import BitstringDistribution
-from ..estimator import BasicEstimator
-from ..testing.test_cases_for_backend_tests import *
+Note that this file won't be executed on its own by pytest.
+You need to define your own test cases that inherit from the ones defined here.
 
-"""
 Note regarding testing specific gates.
 
 To test that a gate is properly implemented, we can ask for its matrix representation 
@@ -39,6 +29,21 @@ Gates tests use `backend_for_gates_test` instead of `backend` as an input parame
 a) it has high chance of failing for noisy backends
 b) having execution time in mind it's a good idea to use lower number of samples.
 """
+
+
+import numpy as np
+import pytest
+import functools
+from pyquil import Program
+from pyquil.gates import X, CNOT, H
+from pyquil.wavefunction import Wavefunction
+from openfermion import QubitOperator, IsingOperator
+
+from ..circuit import Circuit, Qubit, Gate
+from ..measurement import Measurements, ExpectationValues
+from ..bitstring_distribution import BitstringDistribution
+from ..estimator import BasicEstimator
+from ..testing.test_cases_for_backend_tests import *
 
 
 def skip_tests_for_excluded_gates(func):

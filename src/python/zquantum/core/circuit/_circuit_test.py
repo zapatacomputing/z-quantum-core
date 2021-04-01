@@ -1288,7 +1288,6 @@ class TestCircuit(unittest.TestCase):
         gate_H0 = Gate("H", [qubits[0]])
         gate_CNOT01 = Gate("CNOT", [qubits[0], qubits[1]])
         gate_T2 = Gate("T", [qubits[2]])
-        Gate("CZ", [qubits[1], qubits[2]])
 
         circ1 = Circuit()
         circ1.qubits = qubits

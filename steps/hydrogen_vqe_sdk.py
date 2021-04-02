@@ -32,7 +32,7 @@ from openfermion import (
 
 
 @qe.step(
-    resource_def=qe.ResourceDefiniton(
+    resource_def=qe.ResourceDefinition(
         cpu="1000m",
         mem="1000MB",
         disk="1G",
@@ -90,7 +90,7 @@ def get_molecule() -> dict:
 
 
 @qe.step(
-    resource_def=qe.ResourceDefiniton(
+    resource_def=qe.ResourceDefinition(
         cpu="1000m",
         mem="1000MB",
         disk="1G",
@@ -231,7 +231,7 @@ def get_hamiltonian(molecule) -> dict:
 
 
 @qe.step(
-    resource_def=qe.ResourceDefiniton(
+    resource_def=qe.ResourceDefinition(
         cpu="1000m",
         mem="1000MB",
         disk="1G",
@@ -242,7 +242,7 @@ def get_qubit_hamiltonian(hamiltonian) -> dict:
 
 
 @qe.step(
-    resource_def=qe.ResourceDefiniton(
+    resource_def=qe.ResourceDefinition(
         cpu="1000m",
         mem="1000MB",
         disk="1G",

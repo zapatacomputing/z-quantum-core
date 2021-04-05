@@ -1,5 +1,9 @@
 # See https://pre-commit.com for more information
 # See https://pre-commit.com/hooks.html for more hooks
+default_language_version:
+  python: python3.7
+
+default_stages: [push]
 
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
@@ -82,7 +86,6 @@ repos:
     hooks:
       - id: mypy
 
-
   - repo: local
     hooks:
       - id: coverage
@@ -93,7 +96,7 @@ repos:
         pass_filenames: false
         always_run: true
 
-  Jupyter notebook clean up
+  # Jupyter notebook clean up
   - repo: https://github.com/nbQA-dev/nbQA
     rev: 0.5.7
     hooks:

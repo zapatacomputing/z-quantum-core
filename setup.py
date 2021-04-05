@@ -2,7 +2,7 @@ import os
 
 import setuptools
 
-test_requires = [
+dev_requires = [
     "pytest>=3.7.1",
     "pytest-cov>=2.5.1",
     "tox>=3.2.1",
@@ -12,7 +12,7 @@ test_requires = [
 ]
 
 extras_require = {
-    "test": test_requires,
+    "dev": dev_requires,
 }
 
 

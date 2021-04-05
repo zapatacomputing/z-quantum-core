@@ -1,9 +1,10 @@
 # See https://pre-commit.com for more information
 # See https://pre-commit.com/hooks.html for more hooks
+#
 default_language_version:
   python: python3.7
 
-default_stages: [push]
+default_stages: [commit, push]
 
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
@@ -22,7 +23,7 @@ repos:
       - id: pyupgrade
         args: [--py37-plus, --keep-runtime-typing]
 
-  # this one is debatable, it automatically fixes unused imports
+  # automatically removes unused imports
   - repo: https://github.com/myint/autoflake.git
     rev: v1.4
     hooks:
@@ -65,7 +66,6 @@ repos:
     hooks:
       - id: python-use-type-annotations
 
-  # can we make this optional ?!?!? it's too strict
   - repo: https://gitlab.com/pycqa/flake8
     rev: 3.9.0
     hooks:
@@ -74,12 +74,6 @@ repos:
             flake8-comprehensions==3.2.2, # for better list comprehensions
             flake8-docstrings==1.5.0,
           ]
-
-  # Prettier yaml formatter
-  - repo: https://github.com/pre-commit/mirrors-prettier
-    rev: v2.2.1
-    hooks:
-      - id: prettier
 
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: v0.812
@@ -95,6 +89,7 @@ repos:
         types: [python]
         pass_filenames: false
         always_run: true
+        stages: [push]
 
   # Jupyter notebook clean up
   - repo: https://github.com/nbQA-dev/nbQA
@@ -109,3 +104,9 @@ repos:
       - id: nbqa-isort
         additional_dependencies: [isort==5.7.0]
         args: [--nbqa-mutate]
+
+  # Prettier yaml formatter
+  - repo: https://github.com/pre-commit/mirrors-prettier
+    rev: v2.2.1
+    hooks:
+      - id: prettier

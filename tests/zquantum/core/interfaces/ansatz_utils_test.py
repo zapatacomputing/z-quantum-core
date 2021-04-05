@@ -1,7 +1,7 @@
 """Test cases for ansatz-related utilities."""
 import unittest
 from unittest import mock
-from .ansatz_utils import DynamicProperty, ansatz_property, invalidates_parametrized_circuit
+from zquantum.core.interfaces.ansatz_utils import DynamicProperty, ansatz_property, invalidates_parametrized_circuit
 
 
 class PseudoAnsatz:

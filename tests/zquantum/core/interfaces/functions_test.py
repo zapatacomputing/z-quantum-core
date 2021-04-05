@@ -1,4 +1,4 @@
-from .functions import function_with_gradient, has_store_artifact_param
+from zquantum.core.interfaces.functions import function_with_gradient, has_store_artifact_param
 from zquantum.core.gradients import finite_differences_gradient
 
 

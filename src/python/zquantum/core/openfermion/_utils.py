@@ -413,7 +413,7 @@ def get_fermion_number_operator(n_qubits, n_particles=None):
     Args:
         n_qubits (int): number of qubits in the system
         n_particles (int): number of particles in the system.
-            If specified, it is substracted from the number
+            If specified, it is subtracted from the number
             operator such as expectation value is zero.
     Returns:
          (openfermion.ops.FermionOperator): the number operator

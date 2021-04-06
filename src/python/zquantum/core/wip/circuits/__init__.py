@@ -144,7 +144,7 @@ from ._builtin_gates import (
     YY,
     ZZ,
     XY,
-    builtin_gate_by_name
+    builtin_gate_by_name,
 )
 
 from ._serde import (

@@ -1,6 +1,6 @@
-
 from typing import Dict, TYPE_CHECKING
 from .clipped_negative_log_likelihood import compute_clipped_negative_log_likelihood
+
 if TYPE_CHECKING:
     from zquantum.core.bitstring_distribution import BitstringDistribution
 
@@ -25,7 +25,15 @@ def compute_jensen_shannon_divergence(
         float: The value of the symmetrized version
     """
 
-    value = compute_clipped_negative_log_likelihood(target_distribution, measured_distribution, distance_measure_parameters)/2 + \
-            compute_clipped_negative_log_likelihood(measured_distribution, target_distribution, distance_measure_parameters)/2
+    value = (
+        compute_clipped_negative_log_likelihood(
+            target_distribution, measured_distribution, distance_measure_parameters
+        )
+        / 2
+        + compute_clipped_negative_log_likelihood(
+            measured_distribution, target_distribution, distance_measure_parameters
+        )
+        / 2
+    )
 
     return value

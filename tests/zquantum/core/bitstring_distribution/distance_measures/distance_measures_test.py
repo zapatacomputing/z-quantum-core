@@ -1,5 +1,9 @@
-from zquantum.core.bitstring_distribution.distance_measures.clipped_negative_log_likelihood import compute_clipped_negative_log_likelihood
-from zquantum.core.bitstring_distribution.distance_measures.jensen_shannon_divergence import compute_jensen_shannon_divergence
+from zquantum.core.bitstring_distribution.distance_measures.clipped_negative_log_likelihood import (
+    compute_clipped_negative_log_likelihood,
+)
+from zquantum.core.bitstring_distribution.distance_measures.jensen_shannon_divergence import (
+    compute_jensen_shannon_divergence,
+)
 from zquantum.core.bitstring_distribution.distance_measures.mmd import compute_mmd
 from zquantum.core.bitstring_distribution._bitstring_distribution import (
     BitstringDistribution,
@@ -46,7 +50,11 @@ def test_uses_epsilon_instead_of_zero_in_target_distribution():
             {"sigma": 0.5},
             0.32000000000000006,
         ),
-        (BitstringDistribution({"000": 0.5, "111": 0.5}), {"sigma": 1}, 0.00,),
+        (
+            BitstringDistribution({"000": 0.5, "111": 0.5}),
+            {"sigma": 1},
+            0.00,
+        ),
         (
             BitstringDistribution({"000": 0.5, "111": 0.5}),
             {"sigma": [1, 0.5, 2]},
@@ -67,7 +75,10 @@ def test_gaussian_mmd_is_computed_correctly(
 @pytest.mark.parametrize(
     "distance_measure_function, expected_default_values",
     [
-        (compute_mmd, {"sigma": 1.0},),
+        (
+            compute_mmd,
+            {"sigma": 1.0},
+        ),
         (compute_clipped_negative_log_likelihood, {"epsilon": 1e-9}),
         (compute_jensen_shannon_divergence, {"epsilon": 1e-9}),
     ],
@@ -112,7 +123,12 @@ def test_distribution_distance_can_be_evaluated_only_for_bitstring_distributions
 
 
 @pytest.mark.parametrize(
-    "distance_measure", [compute_clipped_negative_log_likelihood, compute_mmd, compute_jensen_shannon_divergence],
+    "distance_measure",
+    [
+        compute_clipped_negative_log_likelihood,
+        compute_mmd,
+        compute_jensen_shannon_divergence,
+    ],
 )
 def test_distribution_distance_cannot_be_evaluated_if_supports_are_incompatible(
     distance_measure,
@@ -146,6 +162,7 @@ def test_distribution_distance_cannot_be_computed_if_distributions_differ_in_nor
     with pytest.raises(RuntimeError):
         evaluate_distribution_distance(target, measured, distance_measure)
 
+
 def test_jensen_shannon_divergence_is_computed_correctly():
     """jensen shannon divergence between distributions is computed correctly."""
     target_distr = BitstringDistribution({"000": 0.5, "111": 0.5})
@@ -156,6 +173,7 @@ def test_jensen_shannon_divergence_is_computed_correctly():
     )
 
     assert jensen_shannon_divergence == 0.9485599924429406
+
 
 def test_uses_epsilon_instead_of_zero_in_target_distribution():
     """Computing jensen shannon divergence uses epsilon instead of zeros in log."""

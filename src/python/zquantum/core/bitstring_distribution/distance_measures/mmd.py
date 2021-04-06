@@ -30,15 +30,15 @@ if TYPE_CHECKING:
 
 
 def compute_rbf_kernel(x_i: np.array, y_j: np.array, sigma: float) -> np.ndarray:
-    """ Compute the gaussian (RBF) kernel matrix K, with K_ij = exp(-gamma |x_i - y_j|^2) and gamma = 1/(2*sigma).
+    """Compute the gaussian (RBF) kernel matrix K, with K_ij = exp(-gamma |x_i - y_j|^2) and gamma = 1/(2*sigma).
 
-        Args:
-            x_i (np.array): Samples A (integers).
-            y_j (np.array): Samples B (integers).
-            sigma (float): The bandwidth of the gaussian kernel.
+    Args:
+        x_i (np.array): Samples A (integers).
+        y_j (np.array): Samples B (integers).
+        sigma (float): The bandwidth of the gaussian kernel.
 
-        Returns:
-            np.ndarray: The gaussian kernel matrix.
+    Returns:
+        np.ndarray: The gaussian kernel matrix.
     """
     exponent = np.abs(x_i[:, None] - y_j[None, :]) ** 2
     try:
@@ -51,15 +51,15 @@ def compute_rbf_kernel(x_i: np.array, y_j: np.array, sigma: float) -> np.ndarray
 
 
 def compute_multi_rbf_kernel(x_i: np.array, y_j: np.array, sigmas: List) -> np.ndarray:
-    """ Compute the multi-gaussian (RBF) kernel matrix K, with K_ij = 1/N * Sum_n [exp(-gamma_n |x_i - y_j|^2)] with n = 1,...,N and gamma = 1/(2*sigma).
+    """Compute the multi-gaussian (RBF) kernel matrix K, with K_ij = 1/N * Sum_n [exp(-gamma_n |x_i - y_j|^2)] with n = 1,...,N and gamma = 1/(2*sigma).
 
-        Args:
-            x_i (np.array): Samples A (integers).
-            y_j (np.array): Samples B (integers).
-            sigmas (np.array): The list of bandwidths of the multi-gaussian kernel.
+    Args:
+        x_i (np.array): Samples A (integers).
+        y_j (np.array): Samples B (integers).
+        sigmas (np.array): The list of bandwidths of the multi-gaussian kernel.
 
-        Returns:
-            np.ndarray: The gaussian kernel matrix.
+    Returns:
+        np.ndarray: The gaussian kernel matrix.
     """
     exponent = np.abs(x_i[:, None] - y_j[None, :]) ** 2
     kernel_matrix = 0.0
@@ -78,7 +78,7 @@ def compute_mmd(
     measured_distribution: "BitstringDistribution",
     distance_measure_parameters: Dict,
 ) -> float:
-    """ Compute the squared Maximum Mean Discrepancy (MMD) distance measure between between a target bitstring distribution
+    """Compute the squared Maximum Mean Discrepancy (MMD) distance measure between between a target bitstring distribution
     and a measured bitstring distribution.
     Reference: arXiv.1804.04168.
 

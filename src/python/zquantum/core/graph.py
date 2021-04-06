@@ -127,28 +127,37 @@ def generate_random_regular_graph(
     return output_graph
 
 
-def generate_caveman_graph(number_of_cliques: int, size_of_cliques: int, random_weights: bool = False,
-                           seed: Optional[int] = None) -> nx.Graph:
+def generate_caveman_graph(
+    number_of_cliques: int,
+    size_of_cliques: int,
+    random_weights: bool = False,
+    seed: Optional[int] = None,
+) -> nx.Graph:
     output_graph = nx.caveman_graph(number_of_cliques, size_of_cliques)
     output_graph = weight_graph_edges(output_graph, random_weights, seed)
     return output_graph
 
 
-def generate_ladder_graph(length_of_ladder: int, random_weights: bool = False, seed: Optional[int] = None) -> nx.Graph:
+def generate_ladder_graph(
+    length_of_ladder: int, random_weights: bool = False, seed: Optional[int] = None
+) -> nx.Graph:
     output_graph = nx.ladder_graph(length_of_ladder)
     output_graph = weight_graph_edges(output_graph, random_weights, seed)
     return output_graph
 
 
-def generate_barbell_graph(number_of_vertices_complete_graph: int, random_weights: bool = False,
-                           seed: Optional[int] = None) -> nx.Graph:
+def generate_barbell_graph(
+    number_of_vertices_complete_graph: int,
+    random_weights: bool = False,
+    seed: Optional[int] = None,
+) -> nx.Graph:
     output_graph = nx.barbell_graph(number_of_vertices_complete_graph, 0)
     output_graph = weight_graph_edges(output_graph, random_weights, seed)
     return output_graph
 
 
 def weight_graph_edges(
-        graph: nx.Graph, random_weights: bool = False, seed: Optional[int] = None
+    graph: nx.Graph, random_weights: bool = False, seed: Optional[int] = None
 ) -> nx.Graph:
     """Update the weights of all the edges of a graph.
 
@@ -185,34 +194,42 @@ def generate_graph_from_specs(graph_specs: dict) -> nx.Graph:
     Returns:
         A networkx.Graph object
     """
-    type_graph = graph_specs['type_graph']
-    num_nodes = graph_specs['num_nodes']
-    random_weights = graph_specs.get('random_weights', False)
-    seed = graph_specs.get('seed', None)
-    number_of_cliques = graph_specs.get('number_of_cliques', None)
-    size_of_cliques = graph_specs.get('size_of_cliques', None)
-    length_of_ladder = graph_specs.get('length_of_ladder', None)
-    number_of_vertices_complete_graph = graph_specs.get('number_of_vertices_complete_graph', None)
+    type_graph = graph_specs["type_graph"]
+    num_nodes = graph_specs["num_nodes"]
+    random_weights = graph_specs.get("random_weights", False)
+    seed = graph_specs.get("seed", None)
+    number_of_cliques = graph_specs.get("number_of_cliques", None)
+    size_of_cliques = graph_specs.get("size_of_cliques", None)
+    length_of_ladder = graph_specs.get("length_of_ladder", None)
+    number_of_vertices_complete_graph = graph_specs.get(
+        "number_of_vertices_complete_graph", None
+    )
 
-    if type_graph == 'erdos_renyi':
-        probability = graph_specs['probability']
-        graph = generate_random_graph_erdos_renyi(num_nodes, probability, random_weights, seed)
+    if type_graph == "erdos_renyi":
+        probability = graph_specs["probability"]
+        graph = generate_random_graph_erdos_renyi(
+            num_nodes, probability, random_weights, seed
+        )
 
-    elif type_graph == 'regular':
-        degree = graph_specs['degree']
+    elif type_graph == "regular":
+        degree = graph_specs["degree"]
         graph = generate_random_regular_graph(num_nodes, degree, random_weights, seed)
 
-    elif type_graph == 'complete':
-        graph = generate_random_graph_erdos_renyi(num_nodes, 1., random_weights, seed)
+    elif type_graph == "complete":
+        graph = generate_random_graph_erdos_renyi(num_nodes, 1.0, random_weights, seed)
 
-    elif type_graph == 'caveman':
-        graph = generate_caveman_graph(number_of_cliques, size_of_cliques, random_weights, seed)
+    elif type_graph == "caveman":
+        graph = generate_caveman_graph(
+            number_of_cliques, size_of_cliques, random_weights, seed
+        )
 
-    elif type_graph == 'ladder':
+    elif type_graph == "ladder":
         graph = generate_ladder_graph(length_of_ladder, random_weights, seed)
 
-    elif type_graph == 'barbell':
-        graph = generate_barbell_graph(number_of_vertices_complete_graph, random_weights, seed)
+    elif type_graph == "barbell":
+        graph = generate_barbell_graph(
+            number_of_vertices_complete_graph, random_weights, seed
+        )
     else:
         raise (NotImplementedError("This type of graph is not supported: ", type_graph))
 

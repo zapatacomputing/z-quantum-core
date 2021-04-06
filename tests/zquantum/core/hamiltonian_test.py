@@ -235,7 +235,18 @@ def test_group_comeasureable_terms_greedy_sorted(
 
 @pytest.mark.parametrize(
     "interactionrdm, qubitoperator, sort_terms",
-    [(rdms, h2_hamiltonian, False,), (rdms, h2_hamiltonian, True,),],
+    [
+        (
+            rdms,
+            h2_hamiltonian,
+            False,
+        ),
+        (
+            rdms,
+            h2_hamiltonian,
+            True,
+        ),
+    ],
 )
 def test_get_expectation_values_from_rdms(interactionrdm, qubitoperator, sort_terms):
     expecval = get_expectation_values_from_rdms(
@@ -262,7 +273,18 @@ def test_get_expectation_values_from_rdms(interactionrdm, qubitoperator, sort_te
 
 @pytest.mark.parametrize(
     "interactionrdm, qubitoperator_list, sort_terms",
-    [(rdms, h2_hamiltonian_grouped, False,), (rdms, h2_hamiltonian_grouped, True,),],
+    [
+        (
+            rdms,
+            h2_hamiltonian_grouped,
+            False,
+        ),
+        (
+            rdms,
+            h2_hamiltonian_grouped,
+            True,
+        ),
+    ],
 )
 def test_get_expectation_values_from_rdms_for_qubitoperator_list(
     interactionrdm, qubitoperator_list, sort_terms

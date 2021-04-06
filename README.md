@@ -75,7 +75,7 @@ To install it, you just need to run `pip install -e .` from the main directory. 
 
 ## Development and Contribution
 
-To install the development version, run `pip install -e .'[test]'` from the main directory. (if using MacOS, you will need single quotes around the []. If using windows, or Linux, you might not need the quotes)
+To install the development version, run `pip install -e '.[dev]'` from the main directory. (if using MacOS, you will need single quotes around the []. If using windows, or Linux, you might not need the quotes)
 
 We use pre-commit hooks to check for minor errors before developers can commit/push code (See info about pre-commit `here <https://pre-commit.com/>`\_.). A pre-commit hook can automatically format code, check for linting errors, and give quick feedback to the developer.
 It also helps keep commits clean, and git diffs minimal. Please install it via:

@@ -30,7 +30,7 @@ setuptools.setup(
     install_requires=[
         "pytest>=5.3.5",
         "networkx==2.4",
-        "numpy>=1.18.1",
+        "numpy>=1.20",
         "scipy>=1.4.1",
         "sympy>=1.7",
         "openfermion>=1.0.0",

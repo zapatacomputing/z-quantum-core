@@ -69,7 +69,7 @@ RUN python3 -m pip install rpcq==3.6.0 \
                     sympy==1.7 \
                     codecarbon==1.1.0 \
                     cvxpy==1.1.11
-                    
-                    
+
+
 WORKDIR /app
 ENTRYPOINT bash

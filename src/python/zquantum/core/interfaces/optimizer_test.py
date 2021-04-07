@@ -22,7 +22,7 @@ def sum_x_squared(x):
     return sum(x ** 2.0)
 
 
-class OptimizerTests(object):
+class OptimizerTests:
     """Base class for optimizers tests.
 
     How to use:

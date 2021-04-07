@@ -1,11 +1,11 @@
 name: style
 
-# Controls when the action will run. 
+# Controls when the action will run.
 on:
   push:
-    branches: [ main, master, dev ]
+    branches: [main, master, dev]
   pull_request:
-    branches: [ main, master, dev ]
+    branches: [main, master, dev]
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -23,7 +23,7 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
-      
+
       - name: Install dependencies
         run: |
           python3 -m pip install --upgrade pip
@@ -49,14 +49,14 @@ jobs:
           # Use isort
           use-isort: true
           # Extra options: pylint $(extra-pylint-options) $(python-root-list)
-          # extra-pylint-options: # optional, default is 
+          # extra-pylint-options: # optional, default is
           # Extra options: pycodestyle $(extra-pycodestyle-options) $(python-root-list)
-          # extra-pycodestyle-options: # optional, default is 
+          # extra-pycodestyle-options: # optional, default is
           # Extra options: flake8 $(extra-flake8-options) $(python-root-list)
           extra-flake8-options: --ignore=E203,E266,F401 --max-line-length=88
           # Extra options: black --check $(extra-black-options) $(python-root-list)
           extra-black-options: --check
           # Extra options: mypy $(extra-mypy-options) $(python-root-list)
-          # extra-mypy-options: # optional, default is 
-          # Extra options: isort -rc $(extra-isort-options) $(python-root-list) -c --diff 
+          # extra-mypy-options: # optional, default is
+          # Extra options: isort -rc $(extra-isort-options) $(python-root-list) -c --diff
           extra-isort-options: --check-only --profile black

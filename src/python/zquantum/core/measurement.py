@@ -1,21 +1,23 @@
 from __future__ import annotations
-import json
+
 import copy
-from pyquil.wavefunction import Wavefunction
+import json
+from collections import Counter
+from typing import Dict, Iterable, List, Optional, TextIO, Tuple
+
 import numpy as np
 from openfermion.ops import IsingOperator
+from pyquil.wavefunction import Wavefunction
+from zquantum.core.typing import AnyPath, LoadSource
+
+from .bitstring_distribution import BitstringDistribution
 from .utils import (
     SCHEMA_VERSION,
     convert_array_to_dict,
     convert_dict_to_array,
-    sample_from_probability_distribution,
-    convert_bitstrings_to_tuples,
     convert_tuples_to_bitstrings,
+    sample_from_probability_distribution,
 )
-from typing import Optional, List, Tuple, TextIO, Iterable, Dict
-from collections import Counter
-from .bitstring_distribution import BitstringDistribution
-from zquantum.core.typing import LoadSource, AnyPath
 
 
 def save_expectation_values(
@@ -45,7 +47,7 @@ def load_expectation_values(file: LoadSource) -> ExpectationValues:
     """
 
     if isinstance(file, str):
-        with open(file, "r") as f:
+        with open(file) as f:
             data = json.load(f)
     else:
         data = json.load(file)
@@ -64,7 +66,7 @@ def load_wavefunction(file: LoadSource) -> Wavefunction:
     """
 
     if isinstance(file, str):
-        with open(file, "r") as f:
+        with open(file) as f:
             data = json.load(f)
     else:
         data = json.load(file)
@@ -251,7 +253,7 @@ def load_parities(file: LoadSource) -> Parities:
     """
 
     if isinstance(file, str):
-        with open(file, "r") as f:
+        with open(file) as f:
             data = json.load(f)
     else:
         data = json.load(file)
@@ -312,7 +314,7 @@ def get_parities_from_measurements(
     """
 
     # check input format
-    if isinstance(ising_operator, IsingOperator) == False:
+    if isinstance(ising_operator, IsingOperator) is False:
         raise Exception("Input operator not openfermion.IsingOperator")
 
     # Count number of occurrences of bitstrings
@@ -512,7 +514,7 @@ class Measurements:
             file (str or file-like object): the name of the file, or a file-like object
         """
         if isinstance(file, str):
-            with open(file, "r") as f:
+            with open(file) as f:
                 data = json.load(f)
         else:
             data = json.load(file)
@@ -597,7 +599,7 @@ class Measurements:
         # We require operator to be IsingOperator because measurements are always performed in the Z basis,
         # so we need the operator to be Ising (containing only Z terms).
         # A general Qubit Operator could have X or Y terms which don’t get directly measured.
-        if isinstance(ising_operator, IsingOperator) == False:
+        if isinstance(ising_operator, IsingOperator) is False:
             raise Exception("Input operator is not openfermion.IsingOperator")
 
         # Count number of occurrences of bitstrings
@@ -619,8 +621,8 @@ class Measurements:
             correlations[i, i] = ising_operator.terms[first_term] ** 2
             for j in range(i):
                 second_term = list(ising_operator.terms.keys())[j]
-                first_term_qubits = set(op[0] for op in first_term)
-                second_term_qubits = set(op[0] for op in second_term)
+                first_term_qubits = {op[0] for op in first_term}
+                second_term_qubits = {op[0] for op in second_term}
                 marked_qubits = first_term_qubits.symmetric_difference(
                     second_term_qubits
                 )

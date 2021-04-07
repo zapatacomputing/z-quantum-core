@@ -1,7 +1,7 @@
 import json
 import sys
 
-with open(sys.argv[1], "r") as f:
+with open(sys.argv[1]) as f:
     workflowresult = json.loads(f.read())
 
 assert len(workflowresult.keys()) == 1
@@ -15,9 +15,9 @@ for key in workflowresult.keys():
     )
 
     assert workflowresult[key]["graph"]["schema"] == "zapata-v1-graph"
-    assert workflowresult[key]["graph"]["directed"] == False
+    assert workflowresult[key]["graph"]["directed"] is False
     assert workflowresult[key]["graph"]["graph"] == {}
-    assert workflowresult[key]["graph"]["multigraph"] == False
+    assert workflowresult[key]["graph"]["multigraph"] is False
 
     assert len(workflowresult[key]["graph"]["links"]) == 1
 

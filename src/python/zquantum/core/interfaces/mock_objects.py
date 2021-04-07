@@ -1,20 +1,21 @@
+import random
+from typing import Optional
+
+import numpy as np
+import sympy
+from openfermion import SymbolicOperator
+from overrides import overrides
+from pyquil import Program
+from pyquil.gates import RX, X
+
+from ..circuit import Circuit
+from ..measurement import ExpectationValues, Measurements
+from ..utils import create_symbols_map
 from .ansatz import Ansatz
 from .ansatz_utils import ansatz_property
 from .backend import QuantumBackend, QuantumSimulator
-from .optimizer import Optimizer, optimization_result
 from .estimator import Estimator
-from ..measurement import ExpectationValues, Measurements
-from ..circuit import Circuit
-from ..utils import create_symbols_map
-import random
-from scipy.optimize import OptimizeResult
-import numpy as np
-from openfermion import SymbolicOperator
-from pyquil import Program
-from pyquil.gates import RX, X
-import sympy
-from overrides import overrides
-from typing import Optional
+from .optimizer import Optimizer, optimization_result
 
 
 class MockQuantumBackend(QuantumBackend):
@@ -25,7 +26,7 @@ class MockQuantumBackend(QuantumBackend):
         super().__init__(n_samples)
 
     def run_circuit_and_measure(self, circuit, n_samples=None, **kwargs):
-        super(MockQuantumBackend, self).run_circuit_and_measure(circuit)
+        super().run_circuit_and_measure(circuit)
         n_qubits = len(circuit.qubits)
         measurements = Measurements()
         if n_samples is None:
@@ -52,7 +53,7 @@ class MockQuantumSimulator(QuantumSimulator):
         super().__init__(n_samples)
 
     def run_circuit_and_measure(self, circuit: Circuit, n_samples=None, **kwargs):
-        super(MockQuantumSimulator, self).run_circuit_and_measure(circuit)
+        super().run_circuit_and_measure(circuit)
         n_qubits = len(circuit.qubits)
         measurements = Measurements()
         if n_samples is None:
@@ -89,7 +90,7 @@ class MockQuantumSimulator(QuantumSimulator):
                 values[constant_position] = 1.0
             return ExpectationValues(values)
         else:
-            super(MockQuantumSimulator, self).get_expectation_values(circuit, operator)
+            super().get_expectation_values(circuit, operator)
 
     def get_exact_expectation_values(
         self, circuit: Circuit, operator: SymbolicOperator, **kwargs

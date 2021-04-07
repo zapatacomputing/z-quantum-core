@@ -151,7 +151,7 @@ spec:
                   ansatz = create_object(ansatz_specs, cost_hamiltonian=operator)
                 else:
                   ansatz = create_object(ansatz_specs)
-                  
+
                 backend_specs = {{inputs.parameters.backend-specs}}
                 if os.path.isfile('noise_model.json'):
                   backend_specs["noise_model"] = load_noise_model("noise_model.json")
@@ -208,7 +208,7 @@ spec:
                 rdm = load_interaction_rdm('interactionrdm.json')
                 expecval = get_expectation_values_from_rdms(interactionrdm=rdm,
                            qubitoperator=operator, sort_terms = {{inputs.parameters.sort-terms}})
-                  
+
                 save_expectation_values(expecval, 'expectation_values.json')
       outputs:
         artifacts:
@@ -254,7 +254,7 @@ spec:
                 K, nterms, frame_meas = estimate_nmeas(target_operator=operator,
                            decomposition_method = '{{inputs.parameters.decomposition-method}}',
                            expecval=expecval)
-                  
+
                 save_nmeas_estimate(nmeas=K, nterms=nterms, frame_meas=frame_meas, filename='hamiltonian_analysis.json')
       outputs:
         artifacts:

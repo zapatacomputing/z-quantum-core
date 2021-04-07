@@ -1,15 +1,13 @@
 """Data structures for ZQuantum gates."""
 import math
 from dataclasses import dataclass, replace
-from functools import singledispatch, reduce
+from functools import singledispatch
 from numbers import Number
-from typing import Tuple, Union, Callable, Dict, Optional, Iterable, Any
+from typing import Callable, Dict, Tuple, Union
 
+import numpy as np
 import sympy
 from typing_extensions import Protocol
-import numpy as np
-
-from ...utils import SCHEMA_VERSION
 
 Parameter = Union[sympy.Symbol, Number]
 
@@ -57,12 +55,12 @@ class Gate(Protocol):
         - a `RX(sympy.sympify("theta * alpha"))` gate has two free symbols, `alpha` and `theta`
         - a `RX(sympy.sympify("theta * alpha")).bind({sympy.Symbol("theta"): 0.42})` gate has one free symbol, `alpha`
         """
-        symbols = set(
+        symbols = {
             symbol
             for param in self.params
             if isinstance(param, sympy.Expr)
             for symbol in param.free_symbols
-        )
+        }
         return sorted(symbols, key=str)
 
     @property

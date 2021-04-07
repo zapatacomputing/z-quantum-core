@@ -2,11 +2,11 @@ ZapOSApiVersion: v1alpha1
 kind: Workflow
 
 resources:
-- name: z-quantum-core
-  type: git
-  parameters:
-    url: "git@github.com:zapatacomputing/z-quantum-core.git"
-    branch: "dev"
+  - name: z-quantum-core
+    type: git
+    parameters:
+      url: "git@github.com:zapatacomputing/z-quantum-core.git"
+      branch: "dev"
 
 metadata:
   generateName: z-quantum-core-acceptance-test-combine-params-
@@ -15,37 +15,37 @@ spec:
   entrypoint: main
   arguments:
     parameters:
-    - s3-bucket: quantum-engine
-    - s3-key: testing/acceptance-tests/
+      - s3-bucket: quantum-engine
+      - s3-key: testing/acceptance-tests/
 
   templates:
-  - name: main
-    steps:
-    - - name: get-params-1
-        template: generate-random-ansatz-params
-        arguments:
-          parameters:
-            - number-of-params: "2"
-            - seed: "1234"
-            - min-val: "-3.14"
-            - max-val: "3.14"
-            - resources: [z-quantum-core]
-      - name: get-params-2
-        template: generate-random-ansatz-params
-        arguments:
-          parameters:
-            - number-of-params: "1"
-            - seed: "1234"
-            - min-val: "-3.14"
-            - max-val: "3.14"
-            - resources: [z-quantum-core]
-    - - name: test
-        template: combine-ansatz-params
-        arguments:
-          parameters:
-            - resources: [z-quantum-core]
-          artifacts:
-            - params1:
-                from: "{{steps.get-params-1.outputs.artifacts.params}}"
-            - params2:
-                from: "{{steps.get-params-2.outputs.artifacts.params}}"
+    - name: main
+      steps:
+        - - name: get-params-1
+            template: generate-random-ansatz-params
+            arguments:
+              parameters:
+                - number-of-params: "2"
+                - seed: "1234"
+                - min-val: "-3.14"
+                - max-val: "3.14"
+                - resources: [z-quantum-core]
+          - name: get-params-2
+            template: generate-random-ansatz-params
+            arguments:
+              parameters:
+                - number-of-params: "1"
+                - seed: "1234"
+                - min-val: "-3.14"
+                - max-val: "3.14"
+                - resources: [z-quantum-core]
+        - - name: test
+            template: combine-ansatz-params
+            arguments:
+              parameters:
+                - resources: [z-quantum-core]
+              artifacts:
+                - params1:
+                    from: "{{steps.get-params-1.outputs.artifacts.params}}"
+                - params2:
+                    from: "{{steps.get-params-2.outputs.artifacts.params}}"

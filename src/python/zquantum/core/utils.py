@@ -1,26 +1,18 @@
 """General-purpose utilities."""
-import warnings
-
-import numpy as np
-from scipy.linalg import expm
-import random
-import math
-import operator
-import sys
-import json
-import openfermion
-import sympy
-from openfermion import hermitian_conjugated
-from openfermion import InteractionRDM
-from openfermion.ops import SymbolicOperator
-from networkx.readwrite import json_graph
-import lea
 import collections
-import scipy
-from typing import List, Tuple, Optional, Iterable, Union, Dict
-import importlib
 import copy
-from .typing import LoadSource, AnyPath, Specs
+import importlib
+import json
+import sys
+import warnings
+from typing import Dict, Iterable, List, Optional, Tuple
+
+import lea
+import numpy as np
+import sympy
+from openfermion import InteractionRDM, hermitian_conjugated
+
+from .typing import AnyPath, LoadSource, Specs
 
 SCHEMA_VERSION = "zapata-v1"
 RNDSEED = 12345
@@ -77,9 +69,7 @@ def dec2bin(number: int, length: int) -> List[int]:
     """
 
     if pow(2, length) < number:
-        sys.exit(
-            "Insufficient number of bits for representing the number {}".format(number)
-        )
+        sys.exit(f"Insufficient number of bits for representing the number {number}")
 
     bit_str = bin(number)
     bit_str = bit_str[2 : len(bit_str)]  # chop off the first two chars
@@ -111,8 +101,8 @@ def bin2dec(x: List[int]) -> int:
 
 
 """
-The functions PAULI_X, PAULI_Y, PAULI_Z and IDENTITY below are used for 
-generating the generators of the Pauli group, which include Pauli X, Y, Z 
+The functions PAULI_X, PAULI_Y, PAULI_Z and IDENTITY below are used for
+generating the generators of the Pauli group, which include Pauli X, Y, Z
 operators as well as identity operator
 """
 
@@ -170,9 +160,9 @@ def compare_unitary(u1: np.ndarray, u2: np.ndarray, tol: float = 1e-15) -> bool:
             differences in global phase.
     """
 
-    if is_unitary(u1, tol) == False:
+    if is_unitary(u1, tol) is False:
         raise Exception("The first input matrix is not unitary.")
-    if is_unitary(u2, tol) == False:
+    if is_unitary(u2, tol) is False:
         raise Exception("The second input matrix is not unitary.")
 
     test_matrix = np.dot(u1.conj().T, u2)
@@ -332,7 +322,7 @@ def load_value_estimate(file: LoadSource) -> ValueEstimate:
     """
 
     if isinstance(file, str):
-        with open(file, "r") as f:
+        with open(file) as f:
             data = json.load(f)
     else:
         data = json.load(file)
@@ -365,7 +355,7 @@ def load_list(file: LoadSource) -> List:
     """
 
     if isinstance(file, str):
-        with open(file, "r") as f:
+        with open(file) as f:
             data = json.load(f)
     else:
         data = json.load(file)
@@ -454,7 +444,7 @@ def load_noise_model(file: LoadSource):
     """
 
     if isinstance(file, str):
-        with open(file, "r") as f:
+        with open(file) as f:
             data = json.load(f)
     else:
         data = json.load(file)
@@ -499,7 +489,7 @@ def create_symbols_map(
     if len(symbols) != len(params):
         raise (
             ValueError(
-                "Length of symbols: {0} doesn't match length of params: {1}".format(
+                "Length of symbols: {} doesn't match length of params: {}".format(
                     len(symbols), len(params)
                 )
             )
@@ -555,7 +545,7 @@ def load_nmeas_estimate(filename: AnyPath) -> Tuple[float, int, np.ndarray]:
         frame_meas: frame measurements (number of measurements per group)
     """
 
-    with open(filename, "r") as f:
+    with open(filename) as f:
         data = json.load(f)
 
     frame_meas = convert_dict_to_array(data["frame_meas"])

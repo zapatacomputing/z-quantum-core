@@ -1,8 +1,9 @@
 import json
 import sys
+
 import numpy as np
 
-with open(sys.argv[1], "r") as f:
+with open(sys.argv[1]) as f:
     workflowresult = json.loads(f.read())
 
 assert len(workflowresult.keys()) == 2
@@ -53,5 +54,5 @@ for key in workflowresult.keys():
         print(total_probability)
         assert np.isclose(total_probability, 1.0)
 
-assert found_template == True
+assert found_template is True
 print("Workflow result is as expected")

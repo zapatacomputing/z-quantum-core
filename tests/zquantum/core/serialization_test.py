@@ -1,22 +1,20 @@
 """Test cases for serialization module."""
 import json
-import numpy as np
 import os
 
+import numpy as np
 import pytest
 from scipy.optimize import OptimizeResult
-
+from zquantum.core.bitstring_distribution import BitstringDistribution
 from zquantum.core.history.recorder import HistoryEntry, HistoryEntryWithArtifacts
-from zquantum.core.utils import convert_array_to_dict, ValueEstimate
 from zquantum.core.interfaces.optimizer import optimization_result
 from zquantum.core.serialization import (
-    OrquestraEncoder,
     OrquestraDecoder,
-    save_optimization_results,
+    OrquestraEncoder,
     load_optimization_results,
+    save_optimization_results,
 )
-from zquantum.core.bitstring_distribution import BitstringDistribution
-
+from zquantum.core.utils import ValueEstimate, convert_array_to_dict
 
 # The result constructed below does not make sense.
 # It does not matter though, as we are only testing serialization and it contains variety
@@ -164,7 +162,7 @@ def test_save_optimization_results_successfully_saves_optimization_result():
     save_optimization_results(result_to_serialize, optimization_result_filename)
 
     # Then
-    with open(optimization_result_filename, "r") as f:
+    with open(optimization_result_filename) as f:
         loaded_data = json.load(f)
 
     assert loaded_data == expected_deserialized_result

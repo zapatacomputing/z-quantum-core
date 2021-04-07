@@ -1,7 +1,7 @@
 import json
 import sys
 
-with open(sys.argv[1], "r") as f:
+with open(sys.argv[1]) as f:
     workflowresult = json.loads(f.read())
 
 assert len(workflowresult.keys()) == 2
@@ -27,5 +27,5 @@ for key in workflowresult.keys():
             ]
         assert total_num_bitstrings == 1000
 
-assert found_template == True
+assert found_template is True
 print("Workflow result is as expected")

@@ -2,11 +2,11 @@ ZapOSApiVersion: v1alpha1
 kind: Workflow
 
 resources:
-- name: z-quantum-core
-  type: git
-  parameters:
-    url: "git@github.com:zapatacomputing/z-quantum-core.git"
-    branch: "dev"
+  - name: z-quantum-core
+    type: git
+    parameters:
+      url: "git@github.com:zapatacomputing/z-quantum-core.git"
+      branch: "dev"
 
 metadata:
   generateName: z-quantum-core-acceptance-test-generate-ansatz-params-
@@ -15,27 +15,27 @@ spec:
   entrypoint: main
   arguments:
     parameters:
-    - s3-bucket: quantum-engine
-    - s3-key: testing/acceptance-tests/
+      - s3-bucket: quantum-engine
+      - s3-key: testing/acceptance-tests/
 
   templates:
-  - name: main
-    steps:
-    - - name: test-with-ansatz-specs
-        template: generate-random-ansatz-params
-        arguments:
-          parameters:
-            - ansatz-specs: "{'module_name': 'zquantum.core.interfaces.mock_objects', 'function_name': 'MockAnsatz', 'number_of_layers': 2, 'problem_size': 2}"
-            - seed: "1234"
-            - min-val: "-3.14"
-            - max-val: "3.14"
-            - resources: [z-quantum-core]
-      - name: test-with-number-of-params
-        template: generate-random-ansatz-params
-        arguments:
-          parameters:
-            - number-of-params: "4"
-            - seed: "1234"
-            - min-val: "-3.14"
-            - max-val: "3.14"
-            - resources: [z-quantum-core]
+    - name: main
+      steps:
+        - - name: test-with-ansatz-specs
+            template: generate-random-ansatz-params
+            arguments:
+              parameters:
+                - ansatz-specs: "{'module_name': 'zquantum.core.interfaces.mock_objects', 'function_name': 'MockAnsatz', 'number_of_layers': 2, 'problem_size': 2}"
+                - seed: "1234"
+                - min-val: "-3.14"
+                - max-val: "3.14"
+                - resources: [z-quantum-core]
+          - name: test-with-number-of-params
+            template: generate-random-ansatz-params
+            arguments:
+              parameters:
+                - number-of-params: "4"
+                - seed: "1234"
+                - min-val: "-3.14"
+                - max-val: "3.14"
+                - resources: [z-quantum-core]

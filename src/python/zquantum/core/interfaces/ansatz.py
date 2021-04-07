@@ -1,13 +1,14 @@
-from abc import ABC, abstractmethod
-import numpy as np
-import copy
-import sympy
-from typing import List, Optional
-from overrides import EnforceOverrides
 import warnings
+from abc import ABC
+from typing import List, Optional
+
+import numpy as np
+import sympy
+from overrides import EnforceOverrides
+
 from ..circuit import Circuit
-from .ansatz_utils import ansatz_property
 from ..utils import create_symbols_map
+from .ansatz_utils import ansatz_property
 
 
 class Ansatz(ABC, EnforceOverrides):
@@ -42,7 +43,7 @@ class Ansatz(ABC, EnforceOverrides):
             else:
                 raise (
                     NotImplementedError(
-                        "{0} does not support parametrized circuits.".format(
+                        "{} does not support parametrized circuits.".format(
                             type(self).__name__
                         )
                     )

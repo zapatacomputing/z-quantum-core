@@ -1,43 +1,40 @@
+import json
 import os
 import random
+
 import numpy as np
-import pytest
-from scipy.stats import unitary_group
-import sympy
-import json
 import pkg_resources
-
-from zquantum.core.openfermion import (
-    load_interaction_operator,
-)
-
+import pytest
+import sympy
+from scipy.stats import unitary_group
+from zquantum.core.openfermion import load_interaction_operator
 from zquantum.core.utils import (
+    RNDSEED,
+    SCHEMA_VERSION,
+    ValueEstimate,
+    bin2dec,
+    compare_unitary,
     convert_array_to_dict,
     convert_dict_to_array,
-    sample_from_probability_distribution,
+    create_object,
+    create_symbols_map,
     dec2bin,
-    bin2dec,
+    get_func_from_specs,
+    hf_rdm,
     is_identity,
     is_unitary,
-    compare_unitary,
-    RNDSEED,
-    ValueEstimate,
-    save_value_estimate,
-    load_value_estimate,
-    save_list,
     load_list,
-    create_object,
-    save_generic_dict,
-    get_func_from_specs,
-    load_noise_model,
-    save_noise_model,
-    create_symbols_map,
-    save_timing,
-    save_nmeas_estimate,
     load_nmeas_estimate,
-    SCHEMA_VERSION,
+    load_noise_model,
+    load_value_estimate,
+    sample_from_probability_distribution,
+    save_generic_dict,
+    save_list,
+    save_nmeas_estimate,
+    save_noise_model,
+    save_timing,
+    save_value_estimate,
     scale_and_discretize,
-    hf_rdm,
 )
 
 
@@ -184,7 +181,7 @@ class TestUtils:
         # And
         # After manually loading json
         if isinstance("list.json", str):
-            with open("list.json", "r") as f:
+            with open("list.json") as f:
                 data = json.load(f)
         else:
             data = json.load("list.json")
@@ -275,7 +272,7 @@ class TestUtils:
 
         # When/Then
         with pytest.raises(ValueError):
-            symbols_map = create_symbols_map(symbols, params)
+            create_symbols_map(symbols, params)
 
     def test_save_timing(self):
         walltime = 4.2

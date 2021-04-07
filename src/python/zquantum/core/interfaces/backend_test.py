@@ -5,24 +5,24 @@ You need to define your own test cases that inherit from the ones defined here.
 
 Note regarding testing specific gates.
 
-To test that a gate is properly implemented, we can ask for its matrix representation 
-and check that each entry is correct. In some quantum simulator packages, 
-returning this matrix representation is either not possible or difficult to implement. 
-In such cases, we can check that the gate implementation is correct by ensuring that 
-the gate transforms input states to output states as expected. If the simulator has 
-the capability to provide the wavefunction as an output, then we can check that 
-the entries of the transformed wavefunction are correct. If the simulator does not 
-have the capability of providing the wavefunction as an output, but only gives 
-bitstring samples from the wavefunction, then we can check that the bitstring statistics 
-are as expected after taking sufficiently many samples. In both of these cases where 
-we cannot directly check the matrix corresponding to the gate, we must check the action 
-of the gate on multiple inputs (and outputs in the sampling case). We can picture 
-this process as a kind of "quantum process tomography" for gate unit testing. Mathematically, 
-correctness is ensured if the span of the input and outputs spans the full vector space. 
-Checking a tomographically complete set of input and outputs could be time consuming, 
-especially in the case of sampling. Furthermore, we expect that the bugs that will occur 
-will lead to an effect on many inputs (rather than, say, a single input-output pair). 
-Therefore, we are taking here a slightly lazy, but efficient approach to testing these gates 
+To test that a gate is properly implemented, we can ask for its matrix representation
+and check that each entry is correct. In some quantum simulator packages,
+returning this matrix representation is either not possible or difficult to implement.
+In such cases, we can check that the gate implementation is correct by ensuring that
+the gate transforms input states to output states as expected. If the simulator has
+the capability to provide the wavefunction as an output, then we can check that
+the entries of the transformed wavefunction are correct. If the simulator does not
+have the capability of providing the wavefunction as an output, but only gives
+bitstring samples from the wavefunction, then we can check that the bitstring statistics
+are as expected after taking sufficiently many samples. In both of these cases where
+we cannot directly check the matrix corresponding to the gate, we must check the action
+of the gate on multiple inputs (and outputs in the sampling case). We can picture
+this process as a kind of "quantum process tomography" for gate unit testing. Mathematically,
+correctness is ensured if the span of the input and outputs spans the full vector space.
+Checking a tomographically complete set of input and outputs could be time consuming,
+especially in the case of sampling. Furthermore, we expect that the bugs that will occur
+will lead to an effect on many inputs (rather than, say, a single input-output pair).
+Therefore, we are taking here a slightly lazy, but efficient approach to testing these gates
 by testing how they transform a tomographically incomplete set of input and outputs.
 
 Gates tests use `backend_for_gates_test` instead of `backend` as an input parameter because:
@@ -31,19 +31,29 @@ b) having execution time in mind it's a good idea to use lower number of samples
 """
 
 
+import functools
+
 import numpy as np
 import pytest
-import functools
+from openfermion import IsingOperator, QubitOperator
 from pyquil import Program
-from pyquil.gates import X, CNOT, H
+from pyquil.gates import CNOT, H, X
 from pyquil.wavefunction import Wavefunction
-from openfermion import QubitOperator, IsingOperator
 
-from ..circuit import Circuit, Qubit, Gate
-from ..measurement import Measurements, ExpectationValues
 from ..bitstring_distribution import BitstringDistribution
+from ..circuit import Circuit, Gate, Qubit
 from ..estimator import BasicEstimator
-from ..testing.test_cases_for_backend_tests import *
+from ..measurement import ExpectationValues, Measurements
+from ..testing.test_cases_for_backend_tests import (
+    one_qubit_non_parametric_gates_amplitudes_test_set,
+    one_qubit_non_parametric_gates_exp_vals_test_set,
+    one_qubit_parametric_gates_amplitudes_test_set,
+    one_qubit_parametric_gates_exp_vals_test_set,
+    two_qubit_non_parametric_gates_amplitudes_test_set,
+    two_qubit_non_parametric_gates_exp_vals_test_set,
+    two_qubit_parametric_gates_amplitudes_test_set,
+    two_qubit_parametric_gates_exp_vals_test_set,
+)
 
 
 def skip_tests_for_excluded_gates(func):
@@ -191,7 +201,6 @@ class QuantumBackendTests:
         circuit = Circuit(Program(H(0), CNOT(0, 1), CNOT(1, 2)))
         operator = IsingOperator("[]")
         target_expectation_values = np.array([1])
-        n_samples = 1
         # When
         backend.n_samples = 1
         expectation_values = backend.get_expectation_values(circuit, operator)

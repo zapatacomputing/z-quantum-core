@@ -1,10 +1,11 @@
-import openfermion, pyquil
-from pyquil.paulis import exponentiate as pyquil_exponentiate
-from .openfermion import qubitop_to_pyquilpauli
+from typing import List, Tuple, Union
+
 import numpy as np
-from .circuit import Circuit
-from typing import Tuple, List, Union
+import pyquil
 import sympy
+from pyquil.paulis import exponentiate as pyquil_exponentiate
+
+from .circuit import Circuit
 
 
 def time_evolution(
@@ -37,7 +38,7 @@ def time_evolution(
                 )
 
     else:
-        raise ValueError("Currently the method {} is not supported".format(method))
+        raise ValueError(f"Currently the method {method} is not supported")
 
     return output
 
@@ -123,7 +124,7 @@ def time_evolution_derivatives(
 
     else:
 
-        raise ValueError("Currently the method {} is not supported".format(method))
+        raise ValueError(f"Currently the method {method} is not supported")
 
 
 def generate_circuit_sequence(

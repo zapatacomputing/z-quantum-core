@@ -1,6 +1,7 @@
+from operator import mul
+
 import sympy
 from sympy.physics.quantum import TensorProduct
-from operator import mul
 
 # This script is used to generate test cases for tests in `core/interfaces/backend_test.py`
 # In order to use just run this python file with python3 generate_cases_for_backend_tests.py
@@ -61,8 +62,8 @@ def generate_cases_1_qubit_wavefunction(matrix, matrix_name, angles):
             circuit = mul(matrix, initial_matrix)
             new_circuit = circuit.subs("theta", angle)
             amplitudes = new_circuit * sympy.Matrix([[1], [0]])
-            gate_names_string = '["{}", "{}", '.format(initial_matrix_name, matrix_name)
-            angle_string = "[{}], ".format(angle).replace("pi", "np.pi")
+            gate_names_string = f'["{initial_matrix_name}", "{matrix_name}", '
+            angle_string = f"[{angle}], ".replace("pi", "np.pi")
             amplitude_string = (
                 str([amplitudes[0], amplitudes[1]])
                 .replace("sqrt", "np.sqrt")
@@ -83,7 +84,7 @@ def generate_cases_1_qubit_exp_vals(matrix, matrix_name):
             expectation_value = mul(circuit_bra, mul(operator, circuit_ket))[0]
             outputs.append(sympy.simplify(expectation_value))
 
-        gate_names_string = '["{}", "{}", '.format(initial_matrix_name, matrix_name)
+        gate_names_string = f'["{initial_matrix_name}", "{matrix_name}", '
         exp_vals_string = (
             "[{}, {}, {}, {}]".format(*outputs)
             .replace("sqrt", "np.sqrt")
@@ -105,8 +106,8 @@ def generate_cases_1_qubit_exp_vals_with_angles(matrix, matrix_name, angles):
                 expectation_value = mul(circuit_bra, mul(operator, circuit_ket))[0]
                 outputs.append(sympy.simplify(expectation_value))
 
-            gate_names_string = '["{}", "{}", '.format(initial_matrix_name, matrix_name)
-            angle_string = "[{}], ".format(angle).replace("pi", "np.pi")
+            gate_names_string = f'["{initial_matrix_name}", "{matrix_name}", '
+            angle_string = f"[{angle}], ".replace("pi", "np.pi")
             exp_vals_string = (
                 "[{}, {}, {}, {}]".format(*outputs)
                 .replace("sqrt", "np.sqrt")
@@ -126,7 +127,7 @@ def generate_cases_2_qubits_wavefunction(matrix, matrix_name, angles):
             gate_names_string = '[["{}", "{}"], "{}", '.format(
                 initial_matrix_names[0], initial_matrix_names[1], matrix_name
             )
-            angle_string = "[{}], ".format(angle).replace("pi", "np.pi")
+            angle_string = f"[{angle}], ".replace("pi", "np.pi")
             amplitude_string = (
                 str([amplitudes[0], amplitudes[1], amplitudes[2], amplitudes[3]])
                 .replace("sqrt", "np.sqrt")
@@ -142,7 +143,7 @@ def generate_cases_2_qubits_exp_vals(matrix, matrix_name):
         outputs = []
         operator_names = []
         for operator, operator_name in two_qubit_operators:
-            operator_names.append('"{}"'.format(operator_name))
+            operator_names.append(f'"{operator_name}"')
             circuit_ket = mul(matrix, initial_matrix) * sympy.Matrix(
                 [[1], [0], [0], [0]]
             )
@@ -157,8 +158,7 @@ def generate_cases_2_qubits_exp_vals(matrix, matrix_name):
         exp_vals_string = "["
         for output in outputs:
             exp_vals_string += (
-                "{},".format(output)
-                .replace("sqrt", "np.sqrt")
+                f"{output},".replace("sqrt", "np.sqrt")
                 .replace("pi", "np.pi")
                 .replace("1.0*I", "1.0j")
                 .replace("*I", "*1.0j")
@@ -174,7 +174,7 @@ def generate_cases_2_qubits_exp_vals_with_angles(matrix, matrix_name, angles):
             outputs = []
             operator_names = []
             for operator, operator_name in two_qubit_operators:
-                operator_names.append('"{}"'.format(operator_name))
+                operator_names.append(f'"{operator_name}"')
                 circuit_ket = mul(matrix, initial_matrix) * sympy.Matrix(
                     [[1], [0], [0], [0]]
                 )
@@ -187,12 +187,11 @@ def generate_cases_2_qubits_exp_vals_with_angles(matrix, matrix_name, angles):
             gate_names_string = '[["{}", "{}"], "{}", '.format(
                 initial_matrix_names[0], initial_matrix_names[1], matrix_name
             )
-            angle_string = "[{}], ".format(angle).replace("pi", "np.pi")
+            angle_string = f"[{angle}], ".replace("pi", "np.pi")
             exp_vals_string = "["
             for output in outputs:
                 exp_vals_string += (
-                    "{},".format(output)
-                    .replace("sqrt", "np.sqrt")
+                    f"{output},".replace("sqrt", "np.sqrt")
                     .replace("pi", "np.pi")
                     .replace("1.0*I", "1.0j")
                     .replace("*I", "*1.0j")

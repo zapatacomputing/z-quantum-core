@@ -1,26 +1,24 @@
 """Base class for quantum gates"""
 
-import sys
-import numpy as np
-import sympy
 import copy
+import sys
+from math import pi
 
 import cirq
+import numpy as np
 import pyquil
 import qiskit
-from math import pi, exp
-
-from pyquil.quilatom import quil_sin, quil_cos
-from qiskit import QuantumRegister, ClassicalRegister
-from qiskit.circuit.quantumregister import Qubit as QiskitQubit
-from qiskit.circuit.classicalregister import Clbit as QiskitClbit
+import sympy
+from qiskit import QuantumRegister
 from qiskit.circuit import ParameterExpression
+from qiskit.circuit.classicalregister import Clbit as QiskitClbit
+from qiskit.circuit.quantumregister import Qubit as QiskitQubit
 
 from ._gateset import ALL_GATES
 from ._qubit import Qubit
 
 
-class Gate(object):
+class Gate:
     """Class for storing information associated with a quantum gate.
 
     Attributes:
@@ -207,9 +205,7 @@ class Gate(object):
         }:  # gates defined in cirq
             return self.to_cirq().gate._unitary_()
         else:
-            raise NotImplementedError(
-                "Gate {} currently not supported.".format(self.name)
-            )
+            raise NotImplementedError(f"Gate {self.name} currently not supported.")
 
     @classmethod
     def from_dict(cls, dict):
@@ -251,7 +247,7 @@ class Gate(object):
         if len(self.qubits) >= 2:
             q2 = self.qubits[1].index
         if len(self.qubits) >= 3:
-            q3 = self.qubits[2].index
+            self.qubits[2].index
         if len(self.params) > 0:
             params = self.params
 
@@ -310,7 +306,7 @@ class Gate(object):
         """
 
         if self.name not in ALL_GATES:
-            sys.exit("Gate {} currently not supported.".format(self.name))
+            sys.exit(f"Gate {self.name} currently not supported.")
 
         q_inds = []
         q_inds.append(self.qubits[0].index)
@@ -664,11 +660,11 @@ class Gate(object):
             # Which qubits the gate acts on
             qpic_string = ""
             for qubit in self.qubits:
-                qpic_string += "w{} ".format(qubit.index)
+                qpic_string += f"w{qubit.index} "
 
             # The gate label. Note the extra curly braces so that whitespaces are
             # included in the gate label
-            qpic_string += "G {{{}{}}} ".format(self.name, self.get_param_string())
+            qpic_string += f"G {{{self.name}{self.get_param_string()}}} "
 
             # Try to adjust the width so that the label fits
             if len(self.params) > 0:
@@ -829,7 +825,7 @@ class Gate(object):
                         )
             else:
                 raise NotImplementedError(
-                    "The cirq gate {} is currently not supported".format(name_str)
+                    f"The cirq gate {name_str} is currently not supported"
                 )
 
         output.qubits = Qubit_list
@@ -880,7 +876,7 @@ class Gate(object):
             output.name == "CU3"
         else:
             raise NotImplementedError(
-                "The gate {} is currently not supported.".format(qiskit_gate.name)
+                f"The gate {qiskit_gate.name} is currently not supported."
             )
 
         output.qubits = Qubit_list
@@ -923,7 +919,7 @@ class DampingBeta(cirq.ops.gate_features.SingleQubitGate):
         return f"Db({self.p})"
 
 
-class MCTGate(object):
+class MCTGate:
     """
     An Orquestra gate class that deals with synthesis of a Multi Toffoli Gate
     Although this inherits the Gate class it has extra attributes fundamentally related to
@@ -1041,7 +1037,7 @@ class MCRY(MCTGate):
     """
     This applies the MulltiControl Y rotation
     Attributes:
-    phase(numpy float): The phase angle for oracle to be implemente
+    phase(numpy float): The phase angle for oracle to be implemented
     """
 
     def __init__(

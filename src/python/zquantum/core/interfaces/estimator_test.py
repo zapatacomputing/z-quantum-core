@@ -5,7 +5,6 @@ You need to define your own test cases that inherit from the ones defined here.
 """
 
 
-import pytest
 from ..measurement import ExpectationValues
 
 

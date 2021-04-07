@@ -1,39 +1,35 @@
-import unittest
-import numpy as np
-import random
-from textwrap import dedent
-import pyquil
-import cirq
-import qiskit
 import os
+import random
+import unittest
+from math import cos, pi, sin
+from textwrap import dedent
+
+import cirq
+import numpy as np
+import pyquil
+import qiskit
 import sympy
-
 from pyquil import Program
-from pyquil.gates import *
-from pyquil.gates import QUANTUM_GATES
-from math import pi, sin, cos
-
-from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister
+from pyquil.gates import CNOT, CPHASE, QUANTUM_GATES, RX, RY, RZ, SWAP, H, S, X, Y, Z
+from qiskit import ClassicalRegister, QuantumCircuit, QuantumRegister
+from qiskit.quantum_info import Operator
 from zquantum.core.circuit import (
-    load_circuit,
-    save_circuit,
-    load_circuit_set,
-    save_circuit_set,
+    MCRY,
     Circuit,
     Gate,
-    Qubit,
-    pyquil2cirq,
-    cirq2pyquil,
     MCTGate,
     PhaseOracle,
-    MCRY,
+    Qubit,
     add_ancilla_register_to_circuit,
+    cirq2pyquil,
+    load_circuit,
+    load_circuit_set,
+    pyquil2cirq,
+    save_circuit,
+    save_circuit_set,
 )
-
-from zquantum.core.utils import compare_unitary, is_identity, is_unitary, RNDSEED
 from zquantum.core.testing import create_random_circuit
-from qiskit.quantum_info import Operator
-import numpy.linalg as linalg
+from zquantum.core.utils import RNDSEED, compare_unitary, is_identity
 
 
 class TestCircuit(unittest.TestCase):
@@ -230,7 +226,6 @@ class TestCircuit(unittest.TestCase):
         theta_1 = sympy.Symbol("theta_1")
         theta_2 = sympy.Symbol("theta_2")
         value_1 = 0.5
-        value_2 = 0.6
         symbols_map = [(theta_1, value_1)]
         circuit = Circuit(
             Program().inst(
@@ -253,7 +248,6 @@ class TestCircuit(unittest.TestCase):
         # Given
         theta_1 = sympy.Symbol("theta_1")
         theta_2 = sympy.Symbol("theta_2")
-        value_1 = 0.5
         value_2 = 0.6
         symbols_map = [(theta_2, value_2)]
         circuit = Circuit(
@@ -337,10 +331,10 @@ class TestCircuit(unittest.TestCase):
             ]
         )
 
-        if compare_unitary(U1, U2) == False:
+        if compare_unitary(U1, U2) is False:
             print(cirq2pyquil(cirq_circuit))
             print(cirq2pyquil(circuit3))
-        if compare_unitary(u, U1) == False:
+        if compare_unitary(u, U1) is False:
             print(u)
             print(U1)
         self.assertTrue(compare_unitary(U1, U2, tol=1e-10))
@@ -384,15 +378,15 @@ class TestCircuit(unittest.TestCase):
         u1 = Circuit(circ1).to_unitary()
         u2 = Circuit(circ2).to_unitary()
         u3 = cirq_gate._unitary_()
-        if compare_unitary(u1, u2, tol=1e-10) == False:
-            print("u1={}".format(u1))
-            print("u2={}".format(u2))
-        if compare_unitary(u2, u3, tol=1e-10) == False:
-            print("u2={}".format(u2))
-            print("u3={}".format(u3))
-        if compare_unitary(u3, u, tol=1e-10) == False:
-            print("u2={}".format(u2))
-            print("u3={}".format(u3))
+        if compare_unitary(u1, u2, tol=1e-10) is False:
+            print(f"u1={u1}")
+            print(f"u2={u2}")
+        if compare_unitary(u2, u3, tol=1e-10) is False:
+            print(f"u2={u2}")
+            print(f"u3={u3}")
+        if compare_unitary(u3, u, tol=1e-10) is False:
+            print(f"u2={u2}")
+            print(f"u3={u3}")
         self.assertTrue(compare_unitary(u1, u2, tol=1e-10))
         self.assertTrue(compare_unitary(u2, u3, tol=1e-10))
         self.assertTrue(compare_unitary(u3, u, tol=1e-10))
@@ -440,7 +434,7 @@ class TestCircuit(unittest.TestCase):
         U1 = Circuit(cirq2pyquil(cirq_circuit)).to_unitary()
         U2 = Circuit(cirq2pyquil(circuit3)).to_unitary()
 
-        if compare_unitary(U1, U2, tol=1e-10) == False:
+        if compare_unitary(U1, U2, tol=1e-10) is False:
             print(cirq2pyquil(cirq_circuit))
             print(cirq2pyquil(circuit3))
         self.assertTrue(compare_unitary(U1, U2, tol=1e-10), True)
@@ -517,10 +511,10 @@ class TestCircuit(unittest.TestCase):
             [-1j * sin(beta * pi), 0, 0, cos(beta * pi)],
         ]
 
-        if compare_unitary(U1, U2, tol=1e-10) == False:
+        if compare_unitary(U1, U2, tol=1e-10) is False:
             print(U1)
             print(U2)
-        if compare_unitary(U2, U3, tol=1e-10) == False:
+        if compare_unitary(U2, U3, tol=1e-10) is False:
             print(U2)
             print(U3)
         self.assertTrue(compare_unitary(U1, U2, tol=1e-10), True)
@@ -608,10 +602,10 @@ class TestCircuit(unittest.TestCase):
             [1j * sin(beta * pi), 0, 0, cos(beta * pi)],
         ]
 
-        if compare_unitary(U1, U2, tol=1e-10) == False:
+        if compare_unitary(U1, U2, tol=1e-10) is False:
             print(U1)
             print(U2)
-        if compare_unitary(U2, U3, tol=1e-10) == False:
+        if compare_unitary(U2, U3, tol=1e-10) is False:
             print(U2)
             print(U3)
         self.assertTrue(compare_unitary(U1, U2, tol=1e-10), True)
@@ -713,10 +707,10 @@ class TestCircuit(unittest.TestCase):
             [0, 0, 0, cos(beta * pi) - 1j * sin(beta * pi)],
         ]
 
-        if compare_unitary(U1, U2, tol=1e-10) == False:
+        if compare_unitary(U1, U2, tol=1e-10) is False:
             print(U1)
             print(U2)
-        if compare_unitary(U2, U3, tol=1e-10) == False:
+        if compare_unitary(U2, U3, tol=1e-10) is False:
             print(U2)
             print(U3)
         self.assertTrue(compare_unitary(U1, U2, tol=1e-10), True)
@@ -1114,7 +1108,7 @@ class TestCircuit(unittest.TestCase):
             U1 = Circuit(cirq2pyquil(cirq_circuit)).to_unitary()
             U2 = Circuit(cirq2pyquil(cirq_circuit2)).to_unitary()
 
-            if compare_unitary(U1, U2, tol=1e-10) == False:
+            if compare_unitary(U1, U2, tol=1e-10) is False:
                 print(cirq2pyquil(cirq_circuit))
                 print(cirq2pyquil(cirq_circuit2))
 
@@ -1294,7 +1288,7 @@ class TestCircuit(unittest.TestCase):
         gate_H0 = Gate("H", [qubits[0]])
         gate_CNOT01 = Gate("CNOT", [qubits[0], qubits[1]])
         gate_T2 = Gate("T", [qubits[2]])
-        gate_CZ12 = Gate("CZ", [qubits[1], qubits[2]])
+        Gate("CZ", [qubits[1], qubits[2]])
 
         circ1 = Circuit()
         circ1.qubits = qubits
@@ -1307,7 +1301,7 @@ class TestCircuit(unittest.TestCase):
         gate_H0 = Gate("H", [qubits[0]])
         gate_CNOT01 = Gate("CNOT", [qubits[0], qubits[1]])
         gate_T2 = Gate("T", [qubits[2]])
-        gate_CZ12 = Gate("CZ", [qubits[1], qubits[2]])
+        Gate("CZ", [qubits[1], qubits[2]])
 
         circ1 = Circuit()
         circ1.qubits = qubits

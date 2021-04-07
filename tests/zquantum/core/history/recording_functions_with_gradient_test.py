@@ -1,7 +1,7 @@
 """Test cases for recording functions with gradients."""
-import pytest
 import numpy as np
-from zquantum.core.history.example_functions import function_1, Function2, Function5
+import pytest
+from zquantum.core.history.example_functions import Function2, Function5, function_1
 from zquantum.core.history.recorder import recorder
 from zquantum.core.interfaces.functions import CallableWithGradient
 

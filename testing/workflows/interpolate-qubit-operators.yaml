@@ -2,11 +2,11 @@ ZapOSApiVersion: v1alpha1
 kind: Workflow
 
 resources:
-- name: z-quantum-core
-  type: git
-  parameters:
-    url: "git@github.com:zapatacomputing/z-quantum-core.git"
-    branch: "dev"
+  - name: z-quantum-core
+    type: git
+    parameters:
+      url: "git@github.com:zapatacomputing/z-quantum-core.git"
+      branch: "dev"
 
 metadata:
   generateName: z-quantum-core-acceptance-test-interpolate-qubitops-
@@ -15,50 +15,50 @@ spec:
   entrypoint: main
   arguments:
     parameters:
-    - s3-bucket: quantum-engine
-    - s3-key: testing/acceptance-tests/
+      - s3-bucket: quantum-engine
+      - s3-key: testing/acceptance-tests/
 
   templates:
-  - name: main
-    steps:
-    - - name: get-operator-1
-        template: get-number-operator
-        arguments:
-          parameters:
-            - n-qubits: "4"
-            - resources: [z-quantum-core]
-      - name: get-operator-2
-        template: get-number-operator
-        arguments:
-          parameters:
-            - n-qubits: "4"
-            - n-particles: "2"
-            - resources: [z-quantum-core]
-    - - name: transform-interaction-operator-1
-        template: transform-interaction-operator
-        arguments:
-          parameters:
-            - transformation: "Jordan-Wigner"
-            - resources: [z-quantum-core]
-          artifacts:
-            - input-op:
-                from: "{{steps.get-operator-1.outputs.artifacts.number-op}}"
-      - name: transform-interaction-operator-2
-        template: transform-interaction-operator
-        arguments:
-          parameters:
-            - transformation: "Jordan-Wigner"
-            - resources: [z-quantum-core]
-          artifacts:
-            - input-op:
-                from: "{{steps.get-operator-2.outputs.artifacts.number-op}}"
-    - - name: test
-        template: interpolate-qubit-operators
-        arguments:
-          parameters:
-            - resources: [z-quantum-core]
-          artifacts:
-            - reference-qubit-operator:
-                from: "{{steps.transform-interaction-operator-1.outputs.artifacts.transformed-op}}"
-            - target-qubit-operator:
-                from: "{{steps.transform-interaction-operator-2.outputs.artifacts.transformed-op}}"
+    - name: main
+      steps:
+        - - name: get-operator-1
+            template: get-number-operator
+            arguments:
+              parameters:
+                - n-qubits: "4"
+                - resources: [z-quantum-core]
+          - name: get-operator-2
+            template: get-number-operator
+            arguments:
+              parameters:
+                - n-qubits: "4"
+                - n-particles: "2"
+                - resources: [z-quantum-core]
+        - - name: transform-interaction-operator-1
+            template: transform-interaction-operator
+            arguments:
+              parameters:
+                - transformation: "Jordan-Wigner"
+                - resources: [z-quantum-core]
+              artifacts:
+                - input-op:
+                    from: "{{steps.get-operator-1.outputs.artifacts.number-op}}"
+          - name: transform-interaction-operator-2
+            template: transform-interaction-operator
+            arguments:
+              parameters:
+                - transformation: "Jordan-Wigner"
+                - resources: [z-quantum-core]
+              artifacts:
+                - input-op:
+                    from: "{{steps.get-operator-2.outputs.artifacts.number-op}}"
+        - - name: test
+            template: interpolate-qubit-operators
+            arguments:
+              parameters:
+                - resources: [z-quantum-core]
+              artifacts:
+                - reference-qubit-operator:
+                    from: "{{steps.transform-interaction-operator-1.outputs.artifacts.transformed-op}}"
+                - target-qubit-operator:
+                    from: "{{steps.transform-interaction-operator-2.outputs.artifacts.transformed-op}}"

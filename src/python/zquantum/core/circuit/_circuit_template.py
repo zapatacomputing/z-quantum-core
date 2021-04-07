@@ -1,12 +1,11 @@
-import json
-import numpy as np
 import importlib
-from numpy.random import random_sample
-from ..utils import SCHEMA_VERSION
-from ..utils import convert_array_to_dict, convert_dict_to_array
-from ..circuit import Circuit, Qubit, Gate
-from typing import TextIO, List, Tuple, Dict, Optional
-from scipy.optimize import OptimizeResult
+import json
+from typing import Dict, List, Optional, TextIO, Tuple
+
+import numpy as np
+
+from ..circuit import Circuit, Gate, Qubit
+from ..utils import SCHEMA_VERSION, convert_array_to_dict, convert_dict_to_array
 
 
 def save_circuit_template(circuit_template: dict, filename: str):
@@ -40,7 +39,7 @@ def load_circuit_template(file: TextIO) -> dict:
     """
 
     if isinstance(file, str):
-        with open(file, "r") as f:
+        with open(file) as f:
             data = json.load(f)
     else:
         data = json.load(file)
@@ -80,7 +79,7 @@ def load_circuit_template_params(file: TextIO):
     """
 
     if isinstance(file, str):
-        with open(file, "r") as f:
+        with open(file) as f:
             data = json.load(f)
     else:
         data = json.load(file)
@@ -192,7 +191,7 @@ def load_parameter_grid(file: TextIO) -> ParameterGrid:
     """
 
     if isinstance(file, str):
-        with open(file, "r") as f:
+        with open(file) as f:
             data = json.load(f)
     else:
         data = json.load(file)
@@ -226,7 +225,7 @@ def build_uniform_param_grid(
     return ParameterGrid(param_ranges)
 
 
-class CircuitLayers(object):
+class CircuitLayers:
     """A class representing a pattern of circuit layers, consisting of lists,
     each list containing the groups of qubits entangled for each multiqubit
     gate in a particular layer.
@@ -275,7 +274,7 @@ def load_circuit_layers(file: TextIO) -> CircuitLayers:
     """
 
     if isinstance(file, str):
-        with open(file, "r") as f:
+        with open(file) as f:
             data = json.load(f)
     else:
         data = json.load(file)
@@ -306,7 +305,7 @@ def load_circuit_ordering(file):
     """
 
     if isinstance(file, str):
-        with open(file, "r") as f:
+        with open(file) as f:
             data = json.load(f)
     else:
         data = json.load(file)
@@ -314,7 +313,7 @@ def load_circuit_ordering(file):
     return data["ordering"]
 
 
-class CircuitConnectivity(object):
+class CircuitConnectivity:
     """A class representing the connectivity of a circuit resulting from qpu
     constraints, consisting of a list of tuples of qubits representing the
     allowed multiqubit gate connections.
@@ -359,7 +358,7 @@ def load_circuit_connectivity(file):
     """
 
     if isinstance(file, str):
-        with open(file, "r") as f:
+        with open(file) as f:
             data = json.load(f)
     else:
         data = json.load(file)
@@ -384,7 +383,7 @@ def build_circuit_layers_and_connectivity(
     elif layer_type == "nearest-neighbor":
         return _build_circuit_layers_and_connectivity_nearest_neighbors(x_dimension)
     else:
-        ValueError("Layer type {0} is not defined".format(layer_type))
+        ValueError(f"Layer type {layer_type} is not defined")
 
 
 def _build_circuit_layers_and_connectivity_sycamore(x_dimension, y_dimension):

@@ -1,21 +1,18 @@
+from typing import Callable, List
+
 import numpy as np
 import rapidjson as json
 from openfermion import (
     InteractionOperator,
-    QubitOperator,
-    IsingOperator,
-    SymbolicOperator,
     InteractionRDM,
+    IsingOperator,
+    QubitOperator,
+    SymbolicOperator,
 )
-from typing import Callable, List
-
-from ..utils import (
-    SCHEMA_VERSION,
-    convert_dict_to_array,
-    convert_array_to_dict,
-)
-from ..typing import AnyPath
 from zquantum.core.typing import LoadSource
+
+from ..typing import AnyPath
+from ..utils import SCHEMA_VERSION, convert_array_to_dict, convert_dict_to_array
 
 
 def convert_interaction_op_to_dict(op: InteractionOperator) -> dict:
@@ -61,7 +58,7 @@ def load_interaction_operator(file: LoadSource) -> InteractionOperator:
     """
 
     if isinstance(file, str):
-        with open(file, "r") as f:
+        with open(file) as f:
             data = json.load(f)
     else:
         data = json.load(file)
@@ -156,7 +153,7 @@ def load_qubit_operator(file: LoadSource) -> QubitOperator:
     """
 
     if isinstance(file, str):
-        with open(file, "r") as f:
+        with open(file) as f:
             data = json.load(f)
     else:
         data = json.load(file)
@@ -192,7 +189,7 @@ def load_qubit_operator_set(file: LoadSource) -> List[QubitOperator]:
         qubit_operator_set (list): a list of QubitOperator objects
     """
     if isinstance(file, str):
-        with open(file, "r") as f:
+        with open(file) as f:
             data = json.load(f)
     else:
         data = json.load(file)
@@ -262,7 +259,7 @@ def load_ising_operator(file: LoadSource) -> IsingOperator:
     """
 
     if isinstance(file, str):
-        with open(file, "r") as f:
+        with open(file) as f:
             data = json.load(f)
     else:
         data = json.load(file)
@@ -341,7 +338,7 @@ def load_interaction_rdm(file: LoadSource) -> InteractionRDM:
     """
 
     if isinstance(file, str):
-        with open(file, "r") as f:
+        with open(file) as f:
             data = json.load(f)
     else:
         data = json.load(file)

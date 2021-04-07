@@ -1,6 +1,7 @@
 """Test cases for ansatz-related utilities."""
 import unittest
 from unittest import mock
+
 from zquantum.core.interfaces.ansatz_utils import (
     DynamicProperty,
     ansatz_property,
@@ -27,7 +28,6 @@ class PseudoAnsatz:
 
         Using this method should invalidate parametrized circuit.
         """
-        pass
 
 
 class DynamicPropertyTests(unittest.TestCase):
@@ -71,7 +71,7 @@ class DynamicPropertyTests(unittest.TestCase):
 class TestAnsatzProperty(unittest.TestCase):
     """Test cases for ansatz_property.
 
-    Note that we don't really need an ansatz intance, we only need to check that _parametrized_circuit is
+    Note that we don't really need an ansatz instance, we only need to check that _parametrized_circuit is
     set to None.
     """
 

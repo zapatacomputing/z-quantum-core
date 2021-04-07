@@ -1,16 +1,13 @@
-import sympy
-import numpy as np
 import cirq
-
+import numpy as np
 import pytest
-
+import sympy
+from zquantum.core.wip.circuits import _builtin_gates, _circuit
 from zquantum.core.wip.circuits.conversions.cirq_conversions import (
     export_to_cirq,
     import_from_cirq,
     make_rotation_factory,
 )
-from zquantum.core.wip.circuits import _builtin_gates
-from zquantum.core.wip.circuits import _circuit
 
 # --------- gates ---------
 
@@ -124,7 +121,7 @@ class CustomGate(cirq.Gate):
     """
 
     def __init__(self, theta):
-        super(CustomGate, self)
+        super()
         self.theta = theta
 
     def _num_qubits_(self):

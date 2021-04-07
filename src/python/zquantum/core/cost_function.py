@@ -1,15 +1,17 @@
-from .interfaces.backend import QuantumBackend
-from .interfaces.ansatz import Ansatz
-from .interfaces.estimator import Estimator
-from .interfaces.functions import function_with_gradient, StoreArtifact
-from .circuit import combine_ansatz_params, Circuit
-from .gradients import finite_differences_gradient
-from .estimator import BasicEstimator
-from .utils import create_symbols_map, ValueEstimate
-from .measurement import ExpectationValues
-from typing import Optional, Callable, Dict
+from typing import Callable, Dict, Optional
+
 import numpy as np
 from openfermion import SymbolicOperator
+
+from .circuit import Circuit, combine_ansatz_params
+from .estimator import BasicEstimator
+from .gradients import finite_differences_gradient
+from .interfaces.ansatz import Ansatz
+from .interfaces.backend import QuantumBackend
+from .interfaces.estimator import Estimator
+from .interfaces.functions import StoreArtifact, function_with_gradient
+from .measurement import ExpectationValues
+from .utils import ValueEstimate, create_symbols_map
 
 
 def get_ground_state_cost_function(
@@ -85,7 +87,7 @@ def get_ground_state_cost_function(
 
 
 def sum_expectation_values(expectation_values: ExpectationValues) -> ValueEstimate:
-    """Compute the sum of expectation values.
+    r"""Compute the sum of expectation values.
 
     If correlations are available, the precision of the sum is computed as
 

@@ -2,11 +2,11 @@ ZapOSApiVersion: v1alpha1
 kind: Workflow
 
 resources:
-- name: z-quantum-core
-  type: git
-  parameters:
-    url: "git@github.com:zapatacomputing/z-quantum-core.git"
-    branch: "dev"
+  - name: z-quantum-core
+    type: git
+    parameters:
+      url: "git@github.com:zapatacomputing/z-quantum-core.git"
+      branch: "dev"
 
 metadata:
   generateName: z-quantum-core-acceptance-test-generate-regular-graph-
@@ -15,17 +15,17 @@ spec:
   entrypoint: main
   arguments:
     parameters:
-    - s3-bucket: quantum-engine
-    - s3-key: testing/acceptance-tests/
+      - s3-bucket: quantum-engine
+      - s3-key: testing/acceptance-tests/
 
   templates:
-  - name: main
-    steps:
-    - - name: test
-        template: generate-regular-graph
-        arguments:
-          parameters:
-            - n-nodes: "4"
-            - degree: "1"
-            - seed: "1234"
-            - resources: [z-quantum-core]
+    - name: main
+      steps:
+        - - name: test
+            template: generate-regular-graph
+            arguments:
+              parameters:
+                - n-nodes: "4"
+                - degree: "1"
+                - seed: "1234"
+                - resources: [z-quantum-core]

@@ -1,4 +1,5 @@
-from typing import Dict, TYPE_CHECKING
+from typing import TYPE_CHECKING, Dict
+
 from .clipped_negative_log_likelihood import compute_clipped_negative_log_likelihood
 
 if TYPE_CHECKING:

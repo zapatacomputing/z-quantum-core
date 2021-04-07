@@ -1,160 +1,160 @@
 spec:
   templates:
-  - name: get-expectation-values-for-qubit-operator
-    parent: generic-task
-    inputs:
-      parameters:
-      - name: backend-specs
-      - name: command
-        value: bash main_script.sh
-      artifacts:
-      - name: circuit
-        path: /app/circuit.json
-      - name: qubit-operator
-        path: /app/qubitop.json
-      - name: main-script
-        path: /app/main_script.sh
-        raw:
-          data: |
-            qvm -S &
-            quilc -S &
-            source /app/usr/local/bin/compilers_and_libraries.sh
-            python3 python_script.py
-      - name: python-script
-        path: /app/python_script.py
-        raw:
-          data: |
-            from zquantum.core.measurement import save_expectation_values
-            from zquantum.core.circuit import load_circuit
-            from zquantum.core.utils import create_object
-            from zquantum.core.openfermion import load_qubit_operator
-            circuit = load_circuit('circuit.json')
-            operator = load_qubit_operator('qubitop.json')
-            backend_specs = {{inputs.parameters.backend-specs}}
-            backend = create_object(backend_specs)
-            expectation_values = backend.get_expectation_values(circuit, operator)
-            save_expectation_values(expectation_values, 'expectation_values.json')
-    outputs:
-      artifacts:
-      - name: expectation-values
-        path: /app/expectation_values.json
+    - name: get-expectation-values-for-qubit-operator
+      parent: generic-task
+      inputs:
+        parameters:
+          - name: backend-specs
+          - name: command
+            value: bash main_script.sh
+        artifacts:
+          - name: circuit
+            path: /app/circuit.json
+          - name: qubit-operator
+            path: /app/qubitop.json
+          - name: main-script
+            path: /app/main_script.sh
+            raw:
+              data: |
+                qvm -S &
+                quilc -S &
+                source /app/usr/local/bin/compilers_and_libraries.sh
+                python3 python_script.py
+          - name: python-script
+            path: /app/python_script.py
+            raw:
+              data: |
+                from zquantum.core.measurement import save_expectation_values
+                from zquantum.core.circuit import load_circuit
+                from zquantum.core.utils import create_object
+                from zquantum.core.openfermion import load_qubit_operator
+                circuit = load_circuit('circuit.json')
+                operator = load_qubit_operator('qubitop.json')
+                backend_specs = {{inputs.parameters.backend-specs}}
+                backend = create_object(backend_specs)
+                expectation_values = backend.get_expectation_values(circuit, operator)
+                save_expectation_values(expectation_values, 'expectation_values.json')
+      outputs:
+        artifacts:
+          - name: expectation-values
+            path: /app/expectation_values.json
 
-  - name: evaluate-qubit-operator
-    parent: generic-task
-    inputs:
-      parameters:
-      - name: command
-        value: python3 main_script.py
-      artifacts:
-      - name: qubit-operator
-        path: /app/qubit_operator.json
-      - name: expectation-values
-        path: /app/expectation_values.json
-      - name: main-script
-        path: /app/main_script.py
-        raw:
-          data: |
-            from zquantum.core.openfermion import load_qubit_operator, evaluate_qubit_operator
-            from zquantum.core.measurement import load_expectation_values
-            from zquantum.core.utils import save_value_estimate
-            qubit_operator = load_qubit_operator('qubit_operator.json')
-            expectation_values = load_expectation_values('expectation_values.json')
-            value_estimate = evaluate_qubit_operator(qubit_operator, expectation_values)
-            save_value_estimate(value_estimate, 'value_estimate.json')
-    outputs:
-      artifacts:
-      - name: value-estimate
-        path: /app/value_estimate.js
+    - name: evaluate-qubit-operator
+      parent: generic-task
+      inputs:
+        parameters:
+          - name: command
+            value: python3 main_script.py
+        artifacts:
+          - name: qubit-operator
+            path: /app/qubit_operator.json
+          - name: expectation-values
+            path: /app/expectation_values.json
+          - name: main-script
+            path: /app/main_script.py
+            raw:
+              data: |
+                from zquantum.core.openfermion import load_qubit_operator, evaluate_qubit_operator
+                from zquantum.core.measurement import load_expectation_values
+                from zquantum.core.utils import save_value_estimate
+                qubit_operator = load_qubit_operator('qubit_operator.json')
+                expectation_values = load_expectation_values('expectation_values.json')
+                value_estimate = evaluate_qubit_operator(qubit_operator, expectation_values)
+                save_value_estimate(value_estimate, 'value_estimate.json')
+      outputs:
+        artifacts:
+          - name: value-estimate
+            path: /app/value_estimate.js
 
-  # Evaluate a parameterized circuit wrt a hamiltonian for every point in a parameter grid 
-  - name: evaluate-operator-for-parameter-grid
-    parent: generic-task
-    inputs:
-      parameters:
-      - name: ansatz-specs
-      - name: backend-specs
-      - name: previous-layer-parameters
-        default: "[]"
-      - name: command
-        value: bash main_script.sh
-      artifacts:
-      - name: grid
-        path: /app/grid.json
-      - name: operator
-        path: /app/operator.json
-      - name: previous-parameters
-        optional: True
-        path: /app/previous_parameters.json
-      - name: main-script
-        path: /app/main_script.sh
-        raw:
-          data: |
-            qvm -S &
-            quilc -S &
-            source /app/usr/local/bin/compilers_and_libraries.sh
-            python3 python_script.py
-      - name: python-script
-        path: /app/python_script.py
-        raw:
-          data: |
-            import os
-            from zquantum.core.openfermion import evaluate_operator_for_parameter_grid, save_parameter_grid_evaluation, load_qubit_operator
-            from zquantum.core.circuit import load_parameter_grid, load_circuit_template_params, save_circuit_template_params
-            from zquantum.core.utils import create_object
+    # Evaluate a parameterized circuit wrt a hamiltonian for every point in a parameter grid
+    - name: evaluate-operator-for-parameter-grid
+      parent: generic-task
+      inputs:
+        parameters:
+          - name: ansatz-specs
+          - name: backend-specs
+          - name: previous-layer-parameters
+            default: "[]"
+          - name: command
+            value: bash main_script.sh
+        artifacts:
+          - name: grid
+            path: /app/grid.json
+          - name: operator
+            path: /app/operator.json
+          - name: previous-parameters
+            optional: True
+            path: /app/previous_parameters.json
+          - name: main-script
+            path: /app/main_script.sh
+            raw:
+              data: |
+                qvm -S &
+                quilc -S &
+                source /app/usr/local/bin/compilers_and_libraries.sh
+                python3 python_script.py
+          - name: python-script
+            path: /app/python_script.py
+            raw:
+              data: |
+                import os
+                from zquantum.core.openfermion import evaluate_operator_for_parameter_grid, save_parameter_grid_evaluation, load_qubit_operator
+                from zquantum.core.circuit import load_parameter_grid, load_circuit_template_params, save_circuit_template_params
+                from zquantum.core.utils import create_object
 
-            ansatz = create_object({{inputs.parameters.ansatz-specs}})
-            grid = load_parameter_grid("grid.json")
-            backend = create_object({{inputs.parameters.backend-specs}})
-            operator = load_qubit_operator("operator.json")
+                ansatz = create_object({{inputs.parameters.ansatz-specs}})
+                grid = load_parameter_grid("grid.json")
+                backend = create_object({{inputs.parameters.backend-specs}})
+                operator = load_qubit_operator("operator.json")
 
-            if(os.path.isfile('previous_parameters.json')):
-              previous_layer_parameters = load_circuit_template_params('previous_parameters.json')
-            else:
-              previous_layer_parameters = {{inputs.parameters.previous-layer-parameters}}
-              
-            parameter_grid_evaluation, optimal_parameters = evaluate_operator_for_parameter_grid(ansatz,
-              grid, backend, operator, previous_layer_params=previous_layer_parameters)
+                if(os.path.isfile('previous_parameters.json')):
+                  previous_layer_parameters = load_circuit_template_params('previous_parameters.json')
+                else:
+                  previous_layer_parameters = {{inputs.parameters.previous-layer-parameters}}
 
-            save_parameter_grid_evaluation(parameter_grid_evaluation, "parameter-grid-evaluation.json")
-            save_circuit_template_params(optimal_parameters, '/app/optimal-parameters.json')
-    outputs:
-      artifacts:
-      - name: parameter-grid-evaluation
-        path: /app/parameter-grid-evaluation.json
-      - name: optimal-parameters
-        path: /app/optimal-parameters.json
+                parameter_grid_evaluation, optimal_parameters = evaluate_operator_for_parameter_grid(ansatz,
+                  grid, backend, operator, previous_layer_params=previous_layer_parameters)
 
-  # Get ground state wavefunction in specified particle number subspace from Jordan-Wigner qubit operator
-  - name: get-ground-state-at-particle-number-jw
-    parent: generic-task
-    inputs:
-      parameters:
-      - name: particle-number
-      - name: command
-        value: python3 main_script.py
-      artifacts:
-      - name: qubit-operator
-        path: /app/qubit_operator.json
-      - name: main-script
-        path: /app/main_script.py
-        raw:
-          data: |
-            from zquantum.core.utils import ValueEstimate, save_value_estimate
-            from zquantum.core.openfermion import load_qubit_operator
-            from openfermion import qubit_operator_sparse, jw_get_ground_state_at_particle_number
-            from pyquil.wavefunction import Wavefunction
-            from zquantum.core.measurement import save_wavefunction
-            qubit_operator = load_qubit_operator('qubit_operator.json')
-            sparse_matrix = qubit_operator_sparse(qubit_operator)
-            ground_energy, ground_state_amplitudes = jw_get_ground_state_at_particle_number(sparse_matrix,{{inputs.parameters.particle-number}})
-            ground_state = Wavefunction(ground_state_amplitudes)
-            print(ground_energy)
-            save_wavefunction(ground_state, 'groundstate.json')
-            value_estimate = ValueEstimate(ground_energy)
-            save_value_estimate(value_estimate, 'value_estimate.json')
-    outputs:
-      artifacts:
-      - name: ground-state
-        path: /app/groundstate.json
-      - name: value-estimate
-        path: /app/value_estimate.json
+                save_parameter_grid_evaluation(parameter_grid_evaluation, "parameter-grid-evaluation.json")
+                save_circuit_template_params(optimal_parameters, '/app/optimal-parameters.json')
+      outputs:
+        artifacts:
+          - name: parameter-grid-evaluation
+            path: /app/parameter-grid-evaluation.json
+          - name: optimal-parameters
+            path: /app/optimal-parameters.json
+
+    # Get ground state wavefunction in specified particle number subspace from Jordan-Wigner qubit operator
+    - name: get-ground-state-at-particle-number-jw
+      parent: generic-task
+      inputs:
+        parameters:
+          - name: particle-number
+          - name: command
+            value: python3 main_script.py
+        artifacts:
+          - name: qubit-operator
+            path: /app/qubit_operator.json
+          - name: main-script
+            path: /app/main_script.py
+            raw:
+              data: |
+                from zquantum.core.utils import ValueEstimate, save_value_estimate
+                from zquantum.core.openfermion import load_qubit_operator
+                from openfermion import qubit_operator_sparse, jw_get_ground_state_at_particle_number
+                from pyquil.wavefunction import Wavefunction
+                from zquantum.core.measurement import save_wavefunction
+                qubit_operator = load_qubit_operator('qubit_operator.json')
+                sparse_matrix = qubit_operator_sparse(qubit_operator)
+                ground_energy, ground_state_amplitudes = jw_get_ground_state_at_particle_number(sparse_matrix,{{inputs.parameters.particle-number}})
+                ground_state = Wavefunction(ground_state_amplitudes)
+                print(ground_energy)
+                save_wavefunction(ground_state, 'groundstate.json')
+                value_estimate = ValueEstimate(ground_energy)
+                save_value_estimate(value_estimate, 'value_estimate.json')
+      outputs:
+        artifacts:
+          - name: ground-state
+            path: /app/groundstate.json
+          - name: value-estimate
+            path: /app/value_estimate.json

@@ -1,7 +1,7 @@
 import json
 import sys
 
-with open(sys.argv[1], "r") as f:
+with open(sys.argv[1]) as f:
     workflowresult = json.loads(f.read())
 
 assert len(workflowresult.keys()) == 3
@@ -92,6 +92,6 @@ for key in workflowresult.keys():
             )
             assert workflowresult[key]["circuit"]["gates"][3]["qubits"][0]["index"] == 1
 
-assert found_template == True
-assert found_template_with_params == True
+assert found_template is True
+assert found_template_with_params is True
 print("Workflow result is as expected")

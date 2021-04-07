@@ -1,7 +1,7 @@
 import json
 import sys
 
-with open(sys.argv[1], "r") as f:
+with open(sys.argv[1]) as f:
     workflowresult = json.loads(f.read())
 
 assert len(workflowresult.keys()) == 2
@@ -55,6 +55,6 @@ for key in workflowresult.keys():
                 assert param_range["param_ranges"][1]["param_ranges"] == 3.14
                 assert param_range["param_ranges"][2]["param_ranges"] == 0.314
 
-assert found_template == True
-assert found_template_with_ansatz_specs == True
+assert found_template is True
+assert found_template_with_ansatz_specs is True
 print("Workflow result is as expected")

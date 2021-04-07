@@ -1,105 +1,105 @@
 spec:
   templates:
-  - name: generate-erdos-renyi-graph
-    parent: generic-task
-    inputs:
-      parameters:
-      - name: n-nodes
-      - name: edge-probability
-      - name: random-weights
-        value: False
-      - name: command
-        value: python3 main_script.py
-      - name: seed
-        value: None
-      artifacts:
-      - name: main-script
-        path: /app/main_script.py
-        raw:
-          data: |
-            from zquantum.core.graph import generate_random_graph_erdos_renyi, save_graph
-            graph = generate_random_graph_erdos_renyi({{inputs.parameters.n-nodes}},
-                                                      {{inputs.parameters.edge-probability}},
-                                                      bool("{{inputs.parameters.random-weights}}"),
-                                                      {{inputs.parameters.seed}}
-                                                      )
-            save_graph(graph, 'graph.json')
-    outputs:
-      artifacts:
-      - name: graph
-        path: /app/graph.json
-    
-  - name: generate-regular-graph
-    parent: generic-task
-    inputs:
-      parameters:
-      - name: n-nodes
-      - name: degree
-      - name: random-weights
-        value: False
-      - name: command
-        value: python3 main_script.py
-      - name: seed
-        value: None
-      artifacts:
-      - name: main-script
-        path: /app/main_script.py
-        raw:
-          data: |
-            from zquantum.core.graph import generate_random_regular_graph, save_graph
-            graph = generate_random_regular_graph({{inputs.parameters.n-nodes}},
-                                                    {{inputs.parameters.degree}},
-                                                    bool("{{inputs.parameters.random-weights}}"),
-                                                    {{inputs.parameters.seed}})
-            save_graph(graph, 'graph.json')
-    outputs:
-      artifacts:
-      - name: graph
-        path: /app/graph.json
+    - name: generate-erdos-renyi-graph
+      parent: generic-task
+      inputs:
+        parameters:
+          - name: n-nodes
+          - name: edge-probability
+          - name: random-weights
+            value: False
+          - name: command
+            value: python3 main_script.py
+          - name: seed
+            value: None
+        artifacts:
+          - name: main-script
+            path: /app/main_script.py
+            raw:
+              data: |
+                from zquantum.core.graph import generate_random_graph_erdos_renyi, save_graph
+                graph = generate_random_graph_erdos_renyi({{inputs.parameters.n-nodes}},
+                                                          {{inputs.parameters.edge-probability}},
+                                                          bool("{{inputs.parameters.random-weights}}"),
+                                                          {{inputs.parameters.seed}}
+                                                          )
+                save_graph(graph, 'graph.json')
+      outputs:
+        artifacts:
+          - name: graph
+            path: /app/graph.json
 
-  - name: generate-complete-graph
-    parent: generic-task
-    inputs:
-      parameters:
-      - name: n-nodes
-      - name: random-weights
-        value: False
-      - name: command
-        value: python3 main_script.py
-      - name: seed
-        value: None        
-      artifacts:
-      - name: main-script
-        path: /app/main_script.py
-        raw:
-          data: |
-            from zquantum.core.graph import generate_random_graph_erdos_renyi, save_graph
-            graph = generate_random_graph_erdos_renyi({{inputs.parameters.n-nodes}},
-                                              1.0,
-                                              bool("{{inputs.parameters.random-weights}}"),
-                                              {{inputs.parameters.seed}})
-            save_graph(graph, 'graph.json')
-    outputs:
-      artifacts:
-      - name: graph
-        path: /app/graph.json
-        
-  - name: generate-graph-from-specs
-    parent: generic-task
-    inputs:
-      parameters:
-      - name: graph-specs
-      - name: command
-        value: python3 main_script.py
-      artifacts:
-      - name: main-script
-        path: /app/main_script.py
-        raw:
-          data: |
-            from zquantum.core.graph import generate_graph_from_specs, save_graph
-            graph = generate_graph_from_specs({{inputs.parameters.graph-specs}})
-            save_graph(graph, 'graph.json')
-    outputs:
-      artifacts:
-      - name: graph
-        path: /app/graph.json    
+    - name: generate-regular-graph
+      parent: generic-task
+      inputs:
+        parameters:
+          - name: n-nodes
+          - name: degree
+          - name: random-weights
+            value: False
+          - name: command
+            value: python3 main_script.py
+          - name: seed
+            value: None
+        artifacts:
+          - name: main-script
+            path: /app/main_script.py
+            raw:
+              data: |
+                from zquantum.core.graph import generate_random_regular_graph, save_graph
+                graph = generate_random_regular_graph({{inputs.parameters.n-nodes}},
+                                                        {{inputs.parameters.degree}},
+                                                        bool("{{inputs.parameters.random-weights}}"),
+                                                        {{inputs.parameters.seed}})
+                save_graph(graph, 'graph.json')
+      outputs:
+        artifacts:
+          - name: graph
+            path: /app/graph.json
+
+    - name: generate-complete-graph
+      parent: generic-task
+      inputs:
+        parameters:
+          - name: n-nodes
+          - name: random-weights
+            value: False
+          - name: command
+            value: python3 main_script.py
+          - name: seed
+            value: None
+        artifacts:
+          - name: main-script
+            path: /app/main_script.py
+            raw:
+              data: |
+                from zquantum.core.graph import generate_random_graph_erdos_renyi, save_graph
+                graph = generate_random_graph_erdos_renyi({{inputs.parameters.n-nodes}},
+                                                  1.0,
+                                                  bool("{{inputs.parameters.random-weights}}"),
+                                                  {{inputs.parameters.seed}})
+                save_graph(graph, 'graph.json')
+      outputs:
+        artifacts:
+          - name: graph
+            path: /app/graph.json
+
+    - name: generate-graph-from-specs
+      parent: generic-task
+      inputs:
+        parameters:
+          - name: graph-specs
+          - name: command
+            value: python3 main_script.py
+        artifacts:
+          - name: main-script
+            path: /app/main_script.py
+            raw:
+              data: |
+                from zquantum.core.graph import generate_graph_from_specs, save_graph
+                graph = generate_graph_from_specs({{inputs.parameters.graph-specs}})
+                save_graph(graph, 'graph.json')
+      outputs:
+        artifacts:
+          - name: graph
+            path: /app/graph.json

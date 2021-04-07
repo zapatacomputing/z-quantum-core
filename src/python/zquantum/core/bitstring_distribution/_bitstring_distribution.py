@@ -1,12 +1,13 @@
+import json
 import math
 import sys
 import warnings
-import json
+from typing import Callable, Dict, List
+
 import numpy as np
-from ..utils import SCHEMA_VERSION, convert_tuples_to_bitstrings
+
 from ..typing import AnyPath
-from collections import Counter
-from typing import Dict, Callable, List
+from ..utils import SCHEMA_VERSION
 
 
 class BitstringDistribution:
@@ -26,7 +27,7 @@ class BitstringDistribution:
             if is_normalized(input_dict):
                 self.distribution_dict = input_dict
             else:
-                if normalize == True:
+                if normalize is True:
                     self.distribution_dict = normalize_bitstring_distribution(
                         input_dict
                     )
@@ -194,7 +195,7 @@ def load_bitstring_distribution(file: str) -> BitstringDistribution:
         object: a python object loaded from the bitstring_distribution
     """
     if isinstance(file, str):
-        with open(file, "r") as f:
+        with open(file) as f:
             data = json.load(f)
     else:
         data = json.load(file)
@@ -213,7 +214,7 @@ def load_bitstring_distribution_set(file: str) -> List[BitstringDistribution]:
         object: a list of bitstring distributions loaded from the bitstring_distribution
     """
     if isinstance(file, str):
-        with open(file, "r") as f:
+        with open(file) as f:
             data = json.load(f)
     else:
         data = json.load(file)

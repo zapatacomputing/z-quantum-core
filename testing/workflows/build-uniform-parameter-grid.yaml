@@ -2,11 +2,11 @@ ZapOSApiVersion: v1alpha1
 kind: Workflow
 
 resources:
-- name: z-quantum-core
-  type: git
-  parameters:
-    url: "git@github.com:zapatacomputing/z-quantum-core.git"
-    branch: "dev"
+  - name: z-quantum-core
+    type: git
+    parameters:
+      url: "git@github.com:zapatacomputing/z-quantum-core.git"
+      branch: "dev"
 
 metadata:
   generateName: z-quantum-core-acceptance-test-build-param-grid-
@@ -15,29 +15,29 @@ spec:
   entrypoint: main
   arguments:
     parameters:
-    - s3-bucket: quantum-engine
-    - s3-key: testing/acceptance-tests/
+      - s3-bucket: quantum-engine
+      - s3-key: testing/acceptance-tests/
 
   templates:
-  - name: main
-    steps:
-    - - name: test-with-ansatz-specs
-        template: build-uniform-parameter-grid
-        arguments:
-          parameters:
-            - ansatz-specs: "{'module_name': 'zquantum.core.interfaces.mock_objects', 'function_name': 'MockAnsatz', 'number_of_layers': 2, 'problem_size': 2}"
-            - n-layers: "2"
-            - min-value: "-3.14"
-            - max-value: "3.14"
-            - step: ".314"
-            - resources: [z-quantum-core]
-      - name: test
-        template: build-uniform-parameter-grid
-        arguments:
-          parameters:
-            - number-of-params-per-layer: "2"
-            - n-layers: "2"
-            - min-value: "-3.14"
-            - max-value: "3.14"
-            - step: ".314"
-            - resources: [z-quantum-core]
+    - name: main
+      steps:
+        - - name: test-with-ansatz-specs
+            template: build-uniform-parameter-grid
+            arguments:
+              parameters:
+                - ansatz-specs: "{'module_name': 'zquantum.core.interfaces.mock_objects', 'function_name': 'MockAnsatz', 'number_of_layers': 2, 'problem_size': 2}"
+                - n-layers: "2"
+                - min-value: "-3.14"
+                - max-value: "3.14"
+                - step: ".314"
+                - resources: [z-quantum-core]
+          - name: test
+            template: build-uniform-parameter-grid
+            arguments:
+              parameters:
+                - number-of-params-per-layer: "2"
+                - n-layers: "2"
+                - min-value: "-3.14"
+                - max-value: "3.14"
+                - step: ".314"
+                - resources: [z-quantum-core]

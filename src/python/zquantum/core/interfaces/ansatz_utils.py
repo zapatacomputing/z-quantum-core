@@ -1,7 +1,7 @@
 from functools import wraps
 
 
-class _InvalidatingSetter(object):
+class _InvalidatingSetter:
     """Setter descriptor that sets target object's _parametrized_circuit to None.
 
     The descriptor uses __get__ and __set__ methods. Both of them accept ansatz as a

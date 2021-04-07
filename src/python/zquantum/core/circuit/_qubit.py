@@ -1,10 +1,10 @@
 """Base class for qubit"""
 
-import pyquil
 import cirq
+import pyquil
 
 
-class Qubit(object):
+class Qubit:
     """Class for storing information associated with a qubit.
 
     Attributes:
@@ -60,9 +60,7 @@ class Qubit(object):
         if isinstance(pyquil_qubit, pyquil.quilatom.Qubit):
             output.index = pyquil_qubit.index
         else:
-            raise TypeError(
-                "Input item {} not a pyquil Qubit object".format(pyquil_qubit)
-            )
+            raise TypeError(f"Input item {pyquil_qubit} not a pyquil Qubit object")
         return output
 
     @classmethod

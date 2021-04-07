@@ -4,7 +4,7 @@ from itertools import combinations
 import random
 from random import uniform
 from .utils import SCHEMA_VERSION
-from typing import Optional
+from typing import Optional, Dict, cast
 from zquantum.core.typing import LoadSource, AnyPath
 
 
@@ -194,15 +194,15 @@ def generate_graph_from_specs(graph_specs: dict) -> nx.Graph:
     Returns:
         A networkx.Graph object
     """
-    type_graph = graph_specs["type_graph"]
-    num_nodes = graph_specs.get("num_nodes")
+    type_graph = cast(str, graph_specs["type_graph"])
+    num_nodes = cast(int, graph_specs.get("num_nodes"))
     random_weights = graph_specs.get("random_weights", False)
     seed = graph_specs.get("seed")
-    number_of_cliques = graph_specs.get("number_of_cliques")
-    size_of_cliques = graph_specs.get("size_of_cliques")
-    length_of_ladder = graph_specs.get("length_of_ladder")
-    number_of_vertices_complete_graph = graph_specs.get(
-        "number_of_vertices_complete_graph"
+    number_of_cliques = cast(int, graph_specs.get("number_of_cliques"))
+    size_of_cliques = cast(int, graph_specs.get("size_of_cliques"))
+    length_of_ladder = cast(int, graph_specs.get("length_of_ladder"))
+    number_of_vertices_complete_graph = cast(
+        int, graph_specs.get("number_of_vertices_complete_graph")
     )
 
     if type_graph == "erdos_renyi":

@@ -8,7 +8,7 @@ from zquantum.core.graph import (
     save_graph,
 )
 import json
-from typing import Union, Dict, Optional
+from typing import Union, Optional, Dict, cast
 
 
 def generate_random_graph_erdos_renyi(

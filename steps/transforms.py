@@ -21,21 +21,20 @@ def transform_interaction_operator(
         transformation (str): The transformation to use. Either "Jordan-Wigner" or "Bravyi-Kitaev"
         input_operator (Union[str, SymbolicOperator]): The interaction operator to transform
     """
-    print("This is my code")
-    # if isinstance(input_operator, str):
-    #    input_operator = load_interaction_operator(input_operator)
+    if isinstance(input_operator, str):
+        input_operator = load_interaction_operator(input_operator)
 
-    # if transformation == "Jordan-Wigner":
-    #    transformation = jordan_wigner
-    # elif transformation == "Bravyi-Kitaev":
-    #    input_operator = get_fermion_operator(input_operator)
-    #    transformation = bravyi_kitaev
-    # else:
-    #    raise RuntimeError("Unrecognized transformation ", transformation)
+    if transformation == "Jordan-Wigner":
+        transformation = jordan_wigner
+    elif transformation == "Bravyi-Kitaev":
+        input_operator = get_fermion_operator(input_operator)
+        transformation = bravyi_kitaev
+    else:
+        raise RuntimeError("Unrecognized transformation ", transformation)
 
-    # start_time = time.time()
-    # transformed_operator = transformation(input_operator)
-    # walltime = time.time() - start_time
+    start_time = time.time()
+    transformed_operator = transformation(input_operator)
+    walltime = time.time() - start_time
 
-    # save_qubit_operator(transformed_operator, "transformed-operator.json")
-    # save_timing(walltime, "timing.json")
+    save_qubit_operator(transformed_operator, "transformed-operator.json")
+    save_timing(walltime, "timing.json")

@@ -17,7 +17,7 @@ from networkx.readwrite import json_graph
 import lea
 import collections
 import scipy
-from typing import List, Tuple, Optional, Iterable, Union, Dict, Any, cast
+from typing import List, Tuple, Optional, Iterable, Union, Dict, Any
 import importlib
 import copy
 from .typing import LoadSource, AnyPath, Specs
@@ -631,4 +631,4 @@ def hf_rdm(n_alpha: int, n_beta: int, n_orbitals: int) -> InteractionRDM:
 def load_from_specs(specs: Specs):
     if isinstance(specs, str):
         specs = json.loads(specs)
-    return create_object(specs) # type: ignore
+    return create_object(specs)  # type: ignore

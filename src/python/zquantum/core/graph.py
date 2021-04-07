@@ -195,14 +195,14 @@ def generate_graph_from_specs(graph_specs: dict) -> nx.Graph:
         A networkx.Graph object
     """
     type_graph = graph_specs["type_graph"]
-    num_nodes = graph_specs.get("num_nodes", None)
+    num_nodes = graph_specs.get("num_nodes")
     random_weights = graph_specs.get("random_weights", False)
-    seed = graph_specs.get("seed", None)
-    number_of_cliques = graph_specs.get("number_of_cliques", None)
-    size_of_cliques = graph_specs.get("size_of_cliques", None)
-    length_of_ladder = graph_specs.get("length_of_ladder", None)
+    seed = graph_specs.get("seed")
+    number_of_cliques = graph_specs.get("number_of_cliques")
+    size_of_cliques = graph_specs.get("size_of_cliques")
+    length_of_ladder = graph_specs.get("length_of_ladder")
     number_of_vertices_complete_graph = graph_specs.get(
-        "number_of_vertices_complete_graph", None
+        "number_of_vertices_complete_graph"
     )
 
     if type_graph == "erdos_renyi":

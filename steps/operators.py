@@ -1,7 +1,6 @@
 from typing import Union, Optional, List
 from numpy.lib.arraysetops import isin
-from openfermion import InteractionOperator, FermionOperator, QubitOperator
-from openfermion import normal_ordered
+from openfermion import InteractionOperator, FermionOperator, QubitOperator, IsingOperator, normal_ordered
 from openfermion.transforms import get_fermion_operator
 import numpy as np
 
@@ -23,6 +22,15 @@ from zquantum.core.hamiltonian import (
 )
 
 from zquantum.core.testing import create_random_qubitop as _create_random_qubitop
+
+
+
+def get_local_zero_state_operator(number_of_qubits: int):
+    operator = IsingOperator("")
+    for qubit_index in range(number_of_qubits):
+        operator -= IsingOperator("Z{}".format(qubit_index), 1/(number_of_qubits))
+        
+    save_qubit_operator(operator, "qubit-operator.json")
 
 
 def get_fermion_number_operator(

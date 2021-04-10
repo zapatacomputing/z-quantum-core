@@ -1,34 +1,27 @@
 from pyquil.gates import S
-from .new_estimator import EstimationProblem, EstimateExpectationValues
+from .estimator_interface import EstimationTask
 from ...interfaces.backend import QuantumBackend, QuantumSimulator
 from ...measurement import (
     ExpectationValues,
     expectation_values_to_real,
     concatenate_expectation_values,
 )
-from overrides import overrides
-import logging
-import numpy as np
-from typing import Dict, Tuple, Optional, Callable, List
+from typing import List
 
 
 def naively_estimate_expectation_values(
     backend: QuantumBackend,
-    estimation_problems: List[EstimationProblem],
+    estimation_tasks: List[EstimationTask],
 ) -> ExpectationValues:
 
     circuits, operators, shots_per_circuit = zip(
-        *[(e.circuit, e.operator, e.number_of_shots) for e in estimation_problems]
+        *[(e.circuit, e.operator, e.number_of_shots) for e in estimation_tasks]
     )
 
-    circuits = [
-        estimation_problem.circuit for estimation_problem in estimation_problems
-    ]
-    operators = [
-        estimation_problem.operator for estimation_problem in estimation_problems
-    ]
+    circuits = [estimation_task.circuit for estimation_task in estimation_tasks]
+    operators = [estimation_task.operator for estimation_task in estimation_tasks]
     shots_per_circuit = [
-        estimation_problem.number_of_shots for estimation_problem in estimation_problems
+        estimation_task.number_of_shots for estimation_task in estimation_tasks
     ]
     measurements_list = backend.run_circuitset_and_measure(circuits, shots_per_circuit)
 
@@ -49,14 +42,14 @@ def naively_estimate_expectation_values(
 
 
 def calculate_exact_expectation_values(
-    backend: QuantumBackend,
-    estimation_problems: List[EstimationProblem],
+    backend: QuantumSimulator,
+    estimation_tasks: List[EstimationTask],
 ) -> ExpectationValues:
     expectation_values_list = [
         backend.get_exact_expectation_values(
-            estimation_problem.circuit, estimation_problem.target_operator
+            estimation_task.circuit, estimation_task.target_operator
         )
-        for estimation_problem in estimation_problems
+        for estimation_task in estimation_tasks
     ]
     return expectation_values_to_real(
         concatenate_expectation_values(expectation_values_list)

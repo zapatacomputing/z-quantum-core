@@ -8,7 +8,7 @@ from typing_extensions import Protocol
 
 
 @dataclass
-class EstimationProblem:
+class EstimationTask:
     """
     Data class defining an estimation problem.
 
@@ -19,24 +19,26 @@ class EstimationProblem:
             e.g. number of shots or target accuracy.
     """
 
-    operator: SymbolicOperator  # TODO: good type?
+    operator: SymbolicOperator
     circuit: Circuit
     number_of_shots: int
 
 
-class EstimationProblemTransformer(Protocol):
-    """Protocol defining function which transforms a list of EstimationProblems
-    into another list of EstimationProblems.
+class EstimationTaskTransformer(Protocol):
+    """Protocol defining function which transforms a list of EstimationTasks
+    into another list of EstimationTasks.
     """
 
     def __call__(
-        self, estimation_problems: List[EstimationProblem], **kwargs
-    ) -> List[EstimationProblem]:
+        self, estimation_problems: List[EstimationTask], **kwargs
+    ) -> List[EstimationTask]:
         pass
 
 
 class EstimateExpectationValues(Protocol):
+    """Protocol defining function estimates expectation values for a list of estimation tasks.."""
+
     def __call__(
-        self, backend: QuantumBackend, estimation_problems: List[EstimationProblem]
+        self, backend: QuantumBackend, estimation_problems: List[EstimationTask]
     ) -> ExpectationValues:
         pass

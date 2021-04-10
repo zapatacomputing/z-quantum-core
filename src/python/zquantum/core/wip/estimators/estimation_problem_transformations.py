@@ -3,22 +3,19 @@ from openfermion import QubitOperator, IsingOperator
 import pyquil
 import numpy as np
 
-# from ..circuit import Circuit, Gate
-# TODO: remove this
 from ...circuit._circuit import Circuit
-from ...circuit._gate import Gate
-from .new_estimator import (
-    EstimationProblem,
-    EstimationProblemTransformer,
+from .estimator_interface import (
+    EstimationTask,
+    EstimationTaskTransformer,
 )
 from ...hamiltonian import group_comeasureable_terms_greedy, estimate_nmeas_for_frames
 from ...utils import scale_and_discretize
 from ...measurement import ExpectationValues
 
 
-greedy_grouping_with_context_selection: EstimationProblemTransformer
-uniform_shot_allocation: EstimationProblemTransformer
-optimal_shot_allocation: EstimationProblemTransformer
+greedy_grouping_with_context_selection: EstimationTaskTransformer
+uniform_shot_allocation: EstimationTaskTransformer
+optimal_shot_allocation: EstimationTaskTransformer
 
 
 def get_context_selection_circuit_for_group(
@@ -28,14 +25,12 @@ def get_context_selection_circuit_for_group(
     of a group of co-measurable Pauli terms.
 
     Args:
-        term: The Pauli term, expressed using the OpenFermion convention.
+        qubit_operator: operator representing group of co-measurable Pauli term
 
     Returns:
-        Tuple containing:
-        - The context selection circuit.
-        - The frame operator
+        Circuit: circuit used for changing the base of the measurement
+        IsingOperator: Ising operator that can be evaluated after applying returned circuit
     """
-
     context_selection_circuit = Circuit()
     transformed_operator = IsingOperator()
     context = []
@@ -61,61 +56,83 @@ def get_context_selection_circuit_for_group(
 
 
 def greedy_grouping_with_context_selection(
-    estimation_problems: List[EstimationProblem],
-) -> List[EstimationProblem]:
+    estimation_tasks: List[EstimationTask],
+) -> List[EstimationTask]:
     """
-    TODO
+    Transforms list of estimation tasks by performing greedy grouping and adding
+    context selection logic to the circuits.
+
+    Args:
+        estimation_tasks: list of estimation tasks
+
+    Returns:
+        List[EstimationTask]: list of modified estimation tasks
     """
-    output_estimation_problems = []
-    for estimation_problem in estimation_problems:
-        groups = group_comeasureable_terms_greedy(estimation_problem.operator)
+    output_estimation_tasks = []
+    for estimation_task in estimation_tasks:
+        groups = group_comeasureable_terms_greedy(estimation_task.operator)
         for group in groups:
             (
                 context_selection_circuit,
                 frame_operator,
             ) = get_context_selection_circuit_for_group(group)
-            frame_circuit = estimation_problem.circuit + context_selection_circuit
-            group_estimation_problem = EstimationProblem(
-                frame_operator, frame_circuit, estimation_problem.constraints
+            frame_circuit = estimation_task.circuit + context_selection_circuit
+            group_estimation_task = EstimationTask(
+                frame_operator, frame_circuit, estimation_task.constraints
             )
-            output_estimation_problems.append(group_estimation_problem)
-    return output_estimation_problems
+            output_estimation_tasks.append(group_estimation_task)
+    return output_estimation_tasks
 
 
-def uniform_shot_allocation(number_of_shots: int) -> EstimationProblemTransformer:
+def uniform_shot_allocation(number_of_shots: int) -> EstimationTaskTransformer:
     """
-    TODO
+    Returns an EstimationTaskTransformer which allocates the same number of shots to each task.
+
+    Args:
+        number_of_shots: number of shots to be assigned to each EstimationTask
+
+    Returns:
+        EstimationTaskTransformer
     """
 
     def _allocate_shots(
-        estimation_problems: List[EstimationProblem],
-    ) -> List[EstimationProblem]:
+        estimation_tasks: List[EstimationTask],
+    ) -> List[EstimationTask]:
 
         return [
-            EstimationProblem(
-                operator=estimation_problem.operator,
-                circuit=estimation_problem.circuit,
+            EstimationTask(
+                operator=estimation_task.operator,
+                circuit=estimation_task.circuit,
                 number_of_shots=number_of_shots,
             )
-            for estimation_problem in estimation_problems
+            for estimation_task in estimation_tasks
         ]
 
     return _allocate_shots
 
 
-def optimal_shot_allocation(
+def proportional_shot_allocation(
     total_n_shots: int,
     prior_expectation_values: Optional[ExpectationValues] = None,
-) -> EstimationProblemTransformer:
+) -> EstimationTaskTransformer:
     """
-    TODO
+    Returns an EstimationTaskTransformer which allocates the same number of shots to each task.
+    For more details please refer to documentation of zquantum.core.hamiltonian.estimate_nmeas_for_frames .
+
+    Args:
+        total_n_shots: total number of shots to be allocated
+        prior_expectation_values: object containing the expectation
+            values of all operators in frame_operators
+
+    Returns:
+        EstimationTaskTransformer
     """
 
     def _allocate_shots(
-        estimation_problems: List[EstimationProblem],
-    ) -> List[EstimationProblem]:
+        estimation_tasks: List[EstimationTask],
+    ) -> List[EstimationTask]:
         frame_operators = [
-            estimation_problem.operator for estimation_problem in estimation_problems
+            estimation_task.operator for estimation_task in estimation_tasks
         ]
 
         _, _, measurements_per_frame = estimate_nmeas_for_frames(
@@ -127,13 +144,13 @@ def optimal_shot_allocation(
         )
 
         return [
-            EstimationProblem(
-                operator=estimation_problem.operator,
-                circuit=estimation_problem.circuit,
+            EstimationTask(
+                operator=estimation_task.operator,
+                circuit=estimation_task.circuit,
                 number_of_shots=number_of_shots,
             )
-            for estimation_problem, number_of_shots in zip(
-                estimation_problems, measurements_per_frame
+            for estimation_task, number_of_shots in zip(
+                estimation_tasks, measurements_per_frame
             )
         ]
 

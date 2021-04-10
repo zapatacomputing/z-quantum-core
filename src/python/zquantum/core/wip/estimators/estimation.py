@@ -4,13 +4,13 @@ import pyquil
 import numpy as np
 
 from ...circuit._circuit import Circuit
-from .estimator_interface import (
+from .estimation_interface import (
     EstimationTask,
     EstimationTaskTransformer,
 )
 from ...hamiltonian import group_comeasureable_terms_greedy, estimate_nmeas_for_frames
 from ...utils import scale_and_discretize
-from .estimator_interface import EstimationTask
+from .estimation_interface import EstimationTask
 from ...interfaces.backend import QuantumBackend, QuantumSimulator
 from ...measurement import (
     ExpectationValues,
@@ -20,7 +20,35 @@ from ...measurement import (
 
 greedy_grouping_with_context_selection: EstimationTaskTransformer
 uniform_shot_allocation: EstimationTaskTransformer
-optimal_shot_allocation: EstimationTaskTransformer
+proportional_shot_allocation: EstimationTaskTransformer
+
+
+def get_context_selection_circuit(
+    operator: QubitOperator,
+) -> Tuple[Circuit, IsingOperator]:
+    """Get the context selection circuit for measuring the expectation value
+    of a Pauli term.
+    TODO
+
+    Args:
+        operator: operator consisting of a single Pauli Term
+
+    Returns:
+        Circuit: circuit used for changing the base of the measurement
+        IsingOperator: Ising operator that can be evaluated after applying returned circuit
+    """
+    context_selection_circuit = Circuit()
+    output_operator = IsingOperator(())
+    terms = list(operator.terms.keys())[0]
+    for term in terms:
+        term_type = term[1]
+        qubit_id = term[0]
+        if term_type == "X":
+            context_selection_circuit += Circuit(pyquil.gates.RY(-np.pi / 2, qubit_id))
+        elif term_type == "Y":
+            context_selection_circuit += Circuit(pyquil.gates.RX(np.pi / 2, qubit_id))
+        output_operator *= IsingOperator((qubit_id, "Z"))
+    return context_selection_circuit, output_operator
 
 
 def get_context_selection_circuit_for_group(
@@ -99,6 +127,8 @@ def uniform_shot_allocation(number_of_shots: int) -> EstimationTaskTransformer:
     Returns:
         EstimationTaskTransformer
     """
+    if number_of_shots <= 0:
+        raise ValueError("number_of_shots must be positive.")
 
     def _allocate_shots(
         estimation_tasks: List[EstimationTask],
@@ -132,6 +162,8 @@ def proportional_shot_allocation(
     Returns:
         EstimationTaskTransformer
     """
+    if total_n_shots <= 0:
+        raise ValueError("total_n_shots must be positive.")
 
     def _allocate_shots(
         estimation_tasks: List[EstimationTask],
@@ -171,11 +203,6 @@ def naively_estimate_expectation_values(
         *[(e.circuit, e.operator, e.number_of_shots) for e in estimation_tasks]
     )
 
-    circuits = [estimation_task.circuit for estimation_task in estimation_tasks]
-    operators = [estimation_task.operator for estimation_task in estimation_tasks]
-    shots_per_circuit = [
-        estimation_task.number_of_shots for estimation_task in estimation_tasks
-    ]
     measurements_list = backend.run_circuitset_and_measure(circuits, shots_per_circuit)
 
     expectation_values_list = [
@@ -184,9 +211,9 @@ def naively_estimate_expectation_values(
     ]
 
     # TODO handle empty term?
-    # if target_operator.terms.get(()) is not None:
+    # if operator.terms.get(()) is not None:
     #     expectation_values_set.append(
-    #         ExpectationValues(np.array([target_operator.terms.get(())]))
+    #         ExpectationValues(np.array([operator.terms.get(())]))
     #     )
 
     return expectation_values_to_real(
@@ -200,7 +227,7 @@ def calculate_exact_expectation_values(
 ) -> ExpectationValues:
     expectation_values_list = [
         backend.get_exact_expectation_values(
-            estimation_task.circuit, estimation_task.target_operator
+            estimation_task.circuit, estimation_task.operator
         )
         for estimation_task in estimation_tasks
     ]

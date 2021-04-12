@@ -7,7 +7,7 @@ from dataclasses import dataclass
 from typing_extensions import Protocol
 
 
-@dataclass
+@dataclass(frozen=True)
 class EstimationTask:
     """
     Data class defining an estimation problem.

@@ -28,14 +28,10 @@ def get_context_selection_circuit(
 ) -> Tuple[Circuit, IsingOperator]:
     """Get the context selection circuit for measuring the expectation value
     of a Pauli term.
-    TODO
 
     Args:
         operator: operator consisting of a single Pauli Term
 
-    Returns:
-        Circuit: circuit used for changing the base of the measurement
-        IsingOperator: Ising operator that can be evaluated after applying returned circuit
     """
     context_selection_circuit = Circuit()
     output_operator = IsingOperator(())
@@ -59,10 +55,6 @@ def get_context_selection_circuit_for_group(
 
     Args:
         qubit_operator: operator representing group of co-measurable Pauli term
-
-    Returns:
-        Circuit: circuit used for changing the base of the measurement
-        IsingOperator: Ising operator that can be evaluated after applying returned circuit
     """
     context_selection_circuit = Circuit()
     transformed_operator = IsingOperator()
@@ -97,9 +89,6 @@ def greedy_grouping_with_context_selection(
 
     Args:
         estimation_tasks: list of estimation tasks
-
-    Returns:
-        List[EstimationTask]: list of modified estimation tasks
     """
     output_estimation_tasks = []
     for estimation_task in estimation_tasks:
@@ -123,9 +112,6 @@ def uniform_shot_allocation(number_of_shots: int) -> EstimationTaskTransformer:
 
     Args:
         number_of_shots: number of shots to be assigned to each EstimationTask
-
-    Returns:
-        EstimationTaskTransformer
     """
     if number_of_shots <= 0:
         raise ValueError("number_of_shots must be positive.")
@@ -158,9 +144,6 @@ def proportional_shot_allocation(
         total_n_shots: total number of shots to be allocated
         prior_expectation_values: object containing the expectation
             values of all operators in frame_operators
-
-    Returns:
-        EstimationTaskTransformer
     """
     if total_n_shots <= 0:
         raise ValueError("total_n_shots must be positive.")
@@ -198,7 +181,14 @@ def naively_estimate_expectation_values(
     backend: QuantumBackend,
     estimation_tasks: List[EstimationTask],
 ) -> ExpectationValues:
+    """
+    Basic method for estimating expectation values for list of estimation tasks.
+    It executes specified circuit and calculates expectation values based on the measurements.
 
+    Args:
+        backend: backend used for executing circuits
+        estimation_tasks: list of estimation tasks
+    """
     circuits, operators, shots_per_circuit = zip(
         *[(e.circuit, e.operator, e.number_of_shots) for e in estimation_tasks]
     )
@@ -225,6 +215,13 @@ def calculate_exact_expectation_values(
     backend: QuantumSimulator,
     estimation_tasks: List[EstimationTask],
 ) -> ExpectationValues:
+    """
+    Calculates exact expectation values using built-in method of a provided backend.
+
+    Args:
+        backend: backend used for executing circuits
+        estimation_tasks: list of estimation tasks
+    """
     expectation_values_list = [
         backend.get_exact_expectation_values(
             estimation_task.circuit, estimation_task.operator

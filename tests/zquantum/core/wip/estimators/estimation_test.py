@@ -86,8 +86,9 @@ class TestEstimatorUtils:
         target_n_samples_list,
     ):
         allocate_shots = uniform_shot_allocation(n_samples)
+        circuit = Circuit()
         estimation_tasks = [
-            EstimationTask(operator, None, None) for operator in frame_operators
+            EstimationTask(operator, circuit, 1) for operator in frame_operators
         ]
 
         new_estimation_tasks = allocate_shots(estimation_tasks)
@@ -113,8 +114,9 @@ class TestEstimatorUtils:
         allocate_shots = proportional_shot_allocation(
             total_n_shots, prior_expectation_values
         )
+        circuit = Circuit()
         estimation_tasks = [
-            EstimationTask(operator, None, None) for operator in frame_operators
+            EstimationTask(operator, circuit, 1) for operator in frame_operators
         ]
 
         new_estimation_tasks = allocate_shots(estimation_tasks)

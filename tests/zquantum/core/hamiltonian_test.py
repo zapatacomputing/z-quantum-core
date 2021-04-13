@@ -199,6 +199,14 @@ def test_is_comeasureable(term1, term2, expected_result):
             QubitOperator("[Z0 Z1] + [X0 X1] + [Z0] + [X0]"),
             [QubitOperator("[Z0 Z1] + [Z0]"), QubitOperator("[X0 X1] + [X0]")],
         ),
+        (
+            QubitOperator("[Z0 Z1] + [X0 X1] + [Z0] + []"),
+            [
+                QubitOperator("[Z0 Z1] + [Z0]"),
+                QubitOperator("[X0 X1]"),
+                QubitOperator("[]"),
+            ],
+        ),
     ],
 )
 def test_group_comeasureable_terms_greedy(qubit_operator, expected_groups):

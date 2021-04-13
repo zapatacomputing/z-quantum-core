@@ -18,10 +18,6 @@ from ...measurement import (
     concatenate_expectation_values,
 )
 
-greedy_grouping_with_context_selection: EstimationTaskTransformer
-uniform_shot_allocation: EstimationTaskTransformer
-proportional_shot_allocation: EstimationTaskTransformer
-
 
 def get_context_selection_circuit(
     operator: QubitOperator,

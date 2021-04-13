@@ -318,7 +318,7 @@ def get_parities_from_measurements(
     # Count number of occurrences of bitstrings
     bitstring_frequencies = Counter(measurements)
 
-    # Count parity occurences
+    # Count parity occurrences
     values = []
     for _, term in enumerate(ising_operator.terms):
         values.append([0, 0])
@@ -329,7 +329,7 @@ def get_parities_from_measurements(
             else:
                 values[-1][1] += count
 
-    # Count parity occurences for pairwise products of operators
+    # Count parity occurrences for pairwise products of operators
     correlations = [np.zeros((len(ising_operator.terms), len(ising_operator.terms), 2))]
     for term1_index, term1 in enumerate(ising_operator.terms):
         for term2_index, term2 in enumerate(ising_operator.terms):
@@ -463,17 +463,22 @@ class Measurements:
         distribution = copy.deepcopy(bitstring_distribution.distribution_dict)
 
         bitstring_samples = []
+        # Rounding gives the closest integer to the observed frequency
         for state in distribution:
             bitstring = tuple([int(measurement_value) for measurement_value in state])
 
             bitstring_samples += [bitstring] * int(
-                distribution[state] * number_of_samples
+                round(distribution[state] * number_of_samples)
             )
 
+        # If frequencies are inconsistent with number of samples, we may need to
+        # add or delete samples. The bitstrings to correct are chosen at random,
+        # giving more weight to those with non-integer part closest to 0.5
         if len(bitstring_samples) != number_of_samples:
             leftover_distribution = BitstringDistribution(
                 {
-                    states: (distribution[states] * number_of_samples) % 1
+                    states: 0.5
+                    - abs(0.5 - (distribution[states] * number_of_samples) % 1)
                     for states in distribution
                 },
                 True,
@@ -481,12 +486,21 @@ class Measurements:
 
             samples = sample_from_probability_distribution(
                 leftover_distribution.distribution_dict,
-                number_of_samples - len(bitstring_samples),
+                abs(number_of_samples - len(bitstring_samples)),
             )
-            bitstring_samples += [
-                tuple([int(measurement_value) for measurement_value in sample])
-                for sample in samples
-            ]
+            if number_of_samples - len(bitstring_samples) > 0:
+                for sample in samples:
+                    bitstring_samples += [
+                        tuple([int(measurement_value) for measurement_value in sample])
+                    ] * samples[sample]
+            else:
+                for sample in samples:
+                    for _ in range(samples[sample]):
+                        bitstring_samples.remove(
+                            tuple(
+                                [int(measurement_value) for measurement_value in sample]
+                            )
+                        )
 
         return cls(bitstring_samples)
 
@@ -645,11 +659,7 @@ def concatenate_expectation_values(
         The combined expectation values.
     """
 
-    combined_expectation_values = ExpectationValues(
-        np.zeros(
-            0,
-        )
-    )
+    combined_expectation_values = ExpectationValues(np.zeros(0,))
 
     for expectation_values in expectation_values_set:
         combined_expectation_values.values = np.concatenate(

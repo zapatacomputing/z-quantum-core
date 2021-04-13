@@ -312,6 +312,14 @@ def test_get_expectation_values_from_rdms_for_qubitoperator_list(
             np.array([2.0, 2.0]),
         ),
         (
+            [
+                QubitOperator("[Z0 Z1] + [Z0] + []"),
+                QubitOperator("[X0 X1] + [X0] + 5 []"),
+            ],
+            None,
+            np.array([2.0, 2.0]),
+        ),
+        (
             [QubitOperator("[Z0 Z1] + [Z0]"), QubitOperator("[X0 X1] + [X0]")],
             ExpectationValues(np.zeros(4)),
             np.array([2.0, 2.0]),
@@ -326,14 +334,6 @@ def test_get_expectation_values_from_rdms_for_qubitoperator_list(
 def test_compute_group_variances_with_ref(groups, expecval, variances):
     test_variances = compute_group_variances(groups, expecval)
     assert np.allclose(test_variances, variances)
-
-
-def test_compute_group_variances_errors_for_qubit_operator_constant():
-    with pytest.raises(ValueError):
-        compute_group_variances(
-            [QubitOperator("3 [Z0] + 2 [Z0 Z1]"), QubitOperator("[Z0 Z1] + 1.0[]")],
-            None,
-        )
 
 
 @pytest.mark.parametrize(

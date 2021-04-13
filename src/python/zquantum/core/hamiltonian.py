@@ -1,6 +1,7 @@
 from openfermion.ops import QubitOperator, InteractionRDM, InteractionOperator
 import numpy as np
 from typing import Tuple, List, Optional, Callable
+import copy
 
 from .measurement import ExpectationValues, expectation_values_to_real
 
@@ -108,6 +109,18 @@ def get_decomposition_function(
     return decomposition_function
 
 
+def _calculate_variance_for_group(group):
+    coefficients = np.array(list(group.terms.values()))
+    return np.sum(coefficients ** 2)
+
+
+def _remove_constant_term_from_group(group):
+    new_group = copy.copy(group)
+    if new_group.terms.get(()):
+        del new_group.terms[()]
+    return new_group
+
+
 def compute_group_variances(
     groups: List[QubitOperator], expecval: ExpectationValues = None
 ) -> np.array:
@@ -125,13 +138,10 @@ def compute_group_variances(
         frame_variances: A Numpy array of the computed variances for each frame
     """
 
-    if any([group.terms.get(()) for group in groups]):
-        raise ValueError(
-            "The list of qubitoperators for measurement estimation should not contain a constant term"
-        )
+    groups = [_remove_constant_term_from_group(group) for group in groups]
     if expecval is None:
         frame_variances = [
-            np.sum(np.array(list(group.terms.values())) ** 2) for group in groups
+            _calculate_variance_for_group(group) for group in groups
         ]  # Covariances are ignored; Variances are set to 1
     else:
         group_sizes = np.array([len(group.terms.keys()) for group in groups])

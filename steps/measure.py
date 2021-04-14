@@ -157,28 +157,6 @@ def evaluate_ansatz_based_cost_function(
     save_value_estimate(value_estimate, "value_estimate.json")
 
 
-def hamiltonian_analysis(
-    qubit_operator: str,
-    decomposition_method: str = "greedy",
-    expectation_values: Optional[str] = None,
-):
-    operator = load_qubit_operator(qubit_operator)
-    if expectation_values is not None:
-        expecval = load_expectation_values(expectation_values)
-    else:
-        expecval = None
-
-    K_coeff, nterms, frame_meas = estimate_nmeas_for_operator(
-        operator, decomposition_method, expecval
-    )
-    save_nmeas_estimate(
-        nmeas=K_coeff,
-        nterms=nterms,
-        frame_meas=frame_meas,
-        filename="hamiltonian_analysis.json",
-    )
-
-
 def grouped_hamiltonian_analysis(
     groups: str,
     expectation_values: Optional[str] = None,

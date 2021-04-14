@@ -36,7 +36,7 @@ def get_local_zero_state_operator(number_of_qubits: int):
 def get_fermion_number_operator(
     number_of_qubits: int, number_of_particles: Optional[int] = None
 ):
-    """Get the nubmer operator for the input number of qubits. Optionally, the number of particles can be passed.
+    """Get the number operator for the input number of qubits. Optionally, the number of particles can be passed.
     Outputs are serialized to JSON under the file: "number-operator.json"
 
     ARGS:

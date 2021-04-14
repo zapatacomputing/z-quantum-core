@@ -90,8 +90,9 @@ def _import_gate(
 
 
 def _import_gate_via_name(gate: pyquil.gates.Gate) -> _gates.GateOperation:
-    zq_gate_ref = _builtin_gates.builtin_gate_by_name(gate.name)
-    if not zq_gate_ref:
+    try:
+        zq_gate_ref = _builtin_gates.builtin_gate_by_name(gate.name)
+    except KeyError:
         raise ValueError(f"Can't import {gate} as a built-in gate")
 
     zq_params = tuple(map(_import_expression, gate.params))
@@ -170,7 +171,7 @@ def _export_gate(gate: _gates.Gate, qubit_indices, custom_gate_names):
 def _export_custom_gate(gate: _gates.Gate, qubit_indices, custom_gate_names):
     if gate.name not in custom_gate_names:
         raise ValueError(
-            f"Can't export {gate} as custom gate, custom gate defition is missing"
+            f"Can't export {gate} as custom gate, custom gate definition is missing"
         )
     pyquil_params = list(map(_export_expression, gate.params))
     return (gate.name, pyquil_params) + qubit_indices

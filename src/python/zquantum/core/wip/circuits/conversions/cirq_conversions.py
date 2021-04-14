@@ -2,7 +2,7 @@
 from functools import singledispatch
 from itertools import chain
 from operator import attrgetter
-from typing import Union, Callable, Type, overload
+from typing import Union, Callable, Type, Dict, overload
 
 import cirq
 import numpy as np
@@ -105,7 +105,7 @@ ZQUANTUM_BUILTIN_GATE_NAME_TO_CIRQ_GATE = {
     "YY": make_rotation_factory(cirq.YYPowGate, -0.5),
     "ZZ": make_rotation_factory(cirq.ZZPowGate, -0.5),
     "XY": make_rotation_factory(cirq.ISwapPowGate, 0.0),
-}
+} # type: Dict[str, Callable]
 
 
 EIGENGATE_SPECIAL_CASES = {
@@ -142,19 +142,22 @@ CIRQ_GATE_SPECIAL_CASES = {cirq.CSWAP: _builtin_gates.SWAP.controlled(1)}
 qubit_index = attrgetter("x")
 
 
-@overload
-def export_to_cirq(gate: _gates.Gate) -> cirq.Gate:
-    pass
+# The overloads are commented out because mypy does not yet support overloads
+# for functools.singledispatch. See mypy #8356.
+
+# @overload
+# def export_to_cirq(gate: _gates.Gate) -> cirq.Gate:
+#     pass
 
 
-@overload
-def export_to_cirq(gate_operation: _gates.GateOperation) -> cirq.GateOperation:
-    pass
+# # @overload
+# def export_to_cirq(gate_operation: _gates.GateOperation) -> cirq.GateOperation:
+#     pass
 
 
-@overload
-def export_to_cirq(circuit: _circuit.Circuit) -> cirq.Circuit:
-    pass
+# # @overload
+# def export_to_cirq(circuit: _circuit.Circuit) -> cirq.Circuit:
+#     pass
 
 
 @singledispatch
@@ -202,23 +205,6 @@ def export_gate_operation_to_cirq(
 @export_to_cirq.register
 def export_circuit_to_cirq(circuit: _circuit.Circuit) -> cirq.Circuit:
     return cirq.Circuit([export_to_cirq(operation) for operation in circuit.operations])
-
-
-@overload
-def import_from_cirq(eigengate: cirq.Gate) -> _gates.Gate:
-    pass
-
-
-@overload
-def import_from_cirq(circuit: cirq.Circuit) -> _circuit.Circuit:
-    pass
-
-
-@overload
-def import_from_cirq(
-    operation: Union[cirq.GateOperation, cirq.ControlledOperation]
-) -> _gates.GateOperation:
-    pass
 
 
 @singledispatch

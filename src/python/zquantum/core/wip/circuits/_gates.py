@@ -14,7 +14,7 @@ from ...utils import SCHEMA_VERSION
 
 Parameter = Union[sympy.Symbol, Number]
 
-def _get_free_symbols(parameters: Tuple[Parameter, ...]) -> Iterable[sympy]:
+def _get_free_symbols(parameters: Tuple[Parameter, ...]) -> Iterable[sympy.Symbol]:
     symbols = set(
         symbol
         for param in parameters

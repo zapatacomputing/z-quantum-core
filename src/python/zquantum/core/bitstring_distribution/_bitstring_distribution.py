@@ -6,7 +6,7 @@ import numpy as np
 from ..utils import SCHEMA_VERSION, convert_tuples_to_bitstrings
 from ..typing import AnyPath
 from collections import Counter
-from typing import Dict, Callable, List
+from typing import Dict, Callable, List, Any
 
 
 class BitstringDistribution:
@@ -156,7 +156,7 @@ def save_bitstring_distribution(
         distribution (BitstringDistribution): the bistring distribution
         file (str or file-like object): the name of the file, or a file-like object
     """
-    dictionary = {}
+    dictionary = {} # type: Dict[str, Any]
     dictionary["bitstring_distribution"] = distribution.distribution_dict
     dictionary["schema"] = SCHEMA_VERSION + "-bitstring-probability-distribution"
 
@@ -173,7 +173,7 @@ def save_bitstring_distribution_set(
        bitstring_distribution_set (list): a list of distributions to be saved
        file (str): the name of the file
     """
-    dictionary = {}
+    dictionary = {} # type: Dict[str, Any]
     dictionary["schema"] = SCHEMA_VERSION + "-bitstring-probability-distribution-set"
     dictionary["bitstring_distribution"] = []
 
@@ -228,7 +228,7 @@ def load_bitstring_distribution_set(file: str) -> List[BitstringDistribution]:
 
 
 def create_bitstring_distribution_from_probability_distribution(
-    prob_distribution: np.array,
+    prob_distribution: np.ndarray,
 ) -> BitstringDistribution:
     """Create a well defined bitstring distribution starting from a probability distribution
 

@@ -2,7 +2,7 @@
 import json
 from numbers import Number
 from operator import attrgetter
-from typing import Any, Iterator
+from typing import Any, Iterator, Dict, Callable
 import numpy as np
 from scipy.optimize import OptimizeResult
 
@@ -42,7 +42,7 @@ class OrquestraEncoder(json.JSONEncoder):
         np.ndarray: convert_array_to_dict,
         ValueEstimate: ValueEstimate.to_dict,
         BitstringDistribution: attrgetter("distribution_dict"),
-    }
+    }  # type: Dict[Any, Callable[[Any], Any]]
 
     def default(self, o: Any):
         if type(o) in self.ENCODERS_TABLE:
@@ -52,7 +52,7 @@ class OrquestraEncoder(json.JSONEncoder):
     def encode(self, o: Any):
         return super().encode(preprocess(o))
 
-    def iterencode(self, o: Any, _one_shot: bool = ...) -> Iterator[str]:
+    def iterencode(self, o: Any, _one_shot: bool = False) -> Iterator[str]:
         return super().iterencode(preprocess(o))
 
 

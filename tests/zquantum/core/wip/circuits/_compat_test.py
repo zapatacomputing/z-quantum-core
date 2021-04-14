@@ -28,18 +28,14 @@ def _new_circuit_from_pyquil(program):
 THETA_1 = sympy.Symbol("theta_1")
 
 def _make_old_parametric_circuit():
-    qubits = [old_circuit.Qubit(i) for i in range(0, 3)]
-    # theta_1 = sympy.Symbol("theta_1")
-    # theta_2 = sympy.Symbol("theta_2")
+    qubit = old_circuit.Qubit(0)
+    gate_RX = old_circuit.Gate("Rx", params=[THETA_1], qubits=[qubit])
 
-    gate_RX_1 = old_circuit.Gate("Rx", params=[THETA_1], qubits=[qubits[0]])
-    # gate_RX_2 = old_circuit.Gate("Rx", params=[theta_2], qubits=[qubits[0]])
+    circ = old_circuit.Circuit()
+    circ.qubits = [qubit]
+    circ.gates = [gate_RX]
 
-    circ1 = old_circuit.Circuit()
-    circ1.qubits = qubits
-    circ1.gates = [gate_RX_1]
-
-    return circ1
+    return circ
 
 
 @pytest.mark.parametrize(

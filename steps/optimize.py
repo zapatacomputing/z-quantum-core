@@ -10,6 +10,7 @@ from zquantum.core.estimator import BasicEstimator
 from zquantum.core.serialization import save_optimization_results
 from zquantum.core.utils import create_object
 from zquantum.core.typing import Specs
+from zquantum.core.openfermion import load_qubit_operator
 
 
 def optimize_parametrized_circuit_for_ground_state_of_operator(
@@ -53,8 +54,7 @@ def optimize_parametrized_circuit_for_ground_state_of_operator(
     optimizer = create_object(optimizer_specs)
 
     if isinstance(target_operator, str):
-        with open(target_operator, "r") as f:
-            target_operator = json.loads(f.read())
+        target_operator = load_qubit_operator(target_operator)
 
     if isinstance(parametrized_circuit, str):
         parametrized_circuit = load_circuit(parametrized_circuit)

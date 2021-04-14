@@ -163,7 +163,7 @@ def _all_attrs_equal(obj, other_obj, attrs):
 
 
 @dataclass(frozen=True)
-class MatrixFactoryGate:
+class MatrixFactoryGate(Gate):
     """Data structure for a `Gate` with deferred matrix construction.
 
     Most built-in gates are instances of this class.

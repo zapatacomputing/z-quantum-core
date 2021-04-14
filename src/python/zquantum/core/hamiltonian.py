@@ -115,7 +115,7 @@ def _calculate_variance_for_group(group: QubitOperator) -> float:
 
 
 def _remove_constant_term_from_group(group: QubitOperator) -> QubitOperator:
-    new_group = copy.copy(group)
+    new_group = copy.deepcopy(group)
     if new_group.terms.get(()):
         del new_group.terms[()]
     return new_group
@@ -138,8 +138,8 @@ def compute_group_variances(
         frame_variances: A Numpy array of the computed variances for each frame
     """
 
-    groups = [_remove_constant_term_from_group(group) for group in groups]
     if expecval is None:
+        groups = [_remove_constant_term_from_group(group) for group in groups]
         frame_variances = [
             _calculate_variance_for_group(group) for group in groups
         ]  # Covariances are ignored; Variances are set to 1
@@ -216,13 +216,7 @@ def get_expectation_values_from_rdms(
     reordered_qubitoperator = QubitOperator()
     for term, coefficient in terms_iterator:
         reordered_qubitoperator += QubitOperator(term, coefficient)
-
     expectations_packed = interactionrdm.get_qubit_expectations(reordered_qubitoperator)
-
-    if () in expectations_packed.terms:
-        del expectations_packed.terms[
-            ()
-        ]  # Expectation of the constant term is excluded from expectation values
 
     expectations = np.array(list(expectations_packed.terms.values()))
     if np.any(np.abs(np.imag(expectations)) > 1e-3):
@@ -231,32 +225,7 @@ def get_expectation_values_from_rdms(
         )
     expectations = np.real(expectations)
     np.clip(expectations, -1, 1, out=expectations)
-
     return ExpectationValues(expectations)
-
-
-def estimate_nmeas_for_operator(
-    operator: QubitOperator,
-    decomposition_method: Optional[str] = "greedy-sorted",
-    expecval: Optional[ExpectationValues] = None,
-):
-    """Calculates the number of measurements required for computing
-    the expectation value of a qubit hamiltonian, where co-measurable terms
-    are grouped. See estimate_nmeas_for_frames for details.
-
-    Args:
-        operator: The operator whose expectation value is to be estimated.
-        decomposition_method: Method used to decompose the Hamiltonian into
-            co-measurable groups. See DECOMPOSITION_METHODS.
-        expval: Expectation values to be used when accounting for variances. See
-            estimate_nmeas_for_frames for details.
-
-    Returns:
-        See estimate_nmeas_for_frames.
-    """
-
-    decomposition_function = get_decomposition_function(decomposition_method)
-    return estimate_nmeas_for_frames(decomposition_function(operator), expecval)
 
 
 def estimate_nmeas_for_frames(

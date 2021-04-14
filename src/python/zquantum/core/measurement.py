@@ -12,7 +12,7 @@ from .utils import (
     convert_bitstrings_to_tuples,
     convert_tuples_to_bitstrings,
 )
-from typing import Optional, List, Tuple, TextIO, Iterable, Dict
+from typing import Optional, List, Tuple, TextIO, Iterable, Dict, Union
 from collections import Counter
 from .bitstring_distribution import BitstringDistribution
 from zquantum.core.typing import LoadSource, AnyPath
@@ -659,7 +659,7 @@ def concatenate_expectation_values(
         The combined expectation values.
     """
 
-    combined_expectation_values = ExpectationValues(np.zeros(0,))
+    combined_expectation_values = ExpectationValues(np.zeros(0))
 
     for expectation_values in expectation_values_set:
         combined_expectation_values.values = np.concatenate(

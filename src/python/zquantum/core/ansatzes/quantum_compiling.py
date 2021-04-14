@@ -14,8 +14,8 @@ class HEAQuantumCompilingAnsatz(Ansatz):
     number_of_qubits = ansatz_property("number_of_qubits")
 
     def __init__(self, number_of_layers: int, number_of_qubits: int):
-        """
-        An ansatz implementation used for running the Quantum Compiling Algorithm
+        """An ansatz implementation for the Hardware Efficient Quantum Compiling Ansatz
+            used in https://arxiv.org/pdf/2011.12245.pdf
 
         Args:
             number_of_layers (int): number of layers in the circuit.
@@ -29,8 +29,18 @@ class HEAQuantumCompilingAnsatz(Ansatz):
         assert number_of_qubits % 2 == 0
         self._number_of_qubits = number_of_qubits
 
-    def _build_rotational_subcircuit(self, circuit, parameters) -> Circuit:
+    def _build_rotational_subcircuit(
+        self, circuit: Circuit, parameters: np.ndarray
+    ) -> Circuit:
+        """Add the subcircuit which includes several rotation gates acting on each qubit
 
+        Args:
+            circuit: The circuit to append to
+            parameters: The variational parameters (or symbolic parameters)
+
+        Returns:
+            circuit with added rotational sub-layer
+        """
         # Add Rz(theta) Rx(pi/2) Rz(theta') Rx(pi/2) Rz(theta'')
         for qubit_index, qubit in enumerate(circuit.qubits):
 
@@ -45,6 +55,14 @@ class HEAQuantumCompilingAnsatz(Ansatz):
         return circuit
 
     def _build_circuit_layer(self, parameters: np.ndarray) -> Circuit:
+        """Build circuit layer for the hardware efficient quantum compiling ansatz
+
+        Args:
+            parameters: The variational parameters (or symbolic parameters)
+
+        Returns:
+            Circuit containing a single layer of the Hardware Efficient Quantum Compiling Ansatz
+        """
         circuit_layer = Circuit()
         circuit_layer.qubits = [Qubit(i) for i in range(self.number_of_qubits)]
 

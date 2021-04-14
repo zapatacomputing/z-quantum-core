@@ -5,7 +5,7 @@ import numpy as np
 import pyquil.gates
 
 import zquantum.core.circuit as old_circuit
-from zquantum.core.wip.circuits._compat import new_circuit_from_old_circuit
+from zquantum.core.wip.circuits._compatibility import new_circuit_from_old_circuit
 import zquantum.core.wip.circuits as new_circuits
 
 

@@ -32,15 +32,15 @@ class EstimationTaskTransformer(Protocol):
     """
 
     def __call__(
-        self, estimation_problems: List[EstimationTask], **kwargs
+        self, estimation_tasks: List[EstimationTask], **kwargs
     ) -> List[EstimationTask]:
         pass
 
 
 class EstimateExpectationValues(Protocol):
-    """Protocol defining function estimates expectation values for a list of estimation tasks.."""
+    """Protocol defining function estimates expectation values for a list of estimation tasks."""
 
     def __call__(
-        self, backend: QuantumBackend, estimation_problems: List[EstimationTask]
+        self, backend: QuantumBackend, estimation_tasks: List[EstimationTask]
     ) -> ExpectationValues:
         pass

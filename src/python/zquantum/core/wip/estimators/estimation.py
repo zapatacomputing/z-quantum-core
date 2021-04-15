@@ -14,6 +14,9 @@ from ...measurement import (
 )
 from ...utils import scale_and_discretize
 from .estimation_interface import EstimationTask, EstimationTaskTransformer
+from ...openfermion import change_operator_type
+
+import sympy
 
 
 def get_context_selection_circuit(
@@ -99,7 +102,9 @@ def greedy_grouping_with_context_selection(
     return output_estimation_tasks
 
 
-def uniform_shot_allocation(number_of_shots: int) -> EstimationTaskTransformer:
+def uniform_shot_allocation(
+    estimation_tasks: List[EstimationTask], number_of_shots: int
+) -> List[EstimationTask]:
     """
     Returns an EstimationTaskTransformer which allocates the same number of shots to each task.
 
@@ -109,26 +114,21 @@ def uniform_shot_allocation(number_of_shots: int) -> EstimationTaskTransformer:
     if number_of_shots <= 0:
         raise ValueError("number_of_shots must be positive.")
 
-    def _allocate_shots(
-        estimation_tasks: List[EstimationTask],
-    ) -> List[EstimationTask]:
-
-        return [
-            EstimationTask(
-                operator=estimation_task.operator,
-                circuit=estimation_task.circuit,
-                number_of_shots=number_of_shots,
-            )
-            for estimation_task in estimation_tasks
-        ]
-
-    return _allocate_shots
+    return [
+        EstimationTask(
+            operator=estimation_task.operator,
+            circuit=estimation_task.circuit,
+            number_of_shots=number_of_shots,
+        )
+        for estimation_task in estimation_tasks
+    ]
 
 
 def proportional_shot_allocation(
+    estimation_tasks: List[EstimationTask],
     total_n_shots: int,
     prior_expectation_values: Optional[ExpectationValues] = None,
-) -> EstimationTaskTransformer:
+) -> List[EstimationTask]:
     """
     Returns an EstimationTaskTransformer which allocates the same number of shots to each task.
     For more details please refer to documentation of zquantum.core.hamiltonian.estimate_nmeas_for_frames .
@@ -141,33 +141,48 @@ def proportional_shot_allocation(
     if total_n_shots <= 0:
         raise ValueError("total_n_shots must be positive.")
 
-    def _allocate_shots(
-        estimation_tasks: List[EstimationTask],
-    ) -> List[EstimationTask]:
-        frame_operators = [
-            estimation_task.operator for estimation_task in estimation_tasks
-        ]
+    frame_operators = [estimation_task.operator for estimation_task in estimation_tasks]
 
-        _, _, measurements_per_frame = estimate_nmeas_for_frames(
-            frame_operators, prior_expectation_values
+    _, _, measurements_per_frame = estimate_nmeas_for_frames(
+        frame_operators, prior_expectation_values
+    )
+
+    measurements_per_frame = scale_and_discretize(measurements_per_frame, total_n_shots)
+
+    return [
+        EstimationTask(
+            operator=estimation_task.operator,
+            circuit=estimation_task.circuit,
+            number_of_shots=number_of_shots,
         )
-
-        measurements_per_frame = scale_and_discretize(
-            measurements_per_frame, total_n_shots
+        for estimation_task, number_of_shots in zip(
+            estimation_tasks, measurements_per_frame
         )
+    ]
 
-        return [
-            EstimationTask(
-                operator=estimation_task.operator,
-                circuit=estimation_task.circuit,
-                number_of_shots=number_of_shots,
-            )
-            for estimation_task, number_of_shots in zip(
-                estimation_tasks, measurements_per_frame
-            )
-        ]
 
-    return _allocate_shots
+def evaluate_circuits(
+    estimation_tasks: List[EstimationTask],
+    symbols_maps: List[List[Tuple[sympy.Basic, float]]],
+) -> List[EstimationTask]:
+    """
+    Evaluates circuits given in all estimation tasks using the given symbols_maps. If one symbols map is given,
+    it is used to evaluate all circuits. Otherwise, the symbols map at index i will be used for the estimation
+    task at index i.
+
+    Args:
+        estimation_tasks: the estimation tasks which contain the circuits to be evaluated
+        symbols_maps: a list of dictionaries (or singular dictionary) that map the symbolic symbols used in the
+            parametrized circuits to the associated values
+    """
+    return [
+        EstimationTask(
+            operator=estimation_task.operator,
+            circuit=estimation_task.circuit.evaluate(symbols_map),
+            number_of_shots=estimation_task.number_of_shots,
+        )
+        for estimation_task, symbols_map in zip(estimation_tasks, symbols_maps)
+    ]
 
 
 def naively_estimate_expectation_values(
@@ -182,14 +197,20 @@ def naively_estimate_expectation_values(
         backend: backend used for executing circuits
         estimation_tasks: list of estimation tasks
     """
-    circuits, operators, shots_per_circuit = zip(
-        *[(e.circuit, e.operator, e.number_of_shots) for e in estimation_tasks]
-    )
+    circuits, operators, shots_per_circuit = [], [], []
+    for task in estimation_tasks:
+        circuits.append(task.circuit)
+        operators.append(task.operator)
+        shots_per_circuit.append(task.number_of_shots)
 
     measurements_list = backend.run_circuitset_and_measure(circuits, shots_per_circuit)
 
     expectation_values_list = [
-        expectation_values_to_real(measurements.get_expectation_values(frame_operator))
+        expectation_values_to_real(
+            measurements.get_expectation_values(
+                change_operator_type(frame_operator, IsingOperator)
+            )
+        )
         for frame_operator, measurements in zip(operators, measurements_list)
     ]
 

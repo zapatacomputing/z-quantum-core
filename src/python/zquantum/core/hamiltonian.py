@@ -109,7 +109,7 @@ def get_decomposition_function(
     return decomposition_function
 
 
-def _calculate_variance_for_group(group: QubitOperator) -> float:
+def _calculate_variance_upper_bound(group: QubitOperator) -> float:
     coefficients = np.array(list(group.terms.values()))
     return np.sum(coefficients ** 2)
 
@@ -141,7 +141,7 @@ def compute_group_variances(
     if expecval is None:
         groups = [_remove_constant_term_from_group(group) for group in groups]
         frame_variances = [
-            _calculate_variance_for_group(group) for group in groups
+            _calculate_variance_upper_bound(group) for group in groups
         ]  # Covariances are ignored; Variances are set to 1
     else:
         group_sizes = np.array([len(group.terms.keys()) for group in groups])

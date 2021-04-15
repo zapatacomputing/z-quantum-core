@@ -2,6 +2,7 @@ from functools import singledispatch, reduce
 import operator
 from typing import Union, Dict, Optional, Iterable, Any
 
+import numpy as np
 import sympy
 
 from . import _gates
@@ -101,6 +102,19 @@ class Circuit:
         return sorted(
             unique_operation_dict.values(), key=operator.attrgetter("gate_name")
         )
+
+    def to_unitary(self) -> Union[np.ndarray, sympy.Matrix]:
+        """Create a unitary matrix describing Circuit's action.
+
+        For performance reasons, this method will construct numpy matrix if circuit does
+        not have free parameters, and a sympy matrix otherwise.
+        """
+        # The `reversed` iterator reflects the fact the matrices are multiplied
+        # when composing linear operations (i.e. first operation is the rightmost).
+        lifted_matrices = [
+            op.lifted_matrix(self.n_qubits) for op in reversed(self.operations)
+        ]
+        return reduce(operator.matmul, lifted_matrices)
 
     def bind(self, symbols_map: Dict[sympy.Symbol, Any]):
         """Create a copy of the current circuit with the parameters of each gate bound to

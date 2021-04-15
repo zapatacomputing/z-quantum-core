@@ -456,12 +456,13 @@ def load_noise_model(file: LoadSource):
 
     if isinstance(file, str):
         with open(file, "r") as f:
-            data = json.load(f)
+            specs = json.load(f)
     else:
-        data = json.load(file)
+        specs = json.load(file)
 
-    func = get_func_from_specs(data)
-    return func(data["data"])
+    noise_model_data = specs.pop("data", None)
+    func = create_object(specs)
+    return func(noise_model_data)
 
 
 def save_noise_model(noise_model_data, module_name, function_name, filename):

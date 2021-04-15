@@ -674,11 +674,7 @@ def concatenate_expectation_values(
         The combined expectation values.
     """
 
-    combined_expectation_values = ExpectationValues(
-        np.zeros(
-            0,
-        )
-    )
+    combined_expectation_values = ExpectationValues(np.zeros(0))
 
     for expectation_values in expectation_values_set:
         combined_expectation_values.values = np.concatenate(

@@ -102,7 +102,8 @@ def is_bitstring_distribution(input_dict: Dict) -> bool:
         bool: boolean variable indicating whether the bitstring distribution is well defined or not.
     """
     return (
-        is_non_negative(input_dict)
+        (not input_dict == {})
+        and is_non_negative(input_dict)
         and is_key_length_fixed(input_dict)
         and are_keys_binary_strings(input_dict)
     )

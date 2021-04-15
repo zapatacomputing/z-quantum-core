@@ -15,6 +15,10 @@ from pyquil.gates import RX, X
 import sympy
 from overrides import overrides
 from typing import Optional
+from ..wip.compatibility_tools import compatible_with_old_type
+from ..wip.circuits._compatibility import new_circuit_from_old_circuit
+from ..wip.circuits import Circuit as NewCircuit
+from ..wip.circuits._builtin_gates import RX
 
 
 class MockQuantumBackend(QuantumBackend):
@@ -24,23 +28,25 @@ class MockQuantumBackend(QuantumBackend):
     def __init__(self, n_samples=None):
         super().__init__(n_samples)
 
-    def run_circuit_and_measure(self, circuit, n_samples=None, **kwargs):
+    @compatible_with_old_type(Circuit, new_circuit_from_old_circuit)
+    def run_circuit_and_measure(
+        self, circuit: NewCircuit, n_samples: int = None, **kwargs
+    ) -> Measurements:
         super(MockQuantumBackend, self).run_circuit_and_measure(circuit)
-        n_qubits = len(circuit.qubits)
         measurements = Measurements()
         if n_samples is None:
             n_samples = self.n_samples
         for _ in range(n_samples):
             measurements.bitstrings += [
-                tuple(random.randint(0, 1) for j in range(n_qubits))
+                tuple(random.randint(0, 1) for j in range(circuit.n_qubits))
             ]
 
         return measurements
 
-    def get_wavefunction(self, circuit):
+    def get_wavefunction(self, circuit: NewCircuit):
         raise NotImplementedError
 
-    def get_density_matrix(self, circuit):
+    def get_density_matrix(self, circuit: NewCircuit):
         raise NotImplementedError
 
 
@@ -51,39 +57,38 @@ class MockQuantumSimulator(QuantumSimulator):
     def __init__(self, n_samples: Optional[int] = None):
         super().__init__(n_samples)
 
-    def run_circuit_and_measure(self, circuit: Circuit, n_samples=None, **kwargs):
+    @compatible_with_old_type(Circuit, new_circuit_from_old_circuit)
+    def run_circuit_and_measure(
+        self, circuit: NewCircuit, n_samples=None, **kwargs
+    ) -> Measurements:
         super(MockQuantumSimulator, self).run_circuit_and_measure(circuit)
-        n_qubits = len(circuit.qubits)
         measurements = Measurements()
         if n_samples is None:
             n_samples = self.n_samples
         for _ in range(n_samples):
             measurements.bitstrings += [
-                tuple([random.randint(0, 1) for j in range(n_qubits)])
+                tuple(random.randint(0, 1) for j in range(circuit.n_qubits))
             ]
+
         return measurements
 
+    @compatible_with_old_type(Circuit, new_circuit_from_old_circuit)
     def get_expectation_values(
-        self, circuit: Circuit, operator: SymbolicOperator, **kwargs
-    ):
+        self, circuit: NewCircuit, operator: SymbolicOperator, **kwargs
+    ) -> ExpectationValues:
         if self.n_samples is None:
             self.number_of_circuits_run += 1
             self.number_of_jobs_run += 1
-            n_qubits = len(circuit.qubits)
+            constant_position = None
             if hasattr(operator, "terms"):
                 n_operator = len(operator.terms.keys())
-                constant_position = None
                 for index, term in enumerate(operator.terms):
                     if term == ():
                         constant_position = index
             else:
                 n_operator = None
-                constant_position = None
                 print("WARNING: operator does not have attribute terms")
-            if n_operator is not None:
-                length = n_operator
-            else:
-                length = n_qubits
+            length = n_operator if n_operator is not None else circuit.n_qubits
             values = np.asarray([2.0 * random.random() - 1.0 for i in range(length)])
             if n_operator is not None and constant_position is not None:
                 values[constant_position] = 1.0
@@ -91,12 +96,13 @@ class MockQuantumSimulator(QuantumSimulator):
         else:
             super(MockQuantumSimulator, self).get_expectation_values(circuit, operator)
 
+    @compatible_with_old_type(Circuit, new_circuit_from_old_circuit)
     def get_exact_expectation_values(
-        self, circuit: Circuit, operator: SymbolicOperator, **kwargs
-    ):
+        self, circuit: NewCircuit, operator: SymbolicOperator, **kwargs
+    ) -> ExpectationValues:
         return self.get_expectation_values(circuit, operator)
 
-    def get_wavefunction(self, circuit):
+    def get_wavefunction(self, circuit: NewCircuit):
         raise NotImplementedError
 
 

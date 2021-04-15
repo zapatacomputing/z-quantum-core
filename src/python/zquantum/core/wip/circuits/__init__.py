@@ -144,7 +144,7 @@ from ._builtin_gates import (
     YY,
     ZZ,
     XY,
-    builtin_gate_by_name
+    builtin_gate_by_name,
 )
 
 from ._serde import (
@@ -166,3 +166,5 @@ from .conversions.qiskit_conversions import (
     export_to_qiskit,
     import_from_qiskit,
 )
+
+from ._compatibility import new_circuit_from_old_circuit

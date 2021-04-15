@@ -1,25 +1,19 @@
 """General-purpose utilities."""
+from types import FunctionType
 import warnings
 
 import numpy as np
-from scipy.linalg import expm
-import random
-import math
-import operator
 import sys
 import json
-import openfermion
 import sympy
 from openfermion import hermitian_conjugated
 from openfermion import InteractionRDM
-from openfermion.ops import SymbolicOperator
-from networkx.readwrite import json_graph
 import lea
 import collections
-import scipy
-from typing import List, Tuple, Optional, Iterable, Union, Dict
+from typing import List, Tuple, Optional, Iterable, Dict
 import importlib
 import copy
+from functools import partial
 from .typing import LoadSource, AnyPath, Specs
 
 SCHEMA_VERSION = "zapata-v1"
@@ -414,10 +408,11 @@ def get_func_from_specs(specs: Dict):
         callable: function defined by specs
 
     """
-    module_name = specs.pop("module_name")
-    module = importlib.import_module(module_name)
-    function_name = specs.pop("function_name")
-    return getattr(module, function_name)
+    warnings.warn(
+        "zquantum.core.utils.get_func_from_specs will be deprecated. Please use zquantum.core.utils.create_object instead",
+        DeprecationWarning,
+    )
+    return create_object(specs)
 
 
 def create_object(specs: Dict, **kwargs):
@@ -439,8 +434,14 @@ def create_object(specs: Dict, **kwargs):
     module = importlib.import_module(module_name)
     creator_name = specs.pop("function_name")
     creator = getattr(module, creator_name)
-    created_object = creator(**specs, **kwargs)
-    return created_object
+
+    if isinstance(creator, FunctionType):
+        if kwargs != {} or specs != {}:
+            return partial(creator, **specs, **kwargs)
+        else:
+            return creator
+    else:
+        return creator(**specs, **kwargs)
 
 
 def load_noise_model(file: LoadSource):

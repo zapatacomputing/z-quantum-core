@@ -1,3 +1,4 @@
+from functools import partial
 import os
 import random
 import numpy as np
@@ -6,6 +7,7 @@ from scipy.stats import unitary_group
 import sympy
 import json
 import pkg_resources
+from types import FunctionType
 
 from zquantum.core.openfermion import (
     load_interaction_operator,
@@ -209,6 +211,55 @@ class TestUtils:
         assert type(mock_simulator).__name__ == function_name
         assert mock_simulator.n_samples == n_samples
 
+    def test_create_object_func_without_kwargs(self):
+        self.test_get_func_from_specs()
+
+    def test_create_object_func_with_kwargs_in_specs(self):
+        # Given
+        function_name = "sum_x_squared"
+        data = np.array([1.0, 2.0])
+        target_value = 5.0
+        specs = {
+            "module_name": "zquantum.core.interfaces.optimizer_test",
+            "function_name": function_name,
+            "x": data,
+        }
+        # When
+        function = create_object(specs)
+
+        # Then
+        assert isinstance(function, partial)
+        assert function() == target_value
+
+    def test_create_object_func_with_kwargs(self):
+        # Given
+        function_name = "sum_x_squared"
+        data = np.array([1.0, 2.0])
+        target_value = 5.0
+        specs = {
+            "module_name": "zquantum.core.interfaces.optimizer_test",
+            "function_name": function_name,
+        }
+        # When
+        function = create_object(specs, x=data)
+
+        # Then
+        assert isinstance(function, partial)
+        assert function() == target_value
+
+    def test_create_object_func_fails_with_multiple_assignments(self):
+        # Given
+        function_name = "sum_x_squared"
+        data = np.array([1.0, 2.0])
+        specs = {
+            "module_name": "zquantum.core.interfaces.optimizer_test",
+            "function_name": function_name,
+            "x": data,
+        }
+        # When
+        with pytest.raises(TypeError):
+            function = create_object(specs, x=data)
+
     def test_save_generic_dict(self):
         data = {"flavor": "chocolate", "weight": 42}
         save_generic_dict(data, "dict.json")
@@ -382,14 +433,19 @@ def test_scale_and_discretize(values, total, expected_result):
     [
         (
             load_interaction_operator(
-                pkg_resources.resource_filename("zquantum.core.testing", "hamiltonian_H2_minimal_basis.json")
+                pkg_resources.resource_filename(
+                    "zquantum.core.testing", "hamiltonian_H2_minimal_basis.json"
+                )
             ),
             -0.8543376267387818,
             1,
         ),
         (
             load_interaction_operator(
-                pkg_resources.resource_filename("zquantum.core.testing", "hamiltonian_H2_minus_ROHF_minimal_basis.json")
+                pkg_resources.resource_filename(
+                    "zquantum.core.testing",
+                    "hamiltonian_H2_minus_ROHF_minimal_basis.json",
+                )
             ),
             -0.6857403043904364,
             2,

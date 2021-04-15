@@ -15,22 +15,22 @@
 #   limitations under the License.
 ############################################################################
 
-import pytest
 import numpy as np
+import pytest
 from openfermion.ops import (
     FermionOperator,
-    QubitOperator,
     InteractionOperator,
     InteractionRDM,
+    QubitOperator,
 )
-from openfermion.utils import hermitian_conjugated
 from openfermion.transforms import jordan_wigner
+from openfermion.utils import hermitian_conjugated
+from qiskit.aqua.operators import WeightedPauliOperator
+from qiskit.quantum_info import Pauli
 from zquantum.core.openfermion._qiskit_conversions import (
     qiskitpauli_to_qubitop,
     qubitop_to_qiskitpauli,
 )
-from qiskit.aqua.operators import WeightedPauliOperator
-from qiskit.quantum_info import Pauli
 
 
 def test_translation_type_enforcement():

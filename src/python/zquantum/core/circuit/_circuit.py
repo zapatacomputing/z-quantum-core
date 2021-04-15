@@ -1,25 +1,20 @@
 # """Tools for constructing quantum circuits."""
 import json
+import warnings
+from math import pi
+
+import cirq
 import numpy as np
 import pyquil
-import cirq
 import qiskit
-import random
-import warnings
-
-from qiskit import QuantumRegister
-
 from pyquil import Program
-from pyquil.gates import *
+from pyquil.gates import MEASURE, I
 from pyquil.quilatom import quil_cos, quil_sin
 
-from math import pi
-from ..utils import convert_array_to_dict, convert_dict_to_array
+from ..utils import SCHEMA_VERSION
 from ._gate import Gate
-from ._qubit import Qubit
 from ._gateset import COMMON_GATES, UNIQUE_GATES
-from ..utils import SCHEMA_VERSION, pauli_x, pauli_y, pauli_z, identity
-from openfermion.ops import FermionOperator
+from ._qubit import Qubit
 
 
 class Circuit(object):

@@ -1,17 +1,8 @@
 from __future__ import annotations
-import json
+
 import copy
-from pyquil.wavefunction import Wavefunction
-import numpy as np
-from openfermion.ops import IsingOperator
-from .utils import (
-    SCHEMA_VERSION,
-    convert_array_to_dict,
-    convert_dict_to_array,
-    sample_from_probability_distribution,
-    convert_bitstrings_to_tuples,
-    convert_tuples_to_bitstrings,
-)
+import json
+from collections import Counter
 from typing import (
     Optional,
     List,
@@ -25,9 +16,20 @@ from typing import (
     Iterable,
     cast,
 )
-from collections import Counter
+
+import numpy as np
+from openfermion.ops import IsingOperator
+from pyquil.wavefunction import Wavefunction
+from zquantum.core.typing import AnyPath, LoadSource
+
 from .bitstring_distribution import BitstringDistribution
-from zquantum.core.typing import LoadSource, AnyPath
+from .utils import (
+    SCHEMA_VERSION,
+    convert_array_to_dict,
+    convert_dict_to_array,
+    convert_tuples_to_bitstrings,
+    sample_from_probability_distribution,
+)
 
 
 def save_expectation_values(

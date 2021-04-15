@@ -7,7 +7,6 @@ from openfermion import SymbolicOperator
 from overrides import overrides
 from pyquil import Program
 from pyquil.gates import RX, X
-from scipy.optimize import OptimizeResult
 
 from ..circuit import Circuit
 from ..measurement import ExpectationValues, Measurements

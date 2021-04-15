@@ -5,8 +5,9 @@ You need to define your own test cases that inherit from the ones defined here.
 """
 
 
-from ..circuit import Circuit
 import numpy as np
+
+from ..circuit import Circuit
 
 
 class AnsatzTests:

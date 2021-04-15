@@ -1,26 +1,24 @@
-from pyquil import Program
-from pyquil.gates import RY, RZ, X
-from openfermion import QubitOperator, qubit_operator_sparse, IsingOperator
 import numpy as np
 import pytest
-
+from openfermion import IsingOperator, QubitOperator, qubit_operator_sparse
+from pyquil import Program
+from pyquil.gates import RY, RZ, X
+from zquantum.core.circuit import Circuit
 from zquantum.core.interfaces.mock_objects import (
     MockQuantumBackend,
     MockQuantumSimulator,
 )
+from zquantum.core.measurement import ExpectationValues
+from zquantum.core.openfermion._utils import change_operator_type
 from zquantum.core.wip.estimators.estimation import (
+    calculate_exact_expectation_values,
     get_context_selection_circuit,
     get_context_selection_circuit_for_group,
     greedy_grouping_with_context_selection,
-    uniform_shot_allocation,
-    proportional_shot_allocation,
     naively_estimate_expectation_values,
-    calculate_exact_expectation_values,
+    proportional_shot_allocation,
+    uniform_shot_allocation,
 )
-from zquantum.core.openfermion._utils import change_operator_type
-
-from zquantum.core.measurement import ExpectationValues
-from zquantum.core.circuit import Circuit
 from zquantum.core.wip.estimators.estimation_interface import EstimationTask
 
 

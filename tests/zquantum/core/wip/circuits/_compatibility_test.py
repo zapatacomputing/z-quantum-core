@@ -1,13 +1,11 @@
-import pytest
-import pyquil
-import sympy
 import numpy as np
+import pyquil
 import pyquil.gates
-
+import pytest
+import sympy
 import zquantum.core.circuit as old_circuit
-from zquantum.core.wip.circuits._compatibility import new_circuit_from_old_circuit
 import zquantum.core.wip.circuits as new_circuits
-
+from zquantum.core.wip.circuits._compatibility import new_circuit_from_old_circuit
 
 PYQUIL_PROGRAMS = [
     pyquil.Program(),

@@ -1,6 +1,6 @@
 """Tools for building compatibility layers."""
 import warnings
-from typing import Optional, Callable
+from typing import Callable, Optional
 
 
 class TranslationFailed(Exception):

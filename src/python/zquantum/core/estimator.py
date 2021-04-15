@@ -62,7 +62,7 @@ def get_context_selection_circuit_for_group(
 
     context_selection_circuit = Circuit()
     transformed_operator = IsingOperator()
-    context = []
+    context = [] # type: List[Tuple[int, str]]
 
     for term in qubit_operator.terms:
         term_operator = IsingOperator(())
@@ -114,17 +114,17 @@ def allocate_shots(
     if shot_allocation_strategy == "uniform":
         if n_total_samples is not None:
             raise ValueError("Uniform sampling does not yet support n_total_samples.")
-        if n_samples is not None:
+        elif n_samples is not None:
             measurements_per_frame = [n_samples for _ in range(len(frame_operators))]
         else:
-            measurements_per_frame = None
+            raise ValueError("Neither n_total_samples nor n_samples were provided.")
 
     elif shot_allocation_strategy == "optimal":
         if n_total_samples is None:
             raise ValueError(
                 "For optimal shot allocation, n_total_samples must be provided."
             )
-        if n_samples is not None:
+        elif n_samples is not None:
             raise ValueError(
                 "Optimal shot allocation does not support n_samples; use n_total_samples instead."
             )

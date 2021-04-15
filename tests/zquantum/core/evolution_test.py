@@ -108,8 +108,6 @@ class TestTimeEvolution(unittest.TestCase):
             ]
         )
         time_symbol = sympy.Symbol("t")
-        time_value = 0.4
-        [(time_symbol, time_value)]
 
         order = 3
         reference_factors_1 = [1.0 / order, 0.5 / order, 0.3 / order] * 3

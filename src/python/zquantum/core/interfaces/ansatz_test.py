@@ -23,8 +23,6 @@ class AnsatzTests:
         # Given
         new_number_of_layers = 100
         if ansatz.supports_parametrized_circuits:
-            ansatz.parametrized_circuit
-
             # When
             ansatz.number_of_layers = new_number_of_layers
 

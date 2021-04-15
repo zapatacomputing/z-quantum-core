@@ -90,7 +90,7 @@ def allocate_shots(
     n_samples: Optional[int] = None,
     n_total_samples: Optional[int] = None,
     prior_expectation_values: Optional[ExpectationValues] = None,
-) -> List[int]:
+) -> Optional[List[int]]:
     """Generates the number of shots for each frame operator, using either the "uniform"
     or the "optimal" shot allocation.
 
@@ -101,7 +101,7 @@ def allocate_shots(
                                   variances if prior expectation values are provided.
         frame_operators: The list of IsingOperators that will be evaluated
         n_samples: The number of samples per frame operator using the uniform allocation strategy
-                   Exactly one of n_samples or n_total_samples must be provided
+                   If neither n_samples nor n_total_samples are provided, returns None.
         n_total_samples: The total number of samples across all frame operators when using the optimal
                          allocation strategy.
                          Exactly one of n_samples or n_total_samples must be provided
@@ -117,7 +117,7 @@ def allocate_shots(
         elif n_samples is not None:
             measurements_per_frame = [n_samples for _ in range(len(frame_operators))]
         else:
-            raise ValueError("Neither n_total_samples nor n_samples were provided.")
+            return None
 
     elif shot_allocation_strategy == "optimal":
         if n_total_samples is None:

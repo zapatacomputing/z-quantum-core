@@ -198,9 +198,9 @@ def sample_from_probability_distribution(
     """
     if isinstance(probability_distribution, dict):
         prob_pmf = lea.pmf(probability_distribution)
-        sampled_dict = collections.Counter(
+        sampled_dict: collections.Counter = collections.Counter(
             prob_pmf.random(n_samples)
-        )  # type: collections.Counter
+        )
         return sampled_dict
     else:
         raise RuntimeError(
@@ -219,10 +219,10 @@ def convert_bitstrings_to_tuples(bitstrings: Iterable[str]) -> List[Tuple[int, .
         A list of tuples
     """
     # Convert from bitstrings to tuple format
-    measurements = []  # type: List[Tuple[int, ...]]
+    measurements: List[Tuple[int, ...]] = []
     for bitstring in bitstrings:
 
-        measurement = ()  # type: Tuple[int, ...]
+        measurement: Tuple[int, ...] = ()
         for char in bitstring:
             measurement = measurement + (int(char),)
 
@@ -383,7 +383,7 @@ def save_list(array: List, filename: AnyPath, artifact_name: str = ""):
         file (str or file-like object): the name of the file, or a file-like object
         artifact_name (str): optional argument to specify the schema name
     """
-    dictionary = {}  # type: Dict[str, Any]
+    dictionary: Dict[str, Any] = {}
     dictionary["schema"] = SCHEMA_VERSION + "-" + artifact_name + "-list"
     dictionary["list"] = array
 
@@ -534,7 +534,7 @@ def save_nmeas_estimate(
         frame_meas: A list of the number of measurements per frame for epsilon = 1.0
     """
 
-    data = {}  # type: Dict[str, Any]
+    data: Dict[str, Any] = {}
     data["schema"] = SCHEMA_VERSION + "-hamiltonian_analysis"
     data["K"] = nmeas
     data["nterms"] = nterms

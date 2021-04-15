@@ -38,11 +38,11 @@ def preprocess(tree):
 
 
 class OrquestraEncoder(json.JSONEncoder):
-    ENCODERS_TABLE = {
+    ENCODERS_TABLE: Dict[Any, Callable[[Any], Any]] = {
         np.ndarray: convert_array_to_dict,
         ValueEstimate: ValueEstimate.to_dict,
         BitstringDistribution: attrgetter("distribution_dict"),
-    }  # type: Dict[Any, Callable[[Any], Any]]
+    }
 
     def default(self, o: Any):
         if type(o) in self.ENCODERS_TABLE:

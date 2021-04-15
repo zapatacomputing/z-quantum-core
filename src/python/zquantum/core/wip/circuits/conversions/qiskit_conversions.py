@@ -222,7 +222,7 @@ def _apply_custom_gate(
     gate_def = custom_defs_map[anon_op.gate_name]
     # Qiskit doesn't support custom gates with parametrized matrices
     # so we can assume empty params list.
-    gate_params = tuple()  # type: Tuple[sympy.Symbol, ...]
+    gate_params: Tuple[sympy.Symbol, ...] = tuple()
     gate = gate_def(*gate_params)
 
     return gate(*anon_op.qubit_indices)
@@ -234,7 +234,7 @@ def import_from_qiskit(circuit: qiskit.QuantumCircuit) -> _circuit.Circuit:
 
     # Qiskit doesn't support custom gates with parametrized matrices
     # so we can assume empty params list.
-    params_ordering = tuple()  # type: Tuple[sympy.Symbol, ...]
+    params_ordering: Tuple[sympy.Symbol, ...] = tuple()
     custom_defs = {
         anon_op.gate_name: _gates.CustomGateDefinition(
             gate_name=anon_op.gate_name,

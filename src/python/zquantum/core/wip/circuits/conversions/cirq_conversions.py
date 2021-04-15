@@ -84,7 +84,7 @@ def make_rotation_factory(
     return _rotation
 
 
-ZQUANTUM_BUILTIN_GATE_NAME_TO_CIRQ_GATE = {
+ZQUANTUM_BUILTIN_GATE_NAME_TO_CIRQ_GATE: Dict[str, Callable] = {
     "X": cirq.X,
     "Y": cirq.Y,
     "Z": cirq.Z,
@@ -105,7 +105,7 @@ ZQUANTUM_BUILTIN_GATE_NAME_TO_CIRQ_GATE = {
     "YY": make_rotation_factory(cirq.YYPowGate, -0.5),
     "ZZ": make_rotation_factory(cirq.ZZPowGate, -0.5),
     "XY": make_rotation_factory(cirq.ISwapPowGate, 0.0),
-} # type: Dict[str, Callable]
+}
 
 
 EIGENGATE_SPECIAL_CASES = {

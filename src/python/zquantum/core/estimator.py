@@ -62,7 +62,7 @@ def get_context_selection_circuit_for_group(
 
     context_selection_circuit = Circuit()
     transformed_operator = IsingOperator()
-    context = [] # type: List[Tuple[int, str]]
+    context: List[Tuple[int, str]] = []
 
     for term in qubit_operator.terms:
         term_operator = IsingOperator(())

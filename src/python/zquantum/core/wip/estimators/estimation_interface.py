@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Callable, List
+from typing import List
 
 from openfermion import SymbolicOperator
 from typing_extensions import Protocol

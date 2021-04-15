@@ -9,7 +9,6 @@ import numpy as np
 import sympy
 from typing_extensions import Protocol
 
-from ...utils import SCHEMA_VERSION
 from ._unitary_tools import _lift_matrix_numpy, _lift_matrix_sympy
 
 Parameter = Union[sympy.Symbol, Number]

@@ -11,7 +11,6 @@ class TranslationFailed(Exception):
     (which should be propagated).
     """
 
-    pass
 
 
 def _translate_if_needed(

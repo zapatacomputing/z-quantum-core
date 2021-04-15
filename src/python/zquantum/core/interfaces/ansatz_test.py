@@ -7,8 +7,6 @@ You need to define your own test cases that inherit from the ones defined here.
 
 import numpy as np
 
-from ..circuit import Circuit
-
 
 class AnsatzTests:
     def test_set_number_of_layers(self, ansatz):

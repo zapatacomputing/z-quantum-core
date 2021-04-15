@@ -14,7 +14,6 @@ from zquantum.core.wip.estimators.estimation import (
     calculate_exact_expectation_values,
     get_context_selection_circuit,
     get_context_selection_circuit_for_group,
-    greedy_grouping_with_context_selection,
     naively_estimate_expectation_values,
     proportional_shot_allocation,
     uniform_shot_allocation,
@@ -131,7 +130,7 @@ class TestEstimatorUtils:
         n_samples,
     ):
         with pytest.raises(ValueError):
-            allocate_shots = uniform_shot_allocation(n_samples)
+            uniform_shot_allocation(n_samples)
 
     @pytest.mark.parametrize(
         "total_n_shots, prior_expectation_values",

@@ -407,7 +407,7 @@ class Gate(object):
 
         Args:
             qreg: QuantumRegister
-                Optional feature in case the original circuit is not contructed from qiskit.
+                Optional feature in case the original circuit is not constructed from qiskit.
                 Then we will use a single QuantumRegister for all of the qubits for the qiskit
                 QuantumCircuit object.
         Returns:
@@ -932,17 +932,17 @@ class MCTGate(object):
                                  assigned as control and target qubits. We thus get all qubits in the circuit in order
                                  to use them as possible ancilla qubits.
 
-    control_qubits (list): This list contains integer labels for the qubits thats will act as the
+    control_qubits (list): This list contains integer labels for the qubits that's will act as the
     control qubits. e.g [1, 2, 3, 4]
     target_qubits (list): This is a list that contains integer labels for the qubits that are target qubits
 
     all_qubits (list): A list of zmachine.core.qubit.Qubit This is necessary to determine what qubits
     are the ancilla
 
-    ancilla_qubits (list): A list that contians integer labels for all the qubits labels that are the ancilla. These are needed since the MCT synthesis
+    ancilla_qubits (list): A list that contains integer labels for all the qubits labels that are the ancilla. These are needed since the MCT synthesis
     requires in general addition of ancilla qubits
 
-    ccx_list (list): A list that contains CCX orquestra gates that represent the decompostion of the MCT gate
+    ccx_list (list): A list that contains CCX orquestra gates that represent the decomposition of the MCT gate
 
     ccx_decomposition (qiskit circuit): Contains the Toffoli Decomposition which is the output from the mct gate
 

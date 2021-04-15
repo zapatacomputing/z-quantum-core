@@ -31,7 +31,7 @@ class Circuit(object):
             core.qubit.Qubit objects.
         info: dictionary
             Additional information related to the circuit. For example if the circuit is converted
-            from another package, infomation related to the native specification of the circuit in
+            from another package, information related to the native specification of the circuit in
             that package is recorded here.
     """
 

@@ -314,7 +314,7 @@ class ValueEstimate(float):
 
 
 def load_value_estimate(file: LoadSource) -> ValueEstimate:
-    """Loads value estimate from a faile.
+    """Loads value estimate from a failed.
 
     Args:
         file (str or file-like object): the name of the file, or a file-like object.

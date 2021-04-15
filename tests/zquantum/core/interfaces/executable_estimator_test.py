@@ -1,3 +1,8 @@
+"""Estimator tests that are runnable by pytest, contrary to
+`zquantum.core.estimator.estimator_test` bundled with the library.
+"""
+
+
 import numpy as np
 import pytest
 from openfermion import IsingOperator, QubitOperator, qubit_operator_sparse
@@ -231,7 +236,7 @@ class TestBasicEstimator(EstimatorTests):
     def test_get_estimated_expectation_values_optimal_shot_allocation(
         self, estimator, backend, circuit, target_operator
     ):
-        # TODO: After a deterministic testing backend is imlemented, this test
+        # TODO: After a deterministic testing backend is implemented, this test
         # should be updated to actually check that shots are being correctly
         # allocated and the expectation values correctly estimated.
 
@@ -253,7 +258,7 @@ class TestBasicEstimator(EstimatorTests):
     def test_get_estimated_expectation_values_optimal_shot_allocation_with_prior(
         self, estimator, backend, circuit, target_operator
     ):
-        # TODO: After a deterministic testing backend is imlemented, this test
+        # TODO: After a deterministic testing backend is implemented, this test
         # should be updated to actually check that shots are being correctly
         # allocated and the expectation values correctly estimated.
 

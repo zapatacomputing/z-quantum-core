@@ -9,6 +9,9 @@ import numpy as np
 import sympy
 from typing_extensions import Protocol
 
+from ._unitary_tools import _lift_matrix_sympy, _lift_matrix_numpy
+from ...utils import SCHEMA_VERSION
+
 Parameter = Union[sympy.Symbol, Number]
 
 
@@ -104,6 +107,7 @@ def gate_is_parametric(gate_ref, gate_params):
 @dataclass(frozen=True)
 class GateOperation:
     """Represents applying a `Gate` to 1 or more qubits in a circuit."""
+
     gate: Gate
     qubit_indices: Tuple[int, ...]
 
@@ -116,6 +120,13 @@ class GateOperation:
 
     def replace_params(self, new_params: Tuple[Parameter, ...]) -> "GateOperation":
         return GateOperation(self.gate.replace_params(new_params), self.qubit_indices)
+
+    def lifted_matrix(self, num_qubits):
+        return (
+            _lift_matrix_sympy(self.gate.matrix, self.qubit_indices, num_qubits)
+            if self.gate.free_symbols
+            else _lift_matrix_numpy(self.gate.matrix, self.qubit_indices, num_qubits)
+        )
 
     def __str__(self):
         return f"{self.gate}({','.join(map(str, self.qubit_indices))})"
@@ -159,8 +170,8 @@ class MatrixFactoryGate:
     See `zquantum.core.wip.circuits` for built-in gates and usage guide.
 
     This class requires the gate definition to be present during deserialization, so it's not
-    easily applicable for gates defined in Orquestra steps. If you want to define a new gate, 
-    check out `CustomGateDefinition` first. 
+    easily applicable for gates defined in Orquestra steps. If you want to define a new gate,
+    check out `CustomGateDefinition` first.
 
     Keeping a `matrix_factory` instead of a plain gate matrix allows us to defer matrix
     construction to _after_ parameter binding. This saves unnecessary work in scenarios
@@ -284,7 +295,9 @@ class ControlledGate(Gate):
         return self.wrapped_gate.bind(symbols_map).controlled(self.num_control_qubits)
 
     def replace_params(self, new_params: Tuple[Parameter, ...]) -> "Gate":
-        return self.wrapped_gate.replace_params(new_params).controlled(self.num_control_qubits)
+        return self.wrapped_gate.replace_params(new_params).controlled(
+            self.num_control_qubits
+        )
 
 
 DAGGER_GATE_NAME = "Dagger"

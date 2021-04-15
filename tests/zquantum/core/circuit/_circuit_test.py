@@ -1415,7 +1415,7 @@ class TestCircuit(unittest.TestCase):
 
     def test_ccx_to_qiskit_conversion(self):
         """
-        This function makes sure that the CCX integration into Orquestra is seemless
+        This function makes sure that the CCX integration into Orquestra is seamless
         Starts with an Orquestra circuit converts to qiskit circuit which should contain
         the Toffoli Gate and back to an Orquestra circuit and tests equality
         """
@@ -1439,7 +1439,7 @@ class TestCircuit(unittest.TestCase):
 
     def test_ccx_from_qiskit_conversion(self):
         """
-        This function makes sure that the CCX integration into Orquestra is seemless
+        This function makes sure that the CCX integration into Orquestra is seamless
         Starts with an Orquestra circuit converts to qiskit circuit which should contain
         the Toffoli Gate and back to an Orquestra circuit and tests equality
         """

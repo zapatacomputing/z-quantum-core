@@ -70,7 +70,7 @@ def function_3(params: int, store_artifact=None):
 
     Args:
         params: parameters for the function. Note that the name `params` is
-          to follow the general conversion, but the function expectes
+          to follow the general conversion, but the function expects
           integer.
         store_artifact: callback for storing artifacts. See StoreArtifact
           protocol for explanation.

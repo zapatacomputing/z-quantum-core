@@ -1,28 +1,8 @@
-import functools
+"""Test case prototypes that can be used in other projects.
 
-import numpy as np
-import pytest
-from openfermion import IsingOperator, QubitOperator
-from pyquil import Program
-from pyquil.gates import CNOT, H, X
-from pyquil.wavefunction import Wavefunction
+Note that this file won't be executed on its own by pytest.
+You need to define your own test cases that inherit from the ones defined here.
 
-from ..bitstring_distribution import BitstringDistribution
-from ..circuit import Circuit, Gate, Qubit
-from ..estimator import BasicEstimator
-from ..measurement import ExpectationValues, Measurements
-from ..testing.test_cases_for_backend_tests import (
-    one_qubit_non_parametric_gates_amplitudes_test_set,
-    one_qubit_non_parametric_gates_exp_vals_test_set,
-    one_qubit_parametric_gates_amplitudes_test_set,
-    one_qubit_parametric_gates_exp_vals_test_set,
-    two_qubit_non_parametric_gates_amplitudes_test_set,
-    two_qubit_non_parametric_gates_exp_vals_test_set,
-    two_qubit_parametric_gates_amplitudes_test_set,
-    two_qubit_parametric_gates_exp_vals_test_set,
-)
-
-"""
 Note regarding testing specific gates.
 
 To test that a gate is properly implemented, we can ask for its matrix representation 
@@ -49,6 +29,30 @@ Gates tests use `backend_for_gates_test` instead of `backend` as an input parame
 a) it has high chance of failing for noisy backends
 b) having execution time in mind it's a good idea to use lower number of samples.
 """
+
+import functools
+
+import numpy as np
+import pytest
+from openfermion import IsingOperator, QubitOperator
+from pyquil import Program
+from pyquil.gates import CNOT, H, X
+from pyquil.wavefunction import Wavefunction
+
+from ..bitstring_distribution import BitstringDistribution
+from ..circuit import Circuit, Gate, Qubit
+from ..estimator import BasicEstimator
+from ..measurement import ExpectationValues, Measurements
+from ..testing.test_cases_for_backend_tests import (
+    one_qubit_non_parametric_gates_amplitudes_test_set,
+    one_qubit_non_parametric_gates_exp_vals_test_set,
+    one_qubit_parametric_gates_amplitudes_test_set,
+    one_qubit_parametric_gates_exp_vals_test_set,
+    two_qubit_non_parametric_gates_amplitudes_test_set,
+    two_qubit_non_parametric_gates_exp_vals_test_set,
+    two_qubit_parametric_gates_amplitudes_test_set,
+    two_qubit_parametric_gates_exp_vals_test_set,
+)
 
 
 def skip_tests_for_excluded_gates(func):

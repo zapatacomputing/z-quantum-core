@@ -169,7 +169,7 @@ def _export_gate(gate: _gates.Gate, qubit_indices, custom_gate_names):
 def _export_custom_gate(gate: _gates.Gate, qubit_indices, custom_gate_names):
     if gate.name not in custom_gate_names:
         raise ValueError(
-            f"Can't export {gate} as custom gate, custom gate defition is missing"
+            f"Can't export {gate} as custom gate, custom gate definition is missing"
         )
     pyquil_params = list(map(_export_expression, gate.params))
     return (gate.name, pyquil_params) + qubit_indices

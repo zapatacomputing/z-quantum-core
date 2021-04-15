@@ -320,7 +320,7 @@ def get_parities_from_measurements(
     # Count number of occurrences of bitstrings
     bitstring_frequencies = Counter(measurements)
 
-    # Count parity occurences
+    # Count parity occurrences
     values = []
     for _, term in enumerate(ising_operator.terms):
         values.append([0, 0])
@@ -331,7 +331,7 @@ def get_parities_from_measurements(
             else:
                 values[-1][1] += count
 
-    # Count parity occurences for pairwise products of operators
+    # Count parity occurrences for pairwise products of operators
     correlations = [np.zeros((len(ising_operator.terms), len(ising_operator.terms), 2))]
     for term1_index, term1 in enumerate(ising_operator.terms):
         for term2_index, term2 in enumerate(ising_operator.terms):

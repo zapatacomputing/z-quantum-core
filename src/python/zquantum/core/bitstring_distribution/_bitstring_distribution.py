@@ -234,7 +234,7 @@ def create_bitstring_distribution_from_probability_distribution(
     """Create a well defined bitstring distribution starting from a probability distribution
 
     Args:
-        probability distribution (np.array): The probabilites of the various states in the wavefunction
+        probability distribution (np.array): The probabilities of the various states in the wavefunction
 
     Returns:
         BitstringDistribution : The BitstringDistribution object corresponding to the input measurements.

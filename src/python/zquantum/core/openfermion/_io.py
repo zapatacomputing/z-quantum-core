@@ -1,21 +1,18 @@
+from typing import Callable, List
+
 import numpy as np
 import rapidjson as json
 from openfermion import (
     InteractionOperator,
-    QubitOperator,
-    IsingOperator,
-    SymbolicOperator,
     InteractionRDM,
+    IsingOperator,
+    QubitOperator,
+    SymbolicOperator,
 )
-from typing import Callable, List
-
-from ..utils import (
-    SCHEMA_VERSION,
-    convert_dict_to_array,
-    convert_array_to_dict,
-)
-from ..typing import AnyPath
 from zquantum.core.typing import LoadSource
+
+from ..typing import AnyPath
+from ..utils import SCHEMA_VERSION, convert_array_to_dict, convert_dict_to_array
 
 
 def convert_interaction_op_to_dict(op: InteractionOperator) -> dict:

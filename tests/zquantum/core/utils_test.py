@@ -1,45 +1,42 @@
 from functools import partial
+import json
 import os
 import random
+
 import numpy as np
-import pytest
-from scipy.stats import unitary_group
-import sympy
-import json
 import pkg_resources
+import pytest
+import sympy
 from types import FunctionType
-
-from zquantum.core.openfermion import (
-    load_interaction_operator,
-)
-
+from scipy.stats import unitary_group
+from zquantum.core.openfermion import load_interaction_operator
 from zquantum.core.utils import (
+    RNDSEED,
+    SCHEMA_VERSION,
+    ValueEstimate,
+    bin2dec,
+    compare_unitary,
     convert_array_to_dict,
     convert_dict_to_array,
-    sample_from_probability_distribution,
+    create_object,
+    create_symbols_map,
     dec2bin,
-    bin2dec,
+    get_func_from_specs,
+    hf_rdm,
     is_identity,
     is_unitary,
-    compare_unitary,
-    RNDSEED,
-    ValueEstimate,
-    save_value_estimate,
-    load_value_estimate,
-    save_list,
     load_list,
-    create_object,
-    save_generic_dict,
-    get_func_from_specs,
-    load_noise_model,
-    save_noise_model,
-    create_symbols_map,
-    save_timing,
-    save_nmeas_estimate,
     load_nmeas_estimate,
-    SCHEMA_VERSION,
+    load_noise_model,
+    load_value_estimate,
+    sample_from_probability_distribution,
+    save_generic_dict,
+    save_list,
+    save_nmeas_estimate,
+    save_noise_model,
+    save_timing,
+    save_value_estimate,
     scale_and_discretize,
-    hf_rdm,
 )
 
 
@@ -257,7 +254,7 @@ class TestUtils:
             "x": data,
         }
         # When
-        with pytest.raises(TypeError):
+        with pytest.raises(ValueError):
             function = create_object(specs, x=data)
 
     def test_save_generic_dict(self):
@@ -284,6 +281,27 @@ class TestUtils:
         # Then
         assert function.__name__ == function_name
         assert function(data) == target_value
+
+    def test_noise_model_with_additional_args(self):
+        # Given
+        filename = "noise_model.json"
+        with open(filename, "w") as f:
+            f.write(
+                json.dumps(
+                    {
+                        "module_name": "zquantum.core.testing.mocks",
+                        "function_name": "mock_create_noise_model",
+                        "data": {"testing": "data"},
+                        "schema": "THIS IS FOR TESTING ONLY",
+                    }
+                )
+            )
+
+        # When
+        noise_model = load_noise_model(filename)
+
+        # Then
+        remove_file_if_exists(filename)
 
     def test_noise_model_io(self):
         # Given
@@ -326,7 +344,7 @@ class TestUtils:
 
         # When/Then
         with pytest.raises(ValueError):
-            symbols_map = create_symbols_map(symbols, params)
+            create_symbols_map(symbols, params)
 
     def test_save_timing(self):
         walltime = 4.2

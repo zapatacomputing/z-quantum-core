@@ -1,6 +1,6 @@
 """Types commonly encountered in zquantum repositories."""
 from os import PathLike
-from typing import Union, Dict
+from typing import Dict, Union
 
 from typing_extensions import Protocol
 

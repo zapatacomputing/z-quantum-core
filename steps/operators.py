@@ -1,27 +1,36 @@
-from typing import Union, Optional, List
-from numpy.lib.arraysetops import isin
-from openfermion import InteractionOperator, FermionOperator, QubitOperator
-from openfermion import normal_ordered
-from openfermion.transforms import get_fermion_operator
+from typing import List, Optional, Union
+
 import numpy as np
-
-from zquantum.core.openfermion import (
-    get_fermion_number_operator as _get_fermion_number_operator,
-    get_diagonal_component as _get_diagonal_component,
-    save_interaction_operator,
-    load_interaction_operator,
-    load_qubit_operator,
-    save_qubit_operator,
-    remove_inactive_orbitals as _remove_inactive_orbitals,
-    save_qubit_operator_set,
-    load_qubit_operator_set,
+from openfermion import (
+    FermionOperator,
+    InteractionOperator,
+    QubitOperator,
+    normal_ordered,
 )
-
+from openfermion.transforms import get_fermion_operator
 from zquantum.core.hamiltonian import (
-    reorder_fermionic_modes as _reorder_fermionic_modes,
     group_comeasureable_terms_greedy as _group_comeasurable_terms_greedy,
 )
-
+from zquantum.core.hamiltonian import (
+    reorder_fermionic_modes as _reorder_fermionic_modes,
+)
+from zquantum.core.openfermion import get_diagonal_component as _get_diagonal_component
+from zquantum.core.openfermion import (
+    get_fermion_number_operator as _get_fermion_number_operator,
+)
+from zquantum.core.openfermion import (
+    load_interaction_operator,
+    load_qubit_operator,
+    load_qubit_operator_set,
+)
+from zquantum.core.openfermion import (
+    remove_inactive_orbitals as _remove_inactive_orbitals,
+)
+from zquantum.core.openfermion import (
+    save_interaction_operator,
+    save_qubit_operator,
+    save_qubit_operator_set,
+)
 from zquantum.core.testing import create_random_qubitop as _create_random_qubitop
 
 

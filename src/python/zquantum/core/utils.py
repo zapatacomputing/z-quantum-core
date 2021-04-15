@@ -1,20 +1,20 @@
 """General-purpose utilities."""
 from types import FunctionType
-import warnings
-
-import numpy as np
-import sys
-import json
-import sympy
-from openfermion import hermitian_conjugated
-from openfermion import InteractionRDM
-import lea
 import collections
-from typing import List, Tuple, Optional, Iterable, Dict
-import importlib
 import copy
+import importlib
+import json
+import sys
+import warnings
+from typing import Dict, Iterable, List, Optional, Tuple
+
+import lea
+import numpy as np
 from functools import partial
-from .typing import LoadSource, AnyPath, Specs
+import sympy
+from openfermion import InteractionRDM, hermitian_conjugated
+
+from .typing import AnyPath, LoadSource, Specs
 
 SCHEMA_VERSION = "zapata-v1"
 RNDSEED = 12345
@@ -435,9 +435,21 @@ def create_object(specs: Dict, **kwargs):
     creator_name = specs.pop("function_name")
     creator = getattr(module, creator_name)
 
+    for key in specs.keys():
+        if key in kwargs.keys():
+            raise ValueError("Cannot have same parameter assigned to multiple values")
+
     if isinstance(creator, FunctionType):
         if kwargs != {} or specs != {}:
-            return partial(creator, **specs, **kwargs)
+            import inspect
+
+            function_parameter_names = inspect.signature(creator).parameters.keys()
+            function_args = {
+                key: value
+                for key, value in {**specs, **kwargs}.items()
+                if key in function_parameter_names
+            }
+            return partial(creator, **function_args)
         else:
             return creator
     else:

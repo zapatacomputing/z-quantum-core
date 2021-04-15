@@ -1,15 +1,13 @@
-from typing import Tuple, List, NamedTuple, Union, Dict, Iterable, Sequence
+from typing import Tuple, List, NamedTuple, Union, Dict, Iterable, Sequence, Tuple
 import hashlib
 
-import qiskit
 import numpy as np
+import qiskit
 import sympy
 
-from .. import _gates
-from .. import _builtin_gates
-from .. import _circuit
-from ..symbolic.sympy_expressions import expression_from_sympy, SYMPY_DIALECT
-from ..symbolic.qiskit_expressions import expression_from_qiskit, QISKIT_DIALECT
+from .. import _builtin_gates, _circuit, _gates
+from ..symbolic.qiskit_expressions import QISKIT_DIALECT, expression_from_qiskit
+from ..symbolic.sympy_expressions import SYMPY_DIALECT, expression_from_sympy
 from ..symbolic.translations import translate_expression
 
 QiskitOperation = Tuple[

@@ -1,10 +1,15 @@
 """Test cases for recording basic functions."""
 from unittest.mock import Mock, call
+
 import numpy as np
 import pytest
-from zquantum.core.history.example_functions import sum_of_squares, function_1, Function2
+from zquantum.core.history.example_functions import (
+    Function2,
+    function_1,
+    sum_of_squares,
+)
 from zquantum.core.history.recorder import recorder
-from zquantum.core.history.save_conditions import every_nth, SaveCondition
+from zquantum.core.history.save_conditions import SaveCondition, every_nth
 
 
 @pytest.mark.parametrize(

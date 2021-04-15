@@ -1,6 +1,7 @@
-from openfermion.ops import QubitOperator, InteractionRDM, InteractionOperator
+from typing import Callable, Dict, List, Optional, Tuple
+
 import numpy as np
-from typing import Tuple, List, Optional, Callable, Dict
+from openfermion.ops import InteractionOperator, InteractionRDM, QubitOperator
 
 from .measurement import ExpectationValues, expectation_values_to_real
 

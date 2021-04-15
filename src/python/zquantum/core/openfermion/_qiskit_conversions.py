@@ -19,7 +19,6 @@
 Translates OpenFermion Objects to qiskit WeightedPauliOperator objects
 """
 from openfermion import QubitOperator, count_qubits
-from typing import Union
 from qiskit.aqua.operators import WeightedPauliOperator
 from qiskit.quantum_info import Pauli
 

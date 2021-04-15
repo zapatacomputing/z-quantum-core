@@ -1,29 +1,27 @@
 import numpy as np
-import sympy
 import pytest
-
+import sympy
 from zquantum.core.wip.circuits._builtin_gates import (
-    X,
-    Y,
-    Z,
-    H,
-    I,
+    CNOT,
+    CPHASE,
+    CZ,
+    ISWAP,
+    PHASE,
     RX,
     RY,
     RZ,
-    PHASE,
-    T,
-    CNOT,
-    CZ,
     SWAP,
-    ISWAP,
-    CPHASE,
     XX,
     YY,
     ZZ,
+    H,
+    I,
+    T,
+    X,
+    Y,
+    Z,
 )
 from zquantum.core.wip.circuits._circuit import Circuit
-
 
 RNG = np.random.default_rng(42)
 

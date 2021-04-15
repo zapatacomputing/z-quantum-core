@@ -1,9 +1,9 @@
 import unittest
-import os
-from zquantum.core.circuit._qubit import Qubit
-import pyquil
+
 import cirq
+import pyquil
 import qiskit
+from zquantum.core.circuit._qubit import Qubit
 
 
 class TestQubit(unittest.TestCase):

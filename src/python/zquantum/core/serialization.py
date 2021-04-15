@@ -3,14 +3,15 @@ import json
 from numbers import Number
 from operator import attrgetter
 from typing import Any, Iterator, Dict, Callable
+
 import numpy as np
 from scipy.optimize import OptimizeResult
 
-from .interfaces.optimizer import optimization_result
-from .history.recorder import HistoryEntry, HistoryEntryWithArtifacts
 from .bitstring_distribution import BitstringDistribution, is_bitstring_distribution
-from .utils import convert_array_to_dict, ValueEstimate, SCHEMA_VERSION
+from .history.recorder import HistoryEntry, HistoryEntryWithArtifacts
+from .interfaces.optimizer import optimization_result
 from .typing import AnyPath
+from .utils import SCHEMA_VERSION, ValueEstimate, convert_array_to_dict
 
 
 def has_numerical_keys(dictionary):

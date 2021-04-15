@@ -1,10 +1,12 @@
 """Utilities related to Quil based symbolic expressions."""
-from functools import singledispatch
 import operator
+from functools import singledispatch
 from numbers import Number
+
 import pyquil
 from pyquil import quilatom
-from .expressions import ExpressionDialect, Symbol, FunctionCall, reduction
+
+from .expressions import ExpressionDialect, FunctionCall, Symbol, reduction
 
 QUIL_BINARY_EXPRESSION_NAMES = {
     quilatom.Add: "add",

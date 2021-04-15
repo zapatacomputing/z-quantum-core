@@ -1,16 +1,15 @@
 """Data structures for ZQuantum gates."""
 import math
 from dataclasses import dataclass, replace
-from functools import singledispatch, reduce
+from functools import singledispatch
 from numbers import Number
-from typing import Tuple, Union, Callable, Dict, Optional, Iterable, Any
+from typing import Callable, Dict, Tuple, Union, Iterable
 
+import numpy as np
 import sympy
 from typing_extensions import Protocol
-import numpy as np
 
-from ._unitary_tools import _lift_matrix_sympy, _lift_matrix_numpy
-from ...utils import SCHEMA_VERSION
+from ._unitary_tools import _lift_matrix_numpy, _lift_matrix_sympy
 
 Parameter = Union[sympy.Symbol, Number]
 

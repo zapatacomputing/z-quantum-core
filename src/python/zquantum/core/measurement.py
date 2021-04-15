@@ -219,12 +219,14 @@ class Parities:
             of samples with even and odd parities term P_j P_k in frame i, respectively.
     """
 
-    def __init__(self, values: np.ndarray, correlations: Optional[List[np.ndarray]] = None):
+    def __init__(
+        self, values: np.ndarray, correlations: Optional[List[np.ndarray]] = None
+    ):
         self.values = values
         self.correlations = correlations
 
     def to_dict(self) -> dict:
-        data = {"values": convert_array_to_dict(self.values)} # type: Dict[str, Any]
+        data = {"values": convert_array_to_dict(self.values)}  # type: Dict[str, Any]
         if self.correlations:
             data["correlations"] = [
                 convert_array_to_dict(arr) for arr in self.correlations
@@ -235,7 +237,9 @@ class Parities:
     def from_dict(cls, data: dict):
         values = convert_dict_to_array(data["values"])
         if data.get("correlations"):
-            correlations = [convert_dict_to_array(arr) for arr in data["correlations"]] # type: Optional[List]
+            correlations = [
+                convert_dict_to_array(arr) for arr in data["correlations"]
+            ]  # type: Optional[List]
         else:
             correlations = None
         return cls(values, correlations)
@@ -397,7 +401,9 @@ def convert_bitstring_to_int(bitstring: Sequence[int]) -> int:
     return int("".join(str(bit) for bit in bitstring[::-1]), 2)
 
 
-def check_parity(bitstring: Union[str, Sequence[int]], marked_qubits: Iterable[int]) -> bool:
+def check_parity(
+    bitstring: Union[str, Sequence[int]], marked_qubits: Iterable[int]
+) -> bool:
     """Determine if the marked qubits have even parity for the given bitstring.
 
     Args:
@@ -429,7 +435,7 @@ def get_expectation_value_from_frequencies(
         The expectation value of the product of Z operators on selected qubits.
     """
 
-    expectation = 0.
+    expectation = 0.0
     num_measurements = sum(bitstring_frequencies.values())
     for bitstring, count in bitstring_frequencies.items():
         if check_parity(bitstring, marked_qubits):
@@ -446,7 +452,7 @@ class Measurements:
     data structure of the Measurements class. It is expressed as a list of tuples wherein each tuple is a measurement
     and the value of the tuple at a given index is the measured bit-value of the qubit (indexed from 0 -> N-1)"""
 
-    def __init__(self, bitstrings: Optional[List[Tuple[int,...]]] = None):
+    def __init__(self, bitstrings: Optional[List[Tuple[int, ...]]] = None):
         if bitstrings is None:
             self.bitstrings = []
         else:

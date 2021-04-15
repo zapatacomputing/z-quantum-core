@@ -27,7 +27,6 @@ def get_ground_state_cost_function(
     estimator: EstimateExpectationValues = naively_estimate_expectation_values,
     estimator_kwargs: Optional[Dict] = None,
     estimator_transformation_tasks: List[EstimationTaskTransformer] = None,
-    estimator_transformation_tasks_kwargs_list: Optional[List[Dict]] = None,
     fixed_parameters: Optional[np.ndarray] = None,
     parameter_precision: Optional[float] = None,
     parameter_precision_seed: Optional[int] = None,
@@ -55,22 +54,18 @@ def get_ground_state_cost_function(
     """
     if estimator_kwargs is None:
         estimator_kwargs = {}
-    if estimator_transformation_tasks_kwargs_list is None:
-        estimator_transformation_tasks_kwargs_list = [
-            {} for _ in estimator_transformation_tasks
-        ]
 
     estimation_tasks = [
         EstimationTask(
             operator=target_operator, circuit=parametrized_circuit, number_of_shots=None
         )
     ]
-    for transformer, transformer_kwargs in zip(
-        estimator_transformation_tasks, estimator_transformation_tasks_kwargs_list
-    ):
-        estimation_tasks = transformer(estimation_tasks, **transformer_kwargs)
+    for transformer in estimator_transformation_tasks:
+        estimation_tasks = transformer(estimation_tasks)
 
-    circuit_symbols = list(parametrized_circuit.symbolic_params)
+    circuit_symbols = set(
+        [param for task in estimation_tasks for param in task.circuit.symbolic_params]
+    )
 
     def ground_state_cost_function(
         parameters: np.ndarray, store_artifact: StoreArtifact = None
@@ -141,87 +136,102 @@ def sum_expectation_values(expectation_values: ExpectationValues) -> ValueEstima
     return ValueEstimate(value, precision)
 
 
-# class AnsatzBasedCostFunction:
-#     """Cost function used for evaluating given operator using given ansatz.
+class AnsatzBasedCostFunction:
+    """Cost function used for evaluating given operator using given ansatz.
 
-#     Args:
-#         target_operator (openfermion.SymbolicOperator): operator to be evaluated
-#         ansatz (zquantum.core.interfaces.ansatz.Ansatz): ansatz used to evaluate cost function
-#         backend (zquantum.core.interfaces.backend.QuantumBackend): backend used for evaluation
-#         estimator: (zquantum.core.interfaces.estimator.Estimator) = estimator used to compute expectation value of target operator
-#         n_samples (int): number of samples (i.e. measurements) to be used in the estimator.
-#         estimator_kwargs(dict): kwargs required to run get_estimated_expectation_values method of the estimator.
-#         fixed_parameters (np.ndarray): values for the circuit parameters that should be fixed.
-#         parameter_precision (float): the standard deviation of the Gaussian noise to add to each parameter, if any.
-#         parameter_precision_seed (int): seed for randomly generating parameter deviation if using parameter_precision
+    Args:
+        target_operator (openfermion.SymbolicOperator): operator to be evaluated
+        ansatz (zquantum.core.interfaces.ansatz.Ansatz): ansatz used to evaluate cost function
+        backend (zquantum.core.interfaces.backend.QuantumBackend): backend used for evaluation
+        estimator: (zquantum.core.interfaces.estimator.Estimator) = estimator used to compute expectation value of target operator
+        n_samples (int): number of samples (i.e. measurements) to be used in the estimator.
+        estimator_kwargs(dict): kwargs required to run get_estimated_expectation_values method of the estimator.
+        fixed_parameters (np.ndarray): values for the circuit parameters that should be fixed.
+        parameter_precision (float): the standard deviation of the Gaussian noise to add to each parameter, if any.
+        parameter_precision_seed (int): seed for randomly generating parameter deviation if using parameter_precision
 
-#     Params:
-#         target_operator (openfermion.SymbolicOperator): see Args
-#         ansatz (zquantum.core.interfaces.ansatz.Ansatz): see Args
-#         backend (zquantum.core.interfaces.backend.QuantumBackend): see Args
-#         estimator (zquantum.core.interfaces.estimator.Estimator): see Args
-#         estimator_kwargs(dict): see Args
-#         delta (float): see Args
-#         fixed_parameters (np.ndarray): see Args
-#         parameter_precision (float): see Args
-#         parameter_precision_seed (int): see Args
-#     """
+    Params:
+        target_operator (openfermion.SymbolicOperator): see Args
+        ansatz (zquantum.core.interfaces.ansatz.Ansatz): see Args
+        backend (zquantum.core.interfaces.backend.QuantumBackend): see Args
+        estimator (zquantum.core.interfaces.estimator.Estimator): see Args
+        estimator_kwargs(dict): see Args
+        delta (float): see Args
+        fixed_parameters (np.ndarray): see Args
+        parameter_precision (float): see Args
+        parameter_precision_seed (int): see Args
+    """
 
-#     def __init__(
-#         self,
-#         target_operator: SymbolicOperator,
-#         ansatz: Ansatz,
-#         backend: QuantumBackend,
-#         estimator: Estimator = None,
-#         n_samples: Optional[int] = None,
-#         estimator_kwargs: Optional[Dict] = None,
-#         fixed_parameters: Optional[np.ndarray] = None,
-#         parameter_precision: Optional[float] = None,
-#         parameter_precision_seed: Optional[int] = None,
-#     ):
-#         self.target_operator = target_operator
-#         self.ansatz = ansatz
-#         self.backend = backend
-#         if estimator is None:
-#             self.estimator = BasicEstimator()
-#         else:
-#             self.estimator = estimator
-#         self.n_samples = n_samples
+    def __init__(
+        self,
+        target_operator: SymbolicOperator,
+        ansatz: Ansatz,
+        backend: QuantumBackend,
+        estimator: EstimateExpectationValues = naively_estimate_expectation_values,
+        estimator_kwargs: Optional[Dict] = None,
+        estimator_transformation_tasks: List[EstimationTaskTransformer] = None,
+        fixed_parameters: Optional[np.ndarray] = None,
+        parameter_precision: Optional[float] = None,
+        parameter_precision_seed: Optional[int] = None,
+    ):
+        self.backend = backend
+        if estimator is None:
+            self.estimator = naively_estimate_expectation_values
+        else:
+            self.estimator = estimator
 
-#         if estimator_kwargs is None:
-#             self.estimator_kwargs = {}
-#         else:
-#             self.estimator_kwargs = estimator_kwargs
-#         self.fixed_parameters = fixed_parameters
-#         self.parameter_precision = parameter_precision
-#         self.parameter_precision_seed = parameter_precision_seed
+        if estimator_kwargs is None:
+            self.estimator_kwargs = {}
+        else:
+            self.estimator_kwargs = estimator_kwargs
 
-#     def __call__(self, parameters: np.ndarray) -> ValueEstimate:
-#         """Evaluates the value of the cost function for given parameters.
+        self.fixed_parameters = fixed_parameters
+        self.parameter_precision = parameter_precision
+        self.parameter_precision_seed = parameter_precision_seed
 
-#         Args:
-#             parameters: parameters for which the evaluation should occur.
+        self.estimation_tasks = [
+            EstimationTask(
+                operator=target_operator,
+                circuit=ansatz.parametrized_circuit,
+                number_of_shots=None,
+            )
+        ]
+        for transformer in estimator_transformation_tasks:
+            self.estimation_tasks = transformer(self.estimation_tasks)
 
-#         Returns:
-#             value: cost function value for given parameters.
-#         """
-#         full_parameters = parameters.copy()
-#         if self.fixed_parameters is not None:
-#             full_parameters = combine_ansatz_params(self.fixed_parameters, parameters)
-#         if self.parameter_precision is not None:
-#             rng = np.random.default_rng(self.parameter_precision_seed)
-#             noise_array = rng.normal(
-#                 0.0, self.parameter_precision, len(full_parameters)
-#             )
-#             full_parameters += noise_array
+        self.circuit_symbols = set(
+            [
+                param
+                for task in self.estimation_tasks
+                for param in task.circuit.symbolic_params
+            ]
+        )
 
-#         circuit = self.ansatz.get_executable_circuit(full_parameters)
-#         expectation_values = self.estimator.get_estimated_expectation_values(
-#             self.backend,
-#             circuit,
-#             self.target_operator,
-#             n_samples=self.n_samples,
-#             **self.estimator_kwargs
-#         )
+    def __call__(self, parameters: np.ndarray) -> ValueEstimate:
+        """Evaluates the value of the cost function for given parameters.
 
-#         return sum_expectation_values(expectation_values)
+        Args:
+            parameters: parameters for which the evaluation should occur.
+
+        Returns:
+            value: cost function value for given parameters.
+        """
+        full_parameters = parameters.copy()
+        if self.fixed_parameters is not None:
+            full_parameters = combine_ansatz_params(self.fixed_parameters, parameters)
+        if self.parameter_precision is not None:
+            rng = np.random.default_rng(self.parameter_precision_seed)
+            noise_array = rng.normal(
+                0.0, self.parameter_precision, len(full_parameters)
+            )
+            full_parameters += noise_array
+
+        symbols_map = create_symbols_map(self.circuit_symbols, parameters)
+        estimation_tasks = evaluate_circuits(
+            self.estimation_tasks, [symbols_map for _ in self.estimation_tasks]
+        )
+        expectation_values = self.estimator(
+            self.backend, estimation_tasks, **self.estimator_kwargs
+        )
+
+        return sum_expectation_values(expectation_values)

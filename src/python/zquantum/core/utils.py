@@ -6,22 +6,13 @@ import importlib
 import json
 import sys
 import warnings
-from typing import Dict, Iterable, List, Optional, Tuple
-
-import lea
+import inspect
 import numpy as np
 from functools import partial
 import sympy
 from openfermion import InteractionRDM, hermitian_conjugated
-from openfermion.ops import SymbolicOperator
-from networkx.readwrite import json_graph
-import lea
-import collections
-import scipy
-from typing import List, Tuple, Optional, Iterable, Union, Dict, Any
-import importlib
-import copy
-from .typing import AnyPath, LoadSource, Specs
+from typing import List, Tuple, Optional, Iterable, Dict, Any
+from .typing import AnyPath, LoadSource
 
 SCHEMA_VERSION = "zapata-v1"
 RNDSEED = 12345
@@ -450,8 +441,6 @@ def create_object(specs: Dict, **kwargs):
 
     if isinstance(creator, FunctionType):
         if kwargs != {} or specs != {}:
-            import inspect
-
             function_parameter_names = inspect.signature(creator).parameters.keys()
             function_args = {
                 key: value

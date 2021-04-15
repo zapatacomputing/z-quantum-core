@@ -1,4 +1,5 @@
 """General-purpose utilities."""
+from types import FunctionType
 import collections
 import copy
 import importlib
@@ -9,6 +10,7 @@ from typing import Dict, Iterable, List, Optional, Tuple
 
 import lea
 import numpy as np
+from functools import partial
 import sympy
 from openfermion import InteractionRDM, hermitian_conjugated
 from openfermion.ops import SymbolicOperator
@@ -415,10 +417,11 @@ def get_func_from_specs(specs: Dict):
         callable: function defined by specs
 
     """
-    module_name = specs.pop("module_name")
-    module = importlib.import_module(module_name)
-    function_name = specs.pop("function_name")
-    return getattr(module, function_name)
+    warnings.warn(
+        "zquantum.core.utils.get_func_from_specs will be deprecated. Please use zquantum.core.utils.create_object instead",
+        DeprecationWarning,
+    )
+    return create_object(specs)
 
 
 def create_object(specs: Dict, **kwargs):
@@ -440,8 +443,26 @@ def create_object(specs: Dict, **kwargs):
     module = importlib.import_module(module_name)
     creator_name = specs.pop("function_name")
     creator = getattr(module, creator_name)
-    created_object = creator(**specs, **kwargs)
-    return created_object
+
+    for key in specs.keys():
+        if key in kwargs.keys():
+            raise ValueError("Cannot have same parameter assigned to multiple values")
+
+    if isinstance(creator, FunctionType):
+        if kwargs != {} or specs != {}:
+            import inspect
+
+            function_parameter_names = inspect.signature(creator).parameters.keys()
+            function_args = {
+                key: value
+                for key, value in {**specs, **kwargs}.items()
+                if key in function_parameter_names
+            }
+            return partial(creator, **function_args)
+        else:
+            return creator
+    else:
+        return creator(**specs, **kwargs)
 
 
 def load_noise_model(file: LoadSource):
@@ -456,12 +477,13 @@ def load_noise_model(file: LoadSource):
 
     if isinstance(file, str):
         with open(file, "r") as f:
-            data = json.load(f)
+            specs = json.load(f)
     else:
-        data = json.load(file)  # type: ignore
+        specs = json.load(file)  # type: ignore
 
-    func = get_func_from_specs(data)
-    return func(data["data"])
+    noise_model_data = specs.pop("data", None)
+    func = create_object(specs)
+    return func(noise_model_data)
 
 
 def save_noise_model(noise_model_data, module_name, function_name, filename):

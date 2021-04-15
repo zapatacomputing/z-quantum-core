@@ -17,8 +17,10 @@ class FunctionCall(NamedTuple):
     args: Iterable["Expression"]
 
 
-Expression = Union[Symbol, FunctionCall, Number]
-
+# Note that mypy does not support recursive types, so for now Expression is set
+# to Any. See mypy #731 for details.
+Expression = Any
+# Expression = Union[Symbol, FunctionCall, Number]
 
 class ExpressionDialect(NamedTuple):
     """Dialect of arithmetic expression.

@@ -62,13 +62,14 @@ def compute_multi_rbf_kernel(x_i: np.ndarray, y_j: np.ndarray, sigmas: List) -> 
             np.ndarray: The gaussian kernel matrix.
     """
     exponent = np.abs(x_i[:, None] - y_j[None, :]) ** 2
+    kernel_matrix = 0.0
     for sigma in sigmas:
         try:
             gamma = 1.0 / (2 * sigma)
         except ZeroDivisionError as error:
             print("Handling run-time error:", error)
             raise
-        kernel_matrix = np.exp(-gamma * exponent)
+        kernel_matrix += np.exp(-gamma * exponent)
     return kernel_matrix / len(sigmas)
 
 

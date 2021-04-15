@@ -1,24 +1,26 @@
+import random
+from typing import Optional
+
+import numpy as np
+import sympy
+from openfermion import SymbolicOperator
+from overrides import overrides
+from pyquil import Program
+from pyquil.gates import RX, X
+from scipy.optimize import OptimizeResult
+
+from ..circuit import Circuit
+from ..measurement import ExpectationValues, Measurements
+from ..utils import create_symbols_map
+from ..wip.circuits import Circuit as NewCircuit
+from ..wip.circuits._builtin_gates import RX
+from ..wip.circuits._compatibility import new_circuit_from_old_circuit
+from ..wip.compatibility_tools import compatible_with_old_type
 from .ansatz import Ansatz
 from .ansatz_utils import ansatz_property
 from .backend import QuantumBackend, QuantumSimulator
-from .optimizer import Optimizer, optimization_result
 from .estimator import Estimator
-from ..measurement import ExpectationValues, Measurements
-from ..circuit import Circuit
-from ..utils import create_symbols_map
-import random
-from scipy.optimize import OptimizeResult
-import numpy as np
-from openfermion import SymbolicOperator
-from pyquil import Program
-from pyquil.gates import RX, X
-import sympy
-from overrides import overrides
-from typing import Optional
-from ..wip.compatibility_tools import compatible_with_old_type
-from ..wip.circuits._compatibility import new_circuit_from_old_circuit
-from ..wip.circuits import Circuit as NewCircuit
-from ..wip.circuits._builtin_gates import RX
+from .optimizer import Optimizer, optimization_result
 
 
 class MockQuantumBackend(QuantumBackend):
@@ -139,17 +141,18 @@ class MockAnsatz(Ansatz):
 
     @overrides
     def _generate_circuit(self, parameters: Optional[np.ndarray] = None):
-        circuit = Circuit()
+        circuit = NewCircuit()
         symbols = [
             sympy.Symbol(f"theta_{layer_index}")
             for layer_index in range(self._number_of_layers)
         ]
         for theta in symbols:
             for qubit_index in range(self.number_of_qubits):
-                circuit += Circuit(Program(RX(theta, qubit_index)))
+                circuit += Circuit([RX(theta)(qubit_index)])
+
         if parameters is not None:
             symbols_map = create_symbols_map(symbols, parameters)
-            circuit = circuit.evaluate(symbols_map)
+            circuit = circuit.bind(symbols_map)
         return circuit
 
 
@@ -163,7 +166,3 @@ class MockEstimator(Estimator):
         n_samples: Optional[int],
     ) -> ExpectationValues:
         return backend.get_expectation_values(circuit, target_operator)
-
-
-def mock_ansatz(parameters):
-    return Circuit(Program(X(0)))

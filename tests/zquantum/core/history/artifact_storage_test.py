@@ -1,10 +1,10 @@
 """Test cases for storing artifacts and recording functions that store them."""
 import numpy as np
 import pytest
-from zquantum.core.interfaces.functions import CallableStoringArtifacts
-from zquantum.core.history.recorder import recorder, ArtifactCollection, store_artifact
+from zquantum.core.history.example_functions import Function5, function_3, function_4
+from zquantum.core.history.recorder import ArtifactCollection, recorder, store_artifact
 from zquantum.core.history.save_conditions import every_nth
-from zquantum.core.history.example_functions import function_3, function_4, Function5
+from zquantum.core.interfaces.functions import CallableStoringArtifacts
 
 
 def test_store_artifact_by_default_does_not_force_artifacts_storage():

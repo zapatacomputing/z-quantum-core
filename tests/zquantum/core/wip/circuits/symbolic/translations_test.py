@@ -1,10 +1,16 @@
 """Test cases for symbolic_expressions module."""
-from pyquil import quil, quilatom
-import sympy
 import pytest
-from zquantum.core.wip.circuits.symbolic.sympy_expressions import expression_from_sympy, SYMPY_DIALECT
+import sympy
+from pyquil import quil, quilatom
+from zquantum.core.wip.circuits.symbolic.pyquil_expressions import (
+    QUIL_DIALECT,
+    expression_from_pyquil,
+)
+from zquantum.core.wip.circuits.symbolic.sympy_expressions import (
+    SYMPY_DIALECT,
+    expression_from_sympy,
+)
 from zquantum.core.wip.circuits.symbolic.translations import translate_expression
-from zquantum.core.wip.circuits.symbolic.pyquil_expressions import QUIL_DIALECT, expression_from_pyquil
 
 
 @pytest.mark.parametrize(

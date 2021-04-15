@@ -1,21 +1,35 @@
 from __future__ import annotations
-import json
+
 import copy
-from pyquil.wavefunction import Wavefunction
+import json
+from collections import Counter
+from typing import (
+    Optional,
+    List,
+    Tuple,
+    TextIO,
+    Iterable,
+    Sequence,
+    Dict,
+    Union,
+    Any,
+    Iterable,
+    cast,
+)
+
 import numpy as np
 from openfermion.ops import IsingOperator
+from pyquil.wavefunction import Wavefunction
+from zquantum.core.typing import AnyPath, LoadSource
+
+from .bitstring_distribution import BitstringDistribution
 from .utils import (
     SCHEMA_VERSION,
     convert_array_to_dict,
     convert_dict_to_array,
-    sample_from_probability_distribution,
-    convert_bitstrings_to_tuples,
     convert_tuples_to_bitstrings,
+    sample_from_probability_distribution,
 )
-from typing import Optional, List, Tuple, TextIO, Iterable, Dict, Union
-from collections import Counter
-from .bitstring_distribution import BitstringDistribution
-from zquantum.core.typing import LoadSource, AnyPath
 
 
 def save_expectation_values(
@@ -81,7 +95,7 @@ def save_wavefunction(wavefunction: Wavefunction, filename: AnyPath) -> None:
         filename (str): the name of the file
     """
 
-    data = {"schema": SCHEMA_VERSION + "-wavefunction"}
+    data = {"schema": SCHEMA_VERSION + "-wavefunction"}  # type: Dict[str, Any]
     data["amplitudes"] = convert_array_to_dict(wavefunction.amplitudes)
     with open(filename, "w") as f:
         f.write(json.dumps(data, indent=2))
@@ -118,13 +132,14 @@ class ExpectationValues:
         self.correlations = correlations
         self.estimator_covariances = estimator_covariances
 
-    def to_dict(self) -> dict:
+    def to_dict(self) -> Dict[str, Any]:
         """Convert to a dictionary"""
 
         data = {
             "schema": SCHEMA_VERSION + "-expectation_values",
             "frames": [],
-        }  # what is "frames" for?
+        }  # type: Dict[str, Any]
+        # what is "frames" for?
 
         data["expectation_values"] = convert_array_to_dict(self.values)
 
@@ -147,16 +162,18 @@ class ExpectationValues:
         """Create an ExpectationValues object from a dictionary."""
 
         expectation_values = convert_dict_to_array(dictionary["expectation_values"])
-        correlations = None
+        correlations = None  # type: Optional[List]
         if dictionary.get("correlations"):
             correlations = []
-            for correlation_matrx in dictionary.get("correlations"):
-                correlations.append(convert_dict_to_array(correlation_matrx))
+            for correlation_matrix in cast(Iterable, dictionary.get("correlations")):
+                correlations.append(convert_dict_to_array(correlation_matrix))
 
-        estimator_covariances = None
+        estimator_covariances = None  # type: Union[List, None]
         if dictionary.get("estimator_covariances"):
             estimator_covariances = []
-            for covariance_matrix in dictionary.get("estimator_covariances"):
+            for covariance_matrix in cast(
+                Iterable, dictionary.get("estimator_covariances")
+            ):
                 estimator_covariances.append(convert_dict_to_array(covariance_matrix))
 
         return cls(expectation_values, correlations, estimator_covariances)
@@ -164,7 +181,7 @@ class ExpectationValues:
 
 def sample_from_wavefunction(
     wavefunction: Wavefunction, n_samples: int
-) -> List[Tuple[int]]:
+) -> List[Tuple[int, ...]]:
     """Sample bitstrings from a wavefunction.
 
     Args:
@@ -204,12 +221,14 @@ class Parities:
             of samples with even and odd parities term P_j P_k in frame i, respectively.
     """
 
-    def __init__(self, values: np.ndarray, correlations: Optional[np.ndarray] = None):
+    def __init__(
+        self, values: np.ndarray, correlations: Optional[List[np.ndarray]] = None
+    ):
         self.values = values
         self.correlations = correlations
 
     def to_dict(self) -> dict:
-        data = {"values": convert_array_to_dict(self.values)}
+        data = {"values": convert_array_to_dict(self.values)}  # type: Dict[str, Any]
         if self.correlations:
             data["correlations"] = [
                 convert_array_to_dict(arr) for arr in self.correlations
@@ -220,7 +239,9 @@ class Parities:
     def from_dict(cls, data: dict):
         values = convert_dict_to_array(data["values"])
         if data.get("correlations"):
-            correlations = [convert_dict_to_array(arr) for arr in data["correlations"]]
+            correlations = [
+                convert_dict_to_array(arr) for arr in data["correlations"]
+            ]  # type: Optional[List]
         else:
             correlations = None
         return cls(values, correlations)
@@ -370,7 +391,7 @@ def expectation_values_to_real(
     return expectation_values
 
 
-def convert_bitstring_to_int(bitstring: Iterable[int]) -> int:
+def convert_bitstring_to_int(bitstring: Sequence[int]) -> int:
     """Convert a bitstring to an integer.
 
     Args:
@@ -382,7 +403,9 @@ def convert_bitstring_to_int(bitstring: Iterable[int]) -> int:
     return int("".join(str(bit) for bit in bitstring[::-1]), 2)
 
 
-def check_parity(bitstring: Union[str, Tuple[int]], marked_qubits: Tuple[int]) -> bool:
+def check_parity(
+    bitstring: Union[str, Sequence[int]], marked_qubits: Iterable[int]
+) -> bool:
     """Determine if the marked qubits have even parity for the given bitstring.
 
     Args:
@@ -401,7 +424,7 @@ def check_parity(bitstring: Union[str, Tuple[int]], marked_qubits: Tuple[int]) -
 
 
 def get_expectation_value_from_frequencies(
-    marked_qubits: Tuple[int], bitstring_frequencies: Dict[str, int]
+    marked_qubits: Iterable[int], bitstring_frequencies: Dict[str, int]
 ) -> float:
     """Get the expectation value the product of Z operators on selected qubits
     from bitstring frequencies.
@@ -414,7 +437,7 @@ def get_expectation_value_from_frequencies(
         The expectation value of the product of Z operators on selected qubits.
     """
 
-    expectation = 0
+    expectation = 0.0
     num_measurements = sum(bitstring_frequencies.values())
     for bitstring, count in bitstring_frequencies.items():
         if check_parity(bitstring, marked_qubits):
@@ -431,7 +454,7 @@ class Measurements:
     data structure of the Measurements class. It is expressed as a list of tuples wherein each tuple is a measurement
     and the value of the tuple at a given index is the measured bit-value of the qubit (indexed from 0 -> N-1)"""
 
-    def __init__(self, bitstrings: Optional[List[Tuple[int]]] = None):
+    def __init__(self, bitstrings: Optional[List[Tuple[int, ...]]] = None):
         if bitstrings is None:
             self.bitstrings = []
         else:
@@ -605,14 +628,14 @@ class Measurements:
         num_measurements = len(self.bitstrings)
 
         # Perform weighted average
-        expectation_values = [
+        expectation_values_list = [
             coefficient
             * get_expectation_value_from_frequencies(
-                [op[0] for op in term], bitstring_frequencies
+                [cast(int, op[0]) for op in term], bitstring_frequencies
             )
             for term, coefficient in ising_operator.terms.items()
         ]
-        expectation_values = np.array(expectation_values)
+        expectation_values = np.array(expectation_values_list)
 
         correlations = np.zeros((len(ising_operator.terms),) * 2)
         for i, first_term in enumerate(ising_operator.terms):
@@ -643,7 +666,7 @@ class Measurements:
         ) / denominator
 
         return ExpectationValues(
-            np.array(expectation_values), [correlations], [estimator_covariances]
+            expectation_values, [correlations], [estimator_covariances]
         )
 
 

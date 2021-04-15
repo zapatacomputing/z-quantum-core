@@ -1,18 +1,14 @@
+import numpy as np
 import pytest
 import sympy
-import numpy as np
-
-from zquantum.core.wip.circuits import _gates
-from zquantum.core.wip.circuits import _builtin_gates
-from zquantum.core.wip.circuits import _circuit
+from zquantum.core.wip.circuits import _builtin_gates, _circuit, _gates
 from zquantum.core.wip.circuits._serde import (
-    serialize_expr,
-    deserialize_expr,
     circuit_from_dict,
     custom_gate_def_from_dict,
+    deserialize_expr,
+    serialize_expr,
     to_dict,
 )
-
 
 ALPHA = sympy.Symbol("alpha")
 GAMMA = sympy.Symbol("gamma")

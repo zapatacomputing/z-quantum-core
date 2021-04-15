@@ -1,10 +1,12 @@
+from dataclasses import dataclass
+from typing import List
+
+from openfermion import SymbolicOperator
+from typing_extensions import Protocol
+
 from ...circuit import Circuit
 from ...interfaces.backend import QuantumBackend
 from ...measurement import ExpectationValues
-from openfermion import SymbolicOperator
-from typing import List, Callable
-from dataclasses import dataclass
-from typing_extensions import Protocol
 
 
 @dataclass(frozen=True)

@@ -1,19 +1,21 @@
-from .interfaces.estimator import Estimator
-from .interfaces.backend import QuantumBackend, QuantumSimulator
-from .circuit import Circuit
-from .measurement import (
-    ExpectationValues,
-    expectation_values_to_real,
-    concatenate_expectation_values,
-)
-from .hamiltonian import get_decomposition_function, estimate_nmeas_for_frames
-from .utils import scale_and_discretize
-from openfermion import SymbolicOperator, IsingOperator, QubitOperator
-from overrides import overrides
 import logging
+from typing import List, Optional, Tuple
+
 import numpy as np
 import pyquil
-from typing import Tuple, Optional, Callable, List
+from openfermion import IsingOperator, QubitOperator, SymbolicOperator
+from overrides import overrides
+
+from .circuit import Circuit
+from .hamiltonian import estimate_nmeas_for_frames, get_decomposition_function
+from .interfaces.backend import QuantumBackend, QuantumSimulator
+from .interfaces.estimator import Estimator
+from .measurement import (
+    ExpectationValues,
+    concatenate_expectation_values,
+    expectation_values_to_real,
+)
+from .utils import scale_and_discretize
 
 logger = logging.getLogger(__name__)
 

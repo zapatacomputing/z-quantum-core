@@ -1,18 +1,18 @@
 import unittest
-import cirq
 from math import pi
-import numpy as np
 
+import cirq
+import numpy as np
+import sympy
+from pyquil.paulis import PauliSum, PauliTerm
 from zquantum.core.evolution import (
+    generate_circuit_sequence,
     time_evolution,
     time_evolution_derivatives,
-    generate_circuit_sequence,
     time_evolution_for_term,
 )
-from zquantum.core.utils import compare_unitary
 from zquantum.core.testing import create_random_circuit
-from pyquil.paulis import PauliSum, PauliTerm
-import sympy
+from zquantum.core.utils import compare_unitary
 
 
 class TestTimeEvolution(unittest.TestCase):
@@ -108,8 +108,6 @@ class TestTimeEvolution(unittest.TestCase):
             ]
         )
         time_symbol = sympy.Symbol("t")
-        time_value = 0.4
-        symbols_map = [(time_symbol, time_value)]
 
         order = 3
         reference_factors_1 = [1.0 / order, 0.5 / order, 0.3 / order] * 3

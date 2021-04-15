@@ -1,11 +1,12 @@
-import networkx as nx
 import json
-from itertools import combinations
 import random
 from random import uniform
-from .utils import SCHEMA_VERSION
 from typing import Optional
-from zquantum.core.typing import LoadSource, AnyPath
+
+import networkx as nx
+from zquantum.core.typing import AnyPath, LoadSource
+
+from .utils import SCHEMA_VERSION
 
 
 def save_graph(graph: nx.Graph, filename: AnyPath):

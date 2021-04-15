@@ -1,7 +1,6 @@
 from unittest.mock import Mock
 
 import pytest
-
 from zquantum.core.wip.compatibility_tools import compatible_with_old_type
 
 

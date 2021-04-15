@@ -154,7 +154,7 @@ from ._serde import (
 
 from .conversions.cirq_conversions import (
     export_to_cirq,
-    import_circuit_from_cirq,
+    import_from_cirq,
 )
 
 from .conversions.pyquil_conversions import (

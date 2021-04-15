@@ -13,7 +13,14 @@ import numpy as np
 from functools import partial
 import sympy
 from openfermion import InteractionRDM, hermitian_conjugated
-
+from openfermion.ops import SymbolicOperator
+from networkx.readwrite import json_graph
+import lea
+import collections
+import scipy
+from typing import List, Tuple, Optional, Iterable, Union, Dict, Any
+import importlib
+import copy
 from .typing import AnyPath, LoadSource, Specs
 
 SCHEMA_VERSION = "zapata-v1"
@@ -192,7 +199,9 @@ def sample_from_probability_distribution(
     """
     if isinstance(probability_distribution, dict):
         prob_pmf = lea.pmf(probability_distribution)
-        sampled_dict = collections.Counter(prob_pmf.random(n_samples))
+        sampled_dict = collections.Counter(
+            prob_pmf.random(n_samples)
+        )  # type: collections.Counter
         return sampled_dict
     else:
         raise RuntimeError(
@@ -202,7 +211,7 @@ def sample_from_probability_distribution(
         )
 
 
-def convert_bitstrings_to_tuples(bitstrings: List[str]) -> List[Tuple[int]]:
+def convert_bitstrings_to_tuples(bitstrings: Iterable[str]) -> List[Tuple[int, ...]]:
     """Given the measured bitstrings, convert each bitstring to tuple format
 
     Args:
@@ -211,10 +220,10 @@ def convert_bitstrings_to_tuples(bitstrings: List[str]) -> List[Tuple[int]]:
         A list of tuples
     """
     # Convert from bitstrings to tuple format
-    measurements = []
+    measurements = []  # type: List[Tuple[int, ...]]
     for bitstring in bitstrings:
 
-        measurement = ()
+        measurement = ()  # type: Tuple[int, ...]
         for char in bitstring:
             measurement = measurement + (int(char),)
 
@@ -329,7 +338,7 @@ def load_value_estimate(file: LoadSource) -> ValueEstimate:
         with open(file, "r") as f:
             data = json.load(f)
     else:
-        data = json.load(file)
+        data = json.load(file)  # type: ignore
 
     return ValueEstimate.from_dict(data)
 
@@ -362,7 +371,7 @@ def load_list(file: LoadSource) -> List:
         with open(file, "r") as f:
             data = json.load(f)
     else:
-        data = json.load(file)
+        data = json.load(file)  # type: ignore
 
     return data["list"]
 
@@ -375,7 +384,7 @@ def save_list(array: List, filename: AnyPath, artifact_name: str = ""):
         file (str or file-like object): the name of the file, or a file-like object
         artifact_name (str): optional argument to specify the schema name
     """
-    dictionary = {}
+    dictionary = {}  # type: Dict[str, Any]
     dictionary["schema"] = SCHEMA_VERSION + "-" + artifact_name + "-list"
     dictionary["list"] = array
 
@@ -470,7 +479,7 @@ def load_noise_model(file: LoadSource):
         with open(file, "r") as f:
             specs = json.load(f)
     else:
-        specs = json.load(file)
+        specs = json.load(file)  # type: ignore
 
     noise_model_data = specs.pop("data", None)
     func = create_object(specs)
@@ -502,7 +511,7 @@ def save_noise_model(noise_model_data, module_name, function_name, filename):
 
 def create_symbols_map(
     symbols: List[sympy.Symbol], params: np.ndarray
-) -> Tuple[sympy.Symbol, float]:
+) -> List[Tuple[sympy.Symbol, float]]:
     """
     Creates a map to be used for evaluating sympy expressions.
 
@@ -546,7 +555,7 @@ def save_nmeas_estimate(
         frame_meas: A list of the number of measurements per frame for epsilon = 1.0
     """
 
-    data = {}
+    data = {}  # type: Dict[str, Any]
     data["schema"] = SCHEMA_VERSION + "-hamiltonian_analysis"
     data["K"] = nmeas
     data["nterms"] = nterms
@@ -593,7 +602,9 @@ def scale_and_discretize(values: Iterable[float], total: int) -> List[int]:
             of the input list elements.
     """
 
-    scale_factor = total / sum(values)
+    # Note: combining the two lines below breaks type checking; see mypy #6040
+    value_sum = sum(values)
+    scale_factor = total / value_sum
 
     result = [np.floor(value * scale_factor) for value in values]
     remainders = [
@@ -641,4 +652,4 @@ def hf_rdm(n_alpha: int, n_beta: int, n_orbitals: int) -> InteractionRDM:
 def load_from_specs(specs: Specs):
     if isinstance(specs, str):
         specs = json.loads(specs)
-    return create_object(specs)
+    return create_object(specs)  # type: ignore

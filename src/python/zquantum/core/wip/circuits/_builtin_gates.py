@@ -1,8 +1,6 @@
-from typing import Callable, Union, Optional
+from typing import Callable, Union
 
-from . import _gates
-from . import _matrices
-
+from . import _gates, _matrices
 
 GatePrototype = Callable[..., _gates.MatrixFactoryGate]
 GateRef = Union[_gates.Gate, GatePrototype]

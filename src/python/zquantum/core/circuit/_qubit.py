@@ -1,7 +1,7 @@
 """Base class for qubit"""
 
-import pyquil
 import cirq
+import pyquil
 
 
 class Qubit(object):

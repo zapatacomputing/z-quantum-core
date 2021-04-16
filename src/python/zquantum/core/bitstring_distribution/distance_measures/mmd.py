@@ -22,14 +22,15 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+from typing import TYPE_CHECKING, Dict, List
+
 import numpy as np
-from typing import List, Dict, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from zquantum.core.bitstring_distribution import BitstringDistribution
 
 
-def compute_rbf_kernel(x_i: np.array, y_j: np.array, sigma: float) -> np.ndarray:
+def compute_rbf_kernel(x_i: np.ndarray, y_j: np.ndarray, sigma: float) -> np.ndarray:
     """ Compute the gaussian (RBF) kernel matrix K, with K_ij = exp(-gamma |x_i - y_j|^2) and gamma = 1/(2*sigma).
 
         Args:
@@ -50,7 +51,7 @@ def compute_rbf_kernel(x_i: np.array, y_j: np.array, sigma: float) -> np.ndarray
     return kernel_matrix
 
 
-def compute_multi_rbf_kernel(x_i: np.array, y_j: np.array, sigmas: List) -> np.ndarray:
+def compute_multi_rbf_kernel(x_i: np.ndarray, y_j: np.ndarray, sigmas: List) -> np.ndarray:
     """ Compute the multi-gaussian (RBF) kernel matrix K, with K_ij = 1/N * Sum_n [exp(-gamma_n |x_i - y_j|^2)] with n = 1,...,N and gamma = 1/(2*sigma).
 
         Args:
@@ -69,7 +70,7 @@ def compute_multi_rbf_kernel(x_i: np.array, y_j: np.array, sigmas: List) -> np.n
         except ZeroDivisionError as error:
             print("Handling run-time error:", error)
             raise
-        kernel_matrix = kernel_matrix + np.exp(-gamma * exponent)
+        kernel_matrix += np.exp(-gamma * exponent)
     return kernel_matrix / len(sigmas)
 
 
@@ -78,7 +79,7 @@ def compute_mmd(
     measured_distribution: "BitstringDistribution",
     distance_measure_parameters: Dict,
 ) -> float:
-    """ Compute the squared Maximum Mean Discrepancy (MMD) distance measure between between a target bitstring distribution
+    """Compute the squared Maximum Mean Discrepancy (MMD) distance measure between between a target bitstring distribution
     and a measured bitstring distribution.
     Reference: arXiv.1804.04168.
 

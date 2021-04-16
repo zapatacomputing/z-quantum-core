@@ -1,22 +1,19 @@
-from typing import List, Tuple, Optional
-from openfermion import QubitOperator, IsingOperator
-import pyquil
+from typing import List, Optional, Tuple
+
 import numpy as np
+import pyquil
+from openfermion import IsingOperator, QubitOperator
 
 from ...circuit._circuit import Circuit
-from .estimation_interface import (
-    EstimationTask,
-    EstimationTaskTransformer,
-)
-from ...hamiltonian import group_comeasureable_terms_greedy, estimate_nmeas_for_frames
-from ...utils import scale_and_discretize
-from .estimation_interface import EstimationTask
+from ...hamiltonian import estimate_nmeas_for_frames, group_comeasureable_terms_greedy
 from ...interfaces.backend import QuantumBackend, QuantumSimulator
 from ...measurement import (
     ExpectationValues,
-    expectation_values_to_real,
     concatenate_expectation_values,
+    expectation_values_to_real,
 )
+from ...utils import scale_and_discretize
+from .estimation_interface import EstimationTask, EstimationTaskTransformer
 
 
 def get_context_selection_circuit(

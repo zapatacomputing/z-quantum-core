@@ -1,6 +1,6 @@
-from functools import singledispatch, reduce
 import operator
-from typing import Union, Dict, Optional, Iterable, Any
+from functools import reduce, singledispatch
+from typing import Any, Dict, Iterable, Optional, Union
 
 import numpy as np
 import sympy

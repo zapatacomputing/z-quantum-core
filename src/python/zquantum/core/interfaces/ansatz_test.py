@@ -5,7 +5,6 @@ You need to define your own test cases that inherit from the ones defined here.
 """
 
 
-from ..circuit import Circuit
 import numpy as np
 
 
@@ -22,8 +21,6 @@ class AnsatzTests:
         # Given
         new_number_of_layers = 100
         if ansatz.supports_parametrized_circuits:
-            initial_circuit = ansatz.parametrized_circuit
-
             # When
             ansatz.number_of_layers = new_number_of_layers
 

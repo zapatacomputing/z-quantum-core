@@ -1,43 +1,42 @@
-import unittest
-import subprocess
 import os
-import numpy as np
+import subprocess
+import unittest
 
+import numpy as np
 from openfermion import (
-    QubitOperator,
     FermionOperator,
+    InteractionRDM,
     IsingOperator,
+    QubitOperator,
     get_interaction_operator,
     hermitian_conjugated,
-    InteractionRDM,
 )
 from zquantum.core.circuit import build_uniform_param_grid, save_circuit_template_params
 from zquantum.core.interfaces.mock_objects import MockAnsatz
-from zquantum.core.utils import SCHEMA_VERSION, convert_dict_to_array, create_object
-
-from zquantum.core.openfermion._utils import evaluate_operator_for_parameter_grid
 from zquantum.core.openfermion._io import (
-    load_qubit_operator,
-    save_qubit_operator,
-    load_qubit_operator_set,
-    save_qubit_operator_set,
-    load_interaction_operator,
-    save_interaction_operator,
-    convert_qubitop_to_dict,
-    get_pauli_strings,
+    convert_dict_to_interaction_op,
+    convert_dict_to_interaction_rdm,
+    convert_dict_to_isingop,
     convert_dict_to_qubitop,
     convert_interaction_op_to_dict,
-    convert_dict_to_interaction_op,
-    convert_isingop_to_dict,
-    convert_dict_to_isingop,
-    save_ising_operator,
-    load_ising_operator,
-    save_parameter_grid_evaluation,
-    save_interaction_rdm,
-    load_interaction_rdm,
     convert_interaction_rdm_to_dict,
-    convert_dict_to_interaction_rdm,
+    convert_isingop_to_dict,
+    convert_qubitop_to_dict,
+    get_pauli_strings,
+    load_interaction_operator,
+    load_interaction_rdm,
+    load_ising_operator,
+    load_qubit_operator,
+    load_qubit_operator_set,
+    save_interaction_operator,
+    save_interaction_rdm,
+    save_ising_operator,
+    save_parameter_grid_evaluation,
+    save_qubit_operator,
+    save_qubit_operator_set,
 )
+from zquantum.core.openfermion._utils import evaluate_operator_for_parameter_grid
+from zquantum.core.utils import SCHEMA_VERSION, convert_dict_to_array, create_object
 
 
 class TestQubitOperator(unittest.TestCase):

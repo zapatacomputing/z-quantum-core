@@ -1,5 +1,8 @@
-from zquantum.core.interfaces.functions import function_with_gradient, has_store_artifact_param
 from zquantum.core.gradients import finite_differences_gradient
+from zquantum.core.interfaces.functions import (
+    function_with_gradient,
+    has_store_artifact_param,
+)
 
 
 def test_adding_gradient_to_function_storing_artifacts_makes_a_callable_that_stores_artifacts():

@@ -1,10 +1,12 @@
 import pytest
 import qiskit
-
 from zquantum.core.wip.circuits.symbolic.expressions import FunctionCall, Symbol
-from zquantum.core.wip.circuits.symbolic.qiskit_expressions import expression_from_qiskit, integer_pow, QISKIT_DIALECT
+from zquantum.core.wip.circuits.symbolic.qiskit_expressions import (
+    QISKIT_DIALECT,
+    expression_from_qiskit,
+    integer_pow,
+)
 from zquantum.core.wip.circuits.symbolic.translations import translate_expression
-
 
 THETA = qiskit.circuit.Parameter("theta")
 PHI = qiskit.circuit.Parameter("phi")

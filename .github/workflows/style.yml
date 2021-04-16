@@ -57,6 +57,6 @@ jobs:
           # Extra options: black --check $(extra-black-options) $(python-root-list)
           extra-black-options: --check
           # Extra options: mypy $(extra-mypy-options) $(python-root-list)
-          # extra-mypy-options: # optional, default is 
+          extra-mypy-options: --ignore-missing-imports --namespace-packages
           # Extra options: isort -rc $(extra-isort-options) $(python-root-list) -c --diff 
           extra-isort-options: --check-only --profile black

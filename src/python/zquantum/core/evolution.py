@@ -1,10 +1,11 @@
-import openfermion, pyquil
-from pyquil.paulis import exponentiate as pyquil_exponentiate
-from .openfermion import qubitop_to_pyquilpauli
+from typing import List, Tuple, Union
+
 import numpy as np
-from .circuit import Circuit
-from typing import Tuple, List, Union
+import pyquil
 import sympy
+from pyquil.paulis import exponentiate as pyquil_exponentiate
+
+from .circuit import Circuit
 
 
 def time_evolution(

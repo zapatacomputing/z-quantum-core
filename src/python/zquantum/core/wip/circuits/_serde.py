@@ -1,13 +1,10 @@
-from typing import List, Iterable
 from functools import singledispatch
+from typing import Iterable, List
 
 import sympy
 
-from . import _gates
-from . import _builtin_gates
-from . import _circuit
 from ...utils import SCHEMA_VERSION
-
+from . import _builtin_gates, _circuit, _gates
 
 CIRCUIT_SCHEMA = SCHEMA_VERSION + "-circuit"
 

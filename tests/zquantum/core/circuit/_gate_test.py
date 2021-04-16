@@ -1,12 +1,11 @@
 import unittest
-import os
+from math import pi
+
+import qiskit
+from sympy import Symbol
 from zquantum.core.circuit._gate import Gate
 from zquantum.core.circuit._gateset import COMMON_GATES
 from zquantum.core.circuit._qubit import Qubit
-from sympy import Symbol
-import qiskit
-from math import pi
-import pyquil
 
 
 class TestGate(unittest.TestCase):

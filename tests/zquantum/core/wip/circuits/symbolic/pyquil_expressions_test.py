@@ -1,9 +1,11 @@
 """Test cases for decomposing PyQuil expression into our native expressions."""
 import numpy as np
-from pyquil import quil, quilatom
 import pytest
-from zquantum.core.wip.circuits.symbolic.expressions import Symbol, FunctionCall
-from zquantum.core.wip.circuits.symbolic.pyquil_expressions import expression_from_pyquil
+from pyquil import quil, quilatom
+from zquantum.core.wip.circuits.symbolic.expressions import FunctionCall, Symbol
+from zquantum.core.wip.circuits.symbolic.pyquil_expressions import (
+    expression_from_pyquil,
+)
 
 
 @pytest.mark.parametrize("number", [3, 4.0, 1j, 3.0 - 2j])

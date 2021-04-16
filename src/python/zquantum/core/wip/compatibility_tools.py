@@ -1,6 +1,6 @@
 """Tools for building compatibility layers."""
 import warnings
-from typing import Optional, Callable
+from typing import Callable, Optional
 
 
 class TranslationFailed(Exception):
@@ -11,7 +11,6 @@ class TranslationFailed(Exception):
     (which should be propagated).
     """
 
-    pass
 
 
 def _translate_if_needed(

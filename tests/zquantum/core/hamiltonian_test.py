@@ -1,26 +1,26 @@
+import math
+
+import numpy as np
+import pytest
+from openfermion import (
+    FermionOperator,
+    InteractionRDM,
+    QubitOperator,
+    eigenspectrum,
+    get_interaction_operator,
+    jordan_wigner,
+)
 from zquantum.core.hamiltonian import (
-    is_comeasureable,
-    group_comeasureable_terms_greedy,
     compute_group_variances,
+    estimate_nmeas_for_frames,
+    estimate_nmeas_for_operator,
     get_expectation_values_from_rdms,
     get_expectation_values_from_rdms_for_qubitoperator_list,
-    estimate_nmeas_for_operator,
-    estimate_nmeas_for_frames,
+    group_comeasureable_terms_greedy,
+    is_comeasureable,
     reorder_fermionic_modes,
 )
 from zquantum.core.measurement import ExpectationValues
-import numpy as np
-import math
-import pytest
-from openfermion import (
-    QubitOperator,
-    FermionOperator,
-    InteractionRDM,
-    jordan_wigner,
-    eigenspectrum,
-    get_interaction_operator,
-)
-
 
 h2_hamiltonian = QubitOperator(
     """-0.0420789769629383 [] +

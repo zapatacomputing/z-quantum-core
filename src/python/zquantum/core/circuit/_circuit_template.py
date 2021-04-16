@@ -1,12 +1,11 @@
-import json
-import numpy as np
 import importlib
-from numpy.random import random_sample
-from ..utils import SCHEMA_VERSION
-from ..utils import convert_array_to_dict, convert_dict_to_array
-from ..circuit import Circuit, Qubit, Gate
-from typing import TextIO, List, Tuple, Dict, Optional
-from scipy.optimize import OptimizeResult
+import json
+from typing import Dict, List, Optional, TextIO, Tuple
+
+import numpy as np
+
+from ..circuit import Circuit, Gate, Qubit
+from ..utils import SCHEMA_VERSION, convert_array_to_dict, convert_dict_to_array
 
 
 def save_circuit_template(circuit_template: dict, filename: str):

@@ -17,9 +17,10 @@
 """
 Translates OpenFermion Objects to pyQuil objects
 """
-from pyquil.paulis import PauliSum, PauliTerm
-from openfermion.ops import QubitOperator
 from typing import Union
+
+from openfermion.ops import QubitOperator
+from pyquil.paulis import PauliSum, PauliTerm
 
 
 def qubitop_to_pyquilpauli(qubit_operator: QubitOperator) -> PauliSum:

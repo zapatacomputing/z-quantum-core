@@ -2,16 +2,13 @@
 from functools import singledispatch
 from itertools import chain
 from operator import attrgetter
-from typing import Union, Callable, Type, overload
+from typing import Callable, Type, Union, overload
 
 import cirq
 import numpy as np
 import sympy
 
-from .. import _builtin_gates
-from .. import _gates
-from .. import _circuit
-
+from .. import _builtin_gates, _circuit, _gates
 
 Parameter = Union[sympy.Expr, float]
 RotationGateFactory = Callable[[Parameter], cirq.EigenGate]

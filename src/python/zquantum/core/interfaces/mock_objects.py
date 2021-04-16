@@ -12,7 +12,7 @@ from ..circuit import Circuit
 from ..measurement import ExpectationValues, Measurements
 from ..utils import create_symbols_map
 from ..wip.circuits import Circuit as NewCircuit
-from ..wip.circuits._compatibility import new_circuit_from_old_circuit
+from ..wip.circuits import new_circuit_from_old_circuit
 from ..wip.compatibility_tools import compatible_with_old_type
 from .ansatz import Ansatz
 from .ansatz_utils import ansatz_property

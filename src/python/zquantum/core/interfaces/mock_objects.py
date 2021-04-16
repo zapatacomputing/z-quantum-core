@@ -140,18 +140,17 @@ class MockAnsatz(Ansatz):
 
     @overrides
     def _generate_circuit(self, parameters: Optional[np.ndarray] = None):
-        circuit = NewCircuit()
+        circuit = Circuit()
         symbols = [
             sympy.Symbol(f"theta_{layer_index}")
             for layer_index in range(self._number_of_layers)
         ]
         for theta in symbols:
             for qubit_index in range(self.number_of_qubits):
-                circuit += Circuit([RX(theta)(qubit_index)])
-
+                circuit += Circuit(Program(RX(theta, qubit_index)))
         if parameters is not None:
             symbols_map = create_symbols_map(symbols, parameters)
-            circuit = circuit.bind(symbols_map)
+            circuit = circuit.evaluate(symbols_map)
         return circuit
 
 

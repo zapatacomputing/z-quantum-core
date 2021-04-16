@@ -9,12 +9,7 @@ from zquantum.core.wip.cost_function import (
     get_ground_state_cost_function,
     AnsatzBasedCostFunction,
 )
-from zquantum.core.wip.estimators.estimation_interface import (
-    EstimateExpectationValues,
-    EstimationTaskTransformer,
-)
 from zquantum.core.wip.estimators.estimation import naively_estimate_expectation_values
-from zquantum.core.estimator import BasicEstimator
 from zquantum.core.serialization import save_optimization_results
 from zquantum.core.utils import create_object
 from zquantum.core.typing import Specs
@@ -37,19 +32,19 @@ def optimize_parametrized_circuit_for_ground_state_of_operator(
     """Optimize the parameters of a parametrized quantum circuit to prepare the ground state of a target operator.
 
     Args:
-        optimizer_specs (Union[Dict, str]): The specs of the optimizer to use to refine the parameter values
-        target_operator (Union[SymbolicOperator, str]): The operator of which to prepare the ground state
-        parametrized_circuit (Union[Circuit, str]): The parametrized quantum circuit that prepares trial states
-        backend_specs (Union[Dict, str]): The specs of the quantum backend (or simulator) to use to run the circuits
-        estimator_specs (Union[Dict, str]): The estimator to use to estimate the expectation value of the operator.
+        optimizer_specs: The specs of the optimizer to use to refine the parameter values
+        target_operator: The operator of which to prepare the ground state
+        parametrized_circuit: The parametrized quantum circuit that prepares trial states
+        backend_specs: The specs of the quantum backend (or simulator) to use to run the circuits
+        estimator_specs: The estimator to use to estimate the expectation value of the operator.
             The default is the BasicEstimator.
-        estimator_kwargs (dict): kwargs required to run get_estimated_expectation_values method of the estimator.
-        initial_parameters (Union[str, np.ndarray, List[float]]): The initial parameter values to begin optimization
-        fixed_parameters (Optional[Union[np.ndarray, str]]): values for the circuit parameters that should be fixed.
-        parameter_precision (float): the standard deviation of the Gaussian noise to add to each parameter, if any.
-        parameter_precision_seed (int): seed for randomly generating parameter deviation if using parameter_precision
-
-        initial_parameters (Union[str, np.ndarray, List[float]] = None,
+        estimator_kwargs: kwargs required to run get_estimated_expectation_values method of the estimator.
+        estimator_transformation_tasks_specs: A list of Specs that describe callable functions that adhere to the
+            EstimationTaskTransformer protocol.
+        initial_parameters: The initial parameter values to begin optimization
+        fixed_parameters: values for the circuit parameters that should be fixed.
+        parameter_precision: the standard deviation of the Gaussian noise to add to each parameter, if any.
+        parameter_precision_seed: seed for randomly generating parameter deviation if using parameter_precision
     """
     if estimator_kwargs is not None:
         if isinstance(estimator_kwargs, str):
@@ -127,6 +122,23 @@ def optimize_ansatz_based_cost_function(
     parameter_precision: Optional[float] = None,
     parameter_precision_seed: Optional[int] = None,
 ):
+    """Optimize the parameters of an ansatz circuit to prepare the ground state of a target operator.
+
+    Args:
+        optimizer_specs: The specs of the optimizer to use to refine the parameter values
+        target_operator: The operator of which to prepare the ground state
+        ansatz_specs: The specs describing an Ansatz which will prepare the quantum circuit
+        backend_specs: The specs of the quantum backend (or simulator) to use to run the circuits
+        estimator_specs: The estimator to use to estimate the expectation value of the operator.
+            The default is the BasicEstimator.
+        estimator_kwargs: kwargs required to run get_estimated_expectation_values method of the estimator.
+        estimator_transformation_tasks_specs: A list of Specs that describe callable functions that adhere to the
+            EstimationTaskTransformer protocol.
+        initial_parameters: The initial parameter values to begin optimization
+        fixed_parameters: values for the circuit parameters that should be fixed.
+        parameter_precision: the standard deviation of the Gaussian noise to add to each parameter, if any.
+        parameter_precision_seed: seed for randomly generating parameter deviation if using parameter_precision
+    """
     if estimator_kwargs is not None:
         if isinstance(estimator_kwargs, str):
             estimator_kwargs = json.loads(estimator_kwargs)

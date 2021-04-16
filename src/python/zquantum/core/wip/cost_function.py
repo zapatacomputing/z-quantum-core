@@ -24,7 +24,7 @@ def get_ground_state_cost_function(
     parametrized_circuit: Circuit,
     backend: QuantumBackend,
     estimator: EstimateExpectationValues = naively_estimate_expectation_values,
-    estimator_transformation_tasks: List[EstimationTaskTransformer] = None,
+    estimation_tasks_transformations: List[EstimationTaskTransformer] = None,
     fixed_parameters: Optional[np.ndarray] = None,
     parameter_precision: Optional[float] = None,
     parameter_precision_seed: Optional[int] = None,
@@ -40,7 +40,7 @@ def get_ground_state_cost_function(
         parametrized_circuit: parameterized circuit to prepare quantum states
         backend: backend used for evaluation
         estimator: estimator used to compute expectation value of target operator
-        estimator_transformation_tasks: A list of callable functions that adhere to the EstimationTaskTransformer
+        estimation_tasks_transformations: A list of callable functions that adhere to the EstimationTaskTransformer
             protocol and are used to create the estimation tasks.
         fixed_parameters: values for the circuit parameters that should be fixed.
         parameter_precision: the standard deviation of the Gaussian noise to add to each parameter, if any.
@@ -56,7 +56,7 @@ def get_ground_state_cost_function(
             operator=target_operator, circuit=parametrized_circuit, number_of_shots=None
         )
     ]
-    for transformer in estimator_transformation_tasks:
+    for transformer in estimation_tasks_transformations:
         estimation_tasks = transformer(estimation_tasks)
 
     circuit_symbols = set(
@@ -140,7 +140,7 @@ class AnsatzBasedCostFunction:
         ansatz: ansatz used to evaluate cost function
         backend: backend used for evaluation
         estimator: estimator used to compute expectation value of target operator
-        estimator_transformation_tasks: A list of callable functions that adhere to the EstimationTaskTransformer
+        estimation_tasks_transformations: A list of callable functions that adhere to the EstimationTaskTransformer
             protocol and are used to create the estimation tasks.
         fixed_parameters: values for the circuit parameters that should be fixed.
         parameter_precision: the standard deviation of the Gaussian noise to add to each parameter, if any.
@@ -162,7 +162,7 @@ class AnsatzBasedCostFunction:
         ansatz: Ansatz,
         backend: QuantumBackend,
         estimator: EstimateExpectationValues = naively_estimate_expectation_values,
-        estimator_transformation_tasks: List[EstimationTaskTransformer] = None,
+        estimation_tasks_transformations: List[EstimationTaskTransformer] = None,
         fixed_parameters: Optional[np.ndarray] = None,
         parameter_precision: Optional[float] = None,
         parameter_precision_seed: Optional[int] = None,
@@ -184,7 +184,7 @@ class AnsatzBasedCostFunction:
                 number_of_shots=None,
             )
         ]
-        for transformer in estimator_transformation_tasks:
+        for transformer in estimation_tasks_transformations:
             self.estimation_tasks = transformer(self.estimation_tasks)
 
         self.circuit_symbols = set(

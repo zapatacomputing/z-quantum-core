@@ -22,7 +22,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from typing import TYPE_CHECKING, Dict, List, Union
+from typing import TYPE_CHECKING, Dict, List, Union, Sequence
 
 import numpy as np
 
@@ -34,9 +34,9 @@ def compute_rbf_kernel(x_i: np.ndarray, y_j: np.ndarray, sigma: float) -> np.nda
     """Compute the gaussian (RBF) kernel matrix K, with K_ij = exp(-gamma |x_i - y_j|^2) and gamma = 1/(2*sigma).
 
     Args:
-        x_i (np.array): Samples A (integers).
-        y_j (np.array): Samples B (integers).
-        sigma (float): The bandwidth of the gaussian kernel.
+        x_i: Samples A (integers).
+        y_j: Samples B (integers).
+        sigma: The bandwidth of the gaussian kernel.
 
     Returns:
         np.ndarray: The gaussian kernel matrix.
@@ -52,20 +52,20 @@ def compute_rbf_kernel(x_i: np.ndarray, y_j: np.ndarray, sigma: float) -> np.nda
 
 
 def compute_multi_rbf_kernel(
-    x_i: np.ndarray, y_j: np.ndarray, sigmas: List
+    x_i: np.ndarray, y_j: np.ndarray, sigmas: Sequence[float]
 ) -> np.ndarray:
     """Compute the multi-gaussian (RBF) kernel matrix K, with K_ij = 1/N * Sum_n [exp(-gamma_n |x_i - y_j|^2)] with n = 1,...,N and gamma = 1/(2*sigma).
 
     Args:
-        x_i (np.array): Samples A (integers).
-        y_j (np.array): Samples B (integers).
-        sigmas (np.array): The list of bandwidths of the multi-gaussian kernel.
+        x_i: Samples A (integers).
+        y_j: Samples B (integers).
+        sigmas: The list of bandwidths of the multi-gaussian kernel.
 
     Returns:
         np.ndarray: The gaussian kernel matrix.
     """
     exponent = np.abs(x_i[:, None] - y_j[None, :]) ** 2
-    kernel_matrix: Union[float, np.ndarray] = 0.0
+    kernel_matrix = np.zeros(exponent.shape)
     for sigma in sigmas:
         try:
             gamma = 1.0 / (2 * sigma)

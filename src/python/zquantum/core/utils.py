@@ -10,6 +10,7 @@ import inspect
 import numpy as np
 from functools import partial
 import sympy
+import lea
 from openfermion import InteractionRDM, hermitian_conjugated
 from typing import List, Tuple, Optional, Iterable, Dict, Any
 from .typing import AnyPath, LoadSource, Specs

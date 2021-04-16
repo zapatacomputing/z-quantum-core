@@ -267,7 +267,7 @@ def _import_qiskit_op(qiskit_op, qiskit_qubits) -> ImportedOperation:
 
     try:
         return _import_controlled_qiskit_op(qiskit_op, qiskit_qubits)
-    except (ValueError, NotImplementedError):
+    except ValueError:
         pass
 
     return _import_custom_qiskit_gate(qiskit_op, qiskit_qubits)

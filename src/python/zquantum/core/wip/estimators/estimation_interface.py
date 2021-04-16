@@ -31,9 +31,7 @@ class EstimationTaskTransformer(Protocol):
     into another list of EstimationTasks.
     """
 
-    def __call__(
-        self, estimation_tasks: List[EstimationTask], **kwargs
-    ) -> List[EstimationTask]:
+    def __call__(self, estimation_tasks: List[EstimationTask]) -> List[EstimationTask]:
         pass
 
 

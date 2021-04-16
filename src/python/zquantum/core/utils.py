@@ -12,7 +12,7 @@ from functools import partial
 import sympy
 from openfermion import InteractionRDM, hermitian_conjugated
 from typing import List, Tuple, Optional, Iterable, Dict, Any
-from .typing import AnyPath, LoadSource
+from .typing import AnyPath, LoadSource, Specs
 
 SCHEMA_VERSION = "zapata-v1"
 RNDSEED = 12345

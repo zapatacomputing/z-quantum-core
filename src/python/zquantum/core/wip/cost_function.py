@@ -12,7 +12,6 @@ from .estimators.estimation import (
 from ..interfaces.functions import function_with_gradient, StoreArtifact
 from ..circuit import combine_ansatz_params, Circuit
 from ..gradients import finite_differences_gradient
-from ..estimator import BasicEstimator
 from ..utils import create_symbols_map, ValueEstimate
 from ..measurement import ExpectationValues
 from typing import Optional, Callable, Dict, List
@@ -25,7 +24,6 @@ def get_ground_state_cost_function(
     parametrized_circuit: Circuit,
     backend: QuantumBackend,
     estimator: EstimateExpectationValues = naively_estimate_expectation_values,
-    estimator_kwargs: Optional[Dict] = None,
     estimator_transformation_tasks: List[EstimationTaskTransformer] = None,
     fixed_parameters: Optional[np.ndarray] = None,
     parameter_precision: Optional[float] = None,
@@ -38,23 +36,21 @@ def get_ground_state_cost_function(
     method when returns the gradient with respect the input parameters.
 
     Args:
-        target_operator (openfermion.SymbolicOperator): operator to be evaluated and find the ground state of
-        parametrized_circuit (zquantum.core.circuit.Circuit): parameterized circuit to prepare quantum states
-        backend (zquantum.core.interfaces.backend.QuantumBackend): backend used for evaluation
-        estimator: (zquantum.core.interfaces.estimator.Estimator) = estimator used to compute expectation value of target operator
-        estimator_kwargs (dict): kwargs required to run get_estimated_expectation_values method of the estimator.
-        gradient_function (Callable): a function which returns a function used to compute the gradient of the cost function
+        target_operator: operator to be evaluated and find the ground state of
+        parametrized_circuit: parameterized circuit to prepare quantum states
+        backend: backend used for evaluation
+        estimator: estimator used to compute expectation value of target operator
+        estimator_transformation_tasks: A list of callable functions that adhere to the EstimationTaskTransformer
+            protocol and are used to create the estimation tasks.
+        fixed_parameters: values for the circuit parameters that should be fixed.
+        parameter_precision: the standard deviation of the Gaussian noise to add to each parameter, if any.
+        parameter_precision_seed: seed for randomly generating parameter deviation if using parameter_precision
+        gradient_function: a function which returns a function used to compute the gradient of the cost function
             (see from zquantum.core.gradients.finite_differences_gradient for reference)
-        fixed_parameters (np.ndarray): values for the circuit parameters that should be fixed.
-        parameter_precision (float): the standard deviation of the Gaussian noise to add to each parameter, if any.
-        parameter_precision_seed (int): seed for randomly generating parameter deviation if using parameter_precision
 
     Returns:
         Callable
     """
-    if estimator_kwargs is None:
-        estimator_kwargs = {}
-
     estimation_tasks = [
         EstimationTask(
             operator=target_operator, circuit=parametrized_circuit, number_of_shots=None
@@ -92,7 +88,7 @@ def get_ground_state_cost_function(
             estimation_tasks, [symbols_map for _ in estimation_tasks]
         )
 
-        expectation_values = estimator(backend, estimation_tasks, **estimator_kwargs)
+        expectation_values = estimator(backend, estimation_tasks)
 
         return ValueEstimate(np.sum(expectation_values.values))
 
@@ -140,26 +136,24 @@ class AnsatzBasedCostFunction:
     """Cost function used for evaluating given operator using given ansatz.
 
     Args:
-        target_operator (openfermion.SymbolicOperator): operator to be evaluated
-        ansatz (zquantum.core.interfaces.ansatz.Ansatz): ansatz used to evaluate cost function
-        backend (zquantum.core.interfaces.backend.QuantumBackend): backend used for evaluation
-        estimator: (zquantum.core.interfaces.estimator.Estimator) = estimator used to compute expectation value of target operator
-        n_samples (int): number of samples (i.e. measurements) to be used in the estimator.
-        estimator_kwargs(dict): kwargs required to run get_estimated_expectation_values method of the estimator.
-        fixed_parameters (np.ndarray): values for the circuit parameters that should be fixed.
-        parameter_precision (float): the standard deviation of the Gaussian noise to add to each parameter, if any.
-        parameter_precision_seed (int): seed for randomly generating parameter deviation if using parameter_precision
+        target_operator: operator to be evaluated
+        ansatz: ansatz used to evaluate cost function
+        backend: backend used for evaluation
+        estimator: estimator used to compute expectation value of target operator
+        estimator_transformation_tasks: A list of callable functions that adhere to the EstimationTaskTransformer
+            protocol and are used to create the estimation tasks.
+        fixed_parameters: values for the circuit parameters that should be fixed.
+        parameter_precision: the standard deviation of the Gaussian noise to add to each parameter, if any.
+        parameter_precision_seed: seed for randomly generating parameter deviation if using parameter_precision
 
     Params:
-        target_operator (openfermion.SymbolicOperator): see Args
-        ansatz (zquantum.core.interfaces.ansatz.Ansatz): see Args
-        backend (zquantum.core.interfaces.backend.QuantumBackend): see Args
-        estimator (zquantum.core.interfaces.estimator.Estimator): see Args
-        estimator_kwargs(dict): see Args
-        delta (float): see Args
+        backend: see Args
+        estimator: see Args
         fixed_parameters (np.ndarray): see Args
-        parameter_precision (float): see Args
-        parameter_precision_seed (int): see Args
+        parameter_precision: see Args
+        parameter_precision_seed: see Args
+        estimation_tasks: A list of EstimationTask objects with circuits to run and operators to measure
+        circuit_symbols: A list of all symbolic parameters used in any estimation task
     """
 
     def __init__(
@@ -168,26 +162,20 @@ class AnsatzBasedCostFunction:
         ansatz: Ansatz,
         backend: QuantumBackend,
         estimator: EstimateExpectationValues = naively_estimate_expectation_values,
-        estimator_kwargs: Optional[Dict] = None,
         estimator_transformation_tasks: List[EstimationTaskTransformer] = None,
         fixed_parameters: Optional[np.ndarray] = None,
         parameter_precision: Optional[float] = None,
         parameter_precision_seed: Optional[int] = None,
     ):
         self.backend = backend
+        self.fixed_parameters = fixed_parameters
+        self.parameter_precision = parameter_precision
+        self.parameter_precision_seed = parameter_precision_seed
+
         if estimator is None:
             self.estimator = naively_estimate_expectation_values
         else:
             self.estimator = estimator
-
-        if estimator_kwargs is None:
-            self.estimator_kwargs = {}
-        else:
-            self.estimator_kwargs = estimator_kwargs
-
-        self.fixed_parameters = fixed_parameters
-        self.parameter_precision = parameter_precision
-        self.parameter_precision_seed = parameter_precision_seed
 
         self.estimation_tasks = [
             EstimationTask(
@@ -230,8 +218,6 @@ class AnsatzBasedCostFunction:
         estimation_tasks = evaluate_circuits(
             self.estimation_tasks, [symbols_map for _ in self.estimation_tasks]
         )
-        expectation_values = self.estimator(
-            self.backend, estimation_tasks, **self.estimator_kwargs
-        )
+        expectation_values = self.estimator(self.backend, estimation_tasks)
 
         return sum_expectation_values(expectation_values)

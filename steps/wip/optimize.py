@@ -22,7 +22,6 @@ def optimize_parametrized_circuit_for_ground_state_of_operator(
     parametrized_circuit: Union[Circuit, str],
     backend_specs: Specs,
     estimator_specs: Optional[Specs] = None,
-    estimator_kwargs: Optional[Dict] = None,
     estimator_transformation_tasks_specs: Optional[List[Specs]] = None,
     initial_parameters: Union[str, np.ndarray, List[float]] = None,
     fixed_parameters: Optional[Union[np.ndarray, str]] = None,
@@ -36,9 +35,8 @@ def optimize_parametrized_circuit_for_ground_state_of_operator(
         target_operator: The operator of which to prepare the ground state
         parametrized_circuit: The parametrized quantum circuit that prepares trial states
         backend_specs: The specs of the quantum backend (or simulator) to use to run the circuits
-        estimator_specs: The estimator to use to estimate the expectation value of the operator.
-            The default is the BasicEstimator.
-        estimator_kwargs: kwargs required to run get_estimated_expectation_values method of the estimator.
+        estimator_specs: A reference to a callable to use to estimate the expectation value of the operator.
+            The default is the naively_estimate_expectation_values function.
         estimator_transformation_tasks_specs: A list of Specs that describe callable functions that adhere to the
             EstimationTaskTransformer protocol.
         initial_parameters: The initial parameter values to begin optimization
@@ -46,12 +44,6 @@ def optimize_parametrized_circuit_for_ground_state_of_operator(
         parameter_precision: the standard deviation of the Gaussian noise to add to each parameter, if any.
         parameter_precision_seed: seed for randomly generating parameter deviation if using parameter_precision
     """
-    if estimator_kwargs is not None:
-        if isinstance(estimator_kwargs, str):
-            estimator_kwargs = json.loads(estimator_kwargs)
-    else:
-        estimator_kwargs = {}
-
     if isinstance(optimizer_specs, str):
         optimizer_specs = json.loads(optimizer_specs)
     optimizer = create_object(optimizer_specs)
@@ -97,7 +89,6 @@ def optimize_parametrized_circuit_for_ground_state_of_operator(
         parametrized_circuit,
         backend,
         estimator=estimator,
-        estimator_kwargs=estimator_kwargs,
         estimator_transformation_tasks=estimator_transformation_tasks,
         fixed_parameters=fixed_parameters,
         parameter_precision=parameter_precision,
@@ -115,7 +106,6 @@ def optimize_ansatz_based_cost_function(
     ansatz_specs: Specs,
     backend_specs: Specs,
     estimator_specs: Optional[Specs] = None,
-    estimator_kwargs: Optional[Dict] = None,
     estimator_transformation_tasks_specs: Optional[List[Specs]] = None,
     initial_parameters: Union[str, np.ndarray, List[float]] = None,
     fixed_parameters: Optional[Union[np.ndarray, str]] = None,
@@ -129,9 +119,8 @@ def optimize_ansatz_based_cost_function(
         target_operator: The operator of which to prepare the ground state
         ansatz_specs: The specs describing an Ansatz which will prepare the quantum circuit
         backend_specs: The specs of the quantum backend (or simulator) to use to run the circuits
-        estimator_specs: The estimator to use to estimate the expectation value of the operator.
-            The default is the BasicEstimator.
-        estimator_kwargs: kwargs required to run get_estimated_expectation_values method of the estimator.
+        estimator_specs: A reference to a callable to use to estimate the expectation value of the operator.
+            The default is the naively_estimate_expectation_values function.
         estimator_transformation_tasks_specs: A list of Specs that describe callable functions that adhere to the
             EstimationTaskTransformer protocol.
         initial_parameters: The initial parameter values to begin optimization
@@ -139,12 +128,6 @@ def optimize_ansatz_based_cost_function(
         parameter_precision: the standard deviation of the Gaussian noise to add to each parameter, if any.
         parameter_precision_seed: seed for randomly generating parameter deviation if using parameter_precision
     """
-    if estimator_kwargs is not None:
-        if isinstance(estimator_kwargs, str):
-            estimator_kwargs = json.loads(estimator_kwargs)
-    else:
-        estimator_kwargs = {}
-
     if isinstance(optimizer_specs, str):
         optimizer_specs = json.loads(optimizer_specs)
     optimizer = create_object(optimizer_specs)
@@ -191,7 +174,6 @@ def optimize_ansatz_based_cost_function(
         ansatz,
         backend,
         estimator=estimator,
-        estimator_kwargs=estimator_kwargs,
         estimator_transformation_tasks=estimator_transformation_tasks,
         fixed_parameters=fixed_parameters,
         parameter_precision=parameter_precision,

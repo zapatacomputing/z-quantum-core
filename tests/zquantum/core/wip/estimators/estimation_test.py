@@ -3,6 +3,7 @@ import pytest
 from openfermion import IsingOperator, QubitOperator, qubit_operator_sparse
 from pyquil import Program
 from pyquil.gates import RY, RZ, X
+from functools import partial
 from zquantum.core.circuit import Circuit
 from zquantum.core.interfaces.mock_objects import (
     MockQuantumBackend,
@@ -82,7 +83,7 @@ class TestEstimatorUtils:
         n_samples,
         target_n_samples_list,
     ):
-        allocate_shots = uniform_shot_allocation(n_samples)
+        allocate_shots = partial(uniform_shot_allocation, number_of_shots=n_samples)
         circuit = Circuit()
         estimation_tasks = [
             EstimationTask(operator, circuit, 1) for operator in frame_operators
@@ -108,8 +109,10 @@ class TestEstimatorUtils:
         prior_expectation_values,
         target_n_samples_list,
     ):
-        allocate_shots = proportional_shot_allocation(
-            total_n_shots, prior_expectation_values
+        allocate_shots = partial(
+            proportional_shot_allocation,
+            total_n_shots=total_n_shots,
+            prior_expectation_values=prior_expectation_values,
         )
         circuit = Circuit()
         estimation_tasks = [
@@ -129,8 +132,9 @@ class TestEstimatorUtils:
         self,
         n_samples,
     ):
+        estimation_tasks = []
         with pytest.raises(ValueError):
-            uniform_shot_allocation(n_samples)
+            uniform_shot_allocation(estimation_tasks, number_of_shots=n_samples)
 
     @pytest.mark.parametrize(
         "total_n_shots, prior_expectation_values",
@@ -143,9 +147,10 @@ class TestEstimatorUtils:
         total_n_shots,
         prior_expectation_values,
     ):
+        estimation_tasks = []
         with pytest.raises(ValueError):
             allocate_shots = proportional_shot_allocation(
-                total_n_shots, prior_expectation_values
+                estimation_tasks, total_n_shots, prior_expectation_values
             )
 
 

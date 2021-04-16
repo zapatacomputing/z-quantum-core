@@ -32,7 +32,7 @@ class MockQuantumBackend(QuantumBackend):
 
     @compatible_with_old_type(Circuit, new_circuit_from_old_circuit)
     def run_circuit_and_measure(
-        self, circuit: NewCircuit, n_samples: int = None, **kwargs
+        self, circuit: NewCircuit, n_samples: Optional[int] = None, **kwargs
     ) -> Measurements:
         super(MockQuantumBackend, self).run_circuit_and_measure(circuit)
         measurements = Measurements()

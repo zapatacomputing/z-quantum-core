@@ -13,7 +13,6 @@ from openfermion import (
 from zquantum.core.hamiltonian import (
     compute_group_variances,
     estimate_nmeas_for_frames,
-    estimate_nmeas_for_operator,
     get_expectation_values_from_rdms,
     get_expectation_values_from_rdms_for_qubitoperator_list,
     group_comeasureable_terms_greedy,
@@ -292,6 +291,11 @@ def test_get_expectation_values_from_rdms(interactionrdm, qubitoperator, sort_te
             h2_hamiltonian_grouped,
             True,
         ),
+        (
+            rdms,
+            QubitOperator("2[]"),
+            False,
+        ),
     ],
 )
 def test_get_expectation_values_from_rdms_for_qubitoperator_list(
@@ -346,6 +350,11 @@ def test_get_expectation_values_from_rdms_for_qubitoperator_list(
             ExpectationValues(np.zeros(4)),
             np.array([13.0, 2.0]),
         ),
+        (
+            [QubitOperator("2[]")],
+            ExpectationValues(np.array([1])),
+            np.array([0.0]),
+        ),
     ],
 )
 def test_compute_group_variances_with_ref(groups, expecval, variances):
@@ -375,6 +384,10 @@ def test_compute_group_variances_with_ref(groups, expecval, variances):
         (
             group_comeasureable_terms_greedy(h2_hamiltonian, True),
             get_expectation_values_from_rdms(rdms, h2_hamiltonian, True),
+        ),
+        (
+            group_comeasureable_terms_greedy(QubitOperator("2[]"), True),
+            get_expectation_values_from_rdms(rdms, QubitOperator("2[]"), True),
         ),
     ],
 )

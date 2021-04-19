@@ -1,6 +1,7 @@
+from operator import mul
+
 import sympy
 from sympy.physics.quantum import TensorProduct
-from operator import mul
 
 # This script is used to generate test cases for tests in `core/interfaces/backend_test.py`
 # In order to use just run this python file with python3 generate_cases_for_backend_tests.py

@@ -12,11 +12,20 @@ from .interfaces.estimator import Estimator
 from .interfaces.functions import StoreArtifact, function_with_gradient
 from .measurement import ExpectationValues
 from .utils import ValueEstimate, create_symbols_map
+from zquantum.core.wip.circuits import (
+    ensure_old_circuit,
+    new_circuit_from_old_circuit,
+    Circuit as NewCircuit,
+)
+from zquantum.core.wip.compatibility_tools import compatible_with_old_type
 
 
+@compatible_with_old_type(
+    old_type=Circuit, translate_old_to_wip=new_circuit_from_old_circuit
+)
 def get_ground_state_cost_function(
     target_operator: SymbolicOperator,
-    parametrized_circuit: Circuit,
+    parametrized_circuit: NewCircuit,
     backend: QuantumBackend,
     estimator: Estimator = BasicEstimator(),
     estimator_kwargs: Optional[Dict] = None,
@@ -72,12 +81,15 @@ def get_ground_state_cost_function(
             noise_array = rng.normal(0.0, parameter_precision, len(parameters))
             parameters += noise_array
 
-        symbols_map = create_symbols_map(circuit_symbols, parameters)
-        circuit = parametrized_circuit.evaluate(symbols_map)
+        circuit = parametrized_circuit.bind(
+            create_symbols_map(circuit_symbols, parameters)
+        )
+        # TODO: remove this when all estimators are migrated to new circuits
+        old_circuit = ensure_old_circuit(circuit)
 
         expectation_values = estimator.get_estimated_expectation_values(
             backend,
-            circuit,
+            old_circuit,
             target_operator,
             n_samples=backend.n_samples,
             **estimator_kwargs
@@ -192,9 +204,11 @@ class AnsatzBasedCostFunction:
             full_parameters += noise_array
 
         circuit = self.ansatz.get_executable_circuit(full_parameters)
+        # TODO: remove this when all estimators are migrated to new circuits
+        old_circuit = ensure_old_circuit(circuit)
         expectation_values = self.estimator.get_estimated_expectation_values(
             self.backend,
-            circuit,
+            old_circuit,
             self.target_operator,
             n_samples=self.n_samples,
             **self.estimator_kwargs

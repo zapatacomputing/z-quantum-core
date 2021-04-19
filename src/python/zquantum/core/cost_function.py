@@ -20,6 +20,11 @@ from zquantum.core.wip.circuits import (
 from zquantum.core.wip.compatibility_tools import compatible_with_old_type
 
 
+def _symbols_map(circuit: NewCircuit, param_vals):
+    symbols = sorted(circuit.free_symbols, key=str)
+    return dict(create_symbols_map(symbols, param_vals))
+
+
 @compatible_with_old_type(
     old_type=Circuit, translate_old_to_wip=new_circuit_from_old_circuit
 )
@@ -60,7 +65,6 @@ def get_ground_state_cost_function(
     """
     if estimator_kwargs is None:
         estimator_kwargs = {}
-    circuit_symbols = list(parametrized_circuit.symbolic_params)
 
     def ground_state_cost_function(
         parameters: np.ndarray, store_artifact: StoreArtifact = None
@@ -82,7 +86,7 @@ def get_ground_state_cost_function(
             parameters += noise_array
 
         circuit = parametrized_circuit.bind(
-            create_symbols_map(circuit_symbols, parameters)
+            _symbols_map(parametrized_circuit, parameters)
         )
         # TODO: remove this when all estimators are migrated to new circuits
         old_circuit = ensure_old_circuit(circuit)

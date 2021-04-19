@@ -1,39 +1,35 @@
-import unittest
-import numpy as np
-import random
-from textwrap import dedent
-import pyquil
-import cirq
-import qiskit
 import os
+import random
+import unittest
+from math import cos, pi, sin
+from textwrap import dedent
+
+import cirq
+import numpy as np
+import pyquil
+import qiskit
 import sympy
-
 from pyquil import Program
-from pyquil.gates import *
-from pyquil.gates import QUANTUM_GATES
-from math import pi, sin, cos
-
-from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister
+from pyquil.gates import CNOT, CPHASE, QUANTUM_GATES, RX, RY, RZ, SWAP, H, S, X, Y, Z
+from qiskit import ClassicalRegister, QuantumCircuit, QuantumRegister
+from qiskit.quantum_info import Operator
 from zquantum.core.circuit import (
-    load_circuit,
-    save_circuit,
-    load_circuit_set,
-    save_circuit_set,
+    MCRY,
     Circuit,
     Gate,
-    Qubit,
-    pyquil2cirq,
-    cirq2pyquil,
     MCTGate,
     PhaseOracle,
-    MCRY,
+    Qubit,
     add_ancilla_register_to_circuit,
+    cirq2pyquil,
+    load_circuit,
+    load_circuit_set,
+    pyquil2cirq,
+    save_circuit,
+    save_circuit_set,
 )
-
-from zquantum.core.utils import compare_unitary, is_identity, is_unitary, RNDSEED
 from zquantum.core.testing import create_random_circuit
-from qiskit.quantum_info import Operator
-import numpy.linalg as linalg
+from zquantum.core.utils import RNDSEED, compare_unitary, is_identity
 
 
 class TestCircuit(unittest.TestCase):
@@ -230,7 +226,6 @@ class TestCircuit(unittest.TestCase):
         theta_1 = sympy.Symbol("theta_1")
         theta_2 = sympy.Symbol("theta_2")
         value_1 = 0.5
-        value_2 = 0.6
         symbols_map = [(theta_1, value_1)]
         circuit = Circuit(
             Program().inst(
@@ -253,7 +248,6 @@ class TestCircuit(unittest.TestCase):
         # Given
         theta_1 = sympy.Symbol("theta_1")
         theta_2 = sympy.Symbol("theta_2")
-        value_1 = 0.5
         value_2 = 0.6
         symbols_map = [(theta_2, value_2)]
         circuit = Circuit(
@@ -1294,7 +1288,6 @@ class TestCircuit(unittest.TestCase):
         gate_H0 = Gate("H", [qubits[0]])
         gate_CNOT01 = Gate("CNOT", [qubits[0], qubits[1]])
         gate_T2 = Gate("T", [qubits[2]])
-        gate_CZ12 = Gate("CZ", [qubits[1], qubits[2]])
 
         circ1 = Circuit()
         circ1.qubits = qubits
@@ -1307,7 +1300,6 @@ class TestCircuit(unittest.TestCase):
         gate_H0 = Gate("H", [qubits[0]])
         gate_CNOT01 = Gate("CNOT", [qubits[0], qubits[1]])
         gate_T2 = Gate("T", [qubits[2]])
-        gate_CZ12 = Gate("CZ", [qubits[1], qubits[2]])
 
         circ1 = Circuit()
         circ1.qubits = qubits

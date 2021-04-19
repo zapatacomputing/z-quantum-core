@@ -137,7 +137,7 @@ from ._builtin_gates import (
 )
 from ._circuit import Circuit
 
-from ._compatibility import new_circuit_from_old_circuit
+from ._compatibility import new_circuit_from_old_circuit, AnyCircuit, ensure_old_circuit
 from ._gates import (
     ControlledGate,
     CustomGateDefinition,

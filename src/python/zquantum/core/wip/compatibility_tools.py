@@ -12,7 +12,6 @@ class TranslationFailed(Exception):
     """
 
 
-
 def _translate_if_needed(
     obj, old_type, translate_old_to_wip, deprecation_msg=None, considered_iterables=None
 ):

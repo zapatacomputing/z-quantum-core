@@ -145,8 +145,16 @@ def compute_group_variances(
         ]  # Covariances are ignored; Variances are set to 1
     else:
         group_sizes = np.array([len(group.terms.keys()) for group in groups])
-        assert np.sum(group_sizes) == len(expecval.values)
+        if np.sum(group_sizes) != len(expecval.values):
+            raise ValueError(
+                "Number of expectation values should be the same size as number of terms."
+            )
         real_expecval = expectation_values_to_real(expecval)
+        if not np.logical_and(
+            real_expecval.values >= -1, real_expecval.values <= 1
+        ).all():
+            raise ValueError("Expectation values should have values between -1 and 1.")
+
         pauli_variances = 1.0 - real_expecval.values ** 2
         frame_variances = []
         for i, group in enumerate(groups):

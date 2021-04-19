@@ -355,11 +355,44 @@ def test_get_expectation_values_from_rdms_for_qubitoperator_list(
             ExpectationValues(np.array([1])),
             np.array([0.0]),
         ),
+        (
+            [
+                QubitOperator("2 [Z0 Z1] + 3 [Z0] + 8[]"),
+                QubitOperator("[X0 X1] + [X0] + []"),
+            ],
+            ExpectationValues(np.asarray([0.0, 0.0, 1.0, 0, 0, 1.0])),
+            np.array([13.0, 2.0]),
+        ),
     ],
 )
 def test_compute_group_variances_with_ref(groups, expecval, variances):
     test_variances = compute_group_variances(groups, expecval)
     np.testing.assert_allclose(test_variances, variances)
+
+
+@pytest.mark.parametrize(
+    "groups, expecval, variances",
+    [
+        (
+            [QubitOperator("[Z0 Z1] + [Z0]"), QubitOperator("[X0 X1] + [X0]")],
+            ExpectationValues(np.array([-1.5, 0, 0, 0])),
+            np.array([2.0, 2.0]),
+        ),
+        (
+            [QubitOperator("2 [Z0 Z1] + 3 [Z0]"), QubitOperator("[X0 X1] + [X0]")],
+            ExpectationValues(np.array([1.5, 0, 0, 0])),
+            np.array([13.0, 2.0]),
+        ),
+        (
+            [QubitOperator("2 [Z0 Z1] + 3 [Z0]"), QubitOperator("[X0 X1] + [X0]")],
+            ExpectationValues(np.array([1.5, 0, 0, 0])),
+            np.array([13.0, 2.0]),
+        ),
+    ],
+)
+def test_compute_group_variances_fails_for_invalid_refs(groups, expecval, variances):
+    with pytest.raises(ValueError):
+        test_variances = compute_group_variances(groups, expecval)
 
 
 @pytest.mark.parametrize(

@@ -100,8 +100,6 @@ def test_noisy_ground_state_cost_function_adds_noise_to_parameters():
     # and we need original ones - therefore we pass a copy
     noisy_ground_state_cost_function(np.array(params))
 
-    estimator.get_estimated_expectation_values.assert_called_with
-
     expected_symbols_map = {
         Symbol("theta_0"): noise[0] + params[0],
         Symbol("theta_1"): noise[1] + params[1],

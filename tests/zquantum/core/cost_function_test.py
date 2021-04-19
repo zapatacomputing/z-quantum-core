@@ -15,6 +15,7 @@ from zquantum.core.interfaces.mock_objects import (
     MockQuantumSimulator,
 )
 from zquantum.core.measurement import ExpectationValues
+from zquantum.core.wip import circuits as new_circuits
 
 RNGSEED = 1234
 
@@ -73,12 +74,12 @@ def test_ground_state_cost_function_returns_value_between_plus_and_minus_one(
 
 def test_noisy_ground_state_cost_function_adds_noise_to_parameters():
     target_operator = QubitOperator("Z0")
-    parametrized_circuit = MockAnsatz(
-        number_of_layers=2, problem_size=1
-    ).parametrized_circuit
-    parametrized_circuit.evaluate = mock.Mock(wraps=parametrized_circuit.evaluate)
     backend = MockQuantumSimulator()
     estimator = MockEstimator()
+    parametrized_circuit = new_circuits.Circuit(
+        [new_circuits.RX(Symbol("theta_0"))(0), new_circuits.RX(Symbol("theta_1"))(1)]
+    )
+    parametrized_circuit.bind = mock.Mock(wraps=parametrized_circuit.bind)
     noisy_ground_state_cost_function = get_ground_state_cost_function(
         target_operator,
         parametrized_circuit,
@@ -95,24 +96,26 @@ def test_noisy_ground_state_cost_function_adds_noise_to_parameters():
 
     params = np.array([0.1, 2.3], dtype=float)
 
-    expected_symbols_map = [
-        (Symbol("theta_0"), noise[0] + params[0]),
-        (Symbol("theta_1"), noise[1] + params[1]),
-    ]
-
     # ansatz based cost function may modify params in place
     # and we need original ones - therefore we pass a copy
     noisy_ground_state_cost_function(np.array(params))
 
+    estimator.get_estimated_expectation_values.assert_called_with
+
+    expected_symbols_map = {
+        Symbol("theta_0"): noise[0] + params[0],
+        Symbol("theta_1"): noise[1] + params[1],
+    }
+
     # We only called our function once, therefore the following should be true
-    parametrized_circuit.evaluate.assert_called_with(expected_symbols_map)
+    parametrized_circuit.bind.assert_called_with(expected_symbols_map)
 
     # and if only everything went right, this only call should be of the form
     # noisy_ansatz.ansatz.get_executable_circuit(params+noise)
     # Therefore, we extract the single argument and compare it to the
     # expected one.
     assert np.array_equal(
-        parametrized_circuit.evaluate.call_args[0][0], expected_symbols_map
+        parametrized_circuit.bind.call_args[0][0], expected_symbols_map
     )
 
     # Note, normally, we weould just do it in a single assert:

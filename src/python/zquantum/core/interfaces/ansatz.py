@@ -6,9 +6,11 @@ import numpy as np
 import sympy
 from overrides import EnforceOverrides
 
-from ..circuit import Circuit
+from .. import circuit as old_circuit
 from ..utils import create_symbols_map
 from .ansatz_utils import ansatz_property
+import zquantum.core.wip.circuits as new_circuits
+from zquantum.core.wip.circuits import AnyCircuit
 
 
 class Ansatz(ABC, EnforceOverrides):
@@ -38,7 +40,7 @@ class Ansatz(ABC, EnforceOverrides):
         self._parametrized_circuit = None
 
     @property
-    def parametrized_circuit(self) -> Circuit:
+    def parametrized_circuit(self) -> AnyCircuit:
         """Returns a parametrized circuit if given ansatz supports it."""
         if self._parametrized_circuit is None:
             if self.supports_parametrized_circuits:
@@ -67,7 +69,7 @@ class Ansatz(ABC, EnforceOverrides):
         else:
             raise NotImplementedError
 
-    def get_executable_circuit(self, params: np.ndarray) -> Circuit:
+    def get_executable_circuit(self, params: np.ndarray) -> AnyCircuit:
         """Returns an executable circuit representing the ansatz.
         Args:
             params: circuit parameters
@@ -82,7 +84,7 @@ class Ansatz(ABC, EnforceOverrides):
         else:
             return self._generate_circuit(params)
 
-    def _generate_circuit(self, params: Optional[np.ndarray] = None) -> Circuit:
+    def _generate_circuit(self, params: Optional[np.ndarray] = None) -> AnyCircuit:
         """Returns a circuit represention of the ansatz.
         Will return parametrized circuits if no parameters are passed and the ansatz
         supports parametrized circuits.

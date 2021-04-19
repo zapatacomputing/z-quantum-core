@@ -5,6 +5,8 @@ You need to define your own test cases that inherit from the ones defined here.
 """
 
 
+from ..wip import circuits as new_circuits
+
 import numpy as np
 
 
@@ -43,7 +45,10 @@ class AnsatzTests:
         circuit = ansatz.get_executable_circuit(params)
 
         # Then
-        assert len(circuit.gates) > 0
+        if isinstance(circuit, new_circuits.Circuit):
+            assert len(circuit.operations) > 0
+        else:
+            assert len(circuit.gates) > 0
 
     def test_get_executable_circuit_does_not_contain_symbols(self, ansatz):
         # Given
@@ -53,5 +58,8 @@ class AnsatzTests:
         circuit = ansatz.get_executable_circuit(params=params)
 
         # Then
-        for gate in circuit.gates:
-            assert len(gate.symbolic_params) == 0
+        if isinstance(circuit, new_circuits.Circuit):
+            assert len(circuit.free_symbols) == 0
+        else:
+            for gate in circuit.gates:
+                assert len(gate.symbolic_params) == 0

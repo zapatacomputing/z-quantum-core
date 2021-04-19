@@ -31,16 +31,20 @@ def get_ground_state_cost_function(
     method when returns the gradient with respect the input parameters.
 
     Args:
-        target_operator (openfermion.SymbolicOperator): operator to be evaluated and find the ground state of
-        parametrized_circuit (zquantum.core.circuit.Circuit): parameterized circuit to prepare quantum states
-        backend (zquantum.core.interfaces.backend.QuantumBackend): backend used for evaluation
-        estimator: (zquantum.core.interfaces.estimator.Estimator) = estimator used to compute expectation value of target operator
-        estimator_kwargs (dict): kwargs required to run get_estimated_expectation_values method of the estimator.
-        gradient_function (Callable): a function which returns a function used to compute the gradient of the cost function
-            (see from zquantum.core.gradients.finite_differences_gradient for reference)
-        fixed_parameters (np.ndarray): values for the circuit parameters that should be fixed.
-        parameter_precision (float): the standard deviation of the Gaussian noise to add to each parameter, if any.
-        parameter_precision_seed (int): seed for randomly generating parameter deviation if using parameter_precision
+        target_operator: operator to be evaluated and find the ground state of
+        parametrized_circuit: parameterized circuit to prepare quantum states
+        backend: backend used for evaluation
+        estimator: estimator used to compute expectation value of target operator
+        estimator_kwargs: kwargs required to run get_estimated_expectation_values method
+            of the estimator.
+        gradient_function: a function which returns a function used to compute the
+            gradient of the cost function (for reference, see
+            `zquantum.core.gradients.finite_differences_gradient`)
+        fixed_parameters: values for the circuit parameters that should be fixed.
+        parameter_precision: the standard deviation of the Gaussian noise to add to each
+            parameter, if any.
+        parameter_precision_seed: seed for randomly generating parameter deviation if
+            using parameter_precision
 
     Returns:
         Callable
@@ -91,12 +95,12 @@ def sum_expectation_values(expectation_values: ExpectationValues) -> ValueEstima
 
     If correlations are available, the precision of the sum is computed as
 
-    \epsilon = \sqrt{\sum_k \sigma^2_k}
+    \\epsilon = \\sqrt{\\sum_k \\sigma^2_k}
 
-    where the sum runs over frames and \sigma^2_k is the estimated variance of
+    where the sum runs over frames and \\sigma^2_k is the estimated variance of
     the estimated contribution of frame k to the total. This is calculated as
 
-    \sigma^2_k = \sum_{i,j} Cov(o_{k,i}, o_{k, j})
+    \\sigma^2_k = \\sum_{i,j} Cov(o_{k,i}, o_{k, j})
 
     where Cov(o_{k,i}, o_{k, j}) is the estimated covariance in the estimated
     expectation values of operators i and j of frame k.
@@ -125,26 +129,18 @@ class AnsatzBasedCostFunction:
     """Cost function used for evaluating given operator using given ansatz.
 
     Args:
-        target_operator (openfermion.SymbolicOperator): operator to be evaluated
-        ansatz (zquantum.core.interfaces.ansatz.Ansatz): ansatz used to evaluate cost function
-        backend (zquantum.core.interfaces.backend.QuantumBackend): backend used for evaluation
-        estimator: (zquantum.core.interfaces.estimator.Estimator) = estimator used to compute expectation value of target operator
-        n_samples (int): number of samples (i.e. measurements) to be used in the estimator.
-        estimator_kwargs(dict): kwargs required to run get_estimated_expectation_values method of the estimator.
-        fixed_parameters (np.ndarray): values for the circuit parameters that should be fixed.
-        parameter_precision (float): the standard deviation of the Gaussian noise to add to each parameter, if any.
-        parameter_precision_seed (int): seed for randomly generating parameter deviation if using parameter_precision
-
-    Params:
-        target_operator (openfermion.SymbolicOperator): see Args
-        ansatz (zquantum.core.interfaces.ansatz.Ansatz): see Args
-        backend (zquantum.core.interfaces.backend.QuantumBackend): see Args
-        estimator (zquantum.core.interfaces.estimator.Estimator): see Args
-        estimator_kwargs(dict): see Args
-        delta (float): see Args
-        fixed_parameters (np.ndarray): see Args
-        parameter_precision (float): see Args
-        parameter_precision_seed (int): see Args
+        target_operator: operator to be evaluated
+        ansatz: ansatz used to evaluate cost function
+        backend: backend used for evaluation
+        estimator: estimator used to compute expectation value of target operator
+        n_samples: number of samples (i.e. measurements) to be used in the estimator.
+        estimator_kwargs: kwargs required to run get_estimated_expectation_values method
+            of the estimator.
+        fixed_parameters: values for the circuit parameters that should be fixed.
+        parameter_precision: the standard deviation of the Gaussian noise to add to each
+            parameter, if any.
+        parameter_precision_seed: seed for randomly generating parameter deviation if
+            using parameter_precision
     """
 
     def __init__(

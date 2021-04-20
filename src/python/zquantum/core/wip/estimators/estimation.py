@@ -193,12 +193,6 @@ def naively_estimate_expectation_values(
         for frame_operator, measurements in zip(operators, measurements_list)
     ]
 
-    # TODO handle empty term?
-    # if operator.terms.get(()) is not None:
-    #     expectation_values_set.append(
-    #         ExpectationValues(np.array([operator.terms.get(())]))
-    #     )
-
     return expectation_values_to_real(
         concatenate_expectation_values(expectation_values_list)
     )

@@ -29,7 +29,9 @@ from zquantum.core.utils import (
     save_nmeas_estimate,
     save_value_estimate,
 )
-from zquantum.core.wip.estimators.estimation import naively_estimate_expectation_values
+from zquantum.core.wip.estimators.estimation import (
+    estimate_expectation_values_by_averaging,
+)
 
 
 def run_circuit_and_measure(
@@ -151,14 +153,12 @@ def evaluate_ansatz_based_cost_function(
             estimator_specs = json.loads(estimator_specs)
         cost_function_specs["estimator"] = create_object(estimator_specs)
 
-    estimation_tasks_transformations_specs = cost_function_specs.pop(
+    estimation_preprocessors_specs = cost_function_specs.pop(
         "estimation-tasks-transformations-specs", None
     )
-    if estimation_tasks_transformations_specs is not None:
-        cost_function_specs["estimation_tasks_transformations"] = []
-        for (
-            estimation_tasks_transformation_specs
-        ) in estimation_tasks_transformations_specs:
+    if estimation_preprocessors_specs is not None:
+        cost_function_specs["estimation_preprocessors"] = []
+        for estimation_tasks_transformation_specs in estimation_preprocessors_specs:
 
             if isinstance(estimation_tasks_transformation_specs, str):
                 estimation_tasks_transformation_specs = json.loads(
@@ -171,7 +171,7 @@ def evaluate_ansatz_based_cost_function(
                 estimation_tasks_transformation_specs[
                     "prior_expectation_values"
                 ] = prior_expectation_values
-            cost_function_specs["estimation_tasks_transformations"].append(
+            cost_function_specs["estimation_preprocessors"].append(
                 create_object(estimation_tasks_transformation_specs)
             )
 

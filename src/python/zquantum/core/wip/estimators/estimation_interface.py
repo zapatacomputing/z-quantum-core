@@ -26,7 +26,7 @@ class EstimationTask:
     number_of_shots: int
 
 
-class EstimationTaskTransformer(Protocol):
+class EstimationPreprocessor(Protocol):
     """Protocol defining function which transforms a list of EstimationTasks
     into another list of EstimationTasks.
     """

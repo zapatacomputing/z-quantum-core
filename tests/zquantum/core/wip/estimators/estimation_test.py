@@ -15,9 +15,9 @@ from zquantum.core.wip.estimators.estimation import (
     calculate_exact_expectation_values,
     get_context_selection_circuit,
     get_context_selection_circuit_for_group,
-    naively_estimate_expectation_values,
-    proportional_shot_allocation,
-    uniform_shot_allocation,
+    estimate_expectation_values_by_averaging,
+    allocate_shots_proportionally,
+    allocate_shots_uniformly,
 )
 from zquantum.core.wip.estimators.estimation_interface import EstimationTask
 
@@ -77,13 +77,13 @@ class TestEstimatorUtils:
             (17, [17, 17, 17]),
         ],
     )
-    def test_uniform_shot_allocation(
+    def test_allocate_shots_uniformly(
         self,
         frame_operators,
         n_samples,
         target_n_samples_list,
     ):
-        allocate_shots = partial(uniform_shot_allocation, number_of_shots=n_samples)
+        allocate_shots = partial(allocate_shots_uniformly, number_of_shots=n_samples)
         circuit = Circuit()
         estimation_tasks = [
             EstimationTask(operator, circuit, 1) for operator in frame_operators
@@ -102,7 +102,7 @@ class TestEstimatorUtils:
             (400, ExpectationValues(np.array([1, 0.3, 0.3])), [0, 200, 200]),
         ],
     )
-    def test_proportional_shot_allocation(
+    def test_allocate_shots_proportionally(
         self,
         frame_operators,
         total_n_shots,
@@ -110,7 +110,7 @@ class TestEstimatorUtils:
         target_n_samples_list,
     ):
         allocate_shots = partial(
-            proportional_shot_allocation,
+            allocate_shots_proportionally,
             total_n_shots=total_n_shots,
             prior_expectation_values=prior_expectation_values,
         )
@@ -128,13 +128,13 @@ class TestEstimatorUtils:
         "n_samples",
         [-1],
     )
-    def test_uniform_shot_allocation_invalid_inputs(
+    def test_allocate_shots_uniformly_invalid_inputs(
         self,
         n_samples,
     ):
         estimation_tasks = []
         with pytest.raises(ValueError):
-            uniform_shot_allocation(estimation_tasks, number_of_shots=n_samples)
+            allocate_shots_uniformly(estimation_tasks, number_of_shots=n_samples)
 
     @pytest.mark.parametrize(
         "total_n_shots, prior_expectation_values",
@@ -142,14 +142,14 @@ class TestEstimatorUtils:
             (-1, ExpectationValues(np.array([0, 0, 0]))),
         ],
     )
-    def test_proportional_shot_allocation_invalid_inputs(
+    def test_allocate_shots_proportionally_invalid_inputs(
         self,
         total_n_shots,
         prior_expectation_values,
     ):
         estimation_tasks = []
         with pytest.raises(ValueError):
-            allocate_shots = proportional_shot_allocation(
+            allocate_shots = allocate_shots_proportionally(
                 estimation_tasks, total_n_shots, prior_expectation_values
             )
 
@@ -180,8 +180,8 @@ class TestBasicEstimationMethods:
         )
         return [task_1, task_2, task_3]
 
-    def test_naively_estimate_expectation_values(self, backend, estimation_tasks):
-        expectation_values = naively_estimate_expectation_values(
+    def test_estimate_expectation_values_by_averaging(self, backend, estimation_tasks):
+        expectation_values = estimate_expectation_values_by_averaging(
             backend, estimation_tasks
         )
         assert len(expectation_values.values) == 3

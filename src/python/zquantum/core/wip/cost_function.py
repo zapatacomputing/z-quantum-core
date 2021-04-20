@@ -2,12 +2,12 @@ from ..interfaces.backend import QuantumBackend
 from ..interfaces.ansatz import Ansatz
 from .estimators.estimation_interface import (
     EstimateExpectationValues,
-    EstimationTaskTransformer,
+    EstimationPreprocessor,
     EstimationTask,
 )
 from .estimators.estimation import (
-    naively_estimate_expectation_values,
-    evaluate_circuits,
+    estimate_expectation_values_by_averaging,
+    evaluate_estimation_circuits,
 )
 from ..interfaces.functions import function_with_gradient, StoreArtifact
 from ..circuit import combine_ansatz_params, Circuit
@@ -23,8 +23,8 @@ def get_ground_state_cost_function(
     target_operator: SymbolicOperator,
     parametrized_circuit: Circuit,
     backend: QuantumBackend,
-    estimator: EstimateExpectationValues = naively_estimate_expectation_values,
-    estimation_tasks_transformations: List[EstimationTaskTransformer] = None,
+    estimator: EstimateExpectationValues = estimate_expectation_values_by_averaging,
+    estimation_preprocessors: List[EstimationPreprocessor] = None,
     fixed_parameters: Optional[np.ndarray] = None,
     parameter_precision: Optional[float] = None,
     parameter_precision_seed: Optional[int] = None,
@@ -40,7 +40,7 @@ def get_ground_state_cost_function(
         parametrized_circuit: parameterized circuit to prepare quantum states
         backend: backend used for evaluation
         estimator: estimator used to compute expectation value of target operator
-        estimation_tasks_transformations: A list of callable functions that adhere to the EstimationTaskTransformer
+        estimation_preprocessors: A list of callable functions that adhere to the EstimationPreprocessor
             protocol and are used to create the estimation tasks.
         fixed_parameters: values for the circuit parameters that should be fixed.
         parameter_precision: the standard deviation of the Gaussian noise to add to each parameter, if any.
@@ -57,11 +57,11 @@ def get_ground_state_cost_function(
         )
     ]
 
-    if estimation_tasks_transformations is None:
-        estimation_tasks_transformations = []
+    if estimation_preprocessors is None:
+        estimation_preprocessors = []
 
-    for transformer in estimation_tasks_transformations:
-        estimation_tasks = transformer(estimation_tasks)
+    for estimation_preprocessor in estimation_preprocessors:
+        estimation_tasks = estimation_preprocessor(estimation_tasks)
 
     circuit_symbols = sorted(
         list(
@@ -97,7 +97,7 @@ def get_ground_state_cost_function(
             parameters += noise_array
 
         symbols_map = create_symbols_map(circuit_symbols, parameters)
-        estimation_tasks = evaluate_circuits(
+        estimation_tasks = evaluate_estimation_circuits(
             estimation_tasks, [symbols_map for _ in estimation_tasks]
         )
 
@@ -153,7 +153,7 @@ class AnsatzBasedCostFunction:
         ansatz: ansatz used to evaluate cost function
         backend: backend used for evaluation
         estimator: estimator used to compute expectation value of target operator
-        estimation_tasks_transformations: A list of callable functions that adhere to the EstimationTaskTransformer
+        estimation_preprocessors: A list of callable functions that adhere to the EstimationPreprocessor
             protocol and are used to create the estimation tasks.
         fixed_parameters: values for the circuit parameters that should be fixed.
         parameter_precision: the standard deviation of the Gaussian noise to add to each parameter, if any.
@@ -174,8 +174,8 @@ class AnsatzBasedCostFunction:
         target_operator: SymbolicOperator,
         ansatz: Ansatz,
         backend: QuantumBackend,
-        estimator: EstimateExpectationValues = naively_estimate_expectation_values,
-        estimation_tasks_transformations: List[EstimationTaskTransformer] = None,
+        estimator: EstimateExpectationValues = estimate_expectation_values_by_averaging,
+        estimation_preprocessors: List[EstimationPreprocessor] = None,
         fixed_parameters: Optional[np.ndarray] = None,
         parameter_precision: Optional[float] = None,
         parameter_precision_seed: Optional[int] = None,
@@ -186,12 +186,12 @@ class AnsatzBasedCostFunction:
         self.parameter_precision_seed = parameter_precision_seed
 
         if estimator is None:
-            self.estimator = naively_estimate_expectation_values
+            self.estimator = estimate_expectation_values_by_averaging
         else:
             self.estimator = estimator
 
-        if estimation_tasks_transformations is None:
-            estimation_tasks_transformations = []
+        if estimation_preprocessors is None:
+            estimation_preprocessors = []
 
         self.estimation_tasks = [
             EstimationTask(
@@ -200,8 +200,8 @@ class AnsatzBasedCostFunction:
                 number_of_shots=None,
             )
         ]
-        for transformer in estimation_tasks_transformations:
-            self.estimation_tasks = transformer(self.estimation_tasks)
+        for estimation_preprocessor in estimation_preprocessors:
+            self.estimation_tasks = estimation_preprocessor(self.estimation_tasks)
 
         self.circuit_symbols = sorted(
             list(
@@ -236,7 +236,7 @@ class AnsatzBasedCostFunction:
             full_parameters += noise_array
 
         symbols_map = create_symbols_map(self.circuit_symbols, full_parameters)
-        estimation_tasks = evaluate_circuits(
+        estimation_tasks = evaluate_estimation_circuits(
             self.estimation_tasks, [symbols_map for _ in self.estimation_tasks]
         )
         expectation_values = self.estimator(self.backend, estimation_tasks)

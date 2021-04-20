@@ -13,7 +13,7 @@ from ...measurement import (
     expectation_values_to_real,
 )
 from ...utils import scale_and_discretize
-from .estimation_interface import EstimationTask, EstimationTaskTransformer
+from .estimation_interface import EstimationTask, EstimationPreprocessor
 from ...openfermion import change_operator_type
 
 import sympy
@@ -76,7 +76,7 @@ def get_context_selection_circuit_for_group(
     return context_selection_circuit, transformed_operator
 
 
-def greedy_grouping_with_context_selection(
+def group_greedily_with_context_selection(
     estimation_tasks: List[EstimationTask],
 ) -> List[EstimationTask]:
     """
@@ -102,11 +102,11 @@ def greedy_grouping_with_context_selection(
     return output_estimation_tasks
 
 
-def uniform_shot_allocation(
+def allocate_shots_uniformly(
     estimation_tasks: List[EstimationTask], number_of_shots: int
 ) -> List[EstimationTask]:
     """
-    Returns an EstimationTaskTransformer which allocates the same number of shots to each task.
+    Returns an EstimationPreprocessor which allocates the same number of shots to each task.
 
     Args:
         number_of_shots: number of shots to be assigned to each EstimationTask
@@ -124,13 +124,13 @@ def uniform_shot_allocation(
     ]
 
 
-def proportional_shot_allocation(
+def allocate_shots_proportionally(
     estimation_tasks: List[EstimationTask],
     total_n_shots: int,
     prior_expectation_values: Optional[ExpectationValues] = None,
 ) -> List[EstimationTask]:
     """
-    Returns an EstimationTaskTransformer which allocates the same number of shots to each task.
+    Returns an EstimationPreprocessor which allocates the same number of shots to each task.
     For more details please refer to documentation of zquantum.core.hamiltonian.estimate_nmeas_for_frames .
 
     Args:
@@ -161,7 +161,7 @@ def proportional_shot_allocation(
     ]
 
 
-def evaluate_circuits(
+def evaluate_estimation_circuits(
     estimation_tasks: List[EstimationTask],
     symbols_maps: List[List[Tuple[sympy.Basic, float]]],
 ) -> List[EstimationTask]:
@@ -185,7 +185,7 @@ def evaluate_circuits(
     ]
 
 
-def naively_estimate_expectation_values(
+def estimate_expectation_values_by_averaging(
     backend: QuantumBackend,
     estimation_tasks: List[EstimationTask],
 ) -> ExpectationValues:

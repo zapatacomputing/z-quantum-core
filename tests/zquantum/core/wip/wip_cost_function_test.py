@@ -11,10 +11,10 @@ from zquantum.core.wip.cost_function import (
 )
 from functools import partial
 from zquantum.core.wip.estimators.estimation import (
-    naively_estimate_expectation_values,
+    estimate_expectation_values_by_averaging,
     calculate_exact_expectation_values,
-    uniform_shot_allocation,
-    proportional_shot_allocation,
+    allocate_shots_uniformly,
+    allocate_shots_proportionally,
 )
 from zquantum.core.utils import create_symbols_map
 from zquantum.core.interfaces.mock_objects import (
@@ -34,9 +34,9 @@ RNGSEED = 1234
                 number_of_layers=1, problem_size=1
             ).parametrized_circuit,
             "backend": MockQuantumSimulator(),
-            "estimator": naively_estimate_expectation_values,
-            "estimation_tasks_transformations": [
-                partial(uniform_shot_allocation, number_of_shots=1)
+            "estimator": estimate_expectation_values_by_averaging,
+            "estimation_preprocessors": [
+                partial(allocate_shots_uniformly, number_of_shots=1)
             ],
         },
         {
@@ -45,9 +45,9 @@ RNGSEED = 1234
                 number_of_layers=1, problem_size=2
             ).parametrized_circuit,
             "backend": MockQuantumSimulator(),
-            "estimator": naively_estimate_expectation_values,
-            "estimation_tasks_transformations": [
-                partial(uniform_shot_allocation, number_of_shots=1)
+            "estimator": estimate_expectation_values_by_averaging,
+            "estimation_preprocessors": [
+                partial(allocate_shots_uniformly, number_of_shots=1)
             ],
         },
         {
@@ -56,10 +56,10 @@ RNGSEED = 1234
                 number_of_layers=2, problem_size=2
             ).parametrized_circuit,
             "backend": MockQuantumSimulator(),
-            "estimator": naively_estimate_expectation_values,
+            "estimator": estimate_expectation_values_by_averaging,
             "fixed_parameters": [1.2],
-            "estimation_tasks_transformations": [
-                partial(uniform_shot_allocation, number_of_shots=1)
+            "estimation_preprocessors": [
+                partial(allocate_shots_uniformly, number_of_shots=1)
             ],
         },
         {
@@ -68,12 +68,12 @@ RNGSEED = 1234
                 number_of_layers=2, problem_size=2
             ).parametrized_circuit,
             "backend": MockQuantumSimulator(),
-            "estimator": naively_estimate_expectation_values,
+            "estimator": estimate_expectation_values_by_averaging,
             "fixed_parameters": [1.2],
             "parameter_precision": 0.001,
             "parameter_precision_seed": RNGSEED,
-            "estimation_tasks_transformations": [
-                partial(uniform_shot_allocation, number_of_shots=1)
+            "estimation_preprocessors": [
+                partial(allocate_shots_uniformly, number_of_shots=1)
             ],
         },
         {
@@ -82,9 +82,9 @@ RNGSEED = 1234
                 number_of_layers=1, problem_size=1
             ).parametrized_circuit,
             "backend": MockQuantumSimulator(),
-            "estimator": naively_estimate_expectation_values,
-            "estimation_tasks_transformations": [
-                partial(proportional_shot_allocation, total_n_shots=1)
+            "estimator": estimate_expectation_values_by_averaging,
+            "estimation_preprocessors": [
+                partial(allocate_shots_proportionally, total_n_shots=1)
             ],
         },
     ]
@@ -108,16 +108,14 @@ def test_noisy_ground_state_cost_function_adds_noise_to_parameters():
     ).parametrized_circuit
     parametrized_circuit.evaluate = mock.Mock(wraps=parametrized_circuit.evaluate)
     backend = MockQuantumSimulator()
-    estimator = naively_estimate_expectation_values
-    estimation_tasks_transformations = [
-        partial(uniform_shot_allocation, number_of_shots=1)
-    ]
+    estimator = estimate_expectation_values_by_averaging
+    estimation_preprocessors = [partial(allocate_shots_uniformly, number_of_shots=1)]
     noisy_ground_state_cost_function = get_ground_state_cost_function(
         target_operator,
         parametrized_circuit,
         backend,
         estimator=estimator,
-        estimation_tasks_transformations=estimation_tasks_transformations,
+        estimation_preprocessors=estimation_preprocessors,
         parameter_precision=1e-4,
         parameter_precision_seed=RNGSEED,
     )
@@ -177,16 +175,14 @@ def ansatz_based_cost_function():
     target_operator = QubitOperator("Z0")
     ansatz = MockAnsatz(number_of_layers=1, problem_size=1)
     backend = MockQuantumSimulator()
-    estimator = naively_estimate_expectation_values
-    estimation_tasks_transformations = [
-        partial(uniform_shot_allocation, number_of_shots=1)
-    ]
+    estimator = estimate_expectation_values_by_averaging
+    estimation_preprocessors = [partial(allocate_shots_uniformly, number_of_shots=1)]
     return AnsatzBasedCostFunction(
         target_operator,
         ansatz,
         backend,
         estimator=estimator,
-        estimation_tasks_transformations=estimation_tasks_transformations,
+        estimation_preprocessors=estimation_preprocessors,
     )
 
 

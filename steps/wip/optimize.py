@@ -9,7 +9,9 @@ from zquantum.core.wip.cost_function import (
     get_ground_state_cost_function,
     AnsatzBasedCostFunction,
 )
-from zquantum.core.wip.estimators.estimation import naively_estimate_expectation_values
+from zquantum.core.wip.estimators.estimation import (
+    estimate_expectation_values_by_averaging,
+)
 from zquantum.core.serialization import save_optimization_results
 from zquantum.core.utils import create_object
 from zquantum.core.typing import Specs
@@ -22,7 +24,7 @@ def optimize_parametrized_circuit_for_ground_state_of_operator(
     parametrized_circuit: Union[Circuit, str],
     backend_specs: Specs,
     estimator_specs: Optional[Specs] = None,
-    estimation_tasks_transformations_specs: Optional[List[Specs]] = None,
+    estimation_preprocessors_specs: Optional[List[Specs]] = None,
     initial_parameters: Union[str, np.ndarray, List[float]] = None,
     fixed_parameters: Optional[Union[np.ndarray, str]] = None,
     parameter_precision: Optional[float] = None,
@@ -36,9 +38,9 @@ def optimize_parametrized_circuit_for_ground_state_of_operator(
         parametrized_circuit: The parametrized quantum circuit that prepares trial states
         backend_specs: The specs of the quantum backend (or simulator) to use to run the circuits
         estimator_specs: A reference to a callable to use to estimate the expectation value of the operator.
-            The default is the naively_estimate_expectation_values function.
-        estimation_tasks_transformations_specs: A list of Specs that describe callable functions that adhere to the
-            EstimationTaskTransformer protocol.
+            The default is the estimate_expectation_values_by_averaging function.
+        estimation_preprocessors_specs: A list of Specs that describe callable functions that adhere to the
+            EstimationPreprocessor protocol.
         initial_parameters: The initial parameter values to begin optimization
         fixed_parameters: values for the circuit parameters that should be fixed.
         parameter_precision: the standard deviation of the Gaussian noise to add to each parameter, if any.
@@ -63,17 +65,17 @@ def optimize_parametrized_circuit_for_ground_state_of_operator(
             estimator_specs = json.loads(estimator_specs)
         estimator = create_object(estimator_specs)
     else:
-        estimator = naively_estimate_expectation_values
+        estimator = estimate_expectation_values_by_averaging
 
-    estimation_tasks_transformations = []
-    if estimation_tasks_transformations_specs is not None:
-        for estimation_tasks_transformation in estimation_tasks_transformations_specs:
-            if isinstance(estimation_tasks_transformation, str):
-                estimation_tasks_transformation = json.loads(
-                    estimation_tasks_transformation
+    estimation_preprocessors = []
+    if estimation_preprocessors_specs is not None:
+        for estimation_preprocessor_specs in estimation_preprocessors_specs:
+            if isinstance(estimation_preprocessor_specs, str):
+                estimation_preprocessor_specs = json.loads(
+                    estimation_preprocessor_specs
                 )
-            estimation_tasks_transformations.append(
-                create_object(estimation_tasks_transformation)
+            estimation_preprocessors.append(
+                create_object(estimation_preprocessor_specs)
             )
 
     if initial_parameters is not None:
@@ -89,7 +91,7 @@ def optimize_parametrized_circuit_for_ground_state_of_operator(
         parametrized_circuit,
         backend,
         estimator=estimator,
-        estimation_tasks_transformations=estimation_tasks_transformations,
+        estimation_preprocessors=estimation_preprocessors,
         fixed_parameters=fixed_parameters,
         parameter_precision=parameter_precision,
         parameter_precision_seed=parameter_precision_seed,
@@ -106,7 +108,7 @@ def optimize_ansatz_based_cost_function(
     ansatz_specs: Specs,
     backend_specs: Specs,
     estimator_specs: Optional[Specs] = None,
-    estimation_tasks_transformations_specs: Optional[List[Specs]] = None,
+    estimation_preprocessors_specs: Optional[List[Specs]] = None,
     initial_parameters: Union[str, np.ndarray, List[float]] = None,
     fixed_parameters: Optional[Union[np.ndarray, str]] = None,
     parameter_precision: Optional[float] = None,
@@ -120,9 +122,9 @@ def optimize_ansatz_based_cost_function(
         ansatz_specs: The specs describing an Ansatz which will prepare the quantum circuit
         backend_specs: The specs of the quantum backend (or simulator) to use to run the circuits
         estimator_specs: A reference to a callable to use to estimate the expectation value of the operator.
-            The default is the naively_estimate_expectation_values function.
-        estimation_tasks_transformations_specs: A list of Specs that describe callable functions that adhere to the
-            EstimationTaskTransformer protocol.
+            The default is the estimate_expectation_values_by_averaging function.
+        estimation_preprocessors_specs: A list of Specs that describe callable functions that adhere to the
+            EstimationPreprocessor protocol.
         initial_parameters: The initial parameter values to begin optimization
         fixed_parameters: values for the circuit parameters that should be fixed.
         parameter_precision: the standard deviation of the Gaussian noise to add to each parameter, if any.
@@ -148,19 +150,17 @@ def optimize_ansatz_based_cost_function(
             estimator_specs = json.loads(estimator_specs)
         estimator = create_object(estimator_specs)
     else:
-        estimator = naively_estimate_expectation_values
+        estimator = estimate_expectation_values_by_averaging
 
-    estimation_tasks_transformations = []
-    if estimation_tasks_transformations_specs is not None:
-        for (
-            estimation_tasks_transformation_specs
-        ) in estimation_tasks_transformations_specs:
-            if isinstance(estimation_tasks_transformation_specs, str):
-                estimation_tasks_transformation_specs = json.loads(
-                    estimation_tasks_transformation_specs
+    estimation_preprocessors = []
+    if estimation_preprocessors_specs is not None:
+        for estimation_preprocessor_specs in estimation_preprocessors_specs:
+            if isinstance(estimation_preprocessor_specs, str):
+                estimation_preprocessor_specs = json.loads(
+                    estimation_preprocessor_specs
                 )
-            estimation_tasks_transformations.append(
-                create_object(estimation_tasks_transformation_specs)
+            estimation_preprocessors.append(
+                create_object(estimation_preprocessor_specs)
             )
 
     if initial_parameters is not None:
@@ -176,7 +176,7 @@ def optimize_ansatz_based_cost_function(
         ansatz,
         backend,
         estimator=estimator,
-        estimation_tasks_transformations=estimation_tasks_transformations,
+        estimation_preprocessors=estimation_preprocessors,
         fixed_parameters=fixed_parameters,
         parameter_precision=parameter_precision,
         parameter_precision_seed=parameter_precision_seed,

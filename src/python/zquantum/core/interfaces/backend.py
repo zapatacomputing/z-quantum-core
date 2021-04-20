@@ -11,7 +11,7 @@ from ..bitstring_distribution import (
     BitstringDistribution,
     create_bitstring_distribution_from_probability_distribution,
 )
-from ..circuit import Circuit, CircuitConnectivity
+from ..circuit import CircuitConnectivity
 from ..measurement import ExpectationValues, Measurements, expectation_values_to_real
 from ..openfermion import change_operator_type, get_expectation_value
 from ..wip.circuits._compatibility import AnyCircuit
@@ -192,7 +192,7 @@ class QuantumSimulator(QuantumBackend):
 
     @overrides
     def get_expectation_values(
-            self, circuit: AnyCircuit, operator: SymbolicOperator, **kwargs
+        self, circuit: AnyCircuit, operator: SymbolicOperator, **kwargs
     ) -> ExpectationValues:
         """Run a circuit and measure the expectation values of given operator.
 

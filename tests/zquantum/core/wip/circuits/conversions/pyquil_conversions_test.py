@@ -29,6 +29,39 @@ CUSTOM_PARAMETRIC_DEF = _gates.CustomGateDefinition(
     (SYMPY_GAMMA,),
 )
 
+PYQUIL_THETA_1 = pyquil.quil.Parameter("theta_1")
+
+PYQUIL_XX = pyquil.quil.DefGate(
+    name="XX",
+    matrix=[
+        [
+            pyquil.quilatom.quil_cos(PYQUIL_THETA_1 / 2),
+            0,
+            0,
+            -1j * pyquil.quilatom.quil_sin(PYQUIL_THETA_1 / 2),
+        ],
+        [
+            0,
+            pyquil.quilatom.quil_cos(PYQUIL_THETA_1 / 2),
+            -1j * pyquil.quilatom.quil_sin(PYQUIL_THETA_1 / 2),
+            0,
+        ],
+        [
+            0,
+            -1j * pyquil.quilatom.quil_sin(PYQUIL_THETA_1 / 2),
+            pyquil.quilatom.quil_cos(PYQUIL_THETA_1 / 2),
+            0,
+        ],
+        [
+            -1j * pyquil.quilatom.quil_sin(PYQUIL_THETA_1 / 2),
+            0,
+            0,
+            pyquil.quilatom.quil_cos(PYQUIL_THETA_1 / 2),
+        ],
+    ],
+    parameters=[PYQUIL_THETA_1],
+)
+
 EQUIVALENT_CIRCUITS = [
     (
         _circuit.Circuit([], 0),
@@ -94,6 +127,10 @@ EQUIVALENT_CIRCUITS = [
                 ]
             ),
         ),
+    ),
+    (
+        _circuit.Circuit([_builtin_gates.XX(np.pi)(2)]),
+        pyquil.Program([PYQUIL_XX, PYQUIL_XX.get_constructor()(np.pi)(2)]),
     ),
 ]
 

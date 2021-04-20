@@ -334,7 +334,7 @@ def get_parities_from_measurements(
 
     # check input format
     if isinstance(ising_operator, IsingOperator) == False:
-        raise Exception("Input operator not openfermion.IsingOperator")
+        raise TypeError("Input operator not openfermion.IsingOperator")
 
     # Count number of occurrences of bitstrings
     bitstring_frequencies = Counter(measurements)
@@ -621,7 +621,7 @@ class Measurements:
         # so we need the operator to be Ising (containing only Z terms).
         # A general Qubit Operator could have X or Y terms which don’t get directly measured.
         if isinstance(ising_operator, IsingOperator) == False:
-            raise Exception("Input operator is not openfermion.IsingOperator")
+            raise TypeError("Input operator is not openfermion.IsingOperator")
 
         # Count number of occurrences of bitstrings
         bitstring_frequencies = self.get_counts()

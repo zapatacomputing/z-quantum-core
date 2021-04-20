@@ -1,5 +1,5 @@
 from functools import singledispatch
-from typing import Iterable, Mapping
+from typing import Iterable, Mapping, Union
 
 import numpy as np
 import pyquil
@@ -134,6 +134,17 @@ def _assign_custom_defs(
         )
 
 
+@singledispatch
+def _unwrap_gate(gate: _gates.Gate):
+    return gate
+
+
+@_unwrap_gate.register(_gates.ControlledGate)
+@_unwrap_gate.register(_gates.Dagger)
+def _unwrap_controlled_gate(gate: Union[_gates.ControlledGate, _gates.Dagger]):
+    return _unwrap_gate(gate.wrapped_gate)
+
+
 def _gate_definition_from_matrix_factory_gate(
     gate: _gates.MatrixFactoryGate,
 ) -> _gates.CustomGateDefinition:
@@ -146,22 +157,22 @@ def _gate_definition_from_matrix_factory_gate(
     )
 
 
-def _builtin_gate_supported_by_pyquil(gate) -> bool:
-    try:
-        _pyquil_gate_by_name(gate.name)
-        return True
-    except AttributeError:
-        return False
+def _is_builtin_gate(gate):
+    return hasattr(_builtin_gates, gate.name)
+
+
+def _is_supported_by_pyquil(gate):
+    return hasattr(pyquil.gates, gate.name)
 
 
 def _collect_unsupported_builtin_gate_defs(gates: Iterable[_gates.Gate]):
     # Using dict's property that if there are multiple entries with the same key, only
     # one of them will be left in the dictionary.
-    gates_by_name = {gate.name: gate for gate in gates}
+    unwrapped_gates_by_name = {gate.name: gate for gate in map(_unwrap_gate, gates)}
     return [
         _gate_definition_from_matrix_factory_gate(gate)
-        for gate in gates_by_name.values()
-        if not _builtin_gate_supported_by_pyquil(gate)
+        for gate in unwrapped_gates_by_name.values()
+        if _is_builtin_gate(gate) and not _is_supported_by_pyquil(gate)
     ]
 
 

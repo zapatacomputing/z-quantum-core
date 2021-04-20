@@ -134,9 +134,43 @@ def _assign_custom_defs(
         )
 
 
+def _gate_definition_from_matrix_factory_gate(
+    gate: _gates.MatrixFactoryGate,
+) -> _gates.CustomGateDefinition:
+    symbols = [sympy.Symbol(f"theta_{i}") for i in range(len(gate.params))]
+    template_matrix = gate.matrix_factory(*symbols)
+    return _gates.CustomGateDefinition(
+        gate_name=gate.name,
+        matrix=template_matrix,
+        params_ordering=symbols,
+    )
+
+
+def _builtin_gate_supported_by_pyquil(gate) -> bool:
+    try:
+        _pyquil_gate_by_name(gate.name)
+        return True
+    except AttributeError:
+        return False
+
+
+def _collect_unsupported_builtin_gate_defs(gates: Iterable[_gates.Gate]):
+    # Using dict's property that if there are multiple entries with the same key, only
+    # one of them will be left in the dictionary.
+    gates_by_name = {gate.name: gate for gate in gates}
+    return [
+        _gate_definition_from_matrix_factory_gate(gate)
+        for gate in gates_by_name.values()
+        if not _builtin_gate_supported_by_pyquil(gate)
+    ]
+
+
 def export_to_pyquil(circuit: _circuit.Circuit) -> pyquil.Program:
     var_declarations = map(_param_declaration, sorted(map(str, circuit.free_symbols)))
-    custom_gate_definitions = circuit.collect_custom_gate_definitions()
+    custom_gate_definitions = [
+        *circuit.collect_custom_gate_definitions(),
+        *_collect_unsupported_builtin_gate_defs([op.gate for op in circuit.operations]),
+    ]
     custom_gate_names = {gate_def.gate_name for gate_def in custom_gate_definitions}
     gate_instructions = [
         _export_gate(op.gate, op.qubit_indices, custom_gate_names)
@@ -158,12 +192,7 @@ def _export_gate(gate: _gates.Gate, qubit_indices, custom_gate_names):
     except ValueError:
         pass
 
-    try:
-        return _export_custom_gate(gate, qubit_indices, custom_gate_names)
-    except ValueError:
-        pass
-
-    raise NotImplementedError(f"Exporting gate {gate} to PyQuil is unsupported.")
+    return _export_custom_gate(gate, qubit_indices, custom_gate_names)
 
 
 def _export_custom_gate(gate: _gates.Gate, qubit_indices, custom_gate_names):

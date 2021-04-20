@@ -29,37 +29,37 @@ CUSTOM_PARAMETRIC_DEF = _gates.CustomGateDefinition(
     (SYMPY_GAMMA,),
 )
 
-PYQUIL_THETA_1 = pyquil.quil.Parameter("theta_1")
+PYQUIL_THETA_0 = pyquil.quil.Parameter("theta_0")
 
 PYQUIL_XX = pyquil.quil.DefGate(
     name="XX",
     matrix=[
         [
-            pyquil.quilatom.quil_cos(PYQUIL_THETA_1 / 2),
+            pyquil.quilatom.quil_cos(0.5 * PYQUIL_THETA_0),
             0,
             0,
-            -1j * pyquil.quilatom.quil_sin(PYQUIL_THETA_1 / 2),
+            -1j * pyquil.quilatom.quil_sin(0.5 * PYQUIL_THETA_0),
         ],
         [
             0,
-            pyquil.quilatom.quil_cos(PYQUIL_THETA_1 / 2),
-            -1j * pyquil.quilatom.quil_sin(PYQUIL_THETA_1 / 2),
+            pyquil.quilatom.quil_cos(0.5 * PYQUIL_THETA_0),
+            -1j * pyquil.quilatom.quil_sin(0.5 * PYQUIL_THETA_0),
             0,
         ],
         [
             0,
-            -1j * pyquil.quilatom.quil_sin(PYQUIL_THETA_1 / 2),
-            pyquil.quilatom.quil_cos(PYQUIL_THETA_1 / 2),
+            -1j * pyquil.quilatom.quil_sin(0.5 * PYQUIL_THETA_0),
+            pyquil.quilatom.quil_cos(0.5 * PYQUIL_THETA_0),
             0,
         ],
         [
-            -1j * pyquil.quilatom.quil_sin(PYQUIL_THETA_1 / 2),
+            -1j * pyquil.quilatom.quil_sin(0.5 * PYQUIL_THETA_0),
             0,
             0,
-            pyquil.quilatom.quil_cos(PYQUIL_THETA_1 / 2),
+            pyquil.quilatom.quil_cos(0.5 * PYQUIL_THETA_0),
         ],
     ],
-    parameters=[PYQUIL_THETA_1],
+    parameters=[PYQUIL_THETA_0],
 )
 
 EQUIVALENT_CIRCUITS = [

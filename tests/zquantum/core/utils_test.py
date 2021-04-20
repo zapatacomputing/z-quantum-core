@@ -1,3 +1,4 @@
+from functools import partial
 import json
 import os
 import random
@@ -6,6 +7,7 @@ import numpy as np
 import pkg_resources
 import pytest
 import sympy
+from types import FunctionType
 from scipy.stats import unitary_group
 from zquantum.core.openfermion import load_interaction_operator
 from zquantum.core.utils import (
@@ -206,6 +208,55 @@ class TestUtils:
         assert type(mock_simulator).__name__ == function_name
         assert mock_simulator.n_samples == n_samples
 
+    def test_create_object_func_without_kwargs(self):
+        self.test_get_func_from_specs()
+
+    def test_create_object_func_with_kwargs_in_specs(self):
+        # Given
+        function_name = "sum_x_squared"
+        data = np.array([1.0, 2.0])
+        target_value = 5.0
+        specs = {
+            "module_name": "zquantum.core.interfaces.optimizer_test",
+            "function_name": function_name,
+            "x": data,
+        }
+        # When
+        function = create_object(specs)
+
+        # Then
+        assert isinstance(function, partial)
+        assert function() == target_value
+
+    def test_create_object_func_with_kwargs(self):
+        # Given
+        function_name = "sum_x_squared"
+        data = np.array([1.0, 2.0])
+        target_value = 5.0
+        specs = {
+            "module_name": "zquantum.core.interfaces.optimizer_test",
+            "function_name": function_name,
+        }
+        # When
+        function = create_object(specs, x=data)
+
+        # Then
+        assert isinstance(function, partial)
+        assert function() == target_value
+
+    def test_create_object_func_fails_with_multiple_assignments(self):
+        # Given
+        function_name = "sum_x_squared"
+        data = np.array([1.0, 2.0])
+        specs = {
+            "module_name": "zquantum.core.interfaces.optimizer_test",
+            "function_name": function_name,
+            "x": data,
+        }
+        # When
+        with pytest.raises(ValueError):
+            function = create_object(specs, x=data)
+
     def test_save_generic_dict(self):
         data = {"flavor": "chocolate", "weight": 42}
         save_generic_dict(data, "dict.json")
@@ -230,6 +281,27 @@ class TestUtils:
         # Then
         assert function.__name__ == function_name
         assert function(data) == target_value
+
+    def test_noise_model_with_additional_args(self):
+        # Given
+        filename = "noise_model.json"
+        with open(filename, "w") as f:
+            f.write(
+                json.dumps(
+                    {
+                        "module_name": "zquantum.core.testing.mocks",
+                        "function_name": "mock_create_noise_model",
+                        "data": {"testing": "data"},
+                        "schema": "THIS IS FOR TESTING ONLY",
+                    }
+                )
+            )
+
+        # When
+        noise_model = load_noise_model(filename)
+
+        # Then
+        remove_file_if_exists(filename)
 
     def test_noise_model_io(self):
         # Given
@@ -379,14 +451,19 @@ def test_scale_and_discretize(values, total, expected_result):
     [
         (
             load_interaction_operator(
-                pkg_resources.resource_filename("zquantum.core.testing", "hamiltonian_H2_minimal_basis.json")
+                pkg_resources.resource_filename(
+                    "zquantum.core.testing", "hamiltonian_H2_minimal_basis.json"
+                )
             ),
             -0.8543376267387818,
             1,
         ),
         (
             load_interaction_operator(
-                pkg_resources.resource_filename("zquantum.core.testing", "hamiltonian_H2_minus_ROHF_minimal_basis.json")
+                pkg_resources.resource_filename(
+                    "zquantum.core.testing",
+                    "hamiltonian_H2_minus_ROHF_minimal_basis.json",
+                )
             ),
             -0.6857403043904364,
             2,

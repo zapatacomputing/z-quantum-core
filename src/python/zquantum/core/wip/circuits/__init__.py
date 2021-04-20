@@ -136,6 +136,8 @@ from ._builtin_gates import (
     builtin_gate_by_name,
 )
 from ._circuit import Circuit
+
+from ._compatibility import new_circuit_from_old_circuit
 from ._gates import (
     ControlledGate,
     CustomGateDefinition,

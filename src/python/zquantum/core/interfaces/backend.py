@@ -240,9 +240,8 @@ class QuantumSimulator(QuantumBackend):
                     "When using exact simulation, batching circuits is not supported "
                     "by default."
                 )
-                # FIXME: operator shouldn't be raised to power dict
                 return [
-                    self.get_exact_expectation_values(circuit, operator ** kwargs)
+                    self.get_exact_expectation_values(circuit, operator, **kwargs)
                     for circuit in circuits
                 ]
             else:

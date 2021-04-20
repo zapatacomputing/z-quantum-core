@@ -1,6 +1,6 @@
 import importlib
 import json
-from typing import Dict, List, Optional, TextIO, Tuple
+from typing import Dict, List, Optional, TextIO, Tuple, Any
 
 import numpy as np
 
@@ -33,7 +33,7 @@ def load_circuit_template(file: TextIO) -> dict:
 
     Args:
         file (str or file-like object): the name of the file, or a file-like object.
-    
+
     Returns:
         dict: the circuit template
     """
@@ -62,7 +62,7 @@ def save_circuit_template_params(params: np.ndarray, filename: str) -> None:
         filename (str): the name of the file
     """
 
-    dictionary = {"schema": SCHEMA_VERSION + "-circuit_template_params"}
+    dictionary: Dict[str, Any] = {"schema": SCHEMA_VERSION + "-circuit_template_params"}
     dictionary["parameters"] = convert_array_to_dict(params)
     with open(filename, "w") as f:
         f.write(json.dumps(dictionary))
@@ -73,7 +73,7 @@ def load_circuit_template_params(file: TextIO):
 
     Args:
         file (str or file-like object): the name of the file, or a file-like object.
-    
+
     Returns:
         dict: the circuit template
     """
@@ -107,11 +107,11 @@ def build_ansatz_circuit(ansatz: dict, params: np.ndarray) -> Circuit:
 
 def combine_ansatz_params(params1: np.ndarray, params2: np.ndarray) -> np.ndarray:
     """Combine two sets of ansatz parameters.
-    
+
     Args:
         params1 (numpy.ndarray): the first set of parameters
         params2 (numpy.ndarray): the second set of parameters
-    
+
     Returns:
         numpy.ndarray: the combined parameters
     """
@@ -128,11 +128,11 @@ class ParameterGrid:
         param_ranges (list): same as above.
     """
 
-    def __init__(self, param_ranges: List[Tuple[float]]):
+    def __init__(self, param_ranges: List[Tuple[float, float, float]]):
         self.param_ranges = param_ranges
 
     @property
-    def params_list(self) -> np.ndarray:
+    def params_list(self) -> List[np.ndarray]:
         grid_array = np.reshape(np.stack(self.params_meshgrid), (self.n_params, -1))
 
         grid = []
@@ -149,11 +149,11 @@ class ParameterGrid:
         return cls(data["param_ranges"])
 
     @property
-    def params_meshgrid(self) -> np.ndarray:
+    def params_meshgrid(self) -> Tuple[np.ndarray, ...]:
         """
         Creates a meshgrid from the parameter ranges.
         """
-        param_vectors = []
+        param_vectors: List[np.ndarray] = []
 
         for param_spec in self.param_ranges:
             param_vectors.append(np.arange(param_spec[0], param_spec[1], param_spec[2]))
@@ -185,7 +185,7 @@ def load_parameter_grid(file: TextIO) -> ParameterGrid:
 
     Args:
         file (str or file-like object): the name of the file, or a file-like object.
-    
+
     Returns:
         core.circuit.ParameterGrid: the parameter grid
     """
@@ -214,7 +214,7 @@ def build_uniform_param_grid(
         min_value (float): the minimum value for the parameters
         max_value (float): the maximum value for the parameters
         step (float): the step size
-    
+
     Returns:
         list: a list of numpy.ndarray objects representing points on a grid in parameter space
     """
@@ -227,15 +227,15 @@ def build_uniform_param_grid(
 
 class CircuitLayers(object):
     """A class representing a pattern of circuit layers, consisting of lists,
-        each list containing the groups of qubits entangled for each multiqubit
-        gate in a particular layer.
+    each list containing the groups of qubits entangled for each multiqubit
+    gate in a particular layer.
     """
 
     def __init__(self, layers: List[List[Tuple]]):
         """
         Args:
             layers: list of list of tuples, each tuple
-            representing a group of qubits that is connected in the layer by a 
+            representing a group of qubits that is connected in the layer by a
             multiqubit gate.
         """
         self.layers = layers
@@ -258,17 +258,17 @@ def save_circuit_layers(circuit_layers: CircuitLayers, filename: str) -> None:
         filename (str): the name of the file
     """
 
-    circuit_layers = circuit_layers.to_dict()
-    circuit_layers["schema"] = SCHEMA_VERSION + "-circuit_layers"
+    circuit_layers_dict = circuit_layers.to_dict()
+    circuit_layers_dict["schema"] = SCHEMA_VERSION + "-circuit_layers"
     with open(filename, "w") as f:
-        f.write(json.dumps(circuit_layers))
+        f.write(json.dumps(circuit_layers_dict))
 
 
 def load_circuit_layers(file: TextIO) -> CircuitLayers:
     """Loads a list of circuit layers from a file.
     Args:
         file (str or file-like object): the name of the file, or a file-like object.
-    
+
     Returns:
         (circuit.CircuitLayers)
     """
@@ -299,7 +299,7 @@ def load_circuit_ordering(file):
     """Loads a circuit ordering (e.g. mapping from spin-orbitals to qubits) to a file.
     Args:
         file (str or file-like object): the name of the file, or a file-like object.
-    
+
     Returns:
         ordering (list)
     """
@@ -315,8 +315,8 @@ def load_circuit_ordering(file):
 
 class CircuitConnectivity(object):
     """A class representing the connectivity of a circuit resulting from qpu
-        constraints, consisting of a list of tuples of qubits representing the 
-        allowed multiqubit gate connections.
+    constraints, consisting of a list of tuples of qubits representing the
+    allowed multiqubit gate connections.
     """
 
     def __init__(self, connections):
@@ -352,7 +352,7 @@ def load_circuit_connectivity(file):
     """Loads a circuit connectivity from a file.
     Args:
         file (str or file-like object): the name of the file, or a file-like object.
-    
+
     Returns:
         (zquantum.core.circuit.CircuitConnectivity)
     """
@@ -369,7 +369,7 @@ def load_circuit_connectivity(file):
 def build_circuit_layers_and_connectivity(
     x_dimension, y_dimension=None, layer_type="nearest-neighbor"
 ):
-    """ Function to generate circuit layers for 1-dimensional and 2-dimensional
+    """Function to generate circuit layers for 1-dimensional and 2-dimensional
     arrays of qubits
     Args:
         x_dimension (int): number of qubits per row of the array
@@ -387,7 +387,7 @@ def build_circuit_layers_and_connectivity(
 
 
 def _build_circuit_layers_and_connectivity_sycamore(x_dimension, y_dimension):
-    """ Function to generate circuit connectivity and circuit layers
+    """Function to generate circuit connectivity and circuit layers
         for 2D quantum processors with sycamore-like connectivity
     Args:
         x_dimension (int): number of qubits per row of the array
@@ -467,7 +467,7 @@ def _build_circuit_layers_and_connectivity_sycamore(x_dimension, y_dimension):
 
 
 def _build_circuit_layers_and_connectivity_nearest_neighbors(n_qubits):
-    """ Function to generate circuit layers for processors with nearest-neighbor 
+    """Function to generate circuit layers for processors with nearest-neighbor
     connectivity
     Args:
         n_qubits (int): number of qubits in the qubit array
@@ -489,7 +489,7 @@ def _build_circuit_layers_and_connectivity_nearest_neighbors(n_qubits):
 def create_layer_of_gates(
     number_of_qubits: int, gate_name: str, parameters: Optional[np.ndarray] = None
 ) -> Circuit:
-    """ Creates a circuit consisting of a layer of single-qubit gates acting on all qubits.
+    """Creates a circuit consisting of a layer of single-qubit gates acting on all qubits.
 
     Args:
         number_of_qubits (int): number of qubits in the circuit

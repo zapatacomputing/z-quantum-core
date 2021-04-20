@@ -90,6 +90,22 @@ def rz_matrix(angle):
     )
 
 
+def rh_matrix(angle):
+    phase_factor = sympy.cos(angle / 2) + 1j * sympy.sin(angle / 2)
+    return phase_factor * sympy.Matrix(
+        [
+            [
+                sympy.cos(angle / 2) - 1j / sympy.sqrt(2) * sympy.sin(angle / 2),
+                -1j / sympy.sqrt(2) * sympy.sin(angle / 2),
+            ],
+            [
+                -1j / sympy.sqrt(2) * sympy.sin(angle / 2),
+                sympy.cos(angle / 2) + 1j / sympy.sqrt(2) * sympy.sin(angle / 2),
+            ]
+        ]
+    )
+
+
 def phase_matrix(angle):
     return sympy.Matrix(
         [

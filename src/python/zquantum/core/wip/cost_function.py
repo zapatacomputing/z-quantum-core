@@ -101,9 +101,17 @@ def get_ground_state_cost_function(
             estimation_tasks, [symbols_map for _ in estimation_tasks]
         )
 
-        expectation_values = estimator(backend, estimation_tasks)
+        expectation_values_list = estimator(backend, estimation_tasks)
+        summed_values = ValueEstimate(
+            np.sum(
+                [
+                    np.sum(expectation_values.values)
+                    for expectation_values in expectation_values_list
+                ]
+            )
+        )
 
-        return ValueEstimate(np.sum(expectation_values.values))
+        return summed_values
 
     return function_with_gradient(
         ground_state_cost_function, gradient_function(ground_state_cost_function)
@@ -239,6 +247,14 @@ class AnsatzBasedCostFunction:
         estimation_tasks = evaluate_estimation_circuits(
             self.estimation_tasks, [symbols_map for _ in self.estimation_tasks]
         )
-        expectation_values = self.estimator(self.backend, estimation_tasks)
+        expectation_values_list = self.estimator(self.backend, estimation_tasks)
+        summed_values = ValueEstimate(
+            np.sum(
+                [
+                    np.sum(expectation_values.values)
+                    for expectation_values in expectation_values_list
+                ]
+            )
+        )
 
-        return sum_expectation_values(expectation_values)
+        return summed_values

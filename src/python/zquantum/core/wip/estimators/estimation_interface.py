@@ -40,5 +40,5 @@ class EstimateExpectationValues(Protocol):
 
     def __call__(
         self, backend: QuantumBackend, estimation_tasks: List[EstimationTask]
-    ) -> ExpectationValues:
+    ) -> List[ExpectationValues]:
         pass

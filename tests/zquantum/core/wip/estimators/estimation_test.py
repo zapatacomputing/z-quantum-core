@@ -181,22 +181,26 @@ class TestBasicEstimationMethods:
         return [task_1, task_2, task_3]
 
     def test_estimate_expectation_values_by_averaging(self, backend, estimation_tasks):
-        expectation_values = estimate_expectation_values_by_averaging(
+        expectation_values_list = estimate_expectation_values_by_averaging(
             backend, estimation_tasks
         )
-        assert len(expectation_values.values) == 3
+        assert len(expectation_values_list) == 3
+        for expectation_values, task in zip(expectation_values_list, estimation_tasks):
+            assert len(expectation_values.values) == len(task.operator.terms)
 
     def test_calculate_exact_expectation_values(self, simulator, estimation_tasks):
-        expectation_values = calculate_exact_expectation_values(
+        expectation_values_list = calculate_exact_expectation_values(
             simulator, estimation_tasks
         )
-        assert len(expectation_values.values) == 3
+        assert len(expectation_values_list) == 3
+        for expectation_values, task in zip(expectation_values_list, estimation_tasks):
+            assert len(expectation_values.values) == len(task.operator.terms)
 
     def test_calculate_exact_expectation_values_fails_with_non_simulator(
         self, estimation_tasks
     ):
         backend = MockQuantumBackend()
         with pytest.raises(AttributeError):
-            expectation_values = calculate_exact_expectation_values(
+            expectation_values_list = calculate_exact_expectation_values(
                 backend, estimation_tasks
             )

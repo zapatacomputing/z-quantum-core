@@ -188,7 +188,7 @@ def evaluate_estimation_circuits(
 def estimate_expectation_values_by_averaging(
     backend: QuantumBackend,
     estimation_tasks: List[EstimationTask],
-) -> ExpectationValues:
+) -> List[ExpectationValues]:
     """
     Basic method for estimating expectation values for list of estimation tasks.
     It executes specified circuit and calculates expectation values based on the measurements.
@@ -220,15 +220,13 @@ def estimate_expectation_values_by_averaging(
     #         ExpectationValues(np.array([operator.terms.get(())]))
     #     )
 
-    return expectation_values_to_real(
-        concatenate_expectation_values(expectation_values_list)
-    )
+    return expectation_values_list
 
 
 def calculate_exact_expectation_values(
     backend: QuantumSimulator,
     estimation_tasks: List[EstimationTask],
-) -> ExpectationValues:
+) -> List[ExpectationValues]:
     """
     Calculates exact expectation values using built-in method of a provided backend.
 
@@ -242,6 +240,4 @@ def calculate_exact_expectation_values(
         )
         for estimation_task in estimation_tasks
     ]
-    return expectation_values_to_real(
-        concatenate_expectation_values(expectation_values_list)
-    )
+    return expectation_values_list

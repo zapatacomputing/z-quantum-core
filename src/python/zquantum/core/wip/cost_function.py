@@ -56,11 +56,24 @@ def get_ground_state_cost_function(
             operator=target_operator, circuit=parametrized_circuit, number_of_shots=None
         )
     ]
+
+    if estimation_tasks_transformations is None:
+        estimation_tasks_transformations = []
+
     for transformer in estimation_tasks_transformations:
         estimation_tasks = transformer(estimation_tasks)
 
-    circuit_symbols = set(
-        [param for task in estimation_tasks for param in task.circuit.symbolic_params]
+    circuit_symbols = sorted(
+        list(
+            set(
+                [
+                    param
+                    for task in estimation_tasks
+                    for param in task.circuit.symbolic_params
+                ]
+            )
+        ),
+        key=str,
     )
 
     def ground_state_cost_function(
@@ -177,6 +190,9 @@ class AnsatzBasedCostFunction:
         else:
             self.estimator = estimator
 
+        if estimation_tasks_transformations is None:
+            estimation_tasks_transformations = []
+
         self.estimation_tasks = [
             EstimationTask(
                 operator=target_operator,
@@ -187,12 +203,17 @@ class AnsatzBasedCostFunction:
         for transformer in estimation_tasks_transformations:
             self.estimation_tasks = transformer(self.estimation_tasks)
 
-        self.circuit_symbols = set(
-            [
-                param
-                for task in self.estimation_tasks
-                for param in task.circuit.symbolic_params
-            ]
+        self.circuit_symbols = sorted(
+            list(
+                set(
+                    [
+                        param
+                        for task in self.estimation_tasks
+                        for param in task.circuit.symbolic_params
+                    ]
+                )
+            ),
+            key=str,
         )
 
     def __call__(self, parameters: np.ndarray) -> ValueEstimate:
@@ -214,7 +235,7 @@ class AnsatzBasedCostFunction:
             )
             full_parameters += noise_array
 
-        symbols_map = create_symbols_map(self.circuit_symbols, parameters)
+        symbols_map = create_symbols_map(self.circuit_symbols, full_parameters)
         estimation_tasks = evaluate_circuits(
             self.estimation_tasks, [symbols_map for _ in self.estimation_tasks]
         )

@@ -1,7 +1,8 @@
-import zquantum.core.circuit as old_circuit
+from ..circuits import Circuit as OldCircuit
 
-from . import Circuit, import_from_cirq
+from . import Circuit
+from .conversions.cirq_conversions import import_from_cirq
 
 
-def new_circuit_from_old_circuit(old: old_circuit.Circuit) -> Circuit:
+def new_circuit_from_old_circuit(old: OldCircuit) -> Circuit:
     return import_from_cirq(old.to_cirq())

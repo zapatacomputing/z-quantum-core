@@ -3,7 +3,7 @@ import math
 from dataclasses import dataclass, replace
 from functools import singledispatch
 from numbers import Number
-from typing import Callable, Dict, Tuple, Union
+from typing import Callable, Dict, Tuple, Union, Iterable
 
 import numpy as np
 import sympy
@@ -13,6 +13,14 @@ from ._unitary_tools import _lift_matrix_numpy, _lift_matrix_sympy
 
 Parameter = Union[sympy.Symbol, Number]
 
+def _get_free_symbols(parameters: Tuple[Parameter, ...]) -> Iterable[sympy.Symbol]:
+    symbols = set(
+        symbol
+        for param in parameters
+        if isinstance(param, sympy.Expr)
+        for symbol in param.free_symbols
+    )
+    return sorted(symbols, key=str)
 
 class Gate(Protocol):
     """Interface of a quantum gate representable by a matrix, translatable to other frameworks and backends.
@@ -47,7 +55,7 @@ class Gate(Protocol):
         raise NotImplementedError()
 
     @property
-    def free_symbols(self):
+    def free_symbols(self) -> Iterable[sympy.Symbol]:
         """Unbound symbols in the gate matrix.
 
         Examples:
@@ -57,13 +65,7 @@ class Gate(Protocol):
         - a `RX(sympy.sympify("theta * alpha"))` gate has two free symbols, `alpha` and `theta`
         - a `RX(sympy.sympify("theta * alpha")).bind({sympy.Symbol("theta"): 0.42})` gate has one free symbol, `alpha`
         """
-        symbols = set(
-            symbol
-            for param in self.params
-            if isinstance(param, sympy.Expr)
-            for symbol in param.free_symbols
-        )
-        return sorted(symbols, key=str)
+        return _get_free_symbols(self.params)
 
     @property
     def num_qubits(self) -> int:
@@ -216,7 +218,7 @@ class MatrixFactoryGate:
         return ControlledGate(self, num_controlled_qubits)
 
     @property
-    def dagger(self) -> Gate:
+    def dagger(self) -> Union["MatrixFactoryGate",Gate]:
         return self if self.is_hermitian else Dagger(self)
 
     def __str__(self):
@@ -246,7 +248,11 @@ class MatrixFactoryGate:
     # Normally, we'd use the default implementations by inheriting from the Gate protocol.
     # We can't do that because of __init__ arg default value issues, this is
     # the workaround.
-    free_symbols = Gate.free_symbols
+    @property
+    def free_symbols(self) -> Iterable[sympy.Symbol]:
+        """Unbound symbols in the gate matrix. See Gate.free_symbols for details."""
+        return _get_free_symbols(self.params)
+
     __call__ = Gate.__call__
 
 

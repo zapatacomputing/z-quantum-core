@@ -95,7 +95,7 @@ def save_wavefunction(wavefunction: Wavefunction, filename: AnyPath) -> None:
         filename (str): the name of the file
     """
 
-    data = {"schema": SCHEMA_VERSION + "-wavefunction"}  # type: Dict[str, Any]
+    data: Dict[str, Any] = {"schema": SCHEMA_VERSION + "-wavefunction"}
     data["amplitudes"] = convert_array_to_dict(wavefunction.amplitudes)
     with open(filename, "w") as f:
         f.write(json.dumps(data, indent=2))
@@ -135,11 +135,10 @@ class ExpectationValues:
     def to_dict(self) -> Dict[str, Any]:
         """Convert to a dictionary"""
 
-        data = {
+        data: Dict[str, Any] = {
             "schema": SCHEMA_VERSION + "-expectation_values",
             "frames": [],
-        }  # type: Dict[str, Any]
-        # what is "frames" for?
+        }  # what is "frames" for?
 
         data["expectation_values"] = convert_array_to_dict(self.values)
 
@@ -162,13 +161,13 @@ class ExpectationValues:
         """Create an ExpectationValues object from a dictionary."""
 
         expectation_values = convert_dict_to_array(dictionary["expectation_values"])
-        correlations = None  # type: Optional[List]
+        correlations: Optional[List] = None
         if dictionary.get("correlations"):
             correlations = []
             for correlation_matrix in cast(Iterable, dictionary.get("correlations")):
                 correlations.append(convert_dict_to_array(correlation_matrix))
 
-        estimator_covariances = None  # type: Union[List, None]
+        estimator_covariances: Union[List, None] = None
         if dictionary.get("estimator_covariances"):
             estimator_covariances = []
             for covariance_matrix in cast(
@@ -228,7 +227,7 @@ class Parities:
         self.correlations = correlations
 
     def to_dict(self) -> dict:
-        data = {"values": convert_array_to_dict(self.values)}  # type: Dict[str, Any]
+        data: Dict[str, Any] = {"values": convert_array_to_dict(self.values)}
         if self.correlations:
             data["correlations"] = [
                 convert_array_to_dict(arr) for arr in self.correlations
@@ -239,9 +238,9 @@ class Parities:
     def from_dict(cls, data: dict):
         values = convert_dict_to_array(data["values"])
         if data.get("correlations"):
-            correlations = [
+            correlations: Optional[List] = [
                 convert_dict_to_array(arr) for arr in data["correlations"]
-            ]  # type: Optional[List]
+            ]
         else:
             correlations = None
         return cls(values, correlations)
@@ -334,7 +333,7 @@ def get_parities_from_measurements(
 
     # check input format
     if isinstance(ising_operator, IsingOperator) == False:
-        raise Exception("Input operator not openfermion.IsingOperator")
+        raise TypeError("Input operator not openfermion.IsingOperator")
 
     # Count number of occurrences of bitstrings
     bitstring_frequencies = Counter(measurements)
@@ -621,7 +620,7 @@ class Measurements:
         # so we need the operator to be Ising (containing only Z terms).
         # A general Qubit Operator could have X or Y terms which don’t get directly measured.
         if isinstance(ising_operator, IsingOperator) == False:
-            raise Exception("Input operator is not openfermion.IsingOperator")
+            raise TypeError("Input operator is not openfermion.IsingOperator")
 
         # Count number of occurrences of bitstrings
         bitstring_frequencies = self.get_counts()

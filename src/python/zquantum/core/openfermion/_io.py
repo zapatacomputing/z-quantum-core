@@ -23,7 +23,7 @@ def convert_interaction_op_to_dict(op: InteractionOperator) -> Dict[str, Any]:
         dictionary (dict): the dictionary representation
     """
 
-    dictionary = {"schema": SCHEMA_VERSION + "-interaction_op"} # type: Dict[str, Any]
+    dictionary: Dict[str, Any] = {"schema": SCHEMA_VERSION + "-interaction_op"}
     dictionary["constant"] = convert_array_to_dict(np.array(op.constant))
     dictionary["one_body_tensor"] = convert_array_to_dict(np.array(op.one_body_tensor))
     dictionary["two_body_tensor"] = convert_array_to_dict(np.array(op.two_body_tensor))
@@ -99,10 +99,12 @@ def convert_qubitop_to_dict(op: QubitOperator) -> Dict[str, Any]:
         dictionary (dict): the dictionary representation
     """
 
-    dictionary = {"schema": SCHEMA_VERSION + "-qubit_op"} # type: Dict[str, Any]
+    dictionary: Dict[str, Any] = {"schema": SCHEMA_VERSION + "-qubit_op"}
     dictionary["terms"] = []
     for term in op.terms:
-        term_dict = {"pauli_ops": [{"qubit": op[0], "op": op[1]} for op in term]} # type: Dict[str, Any]
+        term_dict: Dict[str, Any] = {
+            "pauli_ops": [{"qubit": op[0], "op": op[1]} for op in term]
+        }
 
         if isinstance(op.terms[term], complex):
             term_dict["coefficient"] = {
@@ -170,7 +172,7 @@ def save_qubit_operator_set(
         qubit_operator_set (list): a list of QubitOperator to be saved
         file (str): the name of the file
     """
-    dictionary = {} # type: Dict[str, Any]
+    dictionary: Dict[str, Any] = {}
     dictionary["schema"] = SCHEMA_VERSION + "-circuit_set"
     dictionary["qubit_operators"] = []
     for qubit_operator in qubit_operator_set:

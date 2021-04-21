@@ -16,7 +16,26 @@ from ..utils import create_symbols_map, ValueEstimate
 from ..measurement import ExpectationValues
 from typing import Optional, Callable, Dict, List
 import numpy as np
+import sympy
 from openfermion import SymbolicOperator
+
+
+def _get_sorted_set_of_circuit_symbols(
+    estimation_tasks: List[EstimationTask],
+) -> List[sympy.Symbol]:
+
+    return sorted(
+        list(
+            set(
+                [
+                    param
+                    for task in estimation_tasks
+                    for param in task.circuit.symbolic_params
+                ]
+            )
+        ),
+        key=str,
+    )
 
 
 def get_ground_state_cost_function(
@@ -63,18 +82,7 @@ def get_ground_state_cost_function(
     for estimation_preprocessor in estimation_preprocessors:
         estimation_tasks = estimation_preprocessor(estimation_tasks)
 
-    circuit_symbols = sorted(
-        list(
-            set(
-                [
-                    param
-                    for task in estimation_tasks
-                    for param in task.circuit.symbolic_params
-                ]
-            )
-        ),
-        key=str,
-    )
+    circuit_symbols = _get_sorted_set_of_circuit_symbols(estimation_tasks)
 
     def ground_state_cost_function(
         parameters: np.ndarray, store_artifact: StoreArtifact = None
@@ -211,18 +219,7 @@ class AnsatzBasedCostFunction:
         for estimation_preprocessor in estimation_preprocessors:
             self.estimation_tasks = estimation_preprocessor(self.estimation_tasks)
 
-        self.circuit_symbols = sorted(
-            list(
-                set(
-                    [
-                        param
-                        for task in self.estimation_tasks
-                        for param in task.circuit.symbolic_params
-                    ]
-                )
-            ),
-            key=str,
-        )
+        self.circuit_symbols = _get_sorted_set_of_circuit_symbols(self.estimation_tasks)
 
     def __call__(self, parameters: np.ndarray) -> ValueEstimate:
         """Evaluates the value of the cost function for given parameters.

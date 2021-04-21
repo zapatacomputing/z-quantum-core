@@ -62,6 +62,32 @@ PYQUIL_XX = pyquil.quil.DefGate(
     parameters=[PYQUIL_THETA_0],
 )
 
+
+def pyquil_rh_definition():
+    cos_term = pyquil.quilatom.quil_cos(0.5 * PYQUIL_THETA_0)
+    sin_term = pyquil.quilatom.quil_sin(0.5 * PYQUIL_THETA_0)
+    phase_factor = 1j * sin_term + cos_term
+    return pyquil.quil.DefGate(
+        name="RH",
+        matrix=[
+            [
+                phase_factor
+                * (-0.5j * pyquil.quilatom.quil_sqrt(2) * sin_term + cos_term),
+                -0.5j * pyquil.quilatom.quil_sqrt(2) * phase_factor * sin_term,
+            ],
+            [
+                -0.5j * pyquil.quilatom.quil_sqrt(2) * phase_factor * sin_term,
+                phase_factor
+                * (0.5j * pyquil.quilatom.quil_sqrt(2) * sin_term + cos_term),
+            ],
+        ],
+        parameters=[PYQUIL_THETA_0],
+    )
+
+
+PYQUIL_RH = pyquil_rh_definition()
+
+
 EQUIVALENT_CIRCUITS = [
     (
         _circuit.Circuit([], 0),
@@ -131,6 +157,10 @@ EQUIVALENT_CIRCUITS = [
     (
         _circuit.Circuit([_builtin_gates.XX(np.pi)(2)]),
         pyquil.Program([PYQUIL_XX, PYQUIL_XX.get_constructor()(np.pi)(2)]),
+    ),
+    (
+        _circuit.Circuit([_builtin_gates.RH(np.pi / 5)(3)]),
+        pyquil.Program([PYQUIL_RH, PYQUIL_RH.get_constructor()(np.pi / 5)(3)]),
     ),
 ]
 

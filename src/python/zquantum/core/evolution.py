@@ -54,7 +54,8 @@ def time_evolution_derivatives(
     function time_evolution
 
     Args:
-        hamiltonian: The Hamiltonian to be evolved under.
+        hamiltonian: The Hamiltonian to be evolved under. It should contain numeric
+            coefficients, symbolic expressions aren't supported.
         time: Time duration of the evolution.
         method: Time evolution method. Currently the only option is 'Trotter'.
         trotter_order: order of Trotter evolution
@@ -77,7 +78,13 @@ def time_evolution_derivatives(
                 # r is the eigenvalue of the generator of the gate. The value is modified
                 # to take into account the coefficient and trotter step in front of the
                 # Pauli term
-                r = hamiltonian[index_term1].coefficient.real / trotter_order
+                coefficient = hamiltonian[index_term1].coefficient
+                if not isinstance(coefficient, complex):
+                    raise ValueError(
+                        "Evolution only works with numeric coefficients."
+                        f"{coefficient} is unsupported"
+                    )
+                r = coefficient.real / trotter_order
                 output_factors.append(factor * r)
                 shift = factor * (np.pi / (4.0 * r))
 
@@ -181,5 +188,7 @@ def time_evolution_for_term(
                 # We only want to modify the parameter of Rz gate or PHASE gate.
                 gate.params[0] = gate.params[0] * time
     else:
-        circuit = Circuit(pyquil_exponentiate(term * time))
+        exponent = term * time
+        assert isinstance(exponent, pyquil.paulis.PauliTerm)
+        circuit = Circuit(pyquil_exponentiate(exponent))
     return circuit

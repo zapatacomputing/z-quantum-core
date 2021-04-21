@@ -197,11 +197,9 @@ def estimate_expectation_values_by_averaging(
         backend: backend used for executing circuits
         estimation_tasks: list of estimation tasks
     """
-    circuits, operators, shots_per_circuit = [], [], []
-    for task in estimation_tasks:
-        circuits.append(task.circuit)
-        operators.append(task.operator)
-        shots_per_circuit.append(task.number_of_shots)
+    circuits, operators, shots_per_circuit = zip(
+        *[(e.circuit, e.operator, e.number_of_shots) for e in estimation_tasks]
+    )
 
     measurements_list = backend.run_circuitset_and_measure(circuits, shots_per_circuit)
 

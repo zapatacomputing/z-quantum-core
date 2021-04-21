@@ -2,7 +2,7 @@
 from functools import singledispatch
 from itertools import chain
 from operator import attrgetter
-from typing import Callable, Type, Union, overload
+from typing import Callable, Dict, Type, Union, overload
 
 import cirq
 import numpy as np
@@ -81,7 +81,7 @@ def make_rotation_factory(
     return _rotation
 
 
-ZQUANTUM_BUILTIN_GATE_NAME_TO_CIRQ_GATE = {
+ZQUANTUM_BUILTIN_GATE_NAME_TO_CIRQ_GATE: Dict[str, Callable] = {
     "X": cirq.X,
     "Y": cirq.Y,
     "Z": cirq.Z,
@@ -156,8 +156,22 @@ def export_to_cirq(circuit: _circuit.Circuit) -> cirq.Circuit:
     pass
 
 
-@singledispatch
 def export_to_cirq(obj):
+    """Export given native Zquantum object to its Cirq equivalent.
+
+    This should be primarily used with Circuit objects, but
+    also works for builtin gates and gate operations.
+
+    Exporting of user-defined gates is atm not supported.
+    """
+    # We need a facade wrapper becase mypy does not yet support overloads for
+    # functools.singledispatch. See mypy #8356.
+
+    return _export_to_cirq(obj)
+
+
+@singledispatch
+def _export_to_cirq(obj):
     """Export given native Zquantum object to its Cirq equivalent.
 
     This should be primarily used with Circuit objects, but
@@ -168,8 +182,8 @@ def export_to_cirq(obj):
     raise NotImplementedError(f"{obj} can't be exported to Cirq object.")
 
 
-@export_to_cirq.register
-def export_matrix_factory_gate_to_cirq(gate: _gates.MatrixFactoryGate) -> cirq.Gate:
+@_export_to_cirq.register
+def _export_matrix_factory_gate_to_cirq(gate: _gates.MatrixFactoryGate) -> cirq.Gate:
     try:
         cirq_factory = ZQUANTUM_BUILTIN_GATE_NAME_TO_CIRQ_GATE[gate.name]
         cirq_params = (
@@ -181,43 +195,26 @@ def export_matrix_factory_gate_to_cirq(gate: _gates.MatrixFactoryGate) -> cirq.G
         raise NotImplementedError(f"Gate {gate} can't be exported to Cirq.")
 
 
-@export_to_cirq.register
-def export_controlled_gate_to_cirq(gate: _gates.ControlledGate) -> cirq.Gate:
-    return export_to_cirq(gate.wrapped_gate).controlled(gate.num_control_qubits)
+@_export_to_cirq.register
+def _export_controlled_gate_to_cirq(gate: _gates.ControlledGate) -> cirq.Gate:
+    return _export_to_cirq(gate.wrapped_gate).controlled(gate.num_control_qubits)
 
 
-@export_to_cirq.register
-def export_dagger_to_cirq(gate: _gates.Dagger) -> cirq.Gate:
-    return cirq.inverse(export_to_cirq(gate.wrapped_gate))
+@_export_to_cirq.register
+def _export_dagger_to_cirq(gate: _gates.Dagger) -> cirq.Gate:
+    return cirq.inverse(_export_to_cirq(gate.wrapped_gate))
 
 
-@export_to_cirq.register
-def export_gate_operation_to_cirq(
+@_export_to_cirq.register
+def _export_gate_operation_to_cirq(
     operation: _gates.GateOperation,
 ) -> cirq.GateOperation:
-    return export_to_cirq(operation.gate)(*map(cirq.LineQubit, operation.qubit_indices))
+    return _export_to_cirq(operation.gate)(*map(cirq.LineQubit, operation.qubit_indices))
 
 
-@export_to_cirq.register
-def export_circuit_to_cirq(circuit: _circuit.Circuit) -> cirq.Circuit:
-    return cirq.Circuit([export_to_cirq(operation) for operation in circuit.operations])
-
-
-@overload
-def import_from_cirq(eigengate: cirq.Gate) -> _gates.Gate:
-    pass
-
-
-@overload
-def import_from_cirq(circuit: cirq.Circuit) -> _circuit.Circuit:
-    pass
-
-
-@overload
-def import_from_cirq(
-    operation: Union[cirq.GateOperation, cirq.ControlledOperation]
-) -> _gates.GateOperation:
-    pass
+@_export_to_cirq.register
+def _export_circuit_to_cirq(circuit: _circuit.Circuit) -> cirq.Circuit:
+    return cirq.Circuit([_export_to_cirq(operation) for operation in circuit.operations])
 
 
 @singledispatch

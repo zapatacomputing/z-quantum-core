@@ -2,7 +2,7 @@
 import json
 from numbers import Number
 from operator import attrgetter
-from typing import Any, Iterator
+from typing import Any, Iterator, Dict, Callable
 
 import numpy as np
 from scipy.optimize import OptimizeResult
@@ -39,7 +39,7 @@ def preprocess(tree):
 
 
 class OrquestraEncoder(json.JSONEncoder):
-    ENCODERS_TABLE = {
+    ENCODERS_TABLE: Dict[Any, Callable[[Any], Any]] = {
         np.ndarray: convert_array_to_dict,
         ValueEstimate: ValueEstimate.to_dict,
         BitstringDistribution: attrgetter("distribution_dict"),
@@ -53,7 +53,7 @@ class OrquestraEncoder(json.JSONEncoder):
     def encode(self, o: Any):
         return super().encode(preprocess(o))
 
-    def iterencode(self, o: Any, _one_shot: bool = ...) -> Iterator[str]:
+    def iterencode(self, o: Any, _one_shot: bool = False) -> Iterator[str]:
         return super().iterencode(preprocess(o))
 
 

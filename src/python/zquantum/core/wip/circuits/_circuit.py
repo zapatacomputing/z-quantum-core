@@ -70,9 +70,9 @@ class Circuit:
             set(),
         )
 
-    def __eq__(self, other: "Circuit"):
+    def __eq__(self, other: object):
         if not isinstance(other, type(self)):
-            return False
+            return NotImplemented
 
         if self.n_qubits != other.n_qubits:
             return False

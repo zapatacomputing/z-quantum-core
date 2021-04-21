@@ -11,6 +11,8 @@ from zquantum.core.graph import (
 from zquantum.core.graph import (
     generate_random_regular_graph as _generate_random_regular_graph,
 )
+import json
+from typing import Union, Optional, Dict, cast
 from zquantum.core.graph import save_graph
 
 

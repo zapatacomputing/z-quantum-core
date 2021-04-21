@@ -31,6 +31,7 @@ EQUIVALENT_PARAMETRIC_GATES = [
         (_builtin_gates.RX, cirq.rx),
         (_builtin_gates.RY, cirq.ry),
         (_builtin_gates.RZ, cirq.rz),
+        (_builtin_gates.RH, make_rotation_factory(cirq.HPowGate, 0.0)),
         (_builtin_gates.PHASE, make_rotation_factory(cirq.ZPowGate)),
         (_builtin_gates.CPHASE, cirq.cphase),
         (_builtin_gates.XX, make_rotation_factory(cirq.XXPowGate, -0.5)),

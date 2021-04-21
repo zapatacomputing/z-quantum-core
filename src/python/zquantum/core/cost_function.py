@@ -45,8 +45,6 @@ def get_ground_state_cost_function(
     Returns:
         Callable
     """
-    if estimator_kwargs is None:
-        estimator_kwargs = {}
     circuit_symbols = list(parametrized_circuit.symbolic_params)
 
     def ground_state_cost_function(
@@ -76,7 +74,7 @@ def get_ground_state_cost_function(
             circuit,
             target_operator,
             n_samples=backend.n_samples,
-            **estimator_kwargs
+            **(estimator_kwargs if isinstance(estimator_kwargs, Dict) else {})
         )
 
         return ValueEstimate(np.sum(expectation_values.values))
@@ -114,9 +112,9 @@ def sum_expectation_values(expectation_values: ExpectationValues) -> ValueEstima
     precision = None
 
     if expectation_values.estimator_covariances:
-        estimator_variance = 0
+        estimator_variance = 0.
         for frame_covariance in expectation_values.estimator_covariances:
-            estimator_variance += np.sum(frame_covariance, (0, 1))
+            estimator_variance += np.sum(frame_covariance, (0, 1)) # type: ignore
         precision = np.sqrt(estimator_variance)
     return ValueEstimate(value, precision)
 

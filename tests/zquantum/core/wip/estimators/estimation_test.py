@@ -1,10 +1,12 @@
+import operator
 import numpy as np
 import pytest
+import sympy
 from openfermion import IsingOperator, QubitOperator, qubit_operator_sparse
 from pyquil import Program
 from pyquil.gates import RY, RZ, X
 from functools import partial
-from zquantum.core.circuit import Circuit
+from zquantum.core.circuit import Circuit, Qubit, Gate
 from zquantum.core.interfaces.mock_objects import (
     MockQuantumBackend,
     MockQuantumSimulator,
@@ -18,6 +20,7 @@ from zquantum.core.wip.estimators.estimation import (
     estimate_expectation_values_by_averaging,
     allocate_shots_proportionally,
     allocate_shots_uniformly,
+    evaluate_estimation_circuits,
 )
 from zquantum.core.wip.estimators.estimation_interface import EstimationTask
 
@@ -69,6 +72,29 @@ class TestEstimatorUtils:
         ]
 
         return operators
+
+    @pytest.fixture()
+    def circuits(self):
+        circuits = [Circuit() for _ in range(5)]
+        for circuit in circuits:
+            circuit.qubits = [Qubit(i) for i in range(2)]
+
+        circuits[1].gates = [
+            Gate("Rx", [circuits[1].qubits[0]], [1.2]),
+            Gate("Ry", [circuits[1].qubits[1]], [1.5]),
+            Gate("Rx", [circuits[1].qubits[0]], [-0.0002]),
+            Gate("Ry", [circuits[1].qubits[1]], [0]),
+        ]
+
+        for circuit in circuits[2:]:
+            circuit.gates = [
+                Gate("Rx", [circuit.qubits[0]], [sympy.Symbol("theta_0")]),
+                Gate("Ry", [circuit.qubits[1]], [sympy.Symbol("theta_1")]),
+                Gate("Rx", [circuit.qubits[0]], [sympy.Symbol("theta_2")]),
+                Gate("Ry", [circuit.qubits[1]], [sympy.Symbol("theta_3")]),
+            ]
+
+        return circuits
 
     @pytest.mark.parametrize(
         "n_samples, target_n_samples_list",
@@ -152,6 +178,50 @@ class TestEstimatorUtils:
             allocate_shots = allocate_shots_proportionally(
                 estimation_tasks, total_n_shots, prior_expectation_values
             )
+
+    def test_evaluate_estimation_circuits_no_symbols(
+        self,
+        circuits,
+    ):
+        evaluate_circuits = partial(
+            evaluate_estimation_circuits, symbols_maps=[[] for _ in circuits]
+        )
+        operator = QubitOperator()
+        estimation_tasks = [
+            EstimationTask(operator, circuit, 1) for circuit in circuits
+        ]
+
+        new_estimation_tasks = evaluate_circuits(estimation_tasks)
+
+        for old_task, new_task in zip(estimation_tasks, new_estimation_tasks):
+            assert old_task.circuit == new_task.circuit
+
+    def test_evaluate_estimation_circuits_all_symbols(
+        self,
+        circuits,
+    ):
+        symbols_maps = [
+            [
+                (sympy.Symbol("theta_0"), 0),
+                (sympy.Symbol("theta_1"), 0),
+                (sympy.Symbol("theta_2"), 0),
+                (sympy.Symbol("theta_3"), 0),
+            ]
+            for _ in circuits
+        ]
+        evaluate_circuits = partial(
+            evaluate_estimation_circuits,
+            symbols_maps=symbols_maps,
+        )
+        operator = QubitOperator()
+        estimation_tasks = [
+            EstimationTask(operator, circuit, 1) for circuit in circuits
+        ]
+
+        new_estimation_tasks = evaluate_circuits(estimation_tasks)
+
+        for new_task in new_estimation_tasks:
+            assert new_task.circuit.symbolic_params == []
 
 
 class TestBasicEstimationMethods:

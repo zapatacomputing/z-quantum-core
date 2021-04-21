@@ -1,5 +1,5 @@
 from functools import singledispatch
-from typing import Iterable, Mapping
+from typing import Iterable, Mapping, Tuple
 
 import numpy as np
 import pyquil
@@ -87,6 +87,15 @@ def _import_gate(
     )
 
 
+def _ensure_is_gate(
+    gate_ref: _builtin_gates.GateRef, params: Tuple[_gates.Parameter, ...]
+) -> _gates.Gate:
+    if isinstance(gate_ref, _gates.Gate):
+        return gate_ref
+    else:
+        return gate_ref(*params)
+
+
 def _import_gate_via_name(gate: pyquil.gates.Gate) -> _gates.GateOperation:
     try:
         zq_gate_ref = _builtin_gates.builtin_gate_by_name(gate.name)
@@ -94,23 +103,14 @@ def _import_gate_via_name(gate: pyquil.gates.Gate) -> _gates.GateOperation:
         raise ValueError(f"Can't import {gate} as a built-in gate")
 
     zq_params = tuple(map(_import_expression, gate.params))
-    zq_gate = zq_gate_ref(*zq_params) if zq_params else zq_gate_ref
+    zq_gate = _ensure_is_gate(zq_gate_ref, zq_params)
 
     for modifier in gate.modifiers:
         if modifier == "DAGGER":
-            if isinstance(zq_gate, _gates.Gate):
-                zq_gate = zq_gate.dagger
-            else:
-                raise ValueError()
+            zq_gate = zq_gate.dagger
         elif modifier == "CONTROLLED":
-            if isinstance(zq_gate, _gates.Gate):
-                zq_gate = zq_gate.controlled(1)
-            else:
-                raise ValueError()
+            zq_gate = zq_gate.controlled(1)
     all_qubits = _import_pyquil_qubits(gate.qubits)
-
-    if isinstance(zq_gate, _gates.GateOperation):
-        raise ValueError()
 
     operation = zq_gate(*all_qubits)
     if not isinstance(operation, _gates.GateOperation):

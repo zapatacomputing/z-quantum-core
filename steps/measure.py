@@ -11,7 +11,6 @@ from zquantum.core.circuit import (
 )
 from zquantum.core.hamiltonian import (
     estimate_nmeas_for_frames,
-    estimate_nmeas_for_operator,
     get_expectation_values_from_rdms,
     get_expectation_values_from_rdms_for_qubitoperator_list,
 )

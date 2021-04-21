@@ -48,7 +48,7 @@ def get_ground_state_cost_function(
     parameter_precision: Optional[float] = None,
     parameter_precision_seed: Optional[int] = None,
     gradient_function: Callable = finite_differences_gradient,
-):
+) -> Callable[[np.ndarray, StoreArtifact], ValueEstimate]:
     """Returns a function that returns the estimated expectation value of the input
     target operator with respect to the state prepared by the parameterized quantum
     circuit when evaluated to the input parameters. The function also has a .gradient

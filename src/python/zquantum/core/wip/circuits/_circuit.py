@@ -70,9 +70,9 @@ class Circuit:
             set(),
         )
 
-    def __eq__(self, other: "Circuit"):
+    def __eq__(self, other: object):
         if not isinstance(other, type(self)):
-            return False
+            return NotImplemented
 
         if self.n_qubits != other.n_qubits:
             return False
@@ -85,14 +85,14 @@ class Circuit:
     def __add__(self, other: Union["Circuit"]):
         return _append_to_circuit(other, self)
 
-    def collect_custom_gate_definitions(self):
-        custom_gate_definiions = (
+    def collect_custom_gate_definitions(self) -> Iterable[_gates.CustomGateDefinition]:
+        custom_gate_definitions = (
             operation.gate.matrix_factory.gate_definition
             for operation in self.operations
             if _operation_uses_custom_gate(operation)
         )
         unique_operation_dict = {}
-        for gate_def in custom_gate_definiions:
+        for gate_def in custom_gate_definitions:
             if gate_def.gate_name not in unique_operation_dict:
                 unique_operation_dict[gate_def.gate_name] = gate_def
             elif unique_operation_dict[gate_def.gate_name] != gate_def:

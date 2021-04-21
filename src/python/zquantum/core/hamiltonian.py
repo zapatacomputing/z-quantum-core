@@ -1,4 +1,4 @@
-from typing import Callable, List, Optional, Tuple
+from typing import Callable, Dict, List, Optional, Tuple
 import numpy as np
 import copy
 from openfermion.ops import InteractionOperator, InteractionRDM, QubitOperator
@@ -45,8 +45,11 @@ def group_comeasureable_terms_greedy(
         A list of qubit operators.
     """
 
-    groups = []  # List of QubitOperators representing groups of co-measureable terms
+    groups: List[
+        QubitOperator
+    ] = []  # List of QubitOperators representing groups of co-measureable terms
     constant_term = None
+
     if sort_terms:
         terms_iterator = sorted(
             qubit_operator.terms.items(), key=lambda x: abs(x[1]), reverse=True
@@ -81,11 +84,15 @@ def group_comeasureable_terms_greedy(
     return groups
 
 
-DECOMPOSITION_METHODS = {
+def _group_comeasureable_terms_greedy_sorted(
+    qubit_operator: QubitOperator,
+) -> List[QubitOperator]:
+    return group_comeasureable_terms_greedy(qubit_operator, True)
+
+
+DECOMPOSITION_METHODS: Dict[str, Callable[[QubitOperator], List[QubitOperator]]] = {
     "greedy": group_comeasureable_terms_greedy,
-    "greedy-sorted": lambda qubit_operator: group_comeasureable_terms_greedy(
-        qubit_operator, True
-    ),
+    "greedy-sorted": _group_comeasureable_terms_greedy_sorted,
 }
 
 
@@ -123,7 +130,7 @@ def _remove_constant_term_from_group(group: QubitOperator) -> QubitOperator:
 
 def compute_group_variances(
     groups: List[QubitOperator], expecval: ExpectationValues = None
-) -> np.array:
+) -> np.ndarray:
     """Computes the variances of each frame in a grouped operator.
 
     If expectation values are provided, use variances from there,
@@ -239,7 +246,7 @@ def get_expectation_values_from_rdms(
 def estimate_nmeas_for_frames(
     frame_operators: List[QubitOperator],
     expecval: Optional[ExpectationValues] = None,
-) -> Tuple[float, int, np.array]:
+) -> Tuple[float, int, np.ndarray]:
     """Calculates the number of measurements required for computing
     the expectation value of a qubit hamiltonian, where co-measurable terms
     are grouped in a single QubitOperator, and different groups are different

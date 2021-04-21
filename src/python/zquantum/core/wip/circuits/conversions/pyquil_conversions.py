@@ -165,13 +165,17 @@ def _is_supported_by_pyquil(gate):
     return hasattr(pyquil.gates, gate.name)
 
 
+def _unique_by(sequence, key):
+    return {key(obj): obj for obj in sequence}.values()
+
+
 def _collect_unsupported_builtin_gate_defs(gates: Iterable[_gates.Gate]):
-    # Using dict's property that if there are multiple entries with the same key, only
-    # one of them will be left in the dictionary.
-    unwrapped_gates_by_name = {gate.name: gate for gate in map(_unwrap_gate, gates)}
+    unwrapped_gates = _unique_by(
+        map(_unwrap_gate, gates), key=lambda gate: gate.name
+    )
     return [
         _gate_definition_from_matrix_factory_gate(gate)
-        for gate in unwrapped_gates_by_name.values()
+        for gate in unwrapped_gates
         if _is_builtin_gate(gate) and not _is_supported_by_pyquil(gate)
     ]
 

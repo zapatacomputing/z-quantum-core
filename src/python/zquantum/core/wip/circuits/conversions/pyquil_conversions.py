@@ -1,5 +1,5 @@
 from functools import singledispatch
-from typing import Iterable, Mapping
+from typing import Iterable, Mapping, Union
 
 import numpy as np
 import pyquil
@@ -134,9 +134,58 @@ def _assign_custom_defs(
         )
 
 
+@singledispatch
+def _unwrap_gate(gate: _gates.Gate):
+    return gate
+
+
+@_unwrap_gate.register(_gates.ControlledGate)
+@_unwrap_gate.register(_gates.Dagger)
+def _unwrap_controlled_gate(gate: Union[_gates.ControlledGate, _gates.Dagger]):
+    return _unwrap_gate(gate.wrapped_gate)
+
+
+def _gate_definition_from_matrix_factory_gate(
+    gate: _gates.MatrixFactoryGate,
+) -> _gates.CustomGateDefinition:
+    symbols = [sympy.Symbol(f"theta_{i}") for i in range(len(gate.params))]
+    template_matrix = gate.matrix_factory(*symbols)
+    return _gates.CustomGateDefinition(
+        gate_name=gate.name,
+        matrix=template_matrix,
+        params_ordering=symbols,
+    )
+
+
+def _is_builtin_gate(gate):
+    return hasattr(_builtin_gates, gate.name)
+
+
+def _is_supported_by_pyquil(gate):
+    return hasattr(pyquil.gates, gate.name)
+
+
+def _unique_by(sequence, key):
+    return {key(obj): obj for obj in sequence}.values()
+
+
+def _collect_unsupported_builtin_gate_defs(gates: Iterable[_gates.Gate]):
+    unwrapped_gates = _unique_by(
+        map(_unwrap_gate, gates), key=lambda gate: gate.name
+    )
+    return [
+        _gate_definition_from_matrix_factory_gate(gate)
+        for gate in unwrapped_gates
+        if _is_builtin_gate(gate) and not _is_supported_by_pyquil(gate)
+    ]
+
+
 def export_to_pyquil(circuit: _circuit.Circuit) -> pyquil.Program:
     var_declarations = map(_param_declaration, sorted(map(str, circuit.free_symbols)))
-    custom_gate_definitions = circuit.collect_custom_gate_definitions()
+    custom_gate_definitions = [
+        *circuit.collect_custom_gate_definitions(),
+        *_collect_unsupported_builtin_gate_defs([op.gate for op in circuit.operations]),
+    ]
     custom_gate_names = {gate_def.gate_name for gate_def in custom_gate_definitions}
     gate_instructions = [
         _export_gate(op.gate, op.qubit_indices, custom_gate_names)
@@ -158,12 +207,7 @@ def _export_gate(gate: _gates.Gate, qubit_indices, custom_gate_names):
     except ValueError:
         pass
 
-    try:
-        return _export_custom_gate(gate, qubit_indices, custom_gate_names)
-    except ValueError:
-        pass
-
-    raise NotImplementedError(f"Exporting gate {gate} to PyQuil is unsupported.")
+    return _export_custom_gate(gate, qubit_indices, custom_gate_names)
 
 
 def _export_custom_gate(gate: _gates.Gate, qubit_indices, custom_gate_names):

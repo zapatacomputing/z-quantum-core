@@ -23,7 +23,7 @@ def optimize_parametrized_circuit_for_ground_state_of_operator(
     target_operator: Union[SymbolicOperator, str],
     parametrized_circuit: Union[Circuit, str],
     backend_specs: Specs,
-    estimator_specs: Optional[Specs] = None,
+    estimation_method_specs: Optional[Specs] = None,
     estimation_preprocessors_specs: Optional[List[Specs]] = None,
     initial_parameters: Union[str, np.ndarray, List[float]] = None,
     fixed_parameters: Optional[Union[np.ndarray, str]] = None,
@@ -37,7 +37,7 @@ def optimize_parametrized_circuit_for_ground_state_of_operator(
         target_operator: The operator of which to prepare the ground state
         parametrized_circuit: The parametrized quantum circuit that prepares trial states
         backend_specs: The specs of the quantum backend (or simulator) to use to run the circuits
-        estimator_specs: A reference to a callable to use to estimate the expectation value of the operator.
+        estimation_method_specs: A reference to a callable to use to estimate the expectation value of the operator.
             The default is the estimate_expectation_values_by_averaging function.
         estimation_preprocessors_specs: A list of Specs that describe callable functions that adhere to the
             EstimationPreprocessor protocol.
@@ -60,12 +60,12 @@ def optimize_parametrized_circuit_for_ground_state_of_operator(
         backend_specs = json.loads(backend_specs)
     backend = create_object(backend_specs)
 
-    if estimator_specs is not None:
-        if isinstance(estimator_specs, str):
-            estimator_specs = json.loads(estimator_specs)
-        estimator = create_object(estimator_specs)
+    if estimation_method_specs is not None:
+        if isinstance(estimation_method_specs, str):
+            estimation_method_specs = json.loads(estimation_method_specs)
+        estimation_method = create_object(estimation_method_specs)
     else:
-        estimator = estimate_expectation_values_by_averaging
+        estimation_method = estimate_expectation_values_by_averaging
 
     estimation_preprocessors = []
     if estimation_preprocessors_specs is not None:
@@ -90,7 +90,7 @@ def optimize_parametrized_circuit_for_ground_state_of_operator(
         target_operator,
         parametrized_circuit,
         backend,
-        estimator=estimator,
+        estimation_method=estimation_method,
         estimation_preprocessors=estimation_preprocessors,
         fixed_parameters=fixed_parameters,
         parameter_precision=parameter_precision,
@@ -107,7 +107,7 @@ def optimize_ansatz_based_cost_function(
     target_operator: Union[SymbolicOperator, str],
     ansatz_specs: Specs,
     backend_specs: Specs,
-    estimator_specs: Optional[Specs] = None,
+    estimation_method_specs: Optional[Specs] = None,
     estimation_preprocessors_specs: Optional[List[Specs]] = None,
     initial_parameters: Union[str, np.ndarray, List[float]] = None,
     fixed_parameters: Optional[Union[np.ndarray, str]] = None,
@@ -121,7 +121,7 @@ def optimize_ansatz_based_cost_function(
         target_operator: The operator of which to prepare the ground state
         ansatz_specs: The specs describing an Ansatz which will prepare the quantum circuit
         backend_specs: The specs of the quantum backend (or simulator) to use to run the circuits
-        estimator_specs: A reference to a callable to use to estimate the expectation value of the operator.
+        estimation_method_specs: A reference to a callable to use to estimate the expectation value of the operator.
             The default is the estimate_expectation_values_by_averaging function.
         estimation_preprocessors_specs: A list of Specs that describe callable functions that adhere to the
             EstimationPreprocessor protocol.
@@ -145,12 +145,12 @@ def optimize_ansatz_based_cost_function(
         backend_specs = json.loads(backend_specs)
     backend = create_object(backend_specs)
 
-    if estimator_specs is not None:
-        if isinstance(estimator_specs, str):
-            estimator_specs = json.loads(estimator_specs)
-        estimator = create_object(estimator_specs)
+    if estimation_method_specs is not None:
+        if isinstance(estimation_method_specs, str):
+            estimation_method_specs = json.loads(estimation_method_specs)
+        estimation_method = create_object(estimation_method_specs)
     else:
-        estimator = estimate_expectation_values_by_averaging
+        estimation_method = estimate_expectation_values_by_averaging
 
     estimation_preprocessors = []
     if estimation_preprocessors_specs is not None:
@@ -175,7 +175,7 @@ def optimize_ansatz_based_cost_function(
         target_operator,
         ansatz,
         backend,
-        estimator=estimator,
+        estimation_method=estimation_method,
         estimation_preprocessors=estimation_preprocessors,
         fixed_parameters=fixed_parameters,
         parameter_precision=parameter_precision,

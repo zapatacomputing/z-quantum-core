@@ -34,7 +34,7 @@ RNGSEED = 1234
                 number_of_layers=1, problem_size=1
             ).parametrized_circuit,
             "backend": MockQuantumSimulator(),
-            "estimator": estimate_expectation_values_by_averaging,
+            "estimation_method": estimate_expectation_values_by_averaging,
             "estimation_preprocessors": [
                 partial(allocate_shots_uniformly, number_of_shots=1)
             ],
@@ -45,7 +45,7 @@ RNGSEED = 1234
                 number_of_layers=1, problem_size=2
             ).parametrized_circuit,
             "backend": MockQuantumSimulator(),
-            "estimator": estimate_expectation_values_by_averaging,
+            "estimation_method": estimate_expectation_values_by_averaging,
             "estimation_preprocessors": [
                 partial(allocate_shots_uniformly, number_of_shots=1)
             ],
@@ -56,7 +56,7 @@ RNGSEED = 1234
                 number_of_layers=2, problem_size=2
             ).parametrized_circuit,
             "backend": MockQuantumSimulator(),
-            "estimator": estimate_expectation_values_by_averaging,
+            "estimation_method": estimate_expectation_values_by_averaging,
             "fixed_parameters": [1.2],
             "estimation_preprocessors": [
                 partial(allocate_shots_uniformly, number_of_shots=1)
@@ -68,7 +68,7 @@ RNGSEED = 1234
                 number_of_layers=2, problem_size=2
             ).parametrized_circuit,
             "backend": MockQuantumSimulator(),
-            "estimator": estimate_expectation_values_by_averaging,
+            "estimation_method": estimate_expectation_values_by_averaging,
             "fixed_parameters": [1.2],
             "parameter_precision": 0.001,
             "parameter_precision_seed": RNGSEED,
@@ -82,7 +82,7 @@ RNGSEED = 1234
                 number_of_layers=1, problem_size=1
             ).parametrized_circuit,
             "backend": MockQuantumSimulator(),
-            "estimator": estimate_expectation_values_by_averaging,
+            "estimation_method": estimate_expectation_values_by_averaging,
             "estimation_preprocessors": [
                 partial(allocate_shots_proportionally, total_n_shots=1)
             ],
@@ -108,13 +108,13 @@ def test_noisy_ground_state_cost_function_adds_noise_to_parameters():
     ).parametrized_circuit
     parametrized_circuit.evaluate = mock.Mock(wraps=parametrized_circuit.evaluate)
     backend = MockQuantumSimulator()
-    estimator = estimate_expectation_values_by_averaging
+    estimation_method = estimate_expectation_values_by_averaging
     estimation_preprocessors = [partial(allocate_shots_uniformly, number_of_shots=1)]
     noisy_ground_state_cost_function = get_ground_state_cost_function(
         target_operator,
         parametrized_circuit,
         backend,
-        estimator=estimator,
+        estimation_method=estimation_method,
         estimation_preprocessors=estimation_preprocessors,
         parameter_precision=1e-4,
         parameter_precision_seed=RNGSEED,
@@ -175,13 +175,13 @@ def ansatz_based_cost_function():
     target_operator = QubitOperator("Z0")
     ansatz = MockAnsatz(number_of_layers=1, problem_size=1)
     backend = MockQuantumSimulator()
-    estimator = estimate_expectation_values_by_averaging
+    estimation_method = estimate_expectation_values_by_averaging
     estimation_preprocessors = [partial(allocate_shots_uniformly, number_of_shots=1)]
     return AnsatzBasedCostFunction(
         target_operator,
         ansatz,
         backend,
-        estimator=estimator,
+        estimation_method=estimation_method,
         estimation_preprocessors=estimation_preprocessors,
     )
 
@@ -199,13 +199,13 @@ def noisy_ansatz_cost_function_with_ansatz():
     target_operator = QubitOperator("Z0")
     ansatz = MockAnsatz(number_of_layers=2, problem_size=1)
     backend = MockQuantumSimulator()
-    estimator = mock.Mock(wraps=calculate_exact_expectation_values)
+    estimation_method = mock.Mock(wraps=calculate_exact_expectation_values)
     return (
         AnsatzBasedCostFunction(
             target_operator,
             ansatz,
             backend,
-            estimator=estimator,
+            estimation_method=estimation_method,
             parameter_precision=1e-4,
             parameter_precision_seed=RNGSEED,
         ),
@@ -230,7 +230,7 @@ def test_ansatz_based_cost_function_adds_noise_to_parameters(
     noisy_ansatz_cost_function(np.array(params))
 
     # We only called our function once, therefore the following should be true
-    noisy_ansatz_cost_function.estimator.assert_called_once()
+    noisy_ansatz_cost_function.estimation_method.assert_called_once()
 
     # Here, we make the expected executable circuit with the noisy parameters
     noisy_symbols_map = create_symbols_map(
@@ -241,6 +241,6 @@ def test_ansatz_based_cost_function_adds_noise_to_parameters(
     ).gates
 
     assert (
-        noisy_ansatz_cost_function.estimator.call_args[0][1][0].circuit.gates
+        noisy_ansatz_cost_function.estimation_method.call_args[0][1][0].circuit.gates
         == expected_noisy_circuit
     )

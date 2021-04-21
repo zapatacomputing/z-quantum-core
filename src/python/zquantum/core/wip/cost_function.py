@@ -42,7 +42,7 @@ def get_ground_state_cost_function(
     target_operator: SymbolicOperator,
     parametrized_circuit: Circuit,
     backend: QuantumBackend,
-    estimator: EstimateExpectationValues = estimate_expectation_values_by_averaging,
+    estimation_method: EstimateExpectationValues = estimate_expectation_values_by_averaging,
     estimation_preprocessors: List[EstimationPreprocessor] = None,
     fixed_parameters: Optional[np.ndarray] = None,
     parameter_precision: Optional[float] = None,
@@ -58,7 +58,7 @@ def get_ground_state_cost_function(
         target_operator: operator to be evaluated and find the ground state of
         parametrized_circuit: parameterized circuit to prepare quantum states
         backend: backend used for evaluation
-        estimator: estimator used to compute expectation value of target operator
+        estimation_method: estimation_method used to compute expectation value of target operator
         estimation_preprocessors: A list of callable functions that adhere to the EstimationPreprocessor
             protocol and are used to create the estimation tasks.
         fixed_parameters: values for the circuit parameters that should be fixed.
@@ -109,7 +109,7 @@ def get_ground_state_cost_function(
             estimation_tasks, [symbols_map for _ in estimation_tasks]
         )
 
-        expectation_values_list = estimator(backend, estimation_tasks)
+        expectation_values_list = estimation_method(backend, estimation_tasks)
         summed_values = ValueEstimate(
             np.sum(
                 [
@@ -168,7 +168,7 @@ class AnsatzBasedCostFunction:
         target_operator: operator to be evaluated
         ansatz: ansatz used to evaluate cost function
         backend: backend used for evaluation
-        estimator: estimator used to compute expectation value of target operator
+        estimation_method: estimation_method used to compute expectation value of target operator
         estimation_preprocessors: A list of callable functions that adhere to the EstimationPreprocessor
             protocol and are used to create the estimation tasks.
         fixed_parameters: values for the circuit parameters that should be fixed.
@@ -177,7 +177,7 @@ class AnsatzBasedCostFunction:
 
     Params:
         backend: see Args
-        estimator: see Args
+        estimation_method: see Args
         fixed_parameters (np.ndarray): see Args
         parameter_precision: see Args
         parameter_precision_seed: see Args
@@ -190,7 +190,7 @@ class AnsatzBasedCostFunction:
         target_operator: SymbolicOperator,
         ansatz: Ansatz,
         backend: QuantumBackend,
-        estimator: EstimateExpectationValues = estimate_expectation_values_by_averaging,
+        estimation_method: EstimateExpectationValues = estimate_expectation_values_by_averaging,
         estimation_preprocessors: List[EstimationPreprocessor] = None,
         fixed_parameters: Optional[np.ndarray] = None,
         parameter_precision: Optional[float] = None,
@@ -201,10 +201,10 @@ class AnsatzBasedCostFunction:
         self.parameter_precision = parameter_precision
         self.parameter_precision_seed = parameter_precision_seed
 
-        if estimator is None:
-            self.estimator = estimate_expectation_values_by_averaging
+        if estimation_method is None:
+            self.estimation_method = estimate_expectation_values_by_averaging
         else:
-            self.estimator = estimator
+            self.estimation_method = estimation_method
 
         if estimation_preprocessors is None:
             estimation_preprocessors = []
@@ -244,7 +244,7 @@ class AnsatzBasedCostFunction:
         estimation_tasks = evaluate_estimation_circuits(
             self.estimation_tasks, [symbols_map for _ in self.estimation_tasks]
         )
-        expectation_values_list = self.estimator(self.backend, estimation_tasks)
+        expectation_values_list = self.estimation_method(self.backend, estimation_tasks)
         summed_values = ValueEstimate(
             np.sum(
                 [

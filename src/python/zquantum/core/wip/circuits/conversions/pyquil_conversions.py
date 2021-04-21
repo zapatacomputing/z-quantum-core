@@ -98,11 +98,24 @@ def _import_gate_via_name(gate: pyquil.gates.Gate) -> _gates.GateOperation:
 
     for modifier in gate.modifiers:
         if modifier == "DAGGER":
-            zq_gate = zq_gate.dagger
+            if isinstance(zq_gate, _gates.Gate):
+                zq_gate = zq_gate.dagger
+            else:
+                raise ValueError()
         elif modifier == "CONTROLLED":
-            zq_gate = zq_gate.controlled(1)
+            if isinstance(zq_gate, _gates.Gate):
+                zq_gate = zq_gate.controlled(1)
+            else:
+                raise ValueError()
     all_qubits = _import_pyquil_qubits(gate.qubits)
-    return zq_gate(*all_qubits)
+
+    if isinstance(zq_gate, _gates.GateOperation):
+        raise ValueError()
+
+    operation = zq_gate(*all_qubits)
+    if not isinstance(operation, _gates.GateOperation):
+        raise ValueError()
+    return operation
 
 
 def _import_custom_gate(instruction, custom_gate_defs):
@@ -119,7 +132,7 @@ def _import_custom_gate(instruction, custom_gate_defs):
     return gate_def(*zq_params)(*zq_qubits)
 
 
-def _import_pyquil_qubits(qubits: Iterable[pyquil.quil.Qubit]):
+def _import_pyquil_qubits(qubits):
     return tuple(qubit.index for qubit in qubits)
 
 

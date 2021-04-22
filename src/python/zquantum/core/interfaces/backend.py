@@ -27,6 +27,7 @@ class QuantumBackend(ABC):
     """
 
     supports_batching = False
+    batch_size = None
 
     def __init__(self, n_samples: Optional[int] = None):
         if n_samples is not None:
@@ -43,6 +44,7 @@ class QuantumBackend(ABC):
         self.number_of_jobs_run = 0
 
         if self.supports_batching:
+            assert isinstance(self.batch_size, float)
             assert self.batch_size > 0
 
     @abstractmethod
@@ -62,6 +64,11 @@ class QuantumBackend(ABC):
         """
         self.number_of_circuits_run += 1
         self.number_of_jobs_run += 1
+
+        # This value is only returned so that mypy doesn't complain.
+        # You can remove this workaround when we reimplement counter increments in
+        # a more type-elegant way.
+        return Measurements()
 
     def run_circuitset_and_measure(
         self,

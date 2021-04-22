@@ -1,6 +1,6 @@
 import itertools
 import random
-from typing import List, Optional, Union
+from typing import List, Optional, Union, Iterable
 
 import cirq
 import numpy as np
@@ -612,7 +612,7 @@ def qubitop_to_paulisum(
             converted_sum += coefficient
             continue
 
-        cirq_term = cirq.PauliString()
+        cirq_term: cirq.PauliString = cirq.PauliString()
         for qubit_index, operator in term:
             cirq_term *= operator_map[operator](qubits[qubit_index])
         converted_sum += cirq_term * coefficient
@@ -676,18 +676,18 @@ def get_ground_state_rdm_from_qubit_op(
     )  # float/np.array pair
     n_qubits = count_qubits(qubit_operator)
 
-    one_body_tensor = []
+    one_body_tensor_list = []
     for i in range(n_qubits):
         for j in range(n_qubits):
             idag_j = get_sparse_operator(
                 FermionOperator(f"{i}^ {j}"), n_qubits=n_qubits
             )
             idag_j = idag_j.toarray()
-            one_body_tensor.append(
+            one_body_tensor_list.append(
                 np.conjugate(ground_state_wf) @ idag_j @ ground_state_wf
             )
 
-    one_body_tensor = np.array(one_body_tensor)
+    one_body_tensor = np.array(one_body_tensor_list)
     one_body_tensor = one_body_tensor.reshape(n_qubits, n_qubits)
 
     two_body_tensor = np.zeros((n_qubits,) * 4, dtype=complex)
@@ -736,6 +736,7 @@ def remove_inactive_orbitals(
     # Determine which occupied spin-orbitals are to be frozen
     occupied = range(2 * n_core)
 
+    unoccupied: Iterable
     # Determine which unoccupied spin-orbitals are to be frozen
     if n_active is not None:
         unoccupied = range(

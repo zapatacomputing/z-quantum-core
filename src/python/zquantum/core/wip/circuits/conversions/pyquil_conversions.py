@@ -1,5 +1,5 @@
 from functools import singledispatch
-from typing import Iterable, Mapping, Union
+from typing import Iterable, Mapping, Tuple, Union
 
 import numpy as np
 import pyquil
@@ -87,6 +87,15 @@ def _import_gate(
     )
 
 
+def _ensure_is_gate(
+    gate_ref: _builtin_gates.GateRef, params: Tuple[_gates.Parameter, ...]
+) -> _gates.Gate:
+    if isinstance(gate_ref, _gates.Gate):
+        return gate_ref
+    else:
+        return gate_ref(*params)
+
+
 def _import_gate_via_name(gate: pyquil.gates.Gate) -> _gates.GateOperation:
     try:
         zq_gate_ref = _builtin_gates.builtin_gate_by_name(gate.name)
@@ -94,7 +103,7 @@ def _import_gate_via_name(gate: pyquil.gates.Gate) -> _gates.GateOperation:
         raise ValueError(f"Can't import {gate} as a built-in gate")
 
     zq_params = tuple(map(_import_expression, gate.params))
-    zq_gate = zq_gate_ref(*zq_params) if zq_params else zq_gate_ref
+    zq_gate = _ensure_is_gate(zq_gate_ref, zq_params)
 
     for modifier in gate.modifiers:
         if modifier == "DAGGER":
@@ -102,7 +111,11 @@ def _import_gate_via_name(gate: pyquil.gates.Gate) -> _gates.GateOperation:
         elif modifier == "CONTROLLED":
             zq_gate = zq_gate.controlled(1)
     all_qubits = _import_pyquil_qubits(gate.qubits)
-    return zq_gate(*all_qubits)
+
+    operation = zq_gate(*all_qubits)
+    if not isinstance(operation, _gates.GateOperation):
+        raise ValueError()
+    return operation
 
 
 def _import_custom_gate(instruction, custom_gate_defs):
@@ -119,7 +132,7 @@ def _import_custom_gate(instruction, custom_gate_defs):
     return gate_def(*zq_params)(*zq_qubits)
 
 
-def _import_pyquil_qubits(qubits: Iterable[pyquil.quil.Qubit]):
+def _import_pyquil_qubits(qubits):
     return tuple(qubit.index for qubit in qubits)
 
 
@@ -148,7 +161,7 @@ def _unwrap_controlled_gate(gate: Union[_gates.ControlledGate, _gates.Dagger]):
 def _gate_definition_from_matrix_factory_gate(
     gate: _gates.MatrixFactoryGate,
 ) -> _gates.CustomGateDefinition:
-    symbols = [sympy.Symbol(f"theta_{i}") for i in range(len(gate.params))]
+    symbols = tuple(sympy.Symbol(f"theta_{i}") for i in range(len(gate.params)))
     template_matrix = gate.matrix_factory(*symbols)
     return _gates.CustomGateDefinition(
         gate_name=gate.name,

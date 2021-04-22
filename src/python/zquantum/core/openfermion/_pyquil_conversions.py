@@ -38,7 +38,7 @@ def qubitop_to_pyquilpauli(qubit_operator: QubitOperator) -> PauliSum:
 
     terms = []
     for qubit_terms, coefficient in qubit_operator.terms.items():
-        base_term = PauliTerm("I", 0)
+        base_term: Union[PauliTerm, PauliSum] = PauliTerm("I", 0)
         for tensor_term in qubit_terms:
             base_term *= PauliTerm(tensor_term[1], tensor_term[0])
         terms.append(base_term * coefficient)

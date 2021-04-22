@@ -7,11 +7,12 @@ from typing import Callable, Dict, Tuple, Union, Iterable
 
 import numpy as np
 import sympy
-from typing_extensions import Protocol
+from typing_extensions import Protocol, runtime_checkable
 
 from ._unitary_tools import _lift_matrix_numpy, _lift_matrix_sympy
 
 Parameter = Union[sympy.Symbol, Number]
+
 
 def _get_free_symbols(parameters: Tuple[Parameter, ...]) -> Iterable[sympy.Symbol]:
     symbols = set(
@@ -22,6 +23,8 @@ def _get_free_symbols(parameters: Tuple[Parameter, ...]) -> Iterable[sympy.Symbo
     )
     return sorted(symbols, key=str)
 
+
+@runtime_checkable
 class Gate(Protocol):
     """Interface of a quantum gate representable by a matrix, translatable to other frameworks and backends.
 

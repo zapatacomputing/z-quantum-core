@@ -2,12 +2,14 @@ from typing import Callable, Union
 
 from . import _gates, _matrices
 
-GatePrototype = Callable[..., _gates.MatrixFactoryGate]
+# GatePrototype is a function that accepts *args of type `_gates.Parameter` and returns
+# a `_gates.Gate`.
+GatePrototype = Callable[..., _gates.Gate]
 GateRef = Union[_gates.Gate, GatePrototype]
 
 
 def make_parametric_gate_prototype(name, matrix_factory, num_qubits) -> GatePrototype:
-    def _factory(*gate_parameters):
+    def _factory(*gate_parameters: _gates.Parameter):
         # TODO: check if len(gate_parameters) == len(arguments of matrix_factory)
         return _gates.MatrixFactoryGate(
             name, matrix_factory, gate_parameters, num_qubits

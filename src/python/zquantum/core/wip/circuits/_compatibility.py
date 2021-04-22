@@ -1,7 +1,11 @@
-from ..circuits import Circuit as OldCircuit
+from typing import Union
 
-from . import Circuit
+from ...circuit import Circuit as OldCircuit
+from ._circuit import Circuit
 from .conversions.cirq_conversions import import_from_cirq
+
+
+AnyCircuit = Union[OldCircuit, Circuit]
 
 
 def new_circuit_from_old_circuit(old: OldCircuit) -> Circuit:

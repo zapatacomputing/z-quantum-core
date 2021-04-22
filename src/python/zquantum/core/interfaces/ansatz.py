@@ -32,7 +32,7 @@ class Ansatz(ABC, EnforceOverrides):
         if number_of_layers < 0:
             raise ValueError("number_of_layers must be non-negative.")
         self.number_of_layers = number_of_layers
-        self._parametrized_circuit = None
+        self._parametrized_circuit: Optional[Circuit] = None
 
     @property
     def parametrized_circuit(self) -> Circuit:

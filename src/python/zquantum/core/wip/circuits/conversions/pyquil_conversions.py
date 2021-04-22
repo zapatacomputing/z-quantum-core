@@ -161,7 +161,7 @@ def _unwrap_controlled_gate(gate: Union[_gates.ControlledGate, _gates.Dagger]):
 def _gate_definition_from_matrix_factory_gate(
     gate: _gates.MatrixFactoryGate,
 ) -> _gates.CustomGateDefinition:
-    symbols = [sympy.Symbol(f"theta_{i}") for i in range(len(gate.params))]
+    symbols = tuple(sympy.Symbol(f"theta_{i}") for i in range(len(gate.params)))
     template_matrix = gate.matrix_factory(*symbols)
     return _gates.CustomGateDefinition(
         gate_name=gate.name,

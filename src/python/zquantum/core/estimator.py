@@ -130,11 +130,11 @@ def allocate_shots(
             raise ValueError(
                 "Optimal shot allocation does not support n_samples; use n_total_samples instead."
             )
-        _, _, measurements_per_frame = estimate_nmeas_for_frames(
+        _, _, relative_measurements_per_frame = estimate_nmeas_for_frames(
             frame_operators, prior_expectation_values
         )
         measurements_per_frame = scale_and_discretize(
-            measurements_per_frame, n_total_samples
+            relative_measurements_per_frame, n_total_samples
         )
     else:
         raise ValueError(

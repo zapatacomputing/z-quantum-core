@@ -33,6 +33,7 @@ b) having execution time in mind it's a good idea to use lower number of samples
 """
 
 import functools
+from typing import List
 
 import numpy as np
 import pytest
@@ -284,7 +285,7 @@ class QuantumBackendTests:
 
 
 class QuantumBackendGatesTests:
-    gates_to_exclude = []
+    gates_to_exclude: List[str] = []
 
     @pytest.mark.parametrize(
         "initial_gate,tested_gate,target_values",
@@ -539,7 +540,7 @@ class QuantumSimulatorTests(QuantumBackendTests):
 
 
 class QuantumSimulatorGatesTest:
-    gates_to_exclude = []
+    gates_to_exclude: List[str] = []
 
     @pytest.mark.parametrize(
         "initial_gate,tested_gate,target_amplitudes",

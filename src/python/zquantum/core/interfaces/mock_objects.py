@@ -25,7 +25,7 @@ class MockQuantumBackend(QuantumBackend):
 
     supports_batching = False
 
-    def __init__(self, n_samples=None):
+    def __init__(self, n_samples: Optional[int] = None):
         super().__init__(n_samples)
 
     @compatible_with_old_type(Circuit, new_circuit_from_old_circuit)
@@ -34,9 +34,18 @@ class MockQuantumBackend(QuantumBackend):
     ) -> Measurements:
         super(MockQuantumBackend, self).run_circuit_and_measure(circuit)
         measurements = Measurements()
-        if n_samples is None:
-            n_samples = self.n_samples
-        for _ in range(n_samples):
+
+        n_samples_to_measure: int
+        if isinstance(n_samples, int):
+            n_samples_to_measure = n_samples
+        elif isinstance(self.n_samples, int):
+            n_samples_to_measure = self.n_samples
+        else:
+            raise ValueError(
+                "At least one of n_samples and self.n_samples must be an integer."
+            )
+
+        for _ in range(n_samples_to_measure):
             measurements.bitstrings += [
                 tuple(random.randint(0, 1) for j in range(circuit.n_qubits))
             ]
@@ -80,6 +89,7 @@ class MockQuantumSimulator(QuantumSimulator):
             self.number_of_circuits_run += 1
             self.number_of_jobs_run += 1
             constant_position = None
+            n_operator: Optional[int]
             if hasattr(operator, "terms"):
                 n_operator = len(operator.terms.keys())
                 for index, term in enumerate(operator.terms):
@@ -94,7 +104,9 @@ class MockQuantumSimulator(QuantumSimulator):
                 values[constant_position] = 1.0
             return ExpectationValues(values)
         else:
-            super(MockQuantumSimulator, self).get_expectation_values(circuit, operator)
+            return super(MockQuantumSimulator, self).get_expectation_values(
+                circuit, operator
+            )
 
     @compatible_with_old_type(Circuit, new_circuit_from_old_circuit)
     def get_exact_expectation_values(
@@ -102,6 +114,7 @@ class MockQuantumSimulator(QuantumSimulator):
     ) -> ExpectationValues:
         return self.get_expectation_values(circuit, operator)
 
+    @compatible_with_old_type(Circuit, new_circuit_from_old_circuit)
     def get_wavefunction(self, circuit: NewCircuit):
         raise NotImplementedError
 

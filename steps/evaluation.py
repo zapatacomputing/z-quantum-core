@@ -2,14 +2,14 @@ import json
 from typing import Dict, List, Union
 
 import numpy as np
+import zquantum.core.circuit as old_circuit
+import zquantum.core.wip.circuits as new_circuits
 from openfermion import QubitOperator, SymbolicOperator
 from openfermion.linalg import (
     jw_get_ground_state_at_particle_number as _jw_get_ground_state_at_particle_number,
 )
 from openfermion.linalg import qubit_operator_sparse
 from pyquil.wavefunction import Wavefunction
-import zquantum.core.circuit as old_circuit
-import zquantum.core.wip.circuits as new_circuits
 from zquantum.core.measurement import (
     ExpectationValues,
     load_expectation_values,
@@ -125,7 +125,9 @@ def evaluate_operator_for_parameter_grid(
 
     if fixed_parameters is not None:
         if isinstance(fixed_parameters, str):
-            fixed_parameters = old_circuit.load_circuit_template_params(fixed_parameters)
+            fixed_parameters = old_circuit.load_circuit_template_params(
+                fixed_parameters
+            )
     else:
         fixed_parameters = []
 
@@ -139,7 +141,9 @@ def evaluate_operator_for_parameter_grid(
     save_parameter_grid_evaluation(
         parameter_grid_evaluation, "parameter-grid-evaluation.json"
     )
-    old_circuit.save_circuit_template_params(optimal_parameters, "optimal-parameters.json")
+    old_circuit.save_circuit_template_params(
+        optimal_parameters, "optimal-parameters.json"
+    )
 
 
 def jw_get_ground_state_at_particle_number(

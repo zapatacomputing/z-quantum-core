@@ -1,6 +1,6 @@
 import warnings
 from abc import ABC, abstractmethod
-from typing import Iterable, List, Optional
+from typing import List, Optional, Sequence, Any
 
 import numpy as np
 from openfermion import IsingOperator, SymbolicOperator
@@ -72,7 +72,7 @@ class QuantumBackend(ABC):
 
     def run_circuitset_and_measure(
         self,
-        circuits: Iterable[AnyCircuit],
+        circuits: Sequence[AnyCircuit],
         n_samples: Optional[List[int]] = None,
         **kwargs
     ) -> List[Measurements]:
@@ -90,6 +90,8 @@ class QuantumBackend(ABC):
         Returns:
             Measurements for each circuit.
         """
+        measurement_set: List[Measurements]
+
         if not self.supports_batching:
             measurement_set = []
             if n_samples is not None:
@@ -108,7 +110,14 @@ class QuantumBackend(ABC):
             return measurement_set
         else:
             self.number_of_circuits_run += len(circuits)
-            self.number_of_jobs_run += int(np.ceil(len(circuits) / self.batch_size))
+            if isinstance(self.batch_size, int):
+                self.number_of_jobs_run += int(np.ceil(len(circuits) / self.batch_size))
+
+            # This value is only returned so that mypy doesn't complain.
+            # You can remove this workaround when we reimplement counter increments in
+            # a more type-elegant way.
+            measurement_set = []
+            return measurement_set
 
     def get_expectation_values(
         self, circuit: AnyCircuit, operator: SymbolicOperator, **kwargs
@@ -130,7 +139,7 @@ class QuantumBackend(ABC):
         return expectation_values
 
     def get_expectation_values_for_circuitset(
-        self, circuits: Iterable[AnyCircuit], operator: SymbolicOperator, **kwargs
+        self, circuits: Sequence[AnyCircuit], operator: SymbolicOperator, **kwargs
     ) -> List[ExpectationValues]:
         """Calculates the expectation values for given operator, based on the exact
         quantum state produced by a set of circuits.
@@ -182,7 +191,7 @@ class QuantumSimulator(QuantumBackend):
     def __init__(
         self,
         n_samples: Optional[int] = None,
-        noise_model: Optional = None,
+        noise_model: Optional[Any] = None,
         device_connectivity: Optional[CircuitConnectivity] = None,
     ):
         super().__init__(n_samples)
@@ -222,7 +231,7 @@ class QuantumSimulator(QuantumBackend):
 
     @overrides
     def get_expectation_values_for_circuitset(
-        self, circuits: Iterable[AnyCircuit], operator: SymbolicOperator, **kwargs
+        self, circuits: Sequence[AnyCircuit], operator: SymbolicOperator, **kwargs
     ) -> List[ExpectationValues]:
         """Calculates the expectation values for given operator, based on the exact
         quantum state produced by a set of circuits.
@@ -277,7 +286,7 @@ class QuantumSimulator(QuantumBackend):
         """
         wavefunction = self.get_wavefunction(circuit)
         expectation_values = ExpectationValues(
-            [get_expectation_value(term, wavefunction) for term in operator]
+            np.array([get_expectation_value(term, wavefunction) for term in operator])
         )
         expectation_values = expectation_values_to_real(expectation_values)
         return expectation_values

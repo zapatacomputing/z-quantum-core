@@ -54,7 +54,7 @@ def get_context_selection_circuit_for_group(
     """
     context_selection_circuit = Circuit()
     transformed_operator = IsingOperator()
-    context = []
+    context: List[Tuple[int, str]] = []
 
     for term in qubit_operator.terms:
         term_operator = IsingOperator(())
@@ -96,7 +96,7 @@ def group_greedily_with_context_selection(
             ) = get_context_selection_circuit_for_group(group)
             frame_circuit = estimation_task.circuit + context_selection_circuit
             group_estimation_task = EstimationTask(
-                frame_operator, frame_circuit, estimation_task.constraints
+                frame_operator, frame_circuit, estimation_task.number_of_shots
             )
             output_estimation_tasks.append(group_estimation_task)
     return output_estimation_tasks
@@ -143,11 +143,11 @@ def allocate_shots_proportionally(
 
     frame_operators = [estimation_task.operator for estimation_task in estimation_tasks]
 
-    _, _, measurements_per_frame = estimate_nmeas_for_frames(
+    _, _, relative_measurements_per_frame = estimate_nmeas_for_frames(
         frame_operators, prior_expectation_values
     )
 
-    measurements_per_frame = scale_and_discretize(measurements_per_frame, total_n_shots)
+    measurements_per_frame = scale_and_discretize(relative_measurements_per_frame, total_n_shots)
 
     return [
         EstimationTask(

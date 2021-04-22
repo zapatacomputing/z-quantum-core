@@ -13,7 +13,7 @@ from .ansatz_utils import ansatz_property
 
 class Ansatz(ABC, EnforceOverrides):
 
-    supports_parametrized_circuits = None
+    supports_parametrized_circuits: Optional[bool] = None
     number_of_layers = ansatz_property("number_of_layers")
 
     def __init__(self, number_of_layers: int):

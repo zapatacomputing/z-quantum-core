@@ -10,6 +10,14 @@ from openfermion.linalg import (
 )
 from openfermion.linalg import qubit_operator_sparse
 from pyquil.wavefunction import Wavefunction
+from zquantum.core.circuit import (
+    Circuit,
+    ParameterGrid,
+    load_circuit,
+    load_circuit_template_params,
+    load_parameter_grid,
+    save_circuit_template_params,
+)
 from zquantum.core.measurement import (
     ExpectationValues,
     load_expectation_values,
@@ -38,7 +46,7 @@ from zquantum.core.utils import ValueEstimate, create_object, save_value_estimat
 
 def get_expectation_values_for_qubit_operator(
     backend_specs: Specs,
-    circuit: Union[str, old_circuit.Circuit, new_circuits.Circuit, Dict],
+    circuit: Union[str, Circuit, Dict],
     qubit_operator: Union[str, SymbolicOperator, Dict],
 ):
     """Measure the expectation values of the terms in an input operator with respect to
@@ -52,21 +60,13 @@ def get_expectation_values_for_qubit_operator(
         qubit_operator: The operator to measure
     """
     if isinstance(circuit, str):
-        try:
-            circuit = new_circuits.circuit_from_dict(json.loads(circuit))
-        except ValueError:
-            circuit = old_circuit.load_circuit(circuit)
+        circuit = load_circuit(circuit)
     elif isinstance(circuit, dict):
-        try:
-            circuit = new_circuits.circuit_from_dict(circuit)
-        except ValueError:
-            circuit = old_circuit.Circuit.from_dict(circuit)
-
+        circuit = Circuit.from_dict(circuit)
     if isinstance(qubit_operator, str):
         qubit_operator = load_qubit_operator(qubit_operator)
     elif isinstance(qubit_operator, dict):
         qubit_operator = convert_dict_to_qubitop(qubit_operator)
-
     if isinstance(backend_specs, str):
         backend_specs = json.loads(backend_specs)
     backend = create_object(backend_specs)
@@ -92,7 +92,7 @@ def get_ground_state_rdm_from_qubit_operator(
 def evaluate_operator_for_parameter_grid(
     ansatz_specs: Specs,
     backend_specs: Specs,
-    grid: Union[str, old_circuit.ParameterGrid],
+    grid: Union[str, ParameterGrid],
     operator: Union[str, SymbolicOperator],
     fixed_parameters: Union[List[float], np.ndarray, str] = None,
 ):
@@ -119,15 +119,13 @@ def evaluate_operator_for_parameter_grid(
     backend = create_object(backend_specs)
 
     if isinstance(grid, str):
-        grid = old_circuit.load_parameter_grid(grid)
+        grid = load_parameter_grid(grid)
     if isinstance(operator, str):
         operator = load_qubit_operator(operator)
 
     if fixed_parameters is not None:
         if isinstance(fixed_parameters, str):
-            fixed_parameters = old_circuit.load_circuit_template_params(
-                fixed_parameters
-            )
+            fixed_parameters = load_circuit_template_params(fixed_parameters)
     else:
         fixed_parameters = []
 
@@ -141,9 +139,7 @@ def evaluate_operator_for_parameter_grid(
     save_parameter_grid_evaluation(
         parameter_grid_evaluation, "parameter-grid-evaluation.json"
     )
-    old_circuit.save_circuit_template_params(
-        optimal_parameters, "optimal-parameters.json"
-    )
+    save_circuit_template_params(optimal_parameters, "optimal-parameters.json")
 
 
 def jw_get_ground_state_at_particle_number(

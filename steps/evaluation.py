@@ -2,6 +2,8 @@ import json
 from typing import Dict, List, Union
 
 import numpy as np
+import zquantum.core.circuit as old_circuit
+import zquantum.core.wip.circuits as new_circuits
 from openfermion import QubitOperator, SymbolicOperator
 from openfermion.linalg import (
     jw_get_ground_state_at_particle_number as _jw_get_ground_state_at_particle_number,
@@ -47,14 +49,15 @@ def get_expectation_values_for_qubit_operator(
     circuit: Union[str, Circuit, Dict],
     qubit_operator: Union[str, SymbolicOperator, Dict],
 ):
-    """Measure the exception values of the terms in an input operator with respect to the state prepared by the input
-    circuit on the backend described by the backend_specs. The results are serialized into a JSON under the
-    file: "expectation-values.json"
+    """Measure the expectation values of the terms in an input operator with respect to
+    the state prepared by the input circuit on the backend described by the
+    `backend_specs`. The results are serialized into a JSON under the file:
+    "expectation-values.json"
 
-    ARGS:
-        backend_specs (Union[dict, str]): The backend on which to run the quantum circuit
-        circuit (Union[str, Circuit]): The circuit that prepares the state to be measured
-        qubit_operator (Union[str, SymbolicOperator]): The operator to measure
+    Args:
+        backend_specs: The backend on which to run the quantum circuit
+        circuit: The circuit that prepares the state to be measured
+        qubit_operator: The operator to measure
     """
     if isinstance(circuit, str):
         circuit = load_circuit(circuit)
@@ -77,9 +80,9 @@ def get_ground_state_rdm_from_qubit_operator(
 ):
     """Diagonalize operator and compute the ground state 1- and 2-RDM
 
-    ARGS:
-        qubit_operator (Union[str, QubitOperator]): The openfermion operator to diagonalize
-        n_particles (int): number of particles in the target ground state
+    Args:
+        qubit_operator: The openfermion operator to diagonalize
+        n_particles: number of particles in the target ground state
     """
     qubit_operator = load_qubit_operator(qubit_operator)
     rdm = _get_ground_state_rdm_from_qubit_op(qubit_operator, n_particles)
@@ -93,17 +96,18 @@ def evaluate_operator_for_parameter_grid(
     operator: Union[str, SymbolicOperator],
     fixed_parameters: Union[List[float], np.ndarray, str] = None,
 ):
-    """Measure the exception values of the terms in an input operator with respect to the states prepared by the input
-    ansatz circuits when set to the different parameters in the input parameter grid on the
-    backend described by the backend_specs. The results are serialized into a JSON under the
-    files: "parameter-grid-evaluation.json" and "optimal-parameters.json"
+    """Measure the exception values of the terms in an input operator with respect to
+    the states prepared by the input ansatz circuits when set to the different
+    parameters in the input parameter grid on the backend described by the
+    `backend_specs`. The results are serialized into a JSON under the files:
+    "parameter-grid-evaluation.json" and "optimal-parameters.json"
 
-    ARGS:
-        ansatz_specs (Union[dict, str]): The ansatz producing the parameterized quantum circuits
-        backend_specs (Union[dict, str]): The backend on which to run the quantum circuit
-        grid (Union[str, ParameterGrid]): The parameter grid describing the different ansatz parameters to use
-        operator (Union[str, SymbolicOperator]): The operator to measure
-        fixed_parameters (Union[List[float], np.ndarray, str]): Any fixed parameter values that the ansatz should be
+    Args:
+        ansatz_specs: The ansatz producing the parameterized quantum circuits
+        backend_specs: The backend on which to run the quantum circuit
+        grid: The parameter grid describing the different ansatz parameters to use
+        operator: The operator to measure
+        fixed_parameters: Any fixed parameter values that the ansatz should be
             evaluated to that are not described by the parameter grid
     """
     if isinstance(ansatz_specs, str):
@@ -141,12 +145,14 @@ def evaluate_operator_for_parameter_grid(
 def jw_get_ground_state_at_particle_number(
     particle_number: int, qubit_operator: Union[str, SymbolicOperator]
 ):
-    """Get the ground state wavefunction of the operator for the input particle number. Outputs are serialized to JSON
-    within the files: "ground-state.json" and "value-estimate.json"
+    """Get the ground state wavefunction of the operator for the input particle number.
 
-    ARGS:
-        particle_number (int): The given number of particles in the system
-        qubit_operator (Union[str, SymbolicOperator]): The operator for which to find the ground state
+    Outputs are serialized to JSON within the files: "ground-state.json" and
+    "value-estimate.json".
+
+    Args:
+        particle_number: The given number of particles in the system
+        qubit_operator: The operator for which to find the ground state
     """
     if isinstance(qubit_operator, str):
         qubit_operator = load_qubit_operator(qubit_operator)

@@ -44,6 +44,7 @@ T = _gates.MatrixFactoryGate("T", _matrices.t_matrix, (), 1)
 RX = make_parametric_gate_prototype("RX", _matrices.rx_matrix, 1)
 RY = make_parametric_gate_prototype("RY", _matrices.ry_matrix, 1)
 RZ = make_parametric_gate_prototype("RZ", _matrices.rz_matrix, 1)
+RH = make_parametric_gate_prototype("RH", _matrices.rh_matrix, 1)
 PHASE = make_parametric_gate_prototype("PHASE", _matrices.phase_matrix, 1)
 
 

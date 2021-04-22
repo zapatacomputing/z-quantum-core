@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import List
+from typing import List, Optional
 
 from openfermion import SymbolicOperator
 from typing_extensions import Protocol
@@ -23,7 +23,7 @@ class EstimationTask:
 
     operator: SymbolicOperator
     circuit: Circuit
-    number_of_shots: int
+    number_of_shots: Optional[int]
 
 
 class EstimationPreprocessor(Protocol):

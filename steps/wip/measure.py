@@ -11,6 +11,7 @@ from zquantum.core.circuit import (
 )
 from zquantum.core.hamiltonian import (
     estimate_nmeas_for_frames,
+    estimate_nmeas_for_operator,
     get_expectation_values_from_rdms,
     get_expectation_values_from_rdms_for_qubitoperator_list,
 )
@@ -27,6 +28,9 @@ from zquantum.core.utils import (
     save_list,
     save_nmeas_estimate,
     save_value_estimate,
+)
+from zquantum.core.wip.estimators.estimation import (
+    estimate_expectation_values_by_averaging,
 )
 
 
@@ -109,7 +113,7 @@ def evaluate_ansatz_based_cost_function(
     ansatz_specs: Specs,
     backend_specs: Specs,
     cost_function_specs: Specs,
-    ansatz_parameters: Specs,
+    ansatz_parameters: str,
     qubit_operator: str,
     noise_model: Optional[str] = None,
     device_connectivity: Optional[str] = None,
@@ -138,19 +142,44 @@ def evaluate_ansatz_based_cost_function(
 
     if isinstance(cost_function_specs, str):
         cost_function_specs = json.loads(cost_function_specs)
+
+    if prior_expectation_values is not None:
+        if isinstance(prior_expectation_values, str):
+            prior_expectation_values = load_expectation_values(prior_expectation_values)
+
     estimator_specs = cost_function_specs.pop("estimator-specs", None)
     if estimator_specs is not None:
+        if isinstance(estimator_specs, str):
+            estimator_specs = json.loads(estimator_specs)
         cost_function_specs["estimator"] = create_object(estimator_specs)
+
+    estimation_preprocessors_specs = cost_function_specs.pop(
+        "estimation-tasks-transformations-specs", None
+    )
+    if estimation_preprocessors_specs is not None:
+        cost_function_specs["estimation_preprocessors"] = []
+        for estimation_tasks_transformation_specs in estimation_preprocessors_specs:
+
+            if isinstance(estimation_tasks_transformation_specs, str):
+                estimation_tasks_transformation_specs = json.loads(
+                    estimation_tasks_transformation_specs
+                )
+
+            if prior_expectation_values is not None:
+                # Since we don't know which estimation task transformation uses prior_expectation_values,
+                #    we add it to the kwargs of each one. If not used by a particular transformer, it will be ignored.
+                estimation_tasks_transformation_specs[
+                    "prior_expectation_values"
+                ] = prior_expectation_values
+            cost_function_specs["estimation_preprocessors"].append(
+                create_object(estimation_tasks_transformation_specs)
+            )
+
+    # cost_function.estimator.prior_expectation_values
     cost_function_specs["target_operator"] = operator
     cost_function_specs["ansatz"] = ansatz
     cost_function_specs["backend"] = backend
     cost_function = create_object(cost_function_specs)
-
-    if prior_expectation_values is not None:
-        if isinstance(prior_expectation_values, str):
-            cost_function.estimator.prior_expectation_values = load_expectation_values(
-                prior_expectation_values
-            )
 
     value_estimate = cost_function(ansatz_parameters)
 

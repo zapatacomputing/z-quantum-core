@@ -75,16 +75,20 @@ def time_evolution_derivatives(
             for factor in factors:
 
                 output = Circuit()
-                # r is the eigenvalue of the generator of the gate. The value is modified
-                # to take into account the coefficient and trotter step in front of the
-                # Pauli term
+                # r is the eigenvalue of the generator of the gate. The value is
+                # modified to take into account the coefficient and trotter step in
+                # front of the Pauli term.
                 coefficient = hamiltonian[index_term1].coefficient
-                if not isinstance(coefficient, complex):
+                if isinstance(coefficient, complex):
+                    real_coefficient = coefficient.real
+                elif isinstance(coefficient, (int, float)):
+                    real_coefficient = float(coefficient)
+                else:
                     raise ValueError(
-                        "Evolution only works with numeric coefficients."
-                        f"{coefficient} is unsupported"
+                        "Evolution only works with numeric coefficients. "
+                        f"{coefficient} ({type(coefficient)}) is unsupported"
                     )
-                r = coefficient.real / trotter_order
+                r = real_coefficient / trotter_order
                 output_factors.append(factor * r)
                 shift = factor * (np.pi / (4.0 * r))
 
@@ -181,7 +185,8 @@ def time_evolution_for_term(
             elif len(gate.params) > 1:
                 raise (
                     NotImplementedError(
-                        "Time evolution of multi-parametered gates with symbolic parameters is not supported."
+                        "Time evolution of multi-parametered gates with symbolic "
+                        "parameters is not supported."
                     )
                 )
             elif gate.name == "Rz" or gate.name == "PHASE":

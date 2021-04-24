@@ -1,10 +1,9 @@
-import operator
 import numpy as np
 import pytest
 import sympy
 from openfermion import IsingOperator, QubitOperator, qubit_operator_sparse
 from pyquil import Program
-from pyquil.gates import RY, RZ, X
+from pyquil.gates import RX, RY, RZ, X, Y
 from functools import partial
 from zquantum.core.circuit import Circuit, Qubit, Gate
 from zquantum.core.interfaces.mock_objects import (
@@ -21,6 +20,7 @@ from zquantum.core.wip.estimators.estimation import (
     allocate_shots_proportionally,
     allocate_shots_uniformly,
     evaluate_estimation_circuits,
+    group_greedily_with_context_selection,
 )
 from zquantum.core.wip.estimators.estimation_interface import EstimationTask
 
@@ -222,6 +222,66 @@ class TestEstimatorUtils:
 
         for new_task in new_estimation_tasks:
             assert new_task.circuit.symbolic_params == []
+
+    def test_group_greedily_with_context_selection_all_different_groups(self):
+        target_operator = 10.0 * QubitOperator("Z0")
+        target_operator -= 3.0 * QubitOperator("Y0")
+        target_operator += 1.0 * QubitOperator("X0")
+        target_operator += 20.0 * QubitOperator("")
+
+        expected_operator_terms_per_frame = [
+            (10.0 * QubitOperator("Z0")).terms,
+            (-3.0 * QubitOperator("Z0")).terms,
+            (1.0 * QubitOperator("Z0")).terms,
+            (20.0 * QubitOperator("")).terms,
+        ]
+
+        circuit = Circuit(Program(X(0)))
+
+        estimation_tasks = [EstimationTask(target_operator, circuit, None)]
+
+        grouped_tasks = group_greedily_with_context_selection(estimation_tasks)
+
+        assert len(grouped_tasks) == 4
+
+        for task in grouped_tasks:
+            frame_circuit = circuit
+
+            assert task.operator.terms in expected_operator_terms_per_frame
+            expected_operator_terms_per_frame.remove(task.operator.terms)
+
+            if task.operator.terms == (1.0 * QubitOperator("Z0")).terms:
+                frame_circuit += Circuit(Program(RY(-np.pi / 2, 0)))
+            elif task.operator.terms == (-3.0 * QubitOperator("Z0")).terms:
+                frame_circuit += Circuit(Program(RX(np.pi / 2, 0)))
+            assert frame_circuit == task.circuit
+        assert len(expected_operator_terms_per_frame) == 0
+
+    def test_group_greedily_with_context_selection_all_comeasureable(self):
+        target_operator = 10.0 * QubitOperator("Y0")
+        target_operator -= 3.0 * QubitOperator("Y0 Y1")
+        target_operator += 1.0 * QubitOperator("Y1")
+        target_operator += 20.0 * QubitOperator("Y0 Y1 Y2")
+
+        expected_operator = 10.0 * QubitOperator("Z0")
+        expected_operator -= 3.0 * QubitOperator("Z0 Z1")
+        expected_operator += 1.0 * QubitOperator("Z1")
+        expected_operator += 20.0 * QubitOperator("Z0 Z1 Z2")
+
+        circuit = Circuit(Program([X(0), X(1), X(2)]))
+
+        estimation_tasks = [EstimationTask(target_operator, circuit, None)]
+
+        grouped_tasks = group_greedily_with_context_selection(estimation_tasks)
+
+        assert len(grouped_tasks) == 1
+        assert grouped_tasks[0].operator.terms == expected_operator.terms
+
+        frame_circuit = circuit
+        frame_circuit += Circuit(
+            Program([RX(np.pi / 2, 0), RX(np.pi / 2, 1), RX(np.pi / 2, 2)])
+        )
+        assert grouped_tasks[0].circuit == frame_circuit
 
 
 class TestBasicEstimationMethods:

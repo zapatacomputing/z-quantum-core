@@ -106,7 +106,7 @@ def allocate_shots_uniformly(
     estimation_tasks: List[EstimationTask], number_of_shots: int
 ) -> List[EstimationTask]:
     """
-    Returns an EstimationPreprocessor which allocates the same number of shots to each task.
+    Allocates the same number of shots to each task.
 
     Args:
         number_of_shots: number of shots to be assigned to each EstimationTask
@@ -130,7 +130,7 @@ def allocate_shots_proportionally(
     prior_expectation_values: Optional[ExpectationValues] = None,
 ) -> List[EstimationTask]:
     """
-    Returns an EstimationPreprocessor which allocates the same number of shots to each task.
+    Allocates specified number of shots proportionally to the variance associated with each operator in a list of estimation tasks.
     For more details please refer to documentation of zquantum.core.hamiltonian.estimate_nmeas_for_frames .
 
     Args:
@@ -147,7 +147,9 @@ def allocate_shots_proportionally(
         frame_operators, prior_expectation_values
     )
 
-    measurements_per_frame = scale_and_discretize(relative_measurements_per_frame, total_n_shots)
+    measurements_per_frame = scale_and_discretize(
+        relative_measurements_per_frame, total_n_shots
+    )
 
     return [
         EstimationTask(

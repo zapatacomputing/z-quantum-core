@@ -228,10 +228,9 @@ class TestBasicEstimator(EstimatorTests):
             target_operator=constant_qubit_operator,
             n_samples=n_samples,
         ).values
-        value = values[2]
         # Then
-        assert len(values) == 3
-        assert coefficient == value
+        assert len(values) == 2
+        assert coefficient == values[1]
 
     def test_get_estimated_expectation_values_optimal_shot_allocation(
         self, estimator, backend, circuit, target_operator

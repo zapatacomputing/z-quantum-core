@@ -147,9 +147,7 @@ def compute_group_variances(
 
     if expecval is None:
         groups = [_remove_constant_term_from_group(group) for group in groups]
-        frame_variances = [
-            _calculate_variance_upper_bound(group) for group in groups
-        ]  # Covariances are ignored; Variances are set to 1
+        frame_variances = [_calculate_variance_upper_bound(group) for group in groups]
     else:
         group_sizes = np.array([len(group.terms.keys()) for group in groups])
         if np.sum(group_sizes) != len(expecval.values):

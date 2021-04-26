@@ -215,18 +215,12 @@ class BasicEstimator(Estimator):
             frame_circuits, measurements_per_frame
         )
 
-        expectation_values_set = []
-        for frame_operator, measurements in zip(frame_operators, measurements_set):
-            expectation_values_set.append(
-                expectation_values_to_real(
-                    measurements.get_expectation_values(frame_operator)
-                )
+        expectation_values_set = [
+            expectation_values_to_real(
+                measurements.get_expectation_values(frame_operator)
             )
-
-        if target_operator.terms.get(()) is not None:
-            expectation_values_set.append(
-                ExpectationValues(np.array([target_operator.terms.get(())]))
-            )
+            for frame_operator, measurements in zip(frame_operators, measurements_set)
+        ]
 
         return expectation_values_to_real(
             concatenate_expectation_values(expectation_values_set)

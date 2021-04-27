@@ -24,7 +24,6 @@ def _read_readme():
 
 setuptools.setup(
     name="z-quantum-core",
-    version="0.2.0.dev4",
     license="Apache-2.0",
     author="Zapata Computing, Inc.",
     author_email="info@zapatacomputing.com",
@@ -54,4 +53,6 @@ setuptools.setup(
         "overrides>=3.1.0",
     ],
     extras_require=extras_require,
+    setup_requires=["setuptools_scm"],
+    use_scm_version=True,
 )

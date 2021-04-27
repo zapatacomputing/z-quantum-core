@@ -564,16 +564,19 @@ class Circuit(object):
         self.qubits = _qubits
 
 
-def save_circuit(circuit, filename):
+def save_circuit(circuit, file_or_path):
     """Saves a circuit object to a file.
 
     Args:
-        circuit (core.Circuit): the circuit to be saved
-        filename (str): the name of the file
+        circuit: the circuit to be saved
+        file_or_path: the name of the file
     """
-
-    with open(filename, "w") as f:
-        f.write(json.dumps(circuit.to_dict(serialize_gate_params=True)))
+    payload = circuit.to_dict(serialize_gate_params=True)
+    try:
+        json.dump(payload, file_or_path)
+    except AttributeError:
+        with open(file_or_path, "w") as f:
+            json.dump(payload, f)
 
 
 def load_circuit(file):

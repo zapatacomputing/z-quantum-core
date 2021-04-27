@@ -10,8 +10,6 @@ from zquantum.core.wip.circuits._serde import (
     to_dict,
 )
 from zquantum.core import circuit as old_circuit
-import tempfile
-import json
 
 ALPHA = sympy.Symbol("alpha")
 GAMMA = sympy.Symbol("gamma")
@@ -139,12 +137,6 @@ def test_loading_old_circuit_dict_raises_error(serialize_gate_params):
 @pytest.mark.parametrize("serialize_gate_params", [False, True])
 def test_loading_old_circuit_string_raises_error(serialize_gate_params):
     old_circ = _make_example_old_circuit()
-
-    with tempfile.NamedTemporaryFile() as tmp_file:
-        old_circuit.save_circuit(old_circ, tmp_file.name)
-        with open(tmp_file.name) as f:
-            circ_dict = json.load(f)
-
     circ_dict = old_circ.to_dict(serialize_gate_params)
 
     with pytest.raises(ValueError):

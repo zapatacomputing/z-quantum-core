@@ -51,7 +51,7 @@ setuptools.setup(
         "pyquil~=2.25",
         "cirq>=0.9.1",
         "qiskit~=0.25",
-        "overrides>=3.1.0",
+        "overrides~=3.1",
     ],
     extras_require=extras_require,
 )

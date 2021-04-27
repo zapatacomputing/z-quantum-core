@@ -178,6 +178,18 @@ class TestQubitOperator(unittest.TestCase):
         # Then
         # TODO
 
+        files_to_remove = ("parameter-grid-evaluation.json", "optimal-parameters.json")
+        failed_to_remove = []
+
+        for path in files_to_remove:
+            try:
+                os.remove(path)
+            except OSError:
+                failed_to_remove.append(path)
+
+        if failed_to_remove:
+            raise RuntimeError(f"Failed to remove files: {failed_to_remove}")
+
     def test_interaction_rdm_io(self):
         # Given
 
@@ -211,8 +223,3 @@ class TestQubitOperator(unittest.TestCase):
         converted_interaction_rdm = convert_dict_to_interaction_rdm(rdm_dict)
 
         self.assertEqual(self.interaction_rdm, converted_interaction_rdm)
-
-    def tearDown(self):
-        subprocess.run(
-            ["rm", "parameter-grid-evaluation.json", "optimal-parameters.json"]
-        )

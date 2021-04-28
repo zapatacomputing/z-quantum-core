@@ -1,33 +1,33 @@
 import json
-from zquantum.core.utils import (
-    create_object,
-    load_noise_model,
-    save_value_estimate,
-    save_nmeas_estimate,
-    save_list,
+from typing import Dict, Optional, Union
+
+from zquantum.core.bitstring_distribution import save_bitstring_distribution
+from zquantum.core.circuit import (
+    Circuit,
+    load_circuit,
+    load_circuit_connectivity,
+    load_circuit_set,
+    load_circuit_template_params,
 )
-from zquantum.core.measurement import load_expectation_values, save_expectation_values
 from zquantum.core.hamiltonian import (
-    estimate_nmeas_for_operator,
     estimate_nmeas_for_frames,
     get_expectation_values_from_rdms,
     get_expectation_values_from_rdms_for_qubitoperator_list,
 )
-from zquantum.core.circuit import (
-    load_circuit,
-    load_circuit_connectivity,
-    load_circuit_template_params,
-    load_circuit_set,
-    Circuit,
-)
-from zquantum.core.bitstring_distribution import save_bitstring_distribution
+from zquantum.core.measurement import load_expectation_values, save_expectation_values
 from zquantum.core.openfermion import (
-    load_qubit_operator,
     load_interaction_rdm,
+    load_qubit_operator,
     load_qubit_operator_set,
 )
 from zquantum.core.typing import Specs
-from typing import Dict, Optional, Union
+from zquantum.core.utils import (
+    create_object,
+    load_noise_model,
+    save_list,
+    save_nmeas_estimate,
+    save_value_estimate,
+)
 
 
 def run_circuit_and_measure(
@@ -155,28 +155,6 @@ def evaluate_ansatz_based_cost_function(
     value_estimate = cost_function(ansatz_parameters)
 
     save_value_estimate(value_estimate, "value_estimate.json")
-
-
-def hamiltonian_analysis(
-    qubit_operator: str,
-    decomposition_method: str = "greedy",
-    expectation_values: Optional[str] = None,
-):
-    operator = load_qubit_operator(qubit_operator)
-    if expectation_values is not None:
-        expecval = load_expectation_values(expectation_values)
-    else:
-        expecval = None
-
-    K_coeff, nterms, frame_meas = estimate_nmeas_for_operator(
-        operator, decomposition_method, expecval
-    )
-    save_nmeas_estimate(
-        nmeas=K_coeff,
-        nterms=nterms,
-        frame_meas=frame_meas,
-        filename="hamiltonian_analysis.json",
-    )
 
 
 def grouped_hamiltonian_analysis(

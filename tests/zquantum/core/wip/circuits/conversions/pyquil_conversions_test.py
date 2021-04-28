@@ -1,13 +1,12 @@
 import numpy as np
-import pytest
 import pyquil
+import pytest
 import sympy
-
-from zquantum.core.wip.circuits.conversions.pyquil_conversions import export_to_pyquil, import_from_pyquil
-from zquantum.core.wip.circuits import _gates
-from zquantum.core.wip.circuits import _builtin_gates
-from zquantum.core.wip.circuits import _circuit
-
+from zquantum.core.wip.circuits import _builtin_gates, _circuit, _gates
+from zquantum.core.wip.circuits.conversions.pyquil_conversions import (
+    export_to_pyquil,
+    import_from_pyquil,
+)
 
 SYMPY_THETA = sympy.Symbol("theta")
 SYMPY_GAMMA = sympy.Symbol("gamma")
@@ -29,6 +28,65 @@ CUSTOM_PARAMETRIC_DEF = _gates.CustomGateDefinition(
     ),
     (SYMPY_GAMMA,),
 )
+
+PYQUIL_THETA_0 = pyquil.quil.Parameter("theta_0")
+
+PYQUIL_XX = pyquil.quil.DefGate(
+    name="XX",
+    matrix=[
+        [
+            pyquil.quilatom.quil_cos(0.5 * PYQUIL_THETA_0),
+            0,
+            0,
+            -1j * pyquil.quilatom.quil_sin(0.5 * PYQUIL_THETA_0),
+        ],
+        [
+            0,
+            pyquil.quilatom.quil_cos(0.5 * PYQUIL_THETA_0),
+            -1j * pyquil.quilatom.quil_sin(0.5 * PYQUIL_THETA_0),
+            0,
+        ],
+        [
+            0,
+            -1j * pyquil.quilatom.quil_sin(0.5 * PYQUIL_THETA_0),
+            pyquil.quilatom.quil_cos(0.5 * PYQUIL_THETA_0),
+            0,
+        ],
+        [
+            -1j * pyquil.quilatom.quil_sin(0.5 * PYQUIL_THETA_0),
+            0,
+            0,
+            pyquil.quilatom.quil_cos(0.5 * PYQUIL_THETA_0),
+        ],
+    ],
+    parameters=[PYQUIL_THETA_0],
+)
+
+
+def pyquil_rh_definition():
+    cos_term = pyquil.quilatom.quil_cos(0.5 * PYQUIL_THETA_0)
+    sin_term = pyquil.quilatom.quil_sin(0.5 * PYQUIL_THETA_0)
+    phase_factor = 1j * sin_term + cos_term
+    return pyquil.quil.DefGate(
+        name="RH",
+        matrix=[
+            [
+                phase_factor
+                * (-0.5j * pyquil.quilatom.quil_sqrt(2) * sin_term + cos_term),
+                -0.5j * pyquil.quilatom.quil_sqrt(2) * phase_factor * sin_term,
+            ],
+            [
+                -0.5j * pyquil.quilatom.quil_sqrt(2) * phase_factor * sin_term,
+                phase_factor
+                * (0.5j * pyquil.quilatom.quil_sqrt(2) * sin_term + cos_term),
+            ],
+        ],
+        parameters=[PYQUIL_THETA_0],
+    )
+
+
+PYQUIL_RH = pyquil_rh_definition()
+
 
 EQUIVALENT_CIRCUITS = [
     (
@@ -95,6 +153,14 @@ EQUIVALENT_CIRCUITS = [
                 ]
             ),
         ),
+    ),
+    (
+        _circuit.Circuit([_builtin_gates.XX(np.pi)(2)]),
+        pyquil.Program([PYQUIL_XX, PYQUIL_XX.get_constructor()(np.pi)(2)]),
+    ),
+    (
+        _circuit.Circuit([_builtin_gates.RH(np.pi / 5)(3)]),
+        pyquil.Program([PYQUIL_RH, PYQUIL_RH.get_constructor()(np.pi / 5)(3)]),
     ),
 ]
 
@@ -171,8 +237,8 @@ class TestExportingToPyQuil:
     ):
         exported = export_to_pyquil(zquantum_circuit)
         assert exported == pyquil_circuit, (
-            exported.instructions,
-            pyquil_circuit.instructions,
+            exported.out(),
+            pyquil_circuit.out(),
         )
 
 

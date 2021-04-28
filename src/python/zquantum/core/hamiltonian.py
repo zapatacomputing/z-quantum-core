@@ -1,6 +1,7 @@
-from openfermion.ops import QubitOperator, InteractionRDM, InteractionOperator
+from typing import Callable, Dict, List, Optional, Tuple
 import numpy as np
-from typing import Tuple, List, Optional, Callable
+import copy
+from openfermion.ops import InteractionOperator, InteractionRDM, QubitOperator
 
 from .measurement import ExpectationValues, expectation_values_to_real
 
@@ -36,6 +37,7 @@ def group_comeasureable_terms_greedy(
     qubit_operator: QubitOperator, sort_terms: bool = False
 ) -> List[QubitOperator]:
     """Group co-measurable terms in a qubit operator using a greedy algorithm. Adapted from pyquil.
+        Constant term is included as a separate group.
     Args:
         qubit_operator: the operator whose terms are to be grouped
         sort_terms: whether to sort terms by the absolute value of the coefficient when grouping
@@ -43,7 +45,10 @@ def group_comeasureable_terms_greedy(
         A list of qubit operators.
     """
 
-    groups = []  # List of QubitOperators representing groups of co-measureable terms
+    groups: List[
+        QubitOperator
+    ] = []  # List of QubitOperators representing groups of co-measureable terms
+    constant_term = None
 
     if sort_terms:
         terms_iterator = sorted(
@@ -54,8 +59,8 @@ def group_comeasureable_terms_greedy(
 
     for term, coefficient in terms_iterator:
         assigned = False  # True if the current term has been assigned to a group
-        # Identity should not be in a group
         if term == ():
+            constant_term = QubitOperator(term, coefficient)
             continue
         for group in groups:
             if all(
@@ -71,14 +76,23 @@ def group_comeasureable_terms_greedy(
         if not assigned:
             groups.append(QubitOperator(term, qubit_operator.terms[term]))
 
+    # Constant term is handled as separate term to make it easier to exclude it
+    # from calculations or execution if that's needed.
+    if constant_term is not None:
+        groups.append(constant_term)
+
     return groups
 
 
-DECOMPOSITION_METHODS = {
+def _group_comeasureable_terms_greedy_sorted(
+    qubit_operator: QubitOperator,
+) -> List[QubitOperator]:
+    return group_comeasureable_terms_greedy(qubit_operator, True)
+
+
+DECOMPOSITION_METHODS: Dict[str, Callable[[QubitOperator], List[QubitOperator]]] = {
     "greedy": group_comeasureable_terms_greedy,
-    "greedy-sorted": lambda qubit_operator: group_comeasureable_terms_greedy(
-        qubit_operator, True
-    ),
+    "greedy-sorted": _group_comeasureable_terms_greedy_sorted,
 }
 
 
@@ -102,9 +116,21 @@ def get_decomposition_function(
     return decomposition_function
 
 
+def _calculate_variance_upper_bound(group: QubitOperator) -> float:
+    coefficients = np.array(list(group.terms.values()))
+    return np.sum(coefficients ** 2)
+
+
+def _remove_constant_term_from_group(group: QubitOperator) -> QubitOperator:
+    new_group = copy.deepcopy(group)
+    if new_group.terms.get(()):
+        del new_group.terms[()]
+    return new_group
+
+
 def compute_group_variances(
     groups: List[QubitOperator], expecval: ExpectationValues = None
-) -> np.array:
+) -> np.ndarray:
     """Computes the variances of each frame in a grouped operator.
 
     If expectation values are provided, use variances from there,
@@ -119,18 +145,21 @@ def compute_group_variances(
         frame_variances: A Numpy array of the computed variances for each frame
     """
 
-    if any([group.terms.get(()) for group in groups]):
-        raise ValueError(
-            "The list of qubitoperators for measurement estimation should not contain a constant term"
-        )
     if expecval is None:
-        frame_variances = [
-            np.sum(np.array(list(group.terms.values())) ** 2) for group in groups
-        ]  # Covariances are ignored; Variances are set to 1
+        groups = [_remove_constant_term_from_group(group) for group in groups]
+        frame_variances = [_calculate_variance_upper_bound(group) for group in groups]
     else:
         group_sizes = np.array([len(group.terms.keys()) for group in groups])
-        assert np.sum(group_sizes) == len(expecval.values)
+        if np.sum(group_sizes) != len(expecval.values):
+            raise ValueError(
+                "Number of expectation values should be the same size as number of terms."
+            )
         real_expecval = expectation_values_to_real(expecval)
+        if not np.logical_and(
+            real_expecval.values >= -1, real_expecval.values <= 1
+        ).all():
+            raise ValueError("Expectation values should have values between -1 and 1.")
+
         pauli_variances = 1.0 - real_expecval.values ** 2
         frame_variances = []
         for i, group in enumerate(groups):
@@ -200,13 +229,7 @@ def get_expectation_values_from_rdms(
     reordered_qubitoperator = QubitOperator()
     for term, coefficient in terms_iterator:
         reordered_qubitoperator += QubitOperator(term, coefficient)
-
     expectations_packed = interactionrdm.get_qubit_expectations(reordered_qubitoperator)
-
-    if () in expectations_packed.terms:
-        del expectations_packed.terms[
-            ()
-        ]  # Expectation of the constant term is excluded from expectation values
 
     expectations = np.array(list(expectations_packed.terms.values()))
     if np.any(np.abs(np.imag(expectations)) > 1e-3):
@@ -215,38 +238,13 @@ def get_expectation_values_from_rdms(
         )
     expectations = np.real(expectations)
     np.clip(expectations, -1, 1, out=expectations)
-
     return ExpectationValues(expectations)
-
-
-def estimate_nmeas_for_operator(
-    operator: QubitOperator,
-    decomposition_method: Optional[str] = "greedy-sorted",
-    expecval: Optional[ExpectationValues] = None,
-):
-    """Calculates the number of measurements required for computing
-    the expectation value of a qubit hamiltonian, where co-measurable terms
-    are grouped. See estimate_nmeas_for_frames for details.
-
-    Args:
-        operator: The operator whose expectation value is to be estimated.
-        decomposition_method: Method used to decompose the Hamiltonian into
-            co-measurable groups. See DECOMPOSITION_METHODS.
-        expval: Expectation values to be used when accounting for variances. See
-            estimate_nmeas_for_frames for details.
-
-    Returns:
-        See estimate_nmeas_for_frames.
-    """
-
-    decomposition_function = get_decomposition_function(decomposition_method)
-    return estimate_nmeas_for_frames(decomposition_function(operator), expecval)
 
 
 def estimate_nmeas_for_frames(
     frame_operators: List[QubitOperator],
     expecval: Optional[ExpectationValues] = None,
-) -> Tuple[float, int, np.array]:
+) -> Tuple[float, int, np.ndarray]:
     """Calculates the number of measurements required for computing
     the expectation value of a qubit hamiltonian, where co-measurable terms
     are grouped in a single QubitOperator, and different groups are different

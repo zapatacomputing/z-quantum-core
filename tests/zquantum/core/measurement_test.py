@@ -1,34 +1,34 @@
-import os
-import numpy as np
 import json
-import pytest
+import os
 import random
+from collections import Counter
+
+import numpy as np
+import pytest
 from openfermion.ops import IsingOperator
+from pyquil.wavefunction import Wavefunction
+from zquantum.core.bitstring_distribution import BitstringDistribution
 from zquantum.core.measurement import (
     ExpectationValues,
+    Measurements,
     Parities,
-    save_expectation_values,
+    check_parity,
+    concatenate_expectation_values,
+    convert_bitstring_to_int,
+    expectation_values_to_real,
+    get_expectation_value_from_frequencies,
+    get_expectation_values_from_parities,
+    get_parities_from_measurements,
     load_expectation_values,
-    save_wavefunction,
+    load_parities,
     load_wavefunction,
     sample_from_wavefunction,
+    save_expectation_values,
     save_parities,
-    load_parities,
-    get_parities_from_measurements,
-    get_expectation_values_from_parities,
-    expectation_values_to_real,
-    convert_bitstring_to_int,
-    check_parity,
-    get_expectation_value_from_frequencies,
-    Measurements,
-    concatenate_expectation_values,
+    save_wavefunction,
 )
-from pyquil.wavefunction import Wavefunction
-
-from zquantum.core.bitstring_distribution import BitstringDistribution
 from zquantum.core.testing import create_random_wavefunction
-from zquantum.core.utils import RNDSEED, convert_bitstrings_to_tuples, SCHEMA_VERSION
-from collections import Counter
+from zquantum.core.utils import RNDSEED, SCHEMA_VERSION, convert_bitstrings_to_tuples
 
 
 def remove_file_if_exists(filename):
@@ -538,7 +538,6 @@ class TestMeasurements:
             "000": 1 / 9,
             "001": 2 / 9,
             "010": 1 / 9,
-            "011": 1 / 9,
             "011": 1 / 9,
             "100": 1 / 9,
             "101": 1 / 9,

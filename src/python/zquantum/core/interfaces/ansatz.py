@@ -1,18 +1,19 @@
-from abc import ABC, abstractmethod
-import numpy as np
-import copy
-import sympy
-from typing import List, Optional
-from overrides import EnforceOverrides
 import warnings
+from abc import ABC
+from typing import List, Optional
+
+import numpy as np
+import sympy
+from overrides import EnforceOverrides
+
 from ..circuit import Circuit
-from .ansatz_utils import ansatz_property
 from ..utils import create_symbols_map
+from .ansatz_utils import ansatz_property
 
 
 class Ansatz(ABC, EnforceOverrides):
 
-    supports_parametrized_circuits = None
+    supports_parametrized_circuits: Optional[bool] = None
     number_of_layers = ansatz_property("number_of_layers")
 
     def __init__(self, number_of_layers: int):
@@ -31,7 +32,7 @@ class Ansatz(ABC, EnforceOverrides):
         if number_of_layers < 0:
             raise ValueError("number_of_layers must be non-negative.")
         self.number_of_layers = number_of_layers
-        self._parametrized_circuit = None
+        self._parametrized_circuit: Optional[Circuit] = None
 
     @property
     def parametrized_circuit(self) -> Circuit:

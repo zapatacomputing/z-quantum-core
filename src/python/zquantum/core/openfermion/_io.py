@@ -1,24 +1,21 @@
+from typing import Any, Callable, Dict, List
+
 import numpy as np
 import rapidjson as json
 from openfermion import (
     InteractionOperator,
-    QubitOperator,
-    IsingOperator,
-    SymbolicOperator,
     InteractionRDM,
+    IsingOperator,
+    QubitOperator,
+    SymbolicOperator,
 )
-from typing import Callable, List
-
-from ..utils import (
-    SCHEMA_VERSION,
-    convert_dict_to_array,
-    convert_array_to_dict,
-)
-from ..typing import AnyPath
 from zquantum.core.typing import LoadSource
 
+from ..typing import AnyPath
+from ..utils import SCHEMA_VERSION, convert_array_to_dict, convert_dict_to_array
 
-def convert_interaction_op_to_dict(op: InteractionOperator) -> dict:
+
+def convert_interaction_op_to_dict(op: InteractionOperator) -> Dict[str, Any]:
     """Convert an InteractionOperator to a dictionary.
     Args:
         op (openfermion.ops.InteractionOperator): the operator
@@ -26,7 +23,7 @@ def convert_interaction_op_to_dict(op: InteractionOperator) -> dict:
         dictionary (dict): the dictionary representation
     """
 
-    dictionary = {"schema": SCHEMA_VERSION + "-interaction_op"}
+    dictionary: Dict[str, Any] = {"schema": SCHEMA_VERSION + "-interaction_op"}
     dictionary["constant"] = convert_array_to_dict(np.array(op.constant))
     dictionary["one_body_tensor"] = convert_array_to_dict(np.array(op.one_body_tensor))
     dictionary["two_body_tensor"] = convert_array_to_dict(np.array(op.two_body_tensor))
@@ -94,7 +91,7 @@ def convert_dict_to_qubitop(dictionary: dict) -> QubitOperator:
     return convert_dict_to_operator(dictionary, QubitOperator)
 
 
-def convert_qubitop_to_dict(op: QubitOperator) -> dict:
+def convert_qubitop_to_dict(op: QubitOperator) -> Dict[str, Any]:
     """Convert a QubitOperator to a dictionary.
     Args:
         op (openfermion.ops.QubitOperator): the operator
@@ -102,10 +99,12 @@ def convert_qubitop_to_dict(op: QubitOperator) -> dict:
         dictionary (dict): the dictionary representation
     """
 
-    dictionary = {"schema": SCHEMA_VERSION + "-qubit_op"}
+    dictionary: Dict[str, Any] = {"schema": SCHEMA_VERSION + "-qubit_op"}
     dictionary["terms"] = []
     for term in op.terms:
-        term_dict = {"pauli_ops": [{"qubit": op[0], "op": op[1]} for op in term]}
+        term_dict: Dict[str, Any] = {
+            "pauli_ops": [{"qubit": op[0], "op": op[1]} for op in term]
+        }
 
         if isinstance(op.terms[term], complex):
             term_dict["coefficient"] = {
@@ -173,7 +172,7 @@ def save_qubit_operator_set(
         qubit_operator_set (list): a list of QubitOperator to be saved
         file (str): the name of the file
     """
-    dictionary = {}
+    dictionary: Dict[str, Any] = {}
     dictionary["schema"] = SCHEMA_VERSION + "-circuit_set"
     dictionary["qubit_operators"] = []
     for qubit_operator in qubit_operator_set:

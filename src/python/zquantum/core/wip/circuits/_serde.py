@@ -1,15 +1,12 @@
-from typing import List, Iterable
 from functools import singledispatch
+from typing import Iterable, List
 
 import sympy
 
-from . import _gates
-from . import _builtin_gates
-from . import _circuit
 from ...utils import SCHEMA_VERSION
+from . import _builtin_gates, _circuit, _gates
 
-
-CIRCUIT_SCHEMA = SCHEMA_VERSION + "-circuit"
+CIRCUIT_SCHEMA = SCHEMA_VERSION + "-circuit-v2"
 
 
 def serialize_expr(expr: sympy.Expr):
@@ -142,6 +139,10 @@ def _dagger_gate_to_dict(gate: _gates.Dagger):
 
 
 def circuit_from_dict(dict_):
+    schema = dict_.get("schema")
+    if schema != CIRCUIT_SCHEMA:
+        raise ValueError(f"Invalid circuit schema: {schema}")
+
     defs = [
         custom_gate_def_from_dict(def_dict)
         for def_dict in dict_.get("custom_gate_definitions", [])

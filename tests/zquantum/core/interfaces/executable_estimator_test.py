@@ -3,23 +3,25 @@
 """
 
 
-from pyquil import Program
-from pyquil.gates import X
-from openfermion import QubitOperator, qubit_operator_sparse, IsingOperator
 import numpy as np
 import pytest
-
-from zquantum.core.interfaces.estimator_test import EstimatorTests
-from zquantum.core.interfaces.mock_objects import MockQuantumBackend, MockQuantumSimulator
+from openfermion import IsingOperator, QubitOperator, qubit_operator_sparse
+from pyquil import Program
+from pyquil.gates import X
+from zquantum.core.circuit import Circuit
 from zquantum.core.estimator import (
     BasicEstimator,
     ExactEstimator,
+    allocate_shots,
     get_context_selection_circuit,
     get_context_selection_circuit_for_group,
-    allocate_shots,
+)
+from zquantum.core.interfaces.estimator_test import EstimatorTests
+from zquantum.core.interfaces.mock_objects import (
+    MockQuantumBackend,
+    MockQuantumSimulator,
 )
 from zquantum.core.measurement import ExpectationValues
-from zquantum.core.circuit import Circuit
 
 
 class TestEstimatorUtils:
@@ -226,10 +228,9 @@ class TestBasicEstimator(EstimatorTests):
             target_operator=constant_qubit_operator,
             n_samples=n_samples,
         ).values
-        value = values[1]
         # Then
         assert len(values) == 2
-        assert coefficient == value
+        assert coefficient == values[1]
 
     def test_get_estimated_expectation_values_optimal_shot_allocation(
         self, estimator, backend, circuit, target_operator

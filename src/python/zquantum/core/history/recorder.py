@@ -1,14 +1,16 @@
 """Main implementation of the recorder."""
-from typing import TypeVar, Callable, Generic, List, Any, NamedTuple, Dict
+from typing import Any, Callable, Dict, Generic, List, NamedTuple, TypeVar
+
 from typing_extensions import overload
+
 from ..interfaces.functions import (
-    CallableWithGradient,
     CallableStoringArtifacts,
+    CallableWithGradient,
     CallableWithGradientStoringArtifacts,
     StoreArtifact,
-    has_store_artifact_param
+    has_store_artifact_param,
 )
-from .save_conditions import always, SaveCondition
+from .save_conditions import SaveCondition, always
 
 T = TypeVar("T")
 S = TypeVar("S")
@@ -143,7 +145,6 @@ def recorder(
     save_condition: SaveCondition = always,
 ) -> ArtifactRecorderWithGradient:
     """The recorder function: variant for callables with gradient and storing artifacts."""
-    pass
 
 
 @overload
@@ -151,7 +152,6 @@ def recorder(
     function: CallableStoringArtifacts[S, T], save_condition: SaveCondition = always
 ) -> ArtifactRecorder[S, T]:
     """The recorder function: variant for callables with no gradient that store artifacts."""
-    pass
 
 
 @overload
@@ -159,7 +159,6 @@ def recorder(
     function: CallableWithGradient, save_condition: SaveCondition = always
 ) -> SimpleRecorderWithGradient:
     """The recorder function: variant for callables with gradient that don't store artifacts."""
-    pass
 
 
 @overload
@@ -167,7 +166,6 @@ def recorder(
     function: Callable[[S], T], save_condition: SaveCondition = always
 ) -> SimpleRecorder[S, T]:
     """The recorder function: variant for callables without gradient that don't store artifacts."""
-    pass
 
 
 def recorder(function, save_condition: SaveCondition = always):

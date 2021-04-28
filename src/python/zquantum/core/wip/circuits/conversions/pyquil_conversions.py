@@ -1,16 +1,14 @@
 from functools import singledispatch
-from typing import Iterable, Mapping
+from typing import Iterable, Mapping, Tuple, Union
 
+import numpy as np
 import pyquil
 import sympy
-import numpy as np
 
-from .. import _gates
-from .. import _builtin_gates
-from .. import _circuit
-from ..symbolic.translations import translate_expression
+from .. import _builtin_gates, _circuit, _gates
 from ..symbolic.pyquil_expressions import QUIL_DIALECT, expression_from_pyquil
 from ..symbolic.sympy_expressions import SYMPY_DIALECT, expression_from_sympy
+from ..symbolic.translations import translate_expression
 
 
 def _n_qubits_by_ops(ops: Iterable[_gates.GateOperation]):
@@ -89,6 +87,15 @@ def _import_gate(
     )
 
 
+def _ensure_is_gate(
+    gate_ref: _builtin_gates.GateRef, params: Tuple[_gates.Parameter, ...]
+) -> _gates.Gate:
+    if isinstance(gate_ref, _gates.Gate):
+        return gate_ref
+    else:
+        return gate_ref(*params)
+
+
 def _import_gate_via_name(gate: pyquil.gates.Gate) -> _gates.GateOperation:
     try:
         zq_gate_ref = _builtin_gates.builtin_gate_by_name(gate.name)
@@ -96,7 +103,7 @@ def _import_gate_via_name(gate: pyquil.gates.Gate) -> _gates.GateOperation:
         raise ValueError(f"Can't import {gate} as a built-in gate")
 
     zq_params = tuple(map(_import_expression, gate.params))
-    zq_gate = zq_gate_ref(*zq_params) if zq_params else zq_gate_ref
+    zq_gate = _ensure_is_gate(zq_gate_ref, zq_params)
 
     for modifier in gate.modifiers:
         if modifier == "DAGGER":
@@ -104,7 +111,11 @@ def _import_gate_via_name(gate: pyquil.gates.Gate) -> _gates.GateOperation:
         elif modifier == "CONTROLLED":
             zq_gate = zq_gate.controlled(1)
     all_qubits = _import_pyquil_qubits(gate.qubits)
-    return zq_gate(*all_qubits)
+
+    operation = zq_gate(*all_qubits)
+    if not isinstance(operation, _gates.GateOperation):
+        raise ValueError()
+    return operation
 
 
 def _import_custom_gate(instruction, custom_gate_defs):
@@ -121,7 +132,7 @@ def _import_custom_gate(instruction, custom_gate_defs):
     return gate_def(*zq_params)(*zq_qubits)
 
 
-def _import_pyquil_qubits(qubits: Iterable[pyquil.quil.Qubit]):
+def _import_pyquil_qubits(qubits):
     return tuple(qubit.index for qubit in qubits)
 
 
@@ -136,9 +147,58 @@ def _assign_custom_defs(
         )
 
 
+@singledispatch
+def _unwrap_gate(gate: _gates.Gate):
+    return gate
+
+
+@_unwrap_gate.register(_gates.ControlledGate)
+@_unwrap_gate.register(_gates.Dagger)
+def _unwrap_controlled_gate(gate: Union[_gates.ControlledGate, _gates.Dagger]):
+    return _unwrap_gate(gate.wrapped_gate)
+
+
+def _gate_definition_from_matrix_factory_gate(
+    gate: _gates.MatrixFactoryGate,
+) -> _gates.CustomGateDefinition:
+    symbols = tuple(sympy.Symbol(f"theta_{i}") for i in range(len(gate.params)))
+    template_matrix = gate.matrix_factory(*symbols)
+    return _gates.CustomGateDefinition(
+        gate_name=gate.name,
+        matrix=template_matrix,
+        params_ordering=symbols,
+    )
+
+
+def _is_builtin_gate(gate):
+    return hasattr(_builtin_gates, gate.name)
+
+
+def _is_supported_by_pyquil(gate):
+    return hasattr(pyquil.gates, gate.name)
+
+
+def _unique_by(sequence, key):
+    return {key(obj): obj for obj in sequence}.values()
+
+
+def _collect_unsupported_builtin_gate_defs(gates: Iterable[_gates.Gate]):
+    unwrapped_gates = _unique_by(
+        map(_unwrap_gate, gates), key=lambda gate: gate.name
+    )
+    return [
+        _gate_definition_from_matrix_factory_gate(gate)
+        for gate in unwrapped_gates
+        if _is_builtin_gate(gate) and not _is_supported_by_pyquil(gate)
+    ]
+
+
 def export_to_pyquil(circuit: _circuit.Circuit) -> pyquil.Program:
     var_declarations = map(_param_declaration, sorted(map(str, circuit.free_symbols)))
-    custom_gate_definitions = circuit.collect_custom_gate_definitions()
+    custom_gate_definitions = [
+        *circuit.collect_custom_gate_definitions(),
+        *_collect_unsupported_builtin_gate_defs([op.gate for op in circuit.operations]),
+    ]
     custom_gate_names = {gate_def.gate_name for gate_def in custom_gate_definitions}
     gate_instructions = [
         _export_gate(op.gate, op.qubit_indices, custom_gate_names)
@@ -160,12 +220,7 @@ def _export_gate(gate: _gates.Gate, qubit_indices, custom_gate_names):
     except ValueError:
         pass
 
-    try:
-        return _export_custom_gate(gate, qubit_indices, custom_gate_names)
-    except ValueError:
-        pass
-
-    raise NotImplementedError(f"Exporting gate {gate} to PyQuil is unsupported.")
+    return _export_custom_gate(gate, qubit_indices, custom_gate_names)
 
 
 def _export_custom_gate(gate: _gates.Gate, qubit_indices, custom_gate_names):

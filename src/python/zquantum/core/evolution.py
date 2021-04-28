@@ -1,10 +1,11 @@
-import openfermion, pyquil
-from pyquil.paulis import exponentiate as pyquil_exponentiate
-from .openfermion import qubitop_to_pyquilpauli
+from typing import List, Tuple, Union
+
 import numpy as np
-from .circuit import Circuit
-from typing import Tuple, List, Union
+import pyquil
 import sympy
+from pyquil.paulis import exponentiate as pyquil_exponentiate
+
+from .circuit import Circuit
 
 
 def time_evolution(
@@ -53,7 +54,8 @@ def time_evolution_derivatives(
     function time_evolution
 
     Args:
-        hamiltonian: The Hamiltonian to be evolved under.
+        hamiltonian: The Hamiltonian to be evolved under. It should contain numeric
+            coefficients, symbolic expressions aren't supported.
         time: Time duration of the evolution.
         method: Time evolution method. Currently the only option is 'Trotter'.
         trotter_order: order of Trotter evolution
@@ -73,10 +75,20 @@ def time_evolution_derivatives(
             for factor in factors:
 
                 output = Circuit()
-                # r is the eigenvalue of the generator of the gate. The value is modified
-                # to take into account the coefficient and trotter step in front of the
-                # Pauli term
-                r = hamiltonian[index_term1].coefficient.real / trotter_order
+                # r is the eigenvalue of the generator of the gate. The value is
+                # modified to take into account the coefficient and trotter step in
+                # front of the Pauli term.
+                coefficient = hamiltonian[index_term1].coefficient
+                if isinstance(coefficient, complex):
+                    real_coefficient = coefficient.real
+                elif isinstance(coefficient, (int, float)):
+                    real_coefficient = float(coefficient)
+                else:
+                    raise ValueError(
+                        "Evolution only works with numeric coefficients. "
+                        f"{coefficient} ({type(coefficient)}) is unsupported"
+                    )
+                r = real_coefficient / trotter_order
                 output_factors.append(factor * r)
                 shift = factor * (np.pi / (4.0 * r))
 
@@ -173,12 +185,15 @@ def time_evolution_for_term(
             elif len(gate.params) > 1:
                 raise (
                     NotImplementedError(
-                        "Time evolution of multi-parametered gates with symbolic parameters is not supported."
+                        "Time evolution of multi-parametered gates with symbolic "
+                        "parameters is not supported."
                     )
                 )
             elif gate.name == "Rz" or gate.name == "PHASE":
                 # We only want to modify the parameter of Rz gate or PHASE gate.
                 gate.params[0] = gate.params[0] * time
     else:
-        circuit = Circuit(pyquil_exponentiate(term * time))
+        exponent = term * time
+        assert isinstance(exponent, pyquil.paulis.PauliTerm)
+        circuit = Circuit(pyquil_exponentiate(exponent))
     return circuit

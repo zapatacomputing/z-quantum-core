@@ -1,16 +1,13 @@
-import sympy
-import numpy as np
 import cirq
-
+import numpy as np
 import pytest
-
+import sympy
+from zquantum.core.wip.circuits import _builtin_gates, _circuit
 from zquantum.core.wip.circuits.conversions.cirq_conversions import (
     export_to_cirq,
     import_from_cirq,
     make_rotation_factory,
 )
-from zquantum.core.wip.circuits import _builtin_gates
-from zquantum.core.wip.circuits import _circuit
 
 # --------- gates ---------
 
@@ -34,6 +31,7 @@ EQUIVALENT_PARAMETRIC_GATES = [
         (_builtin_gates.RX, cirq.rx),
         (_builtin_gates.RY, cirq.ry),
         (_builtin_gates.RZ, cirq.rz),
+        (_builtin_gates.RH, make_rotation_factory(cirq.HPowGate, 0.0)),
         (_builtin_gates.PHASE, make_rotation_factory(cirq.ZPowGate)),
         (_builtin_gates.CPHASE, cirq.cphase),
         (_builtin_gates.XX, make_rotation_factory(cirq.XXPowGate, -0.5)),

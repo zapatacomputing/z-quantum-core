@@ -1,16 +1,16 @@
 import json
+from typing import Dict, List, Optional, Union
+
 import numpy as np
-
 from openfermion import SymbolicOperator
-from typing import Union, Dict, Optional, List
-
-from zquantum.core.circuit import load_circuit, load_circuit_template_params, Circuit
+from zquantum.core.circuit import Circuit, load_circuit, load_circuit_template_params
 from zquantum.core.cost_function import get_ground_state_cost_function
 from zquantum.core.estimator import BasicEstimator
 from zquantum.core.openfermion import load_qubit_operator
 from zquantum.core.serialization import save_optimization_results
-from zquantum.core.utils import create_object
 from zquantum.core.typing import Specs
+from zquantum.core.openfermion import load_qubit_operator
+from zquantum.core.utils import create_object
 
 
 def optimize_parametrized_circuit_for_ground_state_of_operator(

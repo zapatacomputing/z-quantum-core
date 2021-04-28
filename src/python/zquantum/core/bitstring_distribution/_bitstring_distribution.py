@@ -1,12 +1,14 @@
+import json
 import math
 import sys
 import warnings
-import json
-import numpy as np
-from ..utils import SCHEMA_VERSION, convert_tuples_to_bitstrings
-from ..typing import AnyPath
+from typing import Any, Callable, Dict, List
 from collections import Counter
-from typing import Dict, Callable, List
+
+import numpy as np
+
+from ..typing import AnyPath
+from ..utils import SCHEMA_VERSION
 
 
 class BitstringDistribution:
@@ -102,7 +104,8 @@ def is_bitstring_distribution(input_dict: Dict) -> bool:
         bool: boolean variable indicating whether the bitstring distribution is well defined or not.
     """
     return (
-        is_non_negative(input_dict)
+        (not input_dict == {})
+        and is_non_negative(input_dict)
         and is_key_length_fixed(input_dict)
         and are_keys_binary_strings(input_dict)
     )
@@ -156,7 +159,7 @@ def save_bitstring_distribution(
         distribution (BitstringDistribution): the bistring distribution
         file (str or file-like object): the name of the file, or a file-like object
     """
-    dictionary = {}
+    dictionary: Dict[str, Any] = {}
     dictionary["bitstring_distribution"] = distribution.distribution_dict
     dictionary["schema"] = SCHEMA_VERSION + "-bitstring-probability-distribution"
 
@@ -173,7 +176,7 @@ def save_bitstring_distribution_set(
        bitstring_distribution_set (list): a list of distributions to be saved
        file (str): the name of the file
     """
-    dictionary = {}
+    dictionary: Dict[str, Any] = {}
     dictionary["schema"] = SCHEMA_VERSION + "-bitstring-probability-distribution-set"
     dictionary["bitstring_distribution"] = []
 
@@ -228,7 +231,7 @@ def load_bitstring_distribution_set(file: str) -> List[BitstringDistribution]:
 
 
 def create_bitstring_distribution_from_probability_distribution(
-    prob_distribution: np.array,
+    prob_distribution: np.ndarray,
 ) -> BitstringDistribution:
     """Create a well defined bitstring distribution starting from a probability distribution
 

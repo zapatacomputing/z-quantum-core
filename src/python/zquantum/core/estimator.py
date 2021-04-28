@@ -1,19 +1,21 @@
-from .interfaces.estimator import Estimator
-from .interfaces.backend import QuantumBackend, QuantumSimulator
-from .circuit import Circuit
-from .measurement import (
-    ExpectationValues,
-    expectation_values_to_real,
-    concatenate_expectation_values,
-)
-from .hamiltonian import get_decomposition_function, estimate_nmeas_for_frames
-from .utils import scale_and_discretize
-from openfermion import SymbolicOperator, IsingOperator, QubitOperator
-from overrides import overrides
 import logging
+from typing import List, Optional, Tuple
+
 import numpy as np
 import pyquil
-from typing import Tuple, Optional, Callable, List
+from openfermion import IsingOperator, QubitOperator, SymbolicOperator
+from overrides import overrides
+
+from .circuit import Circuit
+from .hamiltonian import estimate_nmeas_for_frames, get_decomposition_function
+from .interfaces.backend import QuantumBackend, QuantumSimulator
+from .interfaces.estimator import Estimator
+from .measurement import (
+    ExpectationValues,
+    concatenate_expectation_values,
+    expectation_values_to_real,
+)
+from .utils import scale_and_discretize
 
 logger = logging.getLogger(__name__)
 
@@ -62,7 +64,7 @@ def get_context_selection_circuit_for_group(
 
     context_selection_circuit = Circuit()
     transformed_operator = IsingOperator()
-    context = []
+    context: List[Tuple[int, str]] = []
 
     for term in qubit_operator.terms:
         term_operator = IsingOperator(())
@@ -90,7 +92,7 @@ def allocate_shots(
     n_samples: Optional[int] = None,
     n_total_samples: Optional[int] = None,
     prior_expectation_values: Optional[ExpectationValues] = None,
-) -> List[int]:
+) -> Optional[List[int]]:
     """Generates the number of shots for each frame operator, using either the "uniform"
     or the "optimal" shot allocation.
 
@@ -101,7 +103,7 @@ def allocate_shots(
                                   variances if prior expectation values are provided.
         frame_operators: The list of IsingOperators that will be evaluated
         n_samples: The number of samples per frame operator using the uniform allocation strategy
-                   Exactly one of n_samples or n_total_samples must be provided
+                   If neither n_samples nor n_total_samples are provided, returns None.
         n_total_samples: The total number of samples across all frame operators when using the optimal
                          allocation strategy.
                          Exactly one of n_samples or n_total_samples must be provided
@@ -114,25 +116,25 @@ def allocate_shots(
     if shot_allocation_strategy == "uniform":
         if n_total_samples is not None:
             raise ValueError("Uniform sampling does not yet support n_total_samples.")
-        if n_samples is not None:
+        elif n_samples is not None:
             measurements_per_frame = [n_samples for _ in range(len(frame_operators))]
         else:
-            measurements_per_frame = None
+            return None
 
     elif shot_allocation_strategy == "optimal":
         if n_total_samples is None:
             raise ValueError(
                 "For optimal shot allocation, n_total_samples must be provided."
             )
-        if n_samples is not None:
+        elif n_samples is not None:
             raise ValueError(
                 "Optimal shot allocation does not support n_samples; use n_total_samples instead."
             )
-        _, _, measurements_per_frame = estimate_nmeas_for_frames(
+        _, _, relative_measurements_per_frame = estimate_nmeas_for_frames(
             frame_operators, prior_expectation_values
         )
         measurements_per_frame = scale_and_discretize(
-            measurements_per_frame, n_total_samples
+            relative_measurements_per_frame, n_total_samples
         )
     else:
         raise ValueError(
@@ -213,18 +215,12 @@ class BasicEstimator(Estimator):
             frame_circuits, measurements_per_frame
         )
 
-        expectation_values_set = []
-        for frame_operator, measurements in zip(frame_operators, measurements_set):
-            expectation_values_set.append(
-                expectation_values_to_real(
-                    measurements.get_expectation_values(frame_operator)
-                )
+        expectation_values_set = [
+            expectation_values_to_real(
+                measurements.get_expectation_values(frame_operator)
             )
-
-        if target_operator.terms.get(()) is not None:
-            expectation_values_set.append(
-                ExpectationValues(np.array([target_operator.terms.get(())]))
-            )
+            for frame_operator, measurements in zip(frame_operators, measurements_set)
+        ]
 
         return expectation_values_to_real(
             concatenate_expectation_values(expectation_values_set)

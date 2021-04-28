@@ -1,18 +1,15 @@
+import numpy as np
 import pytest
 import sympy
-import numpy as np
-
-from zquantum.core.wip.circuits import _gates
-from zquantum.core.wip.circuits import _builtin_gates
-from zquantum.core.wip.circuits import _circuit
+from zquantum.core.wip.circuits import _builtin_gates, _circuit, _gates
 from zquantum.core.wip.circuits._serde import (
-    serialize_expr,
-    deserialize_expr,
     circuit_from_dict,
     custom_gate_def_from_dict,
+    deserialize_expr,
+    serialize_expr,
     to_dict,
 )
-
+from zquantum.core import circuit as old_circuit
 
 ALPHA = sympy.Symbol("alpha")
 GAMMA = sympy.Symbol("gamma")
@@ -112,6 +109,38 @@ class TestCircuitSerialization:
             # matrices are computed lazily, so we have to call the getter to know if
             # we deserialized parameters properly
             operation.gate.matrix
+
+
+def _make_example_old_circuit():
+    qubits = [old_circuit.Qubit(i) for i in range(0, 3)]
+    gate_H0 = old_circuit.Gate("H", [qubits[0]])
+    gate_CNOT01 = old_circuit.Gate("CNOT", [qubits[0], qubits[1]])
+    gate_T2 = old_circuit.Gate("T", [qubits[2]])
+    gate_CZ12 = old_circuit.Gate("CZ", [qubits[1], qubits[2]])
+
+    circuit = old_circuit.Circuit()
+    circuit.qubits = qubits
+    circuit.gates = [gate_H0, gate_CNOT01, gate_T2, gate_CZ12]
+
+    return circuit
+
+
+@pytest.mark.parametrize("serialize_gate_params", [False, True])
+def test_loading_old_circuit_dict_raises_error(serialize_gate_params):
+    old_circ = _make_example_old_circuit()
+    circ_dict = old_circ.to_dict(serialize_gate_params)
+
+    with pytest.raises(ValueError):
+        circuit_from_dict(circ_dict)
+
+
+@pytest.mark.parametrize("serialize_gate_params", [False, True])
+def test_loading_old_circuit_string_raises_error(serialize_gate_params):
+    old_circ = _make_example_old_circuit()
+    circ_dict = old_circ.to_dict(serialize_gate_params)
+
+    with pytest.raises(ValueError):
+        circuit_from_dict(circ_dict)
 
 
 class TestCustomGateDefinitionSerialization:

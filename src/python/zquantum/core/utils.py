@@ -1,26 +1,19 @@
 """General-purpose utilities."""
-import warnings
-
-import numpy as np
-from scipy.linalg import expm
-import random
-import math
-import operator
-import sys
-import json
-import openfermion
-import sympy
-from openfermion import hermitian_conjugated
-from openfermion import InteractionRDM
-from openfermion.ops import SymbolicOperator
-from networkx.readwrite import json_graph
-import lea
+from types import FunctionType
 import collections
-import scipy
-from typing import List, Tuple, Optional, Iterable, Union, Dict
-import importlib
 import copy
-from .typing import LoadSource, AnyPath, Specs
+import importlib
+import json
+import sys
+import warnings
+import inspect
+import numpy as np
+from functools import partial
+import sympy
+import lea
+from openfermion import InteractionRDM, hermitian_conjugated
+from typing import List, Tuple, Optional, Iterable, Dict, Any
+from .typing import AnyPath, LoadSource, Specs
 
 SCHEMA_VERSION = "zapata-v1"
 RNDSEED = 12345
@@ -198,7 +191,9 @@ def sample_from_probability_distribution(
     """
     if isinstance(probability_distribution, dict):
         prob_pmf = lea.pmf(probability_distribution)
-        sampled_dict = collections.Counter(prob_pmf.random(n_samples))
+        sampled_dict: collections.Counter = collections.Counter(
+            prob_pmf.random(n_samples)
+        )
         return sampled_dict
     else:
         raise RuntimeError(
@@ -208,7 +203,7 @@ def sample_from_probability_distribution(
         )
 
 
-def convert_bitstrings_to_tuples(bitstrings: List[str]) -> List[Tuple[int]]:
+def convert_bitstrings_to_tuples(bitstrings: Iterable[str]) -> List[Tuple[int, ...]]:
     """Given the measured bitstrings, convert each bitstring to tuple format
 
     Args:
@@ -217,10 +212,10 @@ def convert_bitstrings_to_tuples(bitstrings: List[str]) -> List[Tuple[int]]:
         A list of tuples
     """
     # Convert from bitstrings to tuple format
-    measurements = []
+    measurements: List[Tuple[int, ...]] = []
     for bitstring in bitstrings:
 
-        measurement = ()
+        measurement: Tuple[int, ...] = ()
         for char in bitstring:
             measurement = measurement + (int(char),)
 
@@ -335,7 +330,7 @@ def load_value_estimate(file: LoadSource) -> ValueEstimate:
         with open(file, "r") as f:
             data = json.load(f)
     else:
-        data = json.load(file)
+        data = json.load(file)  # type: ignore
 
     return ValueEstimate.from_dict(data)
 
@@ -368,7 +363,7 @@ def load_list(file: LoadSource) -> List:
         with open(file, "r") as f:
             data = json.load(f)
     else:
-        data = json.load(file)
+        data = json.load(file)  # type: ignore
 
     return data["list"]
 
@@ -381,7 +376,7 @@ def save_list(array: List, filename: AnyPath, artifact_name: str = ""):
         file (str or file-like object): the name of the file, or a file-like object
         artifact_name (str): optional argument to specify the schema name
     """
-    dictionary = {}
+    dictionary: Dict[str, Any] = {}
     dictionary["schema"] = SCHEMA_VERSION + "-" + artifact_name + "-list"
     dictionary["list"] = array
 
@@ -414,10 +409,11 @@ def get_func_from_specs(specs: Dict):
         callable: function defined by specs
 
     """
-    module_name = specs.pop("module_name")
-    module = importlib.import_module(module_name)
-    function_name = specs.pop("function_name")
-    return getattr(module, function_name)
+    warnings.warn(
+        "zquantum.core.utils.get_func_from_specs will be deprecated. Please use zquantum.core.utils.create_object instead",
+        DeprecationWarning,
+    )
+    return create_object(specs)
 
 
 def create_object(specs: Dict, **kwargs):
@@ -439,8 +435,24 @@ def create_object(specs: Dict, **kwargs):
     module = importlib.import_module(module_name)
     creator_name = specs.pop("function_name")
     creator = getattr(module, creator_name)
-    created_object = creator(**specs, **kwargs)
-    return created_object
+
+    for key in specs.keys():
+        if key in kwargs.keys():
+            raise ValueError("Cannot have same parameter assigned to multiple values")
+
+    if isinstance(creator, FunctionType):
+        if kwargs != {} or specs != {}:
+            function_parameter_names = inspect.signature(creator).parameters.keys()
+            function_args = {
+                key: value
+                for key, value in {**specs, **kwargs}.items()
+                if key in function_parameter_names
+            }
+            return partial(creator, **function_args)
+        else:
+            return creator
+    else:
+        return creator(**specs, **kwargs)
 
 
 def load_noise_model(file: LoadSource):
@@ -455,12 +467,13 @@ def load_noise_model(file: LoadSource):
 
     if isinstance(file, str):
         with open(file, "r") as f:
-            data = json.load(f)
+            specs = json.load(f)
     else:
-        data = json.load(file)
+        specs = json.load(file)  # type: ignore
 
-    func = get_func_from_specs(data)
-    return func(data["data"])
+    noise_model_data = specs.pop("data", None)
+    func = create_object(specs)
+    return func(noise_model_data)
 
 
 def save_noise_model(noise_model_data, module_name, function_name, filename):
@@ -488,7 +501,7 @@ def save_noise_model(noise_model_data, module_name, function_name, filename):
 
 def create_symbols_map(
     symbols: List[sympy.Symbol], params: np.ndarray
-) -> Tuple[sympy.Symbol, float]:
+) -> List[Tuple[sympy.Symbol, float]]:
     """
     Creates a map to be used for evaluating sympy expressions.
 
@@ -532,7 +545,7 @@ def save_nmeas_estimate(
         frame_meas: A list of the number of measurements per frame for epsilon = 1.0
     """
 
-    data = {}
+    data: Dict[str, Any] = {}
     data["schema"] = SCHEMA_VERSION + "-hamiltonian_analysis"
     data["K"] = nmeas
     data["nterms"] = nterms
@@ -579,7 +592,9 @@ def scale_and_discretize(values: Iterable[float], total: int) -> List[int]:
             of the input list elements.
     """
 
-    scale_factor = total / sum(values)
+    # Note: combining the two lines below breaks type checking; see mypy #6040
+    value_sum = sum(values)
+    scale_factor = total / value_sum
 
     result = [np.floor(value * scale_factor) for value in values]
     remainders = [
@@ -627,4 +642,4 @@ def hf_rdm(n_alpha: int, n_beta: int, n_orbitals: int) -> InteractionRDM:
 def load_from_specs(specs: Specs):
     if isinstance(specs, str):
         specs = json.loads(specs)
-    return create_object(specs)
+    return create_object(specs)  # type: ignore

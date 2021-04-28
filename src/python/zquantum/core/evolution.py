@@ -1,15 +1,21 @@
+from functools import singledispatch
 from typing import List, Tuple, Union
 
 import numpy as np
+from openfermion import QubitOperator
 import pyquil
+from pyquil.quilatom import Qubit
 import sympy
 from pyquil.paulis import exponentiate as pyquil_exponentiate
+from typing_extensions import final
 
-from .circuit import Circuit
+from .circuit import Circuit, Gate, Qubit
+from .wip.circuits import Circuit as NewCircuit
+from .wip.circuits import H, RX, RZ, CNOT
 
 
 def time_evolution(
-    hamiltonian: pyquil.paulis.PauliSum,
+    hamiltonian: Union[pyquil.paulis.PauliSum, QubitOperator],
     time: Union[float, sympy.Expr],
     method: str = "Trotter",
     trotter_order: int = 1,
@@ -32,10 +38,13 @@ def time_evolution(
     if method == "Trotter":
         output = Circuit()
         for index_order in range(0, trotter_order):  # iterate over Trotter orders
-            for index_term in range(0, len(hamiltonian.terms)):
-                output += time_evolution_for_term(
-                    hamiltonian[index_term], time / trotter_order
-                )
+            if isinstance(hamiltonian, QubitOperator):
+                terms = hamiltonian.get_operators()
+            elif isinstance(hamiltonian, pyquil.paulis.PauliSum):
+                terms = hamiltonian.terms
+
+            for term in terms:
+                output += time_evolution_for_term(term, time / trotter_order)
 
     else:
         raise ValueError("Currently the method {} is not supported".format(method))
@@ -167,7 +176,13 @@ def generate_circuit_sequence(
     return circuit_sequence
 
 
-def time_evolution_for_term(
+@singledispatch
+def time_evolution_for_term(term, time: Union[float, sympy.Expr]):
+    raise NotImplementedError
+
+
+@time_evolution_for_term.register
+def time_evolution_for_term_pyquil(
     term: pyquil.paulis.PauliTerm, time: Union[float, sympy.Expr]
 ) -> Circuit:
     """Evolves a Pauli term for a given time and returns a circuit representing it.
@@ -197,3 +212,119 @@ def time_evolution_for_term(
         assert isinstance(exponent, pyquil.paulis.PauliTerm)
         circuit = Circuit(pyquil_exponentiate(exponent))
     return circuit
+
+
+@time_evolution_for_term.register
+def time_evolution_for_term_qubit_operator(
+    term: QubitOperator, time: Union[float, sympy.Expr]
+) -> Circuit:
+    """Evolves a Pauli term for a given time and returns a circuit representing it.
+    Args:
+        term: Pauli term to be evolved
+        time: time of evolution
+    Returns:
+        Circuit: Circuit representing evolved pyquil term.
+    """
+
+    if len(term.terms) != 1:
+        raise ValueError("This function works only on a single term.")
+    term_components = list(term.terms.keys())[0]
+    base_changes = []
+    base_reversals = []
+    cnot_gates = []
+    central_gate = None
+    term_types = [component[1] for component in term_components]
+    qubit_indices = [component[0] for component in term_components]
+    coefficient = list(term.terms.values())[0]
+
+    for i, (term_type, qubit_id) in enumerate(zip(term_types, qubit_indices)):
+        # TODO: comments
+        if term_type == "X":
+            base_changes.append(Gate("H", qubits=[Qubit(qubit_id)]))
+            base_reversals.append(Gate("H", qubits=[Qubit(qubit_id)]))
+        elif term_type == "Y":
+            base_changes.append(
+                Gate("Rx", qubits=[Qubit(qubit_id)], params=[np.pi / 2])
+            )
+            base_reversals.append(
+                Gate("Rx", qubits=[Qubit(qubit_id)], params=[-np.pi / 2])
+            )
+        if i == len(term_components) - 1:
+            central_gate = Gate(
+                "Rz", qubits=[Qubit(qubit_id)], params=[2 * time * coefficient]
+            )
+        else:
+            cnot_gates.append(
+                Gate("CNOT", qubits=[Qubit(qubit_id), Qubit(qubit_indices[i + 1])])
+            )
+
+    circuit = Circuit()
+    for gate in base_changes:
+        circuit.gates.append(gate)
+
+    for gate in cnot_gates:
+        circuit.gates.append(gate)
+
+    circuit.gates.append(central_gate)
+
+    for gate in cnot_gates[::-1]:
+        circuit.gates.append(gate)
+
+    for gate in base_reversals:
+        circuit.gates.append(gate)
+
+    return circuit
+
+
+# @time_evolution_for_term.register
+# def time_evolution_for_term_qubit_operator(
+#     term: QubitOperator, time: Union[float, sympy.Expr]
+# ) -> NewCircuit:
+#     """Evolves a Pauli term for a given time and returns a circuit representing it.
+#     Args:
+#         term: Pauli term to be evolved
+#         time: time of evolution
+#     Returns:
+#         Circuit: Circuit representing evolved pyquil term.
+#     """
+
+#     if len(term.terms) != 1:
+#         raise ValueError("This function works only on a single term.")
+#     term_components = list(term.terms.keys())[0]
+#     base_changes = []
+#     base_reversals = []
+#     cnot_gates = []
+#     central_gate = None
+#     term_types = [component[1] for component in term_components]
+#     qubit_indices = [component[0] for component in term_components]
+#     coefficient = term.terms.values()
+
+#     for i, (term_type, qubit_id) in enumerate(zip(term_types, qubit_indices)):
+#         # TODO: comments
+#         if term_type == "X":
+#             base_changes.append(H([qubit_id]))
+#             base_reversals.append(H([qubit_id]))
+#         elif term_type == "Y":
+#             base_changes.append(RX(np.pi / 2)([qubit_id]))
+#             base_reversals.append(RX(-np.pi / 2)([qubit_id]))
+#         if i == len(term_components) - 1:
+#             central_gate = RZ(2 * time * coefficient)([qubit_id])
+#         else:
+#             cnot_gates.append(CNOT([qubit_id, qubit_indices[i + 1]]))
+
+#     circuit = NewCircuit()
+#     for gate in base_changes:
+#         circuit += gate
+
+#     for gate in cnot_gates:
+#         circuit += gate
+
+#     circuit += central_gate
+
+#     for gate in cnot_gates[::-1]:
+#         circuit += gate
+
+#     for gate in base_reversals:
+#         circuit += gate
+
+#     return circuit

@@ -1,17 +1,14 @@
-from functools import singledispatch
-from typing import List, Tuple, Union
+"""Functions for constructing circuits simulating evolution under given Hamiltonian."""
+import operator
+from functools import reduce, singledispatch
+from itertools import chain
+from typing import Union, Tuple, List
 
 import numpy as np
-from openfermion import QubitOperator
-import pyquil
-from pyquil.quilatom import Qubit
+import pyquil.paulis
 import sympy
-from pyquil.paulis import exponentiate as pyquil_exponentiate
-from typing_extensions import final
-
+from openfermion import QubitOperator
 from .circuit import Circuit, Gate, Qubit
-from .wip.circuits import Circuit as NewCircuit
-from .wip.circuits import H, RX, RZ, CNOT
 
 
 def time_evolution(
@@ -20,160 +17,33 @@ def time_evolution(
     method: str = "Trotter",
     trotter_order: int = 1,
 ) -> Circuit:
-
-    """Generates circuit for performing time evolution under a Hamiltonian H.
-    The default setting is first-order Trotterization. The goal is to approximate
-    the operation exp(-iHt).
+    """Create a circuit simulating evolution under given Hamiltonian.
 
     Args:
         hamiltonian: The Hamiltonian to be evolved under.
         time: Time duration of the evolution.
         method: Time evolution method. Currently the only option is 'Trotter'.
-        trotter_order: order of Trotter evolution
+        trotter_order: order of Trotter evolution (1 by default).
 
     Returns:
-        A Circuit (core.circuit) object representing the time evolution.
+        Circuit approximating evolution under `hamiltonian`.
+        Circuit's unitary i approximately equal to exp(-i * time * hamiltonian).
     """
+    if method != "Trotter":
+        raise ValueError(f"Currently the method {method} is not supported.")
+    if isinstance(hamiltonian, QubitOperator):
+        terms = hamiltonian.get_operators()
+    elif isinstance(hamiltonian, pyquil.paulis.PauliSum):
+        terms = hamiltonian.terms
 
-    if method == "Trotter":
-        output = Circuit()
-        for index_order in range(0, trotter_order):  # iterate over Trotter orders
-            if isinstance(hamiltonian, QubitOperator):
-                terms = hamiltonian.get_operators()
-            elif isinstance(hamiltonian, pyquil.paulis.PauliSum):
-                terms = hamiltonian.terms
-
-            for term in terms:
-                output += time_evolution_for_term(term, time / trotter_order)
-
-    else:
-        raise ValueError("Currently the method {} is not supported".format(method))
-
-    return output
-
-
-def time_evolution_derivatives(
-    hamiltonian: pyquil.paulis.PauliSum,
-    time: float,
-    method: str = "Trotter",
-    trotter_order: int = 1,
-) -> Tuple[List[Circuit], List[float]]:
-
-    """Generates derivative circuits for the time evolution operator defined in
-    function time_evolution
-
-    Args:
-        hamiltonian: The Hamiltonian to be evolved under. It should contain numeric
-            coefficients, symbolic expressions aren't supported.
-        time: Time duration of the evolution.
-        method: Time evolution method. Currently the only option is 'Trotter'.
-        trotter_order: order of Trotter evolution
-
-    Returns:
-        A Circuit (core.circuit) object representing the time evolution.
-    """
-    if method == "Trotter":
-
-        # derivative for a single Trotter step
-        single_trotter_derivatives = []
-        factors = [1.0, -1.0]
-        output_factors = []
-
-        for index_term1 in range(0, len(hamiltonian.terms)):
-
-            for factor in factors:
-
-                output = Circuit()
-                # r is the eigenvalue of the generator of the gate. The value is
-                # modified to take into account the coefficient and trotter step in
-                # front of the Pauli term.
-                coefficient = hamiltonian[index_term1].coefficient
-                if isinstance(coefficient, complex):
-                    real_coefficient = coefficient.real
-                elif isinstance(coefficient, (int, float)):
-                    real_coefficient = float(coefficient)
-                else:
-                    raise ValueError(
-                        "Evolution only works with numeric coefficients. "
-                        f"{coefficient} ({type(coefficient)}) is unsupported"
-                    )
-                r = real_coefficient / trotter_order
-                output_factors.append(factor * r)
-                shift = factor * (np.pi / (4.0 * r))
-
-                for index_term2 in range(0, len(hamiltonian.terms)):
-                    if index_term1 == index_term2:
-                        expitH_circuit = time_evolution_for_term(
-                            hamiltonian[index_term2], ((time + shift) / trotter_order)
-                        )
-                        output += expitH_circuit
-                    else:
-                        expitH_circuit = time_evolution_for_term(
-                            hamiltonian[index_term2], (time / trotter_order)
-                        )
-                        output += expitH_circuit
-
-                single_trotter_derivatives.append(output)
-
-        if trotter_order > 1:
-
-            output_circuits = []
-            final_factors = []
-
-            repeated_circuit = time_evolution(
-                hamiltonian, time, method="Trotter", trotter_order=1
-            )
-
-            for position in range(0, trotter_order):
-                for circuit_factor, different_circuit in zip(
-                    output_factors, single_trotter_derivatives
-                ):
-
-                    output_circuits.append(
-                        generate_circuit_sequence(
-                            repeated_circuit, different_circuit, trotter_order, position
-                        )
-                    )
-                    final_factors.append(circuit_factor)
-
-            return output_circuits, final_factors
-
-        else:
-
-            return single_trotter_derivatives, output_factors
-
-    else:
-
-        raise ValueError("Currently the method {} is not supported".format(method))
-
-
-def generate_circuit_sequence(
-    repeated_circuit: Circuit, different_circuit: Circuit, length: int, position: int
-) -> Circuit:
-    """
-    Auxiliary function to generate a sequence of the "repeated_circuit",
-    "length" times, where at position "position" we have "different_circuit"
-    instead.
-
-    Args:
-        repeated_circuit (core.circuit.Circuit)
-        different_circuit (core.circuit.Circuit)
-        length (int)
-        position (int)
-
-    Returns:
-        circuit_sequence (core.circuit.Circuit))
-    """
-    if position >= length:
-        raise ValueError("The position must be less than the total length")
-
-    circuit_sequence = Circuit()
-    for index in range(length):
-        if index == position:
-            circuit_sequence += different_circuit
-        else:
-            circuit_sequence += repeated_circuit
-    return circuit_sequence
+    return reduce(
+        operator.add,
+        (
+            time_evolution_for_term(term, time / trotter_order)
+            for _index_order in range(trotter_order)
+            for term in terms
+        ),
+    )
 
 
 @singledispatch
@@ -193,7 +63,7 @@ def time_evolution_for_term_pyquil(
         Circuit: Circuit representing evolved pyquil term.
     """
     if isinstance(time, sympy.Expr):
-        circuit = Circuit(pyquil_exponentiate(term))
+        circuit = Circuit(pyquil.paulis.exponentiate(term))
         for gate in circuit.gates:
             if len(gate.params) == 0:
                 pass
@@ -210,7 +80,7 @@ def time_evolution_for_term_pyquil(
     else:
         exponent = term * time
         assert isinstance(exponent, pyquil.paulis.PauliTerm)
-        circuit = Circuit(pyquil_exponentiate(exponent))
+        circuit = Circuit(pyquil.paulis.exponentiate(exponent))
     return circuit
 
 
@@ -276,55 +146,106 @@ def time_evolution_for_term_qubit_operator(
     return circuit
 
 
-# @time_evolution_for_term.register
-# def time_evolution_for_term_qubit_operator(
-#     term: QubitOperator, time: Union[float, sympy.Expr]
-# ) -> NewCircuit:
-#     """Evolves a Pauli term for a given time and returns a circuit representing it.
-#     Args:
-#         term: Pauli term to be evolved
-#         time: time of evolution
-#     Returns:
-#         Circuit: Circuit representing evolved pyquil term.
-#     """
+def time_evolution_derivatives(
+    hamiltonian: Union[pyquil.paulis.PauliSum, QubitOperator],
+    time: float,
+    method: str = "Trotter",
+    trotter_order: int = 1,
+) -> Tuple[List[Circuit], List[float]]:
+    """Generates derivative circuits for the time evolution operator defined in
+    function time_evolution
 
-#     if len(term.terms) != 1:
-#         raise ValueError("This function works only on a single term.")
-#     term_components = list(term.terms.keys())[0]
-#     base_changes = []
-#     base_reversals = []
-#     cnot_gates = []
-#     central_gate = None
-#     term_types = [component[1] for component in term_components]
-#     qubit_indices = [component[0] for component in term_components]
-#     coefficient = term.terms.values()
+    Args:
+        hamiltonian: The Hamiltonian to be evolved under. It should contain numeric
+            coefficients, symbolic expressions aren't supported.
+        time: time duration of the evolution.
+        method: time evolution method. Currently the only option is 'Trotter'.
+        trotter_order: order of Trotter evolution
 
-#     for i, (term_type, qubit_id) in enumerate(zip(term_types, qubit_indices)):
-#         # TODO: comments
-#         if term_type == "X":
-#             base_changes.append(H([qubit_id]))
-#             base_reversals.append(H([qubit_id]))
-#         elif term_type == "Y":
-#             base_changes.append(RX(np.pi / 2)([qubit_id]))
-#             base_reversals.append(RX(-np.pi / 2)([qubit_id]))
-#         if i == len(term_components) - 1:
-#             central_gate = RZ(2 * time * coefficient)([qubit_id])
-#         else:
-#             cnot_gates.append(CNOT([qubit_id, qubit_indices[i + 1]]))
+    Returns:
+        A Circuit simulating time evolution.
+    """
+    if method != "Trotter":
+        raise ValueError(f"The method {method} is currently not supported.")
 
-#     circuit = NewCircuit()
-#     for gate in base_changes:
-#         circuit += gate
+    single_trotter_derivatives = []
+    factors = [1.0, -1.0]
+    output_factors = []
+    if isinstance(hamiltonian, QubitOperator):
+        terms = hamiltonian.get_operators()
+    elif isinstance(hamiltonian, pyquil.paulis.PauliSum):
+        terms = hamiltonian.terms
 
-#     for gate in cnot_gates:
-#         circuit += gate
+    for i, term_1 in enumerate(terms):
+        for factor in factors:
+            output = Circuit()
 
-#     circuit += central_gate
+            try:
+                if isinstance(term_1, QubitOperator):
+                    r = list(term_1.terms.values())[0]
+                else:
+                    r = complex(term_1.coefficient).real / trotter_order
+            except TypeError:
+                raise ValueError(
+                    "Term coefficients need to be numerical. "
+                    f"Offending term: {term_1}"
+                )
+            output_factors.append(r * factor)
+            shift = factor * (np.pi / (4.0 * r))
 
-#     for gate in cnot_gates[::-1]:
-#         circuit += gate
+            for j, term_2 in enumerate(terms):
+                output += time_evolution_for_term(
+                    term_2,
+                    (time + shift) / trotter_order if i == j else time / trotter_order,
+                )
 
-#     for gate in base_reversals:
-#         circuit += gate
+            single_trotter_derivatives.append(output)
 
-#     return circuit
+    if trotter_order > 1:
+        output_circuits = []
+        final_factors = []
+
+        repeated_circuit = time_evolution(
+            hamiltonian, time, method="Trotter", trotter_order=1
+        )
+
+        for position in range(trotter_order):
+            for factor, different_circuit in zip(
+                output_factors, single_trotter_derivatives
+            ):
+                output_circuits.append(
+                    _generate_circuit_sequence(
+                        repeated_circuit, different_circuit, trotter_order, position
+                    )
+                )
+                final_factors.append(factor)
+        return output_circuits, final_factors
+    else:
+        return single_trotter_derivatives, output_factors
+
+
+def _generate_circuit_sequence(
+    repeated_circuit: Circuit, different_circuit: Circuit, length: int, position: int
+) -> Circuit:
+    """
+    Auxiliary function to generate a sequence of the "repeated_circuit",
+    "length" times, where at position "position" we have "different_circuit"
+    instead.
+    Args:
+        repeated_circuit (core.circuit.Circuit)
+        different_circuit (core.circuit.Circuit)
+        length (int)
+        position (int)
+    Returns:
+        circuit_sequence (core.circuit.Circuit))
+    """
+    if position >= length:
+        raise ValueError("The position must be less than the total length")
+
+    circuit_sequence = Circuit()
+    for index in range(length):
+        if index == position:
+            circuit_sequence += different_circuit
+        else:
+            circuit_sequence += repeated_circuit
+    return circuit_sequence

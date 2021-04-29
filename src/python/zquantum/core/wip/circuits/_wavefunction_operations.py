@@ -36,11 +36,11 @@ class MultiPhaseOperation:
                 f"MultiPhaseOperation with {len(self.params)} params cannot be applied to wavefunction of length {len(wavefunction)}."
             )
 
-
         try:
             exp_params = np.exp(np.asarray(self.params, dtype=float) * 1j)
         except TypeError as e:
             raise RuntimeError(
-                "MultiPhaseOperation can only be used only if params are real numbers."
+                "MultiPhaseOperation can only be applied only if all symbolic "
+                "parameters are bound to real numbers."
             ) from e
         return np.multiply(wavefunction, exp_params)

@@ -1,4 +1,5 @@
 import json
+from openfermion import IsingOperator
 from typing import Dict, Optional, Union
 
 from zquantum.core.bitstring_distribution import save_bitstring_distribution
@@ -9,16 +10,22 @@ from zquantum.core.circuit import (
     load_circuit_set,
     load_circuit_template_params,
 )
+from zquantum.core.cost_function import sum_expectation_values
 from zquantum.core.hamiltonian import (
     estimate_nmeas_for_frames,
     get_expectation_values_from_rdms,
     get_expectation_values_from_rdms_for_qubitoperator_list,
 )
-from zquantum.core.measurement import load_expectation_values, save_expectation_values
+from zquantum.core.measurement import (
+    Measurements,
+    load_expectation_values,
+    save_expectation_values,
+)
 from zquantum.core.openfermion import (
     load_interaction_rdm,
     load_qubit_operator,
     load_qubit_operator_set,
+    change_operator_type,
 )
 from zquantum.core.typing import Specs
 from zquantum.core.utils import (
@@ -237,3 +244,21 @@ def expectation_values_from_rdms_for_qubitoperator_list(
         rdms, operator_list, sort_terms=sort_terms
     )
     save_expectation_values(expecval, "expectation_values.json")
+
+
+def get_summed_expectation_values(
+    operator: str, measurements: str, use_bessel_correction: Optional[bool] = True
+):
+    if isinstance(operator, str):
+        operator = load_qubit_operator(operator)
+        operator = change_operator_type(operator, IsingOperator)
+
+    if isinstance(measurements, str):
+        measurements = Measurements.load_from_file(measurements)
+
+    expectation_values = measurements.get_expectation_values(
+        operator, use_bessel_correction=use_bessel_correction
+    )
+
+    value_estimate = sum_expectation_values(expectation_values)
+    save_value_estimate(value_estimate, "value-estimate.json")

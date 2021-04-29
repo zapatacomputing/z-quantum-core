@@ -23,7 +23,7 @@ from zquantum.core.circuit import (
 )
 from zquantum.core.testing import create_random_circuit as _create_random_circuit
 from zquantum.core.typing import Specs
-from zquantum.core.utils import load_from_specs
+from zquantum.core.utils import load_from_specs, create_symbols_map
 
 
 # Generate random parameters for an ansatz
@@ -160,3 +160,17 @@ def batch_circuits(
         circuit_set.append(circuit)
 
     save_circuit_set(circuit_set, "circuit-set.json")
+
+
+def evaluate_parametrized_circuit(
+    parametrized_circuit: Union[str, Circuit], parameters: Union[str, np.ndarray]
+):
+    if isinstance(parametrized_circuit, str):
+        parametrized_circuit = load_circuit(parametrized_circuit)
+
+    if isinstance(parameters, str):
+        parameters = load_circuit_template_params(parameters)
+
+    symbols_map = create_symbols_map(parametrized_circuit.symbolic_params, parameters)
+    evaluated_circuit = parametrized_circuit.evaluate(symbols_map)
+    save_circuit(evaluated_circuit, "evaluated-circuit.json")

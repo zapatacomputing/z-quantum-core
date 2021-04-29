@@ -44,7 +44,7 @@ def time_evolution(
 def _adjust_gate_angle(operation: circuits.GateOperation, time):
     """Adjust angle in gate operation to account for evolution in time.
 
-    Since this handles outputs from pyuil.paulis.exponentiate, the only
+    Since this handles outputs from `pyquil.paulis.exponentiate`, the only
     time-dependent gates are RZ and PHASE (other rotations have fixed
     angles as they correspond to change of basis).
 

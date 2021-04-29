@@ -1,3 +1,4 @@
+"""Functions for constructing circuits simulating evolution under given Hamiltonian."""
 import operator
 from functools import reduce
 from typing import Union, Tuple, List
@@ -15,21 +16,18 @@ def time_evolution(
     method: str = "Trotter",
     trotter_order: int = 1,
 ) -> circuits.Circuit:
-
-    """Generates circuit for performing time evolution under a Hamiltonian H.
-    The default setting is first-order Trotterization. The goal is to approximate
-    the operation exp(-iHt).
+    """Create a circuit simulating evolution under given Hamiltonian.
 
     Args:
         hamiltonian: The Hamiltonian to be evolved under.
         time: Time duration of the evolution.
         method: Time evolution method. Currently the only option is 'Trotter'.
-        trotter_order: order of Trotter evolution
+        trotter_order: order of Trotter evolution (1 by default).
 
     Returns:
-        A Circuit (core.circuit) object representing the time evolution.
+        Circuit approximating evolution under `hamiltonian`.
+        Circuit's unitary i approximately equal to exp(-i * time * hamiltonian).
     """
-
     if method != "Trotter":
         raise ValueError(f"Currently the method {method} is not supported.")
 
@@ -44,11 +42,14 @@ def time_evolution(
 
 
 def _evolve_gate_operation(operation: circuits.GateOperation, time):
-    """Evolve gate operation.
+    """Adjust angle in gate operation to account for evolution in time.
 
-    This is meant to be used with outputs from pyuil.paulis.exponentiate.
-    The resulting operation has angle multiplied by time if it is RZ or PHASE,
-    other gates are left unchanged.
+    Since this handles outputs from pyuil.paulis.exponentiate, the only
+    time-dependent gates are RZ and PHASE (other rotations have fixed
+    angles as they correspond to change of basis).
+
+    Therefore, we multiply angles in RZ and PHASE by `time`, and leave other
+    gates unchanged.
     """
     # The below should not happen, however, we leave it to reproduce logic from
     # the original code.
@@ -68,12 +69,13 @@ def _evolve_gate_operation(operation: circuits.GateOperation, time):
 def time_evolution_for_term(
     term: pyquil.paulis.PauliTerm, time: Union[float, sympy.Expr]
 ) -> circuits.Circuit:
-    """Evolves a Pauli term for a given time and returns a circuit representing it.
+    """Construct a circuit simulating evolution under a given Pauli hamiltonian.
+
     Args:
-        term: Pauli term to be evolved
+        term: Pauli term describing evolution
         time: time of evolution
     Returns:
-        Circuit: Circuit representing evolved pyquil term.
+        Circuit simulating time evolution.
     """
     if isinstance(time, sympy.Expr):
         circuit = circuits.import_from_pyquil(pyquil.paulis.exponentiate(term))
@@ -95,6 +97,19 @@ def time_evolution_derivatives(
     method: str = "Trotter",
     trotter_order: int = 1,
 ) -> Tuple[List[circuits.Circuit], List[float]]:
+    """Generates derivative circuits for the time evolution operator defined in
+    function time_evolution
+
+    Args:
+        hamiltonian: The Hamiltonian to be evolved under. It should contain numeric
+            coefficients, symbolic expressions aren't supported.
+        time: time duration of the evolution.
+        method: time evolution method. Currently the only option is 'Trotter'.
+        trotter_order: order of Trotter evolution
+
+    Returns:
+        A Circuit simulating time evolution.
+    """
     if method != "Trotter":
         raise ValueError(f"The method {method} is currently not supported.")
 
@@ -145,6 +160,18 @@ def time_evolution_derivatives(
 
 
 def generate_circuit_sequence(repeated_circuit, different_circuit, length, position):
+    """Join multiple copies of circuit, replacing one copy with a different circuit.
+
+    Args:
+        repeated_circuit: circuit which copies should be concatenated
+        different_circuit: circuit that will replace one copy of `repeated_circuit
+        length: total number of circuits to join
+        position: which copy of repeated_circuit should be replaced by
+        `different_circuit`.
+    Returns:
+        Concatenation of circuits C_1, ..., C_length, where C_i = `repeated_circuit`
+        if i != position and C_i = `different_circuit` if i == position.
+    """
     return circuits.Circuit([
         *[*repeated_circuit.operations] * position,
         *different_circuit.operations,

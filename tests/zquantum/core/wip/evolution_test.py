@@ -177,6 +177,21 @@ class TestGeneratingCircuitSequence:
 
         assert actual_result == expected_result
 
+    @pytest.mark.parametrize("length, invalid_position", [(5, 5), (4, 6)])
+    def test_generate_circuit_sequence_raises_error_if_position_is_larger_or_equal_to_length(
+        self, length, invalid_position
+    ):
+        repeated_circuit = circuits.Circuit([circuits.X(0)])
+        different_circuit = circuits.Circuit([circuits.Y(0)])
+
+        with pytest.raises(ValueError):
+            generate_circuit_sequence(
+                repeated_circuit,
+                different_circuit,
+                length,
+                invalid_position
+            )
+
 
 class TestTimeEvolutionDerivatives:
 

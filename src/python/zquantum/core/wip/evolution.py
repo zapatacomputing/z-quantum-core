@@ -173,6 +173,9 @@ def generate_circuit_sequence(repeated_circuit, different_circuit, length, posit
         Concatenation of circuits C_1, ..., C_length, where C_i = `repeated_circuit`
         if i != position and C_i = `different_circuit` if i == position.
     """
+    if position >= length:
+        raise ValueError(f"Position {position} should be < {length}")
+
     return circuits.Circuit(list(chain.from_iterable(
         [
             (repeated_circuit if i != position else different_circuit).operations

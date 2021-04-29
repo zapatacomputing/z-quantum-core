@@ -7,7 +7,7 @@ from pyquil.paulis import PauliSum, PauliTerm
 from zquantum.core.utils import compare_unitary
 from zquantum.core.wip import circuits
 from zquantum.core.wip.evolution import (
-    generate_circuit_sequence,
+    _generate_circuit_sequence,
     time_evolution,
     time_evolution_derivatives,
     time_evolution_for_term,
@@ -154,7 +154,7 @@ class TestGeneratingCircuitSequence:
     def test_generate_circuit_sequence_produces_correct_sequence(
         self, repeated_circuit, different_circuit, position, length, expected_result
     ):
-        actual_result = generate_circuit_sequence(
+        actual_result = _generate_circuit_sequence(
             repeated_circuit, different_circuit, length, position
         )
 
@@ -168,7 +168,7 @@ class TestGeneratingCircuitSequence:
         different_circuit = circuits.Circuit([circuits.Y(0)])
 
         with pytest.raises(ValueError):
-            generate_circuit_sequence(
+            _generate_circuit_sequence(
                 repeated_circuit, different_circuit, length, invalid_position
             )
 

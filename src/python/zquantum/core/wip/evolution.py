@@ -152,7 +152,7 @@ def time_evolution_derivatives(
                 output_factors, single_trotter_derivatives
             ):
                 output_circuits.append(
-                    generate_circuit_sequence(
+                    _generate_circuit_sequence(
                         repeated_circuit, different_circuit, trotter_order, position
                     )
                 )
@@ -162,7 +162,12 @@ def time_evolution_derivatives(
         return single_trotter_derivatives, output_factors
 
 
-def generate_circuit_sequence(repeated_circuit, different_circuit, length, position):
+def _generate_circuit_sequence(
+    repeated_circuit: circuits.Circuit,
+    different_circuit: circuits.Circuit,
+    length: int,
+    position: int
+):
     """Join multiple copies of circuit, replacing one copy with a different circuit.
 
     Args:

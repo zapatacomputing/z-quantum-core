@@ -41,7 +41,7 @@ def time_evolution(
     )
 
 
-def _evolve_gate_operation(operation: circuits.GateOperation, time):
+def _adjust_gate_angle(operation: circuits.GateOperation, time):
     """Adjust angle in gate operation to account for evolution in time.
 
     Since this handles outputs from pyuil.paulis.exponentiate, the only
@@ -81,7 +81,7 @@ def time_evolution_for_term(
         circuit = circuits.import_from_pyquil(pyquil.paulis.exponentiate(term))
 
         new_circuit = circuits.Circuit([
-            _evolve_gate_operation(operation, time)
+            _adjust_gate_angle(operation, time)
             for operation in circuit.operations
         ])
     else:

@@ -85,7 +85,7 @@ class TestTimeEvolutionOfPauliSum:
 
     @pytest.mark.parametrize("time", [0.1, 0.4, 1.0])
     @pytest.mark.parametrize("order", [1, 2, 3])
-    def test_evolution_with_numerical_parameter_produces_correct_result(
+    def test_evolution_with_numerical_time_produces_correct_result(
         self, hamiltonian, time, order
     ):
         cirq_qubits = cirq.LineQubit(0), cirq.LineQubit(1)
@@ -100,7 +100,7 @@ class TestTimeEvolutionOfPauliSum:
 
     @pytest.mark.parametrize("time_value", [0.1, 0.4, 1.0])
     @pytest.mark.parametrize("order", [1, 2, 3])
-    def test_time_evolution_with_symbolic_parameter_produces_correct_unitary(
+    def test_time_evolution_with_symbolic_time_produces_correct_unitary(
         self, hamiltonian, time_value, order
     ):
         time_symbol = sympy.Symbol("t")
@@ -165,7 +165,7 @@ class TestGeneratingCircuitSequence:
             )
         ]
     )
-    def test_generate_circuit_sequence(
+    def test_generate_circuit_sequence_produces_correct_sequence(
         self, repeated_circuit, different_circuit, position, length, expected_result
     ):
         actual_result = generate_circuit_sequence(

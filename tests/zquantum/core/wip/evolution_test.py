@@ -16,19 +16,19 @@ from zquantum.core.wip.evolution import (
 PAULI_STRING_TO_CIRQ_GATE = {"XX": cirq.XX, "YY": cirq.YY, "ZZ": cirq.ZZ}
 
 
-def _cirq_exponentiate_term(term, qubits, time, order):
-    base_exponent = 2 * time / order / np.pi
+def _cirq_exponentiate_term(term, qubits, time, trotter_order):
+    base_exponent = 2 * time / trotter_order / np.pi
     base_gate = PAULI_STRING_TO_CIRQ_GATE[term.pauli_string()](*qubits)
     return base_gate ** (term.coefficient * base_exponent)
 
 
-def _cirq_exponentiate_hamiltonian(hamiltonian, qubits, time, order):
+def _cirq_exponentiate_hamiltonian(hamiltonian, qubits, time, trotter_order):
     return cirq.Circuit(
         [
-            _cirq_exponentiate_term(term, qubits, time, order)
+            _cirq_exponentiate_term(term, qubits, time, trotter_order)
             for term in hamiltonian.terms
         ]
-        * order
+        * trotter_order
     )
 
 

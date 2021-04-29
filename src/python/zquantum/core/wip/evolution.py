@@ -1,9 +1,11 @@
-from functools import reduce
 import operator
+from functools import reduce
+from typing import Union, Tuple, List
+
 import numpy as np
+import pyquil.paulis
 import sympy
-import pyquil
-from typing import Union, Sequence, Tuple, List
+
 from zquantum.core.wip import circuits
 
 

@@ -1,33 +1,28 @@
-import unittest
-from math import pi
-
 import cirq
 import numpy as np
-import pyquil.paulis
 import pytest
 import sympy
 from pyquil.paulis import PauliSum, PauliTerm
+
+from zquantum.core.utils import compare_unitary
+from zquantum.core.wip import circuits
 from zquantum.core.wip.evolution import (
     generate_circuit_sequence,
     time_evolution,
     time_evolution_derivatives,
     time_evolution_for_term,
 )
-from zquantum.core.wip import circuits
-from zquantum.core.testing import create_random_circuit
-from zquantum.core.utils import compare_unitary
-
 
 PAULI_STRING_TO_CIRQ_GATE = {"XX": cirq.XX, "YY": cirq.YY, "ZZ": cirq.ZZ}
 
 
 def _cirq_exponentiate_term(term, qubits, time, order):
-    base_exponent = 2 * time / order / pi
+    base_exponent = 2 * time / order / np.pi
     base_gate = PAULI_STRING_TO_CIRQ_GATE[term.pauli_string()](*qubits)
     return base_gate ** (term.coefficient * base_exponent)
 
 
-def _circ_exponentiate_hamiltonian(hamiltonian, qubits, time, order):
+def _cirq_exponentiate_hamiltonian(hamiltonian, qubits, time, order):
     return cirq.Circuit(
         [
             _cirq_exponentiate_term(term, qubits, time, order)
@@ -35,23 +30,24 @@ def _circ_exponentiate_hamiltonian(hamiltonian, qubits, time, order):
         ] * order
     )
 
+
 @pytest.mark.parametrize(
     "term, time, expected_unitary",
     [
-        (PauliTerm("X", 0) * PauliTerm("X", 1), pi, -np.eye(4)),
+        (PauliTerm("X", 0) * PauliTerm("X", 1), np.pi, -np.eye(4)),
         (
             PauliTerm("Y", 0, 0.5) * PauliTerm("Y", 1),
-            pi,
+            np.pi,
             np.diag([1j, -1j, -1j, 1j])[::-1]
         ),
         (
             PauliTerm("Z", 0) * PauliTerm("Z", 1),
-            pi,
+            np.pi,
             -np.eye(4)
         ),
         (
             PauliTerm("I", 0) * PauliTerm("I", 1),
-            pi,
+            np.pi,
             -np.eye(2)
         )
     ]
@@ -93,7 +89,7 @@ class TestTimeEvolutionOfPauliSum:
         self, hamiltonian, time, order
     ):
         cirq_qubits = cirq.LineQubit(0), cirq.LineQubit(1)
-        expected_cirq_circuit = _circ_exponentiate_hamiltonian(
+        expected_cirq_circuit = _cirq_exponentiate_hamiltonian(
             hamiltonian, cirq_qubits, time, order
         )
 
@@ -112,7 +108,7 @@ class TestTimeEvolutionOfPauliSum:
 
         cirq_qubits = cirq.LineQubit(0), cirq.LineQubit(1)
 
-        expected_cirq_circuit = _circ_exponentiate_hamiltonian(
+        expected_cirq_circuit = _cirq_exponentiate_hamiltonian(
             hamiltonian, cirq_qubits, time_value, order
         )
 
@@ -122,7 +118,7 @@ class TestTimeEvolutionOfPauliSum:
             hamiltonian, time_symbol, trotter_order=order
         ).bind(symbols_map).to_unitary()
 
-        assert  compare_unitary(unitary, reference_unitary, tol=1e-10)
+        assert compare_unitary(unitary, reference_unitary, tol=1e-10)
 
 
 class TestGeneratingCircuitSequence:

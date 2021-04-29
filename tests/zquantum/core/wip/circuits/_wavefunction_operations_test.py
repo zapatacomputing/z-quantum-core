@@ -16,7 +16,7 @@ class TestMultiPhaseOperation:
             np.array([1, 0, 1, 0, 0, 1, 1, 0]) / 2,
         ],
     )
-    def test_multi_phase_operation_with_all_parameters_set_to_0_behaves_like_identity(
+    def test_with_all_parameters_set_to_0_behaves_like_identity(
         self, wavefunction
     ):
         params = tuple(np.zeros_like(wavefunction))
@@ -32,7 +32,7 @@ class TestMultiPhaseOperation:
             (np.array([1, 0, 0, 1]) / np.sqrt(2), (0, 1, 2, 3, 4)),
         ],
     )
-    def test_multi_phase_operation_apply_fails_if_length_of_params_and_wavefunction_dont_match(
+    def test_cannot_be_applied_if_length_of_params_and_wavefunction_dont_match(
         self, wavefunction, params
     ):
         operation = MultiPhaseOperation(params)
@@ -46,7 +46,7 @@ class TestMultiPhaseOperation:
             (np.array([1, 1, 1, 1]) / 2, (0, 1 + 1j, 2, 3j)),
         ],
     )
-    def test_multi_phase_operation_apply_fails_if_params_are_not_real(
+    def test_cannot_be_applied_if_params_are_not_real(
         self, wavefunction, params
     ):
         with pytest.raises(ValueError):
@@ -81,7 +81,7 @@ class TestMultiPhaseOperation:
             ],
         ],
     )
-    def test_multi_phase_operation_correctly_transforms_wavefunction(
+    def test_correctly_transforms_wavefunction(
         self, wavefunction, params, target_wavefunction
     ):
         operation = MultiPhaseOperation(params)
@@ -95,7 +95,7 @@ class TestMultiPhaseOperation:
     @pytest.mark.parametrize(
         "params", [tuple(sympy.symbols("alpha_0:4")), (sympy.Symbol("theta"), 1, 1, 1)]
     )
-    def test_multi_phase_operation_apply_works_with_symbolic_params(
+    def test_apply_works_with_symbolic_params(
         self, wavefunction, params
     ):
         operation = MultiPhaseOperation(params)

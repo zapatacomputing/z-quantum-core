@@ -8,8 +8,12 @@ import numpy as np
 
 @dataclass(frozen=True)
 class MultiPhaseOperation:
-    """ TODO """
+    """Operation applying distinct phase to each wavefunction component.
 
+    MultiPhaseOperation with parameters theta_1, theta_2, .... theta_2^N,
+    transforms a N qubit wavefunction (psi_1, psi_2, ..., psi_2^N)
+    into (exp(i theta_1)psi_1, exp(i theta_2) psi_2, ..., exp(i theta_2^N) psi_2^N).
+    """
     params: Tuple[Parameter, ...]
 
     def __post_init__(self):

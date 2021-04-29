@@ -146,7 +146,11 @@ class TestGeneratingCircuitSequence:
                 3,
                 2,
                 circuits.Circuit(
-                    [circuits.RX(0.5)(1), circuits.RX(0.5)(1), circuits.CNOT(0, 2),]
+                    [
+                        circuits.RX(0.5)(1),
+                        circuits.RX(0.5)(1),
+                        circuits.CNOT(0, 2),
+                    ]
                 ),
             ),
         ],

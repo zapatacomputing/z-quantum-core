@@ -33,7 +33,7 @@ class TestMultiPhaseOperation:
             [np.array([1, 0, 0, 1]) / np.sqrt(2), np.array([0, 1, 2, 3, 4])],
         ],
     )
-    def test_MultiPhaseOperation_apply_fails_if_params_and_wavefunction_dont_match(
+    def test_MultiPhaseOperation_apply_fails_if_lenght_of_params_and_wavefunction_dont_match(
         self, wavefunction, params
     ):
         operation = MultiPhaseOperation(params)
@@ -50,10 +50,8 @@ class TestMultiPhaseOperation:
     def test_MultiPhaseOperation_apply_fails_if_params_are_not_real(
         self, wavefunction, params
     ):
-        pytest.xfail("Not sure why")
-        operation = MultiPhaseOperation(params)
-        with pytest.raises(RuntimeError):
-            _ = operation.apply(wavefunction)
+        with pytest.raises(ValueError):
+            MultiPhaseOperation(params)
 
     @pytest.mark.parametrize(
         "wavefunction,params,target_wavefunction",
@@ -106,35 +104,35 @@ class TestMultiPhaseOperation:
         output = operation.apply(wavefunction)
         np.testing.assert_allclose(output, target_wavefunction)
 
-    @pytest.mark.parametrize(
-        "wavefunction,params,target_wavefunction",
-        [
-            [
-                np.array([1, 1, 1, 1]) / 2,
-                np.array(
-                    [
-                        Symbol("alpha_0"),
-                        Symbol("alpha_1"),
-                        Symbol("alpha_2"),
-                        Symbol("alpha_3"),
-                    ]
-                ),
-                np.array(
-                    [
-                        np.exp(Symbol("alpha_0") * 1j),
-                        np.exp(Symbol("alpha_1") * 1j),
-                        np.exp(Symbol("alpha_2") * 1j),
-                        np.exp(Symbol("alpha_3") * 1j),
-                    ]
-                )
-                / 2,
-            ],
-        ],
-    )
-    def test_MultiPhaseOperation_apply_works_with_symbolic_params(
-        self, wavefunction, params, target_wavefunction
-    ):
-        operation = MultiPhaseOperation(params)
-        output = operation.apply(wavefunction)
-        # TODO
-        # np.testing.assert_allclose(output, target_wavefunction)
+    # @pytest.mark.parametrize(
+    #     "wavefunction,params,target_wavefunction",
+    #     [
+    #         [
+    #             np.array([1, 1, 1, 1]) / 2,
+    #             np.array(
+    #                 [
+    #                     Symbol("alpha_0"),
+    #                     Symbol("alpha_1"),
+    #                     Symbol("alpha_2"),
+    #                     Symbol("alpha_3"),
+    #                 ]
+    #             ),
+    #             np.array(
+    #                 [
+    #                     np.exp(Symbol("alpha_0") * 1j),
+    #                     np.exp(Symbol("alpha_1") * 1j),
+    #                     np.exp(Symbol("alpha_2") * 1j),
+    #                     np.exp(Symbol("alpha_3") * 1j),
+    #                 ]
+    #             )
+    #             / 2,
+    #         ],
+    #     ],
+    # )
+    # def test_MultiPhaseOperation_apply_works_with_symbolic_params(
+    #     self, wavefunction, params, target_wavefunction
+    # ):
+    #     operation = MultiPhaseOperation(params)
+    #     output = operation.apply(wavefunction)
+    #     # TODO
+    #     # np.testing.assert_allclose(output, target_wavefunction)

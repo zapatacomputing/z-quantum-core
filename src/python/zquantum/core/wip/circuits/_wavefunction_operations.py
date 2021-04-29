@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from numbers import Number
 
 import sympy
 from ._gates import _sub_symbols, Parameter
@@ -11,6 +12,13 @@ class MultiPhaseOperation:
     """ TODO """
 
     params: Tuple[Parameter, ...]
+
+    def __post_init__(self):
+        if any(
+            isinstance(param, Number) and param.imag != 0
+            for param in self.params
+        ):
+            raise ValueError("MultiPhaseOperation supports only real parameters.")
 
     def bind(self, symbols_map) -> "MultiPhaseOperation":
         return self.replace_params(
@@ -27,6 +35,7 @@ class MultiPhaseOperation:
             raise ValueError(
                 f"MultiPhaseOperation with {len(self.params)} params cannot be applied to wavefunction of length {len(wavefunction)}."
             )
+
 
         try:
             exp_params = np.exp(np.asarray(self.params, dtype=float) * 1j)

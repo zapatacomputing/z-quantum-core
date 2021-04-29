@@ -1,13 +1,16 @@
 """Functions for constructing circuits simulating evolution under given Hamiltonian."""
 import operator
+import warnings
 from functools import reduce, singledispatch
 from itertools import chain
-from typing import Union, Tuple, List
+from typing import List, Tuple, Union
 
 import numpy as np
 import pyquil.paulis
 import sympy
+
 from openfermion import QubitOperator
+
 from .circuit import Circuit, Gate, Qubit
 
 
@@ -32,8 +35,12 @@ def time_evolution(
     if method != "Trotter":
         raise ValueError(f"Currently the method {method} is not supported.")
     if isinstance(hamiltonian, QubitOperator):
-        terms = hamiltonian.get_operators()
+        terms = list(hamiltonian.get_operators())
     elif isinstance(hamiltonian, pyquil.paulis.PauliSum):
+        warnings.warn(
+            "PauliSum as an input to time_evolution will be depreciated, please change to QubitOperator instead.",
+            DeprecationWarning,
+        )
         terms = hamiltonian.terms
 
     return reduce(
@@ -172,8 +179,12 @@ def time_evolution_derivatives(
     factors = [1.0, -1.0]
     output_factors = []
     if isinstance(hamiltonian, QubitOperator):
-        terms = hamiltonian.get_operators()
+        terms = list(hamiltonian.get_operators())
     elif isinstance(hamiltonian, pyquil.paulis.PauliSum):
+        warnings.warn(
+            "PauliSum as an input to time_evolution_derivatives will be depreciated, please change to QubitOperator instead.",
+            DeprecationWarning,
+        )
         terms = hamiltonian.terms
 
     for i, term_1 in enumerate(terms):
@@ -182,7 +193,7 @@ def time_evolution_derivatives(
 
             try:
                 if isinstance(term_1, QubitOperator):
-                    r = list(term_1.terms.values())[0]
+                    r = list(term_1.terms.values())[0] / trotter_order
                 else:
                     r = complex(term_1.coefficient).real / trotter_order
             except TypeError:

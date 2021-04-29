@@ -1,6 +1,7 @@
 """Functions for constructing circuits simulating evolution under given Hamiltonian."""
 import operator
 from functools import reduce
+from itertools import chain
 from typing import Union, Tuple, List
 
 import numpy as np
@@ -172,9 +173,9 @@ def generate_circuit_sequence(repeated_circuit, different_circuit, length, posit
         Concatenation of circuits C_1, ..., C_length, where C_i = `repeated_circuit`
         if i != position and C_i = `different_circuit` if i == position.
     """
-    return circuits.Circuit([
-        *[*repeated_circuit.operations] * position,
-        *different_circuit.operations,
-        *[*repeated_circuit.operations] * (length - position - 1)
+    return circuits.Circuit(list(chain.from_iterable(
+        [
+            (repeated_circuit if i != position else different_circuit).operations
+            for i in range(length)
         ]
-    )
+    )))

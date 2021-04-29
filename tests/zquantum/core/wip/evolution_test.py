@@ -27,7 +27,8 @@ def _cirq_exponentiate_hamiltonian(hamiltonian, qubits, time, order):
         [
             _cirq_exponentiate_term(term, qubits, time, order)
             for term in hamiltonian.terms
-        ] * order
+        ]
+        * order
     )
 
 
@@ -38,22 +39,13 @@ def _cirq_exponentiate_hamiltonian(hamiltonian, qubits, time, order):
         (
             PauliTerm("Y", 0, 0.5) * PauliTerm("Y", 1),
             np.pi,
-            np.diag([1j, -1j, -1j, 1j])[::-1]
+            np.diag([1j, -1j, -1j, 1j])[::-1],
         ),
-        (
-            PauliTerm("Z", 0) * PauliTerm("Z", 1),
-            np.pi,
-            -np.eye(4)
-        ),
-        (
-            PauliTerm("I", 0) * PauliTerm("I", 1),
-            np.pi,
-            -np.eye(2)
-        )
-    ]
+        (PauliTerm("Z", 0) * PauliTerm("Z", 1), np.pi, -np.eye(4)),
+        (PauliTerm("I", 0) * PauliTerm("I", 1), np.pi, -np.eye(2)),
+    ],
 )
 class TestTimeEvolutionOfTerm:
-
     def test_evolving_pauli_term_with_numerical_time_gives_correct_unitary(
         self, term, time, expected_unitary
     ):
@@ -72,7 +64,6 @@ class TestTimeEvolutionOfTerm:
 
 
 class TestTimeEvolutionOfPauliSum:
-
     @pytest.fixture()
     def hamiltonian(self):
         return PauliSum(
@@ -114,15 +105,16 @@ class TestTimeEvolutionOfPauliSum:
 
         reference_unitary = cirq.unitary(expected_cirq_circuit)
 
-        unitary = time_evolution(
-            hamiltonian, time_symbol, trotter_order=order
-        ).bind(symbols_map).to_unitary()
+        unitary = (
+            time_evolution(hamiltonian, time_symbol, trotter_order=order)
+            .bind(symbols_map)
+            .to_unitary()
+        )
 
         assert compare_unitary(unitary, reference_unitary, tol=1e-10)
 
 
 class TestGeneratingCircuitSequence:
-
     @pytest.mark.parametrize(
         "repeated_circuit, different_circuit, length, position, expected_result",
         [
@@ -131,11 +123,13 @@ class TestGeneratingCircuitSequence:
                 circuits.Circuit([circuits.Z(1)]),
                 5,
                 1,
-                circuits.Circuit([
-                    *[circuits.X(0), circuits.Y(1)],
-                    circuits.Z(1),
-                    *([circuits.X(0), circuits.Y(1)] * 3)
-                ])
+                circuits.Circuit(
+                    [
+                        *[circuits.X(0), circuits.Y(1)],
+                        circuits.Z(1),
+                        *([circuits.X(0), circuits.Y(1)] * 3),
+                    ]
+                ),
             ),
             (
                 circuits.Circuit([circuits.RX(0.5)(1)]),
@@ -143,12 +137,8 @@ class TestGeneratingCircuitSequence:
                 3,
                 0,
                 circuits.Circuit(
-                    [
-                        circuits.CNOT(0, 2),
-                        circuits.RX(0.5)(1),
-                        circuits.RX(0.5)(1)
-                    ]
-                )
+                    [circuits.CNOT(0, 2), circuits.RX(0.5)(1), circuits.RX(0.5)(1)]
+                ),
             ),
             (
                 circuits.Circuit([circuits.RX(0.5)(1)]),
@@ -156,23 +146,16 @@ class TestGeneratingCircuitSequence:
                 3,
                 2,
                 circuits.Circuit(
-                    [
-                        circuits.RX(0.5)(1),
-                        circuits.RX(0.5)(1),
-                        circuits.CNOT(0, 2),
-                    ]
-                )
-            )
-        ]
+                    [circuits.RX(0.5)(1), circuits.RX(0.5)(1), circuits.CNOT(0, 2),]
+                ),
+            ),
+        ],
     )
     def test_generate_circuit_sequence_produces_correct_sequence(
         self, repeated_circuit, different_circuit, position, length, expected_result
     ):
         actual_result = generate_circuit_sequence(
-            repeated_circuit,
-            different_circuit,
-            length,
-            position
+            repeated_circuit, different_circuit, length, position
         )
 
         assert actual_result == expected_result
@@ -186,15 +169,11 @@ class TestGeneratingCircuitSequence:
 
         with pytest.raises(ValueError):
             generate_circuit_sequence(
-                repeated_circuit,
-                different_circuit,
-                length,
-                invalid_position
+                repeated_circuit, different_circuit, length, invalid_position
             )
 
 
 class TestTimeEvolutionDerivatives:
-
     @pytest.mark.parametrize("time", [0.4, sympy.Symbol("t")])
     def test_time_evolution_derivatives_gives_correct_number_of_derivatives_and_factors(
         self, time

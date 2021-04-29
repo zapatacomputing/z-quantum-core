@@ -38,7 +38,7 @@ def time_evolution(
             time_evolution_for_term(term, time / trotter_order)
             for _index_order in range(trotter_order)
             for term in hamiltonian.terms
-        )
+        ),
     )
 
 
@@ -81,10 +81,9 @@ def time_evolution_for_term(
     if isinstance(time, sympy.Expr):
         circuit = circuits.import_from_pyquil(pyquil.paulis.exponentiate(term))
 
-        new_circuit = circuits.Circuit([
-            _adjust_gate_angle(operation, time)
-            for operation in circuit.operations
-        ])
+        new_circuit = circuits.Circuit(
+            [_adjust_gate_angle(operation, time) for operation in circuit.operations]
+        )
     else:
         exponent = term * time
         new_circuit = circuits.import_from_pyquil(pyquil.paulis.exponentiate(exponent))
@@ -127,14 +126,15 @@ def time_evolution_derivatives(
             except TypeError:
                 raise ValueError(
                     "Term coefficients need to be numerical. "
-                    f"Offending term: {term_1}")
+                    f"Offending term: {term_1}"
+                )
             output_factors.append(r * factor)
             shift = factor * (np.pi / (4.0 * r))
 
             for j, term_2 in enumerate(hamiltonian.terms):
                 output += time_evolution_for_term(
                     term_2,
-                    (time + shift) / trotter_order if i == j else time / trotter_order
+                    (time + shift) / trotter_order if i == j else time / trotter_order,
                 )
 
             single_trotter_derivatives.append(output)
@@ -152,7 +152,9 @@ def time_evolution_derivatives(
                 output_factors, single_trotter_derivatives
             ):
                 output_circuits.append(
-                    generate_circuit_sequence(repeated_circuit, different_circuit, trotter_order, position)
+                    generate_circuit_sequence(
+                        repeated_circuit, different_circuit, trotter_order, position
+                    )
                 )
                 final_factors.append(factor)
         return output_circuits, final_factors
@@ -176,9 +178,15 @@ def generate_circuit_sequence(repeated_circuit, different_circuit, length, posit
     if position >= length:
         raise ValueError(f"Position {position} should be < {length}")
 
-    return circuits.Circuit(list(chain.from_iterable(
-        [
-            (repeated_circuit if i != position else different_circuit).operations
-            for i in range(length)
-        ]
-    )))
+    return circuits.Circuit(
+        list(
+            chain.from_iterable(
+                [
+                    (
+                        repeated_circuit if i != position else different_circuit
+                    ).operations
+                    for i in range(length)
+                ]
+            )
+        )
+    )

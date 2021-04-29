@@ -36,13 +36,13 @@ class EstimationPreprocessor(Protocol):
 
 
 class EstimateExpectationValues(Protocol):
-    """Protocol defining function estimates expectation values for a list of estimation tasks.
+    """Protocol defining a function that estimates expectation values for a list of estimation tasks.
     Implementations of this protocol should obey the following rules:
     1. Return one ExpectationValue for each EstimationTask.
     2. Number of entries in each ExpectationValue is not restricted.
     3. Output ExpectationValue should include coefficients of the terms/operators.
-    4. estimation_tasks can include tasks where operator consists of a constant term or contains a constant term,
-        it's responsibility of the implemented method to handle it properly.
+    4. estimation_tasks can include tasks where operator consists of a constant term or contains a constant term.
+        The implemented method should include the contributions of such constant terms in the return value.
     """
 
     def __call__(

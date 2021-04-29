@@ -1,7 +1,6 @@
 from dataclasses import dataclass
 from numbers import Number
 
-import sympy
 from ._gates import _sub_symbols, Parameter
 from typing import Tuple, Sequence
 import numpy as np
@@ -33,7 +32,8 @@ class MultiPhaseOperation:
     def apply(self, wavefunction: Sequence[Parameter]) -> Sequence[Parameter]:
         if len(wavefunction) != len(self.params):
             raise ValueError(
-                f"MultiPhaseOperation with {len(self.params)} params cannot be applied to wavefunction of length {len(wavefunction)}."
+                f"MultiPhaseOperation with {len(self.params)} params cannot be "
+                f"applied to wavefunction of length {len(wavefunction)}."
             )
 
         try:
@@ -43,4 +43,4 @@ class MultiPhaseOperation:
                 "MultiPhaseOperation can only be applied only if all symbolic "
                 "parameters are bound to real numbers."
             ) from e
-        return np.multiply(wavefunction, exp_params)
+        return np.multiply(np.asarray(wavefunction), exp_params)

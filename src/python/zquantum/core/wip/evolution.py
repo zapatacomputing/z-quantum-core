@@ -84,7 +84,7 @@ def time_evolution_for_term(term, time: Union[float, sympy.Expr]):
 
 
 @time_evolution_for_term.register
-def time_evolution_for_term_pyquil(
+def _time_evolution_for_term_pyquil(
     term: pyquil.paulis.PauliTerm, time: Union[float, sympy.Expr]
 ) -> circuits.Circuit:
     """Construct a circuit simulating evolution under a given Pauli hamiltonian.
@@ -109,7 +109,7 @@ def time_evolution_for_term_pyquil(
 
 
 @time_evolution_for_term.register
-def time_evolution_for_term_qubit_operator(
+def _time_evolution_for_term_qubit_operator(
     term: QubitOperator, time: Union[float, sympy.Expr]
 ) -> circuits.Circuit:
     """Evolves a Pauli term for a given time and returns a circuit representing it.

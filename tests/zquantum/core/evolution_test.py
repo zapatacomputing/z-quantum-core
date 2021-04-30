@@ -1,154 +1,152 @@
-import unittest
-from math import pi
-
 import cirq
 import numpy as np
+import pytest
 import sympy
 from pyquil.paulis import PauliSum, PauliTerm
-from zquantum.core.evolution import (
-    generate_circuit_sequence,
-    time_evolution,
-    time_evolution_derivatives,
-    time_evolution_for_term,
-)
+from zquantum.core.evolution import (_generate_circuit_sequence,
+                                     time_evolution,
+                                     time_evolution_derivatives,
+                                     time_evolution_for_term)
 from zquantum.core.testing import create_random_circuit
 from zquantum.core.utils import compare_unitary
 
+from openfermion.ops.operators.qubit_operator import QubitOperator
 
-class TestTimeEvolution(unittest.TestCase):
-    def test_time_evolution(self):
-        # Given
-        hamiltonian = PauliSum(
+PAULI_STRING_TO_CIRQ_GATE = {"XX": cirq.XX, "YY": cirq.YY, "ZZ": cirq.ZZ}
+OPENFERMION_TERM_TO_CIRQ_GATE = {
+    ((0, "X"), (1, "X")): cirq.XX,
+    ((0, "Y"), (1, "Y")): cirq.YY,
+    ((0, "Z"), (1, "Z")): cirq.ZZ,
+}
+
+
+def _cirq_exponentiate_pauli_term(term, qubits, time, trotter_order):
+    base_exponent = 2 * time / trotter_order / np.pi
+    base_gate = PAULI_STRING_TO_CIRQ_GATE[term.pauli_string()](*qubits)
+    return base_gate ** (term.coefficient * base_exponent)
+
+
+def _cirq_exponentiate_qubit_hamiltonian_term(term, qubits, time, trotter_order):
+    base_exponent = 2 * time / trotter_order / np.pi
+    base_gate = OPENFERMION_TERM_TO_CIRQ_GATE[list(term.terms.keys())[0]](*qubits)
+    coefficient = list(term.terms.values())[0]
+    return base_gate ** (coefficient * base_exponent)
+
+
+def _cirq_exponentiate_hamiltonian(hamiltonian, qubits, time, trotter_order):
+    if isinstance(hamiltonian, QubitOperator):
+        return cirq.Circuit(
             [
-                PauliTerm("X", 0) * PauliTerm("X", 1),
-                PauliTerm("Y", 0, 0.5) * PauliTerm("Y", 1),
-                PauliTerm("Z", 0, 0.3) * PauliTerm("Z", 1),
+                _cirq_exponentiate_qubit_hamiltonian_term(
+                    term, qubits, time, trotter_order
+                )
+                for term in list(hamiltonian.get_operators())
             ]
+            * trotter_order
         )
-        time = 0.4
-        order = 2
-
-        circuit = cirq.Circuit()
-        q1 = cirq.LineQubit(0)
-        q2 = cirq.LineQubit(1)
-        for _ in range(0, order):
-            circuit.append(
-                cirq.XX(q1, q2)
-                ** (hamiltonian.terms[0].coefficient * 2 * time / order / pi)
-            )
-            circuit.append(
-                cirq.YY(q1, q2)
-                ** (hamiltonian.terms[1].coefficient * 2 * time / order / pi)
-            )
-            circuit.append(
-                cirq.ZZ(q1, q2)
-                ** (hamiltonian.terms[2].coefficient * 2 * time / order / pi)
-            )
-        target_unitary = circuit._unitary_()
-
-        # When
-        unitary_evolution = time_evolution(hamiltonian, time, trotter_order=order)
-        final_unitary = unitary_evolution.to_unitary()
-
-        # Then
-        self.assertEqual(
-            compare_unitary(final_unitary, target_unitary, tol=1e-10), True
-        )
-
-    def test_time_evolution_with_symbolic_parameter(self):
-        # Given
-        hamiltonian = PauliSum(
+    elif isinstance(hamiltonian, PauliSum):
+        return cirq.Circuit(
             [
-                PauliTerm("X", 0) * PauliTerm("X", 1),
-                PauliTerm("Y", 0, 0.5) * PauliTerm("Y", 1),
-                PauliTerm("Z", 0, 0.3) * PauliTerm("Z", 1),
+                _cirq_exponentiate_pauli_term(term, qubits, time, trotter_order)
+                for term in hamiltonian.terms
             ]
+            * trotter_order
         )
+
+
+@pytest.mark.parametrize(
+    "term, time, expected_unitary",
+    [
+        (PauliTerm("X", 0) * PauliTerm("X", 1), np.pi, -np.eye(4)),
+        (
+            PauliTerm("Y", 0, 0.5) * PauliTerm("Y", 1),
+            np.pi,
+            np.diag([1j, -1j, -1j, 1j])[::-1],
+        ),
+        (PauliTerm("Z", 0) * PauliTerm("Z", 1), np.pi, -np.eye(4)),
+        (PauliTerm("I", 0) * PauliTerm("I", 1), np.pi, -np.eye(2)),
+        (QubitOperator("[X0 X1]"), np.pi, -np.eye(4)),
+        (
+            QubitOperator("0.5 [Y0 Y1]"),
+            np.pi,
+            np.diag([1j, -1j, -1j, 1j])[::-1],
+        ),
+        (QubitOperator("[Z0 Z1]"), np.pi, -np.eye(4)),
+    ],
+)
+class TestTimeEvolutionOfTerm:
+    def test_evolving_pauli_term_with_numerical_time_gives_correct_unitary(
+        self, term, time, expected_unitary
+    ):
+        actual_unitary = time_evolution_for_term(term, time).to_unitary()
+        np.testing.assert_array_almost_equal(actual_unitary, expected_unitary)
+
+    def test_evolving_pauli_term_with_symbolic_time_gives_correct_unitary(
+        self, term, time, expected_unitary
+    ):
         time_symbol = sympy.Symbol("t")
-        time_value = 0.4
+        symbol_map = [(time_symbol, time)]
+        evolution_circuit = time_evolution_for_term(term, time_symbol)
+
+        actual_unitary = evolution_circuit.evaluate(symbol_map).to_unitary()
+        np.testing.assert_array_almost_equal(actual_unitary, expected_unitary)
+
+
+class TestTimeEvolutionOfHamiltonian:
+    @pytest.fixture(
+        params=[
+            PauliSum(
+                [
+                    PauliTerm("X", 0) * PauliTerm("X", 1),
+                    PauliTerm("Y", 0, 0.5) * PauliTerm("Y", 1),
+                    PauliTerm("Z", 0, 0.3) * PauliTerm("Z", 1),
+                ]
+            ),
+            QubitOperator("[X0 X1] + 0.5[Y0 Y1] + 0.3[Z0 Z1]"),
+        ]
+    )
+    def hamiltonian(self, request):
+        return request.param
+
+    @pytest.mark.parametrize("time", [0.1])  # [0.1, 0.4, 1.0])
+    @pytest.mark.parametrize("order", [2])  # [1, 2, 3])
+    def test_evolution_with_numerical_time_produces_correct_result(
+        self, hamiltonian, time, order
+    ):
+        cirq_qubits = cirq.LineQubit(0), cirq.LineQubit(1)
+        expected_cirq_circuit = _cirq_exponentiate_hamiltonian(
+            hamiltonian, cirq_qubits, time, order
+        )
+
+        reference_unitary = cirq.unitary(expected_cirq_circuit)
+        unitary = time_evolution(hamiltonian, time, trotter_order=order).to_unitary()
+        assert compare_unitary(unitary, reference_unitary, tol=1e-10)
+
+    @pytest.mark.parametrize("time_value", [0.1, 0.4, 1.0])
+    @pytest.mark.parametrize("order", [1, 2, 3])
+    def test_time_evolution_with_symbolic_time_produces_correct_unitary(
+        self, hamiltonian, time_value, order
+    ):
+        time_symbol = sympy.Symbol("t")
         symbols_map = [(time_symbol, time_value)]
-        order = 2
 
-        circuit = cirq.Circuit()
-        q1 = cirq.LineQubit(0)
-        q2 = cirq.LineQubit(1)
-        for _ in range(0, order):
-            circuit.append(
-                cirq.XX(q1, q2)
-                ** (hamiltonian.terms[0].coefficient * 2 * time_value / order / pi)
-            )
-            circuit.append(
-                cirq.YY(q1, q2)
-                ** (hamiltonian.terms[1].coefficient * 2 * time_value / order / pi)
-            )
-            circuit.append(
-                cirq.ZZ(q1, q2)
-                ** (hamiltonian.terms[2].coefficient * 2 * time_value / order / pi)
-            )
-        target_unitary = circuit._unitary_()
+        cirq_qubits = cirq.LineQubit(0), cirq.LineQubit(1)
 
-        # When
-        unitary_evolution_symbolic = time_evolution(
-            hamiltonian, time_symbol, trotter_order=order
-        )
-        unitary_evolution = unitary_evolution_symbolic.evaluate(symbols_map)
-        final_unitary = unitary_evolution.to_unitary()
-        # Then
-        self.assertEqual(
-            compare_unitary(final_unitary, target_unitary, tol=1e-10), True
+        expected_cirq_circuit = _cirq_exponentiate_hamiltonian(
+            hamiltonian, cirq_qubits, time_value, order
         )
 
-    def test_time_evolution_derivatives(self):
-        # Given
-        hamiltonian = PauliSum(
-            [
-                PauliTerm("X", 0) * PauliTerm("X", 1),
-                PauliTerm("Y", 0, 0.5) * PauliTerm("Y", 1),
-                PauliTerm("Z", 0, 0.3) * PauliTerm("Z", 1),
-            ]
+        reference_unitary = cirq.unitary(expected_cirq_circuit)
+
+        unitary = (
+            time_evolution(hamiltonian, time_symbol, trotter_order=order)
+            .evaluate(symbols_map)
+            .to_unitary()
         )
-        time_symbol = sympy.Symbol("t")
+        assert compare_unitary(unitary, reference_unitary, tol=1e-10)
 
-        order = 3
-        reference_factors_1 = [1.0 / order, 0.5 / order, 0.3 / order] * 3
-        reference_factors_2 = [-1.0 * x for x in reference_factors_1]
 
-        # When
-        derivatives, factors = time_evolution_derivatives(
-            hamiltonian, time_symbol, trotter_order=order
-        )
-
-        # Then
-        self.assertEqual(len(derivatives), order * 2 * len(hamiltonian.terms))
-        self.assertEqual(len(factors), order * 2 * len(hamiltonian.terms))
-        self.assertListEqual(reference_factors_1, factors[0:18:2])
-        self.assertListEqual(reference_factors_2, factors[1:18:2])
-
-    def test_time_evolution_derivatives_with_symbolic_parameter(self):
-        # Given
-        hamiltonian = PauliSum(
-            [
-                PauliTerm("X", 0) * PauliTerm("X", 1),
-                PauliTerm("Y", 0, 0.5) * PauliTerm("Y", 1),
-                PauliTerm("Z", 0, 0.3) * PauliTerm("Z", 1),
-            ]
-        )
-        time = 0.4
-        order = 3
-        reference_factors_1 = [1.0 / order, 0.5 / order, 0.3 / order] * 3
-        reference_factors_2 = [-1.0 * x for x in reference_factors_1]
-
-        # When
-        derivatives, factors = time_evolution_derivatives(
-            hamiltonian, time, trotter_order=order
-        )
-
-        # Then
-        self.assertEqual(len(derivatives), order * 2 * len(hamiltonian.terms))
-        self.assertEqual(len(factors), order * 2 * len(hamiltonian.terms))
-        self.assertListEqual(reference_factors_1, factors[0:18:2])
-        self.assertListEqual(reference_factors_2, factors[1:18:2])
-
+class TestGenerateCircuitSequence:
     def test_generate_circuit_sequence(self):
         # Given
         repeated_circuit_len = 3
@@ -160,33 +158,32 @@ class TestTimeEvolution(unittest.TestCase):
         different_circuit = create_random_circuit(2, different_circuit_len)
 
         # When
-        sequence_1 = generate_circuit_sequence(
+        sequence_1 = _generate_circuit_sequence(
             repeated_circuit, different_circuit, length, position_1
         )
-        sequence_2 = generate_circuit_sequence(
+        sequence_2 = _generate_circuit_sequence(
             repeated_circuit, different_circuit, length, position_2
         )
 
         # Then
-        self.assertEqual(
-            len(sequence_1.gates),
-            different_circuit_len + repeated_circuit_len * (length - 1),
+        assert len(sequence_1.gates) == different_circuit_len + repeated_circuit_len * (
+            length - 1
         )
         different_circuit_start_1 = repeated_circuit_len * position_1
         different_circuit_start_2 = repeated_circuit_len * position_2
-        self.assertListEqual(
+        assert (
             sequence_1.gates[
                 different_circuit_start_1 : different_circuit_start_1
                 + different_circuit_len
-            ],
-            different_circuit.gates,
+            ]
+            == different_circuit.gates
         )
-        self.assertListEqual(
+        assert (
             sequence_2.gates[
                 different_circuit_start_2 : different_circuit_start_2
                 + different_circuit_len
-            ],
-            different_circuit.gates,
+            ]
+            == different_circuit.gates
         )
 
         # Given
@@ -194,75 +191,45 @@ class TestTimeEvolution(unittest.TestCase):
         position = 10
 
         # When/Then
-        with self.assertRaises(ValueError):
-            sequence = generate_circuit_sequence(
+        with pytest.raises(ValueError):
+            sequence = _generate_circuit_sequence(
                 repeated_circuit, different_circuit, length, position
             )
 
-    def test_time_evolution_for_term(self):
-        # Given
-        term_1 = PauliTerm("X", 0) * PauliTerm("X", 1)
-        term_2 = PauliTerm("Y", 0, 0.5) * PauliTerm("Y", 1)
-        term_3 = PauliTerm("Z", 0) * PauliTerm("Z", 1)
-        term_4 = PauliTerm("I", 0) * PauliTerm("I", 1)
-        time = pi
 
-        target_unitary_1 = -np.eye(4)
-        target_unitary_2 = np.zeros((4, 4), dtype=np.complex)
-        target_unitary_2[0][3] = 1j
-        target_unitary_2[1][2] = -1j
-        target_unitary_2[2][1] = -1j
-        target_unitary_2[3][0] = 1j
-        target_unitary_3 = -np.eye(4)
-        target_unitary_4 = -np.eye(2)
+class TestTimeEvolutionDerivatives:
+    @pytest.fixture(
+        params=[
+            PauliSum(
+                [
+                    PauliTerm("X", 0) * PauliTerm("X", 1),
+                    PauliTerm("Y", 0, 0.5) * PauliTerm("Y", 1),
+                    PauliTerm("Z", 0, 0.3) * PauliTerm("Z", 1),
+                ]
+            ),
+            QubitOperator("[X0 X1] + 0.5[Y0 Y1] + 0.3[Z0 Z1]"),
+        ]
+    )
+    def hamiltonian(self, request):
+        return request.param
 
-        # When
-        unitary_1 = time_evolution_for_term(term_1, time).to_unitary()
-        unitary_2 = time_evolution_for_term(term_2, time).to_unitary()
-        unitary_3 = time_evolution_for_term(term_3, time).to_unitary()
-        unitary_4 = time_evolution_for_term(term_4, time).to_unitary()
+    @pytest.mark.parametrize("time", [0.4, sympy.Symbol("t")])
+    def test_time_evolution_derivatives_gives_correct_number_of_derivatives_and_factors(
+        self, time, hamiltonian
+    ):
+        order = 3
+        reference_factors_1 = [1.0 / order, 0.5 / order, 0.3 / order] * 3
+        reference_factors_2 = [-1.0 * x for x in reference_factors_1]
 
-        # Then
-        np.testing.assert_array_almost_equal(unitary_1, target_unitary_1)
-        np.testing.assert_array_almost_equal(unitary_2, target_unitary_2)
-        np.testing.assert_array_almost_equal(unitary_3, target_unitary_3)
-        np.testing.assert_array_almost_equal(unitary_4, target_unitary_4)
-
-    def test_time_evolution_for_term_with_symbolic_parameter(self):
-        # Given
-        term_1 = PauliTerm("X", 0) * PauliTerm("X", 1)
-        term_2 = PauliTerm("Y", 0, 0.5) * PauliTerm("Y", 1)
-        term_3 = PauliTerm("Z", 0) * PauliTerm("Z", 1)
-        term_4 = PauliTerm("I", 0) * PauliTerm("I", 1)
-        time = sympy.Symbol("t")
-        time_value = pi
-        symbols_map = [(time, time_value)]
-
-        target_unitary_1 = -np.eye(4)
-        target_unitary_2 = np.zeros((4, 4), dtype=np.complex)
-        target_unitary_2[0][3] = 1j
-        target_unitary_2[1][2] = -1j
-        target_unitary_2[2][1] = -1j
-        target_unitary_2[3][0] = 1j
-        target_unitary_3 = -np.eye(4)
-        target_unitary_4 = -np.eye(2)
-
-        # When
-        unitary_1 = (
-            time_evolution_for_term(term_1, time).evaluate(symbols_map).to_unitary()
+        derivatives, factors = time_evolution_derivatives(
+            hamiltonian, time, trotter_order=order
         )
-        unitary_2 = (
-            time_evolution_for_term(term_2, time).evaluate(symbols_map).to_unitary()
-        )
-        unitary_3 = (
-            time_evolution_for_term(term_3, time).evaluate(symbols_map).to_unitary()
-        )
-        unitary_4 = (
-            time_evolution_for_term(term_4, time).evaluate(symbols_map).to_unitary()
-        )
+        if isinstance(hamiltonian, QubitOperator):
+            terms = list(hamiltonian.get_operators())
+        elif isinstance(hamiltonian, PauliSum):
+            terms = hamiltonian.terms
 
-        # Then
-        np.testing.assert_array_almost_equal(unitary_1, target_unitary_1)
-        np.testing.assert_array_almost_equal(unitary_2, target_unitary_2)
-        np.testing.assert_array_almost_equal(unitary_3, target_unitary_3)
-        np.testing.assert_array_almost_equal(unitary_4, target_unitary_4)
+        assert len(derivatives) == order * 2 * len(terms)
+        assert len(factors) == order * 2 * len(terms)
+        assert factors[0:18:2] == reference_factors_1
+        assert factors[1:18:2] == reference_factors_2

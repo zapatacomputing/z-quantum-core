@@ -128,8 +128,10 @@ def test_optimize_parametrized_circuit_for_ground_state_of_operator_optimizer_sp
         parameter_precision=0.001,
         parameter_precision_seed=1234,
     )
-    assert os.path.exists("optimization_results.json")
-    os.remove("optimization_results.json")
+    assert os.path.exists("optimization-results.json")
+    assert os.path.exists("optimized-parameters.json")
+    os.remove("optimization-results.json")
+    os.remove("optimized-parameters.json")
     os.remove("circuit.json")
     os.remove("initial_parameters.json")
     os.remove("fixed_parameters.json")

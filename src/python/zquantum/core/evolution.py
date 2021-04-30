@@ -94,6 +94,8 @@ def _time_evolution_for_term_qubit_operator(
     term: QubitOperator, time: Union[float, sympy.Expr]
 ) -> Circuit:
     """Evolves a Pauli term for a given time and returns a circuit representing it.
+    Based on section 4 from https://arxiv.org/abs/1001.3855 .
+
     Args:
         term: Pauli term to be evolved
         time: time of evolution
@@ -113,7 +115,6 @@ def _time_evolution_for_term_qubit_operator(
     coefficient = list(term.terms.values())[0]
 
     for i, (term_type, qubit_id) in enumerate(zip(term_types, qubit_indices)):
-        # TODO: comments
         if term_type == "X":
             base_changes.append(Gate("H", qubits=[Qubit(qubit_id)]))
             base_reversals.append(Gate("H", qubits=[Qubit(qubit_id)]))
@@ -142,7 +143,7 @@ def _time_evolution_for_term_qubit_operator(
 
     circuit.gates.append(central_gate)
 
-    for gate in cnot_gates[::-1]:
+    for gate in reversed(cnot_gates):
         circuit.gates.append(gate)
 
     for gate in base_reversals:

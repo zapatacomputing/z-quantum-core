@@ -11,9 +11,9 @@ from zquantum.core.circuit import (
 )
 from zquantum.core.cost_function import get_ground_state_cost_function
 from zquantum.core.estimator import BasicEstimator
+from zquantum.core.openfermion import load_qubit_operator
 from zquantum.core.serialization import save_optimization_results
 from zquantum.core.typing import Specs
-from zquantum.core.openfermion import load_qubit_operator
 from zquantum.core.utils import create_object
 
 

@@ -44,7 +44,7 @@ class QuantumBackend(ABC):
         self.number_of_jobs_run = 0
 
         if self.supports_batching:
-            assert isinstance(self.batch_size, float)
+            assert isinstance(self.batch_size, int)
             assert self.batch_size > 0
 
     @abstractmethod

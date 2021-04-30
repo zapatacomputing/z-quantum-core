@@ -72,9 +72,7 @@ def time_evolution_for_term_pyquil(
     if isinstance(time, sympy.Expr):
         circuit = Circuit(pyquil.paulis.exponentiate(term))
         for gate in circuit.gates:
-            if len(gate.params) == 0:
-                pass
-            elif len(gate.params) > 1:
+            if len(gate.params) > 1:
                 raise (
                     NotImplementedError(
                         "Time evolution of multi-parametered gates with symbolic "

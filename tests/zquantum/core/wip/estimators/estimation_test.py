@@ -21,6 +21,7 @@ from zquantum.core.wip.estimators.estimation import (
     allocate_shots_uniformly,
     evaluate_estimation_circuits,
     group_greedily_with_context_selection,
+    group_individually,
 )
 from zquantum.core.wip.estimators.estimation_interface import EstimationTask
 
@@ -282,6 +283,32 @@ class TestEstimatorUtils:
             Program([RX(np.pi / 2, 0), RX(np.pi / 2, 1), RX(np.pi / 2, 2)])
         )
         assert grouped_tasks[0].circuit == frame_circuit
+
+    def test_group_individually(self):
+        target_operator = 10.0 * QubitOperator("Z0")
+        target_operator += 5.0 * QubitOperator("Z1")
+        target_operator -= 3.0 * QubitOperator("Y0")
+        target_operator += 1.0 * QubitOperator("X0")
+        target_operator += 20.0 * QubitOperator("")
+
+        expected_operator_terms_per_frame = [
+            (10.0 * QubitOperator("Z0")).terms,
+            (5.0 * QubitOperator("Z1")).terms,
+            (-3.0 * QubitOperator("Y0")).terms,
+            (1.0 * QubitOperator("X0")).terms,
+            (20.0 * QubitOperator("")).terms,
+        ]
+
+        circuit = Circuit(Program(X(0)))
+
+        estimation_tasks = [EstimationTask(target_operator, circuit, None)]
+
+        grouped_tasks = group_individually(estimation_tasks)
+
+        assert len(grouped_tasks) == 5
+
+        for task in grouped_tasks:
+            assert task.operator.terms in expected_operator_terms_per_frame
 
 
 class TestBasicEstimationMethods:

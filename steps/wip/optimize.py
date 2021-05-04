@@ -4,7 +4,12 @@ import numpy as np
 from openfermion import SymbolicOperator
 from typing import Union, Dict, Optional, List
 
-from zquantum.core.circuit import load_circuit, load_circuit_template_params, Circuit
+from zquantum.core.circuit import (
+    Circuit,
+    load_circuit,
+    load_circuit_template_params,
+    save_circuit_template_params,
+)
 from zquantum.core.wip.cost_function import (
     get_ground_state_cost_function,
     AnsatzBasedCostFunction,
@@ -99,7 +104,10 @@ def optimize_parametrized_circuit_for_ground_state_of_operator(
 
     optimization_results = optimizer.minimize(cost_function, initial_parameters)
 
-    save_optimization_results(optimization_results, "optimization_results.json")
+    save_optimization_results(optimization_results, "optimization-results.json")
+    save_circuit_template_params(
+        optimization_results.opt_params, "optimized-parameters.json"
+    )
 
 
 def optimize_ansatz_based_cost_function(
@@ -184,4 +192,7 @@ def optimize_ansatz_based_cost_function(
 
     optimization_results = optimizer.minimize(cost_function, initial_parameters)
 
-    save_optimization_results(optimization_results, "optimization_results.json")
+    save_optimization_results(optimization_results, "optimization-results.json")
+    save_circuit_template_params(
+        optimization_results.opt_params, "optimized-parameters.json"
+    )

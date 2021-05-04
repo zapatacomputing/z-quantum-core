@@ -76,6 +76,25 @@ def get_context_selection_circuit_for_group(
     return context_selection_circuit, transformed_operator
 
 
+def group_individually(estimation_tasks: List[EstimationTask]) -> List[EstimationTask]:
+    """
+    Transforms list of estimation tasks by putting each term into a estimation task.
+
+    Args:
+        estimation_tasks: list of estimation tasks
+
+    """
+    output_estimation_tasks = []
+    for estimation_task in estimation_tasks:
+        for term in estimation_task.operator.get_operators():
+            output_estimation_tasks.append(
+                EstimationTask(
+                    term, estimation_task.circuit, estimation_task.number_of_shots
+                )
+            )
+    return output_estimation_tasks
+
+
 def group_greedily_with_context_selection(
     estimation_tasks: List[EstimationTask],
 ) -> List[EstimationTask]:

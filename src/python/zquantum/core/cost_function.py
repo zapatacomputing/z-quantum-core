@@ -91,7 +91,7 @@ def get_ground_state_cost_function(
 
     def ground_state_cost_function(
         parameters: np.ndarray, store_artifact: StoreArtifact = None
-    ) -> float:
+    ) -> ValueEstimate:
         """Evaluates the expectation value of the op
 
         Args:
@@ -121,7 +121,7 @@ def get_ground_state_cost_function(
         ]
         summed_values = np.sum(partial_sums)
         if isinstance(summed_values, float):
-            return summed_values
+            return ValueEstimate(summed_values)
         else:
             raise ValueError(f"Result {summed_values} is not a float.")
 

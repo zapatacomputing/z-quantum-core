@@ -12,7 +12,7 @@ from zquantum.core.interfaces.mock_objects import (
 )
 from zquantum.core.measurement import ExpectationValues
 from zquantum.core.openfermion._utils import change_operator_type
-from zquantum.core.wip.estimators.estimation import (
+from zquantum.core.estimation import (
     calculate_exact_expectation_values,
     get_context_selection_circuit,
     get_context_selection_circuit_for_group,
@@ -23,7 +23,7 @@ from zquantum.core.wip.estimators.estimation import (
     group_greedily_with_context_selection,
     group_individually,
 )
-from zquantum.core.wip.estimators.estimation_interface import EstimationTask
+from zquantum.core.interfaces.estimation import EstimationTask
 
 
 class TestEstimatorUtils:

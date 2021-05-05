@@ -4,9 +4,9 @@ from typing import List, Optional
 from openfermion import SymbolicOperator
 from typing_extensions import Protocol
 
-from ...circuit import Circuit
-from ...interfaces.backend import QuantumBackend
-from ...measurement import ExpectationValues
+from ..circuit import Circuit
+from .backend import QuantumBackend
+from ..measurement import ExpectationValues
 
 
 @dataclass(frozen=True)

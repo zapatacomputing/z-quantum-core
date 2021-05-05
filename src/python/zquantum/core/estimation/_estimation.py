@@ -4,17 +4,17 @@ import numpy as np
 import pyquil
 from openfermion import IsingOperator, QubitOperator
 
-from ...circuit._circuit import Circuit
-from ...hamiltonian import estimate_nmeas_for_frames, group_comeasureable_terms_greedy
-from ...interfaces.backend import QuantumBackend, QuantumSimulator
-from ...measurement import (
+from ..circuit._circuit import Circuit
+from ..hamiltonian import estimate_nmeas_for_frames, group_comeasureable_terms_greedy
+from ..interfaces.backend import QuantumBackend, QuantumSimulator
+from ..measurement import (
     ExpectationValues,
     concatenate_expectation_values,
     expectation_values_to_real,
 )
-from ...utils import scale_and_discretize
-from .estimation_interface import EstimationTask, EstimationPreprocessor
-from ...openfermion import change_operator_type
+from ..utils import scale_and_discretize
+from ..interfaces.estimation import EstimationTask, EstimationPreprocessor
+from ..openfermion import change_operator_type
 
 import sympy
 

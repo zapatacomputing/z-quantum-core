@@ -17,7 +17,6 @@ from ..wip.compatibility_tools import compatible_with_old_type
 from .ansatz import Ansatz
 from .ansatz_utils import ansatz_property
 from .backend import QuantumBackend, QuantumSimulator
-from .estimator import Estimator
 from .optimizer import Optimizer, optimization_result
 
 
@@ -164,15 +163,3 @@ class MockAnsatz(Ansatz):
             symbols_map = create_symbols_map(symbols, parameters)
             circuit = circuit.evaluate(symbols_map)
         return circuit
-
-
-class MockEstimator(Estimator):
-    @overrides
-    def get_estimated_expectation_values(
-        self,
-        backend: QuantumBackend,
-        circuit: Circuit,
-        target_operator: SymbolicOperator,
-        n_samples: Optional[int],
-    ) -> ExpectationValues:
-        return backend.get_expectation_values(circuit, target_operator)

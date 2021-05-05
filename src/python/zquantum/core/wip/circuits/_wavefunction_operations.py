@@ -14,14 +14,17 @@ class MultiPhaseOperation:
     transforms a N qubit wavefunction (psi_1, psi_2, ..., psi_2^N)
     into (exp(i theta_1)psi_1, exp(i theta_2) psi_2, ..., exp(i theta_2^N) psi_2^N).
     """
+
     params: Tuple[Parameter, ...]
 
     def __post_init__(self):
-        if any(
-            isinstance(param, Number) and param.imag != 0
-            for param in self.params
-        ):
+        if any(isinstance(param, Number) and param.imag != 0 for param in self.params):
             raise ValueError("MultiPhaseOperation supports only real parameters.")
+
+    @property
+    def qubit_indices(self) -> Tuple[int, ...]:
+        n_qubits = int(np.log2(len(self.params)))
+        return tuple(range(n_qubits))
 
     def bind(self, symbols_map) -> "MultiPhaseOperation":
         return self.replace_params(

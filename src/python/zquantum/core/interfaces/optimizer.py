@@ -5,6 +5,7 @@ import numpy as np
 import scipy
 from scipy.optimize import OptimizeResult
 from zquantum.core.interfaces.functions import CallableWithGradient
+import warnings
 
 
 class Optimizer(ABC):
@@ -17,6 +18,12 @@ class Optimizer(ABC):
     """
 
     def __init__(self, options: Optional[Dict] = None):
+        warnings.warn(
+            'Default input argument "options" will soon be removed from the optimizer interface. However, this does'
+            ' not preclude particular optimizers from continuing to declare "options" within their individual'
+            " constructors.",
+            DeprecationWarning,
+        )
         if options is None:
             options = {}
         self.options = options
@@ -42,7 +49,9 @@ class Optimizer(ABC):
         raise NotImplementedError
 
 
-def optimization_result(*, opt_value, opt_params, **kwargs) -> scipy.optimize.OptimizeResult:
+def optimization_result(
+    *, opt_value, opt_params, **kwargs
+) -> scipy.optimize.OptimizeResult:
     """Construct instance of OptimizeResult.
 
     The purpose of this function is to add a safety layer by detecting if required
@@ -57,7 +66,5 @@ def optimization_result(*, opt_value, opt_params, **kwargs) -> scipy.optimize.Op
         other passed arguments.
     """
     return scipy.optimize.OptimizeResult(
-        opt_value=opt_value,
-        opt_params=opt_params,
-        **kwargs
+        opt_value=opt_value, opt_params=opt_params, **kwargs
     )

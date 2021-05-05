@@ -4,17 +4,17 @@ import numpy as np
 import pyquil
 from openfermion import IsingOperator, QubitOperator
 
-from ...circuit._circuit import Circuit
-from ...hamiltonian import estimate_nmeas_for_frames, group_comeasureable_terms_greedy
-from ...interfaces.backend import QuantumBackend, QuantumSimulator
-from ...measurement import (
+from ..circuit._circuit import Circuit
+from ..hamiltonian import estimate_nmeas_for_frames, group_comeasureable_terms_greedy
+from ..interfaces.backend import QuantumBackend, QuantumSimulator
+from ..measurement import (
     ExpectationValues,
     concatenate_expectation_values,
     expectation_values_to_real,
 )
-from ...utils import scale_and_discretize
-from .estimation_interface import EstimationTask, EstimationPreprocessor
-from ...openfermion import change_operator_type
+from ..utils import scale_and_discretize
+from ..interfaces.estimation import EstimationTask, EstimationPreprocessor
+from ..openfermion import change_operator_type
 
 import sympy
 
@@ -74,6 +74,25 @@ def get_context_selection_circuit_for_group(
             context_selection_circuit += Circuit(pyquil.gates.RX(np.pi / 2, factor[0]))
 
     return context_selection_circuit, transformed_operator
+
+
+def group_individually(estimation_tasks: List[EstimationTask]) -> List[EstimationTask]:
+    """
+    Transforms list of estimation tasks by putting each term into a estimation task.
+
+    Args:
+        estimation_tasks: list of estimation tasks
+
+    """
+    output_estimation_tasks = []
+    for estimation_task in estimation_tasks:
+        for term in estimation_task.operator.get_operators():
+            output_estimation_tasks.append(
+                EstimationTask(
+                    term, estimation_task.circuit, estimation_task.number_of_shots
+                )
+            )
+    return output_estimation_tasks
 
 
 def group_greedily_with_context_selection(

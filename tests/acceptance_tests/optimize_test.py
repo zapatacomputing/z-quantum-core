@@ -116,20 +116,30 @@ def test_optimize_parametrized_circuit_for_ground_state_of_operator_optimizer_sp
             '{"schema": "zapata-v1-circuit_template_params","parameters": {"real": [1.0]}}'
         )
 
+    estimation_method_specs = '{"module_name": "zquantum.core.estimation", "function_name": "estimate_expectation_values_by_averaging"}'
+    estimation_preprocessors_specs = [
+        '{"module_name": "zquantum.core.estimation", "function_name": "group_greedily_with_context_selection"}',
+        '{"module_name": "zquantum.core.estimation", "function_name": "allocate_shots_uniformly", "number_of_shots": 10000}',
+    ]
     if os.path.exists("optimization_results.json"):
         os.remove("optimization_results.json")
+
     optimize_parametrized_circuit_for_ground_state_of_operator(
         optimizer_specs,
         target_operator,
         circuit,
         backend_specs,
+        estimation_method_specs,
+        estimation_preprocessors_specs,
         initial_parameters=initial_parameters,
         fixed_parameters=fixed_parameters,
         parameter_precision=0.001,
         parameter_precision_seed=1234,
     )
-    assert os.path.exists("optimization_results.json")
-    os.remove("optimization_results.json")
+    assert os.path.exists("optimization-results.json")
+    assert os.path.exists("optimized-parameters.json")
+    os.remove("optimization-results.json")
+    os.remove("optimized-parameters.json")
     os.remove("circuit.json")
     os.remove("initial_parameters.json")
     os.remove("fixed_parameters.json")

@@ -1,18 +1,21 @@
 """Functions for constructing circuits simulating evolution under given Hamiltonian."""
 import operator
-from functools import reduce
+import warnings
+from functools import reduce, singledispatch
 from itertools import chain
-from typing import Union, Tuple, List
+from typing import List, Tuple, Union
 
 import numpy as np
 import pyquil.paulis
 import sympy
-
 from zquantum.core.wip import circuits
+from zquantum.core.wip.circuits import CNOT, RX, RZ, H
+
+from openfermion import QubitOperator
 
 
 def time_evolution(
-    hamiltonian: pyquil.paulis.PauliSum,
+    hamiltonian: Union[pyquil.paulis.PauliSum, QubitOperator],
     time: Union[float, sympy.Expr],
     method: str = "Trotter",
     trotter_order: int = 1,
@@ -31,13 +34,21 @@ def time_evolution(
     """
     if method != "Trotter":
         raise ValueError(f"Currently the method {method} is not supported.")
+    if isinstance(hamiltonian, QubitOperator):
+        terms = list(hamiltonian.get_operators())
+    elif isinstance(hamiltonian, pyquil.paulis.PauliSum):
+        warnings.warn(
+            "PauliSum as an input to time_evolution will be depreciated, please change to QubitOperator instead.",
+            DeprecationWarning,
+        )
+        terms = hamiltonian.terms
 
     return reduce(
         operator.add,
         (
             time_evolution_for_term(term, time / trotter_order)
             for _index_order in range(trotter_order)
-            for term in hamiltonian.terms
+            for term in terms
         ),
     )
 
@@ -67,7 +78,13 @@ def _adjust_gate_angle(operation: circuits.GateOperation, time):
     return evolved
 
 
-def time_evolution_for_term(
+@singledispatch
+def time_evolution_for_term(term, time: Union[float, sympy.Expr]):
+    raise NotImplementedError
+
+
+@time_evolution_for_term.register
+def _time_evolution_for_term_pyquil(
     term: pyquil.paulis.PauliTerm, time: Union[float, sympy.Expr]
 ) -> circuits.Circuit:
     """Construct a circuit simulating evolution under a given Pauli hamiltonian.
@@ -89,6 +106,60 @@ def time_evolution_for_term(
         new_circuit = circuits.import_from_pyquil(pyquil.paulis.exponentiate(exponent))
 
     return new_circuit
+
+
+@time_evolution_for_term.register
+def _time_evolution_for_term_qubit_operator(
+    term: QubitOperator, time: Union[float, sympy.Expr]
+) -> circuits.Circuit:
+    """Evolves a Pauli term for a given time and returns a circuit representing it.
+    Based on section 4 from https://arxiv.org/abs/1001.3855 .
+    Args:
+        term: Pauli term to be evolved
+        time: time of evolution
+    Returns:
+        Circuit: Circuit representing evolved pyquil term.
+    """
+
+    if len(term.terms) != 1:
+        raise ValueError("This function works only on a single term.")
+    term_components = list(term.terms.keys())[0]
+    base_changes = []
+    base_reversals = []
+    cnot_gates = []
+    central_gate = None
+    term_types = [component[1] for component in term_components]
+    qubit_indices = [component[0] for component in term_components]
+    coefficient = list(term.terms.values())[0]
+
+    for i, (term_type, qubit_id) in enumerate(zip(term_types, qubit_indices)):
+        if term_type == "X":
+            base_changes.append(H(qubit_id))
+            base_reversals.append(H(qubit_id))
+        elif term_type == "Y":
+            base_changes.append(RX(np.pi / 2)(qubit_id))
+            base_reversals.append(RX(-np.pi / 2)(qubit_id))
+        if i == len(term_components) - 1:
+            central_gate = RZ(2 * time * coefficient)(qubit_id)
+        else:
+            cnot_gates.append(CNOT(qubit_id, qubit_indices[i + 1]))
+
+    circuit = circuits.Circuit()
+    for gate in base_changes:
+        circuit += gate
+
+    for gate in cnot_gates:
+        circuit += gate
+
+    circuit += central_gate
+
+    for gate in reversed(cnot_gates):
+        circuit += gate
+
+    for gate in base_reversals:
+        circuit += gate
+
+    return circuit
 
 
 def time_evolution_derivatives(
@@ -116,13 +187,24 @@ def time_evolution_derivatives(
     single_trotter_derivatives = []
     factors = [1.0, -1.0]
     output_factors = []
+    if isinstance(hamiltonian, QubitOperator):
+        terms = list(hamiltonian.get_operators())
+    elif isinstance(hamiltonian, pyquil.paulis.PauliSum):
+        warnings.warn(
+            "PauliSum as an input to time_evolution_derivatives will be depreciated, please change to QubitOperator instead.",
+            DeprecationWarning,
+        )
+        terms = hamiltonian.terms
 
-    for i, term_1 in enumerate(hamiltonian.terms):
+    for i, term_1 in enumerate(terms):
         for factor in factors:
             output = circuits.Circuit()
 
             try:
-                r = complex(term_1.coefficient).real / trotter_order
+                if isinstance(term_1, QubitOperator):
+                    r = list(term_1.terms.values())[0] / trotter_order
+                else:
+                    r = complex(term_1.coefficient).real / trotter_order
             except TypeError:
                 raise ValueError(
                     "Term coefficients need to be numerical. "
@@ -131,7 +213,7 @@ def time_evolution_derivatives(
             output_factors.append(r * factor)
             shift = factor * (np.pi / (4.0 * r))
 
-            for j, term_2 in enumerate(hamiltonian.terms):
+            for j, term_2 in enumerate(terms):
                 output += time_evolution_for_term(
                     term_2,
                     (time + shift) / trotter_order if i == j else time / trotter_order,
@@ -166,7 +248,7 @@ def _generate_circuit_sequence(
     repeated_circuit: circuits.Circuit,
     different_circuit: circuits.Circuit,
     length: int,
-    position: int
+    position: int,
 ):
     """Join multiple copies of circuit, replacing one copy with a different circuit.
 

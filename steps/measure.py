@@ -1,7 +1,9 @@
 import json
 from typing import Dict, Optional, Union
+import openfermion
 
 from zquantum.core.bitstring_distribution import save_bitstring_distribution
+from zquantum.core.cost_function import sum_expectation_values
 from zquantum.core.circuit import (
     Circuit,
     load_circuit,
@@ -14,11 +16,16 @@ from zquantum.core.hamiltonian import (
     get_expectation_values_from_rdms,
     get_expectation_values_from_rdms_for_qubitoperator_list,
 )
-from zquantum.core.measurement import load_expectation_values, save_expectation_values
+from zquantum.core.measurement import (
+    load_expectation_values,
+    save_expectation_values,
+    Measurements,
+)
 from zquantum.core.openfermion import (
     load_interaction_rdm,
     load_qubit_operator,
     load_qubit_operator_set,
+    change_operator_type,
 )
 from zquantum.core.typing import Specs
 from zquantum.core.utils import (
@@ -109,7 +116,7 @@ def evaluate_ansatz_based_cost_function(
     ansatz_specs: Specs,
     backend_specs: Specs,
     cost_function_specs: Specs,
-    ansatz_parameters: Specs,
+    ansatz_parameters: str,
     qubit_operator: str,
     noise_model: Optional[str] = None,
     device_connectivity: Optional[str] = None,
@@ -138,19 +145,44 @@ def evaluate_ansatz_based_cost_function(
 
     if isinstance(cost_function_specs, str):
         cost_function_specs = json.loads(cost_function_specs)
+
+    if prior_expectation_values is not None:
+        if isinstance(prior_expectation_values, str):
+            prior_expectation_values = load_expectation_values(prior_expectation_values)
+
     estimator_specs = cost_function_specs.pop("estimator-specs", None)
     if estimator_specs is not None:
+        if isinstance(estimator_specs, str):
+            estimator_specs = json.loads(estimator_specs)
         cost_function_specs["estimator"] = create_object(estimator_specs)
+
+    estimation_preprocessors_specs = cost_function_specs.pop(
+        "estimation-tasks-transformations-specs", None
+    )
+    if estimation_preprocessors_specs is not None:
+        cost_function_specs["estimation_preprocessors"] = []
+        for estimation_tasks_transformation_specs in estimation_preprocessors_specs:
+
+            if isinstance(estimation_tasks_transformation_specs, str):
+                estimation_tasks_transformation_specs = json.loads(
+                    estimation_tasks_transformation_specs
+                )
+
+            if prior_expectation_values is not None:
+                # Since we don't know which estimation task transformation uses prior_expectation_values,
+                #    we add it to the kwargs of each one. If not used by a particular transformer, it will be ignored.
+                estimation_tasks_transformation_specs[
+                    "prior_expectation_values"
+                ] = prior_expectation_values
+            cost_function_specs["estimation_preprocessors"].append(
+                create_object(estimation_tasks_transformation_specs)
+            )
+
+    # cost_function.estimator.prior_expectation_values
     cost_function_specs["target_operator"] = operator
     cost_function_specs["ansatz"] = ansatz
     cost_function_specs["backend"] = backend
     cost_function = create_object(cost_function_specs)
-
-    if prior_expectation_values is not None:
-        if isinstance(prior_expectation_values, str):
-            cost_function.estimator.prior_expectation_values = load_expectation_values(
-                prior_expectation_values
-            )
 
     value_estimate = cost_function(ansatz_parameters)
 
@@ -237,3 +269,18 @@ def expectation_values_from_rdms_for_qubitoperator_list(
         rdms, operator_list, sort_terms=sort_terms
     )
     save_expectation_values(expecval, "expectation_values.json")
+
+
+def get_summed_expectation_values(
+    operator: str, measurements: str, use_bessel_correction: Optional[bool] = True
+):
+    if isinstance(operator, str):
+        operator = load_qubit_operator(operator)
+        operator = change_operator_type(operator, openfermion.IsingOperator)
+    if isinstance(measurements, str):
+        measurements = Measurements.load_from_file(measurements)
+    expectation_values = measurements.get_expectation_values(
+        operator, use_bessel_correction=use_bessel_correction
+    )
+    value_estimate = sum_expectation_values(expectation_values)
+    save_value_estimate(value_estimate, "value-estimate.json")

@@ -41,10 +41,11 @@ from openfermion import IsingOperator, QubitOperator
 from pyquil import Program
 from pyquil.gates import CNOT, H, X
 from pyquil.wavefunction import Wavefunction
+from zquantum.core.interfaces.estimation import EstimationTask
 
 from ..bitstring_distribution import BitstringDistribution
 from ..circuit import Circuit, Gate, Qubit
-from ..estimator import BasicEstimator
+from ..estimation import estimate_expectation_values_by_averaging
 from ..measurement import ExpectationValues, Measurements
 from ..testing.test_cases_for_backend_tests import (
     one_qubit_non_parametric_gates_amplitudes_test_set,
@@ -320,15 +321,16 @@ class QuantumBackendGatesTests:
 
         for i, operator in enumerate(operators):
             # When
-            estimator = BasicEstimator()
-            expectation_value = estimator.get_estimated_expectation_values(
-                backend_for_gates_test,
-                circuit,
-                operator,
-            ).values[0]
+            estimation_tasks = [
+                EstimationTask(operator, circuit, backend_for_gates_test.n_samples)
+            ]
+            expectation_values = estimate_expectation_values_by_averaging(
+                backend_for_gates_test, estimation_tasks
+            )
+            calculated_value = expectation_values.values[0]
 
             # Then
-            assert expectation_value == pytest.approx(target_values[i], abs=sigma * 3)
+            assert calculated_value == pytest.approx(target_values[i], abs=sigma * 3)
 
     @pytest.mark.parametrize(
         "initial_gate,tested_gate,params,target_values",
@@ -363,15 +365,16 @@ class QuantumBackendGatesTests:
 
         for i, operator in enumerate(operators):
             # When
-            estimator = BasicEstimator()
-            expectation_value = estimator.get_estimated_expectation_values(
-                backend_for_gates_test,
-                circuit,
-                operator,
-            ).values[0]
+            estimation_tasks = [
+                EstimationTask(operator, circuit, backend_for_gates_test.n_samples)
+            ]
+            expectation_values = estimate_expectation_values_by_averaging(
+                backend_for_gates_test, estimation_tasks
+            )
+            calculated_value = expectation_values.values[0]
 
             # Then
-            assert expectation_value == pytest.approx(target_values[i], abs=sigma * 3)
+            assert calculated_value == pytest.approx(target_values[i], abs=sigma * 3)
 
     @pytest.mark.parametrize(
         "initial_gates,tested_gate,operators,target_values",
@@ -407,15 +410,16 @@ class QuantumBackendGatesTests:
         for i, operator in enumerate(operators):
             # When
             operator = QubitOperator(operator)
-            estimator = BasicEstimator()
-            expectation_value = estimator.get_estimated_expectation_values(
-                backend_for_gates_test,
-                circuit,
-                operator,
-            ).values[0]
+            estimation_tasks = [
+                EstimationTask(operator, circuit, backend_for_gates_test.n_samples)
+            ]
+            expectation_values = estimate_expectation_values_by_averaging(
+                backend_for_gates_test, estimation_tasks
+            )
+            calculated_value = expectation_values.values[0]
 
             # Then
-            assert expectation_value == pytest.approx(target_values[i], abs=sigma * 5)
+            assert calculated_value == pytest.approx(target_values[i], abs=sigma * 5)
 
     @pytest.mark.parametrize(
         "initial_gates,tested_gate,params,operators,target_values",
@@ -452,15 +456,16 @@ class QuantumBackendGatesTests:
         for i, operator in enumerate(operators):
             # When
             operator = QubitOperator(operator)
-            estimator = BasicEstimator()
-            expectation_value = estimator.get_estimated_expectation_values(
-                backend_for_gates_test,
-                circuit,
-                operator,
-            ).values[0]
+            estimation_tasks = [
+                EstimationTask(operator, circuit, backend_for_gates_test.n_samples)
+            ]
+            expectation_values = estimate_expectation_values_by_averaging(
+                backend_for_gates_test, estimation_tasks
+            )
+            calculated_value = expectation_values.values[0]
 
             # Then
-            assert expectation_value == pytest.approx(target_values[i], abs=sigma * 5)
+            assert calculated_value == pytest.approx(target_values[i], abs=sigma * 5)
 
 
 class QuantumSimulatorTests(QuantumBackendTests):

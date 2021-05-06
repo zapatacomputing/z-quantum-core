@@ -9,4 +9,9 @@ AnyCircuit = Union[OldCircuit, NewCircuit]
 
 
 def new_circuit_from_old_circuit(old: OldCircuit) -> NewCircuit:
-    return import_from_cirq(old.to_cirq())
+    if not old.qubits:
+        return NewCircuit([])
+
+    pre_new_circuit = import_from_cirq(old.to_cirq())
+    n_qubits = max([qubit.index for qubit in old.qubits]) + 1
+    return NewCircuit(pre_new_circuit.operations, n_qubits=n_qubits)

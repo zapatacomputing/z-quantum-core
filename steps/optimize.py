@@ -9,6 +9,7 @@ from zquantum.core.circuit import (
     load_circuit,
     load_circuit_template_params,
     save_circuit_template_params,
+    load_parameter_grid,
 )
 from zquantum.core.cost_function import (
     get_ground_state_cost_function,
@@ -34,6 +35,7 @@ def optimize_parametrized_circuit_for_ground_state_of_operator(
     fixed_parameters: Optional[Union[np.ndarray, str]] = None,
     parameter_precision: Optional[float] = None,
     parameter_precision_seed: Optional[int] = None,
+    parameter_grid: Optional[str] = None,
 ):
     """Optimize the parameters of a parametrized quantum circuit to prepare the ground state of a target operator.
 
@@ -50,9 +52,16 @@ def optimize_parametrized_circuit_for_ground_state_of_operator(
         fixed_parameters: values for the circuit parameters that should be fixed.
         parameter_precision: the standard deviation of the Gaussian noise to add to each parameter, if any.
         parameter_precision_seed: seed for randomly generating parameter deviation if using parameter_precision
+        parameter_grid: A parameter grid artifact that defines a 2D grid for parameter values
     """
     if isinstance(optimizer_specs, str):
         optimizer_specs = json.loads(optimizer_specs)
+
+    # Load parameter grid
+    if parameter_grid is not None:
+        parameter_grid = load_parameter_grid(parameter_grid)
+        optimizer_specs["grid"] = parameter_grid
+
     optimizer = create_object(optimizer_specs)
 
     if isinstance(target_operator, str):
@@ -121,6 +130,7 @@ def optimize_ansatz_based_cost_function(
     fixed_parameters: Optional[Union[np.ndarray, str]] = None,
     parameter_precision: Optional[float] = None,
     parameter_precision_seed: Optional[int] = None,
+    parameter_grid: Optional[str] = None,
 ):
     """Optimize the parameters of an ansatz circuit to prepare the ground state of a target operator.
 
@@ -137,9 +147,16 @@ def optimize_ansatz_based_cost_function(
         fixed_parameters: values for the circuit parameters that should be fixed.
         parameter_precision: the standard deviation of the Gaussian noise to add to each parameter, if any.
         parameter_precision_seed: seed for randomly generating parameter deviation if using parameter_precision
+        parameter_grid: A parameter grid artifact that defines a 2D grid for parameter values
     """
     if isinstance(optimizer_specs, str):
         optimizer_specs = json.loads(optimizer_specs)
+
+    # Load parameter grid
+    if parameter_grid is not None:
+        parameter_grid = load_parameter_grid(parameter_grid)
+        optimizer_specs["grid"] = parameter_grid
+
     optimizer = create_object(optimizer_specs)
 
     if isinstance(target_operator, str):

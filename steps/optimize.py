@@ -52,7 +52,9 @@ def optimize_parametrized_circuit_for_ground_state_of_operator(
         fixed_parameters: values for the circuit parameters that should be fixed.
         parameter_precision: the standard deviation of the Gaussian noise to add to each parameter, if any.
         parameter_precision_seed: seed for randomly generating parameter deviation if using parameter_precision
-        parameter_grid: A parameter grid artifact that defines a 2D grid for parameter values
+        kwaargs:
+            The following key word arguments are handled explicitly when appropriate:
+                parameter_grid: A parameter grid artifact that defines a 2D grid for parameter values
     """
     if isinstance(optimizer_specs, str):
         optimizer_specs = json.loads(optimizer_specs)
@@ -148,7 +150,10 @@ def optimize_ansatz_based_cost_function(
         fixed_parameters: values for the circuit parameters that should be fixed.
         parameter_precision: the standard deviation of the Gaussian noise to add to each parameter, if any.
         parameter_precision_seed: seed for randomly generating parameter deviation if using parameter_precision
-        parameter_grid: A parameter grid artifact that defines a 2D grid for parameter values
+        kwaargs:
+            The following key word arguments are handled explicitly when appropriate:
+                parameter_grid: A parameter grid artifact that defines a 2D grid for parameter values
+                thetas: A list of thetas used to initialize the WarmStartQAOAAnsatz
     """
     if isinstance(optimizer_specs, str):
         optimizer_specs = json.loads(optimizer_specs)

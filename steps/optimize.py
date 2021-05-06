@@ -19,7 +19,7 @@ from zquantum.core.estimation import (
     estimate_expectation_values_by_averaging,
 )
 from zquantum.core.serialization import save_optimization_results
-from zquantum.core.utils import create_object
+from zquantum.core.utils import create_object, load_list
 from zquantum.core.typing import Specs
 from zquantum.core.openfermion import load_qubit_operator
 
@@ -35,7 +35,7 @@ def optimize_parametrized_circuit_for_ground_state_of_operator(
     fixed_parameters: Optional[Union[np.ndarray, str]] = None,
     parameter_precision: Optional[float] = None,
     parameter_precision_seed: Optional[int] = None,
-    parameter_grid: Optional[str] = None,
+    **kwargs
 ):
     """Optimize the parameters of a parametrized quantum circuit to prepare the ground state of a target operator.
 
@@ -57,6 +57,7 @@ def optimize_parametrized_circuit_for_ground_state_of_operator(
     if isinstance(optimizer_specs, str):
         optimizer_specs = json.loads(optimizer_specs)
 
+    parameter_grid = kwargs.pop("parameter_grid", None)
     # Load parameter grid
     if parameter_grid is not None:
         parameter_grid = load_parameter_grid(parameter_grid)
@@ -130,7 +131,7 @@ def optimize_ansatz_based_cost_function(
     fixed_parameters: Optional[Union[np.ndarray, str]] = None,
     parameter_precision: Optional[float] = None,
     parameter_precision_seed: Optional[int] = None,
-    parameter_grid: Optional[str] = None,
+    **kwargs
 ):
     """Optimize the parameters of an ansatz circuit to prepare the ground state of a target operator.
 
@@ -152,6 +153,7 @@ def optimize_ansatz_based_cost_function(
     if isinstance(optimizer_specs, str):
         optimizer_specs = json.loads(optimizer_specs)
 
+    parameter_grid = kwargs.pop("parameter_grid", None)
     # Load parameter grid
     if parameter_grid is not None:
         parameter_grid = load_parameter_grid(parameter_grid)
@@ -164,6 +166,12 @@ def optimize_ansatz_based_cost_function(
 
     if isinstance(ansatz_specs, str):
         ansatz_specs = json.loads(ansatz_specs)
+
+    if "WarmStartQAOAAnsatz" in ansatz_specs["function_name"]:
+        ansatz_specs["thetas"] = np.array(load_list(kwargs.pop("thetas")))
+        ansatz_specs["cost_hamiltonian"] = target_operator
+    elif "QAOA" in ansatz_specs["function_name"]:
+        ansatz_specs["cost_hamiltonian"] = target_operator
     ansatz = create_object(ansatz_specs)
 
     if isinstance(backend_specs, str):

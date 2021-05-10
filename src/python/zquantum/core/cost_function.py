@@ -232,7 +232,7 @@ class AnsatzBasedCostFunction:
     def get_gradients_qaoa(self, parameters):
         # Get circuits to measure gradient
         gradient_circuits, factors = build_qaoa_circuit_grads(
-            parameters, self.ansatz["ansatz_kwargs"]["hamiltonians"]
+            parameters, [self.ansatz.cost_hamiltonian, self.ansatz.mixer_hamiltonian]
         )
 
         # Run circuits to get expectation values for all gradient circuits wrt qubit operator

@@ -8,7 +8,6 @@ import importlib
 
 from .openfermion import evaluate_qubit_operator
 
-from zquantum.qaoa.ansatzes.farhi_ansatz import build_qaoa_circuit_grads
 from openfermion import SymbolicOperator
 
 from .estimator import BasicEstimator
@@ -230,6 +229,8 @@ class AnsatzBasedCostFunction:
             raise Exception("Gradient type: %s is not supported", self.gradient_type)
 
     def get_gradients_qaoa(self, parameters):
+        from zquantum.qaoa.ansatzes.farhi_ansatz import build_qaoa_circuit_grads
+
         # Get circuits to measure gradient
         gradient_circuits, factors = build_qaoa_circuit_grads(
             parameters, [self.ansatz.cost_hamiltonian, self.ansatz.mixer_hamiltonian]

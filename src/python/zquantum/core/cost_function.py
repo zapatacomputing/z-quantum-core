@@ -7,7 +7,8 @@ import numpy as np
 import importlib
 
 from .openfermion import evaluate_qubit_operator
-from zquantum.qaoa.ansatz import build_qaoa_circuit_grads
+
+from zquantum.qaoa.ansatzes.farhi_ansatz import build_qaoa_circuit_grads
 from openfermion import SymbolicOperator
 
 from .estimator import BasicEstimator
@@ -208,7 +209,7 @@ class AnsatzBasedCostFunction:
 
         return sum_expectation_values(expectation_values)
 
-    def get_gradient(self, parameters: np.ndarray) -> np.ndarray:
+    def gradient(self, parameters: np.ndarray) -> np.ndarray:
         """
         Evaluates the gradient of the cost function for given parameters.
         What method is used for calculating gradients is indicated by `self.gradient_type` field.

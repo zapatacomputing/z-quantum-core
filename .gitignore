@@ -108,3 +108,9 @@ dmypy.json
 .pyre/
 
 # End of https://www.gitignore.io/api/python
+
+# virtual env kept in project dir
+venv
+
+# macOS
+.DS_Store

@@ -1,0 +1,37 @@
+ZapOSApiVersion: v1alpha1
+kind: Workflow
+
+resources:
+- name: z-quantum-core
+  type: git
+  parameters:
+    url: "git@github.com:zapatacomputing/z-quantum-core.git"
+    branch: "dev"
+
+metadata:
+  generateName: z-quantum-core-acceptance-test-get-diag-component-
+
+spec:
+  entrypoint: main
+  arguments:
+    parameters:
+    - s3-bucket: quantum-engine
+    - s3-key: testing/acceptance-tests/
+
+  templates:
+  - name: main
+    steps:
+    - - name: get-operator
+        template: get-number-operator
+        arguments:
+          parameters:
+            - n-qubits: "4"
+            - resources: [z-quantum-core]
+    - - name: test
+        template: get-diagonal-component
+        arguments:
+          parameters:
+            - resources: [z-quantum-core]
+          artifacts:
+            - interaction-op:
+                from: "{{steps.get-operator.outputs.artifacts.number-op}}"

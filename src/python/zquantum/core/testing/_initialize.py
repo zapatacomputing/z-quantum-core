@@ -1,11 +1,13 @@
-from pyquil import Program
-from pyquil.gates import *
 import math
 import random
+
 import numpy as np
-from openfermion.ops import QubitOperator, IsingOperator
+from openfermion.ops import IsingOperator, QubitOperator
+from pyquil import Program
+from pyquil.gates import CNOT, CPHASE, CZ, PHASE, RX, RY, RZ, SWAP, H, S, T, X, Y, Z
+from pyquil.wavefunction import Wavefunction
+
 from ..circuit import Circuit
-from ..utils import RNDSEED
 
 
 def create_random_circuit(nqubits, ngates, seed=None):
@@ -21,7 +23,7 @@ def create_random_circuit(nqubits, ngates, seed=None):
         *** OPTIONAL ***
         seed: integer
             The see for the random number generator
-    
+
     Returns:
         None, a Circuit (core.circuit) object is saved under 'circuit.json'
     """
@@ -88,7 +90,7 @@ def create_random_qubitop(nqubits, nterms, seed=None):
         *** OPTIONAL ***
         seed: integer
             The see for the random number generator
-    
+
     Returns:
         None, a Qubit Operator (openfermion.QubitOperator) object is saved under 'qubitop.json'
     """
@@ -142,7 +144,7 @@ def create_random_isingop(nqubits, nterms, seed=None):
         *** OPTIONAL ***
         seed: integer
             The see for the random number generator
-    
+
     Returns:
         an Ising Operator (openfermion.IsingOperator) object
     """
@@ -184,22 +186,15 @@ def create_random_isingop(nqubits, nterms, seed=None):
     return isingop
 
 
-def create_random_wavefunction(nqubits, seed=None):
+def create_random_wavefunction(n_qubits, seed=None):
     if seed:
         np.random.seed(seed)
 
-    class Wavefunction:
-        def __init__(self, nqubits):
-            random_vector = np.random.rand(2 ** nqubits) + 1j * np.random.rand(
-                2 ** nqubits
-            )
-            self.amplitudes = random_vector / np.linalg.norm(random_vector)
-            self.nqubits = nqubits
+    random_vector = [
+        complex(a, b)
+        for a, b in zip(np.random.rand(2 ** n_qubits), np.random.rand(2 ** n_qubits))
+    ]
+    normalization_factor = np.sqrt(np.sum(np.abs(random_vector) ** 2))
+    random_vector /= normalization_factor
 
-        def __len__(self):
-            return self.nqubits
-
-        def probabilities(self):
-            return np.absolute(self.amplitudes) ** 2
-
-    return Wavefunction(nqubits)
+    return Wavefunction(random_vector)

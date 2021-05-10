@@ -1,7 +1,7 @@
 """Base class for qubit"""
 
-import pyquil
 import cirq
+import pyquil
 
 
 class Qubit(object):
@@ -48,7 +48,7 @@ class Qubit(object):
                 The qubit object in pyquil.
             index: int
                 The index of the Qubit object to be generated.
-        
+
         Returns:
             A core.qubit.Qubit object. Entries include
                 label: string
@@ -74,7 +74,7 @@ class Qubit(object):
                 Input cirq qubit object.
             index: int
                 The integer index of the qubit
-        
+
         Returns:
             A core.qubit.Qubit object. Here the attributes are stored as
                 label: string
@@ -113,7 +113,7 @@ class Qubit(object):
                 A tuple representing the qubit
             index: int
                 Index to be assigned to the output core.qubit.Qubit object
-        
+
         Returns:
             A core.qubit.Qubit object. Here the attributes are stored as
                 index: int
@@ -122,15 +122,14 @@ class Qubit(object):
                     label: string
                         Name of the package that generates the qubit object. Here it
                         is 'qiskit'
-                    qreg: string 
+                    qreg: string
                         Holds the string representing register corresponding to the qubit.
-                    num: int 
+                    num: int
                         Holds the index of the qubit inside the quantum register.
         """
 
         output = cls(index)
         output.info["label"] = "qiskit"
-        output.info["qreg"] = str(qiskit_qubit.register)
         output.info["num"] = index
 
         return output

@@ -161,6 +161,7 @@ class AnsatzBasedCostFunction:
         fixed_parameters: Optional[np.ndarray] = None,
         parameter_precision: Optional[float] = None,
         parameter_precision_seed: Optional[int] = None,
+        gradient_type: Optional[str] = None,
     ):
         self.target_operator = target_operator
         self.ansatz = ansatz
@@ -178,6 +179,7 @@ class AnsatzBasedCostFunction:
         self.fixed_parameters = fixed_parameters
         self.parameter_precision = parameter_precision
         self.parameter_precision_seed = parameter_precision_seed
+        self.gradient_type = gradient_type
 
     def __call__(self, parameters: np.ndarray) -> ValueEstimate:
         """Evaluates the value of the cost function for given parameters.
@@ -220,9 +222,7 @@ class AnsatzBasedCostFunction:
         Returns:
             np.ndarray: gradient vector
         """
-        if self.gradient_type == "finite_difference":
-            return self.get_gradients_finite_difference(parameters)
-        elif self.gradient_type == "qaoa":
+        if self.gradient_type == "qaoa":
             return self.get_gradients_qaoa(parameters)
         elif self.gradient_type == "schuld_shift":
             self.get_gradients_schuld_shift(parameters)

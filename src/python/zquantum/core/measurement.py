@@ -215,9 +215,10 @@ class Parities:
             to the number of samples with even and odd parities for term P_i,
             respectively.
         correlations (list): a list of 3-dimensional numpy arrays indicating how
-            many times each product of Pauli terms was observed with even and odd parity.
-            Here correlations[i][j][k][0] and correlations[i][j][k][1] correspond to the number
-            of samples with even and odd parities term P_j P_k in frame i, respectively.
+            many times each product of Pauli terms was observed with even and odd
+            parity. Here correlations[i][j][k][0] and correlations[i][j][k][1]
+            correspond to the number of samples with even and odd parities term P_j P_k
+            in frame i, respectively.
     """
 
     def __init__(
@@ -280,13 +281,15 @@ def load_parities(file: LoadSource) -> Parities:
 
 
 def get_expectation_values_from_parities(parities: Parities) -> ExpectationValues:
-    """Get the expectation values of a set of operators (with precisions) from a set of samples (with even/odd parities) for them.
+    """Get the expectation values of a set of operators (with precisions) from a set of
+    samples (with even/odd parities) for them.
 
     Args:
-        parities (zquantum.core.measurement.Parities): Contains the number of samples with even and odd parities for each operator.
+        parities: Contains the number of samples with even and odd parities for each
+            operator.
 
     Returns:
-        A zquantum.core.measurement.ExpectationValues object: Contains the expectation values of the operators and the associated precisions.
+        Expectation values of the operators and the associated precisions.
     """
     values = []
     estimator_covariances = []
@@ -301,8 +304,9 @@ def get_expectation_values_from_parities(parities: Parities) -> ExpectationValue
         p = N0 / N
         value = 2.0 * p - 1.0
 
-        # If there are enough samples and the probability of getting a sample with even parity is not close to 0 or 1,
-        # then we can use p=N0/N to approximate this probability and plug it into the formula for the precision.
+        # If there are enough samples and the probability of getting a sample with even
+        # parity is not close to 0 or 1, then we can use p=N0/N to approximate this
+        # probability and plug it into the formula for the precision.
         if N >= 100 and p >= 0.1 and p <= 0.9:
             precision = 2.0 * np.sqrt(p * (1.0 - p)) / np.sqrt(N)
         else:
@@ -449,9 +453,10 @@ def get_expectation_value_from_frequencies(
 
 
 class Measurements:
-    """A class representing measurements from a quantum circuit. The bitstrings variable represents the internal
-    data structure of the Measurements class. It is expressed as a list of tuples wherein each tuple is a measurement
-    and the value of the tuple at a given index is the measured bit-value of the qubit (indexed from 0 -> N-1)"""
+    """A class representing measurements from a quantum circuit. The bitstrings variable
+    represents the internal data structure of the Measurements class. It is expressed as
+    a list of tuples wherein each tuple is a measurement and the value of the tuple at a
+    given index is the measured bit-value of the qubit (indexed from 0 -> N-1)"""
 
     def __init__(self, bitstrings: Optional[List[Tuple[int, ...]]] = None):
         if bitstrings is None:
@@ -464,7 +469,8 @@ class Measurements:
         """Create an instance of the Measurements class from a dictionary
 
         Args:
-            counts (dict): mapping of bitstrings to integers representing the number of times the bitstring was measured
+            counts: mapping of bitstrings to integers representing the number of times
+                the bitstring was measured
         """
         measurements = cls()
         measurements.add_counts(counts)
@@ -474,13 +480,12 @@ class Measurements:
     def get_measurements_representing_distribution(
         cls, bitstring_distribution: BitstringDistribution, number_of_samples: int
     ):
-        """Create an instance of the Measurements class that exactly (or as closely as possible) resembles the input
-        bitstring distribution.
+        """Create an instance of the Measurements class that exactly (or as closely as
+        possible) resembles the input bitstring distribution.
 
         Args:
-            bitstring_distribution (zquantum.core.bitstring_distribution.BitstringDistribution): the bitstring
-                distribution to be sampled
-            number_of_samples (int): the number of measurements
+            bitstring_distribution: the bitstring distribution to be sampled
+            number_of_samples: the number of measurements
         """
         distribution = copy.deepcopy(bitstring_distribution.distribution_dict)
 
@@ -566,7 +571,8 @@ class Measurements:
         """Get the measurements as a histogram
 
         Returns:
-            A dictionary mapping bitstrings to integers representing the number of times the bitstring was measured
+            A dictionary mapping bitstrings to integers representing the number of times
+            the bitstring was measured
         """
         bitstrings = convert_tuples_to_bitstrings(self.bitstrings)
         return dict(Counter(bitstrings))
@@ -575,9 +581,10 @@ class Measurements:
         """Add measurements from a histogram
 
         Args:
-            counts (dict): mapping of bitstrings to integers representing the number of times the bitstring was measured
-                NOTE: bitstrings are also indexed from 0 -> N-1, where the "001" bitstring represents a measurement of
-                    qubit 2 in the 1 state
+            counts: mapping of bitstrings to integers representing the number of times
+                the bitstring was measured
+                NOTE: bitstrings are also indexed from 0 -> N-1, where the "001"
+                bitstring represents a measurement of qubit 2 in the 1 state
         """
         for bitstring in counts.keys():
             measurement = []
@@ -586,11 +593,11 @@ class Measurements:
 
             self.bitstrings += [tuple(measurement)] * counts[bitstring]
 
-    def get_distribution(self):
+    def get_distribution(self) -> BitstringDistribution:
         """Get the normalized probability distribution representing the measurements
 
         Returns:
-            distribution (BitstringDistribution): bitstring distribution based on the frequency of measurements
+            distribution: bitstring distribution based on the frequency of measurements
         """
         counts = self.get_counts()
         num_measurements = len(self.bitstrings)
@@ -614,12 +621,13 @@ class Measurements:
                 diverges when only one sample is taken.
 
         Returns:
-            zquantum.core.measurement.ExpectationValues: the expectation values of each term in the operator
+            expectation values of each term in the operator
         """
-        # We require operator to be IsingOperator because measurements are always performed in the Z basis,
-        # so we need the operator to be Ising (containing only Z terms).
-        # A general Qubit Operator could have X or Y terms which don’t get directly measured.
         if isinstance(ising_operator, IsingOperator) == False:
+        # We require operator to be IsingOperator because measurements are always
+        # performed in the Z basis, so we need the operator to be Ising (containing only
+        # Z terms). A general Qubit Operator could have X or Y terms which don’t get
+        # directly measured.
             raise TypeError("Input operator is not openfermion.IsingOperator")
 
         # Count number of occurrences of bitstrings

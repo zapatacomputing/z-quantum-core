@@ -36,27 +36,29 @@ jobs:
         with:
           # A list of all paths to test
           python-root-list: src/
-          # Use Pylint
+
           use-pylint: false
-          # Use pycodestyle
           use-pycodestyle: false
-          # Use Flake8
           use-flake8: true
-          # Use Black
           use-black: true
-          # Use mypy
           use-mypy: true
-          # Use isort
           use-isort: true
+
           # Extra options: pylint $(extra-pylint-options) $(python-root-list)
           # extra-pylint-options: # optional, default is 
+
           # Extra options: pycodestyle $(extra-pycodestyle-options) $(python-root-list)
           # extra-pycodestyle-options: # optional, default is 
+
           # Extra options: flake8 $(extra-flake8-options) $(python-root-list)
+          # Black's output doesn't pass all flake8 checks. We need to disable some of them.
           extra-flake8-options: --ignore=E203,E266,F401,W503 --max-line-length=88
+
           # Extra options: black --check $(extra-black-options) $(python-root-list)
           extra-black-options: --check
+
           # Extra options: mypy $(extra-mypy-options) $(python-root-list)
           extra-mypy-options: --ignore-missing-imports --namespace-packages
+
           # Extra options: isort -rc $(extra-isort-options) $(python-root-list) -c --diff 
           extra-isort-options: --check-only --profile black

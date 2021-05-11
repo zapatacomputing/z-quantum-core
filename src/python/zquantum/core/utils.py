@@ -103,11 +103,9 @@ def bin2dec(x: List[int]) -> int:
     return dec
 
 
-"""
-The functions PAULI_X, PAULI_Y, PAULI_Z and IDENTITY below are used for 
-generating the generators of the Pauli group, which include Pauli X, Y, Z 
-operators as well as identity operator
-"""
+# The functions PAULI_X, PAULI_Y, PAULI_Z and IDENTITY below are used for
+# generating the generators of the Pauli group, which include Pauli X, Y, Z
+# operators as well as identity operator
 
 pauli_x = np.array([[0.0, 1.0], [1.0, 0.0]])
 pauli_y = np.array([[0.0, -1.0j], [1.0j, 0.0]])
@@ -163,9 +161,9 @@ def compare_unitary(u1: np.ndarray, u2: np.ndarray, tol: float = 1e-15) -> bool:
             differences in global phase.
     """
 
-    if is_unitary(u1, tol) == False:
+    if not is_unitary(u1, tol):
         raise Exception("The first input matrix is not unitary.")
-    if is_unitary(u2, tol) == False:
+    if not is_unitary(u2, tol):
         raise Exception("The second input matrix is not unitary.")
 
     test_matrix = np.dot(u1.conj().T, u2)
@@ -267,7 +265,8 @@ class ValueEstimate(float):
     @property
     def value(self):
         warnings.warn(
-            "The value attribute is deprecated. Use ValueEstimate object directly instead.",
+            "The value attribute is deprecated. Use ValueEstimate object directly "
+            "instead.",
             DeprecationWarning,
         )
         return float(self)
@@ -410,7 +409,8 @@ def get_func_from_specs(specs: Dict):
 
     """
     warnings.warn(
-        "zquantum.core.utils.get_func_from_specs will be deprecated. Please use zquantum.core.utils.create_object instead",
+        "zquantum.core.utils.get_func_from_specs will be deprecated. Please use "
+        "zquantum.core.utils.create_object instead",
         DeprecationWarning,
     )
     return create_object(specs)
@@ -476,13 +476,15 @@ def load_noise_model(file: LoadSource):
     return func(noise_model_data)
 
 
-def save_noise_model(noise_model_data, module_name, function_name, filename):
+def save_noise_model(
+        noise_model_data: dict, module_name: str, function_name: str, filename
+):
     """Save a noise model to file
 
     Args:
-        noise_model_data (dict): the serialized version of the noise model
-        module_name (str): the module name with the function to load the noise model
-        function_name (str): the function to load the noise model data into a noise model
+        noise_model_data: the serialized version of the noise model
+        module_name: the module name with the function to load the noise model
+        function_name: the function to load the noise model data into a noise model
         filename (str or file-like object): the name of the file, or a file-like object.
 
     Returns:

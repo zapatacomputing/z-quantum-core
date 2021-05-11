@@ -19,7 +19,7 @@ from .circuit import combine_ansatz_params, Circuit
 from .gradients import finite_differences_gradient
 from .utils import create_symbols_map, ValueEstimate
 from .measurement import ExpectationValues
-from typing import Optional, Callable, Dict, List, Any, Union
+from typing import Optional, Callable, List, Any, Union
 import numpy as np
 import sympy
 from openfermion import SymbolicOperator

@@ -13,7 +13,6 @@ from typing import (
     Dict,
     Union,
     Any,
-    Iterable,
     cast,
 )
 
@@ -336,7 +335,7 @@ def get_parities_from_measurements(
     """
 
     # check input format
-    if isinstance(ising_operator, IsingOperator) == False:
+    if not isinstance(ising_operator, IsingOperator):
         raise TypeError("Input operator not openfermion.IsingOperator")
 
     # Count number of occurrences of bitstrings
@@ -623,11 +622,11 @@ class Measurements:
         Returns:
             expectation values of each term in the operator
         """
-        if isinstance(ising_operator, IsingOperator) == False:
         # We require operator to be IsingOperator because measurements are always
         # performed in the Z basis, so we need the operator to be Ising (containing only
         # Z terms). A general Qubit Operator could have X or Y terms which don’t get
         # directly measured.
+        if not isinstance(ising_operator, IsingOperator):
             raise TypeError("Input operator is not openfermion.IsingOperator")
 
         # Count number of occurrences of bitstrings

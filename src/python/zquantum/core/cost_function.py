@@ -43,11 +43,14 @@ def _get_sorted_set_of_circuit_symbols(
     )
 
 
+_by_averaging = estimate_expectation_values_by_averaging
+
+
 def get_ground_state_cost_function(
     target_operator: SymbolicOperator,
     parametrized_circuit: Circuit,
     backend: QuantumBackend,
-    estimation_method: EstimateExpectationValues = estimate_expectation_values_by_averaging,
+    estimation_method: EstimateExpectationValues = _by_averaging,
     estimation_preprocessors: List[EstimationPreprocessor] = None,
     fixed_parameters: Optional[np.ndarray] = None,
     parameter_precision: Optional[float] = None,
@@ -202,7 +205,7 @@ class AnsatzBasedCostFunction:
         target_operator: SymbolicOperator,
         ansatz: Ansatz,
         backend: QuantumBackend,
-        estimation_method: EstimateExpectationValues = estimate_expectation_values_by_averaging,
+        estimation_method: EstimateExpectationValues = _by_averaging,
         estimation_preprocessors: List[EstimationPreprocessor] = None,
         fixed_parameters: Optional[np.ndarray] = None,
         parameter_precision: Optional[float] = None,

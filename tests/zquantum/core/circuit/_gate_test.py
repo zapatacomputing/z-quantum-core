@@ -26,7 +26,7 @@ class TestGate(unittest.TestCase):
             if gate_name in self.one_parameter_gates:
                 params = [1.0]
             if gate_name in self.three_parameter_gates:
-                params = [1.0, 1.0, 1.0]
+                params = [1.0, 2.0, 3.0]
         gate = Gate(gate_name, qubits=qubit_list, params=params)
         return gate
 

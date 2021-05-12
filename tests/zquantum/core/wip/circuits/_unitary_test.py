@@ -41,10 +41,10 @@ class TestCreatingUnitaryFromCircuit:
         zquantum_unitary = circuit.to_unitary()
         cirq_circuit = export_to_cirq(circuit)
         cirq_unitary = cirq.unitary(cirq_circuit)
-        assert (
-            isinstance(zquantum_unitary, np.ndarray),
-            "Unitary constructed form non-parameterized circuit is not a numpy array.",
-        )
+        assert isinstance(
+            zquantum_unitary, np.ndarray
+        ), "Unitary constructed form non-parameterized circuit is not a numpy array."
+
         np.testing.assert_array_almost_equal(zquantum_unitary, cirq_unitary)
 
     def test_commutes_with_parameter_substitution(self):

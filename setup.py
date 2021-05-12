@@ -58,7 +58,7 @@ setuptools.setup(
         "openfermioncirq==0.4.0",
         "lea>=3.2.0",
         "pyquil~=2.25",
-        "cirq>=0.9.1",
+        "cirq<=0.10",
         "qiskit~=0.25",
         "overrides~=3.1",
     ],

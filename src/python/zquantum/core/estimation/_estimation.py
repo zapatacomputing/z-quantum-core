@@ -9,7 +9,6 @@ from ..hamiltonian import estimate_nmeas_for_frames, group_comeasureable_terms_g
 from ..interfaces.backend import QuantumBackend, QuantumSimulator
 from ..measurement import (
     ExpectationValues,
-    concatenate_expectation_values,
     expectation_values_to_real,
 )
 from ..utils import scale_and_discretize
@@ -76,6 +75,28 @@ def get_context_selection_circuit_for_group(
     return context_selection_circuit, transformed_operator
 
 
+def perform_context_selection(
+    estimation_tasks: List[EstimationTask],
+) -> List[EstimationTask]:
+    """Changes the circuits in estimation tasks to involve context selection.
+
+    Args:
+        estimation_tasks: list of estimation tasks
+    """
+    output_estimation_tasks = []
+    for estimation_task in estimation_tasks:
+        (
+            context_selection_circuit,
+            frame_operator,
+        ) = get_context_selection_circuit_for_group(estimation_task.operator)
+        frame_circuit = estimation_task.circuit + context_selection_circuit
+        new_estimation_task = EstimationTask(
+            frame_operator, frame_circuit, estimation_task.number_of_shots
+        )
+        output_estimation_tasks.append(new_estimation_task)
+    return output_estimation_tasks
+
+
 def group_individually(estimation_tasks: List[EstimationTask]) -> List[EstimationTask]:
     """
     Transforms list of estimation tasks by putting each term into a estimation task.
@@ -95,7 +116,7 @@ def group_individually(estimation_tasks: List[EstimationTask]) -> List[Estimatio
     return output_estimation_tasks
 
 
-def group_greedily_with_context_selection(
+def group_greedily(
     estimation_tasks: List[EstimationTask],
 ) -> List[EstimationTask]:
     """
@@ -109,13 +130,8 @@ def group_greedily_with_context_selection(
     for estimation_task in estimation_tasks:
         groups = group_comeasureable_terms_greedy(estimation_task.operator)
         for group in groups:
-            (
-                context_selection_circuit,
-                frame_operator,
-            ) = get_context_selection_circuit_for_group(group)
-            frame_circuit = estimation_task.circuit + context_selection_circuit
             group_estimation_task = EstimationTask(
-                frame_operator, frame_circuit, estimation_task.number_of_shots
+                group, estimation_task.circuit, estimation_task.number_of_shots
             )
             output_estimation_tasks.append(group_estimation_task)
     return output_estimation_tasks

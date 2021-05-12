@@ -169,6 +169,7 @@ COMMON_GATES = [
     "CPHASE",
     "SWAP",
     "ISWAP",
+    "U3",
 ]
 UNIQUE_GATES = [
     "ZXZ",

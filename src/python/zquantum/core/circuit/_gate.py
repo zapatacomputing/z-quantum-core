@@ -365,6 +365,11 @@ class Gate(object):
         if self.name == "RH":  # HPowGate
             g = cirq.H ** (params[0] / pi)
             return g(cirq_qubits[0])
+        if self.name == "U3":  # HPowGate
+            g = cirq.circuits.qasm_output.QasmUGate(
+                params[0] / pi, params[1] / pi, params[2] / pi
+            )
+            return g(cirq_qubits[0])
         if self.name == "Da":  # Damping alpha gate
             g = DampingAlpha(params[0])
             return g(cirq_qubits[0])
@@ -750,6 +755,9 @@ class Gate(object):
             elif parsed_gatename == "Rz":
                 output.name = "Rz"
                 output.params = [cirq_gate.gate.exponent * pi]
+            elif parsed_gatename == "cirq.circuits.qasm_output.QasmUGate":
+                output.name = "U3"
+                output.params = [cirq_gate.gate.theta * pi, cirq_gate.gate.phi * pi, cirq_gate.gate.lmda * pi]
             else:
                 raise NotImplementedError(
                     "The cirq gate {} is currently not supported".format(
@@ -777,6 +785,7 @@ class Gate(object):
                 "YY",
                 "ZZ",
                 "XY",
+                "cirq.circuits.qasm_output.QasmUGate"
             }:
                 if len(parsed_gatename) == 1:  # discrete gate
                     output.name = name_str

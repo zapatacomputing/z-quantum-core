@@ -87,13 +87,17 @@ class TestMatrixFactoryGate:
 
         assert new_gate.params == (1, 2)
 
-    def test_replace_parameters_correctly_gives_instance_with_correctly_set_parameters(self):
+    def test_replace_parameters_correctly_gives_instance_with_correctly_set_parameters(
+        self,
+    ):
         theta = sympy.Symbol("theta")
         gate = MatrixFactoryGate("V", example_one_qubit_matrix_factory, (1, 2), 1)
 
         new_gate = gate.replace_params((theta, 0.5))
 
-        assert new_gate == MatrixFactoryGate("V", example_one_qubit_matrix_factory, (theta, 0.5), 1)
+        assert new_gate == MatrixFactoryGate(
+            "V", example_one_qubit_matrix_factory, (theta, 0.5), 1
+        )
 
     def test_daggers_matrix_is_adjoint_of_original_gates_matrix(self):
         gate = MatrixFactoryGate("V", example_one_qubit_matrix_factory, (1, 2), 1)
@@ -126,8 +130,8 @@ class TestMatrixFactoryGate:
         gate = MatrixFactoryGate("V", example_one_qubit_matrix_factory, (1, 0), 1)
         new_params = (sympy.Symbol("theta"), 4.2)
         assert (
-            gate.dagger.replace_params(new_params) ==
-            gate.replace_params(new_params).dagger
+            gate.dagger.replace_params(new_params)
+            == gate.replace_params(new_params).dagger
         )
 
     def test_applying_gate_returns_operation_with_correct_gate_and_indices(self):
@@ -142,10 +146,7 @@ class TestMatrixFactoryGate:
         assert operation.qubit_indices == (4, 1)
 
 
-@pytest.mark.parametrize(
-    "gate",
-    GATES_REPRESENTATIVES
-)
+@pytest.mark.parametrize("gate", GATES_REPRESENTATIVES)
 class TestControlledGate:
     def test_num_qubits_equal_to_wrapped_gates_num_qubits_plus_num_controlled_qubits(
         self, gate
@@ -193,29 +194,24 @@ class TestControlledGate:
         symbols_map = {sympy.Symbol("theta"): 0.5, sympy.Symbol("x"): 3}
         assert controlled_gate.bind(symbols_map) == gate.bind(symbols_map).controlled(2)
 
-    def test_constructing_controlled_gate_and_replacing_parameters_commute(
-        self, gate
-    ):
+    def test_constructing_controlled_gate_and_replacing_parameters_commute(self, gate):
         controlled_gate = gate.controlled(2)
         new_params = tuple(3 * param for param in controlled_gate.params)
 
-        assert (
-            controlled_gate.replace_params(new_params) ==
-            gate.replace_params(new_params).controlled(2)
-        )
+        assert controlled_gate.replace_params(new_params) == gate.replace_params(
+            new_params
+        ).controlled(2)
 
 
 @pytest.mark.parametrize("gate", GATES_REPRESENTATIVES)
 class TestGateOperation:
-
-    def test_bound_symbols_are_not_present_in_gate_parameters(
-        self, gate
-    ):
+    def test_bound_symbols_are_not_present_in_gate_parameters(self, gate):
         op = GateOperation(gate, tuple(range(gate.num_qubits)))
         symbols_map = {sympy.Symbol("phi"): 0.5, sympy.Symbol("y"): 1.1}
         assert all(
             symbol not in sympy.sympify(param).atoms(sympy.Symbol)
-            for symbol in symbols_map for param in op.bind(symbols_map).params
+            for symbol in symbols_map
+            for param in op.bind(symbols_map).params
         )
 
     def test_replacing_parameters_constructs_operation_of_gate_with_new_parameters(

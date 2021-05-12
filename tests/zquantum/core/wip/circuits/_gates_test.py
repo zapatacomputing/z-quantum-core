@@ -68,7 +68,7 @@ class TestMatrixFactoryGate:
         assert new_gate.num_qubits == gate.num_qubits
         assert new_gate.params == (0.5, gamma + 3)
 
-    def test_binding_parameters_with_symbol_outside_of_gates_free_symbols_set_does_not_raise_error(
+    def test_binding_parameters_with_symbol_outside_of_free_symbols_does_not_raise(
         self,
     ):
         gamma, theta = sympy.symbols("gamma, theta")
@@ -147,12 +147,12 @@ class TestMatrixFactoryGate:
     GATES_REPRESENTATIVES
 )
 class TestControlledGate:
-    def test_has_number_of_qubits_equal_to_wrapped_gates_num_qubits_plus_num_controlled_qubits(
+    def test_num_qubits_equal_to_wrapped_gates_num_qubits_plus_num_controlled_qubits(
         self, gate
     ):
         assert gate.controlled(3).num_qubits == gate.num_qubits + 3
 
-    def test_has_matrix_with_ones_on_the_diagonal_and_wrapped_gates_matrix_as_bottom_left_block(
+    def test_has_matrix_with_eye_and_wrapped_gates_matrix_as_bottom_left_block(
         self, gate
     ):
         controlled_gate = gate.controlled(2)
@@ -163,7 +163,7 @@ class TestControlledGate:
         )
         assert controlled_gate.matrix[-n:, -n:] == gate.matrix
 
-    def test_controlled_of_controlled_gate_is_controlled_gate_with_summed_number_of_control_qubits(
+    def test_controlled_of_controlled_gate_has_summed_number_of_control_qubits(
         self, gate
     ):
         controlled_gate = gate.controlled(2)

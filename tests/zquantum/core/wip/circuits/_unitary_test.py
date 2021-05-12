@@ -34,7 +34,7 @@ class TestCreatingUnitaryFromCircuit:
             Circuit([H(1), YY(0.1).controlled(1)(0, 1, 2), X(2), Y(3), Z(4)])
         ]
     )
-    def test_constructing_unitary_from_circuit_without_free_params_gives_the_same_result_as_cirq(self, circuit):
+    def test_without_free_params_gives_the_same_result_as_cirq(self, circuit):
         zquantum_unitary = circuit.to_unitary()
         cirq_circuit = export_to_cirq(circuit)
         cirq_unitary = cirq.unitary(cirq_circuit)
@@ -44,7 +44,7 @@ class TestCreatingUnitaryFromCircuit:
         )
         np.testing.assert_array_almost_equal(zquantum_unitary, cirq_unitary)
 
-    def test_constructing_unitary_from_circuit_commutes_with_parameter_substitution(self):
+    def test_commutes_with_parameter_substitution(self):
         theta, gamma = sympy.symbols("theta, gamma")
         circuit = Circuit([
             RX(theta / 2)(0), X(1), RY(gamma / 4).controlled(1)(1, 2), YY(0.1)(0, 4)

@@ -83,8 +83,8 @@ class QuantumBackendTests:
         backend.n_samples = n_samples
         measurements = backend.run_circuit_and_measure(circuit)
 
-        # Then (since SPAM error could result in unexpected bitstrings, we make sure the most common bitstring is
-        #   the one we expect)
+        # Then (since SPAM error could result in unexpected bitstrings, we make sure the
+        # most common bitstring is the one we expect)
         counts = measurements.get_counts()
         assert max(counts, key=counts.get) == "001"
         assert backend.number_of_circuits_run == 1
@@ -156,8 +156,8 @@ class QuantumBackendTests:
             [circuit] * number_of_circuits
         )
 
-        # Then (since SPAM error could result in unexpected bitstrings, we make sure the most common bitstring is
-        #   the one we expect)
+        # Then (since SPAM error could result in unexpected bitstrings, we make sure the
+        # most common bitstring is the one we expect)
         for measurements in measurements_set:
             counts = measurements.get_counts()
             assert max(counts, key=counts.get) == "001"
@@ -185,8 +185,8 @@ class QuantumBackendTests:
             [first_circuit, second_circuit], n_samples
         )
 
-        # Then (since SPAM error could result in unexpected bitstrings, we make sure the most common bitstring is
-        #   the one we expect)
+        # Then (since SPAM error could result in unexpected bitstrings, we make sure the
+        # most common bitstring is the one we expect)
         counts = measurements_set[0].get_counts()
         assert max(counts, key=counts.get) == "001"
         counts = measurements_set[1].get_counts()
@@ -299,7 +299,8 @@ class QuantumBackendGatesTests:
 
         if backend_for_gates_test.n_samples is None:
             pytest.xfail(
-                "This test won't work for simulators without sampling, it should be covered by a test in QuantumSimulatorTests."
+                "This test won't work for simulators without sampling, it should be "
+                "covered by a test in QuantumSimulatorTests."
             )
 
         # Given
@@ -343,7 +344,8 @@ class QuantumBackendGatesTests:
 
         if backend_for_gates_test.n_samples is None:
             pytest.xfail(
-                "This test won't work for simulators without sampling, it's covered by a test in QuantumSimulatorTests."
+                "This test won't work for simulators without sampling, it's covered by "
+                "a test in QuantumSimulatorTests."
             )
 
         # Given
@@ -392,7 +394,8 @@ class QuantumBackendGatesTests:
 
         if backend_for_gates_test.n_samples is None:
             pytest.xfail(
-                "This test won't work for simulators without sampling, it's covered by a test in QuantumSimulatorTests."
+                "This test won't work for simulators without sampling, it's covered by "
+                "a test in QuantumSimulatorTests."
             )
 
         # Given
@@ -438,7 +441,8 @@ class QuantumBackendGatesTests:
 
         if backend_for_gates_test.n_samples is None:
             pytest.xfail(
-                "This test won't work for simulators without sampling, it's covered by a test in QuantumSimulatorTests."
+                "This test won't work for simulators without sampling, it's covered by "
+                "a test in QuantumSimulatorTests."
             )
 
         # Given

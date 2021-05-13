@@ -10,7 +10,12 @@ AnyCircuit = Union[OldCircuit, NewCircuit]
 
 def new_circuit_from_old_circuit(old: OldCircuit) -> NewCircuit:
     if not old.qubits:
-        return NewCircuit([])
+        if old.gates:
+            raise ValueError(
+                "Circuit has defined gates but does not have defined qubits."
+            )
+        else:
+            return NewCircuit([])
 
     pre_new_circuit = import_from_cirq(old.to_cirq())
     n_qubits = max([qubit.index for qubit in old.qubits]) + 1

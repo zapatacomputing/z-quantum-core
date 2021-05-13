@@ -26,7 +26,8 @@ def _get_free_symbols(parameters: Tuple[Parameter, ...]) -> Iterable[sympy.Symbo
 
 @runtime_checkable
 class Gate(Protocol):
-    """Interface of a quantum gate representable by a matrix, translatable to other frameworks and backends.
+    """Interface of a quantum gate representable by a matrix, translatable to other
+    frameworks and backends.
 
     See `zquantum.core.wip.circuits` for a list of built-in gates and usage guide.
     """
@@ -44,14 +45,15 @@ class Gate(Protocol):
     def params(self) -> Tuple[Parameter, ...]:
         """Value of parameters bound to this gate.
 
-        Length of `params` should be equal to number of parameters in gate's initializer.
+        Length of `params` should be equal to number of parameters in gate initializer.
         In particular, nonparametric gates should always return ().
 
         Examples:
         - an `H` gate has no params
         - a `RX(np.pi)` gate has a single param with value of `np.pi`
         - a `RX(sympy.Symbol("theta"))` gate has a single symbolic param `theta`
-        - a `RX(sympy.sympify("theta * alpha"))` gate has a single symbolic expression param `theta*alpha`
+        - a `RX(sympy.sympify("theta * alpha"))` gate has a single symbolic expression
+            param `theta*alpha`
 
         We need it for translations to other frameworks and for serialization.
         """
@@ -65,8 +67,10 @@ class Gate(Protocol):
         - an `H` gate has no free symbols
         - a `RX(np.pi)` gate has no free symbols
         - a `RX(sympy.Symbol("theta"))` gate has a single free symbol `theta`
-        - a `RX(sympy.sympify("theta * alpha"))` gate has two free symbols, `alpha` and `theta`
-        - a `RX(sympy.sympify("theta * alpha")).bind({sympy.Symbol("theta"): 0.42})` gate has one free symbol, `alpha`
+        - a `RX(sympy.sympify("theta * alpha"))` gate has two free symbols, `alpha` and
+            `theta`
+        - a `RX(sympy.sympify("theta * alpha")).bind({sympy.Symbol("theta"): 0.42})`
+            gate has one free symbol, `alpha`
         """
         return _get_free_symbols(self.params)
 
@@ -109,7 +113,8 @@ def gate_is_parametric(gate_ref, gate_params):
 
 
 class Operation(Protocol):
-    """Represents arbitrary operation that can be applied to a circuit or wavefunction."""
+    """Represents arbitrary operation that can be applied to a circuit or wavefunction.
+    """
 
     @property
     def params(self) -> Tuple[Parameter, ...]:
@@ -187,19 +192,19 @@ class MatrixFactoryGate:
     Most built-in gates are instances of this class.
     See `zquantum.core.wip.circuits` for built-in gates and usage guide.
 
-    This class requires the gate definition to be present during deserialization, so it's not
-    easily applicable for gates defined in Orquestra steps. If you want to define a new gate,
-    check out `CustomGateDefinition` first.
+    This class requires the gate definition to be present during deserialization, so
+    it's not easily applicable for gates defined in Orquestra steps. If you want to
+    define a new gate, check out `CustomGateDefinition` first.
 
     Keeping a `matrix_factory` instead of a plain gate matrix allows us to defer matrix
     construction to _after_ parameter binding. This saves unnecessary work in scenarios
-    where we construct a quantum circuit and immediately bind parameter values. When done
-    multiple times, e.g. for every gate in each optimization step, this can lead to major
-    performance issues.
+    where we construct a quantum circuit and immediately bind parameter values. When
+    done multiple times, e.g. for every gate in each optimization step, this can lead
+    to major performance issues.
 
     Args:
-        name: Name of this gate. Implementers of new gates should make sure that the names
-            are unique.
+        name: Name of this gate. Implementers of new gates should make sure that the
+            names are unique.
         matrix_factory: a callable mapping arbitrary number of parameters into gate
             matrix. Implementers of new gates should make sure the returned matrices are
             square and of dimension being 2 ** `num_qubits`.
@@ -218,8 +223,8 @@ class MatrixFactoryGate:
     def matrix(self) -> sympy.Matrix:
         """Unitary matrix defining action of this gate.
 
-        This is a computed property using `self.matrix_factory` called
-        with parameters bound to this gate.
+        This is a computed property using `self.matrix_factory` called with parameters
+            bound to this gate.
         """
         return self.matrix_factory(*self.params)
 
@@ -262,8 +267,8 @@ class MatrixFactoryGate:
             for p1, p2 in zip(self.params, other.params)
         )
 
-    # Normally, we'd use the default implementations by inheriting from the Gate protocol.
-    # We can't do that because of __init__ arg default value issues, this is
+    # Normally, we'd use the default implementations by inheriting from the Gate
+    # protocol.  We can't do that because of __init__ arg default value issues, this is
     # the workaround.
     @property
     def free_symbols(self) -> Iterable[sympy.Symbol]:
@@ -410,9 +415,9 @@ class CustomGateDefinition:
     we can assume that the definitions will be available during circuit deserialization.
 
     User-provided gates can be defined in one repo (e.g. Orquestra step), serialized,
-    and passed to another project for deserialization. The other project must have access
-    to gate details, e.g. the gate matrix. This class is designed to keep track of
-    the gate details needed for deserialization.
+    and passed to another project for deserialization. The other project must have
+    access to gate details, e.g. the gate matrix. This class is designed to keep track
+    of the gate details needed for deserialization.
 
     Instances of this class are serialized by the Circuit objects, additionally to
     Circuit operations.
@@ -456,7 +461,7 @@ def _are_matrix_elements_equal(element, another_element):
     This is to be used in __eq__ method when comparing matrices elementwise.
 
     Args:
-        element: first value to compare. It can be float, complex or some sympy expression.
+        element: first value to compare. It can be float, complex or a sympy expression.
         another_element: second value to compare.
     """
     difference = sympy.N(sympy.expand(element) - sympy.expand(another_element))

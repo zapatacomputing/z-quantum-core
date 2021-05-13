@@ -97,7 +97,8 @@ class Circuit:
                 unique_operation_dict[gate_def.gate_name] = gate_def
             elif unique_operation_dict[gate_def.gate_name] != gate_def:
                 raise ValueError(
-                    f"Different gate definitions with the same name exist: {gate_def.gate_name}."
+                    "Different gate definitions with the same name exist: "
+                    f"{gate_def.gate_name}."
                 )
         return sorted(
             unique_operation_dict.values(), key=operator.attrgetter("gate_name")
@@ -117,8 +118,8 @@ class Circuit:
         return reduce(operator.matmul, lifted_matrices)
 
     def bind(self, symbols_map: Dict[sympy.Symbol, Any]):
-        """Create a copy of the current circuit with the parameters of each gate bound to
-        the values provided in the input symbols map
+        """Create a copy of the current circuit with the parameters of each gate bound
+        to the values provided in the input symbols map.
 
         Args:
             symbols_map: A map of the symbols/gate parameters to new values

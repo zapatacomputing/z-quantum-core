@@ -41,17 +41,18 @@ def _permutation_matrix(target_indices_order, zeros, bitstring_to_dense_vector):
 
     Args:
         target_indices_order: the desired order of systems (qubits) after permutation.
-           This should contain all entries from 0 to N-1, where N is the number of qubits.
-        zeros: function for constructing all-zero matrix that will be filled with appropriate entries.
+           This should contain all entries from 0 to N-1, where N is the number of
+           qubits.
+        zeros: function for constructing all-zero matrix that will be filled with
+            appropriate entries.
         bitstring_to_dense_vector: function constructing dense vector from bitstring.
     Returns:
         Matrix permuting qubits according to given ordering.
     Notes:
-        Matrix acts on whole N-qubit system, regardless of how many qubits actually change
-        their position.
-        The `zeros` and `bitstring_to_dense_vector` functions are used for constructing
-        variants of this function depending on whether sympy or numpy should be used
-        (see below how this dispatching is done).
+        Matrix acts on whole N-qubit system, regardless of how many qubits actually
+        change their position. The `zeros` and `bitstring_to_dense_vector` functions are
+        used for constructing variants of this function depending on whether sympy or
+        numpy should be used (see below how this dispatching is done).
     """
     num_qubits = len(target_indices_order)
     if sorted(target_indices_order) != list(range(num_qubits)):
@@ -65,7 +66,8 @@ def _permutation_matrix(target_indices_order, zeros, bitstring_to_dense_vector):
 
 
 def _permutation_making_qubits_adjacent(qubit_indices, num_qubits):
-    """Given an iterable of qubit indices construct a permutation such that they are next to each other."""
+    """Given an iterable of qubit indices construct a permutation such that they are
+    next to each other."""
     return list(qubit_indices) + [
         i for i in range(num_qubits) if i not in qubit_indices
     ]
@@ -80,20 +82,21 @@ def _lift_matrix(
     kronecker_product,
     bitstring_to_dense_vector,
 ):
-    """Lift a matrix acting on subsystem of N-qubit system to one acting on the whole system.
+    """Lift a matrix acting on subsystem of N-qubit system to one acting on the whole
+    system.
 
     Args:
         matrix: matrix acting on k `qubits`
         qubit_indices: indices of qubits that matrix acts on
-        zeros: function constructing all-zero matrix. It is assumed that it can be called like
-            `zeros((m, n))`.
+        zeros: function constructing all-zero matrix. It is assumed that it can be
+            called like `zeros((m, n))`.
         eye: function constructing identity matrix
         kronecker_product: function computing kronecker product of matrices.
             It is assumed that it can be applied like `kronecker_product(x, y)`.
         bitstring_to_dense_vector: function converting bitstring to dense vector.
     Returns:
-        Matrix that acts like `matrix` on qubits with indices `qubit_indices` and as identity
-        on other qubits.
+        Matrix that acts like `matrix` on qubits with indices `qubit_indices` and as
+            identity on other qubits.
     """
     smallest, largest = min(qubit_indices), max(qubit_indices)
     # No need to consider all the qubits, just those between smallest and largest one
@@ -129,7 +132,8 @@ def _lift_matrix(
 def _lift_matrix_numpy(matrix, qubits, num_qubits):
     """A version of _lift_matrix working on numpy arrays.
 
-    Notice that the input matrix is typically sympy's matrix, so we have to first convert it.
+    Notice that the input matrix is typically sympy's matrix, so we have to first
+    convert it.
     """
     matrix = np.array(matrix, dtype=complex)
     return _lift_matrix(

@@ -123,8 +123,8 @@ def _import_custom_gate(instruction, custom_gate_defs):
         gate_def = custom_gate_defs[instruction.name]
     except KeyError:
         raise ValueError(
-            f"Custom gate definition for {instruction} is missing from custom gate defs "
-            f"{custom_gate_defs}"
+            f"Custom gate definition for {instruction} is missing from custom gate "
+            f"defs {custom_gate_defs}"
         )
 
     zq_params = tuple(map(_import_expression, instruction.params))

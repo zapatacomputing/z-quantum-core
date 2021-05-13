@@ -189,7 +189,7 @@ class TestGeneratingCircuitSequence:
             ),
         ],
     )
-    def test_generate_circuit_sequence_produces_correct_sequence(
+    def test_produces_correct_sequence(
         self, repeated_circuit, different_circuit, position, length, expected_result
     ):
         actual_result = _generate_circuit_sequence(
@@ -199,7 +199,7 @@ class TestGeneratingCircuitSequence:
         assert actual_result == expected_result
 
     @pytest.mark.parametrize("length, invalid_position", [(5, 5), (4, 6)])
-    def test_generate_circuit_sequence_raises_error_if_position_is_larger_or_equal_to_length(
+    def test_raises_error_if_position_is_larger_or_equal_to_length(
         self, length, invalid_position
     ):
         repeated_circuit = circuits.Circuit([circuits.X(0)])
@@ -228,7 +228,7 @@ class TestTimeEvolutionDerivatives:
         return request.param
 
     @pytest.mark.parametrize("time", [0.4, sympy.Symbol("t")])
-    def test_time_evolution_derivatives_gives_correct_number_of_derivatives_and_factors(
+    def test_gives_correct_number_of_derivatives_and_factors(
         self, time, hamiltonian
     ):
 

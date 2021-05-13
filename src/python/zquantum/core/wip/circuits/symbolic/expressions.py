@@ -1,10 +1,8 @@
 """Utilities for converting symbolic expressions between different dialects."""
 
 from numbers import Number
-from typing import NamedTuple, Any, Iterable, Union, Dict, Callable
+from typing import NamedTuple, Any, Iterable, Dict, Callable
 from functools import reduce
-from numbers import Number
-from typing import Any, Callable, Dict, Iterable, NamedTuple, Union
 
 
 class Symbol(NamedTuple):
@@ -24,6 +22,7 @@ class FunctionCall(NamedTuple):
 # to Any. See mypy #731 for details.
 Expression = Any
 # Expression = Union[Symbol, FunctionCall, Number]
+
 
 class ExpressionDialect(NamedTuple):
     """Dialect of arithmetic expression.

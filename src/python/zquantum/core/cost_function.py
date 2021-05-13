@@ -84,7 +84,9 @@ def get_ground_state_cost_function(
     """
     estimation_tasks = [
         EstimationTask(
-            operator=target_operator, circuit=parametrized_circuit, number_of_shots=None
+            operator=target_operator,
+            circuit=parametrized_circuit,
+            number_of_shots=None,
         )
     ]
 
@@ -117,11 +119,11 @@ def get_ground_state_cost_function(
             parameters += noise_array
 
         symbols_map = create_symbols_map(circuit_symbols, parameters)
-        estimation_tasks = evaluate_estimation_circuits(
+        current_estimation_tasks = evaluate_estimation_circuits(
             estimation_tasks, [symbols_map for _ in estimation_tasks]
         )
 
-        expectation_values_list = estimation_method(backend, estimation_tasks)
+        expectation_values_list = estimation_method(backend, current_estimation_tasks)
         partial_sums: List[Any] = [
             np.sum(expectation_values.values)
             for expectation_values in expectation_values_list

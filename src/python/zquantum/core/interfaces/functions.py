@@ -54,7 +54,8 @@ def has_store_artifact_param(function) -> bool:
     try:
         return "store_artifact" in signature(function, follow_wrapped=True).parameters
     except ValueError:
-        # Rationale: the only callables that are of interest to us that aren't supported by
+        # Rationale:
+        # The only callables that are of interest to us that aren't supported by
         # signature that I am aware of are numpy ufunc's. Obviously, they don't have
         # store_artifact parameter.
         return False
@@ -86,7 +87,8 @@ def function_with_gradient(
     function: Union[Callable[[np.ndarray], float], CallableStoringArtifacts],
     gradient: Callable[[np.ndarray], np.ndarray],
 ) -> Union[FunctionWithGradient, FunctionWithGradientStoringArtifacts]:
-    """Combine function and gradient into an entity adhering to protocols used by history recorder.
+    """Combine function and gradient into an entity adhering to protocols used by
+    history recorder.
 
     Note that this is a preferred method for adding gradient to your function,
     as it should automatically detect whether the function stores artifact or not.

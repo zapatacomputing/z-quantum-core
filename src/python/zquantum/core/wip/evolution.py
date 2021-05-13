@@ -38,7 +38,8 @@ def time_evolution(
         terms = list(hamiltonian.get_operators())
     elif isinstance(hamiltonian, pyquil.paulis.PauliSum):
         warnings.warn(
-            "PauliSum as an input to time_evolution will be depreciated, please change to QubitOperator instead.",
+            "PauliSum as an input to time_evolution will be depreciated, please change "
+            "to QubitOperator instead.",
             DeprecationWarning,
         )
         terms = hamiltonian.terms
@@ -191,7 +192,8 @@ def time_evolution_derivatives(
         terms = list(hamiltonian.get_operators())
     elif isinstance(hamiltonian, pyquil.paulis.PauliSum):
         warnings.warn(
-            "PauliSum as an input to time_evolution_derivatives will be depreciated, please change to QubitOperator instead.",
+            "PauliSum as an input to time_evolution_derivatives will be depreciated, "
+            "please change to QubitOperator instead.",
             DeprecationWarning,
         )
         terms = hamiltonian.terms

@@ -16,9 +16,7 @@ class TestMultiPhaseOperation:
             np.array([1, 0, 1, 0, 0, 1, 1, 0]) / 2,
         ],
     )
-    def test_with_all_parameters_set_to_0_behaves_like_identity(
-        self, wavefunction
-    ):
+    def test_with_all_parameters_set_to_0_behaves_like_identity(self, wavefunction):
         params = tuple(np.zeros_like(wavefunction))
         operation = MultiPhaseOperation(params)
 
@@ -46,9 +44,7 @@ class TestMultiPhaseOperation:
             (np.array([1, 1, 1, 1]) / 2, (0, 1 + 1j, 2, 3j)),
         ],
     )
-    def test_cannot_be_applied_if_params_are_not_real(
-        self, wavefunction, params
-    ):
+    def test_cannot_be_applied_if_params_are_not_real(self, wavefunction, params):
         with pytest.raises(ValueError):
             MultiPhaseOperation(params)
 
@@ -71,13 +67,28 @@ class TestMultiPhaseOperation:
             [
                 np.array([1, 0, 0, 1]) / np.sqrt(2),
                 np.array([np.pi, np.pi / 2, np.pi / 3, np.pi / 4]),
-                np.array([np.exp(np.pi * 1j), 0, 0, np.exp(np.pi / 4 * 1j),])
+                np.array(
+                    [
+                        np.exp(np.pi * 1j),
+                        0,
+                        0,
+                        np.exp(np.pi / 4 * 1j),
+                    ]
+                )
                 / np.sqrt(2),
             ],
             [
                 np.array([1, 1, 1, 1]) / 2,
                 np.array([np.pi, 0, 0, 0]),
-                np.array([np.exp(np.pi * 1j), 1, 1, 1,]) / 2,
+                np.array(
+                    [
+                        np.exp(np.pi * 1j),
+                        1,
+                        1,
+                        1,
+                    ]
+                )
+                / 2,
             ],
         ],
     )
@@ -95,9 +106,7 @@ class TestMultiPhaseOperation:
     @pytest.mark.parametrize(
         "params", [tuple(sympy.symbols("alpha_0:4")), (sympy.Symbol("theta"), 1, 1, 1)]
     )
-    def test_apply_works_with_symbolic_params(
-        self, wavefunction, params
-    ):
+    def test_apply_works_with_symbolic_params(self, wavefunction, params):
         operation = MultiPhaseOperation(params)
         with pytest.raises(RuntimeError):
             operation.apply(wavefunction)

@@ -38,7 +38,7 @@ Examples:
             qubits = gate_op.qubit_indices
             print(f"{name} with params {params} applied to {qubits}")
 
-    Making a different circuit (e.g. shifting gates by 1 qubit):: 
+    Making a different circuit (e.g. shifting gates by 1 qubit)::
         new_circuit = Circuit(
             operations=[
                 gate_op.gate(*[qubit + 1 for qubit in gate_op.qubits])
@@ -99,7 +99,8 @@ Using custom gates::
 Extending built-in gates requires:
 
 - Adding its definition to `zquantum.core.wip.circuits._builtin_gates`. Refer to other
-    1- or multi-qubit, parametric/nonparametric gates there to see how it's been done for other gates.
+    1- or multi-qubit, parametric/nonparametric gates there to see how it's been done
+    for other gates.
 
 - Adding its matrix to `zquantum.core.wip.circuits._matrices`.
 
@@ -108,8 +109,9 @@ Extending built-in gates requires:
     - `zquantum.core.wip.conversions.pyquil_conversions_test`
     - `zquantum.core.wip.conversions.qiskit_conversions_test`
 
-- Implement conversions. Some might work out of the box, e.g. if there's a gate with the same name defined 
-    in PyQuil our converters will use it by default without need for explicit mappings.
+- Implement conversions. Some might work out of the box, e.g. if there's a gate with the
+    same name defined in PyQuil our converters will use it by default without need for
+    explicit mappings.
 """
 
 from ._builtin_gates import (

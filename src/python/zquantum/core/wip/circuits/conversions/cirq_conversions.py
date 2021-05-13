@@ -209,12 +209,16 @@ def _export_dagger_to_cirq(gate: _gates.Dagger) -> cirq.Gate:
 def _export_gate_operation_to_cirq(
     operation: _gates.GateOperation,
 ) -> cirq.GateOperation:
-    return _export_to_cirq(operation.gate)(*map(cirq.LineQubit, operation.qubit_indices))
+    return _export_to_cirq(operation.gate)(
+        *map(cirq.LineQubit, operation.qubit_indices)
+    )
 
 
 @_export_to_cirq.register
 def _export_circuit_to_cirq(circuit: _circuit.Circuit) -> cirq.Circuit:
-    return cirq.Circuit([_export_to_cirq(operation) for operation in circuit.operations])
+    return cirq.Circuit(
+        [_export_to_cirq(operation) for operation in circuit.operations]
+    )
 
 
 @singledispatch
@@ -228,7 +232,8 @@ def import_from_cirq(obj):
     there is no notion of GridQubit in Zquantum.
 
     Raises:
-        NotImplementedError: if the object to be imported is of currently unsupported type.
+        NotImplementedError: if the object to be imported is of currently unsupported
+            type.
     """
     try:
         return CIRQ_GATE_SPECIAL_CASES[obj]

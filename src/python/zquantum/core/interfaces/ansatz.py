@@ -24,9 +24,11 @@ class Ansatz(ABC, EnforceOverrides):
             number_of_layers: number of layers of the ansatz
 
         Attributes:
-            number_of_layers (int): see Args
-            parametrized_circuit (zquantum.core.circuit.Circuit): parametrized circuit representation of the ansatz. Might not be supported for given ansatz, see supports_parametrized_circuits.
-            supports_parametrized_circuits(bool): flag indicating whether given ansatz supports parametrized circuits.
+            number_of_layers: see Args
+            parametrized_circuit (zquantum.core.circuit.Circuit): parametrized circuit
+                representation of the ansatz. Might not be supported for given ansatz,
+                see supports_parametrized_circuits.
+            supports_parametrized_circuits: a flag.
 
         """
         if number_of_layers < 0:
@@ -81,7 +83,10 @@ class Ansatz(ABC, EnforceOverrides):
 
     def _generate_circuit(self, params: Optional[np.ndarray] = None) -> Circuit:
         """Returns a circuit represention of the ansatz.
-        Will return parametrized circuits if no parameters are passed and the ansatz supports parametrized circuits.
+
+        Will return parametrized circuits if no parameters are passed and the ansatz
+        supports parametrized circuits.
+
         Args:
             params: circuit params
         """
@@ -90,7 +95,8 @@ class Ansatz(ABC, EnforceOverrides):
     def get_symbols(self) -> List[sympy.Symbol]:
         """Returns a list of symbolic parameters used for creating the ansatz."""
         warnings.warn(
-            """`Ansatz.get_symbols()` will be deprecated in future releases of z-quantumcore.\
-                Please use `self.parametrized_circuit.symbolic_params` instead.""",
+            "`Ansatz.get_symbols()` will be deprecated in future releases of "
+            "z-quantum-core. Please use `self.parametrized_circuit.symbolic_params` "
+            "instead.",
         )
         return self.parametrized_circuit.symbolic_params

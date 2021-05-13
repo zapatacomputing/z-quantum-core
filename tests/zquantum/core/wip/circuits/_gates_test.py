@@ -1,6 +1,7 @@
 """Test cases for _gates module."""
 from unittest.mock import Mock
 
+import numpy as np
 import pytest
 import sympy
 from zquantum.core.wip.circuits import _builtin_gates
@@ -17,6 +18,7 @@ GATES_REPRESENTATIVES = [
     _builtin_gates.RY(0.5),
     _builtin_gates.RZ(0),
     _builtin_gates.PHASE(sympy.pi / 5),
+    _builtin_gates.U3(np.pi, sympy.pi / 2, sympy.Symbol("x")),
     _builtin_gates.CZ,
     _builtin_gates.CNOT,
     _builtin_gates.SWAP,

@@ -22,6 +22,7 @@ class TestBuiltinGatesProperties:
             _builtin_gates.RY(1),
             _builtin_gates.RZ(0.5),
             _builtin_gates.RH(1.5),
+            _builtin_gates.U3(0.5, -3.14, 0),
             _builtin_gates.XX(0.1),
             _builtin_gates.YY(0.2),
             _builtin_gates.ZZ(0.3),

@@ -8,7 +8,7 @@ from openfermion import IsingOperator, QubitOperator
 from ..circuit._circuit import Circuit
 from ..hamiltonian import estimate_nmeas_for_frames, group_comeasureable_terms_greedy
 from ..interfaces.backend import QuantumBackend, QuantumSimulator
-from ..interfaces.estimation import EstimationPreprocessor, EstimationTask
+from ..interfaces.estimation import EstimationTask
 from ..measurement import ExpectationValues, expectation_values_to_real
 from ..openfermion import change_operator_type
 from ..utils import scale_and_discretize

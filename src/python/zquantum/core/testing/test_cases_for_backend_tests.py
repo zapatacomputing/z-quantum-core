@@ -1,5 +1,5 @@
-"""
-Test cases have been generated using the code in core.testing.generate_cases_for_backend.py.
+"""Test cases have been generated using the code in
+`core.testing.generate_cases_for_backend.py`.
 """
 
 import numpy as np

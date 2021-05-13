@@ -18,9 +18,9 @@ from ..utils import SCHEMA_VERSION, convert_array_to_dict, convert_dict_to_array
 def convert_interaction_op_to_dict(op: InteractionOperator) -> Dict[str, Any]:
     """Convert an InteractionOperator to a dictionary.
     Args:
-        op (openfermion.ops.InteractionOperator): the operator
+        op: the operator
     Returns:
-        dictionary (dict): the dictionary representation
+        dictionary: the dictionary representation
     """
 
     dictionary: Dict[str, Any] = {"schema": SCHEMA_VERSION + "-interaction_op"}
@@ -34,12 +34,13 @@ def convert_interaction_op_to_dict(op: InteractionOperator) -> Dict[str, Any]:
 def convert_dict_to_interaction_op(dictionary: dict) -> InteractionOperator:
     """Get an InteractionOperator from a dictionary.
     Args:
-        dictionary (dict): the dictionary representation
+        dictionary: the dictionary representation
     Returns:
-        op (openfermion.ops.InteractionOperator): the operator
+        op: the operator
     """
 
-    # The tolist method is used to convert the constant from a zero-dimensional array to a float/complex
+    # The tolist method is used to convert the constant from a zero-dimensional array to
+    # a float/complex
     constant = convert_dict_to_array(dictionary["constant"]).tolist()
 
     one_body_tensor = convert_dict_to_array(dictionary["one_body_tensor"])
@@ -54,7 +55,7 @@ def load_interaction_operator(file: LoadSource) -> InteractionOperator:
         file (str or file-like object): the name of the file, or a file-like object.
 
     Returns:
-        op (openfermion.ops.InteractionOperator): the operator.
+        op: the operator.
     """
 
     if isinstance(file, str):
@@ -71,8 +72,8 @@ def save_interaction_operator(
 ) -> None:
     """Save an interaction operator to file.
     Args:
-        interaction_operator (InteractionOperator): the operator to be saved
-        filename (str): the name of the file
+        interaction_operator: the operator to be saved
+        filename: the name of the file
     """
 
     with open(filename, "w") as f:
@@ -84,9 +85,9 @@ def save_interaction_operator(
 def convert_dict_to_qubitop(dictionary: dict) -> QubitOperator:
     """Get a QubitOperator from a dictionary.
     Args:
-        dictionary (dict): the dictionary representation
+        dictionary: the dictionary representation
     Returns:
-        op (openfermion.ops.QubitOperator): the operator
+        op: the operator
     """
     return convert_dict_to_operator(dictionary, QubitOperator)
 
@@ -94,9 +95,9 @@ def convert_dict_to_qubitop(dictionary: dict) -> QubitOperator:
 def convert_qubitop_to_dict(op: QubitOperator) -> Dict[str, Any]:
     """Convert a QubitOperator to a dictionary.
     Args:
-        op (openfermion.ops.QubitOperator): the operator
+        op: the operator
     Returns:
-        dictionary (dict): the dictionary representation
+        dictionary: the dictionary representation
     """
 
     dictionary: Dict[str, Any] = {"schema": SCHEMA_VERSION + "-qubit_op"}
@@ -138,8 +139,8 @@ def convert_dict_to_operator(
 def save_qubit_operator(qubit_operator: QubitOperator, filename: AnyPath) -> None:
     """Save a qubit operator to file.
     Args:
-        qubit_operator (QubitOperator): the operator to be saved
-        filename (str): the name of the file
+        qubit_operator: the operator to be saved
+        filename: the name of the file
     """
 
     with open(filename, "w") as f:
@@ -149,9 +150,9 @@ def save_qubit_operator(qubit_operator: QubitOperator, filename: AnyPath) -> Non
 def load_qubit_operator(file: LoadSource) -> QubitOperator:
     """Load an operator object from a file.
     Args:
-        file (str or file-like object): the name of the file, or a file-like object.
+        file: the name of the file, or a file-like object.
     Returns:
-        op (openfermion.ops.QubitOperator): the operator.
+        op: the operator.
     """
 
     if isinstance(file, str):
@@ -169,8 +170,8 @@ def save_qubit_operator_set(
     """Save a set of qubit operators to a file.
 
     Args:
-        qubit_operator_set (list): a list of QubitOperator to be saved
-        file (str): the name of the file
+        qubit_operator_set: a list of QubitOperator to be saved
+        file: the name of the file
     """
     dictionary: Dict[str, Any] = {}
     dictionary["schema"] = SCHEMA_VERSION + "-circuit_set"
@@ -185,10 +186,10 @@ def load_qubit_operator_set(file: LoadSource) -> List[QubitOperator]:
     """Load a set of qubit operators from a file.
 
     Args:
-        file (str or file-like object): the name of the file, or a file-like object.
+        file: the name of the file, or a file-like object.
 
     Returns:
-        qubit_operator_set (list): a list of QubitOperator objects
+        qubit_operator_set: a list of QubitOperator objects
     """
     if isinstance(file, str):
         with open(file, "r") as f:
@@ -227,10 +228,10 @@ def convert_isingop_to_dict(op: IsingOperator) -> dict:
     """Convert an IsingOperator to a dictionary.
 
     Args:
-        op (openfermion.ops.IsingOperator): the operator
+        op: the operator
 
     Returns:
-        dictionary (dict): the dictionary representation
+        dictionary: the dictionary representation
     """
 
     dictionary = convert_qubitop_to_dict(op)
@@ -242,10 +243,10 @@ def convert_dict_to_isingop(dictionary: dict) -> IsingOperator:
     """Get a IsingOperator from a dictionary.
 
     Args:
-        dictionary (dict): the dictionary representation
+        dictionary: the dictionary representation
 
     Returns:
-        op (openfermion.ops.IsingOperator): the operator
+        op: the operator
     """
     return convert_dict_to_operator(dictionary, IsingOperator)
 
@@ -254,10 +255,10 @@ def load_ising_operator(file: LoadSource) -> IsingOperator:
     """Load an Ising operator object from a file.
 
     Args:
-        file (str or file-like object): the name of the file, or a file-like object.
+        file: the name of the file, or a file-like object.
 
     Returns:
-        op (openfermion.ops.IsingOperator): the operator.
+        op: the operator.
     """
 
     if isinstance(file, str):
@@ -273,8 +274,8 @@ def save_ising_operator(ising_operator: IsingOperator, filename: AnyPath) -> Non
     """Save an Ising operator to file.
 
     Args:
-        op (openfermion.IsingOperator): the operator to be saved
-        filename (str): the name of the file
+        op: the operator to be saved
+        filename: the name of the file
     """
 
     with open(filename, "w") as f:
@@ -285,7 +286,8 @@ def save_parameter_grid_evaluation(parameter_grid_evaluation, filename):
     """Save a list of parameter grid evaluations to file
 
     Args:
-        parameter_grid_evaluation (list): List of dicts with a value estimate object under the "value" field
+        parameter_grid_evaluation (list): List of dicts with a value estimate object
+            under the "value" field
         file (str or file-like object): the name of the file, or a file-like object
     """
     full_dict = {}

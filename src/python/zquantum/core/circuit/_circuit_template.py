@@ -1,6 +1,6 @@
 import importlib
 import json
-from typing import Dict, List, Optional, TextIO, Tuple, Any
+from typing import Any, Dict, List, Optional, TextIO, Tuple
 
 import numpy as np
 
@@ -122,7 +122,8 @@ class ParameterGrid:
     """A class representing a grid of parameter values to be used in a grid search.
 
     Args:
-        param_ranges (list): ranges of the parameters describing the shape of the grid. Each range consist is of the form (min, max, step).
+        param_ranges: ranges of the parameters describing the shape of the grid.
+            Each range consist is of the form (min, max, step).
 
     Attributes:
         param_ranges (list): same as above.
@@ -209,14 +210,14 @@ def build_uniform_param_grid(
     """Builds a uniform grid of parameters.
 
     Args:
-        n_params_per_layer (int): number of parameters for each layer
-        n_layers (int): the number of layers to create parameters for
-        min_value (float): the minimum value for the parameters
-        max_value (float): the maximum value for the parameters
-        step (float): the step size
+        n_params_per_layer: number of parameters for each layer
+        n_layers: the number of layers to create parameters for
+        min_value: the minimum value for the parameters
+        max_value: the maximum value for the parameters
+        step: the step size
 
     Returns:
-        list: a list of numpy.ndarray objects representing points on a grid in parameter space
+        Points on a grid in parameter space.
     """
 
     n_params = n_params_per_layer * n_layers
@@ -489,15 +490,16 @@ def _build_circuit_layers_and_connectivity_nearest_neighbors(n_qubits):
 def create_layer_of_gates(
     number_of_qubits: int, gate_name: str, parameters: Optional[np.ndarray] = None
 ) -> Circuit:
-    """Creates a circuit consisting of a layer of single-qubit gates acting on all qubits.
+    """Creates a circuit consisting of a layer of single-qubit gates acting on all
+    qubits.
 
     Args:
-        number_of_qubits (int): number of qubits in the circuit
-        gate_name (str): the single qubit gate to be applied to each qubit
-        params (numpy.array): parameters of the single-qubit gates
+        number_of_qubits: number of qubits in the circuit
+        gate_name: the single qubit gate to be applied to each qubit
+        parameters: parameters of the single-qubit gates
 
     Returns:
-        Circuit: a zquantum.core.circuit.Circuit object
+        circuit: Created circuit.
     """
     circuit = Circuit()
     circuit.qubits = [Qubit(i) for i in range(number_of_qubits)]

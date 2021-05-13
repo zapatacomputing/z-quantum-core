@@ -4,9 +4,9 @@ from functools import wraps
 class _InvalidatingSetter(object):
     """Setter descriptor that sets target object's _parametrized_circuit to None.
 
-    The descriptor uses __get__ and __set__ methods. Both of them accept ansatz as a
-    first argument (in this case).
-    We just forward the __get__, but in __set__ we set obj._parametrized_circuit to None.
+    The descriptor uses __get__ and __set__ methods. Both of them accept ansatz as the
+    first argument (in this case).  We just forward the __get__, but in __set__ we set
+    obj._parametrized_circuit to None.
     """
 
     def __init__(self, target):
@@ -21,9 +21,10 @@ class _InvalidatingSetter(object):
 
 
 def invalidates_parametrized_circuit(target):
-    """
-    Make given target (either property or method) invalidate ansatz's circuit.
-    It can be used as a decorator, when for some reason `ansatz_property` shouldn't be used.
+    """Make given target (either property or method) invalidate ansatz's circuit.
+
+    It can be used as a decorator, when for some reason `ansatz_property` shouldn't be
+    used.
     """
     if isinstance(target, property):
         # If we are dealing with a property, return our modified descriptor.

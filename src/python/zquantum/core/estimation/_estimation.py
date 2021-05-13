@@ -2,20 +2,16 @@ from typing import List, Optional, Tuple
 
 import numpy as np
 import pyquil
+import sympy
 from openfermion import IsingOperator, QubitOperator
 
 from ..circuit._circuit import Circuit
 from ..hamiltonian import estimate_nmeas_for_frames, group_comeasureable_terms_greedy
 from ..interfaces.backend import QuantumBackend, QuantumSimulator
-from ..measurement import (
-    ExpectationValues,
-    expectation_values_to_real,
-)
-from ..utils import scale_and_discretize
-from ..interfaces.estimation import EstimationTask, EstimationPreprocessor
+from ..interfaces.estimation import EstimationTask
+from ..measurement import ExpectationValues, expectation_values_to_real
 from ..openfermion import change_operator_type
-
-import sympy
+from ..utils import scale_and_discretize
 
 
 def get_context_selection_circuit(
@@ -164,9 +160,9 @@ def allocate_shots_proportionally(
     total_n_shots: int,
     prior_expectation_values: Optional[ExpectationValues] = None,
 ) -> List[EstimationTask]:
-    """
-    Allocates specified number of shots proportionally to the variance associated with each operator in a list of estimation tasks.
-    For more details please refer to documentation of zquantum.core.hamiltonian.estimate_nmeas_for_frames .
+    """Allocates specified number of shots proportionally to the variance associated
+    with each operator in a list of estimation tasks. For more details please refer to
+    the documentation of `zquantum.core.hamiltonian.estimate_nmeas_for_frames`.
 
     Args:
         total_n_shots: total number of shots to be allocated
@@ -202,15 +198,16 @@ def evaluate_estimation_circuits(
     estimation_tasks: List[EstimationTask],
     symbols_maps: List[List[Tuple[sympy.Basic, float]]],
 ) -> List[EstimationTask]:
-    """
-    Evaluates circuits given in all estimation tasks using the given symbols_maps. If one symbols map is given,
-    it is used to evaluate all circuits. Otherwise, the symbols map at index i will be used for the estimation
-    task at index i.
+    """Evaluates circuits given in all estimation tasks using the given symbols_maps.
+
+    If one symbols map is given, it is used to evaluate all circuits. Otherwise, the
+    symbols map at index i will be used for the estimation task at index i.
 
     Args:
-        estimation_tasks: the estimation tasks which contain the circuits to be evaluated
-        symbols_maps: a list of dictionaries (or singular dictionary) that map the symbolic symbols used in the
-            parametrized circuits to the associated values
+        estimation_tasks: the estimation tasks which contain the circuits to be
+            evaluated
+        symbols_maps: a list of dictionaries (or singular dictionary) that map the
+            symbolic symbols used in the parametrized circuits to the associated values
     """
     return [
         EstimationTask(
@@ -226,9 +223,10 @@ def estimate_expectation_values_by_averaging(
     backend: QuantumBackend,
     estimation_tasks: List[EstimationTask],
 ) -> List[ExpectationValues]:
-    """
-    Basic method for estimating expectation values for list of estimation tasks.
-    It executes specified circuit and calculates expectation values based on the measurements.
+    """Basic method for estimating expectation values for list of estimation tasks.
+
+    It executes specified circuit and calculates expectation values based on the
+    measurements.
 
     Args:
         backend: backend used for executing circuits
@@ -256,8 +254,7 @@ def calculate_exact_expectation_values(
     backend: QuantumSimulator,
     estimation_tasks: List[EstimationTask],
 ) -> List[ExpectationValues]:
-    """
-    Calculates exact expectation values using built-in method of a provided backend.
+    """Calculates exact expectation values using built-in method of a provided backend.
 
     Args:
         backend: backend used for executing circuits

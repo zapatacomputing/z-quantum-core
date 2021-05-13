@@ -102,7 +102,7 @@ def test_sympy_mul_is_converted_to_function_call_with_mul_operation(
         sympy.Symbol("x") / (sympy.Symbol("z") + 1),
     ],
 )
-def test_mul_resulting_from_division_is_classified_as_multiplication_by_reciprocal(
+def test_mul_from_division_is_classified_as_multiplication_by_reciprocal(
     sympy_multiplication,
 ):
     assert is_multiplication_by_reciprocal(sympy_multiplication)
@@ -116,7 +116,7 @@ def test_mul_resulting_from_division_is_classified_as_multiplication_by_reciproc
         sympy.Symbol("x") * sympy.Symbol("y") * sympy.Symbol("z"),
     ],
 )
-def test_mul_not_resulting_from_division_is_not_classified_as_multiplication_by_reciprocal(
+def test_mul_not_from_division_is_not_classified_as_multiplication_by_reciprocal(
     sympy_multiplication,
 ):
     # Note: obviously you can manually construct multiplication that would
@@ -135,7 +135,7 @@ def test_mul_not_resulting_from_division_is_not_classified_as_multiplication_by_
         ),
     ],
 )
-def test_division_is_converted_into_div_function_call_instead_of_multiplication_by_reciprocal(
+def test_division_is_converted_into_div_fn_call_instead_of_multiplication_by_reciprocal(
     sympy_multiplication, expected_args
 ):
     # Important note about sympy: there is no Div operator (as opposed to
@@ -236,7 +236,7 @@ def test_sympy_power_with_negative_one_exponent_gets_converted_to_division(
         (sympy.exp(sympy.Symbol("x")), FunctionCall("exp", (Symbol("x"),))),
     ],
 )
-def test_sympy_function_calls_are_converted_to_function_call_object_with_appropriate_function_name(
+def test_sympy_fn_calls_are_converted_to_fn_call_object_with_appropriate_fn_name(
     sympy_function_call, expected_function_call
 ):
     assert expression_from_sympy(sympy_function_call) == expected_function_call

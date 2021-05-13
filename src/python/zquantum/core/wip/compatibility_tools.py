@@ -12,7 +12,6 @@ class TranslationFailed(Exception):
     """
 
 
-
 def _translate_if_needed(
     obj, old_type, translate_old_to_wip, deprecation_msg=None, considered_iterables=None
 ):
@@ -28,8 +27,8 @@ def _translate_if_needed(
                 f"minimal example that triggers this error."
             )
     elif type(obj) in considered_iterables:
-        # Note that here we use exact type comparison. This makes for a simpler implementation,
-        # and it is rather unexpected to see subclasses of list or tuple.
+        # Note that here we use exact type comparison. This makes for a simpler
+        # implementation and it is rather unexpected to see subclasses of list or tuple.
         return type(obj)(
             _translate_if_needed(
                 o, old_type, translate_old_to_wip, deprecation_msg, considered_iterables
@@ -62,8 +61,8 @@ def compatible_with_old_type(
             that should be also checked for old-style objects. This is supposed to
             work with built-in sequential types.
     Returns:
-        A decorator that makes given function using wip objects compatible with old-style
-        objects.
+        A decorator that makes given function using wip objects compatible with
+            old-style objects.
     Raises:
         TranslationFailure: if translation failed and no fallback_function is provided.
     """
@@ -94,9 +93,9 @@ def compatible_with_old_type(
             except TranslationFailed as err:
                 if fallback_function:
                     warnings.warn(
-                        f"Translation from {old_type} failed, and fallback function will be used."
-                        "Please report this as a bug and provide minimal example that leads to"
-                        "this error."
+                        f"Translation from {old_type} failed, and fallback function "
+                        "will be used. Please report this as a bug and provide minimal "
+                        "example that leads to this error."
                     )
                     return fallback_function(*args, **kwargs)
                 raise err

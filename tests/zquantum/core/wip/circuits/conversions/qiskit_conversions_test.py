@@ -338,8 +338,8 @@ class TestExportingToQiskit:
             }
         )
         assert converted_bound == ref_bound, (
-            f"Converted circuit:\n{_draw_qiskit_circuit(converted_bound)}\n isn't equal "
-            f"to\n{_draw_qiskit_circuit(ref_bound)}"
+            f"Converted circuit:\n{_draw_qiskit_circuit(converted_bound)}\n isn't "
+            f"equal to\n{_draw_qiskit_circuit(ref_bound)}"
         )
 
     @pytest.mark.parametrize(
@@ -366,8 +366,8 @@ class TestExportingToQiskit:
             }
         )
         assert bound_converted == ref_bound, (
-            f"Converted circuit:\n{_draw_qiskit_circuit(bound_converted)}\n isn't equal "
-            f"to\n{_draw_qiskit_circuit(ref_bound)}"
+            f"Converted circuit:\n{_draw_qiskit_circuit(bound_converted)}\n isn't "
+            f"equal to\n{_draw_qiskit_circuit(ref_bound)}"
         )
 
     def test_converting_circuit_with_daggers_fails_explicitly(self):

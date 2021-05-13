@@ -1,4 +1,4 @@
-from typing import Tuple, List, NamedTuple, Union, Dict, Iterable, Sequence, Tuple
+from typing import List, NamedTuple, Union, Dict, Iterable, Sequence, Tuple
 import hashlib
 
 import numpy as np
@@ -184,14 +184,17 @@ def _export_custom_gate(
 ):
     if gate.name not in custom_names:
         raise ValueError(
-            f"Can't export gate {gate} as a custom gate, the circuit is missing its definition"
+            f"Can't export gate {gate} as a custom gate, the circuit is missing its "
+            "definition"
         )
 
     if gate.params:
         raise ValueError(
-            f"Can't export parametrized gate {gate}, Qiskit doesn't support parametrized custom gates"
+            f"Can't export parametrized gate {gate}, Qiskit doesn't support "
+            "parametrized custom gates"
         )
-    # At that time of writing it, Qiskit doesn't support parametrized gates defined with a symbolic matrix
+    # At that time of writing it Qiskit doesn't support parametrized gates defined with
+    # a symbolic matrix.
     # See https://github.com/Qiskit/qiskit-terra/issues/4751 for more info.
 
     qiskit_qubits = [

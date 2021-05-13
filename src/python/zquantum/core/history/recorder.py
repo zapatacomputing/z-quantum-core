@@ -21,7 +21,8 @@ class ArtifactCollection(dict):
 
     The `forced` flag is set whenever an artifact is forced into the dictionary
     despite current save_condition being false.
-     """
+    """
+
     forced: bool = False
 
 
@@ -34,7 +35,8 @@ class HistoryEntryWithArtifacts(NamedTuple):
 
 
 class HistoryEntry(NamedTuple):
-    """A basic history entry storing call number, parameters and target function value."""
+    "A basic history entry storing call number, parameters and target function value."
+
     call_number: int
     params: Any
     value: Any
@@ -48,7 +50,8 @@ class SimpleRecorder(Generic[S, T]):
           function.
         save_condition: a function determining whether given call should be saved
           to the history. See respective protocol for explanation of this parameter.
-     """
+    """
+
     def __init__(self, target: Callable[[S], T], save_condition: SaveCondition):
         self.predicate = save_condition
         self.target = target
@@ -110,7 +113,10 @@ class ArtifactRecorder(Generic[S, T]):
 
 
 class ArtifactRecorderWithGradient(ArtifactRecorder):
-    """A recorder storing history entries with artifacts supporting callables with gradient."""
+    """A recorder storing history entries with artifacts supporting callables with
+    gradient.
+    """
+
     def __init__(
         self,
         target: CallableWithGradientStoringArtifacts,
@@ -144,34 +150,35 @@ def recorder(
     function: CallableWithGradientStoringArtifacts,
     save_condition: SaveCondition = always,
 ) -> ArtifactRecorderWithGradient:
-    """The recorder function: variant for callables with gradient and storing artifacts."""
+    "The recorder function: variant for callables with gradient and storing artifacts."
 
 
 @overload
 def recorder(
     function: CallableStoringArtifacts[S, T], save_condition: SaveCondition = always
 ) -> ArtifactRecorder[S, T]:
-    """The recorder function: variant for callables with no gradient that store artifacts."""
+    """The recorder function: variant for callables with no gradient that store
+    artifacts."""
 
 
 @overload
 def recorder(
     function: CallableWithGradient, save_condition: SaveCondition = always
 ) -> SimpleRecorderWithGradient:
-    """The recorder function: variant for callables with gradient that don't store artifacts."""
+    """The recorder function: variant for callables with gradient that don't store
+    artifacts."""
 
 
 @overload
 def recorder(
     function: Callable[[S], T], save_condition: SaveCondition = always
 ) -> SimpleRecorder[S, T]:
-    """The recorder function: variant for callables without gradient that don't store artifacts."""
+    """The recorder function: variant for callables without gradient that don't store
+    artifacts."""
 
 
 def recorder(function, save_condition: SaveCondition = always):
     """Create a recorder that is suitable for recording calls to given callable.
-
-
 
     Args:
         function: a callable to be recorded.

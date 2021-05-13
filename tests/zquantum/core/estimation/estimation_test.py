@@ -1,55 +1,26 @@
+from functools import partial
+
 import numpy as np
 import pytest
 import sympy
 from openfermion import IsingOperator, QubitOperator, qubit_operator_sparse
-from pyquil import Program
-from pyquil.gates import RX, RY, RZ, X, Y
-from functools import partial
-from zquantum.core import estimation
-from zquantum.core.circuit import Circuit, Qubit, Gate
-from zquantum.core.interfaces.mock_objects import (
-    MockQuantumBackend,
-    MockQuantumSimulator,
-)
+from zquantum.core.estimation import (allocate_shots_proportionally,
+                                      allocate_shots_uniformly,
+                                      calculate_exact_expectation_values,
+                                      estimate_expectation_values_by_averaging,
+                                      evaluate_estimation_circuits,
+                                      get_context_selection_circuit_for_group,
+                                      group_greedily, group_individually,
+                                      perform_context_selection)
+from zquantum.core.interfaces.estimation import EstimationTask
+from zquantum.core.interfaces.mock_objects import (MockQuantumBackend,
+                                                   MockQuantumSimulator)
 from zquantum.core.measurement import ExpectationValues
 from zquantum.core.openfermion._utils import change_operator_type
-from zquantum.core.estimation import (
-    calculate_exact_expectation_values,
-    get_context_selection_circuit,
-    get_context_selection_circuit_for_group,
-    estimate_expectation_values_by_averaging,
-    allocate_shots_proportionally,
-    allocate_shots_uniformly,
-    evaluate_estimation_circuits,
-    perform_context_selection,
-    group_greedily,
-    group_individually,
-)
-from zquantum.core.interfaces.estimation import EstimationTask
+from zquantum.core.wip.circuits import RX, RY, RZ, Circuit, X
 
 
 class TestEstimatorUtils:
-    def test_get_context_selection_circuit_offdiagonal(self):
-        term = QubitOperator("X0 Y1")
-        circuit, ising_operator = get_context_selection_circuit(term)
-
-        # Need to convert to QubitOperator in order to get matrix representation
-        qubit_operator = change_operator_type(ising_operator, QubitOperator)
-
-        target_unitary = qubit_operator_sparse(term)
-        transformed_unitary = (
-            circuit.to_unitary().conj().T
-            @ qubit_operator_sparse(qubit_operator)
-            @ circuit.to_unitary()
-        )
-        assert np.allclose(target_unitary.todense(), transformed_unitary)
-
-    def test_get_context_selection_circuit_diagonal(self):
-        term = QubitOperator("Z2 Z4")
-        circuit, ising_operator = get_context_selection_circuit(term)
-        assert len(circuit.gates) == 0
-        assert ising_operator == change_operator_type(term, IsingOperator)
-
     def test_get_context_selection_circuit_for_group(self):
         group = QubitOperator("X0 Y1") - 0.5 * QubitOperator((1, "Y"))
         circuit, ising_operator = get_context_selection_circuit_for_group(group)
@@ -79,14 +50,14 @@ class TestEstimatorUtils:
         expected_operators.append(1 * QubitOperator("Z0"))
         expected_operators.append(20 * QubitOperator(""))
 
-        base_circuit = Circuit(Program(X(0)))
-        x_term_circuit = Circuit(Program(RX(np.pi / 2, 0)))
-        y_term_circuit = Circuit(Program(RY(-np.pi / 2, 0)))
+        base_circuit = Circuit([X(0)])
+        x_term_circuit = Circuit([RY(-np.pi / 2)(0)])
+        y_term_circuit = Circuit([RX(np.pi / 2)(0)])
 
         expected_circuits = [
             base_circuit,
-            base_circuit + x_term_circuit,
             base_circuit + y_term_circuit,
+            base_circuit + x_term_circuit,
             base_circuit,
         ]
 
@@ -116,23 +87,17 @@ class TestEstimatorUtils:
     @pytest.fixture()
     def circuits(self):
         circuits = [Circuit() for _ in range(5)]
-        for circuit in circuits:
-            circuit.qubits = [Qubit(i) for i in range(2)]
 
-        circuits[1].gates = [
-            Gate("Rx", [circuits[1].qubits[0]], [1.2]),
-            Gate("Ry", [circuits[1].qubits[1]], [1.5]),
-            Gate("Rx", [circuits[1].qubits[0]], [-0.0002]),
-            Gate("Ry", [circuits[1].qubits[1]], [0]),
-        ]
+        circuits[1] += RX(1.2)(0)
+        circuits[1] += RY(1.5)(1)
+        circuits[1] += RX(-0.0002)(0)
+        circuits[1] += RY(0)(1)
 
         for circuit in circuits[2:]:
-            circuit.gates = [
-                Gate("Rx", [circuit.qubits[0]], [sympy.Symbol("theta_0")]),
-                Gate("Ry", [circuit.qubits[1]], [sympy.Symbol("theta_1")]),
-                Gate("Rx", [circuit.qubits[0]], [sympy.Symbol("theta_2")]),
-                Gate("Ry", [circuit.qubits[1]], [sympy.Symbol("theta_3")]),
-            ]
+            circuit += RX(sympy.Symbol("theta_0"))(0)
+            circuit += RY(sympy.Symbol("theta_1"))(1)
+            circuit += RX(sympy.Symbol("theta_2"))(0)
+            circuit += RY(sympy.Symbol("theta_3"))(1)
 
         return circuits
 
@@ -215,7 +180,7 @@ class TestEstimatorUtils:
     ):
         estimation_tasks = []
         with pytest.raises(ValueError):
-            allocate_shots = allocate_shots_proportionally(
+            _ = allocate_shots_proportionally(
                 estimation_tasks, total_n_shots, prior_expectation_values
             )
 
@@ -261,7 +226,7 @@ class TestEstimatorUtils:
         new_estimation_tasks = evaluate_circuits(estimation_tasks)
 
         for new_task in new_estimation_tasks:
-            assert new_task.circuit.symbolic_params == []
+            assert len(new_task.circuit.free_symbols) == 0
 
     def test_group_greedily_all_different_groups(self):
         target_operator = 10.0 * QubitOperator("Z0")
@@ -276,7 +241,7 @@ class TestEstimatorUtils:
             20.0 * QubitOperator(""),
         ]
 
-        circuit = Circuit(Program(X(0)))
+        circuit = Circuit([X(0)])
 
         estimation_tasks = [EstimationTask(target_operator, circuit, None)]
 
@@ -295,7 +260,7 @@ class TestEstimatorUtils:
         target_operator += 1.0 * QubitOperator("Y1")
         target_operator += 20.0 * QubitOperator("Y0 Y1 Y2")
 
-        circuit = Circuit(Program([X(0), X(1), X(2)]))
+        circuit = Circuit([X(0), X(1), X(2)])
 
         estimation_tasks = [EstimationTask(target_operator, circuit, None)]
 
@@ -323,7 +288,7 @@ class TestEstimatorUtils:
             (20.0 * QubitOperator("")).terms,
         ]
 
-        circuit = Circuit(Program(X(0)))
+        circuit = Circuit([X(0)])
 
         estimation_tasks = [EstimationTask(target_operator, circuit, None)]
 
@@ -347,16 +312,16 @@ class TestBasicEstimationMethods:
     @pytest.fixture()
     def estimation_tasks(self):
         task_1 = EstimationTask(
-            IsingOperator("Z0"), circuit=Circuit(Program(X(0))), number_of_shots=10
+            IsingOperator("Z0"), circuit=Circuit([X(0)]), number_of_shots=10
         )
         task_2 = EstimationTask(
             IsingOperator("Z0"),
-            circuit=Circuit(Program(RZ(np.pi / 2, 0))),
+            circuit=Circuit([RZ(np.pi / 2)(0)]),
             number_of_shots=20,
         )
         task_3 = EstimationTask(
             IsingOperator((), coefficient=2.0),
-            circuit=Circuit(Program(RY(np.pi / 4, 0))),
+            circuit=Circuit([RY(np.pi / 4)(0)]),
             number_of_shots=30,
         )
         return [task_1, task_2, task_3]
@@ -382,6 +347,4 @@ class TestBasicEstimationMethods:
     ):
         backend = MockQuantumBackend()
         with pytest.raises(AttributeError):
-            expectation_values_list = calculate_exact_expectation_values(
-                backend, estimation_tasks
-            )
+            _ = calculate_exact_expectation_values(backend, estimation_tasks)

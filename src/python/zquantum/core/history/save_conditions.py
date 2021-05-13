@@ -5,7 +5,8 @@ from typing_extensions import Protocol
 
 
 class SaveCondition(Protocol):
-    """Protocol of a function determining if given call should should be saved in the history."""
+    """Protocol of a function determining if given call should should be saved in the
+    history."""
 
     def __call__(self, value: Any, params: Any, call_number: int) -> bool:
         """Determine whether current call should be saved in the history.

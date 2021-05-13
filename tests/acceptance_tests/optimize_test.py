@@ -118,7 +118,8 @@ def test_optimize_parametrized_circuit_for_ground_state_of_operator_optimizer_sp
 
     estimation_method_specs = '{"module_name": "zquantum.core.estimation", "function_name": "estimate_expectation_values_by_averaging"}'
     estimation_preprocessors_specs = [
-        '{"module_name": "zquantum.core.estimation", "function_name": "group_greedily_with_context_selection"}',
+        '{"module_name": "zquantum.core.estimation", "function_name": "group_greedily"}',
+        '{"module_name": "zquantum.core.estimation", "function_name": "perform_context_selection"}',
         '{"module_name": "zquantum.core.estimation", "function_name": "allocate_shots_uniformly", "number_of_shots": 10000}',
     ]
     if os.path.exists("optimization_results.json"):

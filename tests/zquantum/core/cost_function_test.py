@@ -1,3 +1,4 @@
+from functools import partial
 from unittest import mock
 
 import numpy as np
@@ -9,19 +10,15 @@ from zquantum.core.cost_function import (
     get_ground_state_cost_function,
     sum_expectation_values,
 )
-from functools import partial
 from zquantum.core.estimation import (
-    estimate_expectation_values_by_averaging,
-    calculate_exact_expectation_values,
-    allocate_shots_uniformly,
     allocate_shots_proportionally,
+    allocate_shots_uniformly,
+    calculate_exact_expectation_values,
+    estimate_expectation_values_by_averaging,
 )
-from zquantum.core.utils import create_symbols_map
-from zquantum.core.interfaces.mock_objects import (
-    MockAnsatz,
-    MockQuantumSimulator,
-)
+from zquantum.core.interfaces.mock_objects import MockAnsatz, MockQuantumSimulator
 from zquantum.core.measurement import ExpectationValues
+from zquantum.core.utils import create_symbols_map
 
 RNGSEED = 1234
 

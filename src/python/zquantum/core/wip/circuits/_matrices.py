@@ -119,7 +119,11 @@ def u3_matrix(theta, phi, lambda_):
     """Based on
     https://github.com/quantumlib/Cirq/blob/292080453e22e91dc5658a0cfa5043539944a950/cirq/circuits/qasm_output.py#L70
     """
-    return rz_matrix(phi) * ry_matrix(theta) * rz_matrix(lambda_)
+    return (
+        rz_matrix(phi % (2 * sympy.pi))
+        * ry_matrix(theta % (2 * sympy.pi))
+        * rz_matrix(lambda_ % (2 * sympy.pi))
+    )
 
 
 # --- non-parametric two qubit gates ---

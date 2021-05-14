@@ -124,6 +124,7 @@ from ._builtin_gates import (
     RY,
     RZ,
     RH,
+    U3,
     SWAP,
     XX,
     XY,

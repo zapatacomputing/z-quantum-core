@@ -1,3 +1,5 @@
+import cirq
+import cirq.circuits.qasm_output
 import numpy as np
 import pyquil
 import pyquil.gates
@@ -6,13 +8,6 @@ import sympy
 import zquantum.core.circuit as old_circuit
 import zquantum.core.wip.circuits as new_circuits
 from zquantum.core.wip.circuits._compatibility import new_circuit_from_old_circuit
-
-PYQUIL_PROGRAMS = [
-    pyquil.Program(),
-    pyquil.Program(pyquil.gates.X(2), pyquil.gates.Y(0)),
-    pyquil.Program(pyquil.gates.CNOT(3, 1)),
-    pyquil.Program(pyquil.gates.RX(np.pi, 1)),
-]
 
 
 def _old_circuit_from_pyquil(program):
@@ -45,6 +40,14 @@ def _make_old_circuit_with_inactive_qubits(x_qubit, cnot_qubits, n_qubits):
     return circuit
 
 
+PYQUIL_PROGRAMS = [
+    pyquil.Program(),
+    pyquil.Program(pyquil.gates.X(2), pyquil.gates.Y(0)),
+    pyquil.Program(pyquil.gates.CNOT(3, 1)),
+    pyquil.Program(pyquil.gates.RX(np.pi, 1)),
+]
+
+
 @pytest.mark.parametrize(
     "old,new",
     [
@@ -70,6 +73,18 @@ def _make_old_circuit_with_inactive_qubits(x_qubit, cnot_qubits, n_qubits):
                 (0, (2, 3), 4),
             ]
         ],
+        (
+            old_circuit.Circuit(
+                cirq.Circuit(
+                    [
+                        cirq.circuits.qasm_output.QasmUGate(1, 1.5, 0.5)(
+                            cirq.LineQubit(1)
+                        )
+                    ]
+                )
+            ),
+            new_circuits.Circuit([new_circuits.U3(np.pi, 1.5 * np.pi, np.pi / 2)(1)]),
+        ),
     ],
 )
 def test_translated_circuit_matches_expected_circuit(old, new):

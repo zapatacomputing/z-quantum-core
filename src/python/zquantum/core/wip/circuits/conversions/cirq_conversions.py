@@ -81,6 +81,10 @@ def make_rotation_factory(
     return _rotation
 
 
+def _cirq_u3_factory(*args):
+    return cirq.circuits.qasm_output.QasmUGate(*map(angle_to_exponent, args))
+
+
 ZQUANTUM_BUILTIN_GATE_NAME_TO_CIRQ_GATE: Dict[str, Callable] = {
     "X": cirq.X,
     "Y": cirq.Y,
@@ -103,6 +107,7 @@ ZQUANTUM_BUILTIN_GATE_NAME_TO_CIRQ_GATE: Dict[str, Callable] = {
     "YY": make_rotation_factory(cirq.YYPowGate, -0.5),
     "ZZ": make_rotation_factory(cirq.ZZPowGate, -0.5),
     "XY": make_rotation_factory(cirq.ISwapPowGate, 0.0),
+    "U3": _cirq_u3_factory,
 }
 
 
@@ -239,6 +244,16 @@ def import_from_cirq(obj):
         return CIRQ_GATE_SPECIAL_CASES[obj]
     except KeyError:
         raise NotImplementedError(f"{obj} can't be imported into Zquantum.")
+
+
+@import_from_cirq.register
+def convert_qasm_u_gate_to_zquantum_gate(
+    ugate: cirq.circuits.qasm_output.QasmUGate,
+) -> _gates.Gate:
+    angles = (
+        exponent_to_angle(angle) for angle in (ugate.theta, ugate.phi, ugate.lmda)
+    )
+    return _builtin_gates.U3(*angles)
 
 
 @import_from_cirq.register

@@ -1,41 +1,17 @@
 from typing import List, Optional, Tuple
 
 import numpy as np
-import pyquil
 import sympy
 from openfermion import IsingOperator, QubitOperator
 
-from ..circuit._circuit import Circuit
-from ..hamiltonian import estimate_nmeas_for_frames, group_comeasureable_terms_greedy
+from ..hamiltonian import (estimate_nmeas_for_frames,
+                           group_comeasureable_terms_greedy)
 from ..interfaces.backend import QuantumBackend, QuantumSimulator
 from ..interfaces.estimation import EstimationTask
 from ..measurement import ExpectationValues, expectation_values_to_real
 from ..openfermion import change_operator_type
 from ..utils import scale_and_discretize
-
-
-def get_context_selection_circuit(
-    operator: QubitOperator,
-) -> Tuple[Circuit, IsingOperator]:
-    """Get the context selection circuit for measuring the expectation value
-    of a Pauli term.
-
-    Args:
-        operator: operator consisting of a single Pauli Term
-
-    """
-    context_selection_circuit = Circuit()
-    output_operator = IsingOperator(())
-    terms = list(operator.terms.keys())[0]
-    for term in terms:
-        term_type = term[1]
-        qubit_id = term[0]
-        if term_type == "X":
-            context_selection_circuit += Circuit(pyquil.gates.RY(-np.pi / 2, qubit_id))
-        elif term_type == "Y":
-            context_selection_circuit += Circuit(pyquil.gates.RX(np.pi / 2, qubit_id))
-        output_operator *= IsingOperator((qubit_id, "Z"))
-    return context_selection_circuit, output_operator
+from ..wip.circuits import RX, RY, Circuit
 
 
 def get_context_selection_circuit_for_group(
@@ -64,9 +40,9 @@ def get_context_selection_circuit_for_group(
 
     for factor in context:
         if factor[1] == "X":
-            context_selection_circuit += Circuit(pyquil.gates.RY(-np.pi / 2, factor[0]))
+            context_selection_circuit += RY(-np.pi / 2)(factor[0])
         elif factor[1] == "Y":
-            context_selection_circuit += Circuit(pyquil.gates.RX(np.pi / 2, factor[0]))
+            context_selection_circuit += RX(np.pi / 2)(factor[0])
 
     return context_selection_circuit, transformed_operator
 
@@ -212,7 +188,7 @@ def evaluate_estimation_circuits(
     return [
         EstimationTask(
             operator=estimation_task.operator,
-            circuit=estimation_task.circuit.evaluate(symbols_map),
+            circuit=estimation_task.circuit.bind(symbols_map),
             number_of_shots=estimation_task.number_of_shots,
         )
         for estimation_task, symbols_map in zip(estimation_tasks, symbols_maps)

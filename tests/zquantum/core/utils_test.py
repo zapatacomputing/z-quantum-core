@@ -1,14 +1,14 @@
-from functools import partial
 import json
 import os
 import random
+from functools import partial
 
 import numpy as np
 import pkg_resources
 import pytest
 import sympy
-from types import FunctionType
 from scipy.stats import unitary_group
+
 from zquantum.core.openfermion import load_interaction_operator
 from zquantum.core.utils import (
     RNDSEED,
@@ -255,7 +255,7 @@ class TestUtils:
         }
         # When
         with pytest.raises(ValueError):
-            function = create_object(specs, x=data)
+            _ = create_object(specs, x=data)
 
     def test_save_generic_dict(self):
         data = {"flavor": "chocolate", "weight": 42}
@@ -298,7 +298,7 @@ class TestUtils:
             )
 
         # When
-        noise_model = load_noise_model(filename)
+        _ = load_noise_model(filename)
 
         # Then
         remove_file_if_exists(filename)
@@ -328,7 +328,7 @@ class TestUtils:
         symbol_2 = sympy.Symbol("beta")
         symbols = [symbol_1, symbol_2]
         params = np.array([1, 2])
-        target_symbols_map = [(symbol_1, 1), (symbol_2, 2)]
+        target_symbols_map = {symbol_1: 1, symbol_2: 2}
 
         # When
         symbols_map = create_symbols_map(symbols, params)
@@ -376,7 +376,7 @@ class TestUtils:
         remove_file_if_exists("hamiltonian_analysis.json")
 
 
-def test_arithmetic_on_value_estimate_and_float_gives_the_same_result_as_arithmetic_on_two_floats():
+def test_arithmetic_on_value_estimate_and_float():
     value = 5.1
     estimate = ValueEstimate(value, precision=None)
     other = 3.4
@@ -391,8 +391,9 @@ def test_value_estimate_with_no_precision_is_equivalent_to_its_raw_value():
     value = 6.193
     estimate = ValueEstimate(value)
 
-    # Note that it is not that obvious that this comparison is symmetric, since we override
-    # the __eq__ method in ValueEstimate. The same goes about __ne__ method in the next test.
+    # Note that it is not that obvious that this comparison is symmetric,
+    # since we override the __eq__ method in ValueEstimate.
+    # The same goes about __ne__ method in the next test.
     assert value == estimate
     assert estimate == value
 

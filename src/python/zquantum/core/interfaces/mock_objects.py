@@ -5,12 +5,11 @@ import numpy as np
 import sympy
 from openfermion import SymbolicOperator
 from overrides import overrides
-from pyquil import Program
-from pyquil.gates import RX, X
 
-from ..circuit import Circuit
+from ..circuit import Circuit as OldCircuit
 from ..measurement import ExpectationValues, Measurements
 from ..utils import create_symbols_map
+from ..wip.circuits import RX
 from ..wip.circuits import Circuit as NewCircuit
 from ..wip.circuits import new_circuit_from_old_circuit
 from ..wip.compatibility_tools import compatible_with_old_type
@@ -27,7 +26,7 @@ class MockQuantumBackend(QuantumBackend):
     def __init__(self, n_samples: Optional[int] = None):
         super().__init__(n_samples)
 
-    @compatible_with_old_type(Circuit, new_circuit_from_old_circuit)
+    @compatible_with_old_type(OldCircuit, new_circuit_from_old_circuit)
     def run_circuit_and_measure(
         self, circuit: NewCircuit, n_samples: Optional[int] = None, **kwargs
     ) -> Measurements:
@@ -65,7 +64,7 @@ class MockQuantumSimulator(QuantumSimulator):
     def __init__(self, n_samples: Optional[int] = None):
         super().__init__(n_samples)
 
-    @compatible_with_old_type(Circuit, new_circuit_from_old_circuit)
+    @compatible_with_old_type(OldCircuit, new_circuit_from_old_circuit)
     def run_circuit_and_measure(
         self, circuit: NewCircuit, n_samples=None, **kwargs
     ) -> Measurements:
@@ -80,7 +79,7 @@ class MockQuantumSimulator(QuantumSimulator):
 
         return measurements
 
-    @compatible_with_old_type(Circuit, new_circuit_from_old_circuit)
+    @compatible_with_old_type(OldCircuit, new_circuit_from_old_circuit)
     def get_expectation_values(
         self, circuit: NewCircuit, operator: SymbolicOperator, **kwargs
     ) -> ExpectationValues:
@@ -107,13 +106,13 @@ class MockQuantumSimulator(QuantumSimulator):
                 circuit, operator
             )
 
-    @compatible_with_old_type(Circuit, new_circuit_from_old_circuit)
+    @compatible_with_old_type(OldCircuit, new_circuit_from_old_circuit)
     def get_exact_expectation_values(
         self, circuit: NewCircuit, operator: SymbolicOperator, **kwargs
     ) -> ExpectationValues:
         return self.get_expectation_values(circuit, operator)
 
-    @compatible_with_old_type(Circuit, new_circuit_from_old_circuit)
+    @compatible_with_old_type(OldCircuit, new_circuit_from_old_circuit)
     def get_wavefunction(self, circuit: NewCircuit):
         raise NotImplementedError
 
@@ -151,15 +150,15 @@ class MockAnsatz(Ansatz):
 
     @overrides
     def _generate_circuit(self, parameters: Optional[np.ndarray] = None):
-        circuit = Circuit()
+        circuit = NewCircuit()
         symbols = [
             sympy.Symbol(f"theta_{layer_index}")
             for layer_index in range(self._number_of_layers)
         ]
         for theta in symbols:
             for qubit_index in range(self.number_of_qubits):
-                circuit += Circuit(Program(RX(theta, qubit_index)))
+                circuit += RX(theta)(qubit_index)
         if parameters is not None:
             symbols_map = create_symbols_map(symbols, parameters)
-            circuit = circuit.evaluate(symbols_map)
+            circuit = circuit.bind(symbols_map)
         return circuit

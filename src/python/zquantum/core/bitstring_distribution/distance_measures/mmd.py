@@ -1,5 +1,6 @@
-### The following code is derived from: https://github.com/GiggleLiu/QuantumCircuitBornMachine/blob/master/LICENSE
-### The original resource is under MIT license, which is pasted below for convenience >>>
+### The following code is derived from:
+### https://github.com/GiggleLiu/QuantumCircuitBornMachine/blob/master/LICENSE
+### The original resource is under MIT license, which is pasted below for convenience
 
 # MIT License
 # Copyright (c) 2017 Leo
@@ -31,7 +32,8 @@ if TYPE_CHECKING:
 
 
 def compute_rbf_kernel(x_i: np.ndarray, y_j: np.ndarray, sigma: float) -> np.ndarray:
-    """Compute the gaussian (RBF) kernel matrix K, with K_ij = exp(-gamma |x_i - y_j|^2) and gamma = 1/(2*sigma).
+    """Compute the gaussian (RBF) kernel matrix K, with K_ij = exp(-gamma |x_i - y_j|^2)
+    and gamma = 1/(2*sigma).
 
     Args:
         x_i: Samples A (integers).
@@ -54,7 +56,11 @@ def compute_rbf_kernel(x_i: np.ndarray, y_j: np.ndarray, sigma: float) -> np.nda
 def compute_multi_rbf_kernel(
     x_i: np.ndarray, y_j: np.ndarray, sigmas: Sequence[float]
 ) -> np.ndarray:
-    """Compute the multi-gaussian (RBF) kernel matrix K, with K_ij = 1/N * Sum_n [exp(-gamma_n |x_i - y_j|^2)] with n = 1,...,N and gamma = 1/(2*sigma).
+    """Compute the multi-gaussian (RBF) kernel matrix K, with
+
+    K_ij = 1/N * Sum_n [exp(-gamma_n |x_i - y_j|^2)]
+
+    with n = 1,...,N and gamma = 1/(2*sigma).
 
     Args:
         x_i: Samples A (integers).
@@ -81,19 +87,20 @@ def compute_mmd(
     measured_distribution: "BitstringDistribution",
     distance_measure_parameters: Dict,
 ) -> float:
-    """Compute the squared Maximum Mean Discrepancy (MMD) distance measure between between a target bitstring distribution
-    and a measured bitstring distribution.
+    """Compute the squared Maximum Mean Discrepancy (MMD) distance measure between
+    between a target bitstring distribution and a measured bitstring distribution.
     Reference: arXiv.1804.04168.
 
         Args:
-            target_distribution (BitstringDistribution): The target bitstring probability distribution.
-            measured_distribution (BitstringDistribution): The measured bitstring probability distribution.
+            target_distribution: The target bitstring probability distribution.
+            measured_distribution: The measured bitstring probability distribution.
 
-            distance_measure_parameters (dict):
-                - sigma (float/np.array): the bandwidth parameter used to compute the single/multi gaussian kernel. The default value is 1.0.
+            distance_measure_parameters:
+                sigma (float/np.array): the bandwidth parameter used to compute the
+                    single/multi gaussian kernel. The default value is 1.0.
 
         Returns:
-            float: The value of the maximum mean discrepancy.
+            The value of the maximum mean discrepancy.
     """
 
     sigma = distance_measure_parameters.get("sigma", 1.0)

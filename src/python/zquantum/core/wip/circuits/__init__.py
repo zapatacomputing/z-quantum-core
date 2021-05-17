@@ -129,6 +129,7 @@ from ._builtin_gates import (
     XY,
     YY,
     ZZ,
+    GatePrototype,
     H,
     I,
     S,

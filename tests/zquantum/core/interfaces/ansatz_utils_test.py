@@ -32,8 +32,7 @@ class PseudoAnsatz:
 
 class DynamicPropertyTests(unittest.TestCase):
 
-    def test_uses_default_value(self):
-        """DynamicProperty should use default value if it wasn't overwritten."""
+    def test_uses_default_value_if_not_overwritten(self):
         class MyCls:
             x = DynamicProperty(name="x", default_value=-15)
 
@@ -41,7 +40,6 @@ class DynamicPropertyTests(unittest.TestCase):
         self.assertEqual(obj.x, -15)
 
     def test_can_be_set_in_init(self):
-        """It should be possible to initialize DynamicProperty's value in init method."""
         class MyCls:
             length = DynamicProperty(name="length")
 
@@ -51,8 +49,7 @@ class DynamicPropertyTests(unittest.TestCase):
         obj = MyCls(0.5)
         self.assertEqual(obj.length, 0.5)
 
-    def test_stores_values_in_instance(self):
-        """Values of DynamicProperty should be instance-dependent (i.e. should have its own copy)."""
+    def test_values_are_instance_dependent(self):
         class MyCls:
             height = DynamicProperty(name="height")
 
@@ -67,14 +64,11 @@ class DynamicPropertyTests(unittest.TestCase):
 
 
 class TestAnsatzProperty(unittest.TestCase):
-    """Test cases for ansatz_property.
-
-    Note that we don't really need an ansatz intance, we only need to check that _parametrized_circuit is
-    set to None.
+    """Note that we don't really need an ansatz intance, we only need to check that
+    _parametrized_circuit is set to None.
     """
 
     def test_setter_resets_parametrized_circuit(self):
-        """Setter of this property should set _parametrized_circuit to None."""
         ansatz = PseudoAnsatz(n_layers=10)
 
         # Trigger initial computation of parametrized circuit
@@ -87,10 +81,8 @@ class TestAnsatzProperty(unittest.TestCase):
 
 
 class InvalidatesParametrizedCircuitTest(unittest.TestCase):
-    """Test cases for invalidate_parametrized_circuit."""
 
     def test_resets_parametrized_circuit(self):
-        """Calling decorated method should reset _parametrized_circuit."""
         ansatz = PseudoAnsatz(n_layers=10)
 
         # Trigger initial computation of parametrized circuit
@@ -102,7 +94,6 @@ class InvalidatesParametrizedCircuitTest(unittest.TestCase):
         self.assertIsNone(ansatz._parametrized_circuit)
 
     def test_forwards_arguments_to_underlying_methods(self):
-        """Calling decorated methods should pass arguments to underlying method."""
         method_mock = mock.Mock()
         decorated_method = invalidates_parametrized_circuit(method_mock)
         ansatz = PseudoAnsatz(n_layers=10)

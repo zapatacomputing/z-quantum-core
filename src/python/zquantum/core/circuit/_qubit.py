@@ -94,11 +94,13 @@ class Qubit(object):
         output = cls(index)
         output.info["label"] = "cirq"
         if isinstance(cirq_qubit, cirq.GridQubit):
-            qubit_key = lambda q: (q.row, q.col)
+            def qubit_key(q):
+                return (q.row, q.col)
             output.info["QubitType"] = "GridQubit"
             output.info["QubitKey"] = qubit_key(cirq_qubit)
         elif isinstance(cirq_qubit, cirq.LineQubit):
-            qubit_key = lambda q: q.x
+            def qubit_key(q):
+                return q.x
             output.info["QubitType"] = "LineQubit"
             output.info["QubitKey"] = qubit_key(cirq_qubit)
         else:

@@ -1,10 +1,10 @@
-from typing import Optional, Union
+from typing import Optional, Union, cast
 
 import numpy as np
 
 from ._builtin_gates import GatePrototype
-from ._gates import Gate
 from ._circuit import Circuit
+from ._gates import Gate
 
 
 def create_layer_of_gates(
@@ -27,9 +27,11 @@ def create_layer_of_gates(
 
     if parameters is not None:
         assert len(parameters) == number_of_qubits
+        gate_factory = cast(GatePrototype, gate_factory)
         for i in range(number_of_qubits):
             circuit += gate_factory(parameters[i])(i)
     else:
+        gate_factory = cast(Gate, gate_factory)
         for i in range(number_of_qubits):
             circuit += gate_factory(i)
 

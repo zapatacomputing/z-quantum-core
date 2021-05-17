@@ -83,7 +83,7 @@ class Circuit:
 
         return list(self.operations) == list(other.operations)
 
-    def __add__(self, other: Union["Circuit"]):
+    def __add__(self, other: Union["Circuit", _gates.GateOperation]):
         return _append_to_circuit(other, self)
 
     def collect_custom_gate_definitions(self) -> Iterable[_gates.CustomGateDefinition]:

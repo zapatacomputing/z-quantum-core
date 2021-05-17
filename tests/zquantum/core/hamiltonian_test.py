@@ -46,15 +46,15 @@ h2_hamiltonian_grouped = [
     QubitOperator("0.04475014401986127 [Y0 X1 X2 Y3]"),
     QubitOperator("-0.04475014401986127 [Y0 Y1 X2 X3]"),
     QubitOperator(
-        """0.17771287459806312 [Z0] + 
-         0.1705973832722407 [Z0 Z1] + 
-         0.12293305054268083 [Z0 Z2] + 
-         0.1676831945625421 [Z0 Z3] + 
-         0.17771287459806312 [Z1] + 
-         0.1676831945625421 [Z1 Z2] + 
-         0.12293305054268083 [Z1 Z3] + 
-         -0.24274280496459985 [Z2] + 
-         0.17627640802761105 [Z2 Z3] + 
+        """0.17771287459806312 [Z0] +
+         0.1705973832722407 [Z0 Z1] +
+         0.12293305054268083 [Z0 Z2] +
+         0.1676831945625421 [Z0 Z3] +
+         0.17771287459806312 [Z1] +
+         0.1676831945625421 [Z1 Z2] +
+         0.12293305054268083 [Z1 Z3] +
+         -0.24274280496459985 [Z2] +
+         0.17627640802761105 [Z2 Z3] +
          -0.24274280496459985 [Z3]"""
     ),
 ]
@@ -392,7 +392,7 @@ def test_compute_group_variances_with_ref(groups, expecval, variances):
 )
 def test_compute_group_variances_fails_for_invalid_refs(groups, expecval, variances):
     with pytest.raises(ValueError):
-        test_variances = compute_group_variances(groups, expecval)
+        _ = compute_group_variances(groups, expecval)
 
 
 @pytest.mark.parametrize(

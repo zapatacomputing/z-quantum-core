@@ -1,7 +1,6 @@
 import copy
 import json
 import os
-import sys
 
 import numpy as np
 import pytest
@@ -27,7 +26,6 @@ from zquantum.core.circuit import (
 from zquantum.core.testing import create_random_circuit as _create_random_circuit
 from zquantum.core.utils import RNDSEED, create_object
 
-sys.path.append("../..")
 from steps.circuit import (
     add_ancilla_register_to_circuit,
     batch_circuits,

@@ -51,7 +51,7 @@ class TestGenerateRandomAnsatzParams:
         "number_of_layers",
         [0, 1, 4, 7],
     )
-    def test_generate_random_ansatz_params_using_mock_ansatz_specs(
+    def test_using_mock_ansatz_specs(
         self, number_of_layers
     ):
         # Given
@@ -76,7 +76,7 @@ class TestGenerateRandomAnsatzParams:
         finally:
             remove_file_if_exists(filename)
 
-    def test_generate_random_ansatz_params_ansatz_specs_as_string(self):
+    def test_ansatz_specs_as_string(self):
         # Given
         number_of_layers = 5
         ansatz_specs = {
@@ -104,7 +104,7 @@ class TestGenerateRandomAnsatzParams:
         "number_of_parameters",
         [i for i in range(12)],
     )
-    def test_generate_random_ansatz_params_using_number_of_parameters(
+    def test_using_number_of_parameters(
         self,
         number_of_parameters,
     ):
@@ -126,7 +126,7 @@ class TestGenerateRandomAnsatzParams:
         finally:
             remove_file_if_exists(filename)
 
-    def test_generate_random_ansatz_params_fails_with_both_ansatz_specs_and_number_of_parameters(
+    def test_fails_with_both_ansatz_specs_and_number_of_parameters(
         self,
     ):
         number_of_parameters = 2
@@ -149,7 +149,7 @@ class TestGenerateRandomAnsatzParams:
         finally:
             remove_file_if_exists(filename)
 
-    def test_generate_random_ansatz_params_fails_with_neither_ansatz_specs_nor_number_of_parameters(
+    def test_fails_with_neither_ansatz_specs_nor_number_of_parameters(
         self,
     ):
         seed = RNDSEED
@@ -319,7 +319,8 @@ class TestBuildAnsatzCircuit:
 
 class TestBuildUniformParameterGrid:
     @pytest.mark.parametrize(
-        "number_of_ansatz_layers, problem_size, number_of_layers, min_value, max_value, step",
+        "number_of_ansatz_layers, problem_size, number_of_layers, min_value, "
+        "max_value, step",
         [
             (0, 2, 2, 0, 1, 0.5),
             (1, 2, 2, 0, 1, 0.5),
@@ -331,7 +332,7 @@ class TestBuildUniformParameterGrid:
             (1, 2, 6, 0, 1, 0.01),
         ],
     )
-    def test_build_uniform_param_grid_ansatz_specs(
+    def test_ansatz_specs(
         self,
         number_of_ansatz_layers,
         problem_size,
@@ -376,7 +377,8 @@ class TestBuildUniformParameterGrid:
             remove_file_if_exists(expected_parameter_grid_filename)
 
     @pytest.mark.parametrize(
-        "number_of_ansatz_layers, problem_size, number_of_layers, min_value, max_value, step",
+        "number_of_ansatz_layers, problem_size, number_of_layers, min_value, "
+        "max_value, step",
         [
             (0, 2, 2, 0, 1, 0.5),
             (1, 2, 2, 0, 1, 0.5),
@@ -388,7 +390,7 @@ class TestBuildUniformParameterGrid:
             (1, 2, 6, 0, 1, 0.01),
         ],
     )
-    def test_build_uniform_param_grid_ansatz_specs_as_string(
+    def test_ansatz_specs_as_string(
         self,
         number_of_ansatz_layers,
         problem_size,
@@ -444,7 +446,7 @@ class TestBuildUniformParameterGrid:
             (1, 6, 0, 1, 0.01),
         ],
     )
-    def test_build_uniform_param_grid_number_of_params_per_layer(
+    def test_number_of_params_per_layer(
         self, number_of_params_per_layer, number_of_layers, min_value, max_value, step
     ):
         # Given
@@ -475,7 +477,7 @@ class TestBuildUniformParameterGrid:
         finally:
             remove_file_if_exists(expected_parameter_grid_filename)
 
-    def test_build_uniform_param_grid_fails_with_both_ansatz_specs_and_number_of_params_per_layer(
+    def test_fails_with_both_ansatz_specs_and_number_of_params_per_layer(
         self,
     ):
         expected_parameter_grid_filename = "parameter-grid.json"
@@ -496,7 +498,7 @@ class TestBuildUniformParameterGrid:
         finally:
             remove_file_if_exists(expected_parameter_grid_filename)
 
-    def test_build_uniform_param_grid_fails_with_neither_ansatz_specs_nor_number_of_params_per_layer(
+    def test_fails_with_neither_ansatz_specs_nor_number_of_params_per_layer(
         self,
     ):
         expected_parameter_grid_filename = "parameter-grid.json"

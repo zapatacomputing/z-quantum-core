@@ -1,4 +1,5 @@
 """Main implementation of the recorder."""
+import copy
 from typing import Any, Callable, Dict, Generic, List, NamedTuple, TypeVar
 
 from typing_extensions import overload
@@ -28,6 +29,7 @@ class ArtifactCollection(dict):
 
 class HistoryEntryWithArtifacts(NamedTuple):
     """A history entry enhanced with artifacts."""
+
     call_number: int
     params: Any
     value: Any
@@ -69,7 +71,9 @@ class SimpleRecorder(Generic[S, T]):
         """
         return_value = self.target(params)
         if self.predicate(return_value, params, self.call_number):
-            self.history.append(HistoryEntry(self.call_number, params, return_value))
+            self.history.append(
+                HistoryEntry(self.call_number, copy.copy(params), return_value)
+            )
         self.call_number += 1
         return return_value
 
@@ -79,6 +83,7 @@ class SimpleRecorderWithGradient(SimpleRecorder):
 
     Except having `gradient` attribute, this recorder is the same as `SimpleRecorder`.
     """
+
     def __init__(self, target: CallableWithGradient, save_condition: SaveCondition):
         super().__init__(target, save_condition)
         self.gradient = target.gradient
@@ -90,6 +95,7 @@ class ArtifactRecorder(Generic[S, T]):
     Parameters to initializer are the same as for `SimpleRecorder`,
     except the target function should now be capable of storing artifacts.
     """
+
     def __init__(
         self, target: CallableStoringArtifacts[S, T], save_condition: SaveCondition
     ):
@@ -105,7 +111,7 @@ class ArtifactRecorder(Generic[S, T]):
         if self.predicate(return_value, params, self.call_number) or artifacts.forced:
             self.history.append(
                 HistoryEntryWithArtifacts(
-                    self.call_number, params, return_value, artifacts
+                    self.call_number, copy.copy(params), return_value, artifacts
                 )
             )
         self.call_number += 1
@@ -138,10 +144,12 @@ def store_artifact(artifacts) -> StoreArtifact:
         This function is intended to be passed to functions that are capable of
         storing artifacts.
     """
+
     def _store(artifact_name: str, artifact: Any, force: bool = False) -> None:
         artifacts[artifact_name] = artifact
         if force:
             artifacts.forced = True
+
     return _store
 
 

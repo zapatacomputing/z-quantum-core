@@ -1,6 +1,7 @@
-from typing import Callable, Dict, List, Optional, Tuple
-import numpy as np
 import copy
+from typing import Callable, Dict, List, Optional, Tuple
+
+import numpy as np
 from openfermion.ops import InteractionOperator, InteractionRDM, QubitOperator
 
 from .measurement import ExpectationValues, expectation_values_to_real
@@ -36,11 +37,13 @@ def is_comeasureable(
 def group_comeasureable_terms_greedy(
     qubit_operator: QubitOperator, sort_terms: bool = False
 ) -> List[QubitOperator]:
-    """Group co-measurable terms in a qubit operator using a greedy algorithm. Adapted from pyquil.
-        Constant term is included as a separate group.
+    """Group co-measurable terms in a qubit operator using a greedy algorithm. Adapted
+    from pyquil. Constant term is included as a separate group.
+
     Args:
         qubit_operator: the operator whose terms are to be grouped
-        sort_terms: whether to sort terms by the absolute value of the coefficient when grouping
+        sort_terms: whether to sort terms by the absolute value of the coefficient when
+            grouping.
         Returns:
         A list of qubit operators.
     """
@@ -111,7 +114,8 @@ def get_decomposition_function(
     decomposition_function = DECOMPOSITION_METHODS.get(decomposition_method)
     if decomposition_function is None:
         raise ValueError(
-            f"Unrecognized decomposition method {decomposition_method}. Allowed values are {list(DECOMPOSITION_METHODS.keys())}"
+            f"Unrecognized decomposition method {decomposition_method}."
+            f"Allowed values are {list(DECOMPOSITION_METHODS.keys())}"
         )
     return decomposition_function
 
@@ -152,7 +156,7 @@ def compute_group_variances(
         group_sizes = np.array([len(group.terms.keys()) for group in groups])
         if np.sum(group_sizes) != len(expecval.values):
             raise ValueError(
-                "Number of expectation values should be the same size as number of terms."
+                "Number of expectation values should be the same as number of terms."
             )
         real_expecval = expectation_values_to_real(expecval)
         if not np.logical_and(
@@ -184,13 +188,14 @@ def get_expectation_values_from_rdms_for_qubitoperator_list(
        same order the operators came in.
 
     Args:
-        interactionrdm (InteractionRDM): interaction RDM to use for the expectation values
-            computation, as an OpenFermion InteractionRDM object
-        qubitoperator_list (List[QubitOperator]): List of qubit operators to compute the expectation values for
-            in the form of OpenFermion QubitOperator objects
-        sort_terms (bool): whether or not each input qubit operator needs to be sorted before calculating expectations
+        interactionrdm (InteractionRDM): interaction RDM to use for the expectation
+            values computation, as an OpenFermion InteractionRDM object.
+        qubitoperator_list (List[QubitOperator]): List of qubit operators to compute the
+            expectation values for in the form of OpenFermion QubitOperator objects.
+        sort_terms (bool): whether or not each input qubit operator needs to be sorted
+            before calculating expectations.
     Returns:
-        expectation values of Pauli strings in all qubit operators as an ExpectationValues object
+        Expectation values of Pauli strings in all qubit operators.
     """
 
     all_expectations = []
@@ -208,17 +213,18 @@ def get_expectation_values_from_rdms(
     qubitoperator: QubitOperator,
     sort_terms: bool = False,
 ) -> ExpectationValues:
-    """Computes expectation values of Pauli strings in a QubitOperator given a fermionic InteractionRDM from
-       OpenFermion.
+    """Computes expectation values of Pauli strings in a QubitOperator given a fermionic
+    InteractionRDM from OpenFermion.
 
     Args:
         interactionrdm: interaction RDM to use for the expectation values
-            computation, as an OF InteractionRDM object
+            computation, as an OF InteractionRDM object.
         qubitoperator: qubit operator to compute the expectation values for
-            in the form of an OpenFermion QubitOperator object
-        sort_terms: whether or not the input qubit operator needs to be sorted before calculating expectations
+            in the form of an OpenFermion QubitOperator object.
+        sort_terms: whether or not the input qubit operator needs to be sorted before
+            calculating expectations.
     Returns:
-        expectation values of Pauli strings in the qubit operator as an ExpectationValues object
+        Expectation values of Pauli strings in the qubit operator.
     """
     if sort_terms:
         terms_iterator = sorted(
@@ -234,7 +240,8 @@ def get_expectation_values_from_rdms(
     expectations = np.array(list(expectations_packed.terms.values()))
     if np.any(np.abs(np.imag(expectations)) > 1e-3):
         raise RuntimeWarning(
-            f"Expectation values extracted from rdms inside get_expectation_values_from_rdms are complex!"
+            "Expectation values extracted from rdms inside"
+            "get_expectation_values_from_rdms are complex!"
         )
     expectations = np.real(expectations)
     np.clip(expectations, -1, 1, out=expectations)
@@ -245,7 +252,7 @@ def estimate_nmeas_for_frames(
     frame_operators: List[QubitOperator],
     expecval: Optional[ExpectationValues] = None,
 ) -> Tuple[float, int, np.ndarray]:
-    """Calculates the number of measurements required for computing
+    r"""Calculates the number of measurements required for computing
     the expectation value of a qubit hamiltonian, where co-measurable terms
     are grouped in a single QubitOperator, and different groups are different
     members of the list.
@@ -261,11 +268,11 @@ def estimate_nmeas_for_frames(
     cov(O_{a}^{i}, O_{b}^{i}) = <O_{a}^{i} O_{b}^{i}> - <O_{a}^{i}> <O_{b}^{i}> = 0
 
     Args:
-        frame_operators (List[QubitOperator]): A list of QubitOperator objects, where each element in
-            the list is a group of co-measurable terms.
-        expecval (Optional[ExpectationValues]): An ExpectationValues object containing the expectation
-            values of all operators in frame_operators. If absent, variances are assumed to be
-            maximal, i.e. 1.
+        frame_operators (List[QubitOperator]): A list of QubitOperator objects, where
+            each element in the list is a group of co-measurable terms.
+        expecval (Optional[ExpectationValues]): An ExpectationValues object containing
+            the expectation values of all operators in frame_operators. If absent,
+            variances are assumed to be maximal, i.e. 1.
             NOTE: YOU HAVE TO MAKE SURE THAT THE ORDER OF EXPECTATION VALUES MATCHES
             THE ORDER OF THE TERMS IN THE *GROUPED* TARGET QUBIT OPERATOR, OTHERWISE
             THIS FUNCTION WILL NOT RETURN THE CORRECT RESULT.

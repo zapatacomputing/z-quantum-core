@@ -16,7 +16,6 @@ from zquantum.core.bitstring_distribution.distance_measures.mmd import compute_m
 
 
 def test_clipped_negative_log_likelihood_is_computed_correctly():
-    """Clipped negative log likelihood between distributions is computed correctly."""
     target_distr = BitstringDistribution({"000": 0.5, "111": 0.5})
     measured_dist = BitstringDistribution({"000": 0.1, "111": 0.9})
     distance_measure_params = {"epsilon": 0.1}
@@ -28,7 +27,6 @@ def test_clipped_negative_log_likelihood_is_computed_correctly():
 
 
 def test_uses_epsilon_instead_of_zero_in_target_distribution():
-    """Computing clipped negative log likelihood uses epsilon instead of zeros in log."""
     log_spy = mock.Mock(wraps=math.log)
     with mock.patch("zquantum.core.bitstring_distribution.math.log", log_spy):
         target_distr = BitstringDistribution({"000": 0.5, "111": 0.4, "010": 0.0})
@@ -80,7 +78,6 @@ def test_gaussian_mmd_is_computed_correctly(
 def test_distance_measure_default_parameters_are_set_correctly(
     distance_measure_function, expected_default_values
 ):
-    """Default values of distance measure parameters are set correctly."""
     target_distr = BitstringDistribution({"000": 0.5, "111": 0.5})
     measured_distr = BitstringDistribution({"000": 0.1, "111": 0.9})
     distance = distance_measure_function(target_distr, measured_distr, {})
@@ -108,7 +105,6 @@ def test_distance_measure_default_parameters_are_set_correctly(
 def test_distribution_distance_can_be_evaluated_only_for_bitstring_distributions(
     target_cls, measured_cls, distance_measure
 ):
-    """Distribution distance can be evaluated only if both arguments are bitstring distributions."""
     target = target_cls({"0": 10, "1": 5})
     measured = measured_cls({"0": 10, "1": 5})
 
@@ -122,7 +118,6 @@ def test_distribution_distance_can_be_evaluated_only_for_bitstring_distributions
 def test_distribution_distance_cannot_be_evaluated_if_supports_are_incompatible(
     distance_measure,
 ):
-    """Distribution distance can be evaluated only if arguments have compatible support."""
     target = BitstringDistribution({"0": 10, "1": 5})
     measured = BitstringDistribution({"00": 10, "10": 5})
 
@@ -144,7 +139,6 @@ def test_distribution_distance_cannot_be_evaluated_if_supports_are_incompatible(
 def test_distribution_distance_cannot_be_computed_if_distributions_differ_in_normalization(
     normalize_target, normalize_measured, distance_measure
 ):
-    """Distribution distance cannot be computed if only one distribution is normalized."""
     target = BitstringDistribution({"0": 10, "1": 5}, normalize_target)
     measured = BitstringDistribution({"0": 10, "1": 5}, normalize_measured)
 

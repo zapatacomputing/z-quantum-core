@@ -11,10 +11,11 @@ class Qubit(object):
         index: int, (int, int)
             The index or set of indices labelling a qubit.
         label: string
-            A string which specifies the native package that the Qubit is generated from.
+            A string which specifies the native package that the Qubit is generated
+            from.
         info: dictionary
-            Additional information depending on the 'label' of the Qubit. See the Qubit.from_...
-            methods for details.
+            Additional information depending on the 'label' of the Qubit. See the
+            Qubit.from_... methods for details.
     """
 
     def __init__(self, index=-1):
@@ -52,7 +53,8 @@ class Qubit(object):
         Returns:
             A core.qubit.Qubit object. Entries include
                 label: string
-                    Name of the package that generated the qubit object. Here it is equal to 'pyquil'
+                    Name of the package that generated the qubit object. Here it is
+                    equal to 'pyquil'
         """
 
         output = cls()
@@ -78,15 +80,15 @@ class Qubit(object):
         Returns:
             A core.qubit.Qubit object. Here the attributes are stored as
                 label: string
-                    The name of the package that generates the qubit object. In this case
-                    it is 'cirq'.
+                    The name of the package that generates the qubit object. In this
+                    case it is 'cirq'.
                 index: int
                     The index of the Qubit is an integer, while the full key is stored
                     in the 'info' entry of the Qubit object.
                 info: dictionary
-                    The key 'QubitType' holds the value of which kind of qubit cirq_qubit is.
-                    The key 'QubitKey' holds the full key (row, col) if cirq_qubit is a
-                    cirq.GridQubit object.
+                    The key 'QubitType' holds the value of which kind of qubit
+                    cirq_qubit is. The key 'QubitKey' holds the full key (row, col) if
+                    cirq_qubit is a cirq.GridQubit object.
         """
 
         output = cls(index)
@@ -123,7 +125,8 @@ class Qubit(object):
                         Name of the package that generates the qubit object. Here it
                         is 'qiskit'
                     qreg: string
-                        Holds the string representing register corresponding to the qubit.
+                        Holds the string representing register corresponding to the
+                        qubit.
                     num: int
                         Holds the index of the qubit inside the quantum register.
         """

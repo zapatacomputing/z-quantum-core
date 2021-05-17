@@ -155,18 +155,3 @@ def test_jensen_shannon_divergence_is_computed_correctly():
     )
 
     assert jensen_shannon_divergence == 0.9485599924429406
-
-def test_uses_epsilon_instead_of_zero_in_target_distribution():
-    """Computing jensen shannon divergence uses epsilon instead of zeros in log."""
-    log_spy = mock.Mock(wraps=math.log)
-    with mock.patch("zquantum.core.bitstring_distribution.math.log", log_spy):
-        target_distr = BitstringDistribution({"000": 0.5, "111": 0.4, "010": 0.0})
-        measured_dist = BitstringDistribution({"000": 0.1, "111": 0.9, "010": 0.0})
-        distance_measure_params = {"epsilon": 0.01}
-        compute_jensen_shannon_divergence(
-            target_distr, measured_dist, distance_measure_params
-        )
-
-        log_spy.assert_has_calls(
-            [mock.call(0.1), mock.call(0.9), mock.call(0.01)], any_order=True
-        )

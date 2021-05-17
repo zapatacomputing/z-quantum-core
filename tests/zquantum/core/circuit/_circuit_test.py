@@ -34,8 +34,6 @@ from zquantum.core.utils import RNDSEED, compare_unitary, is_identity
 
 class TestCircuit(unittest.TestCase):
     def test_circuit_eq(self):
-        """Test equality operation between Circuit objects."""
-
         qubits = [Qubit(i) for i in range(0, 3)]
         gate_H0 = Gate("H", [qubits[0]])
         gate_CNOT01 = Gate("CNOT", [qubits[0], qubits[1]])
@@ -57,9 +55,7 @@ class TestCircuit(unittest.TestCase):
         self.assertEqual(circ1 == circ2, False)
         self.assertEqual(circ1 == circ3, True)
 
-    def test_circuit_eq_with_symbolic_params(self):
-        """Test equality operation between Circuit objects when some of the parameters are symbolical."""
-
+    def test_circuit_eq_with_some_symbolic_params(self):
         # Given
         qubits = [Qubit(i) for i in range(0, 3)]
         theta_1 = sympy.Symbol("theta_1")
@@ -83,9 +79,7 @@ class TestCircuit(unittest.TestCase):
         self.assertEqual(circ1 == circ2, False)
         self.assertEqual(circ1 == circ3, True)
 
-    def test_circuit_add(self):
-        """Test addition operation between Circuit objects."""
-
+    def test_adding_circuits(self):
         qubits = [Qubit(i) for i in range(0, 3)]
         gate_H0 = Gate("H", [qubits[0]])
         gate_CNOT01 = Gate("CNOT", [qubits[0], qubits[1]])
@@ -1114,8 +1108,7 @@ class TestCircuit(unittest.TestCase):
 
             self.assertEqual(compare_unitary(U1, U2, tol=1e-10), True)
 
-    def test_qiskit_empty(self):
-        """Converting empty qiskit QuantumCircuit to and from core.circuit.Circuit objects."""
+    def test_converting_empty_qiskit_circuit(self):
         qubits = qiskit.QuantumRegister(3)
         circ = qiskit.QuantumCircuit(qubits)
 

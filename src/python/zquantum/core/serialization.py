@@ -19,7 +19,8 @@ def has_numerical_keys(dictionary):
 
 
 def preprocess(tree):
-    """This inflates namedtuples into dictionaries, otherwise they would be serialized as lists.
+    """This inflates namedtuples into dictionaries, otherwise they would be serialized
+    as lists.
 
     KJ: I found initial version of this code a while ago in a related SO question:
     https://stackoverflow.com/questions/43913256/understanding-subclassing-of-jsonencoder

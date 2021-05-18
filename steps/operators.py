@@ -1,28 +1,46 @@
-from typing import Union, Optional, List
-from numpy.lib.arraysetops import isin
-from openfermion import InteractionOperator, FermionOperator, QubitOperator
-from openfermion import normal_ordered
+from typing import List, Optional, Union
+from openfermion import (
+    InteractionOperator,
+    FermionOperator,
+    QubitOperator,
+    IsingOperator,
+    normal_ordered,
+)
 from openfermion.transforms import get_fermion_operator
 import numpy as np
 
-from zquantum.core.openfermion import (
-    get_fermion_number_operator as _get_fermion_number_operator,
-    get_diagonal_component as _get_diagonal_component,
-    save_interaction_operator,
-    load_interaction_operator,
-    load_qubit_operator,
-    save_qubit_operator,
-    remove_inactive_orbitals as _remove_inactive_orbitals,
-    save_qubit_operator_set,
-    load_qubit_operator_set,
-)
-
 from zquantum.core.hamiltonian import (
-    reorder_fermionic_modes as _reorder_fermionic_modes,
     group_comeasureable_terms_greedy as _group_comeasurable_terms_greedy,
 )
-
+from zquantum.core.hamiltonian import (
+    reorder_fermionic_modes as _reorder_fermionic_modes,
+)
+from zquantum.core.openfermion import get_diagonal_component as _get_diagonal_component
+from zquantum.core.openfermion import (
+    get_fermion_number_operator as _get_fermion_number_operator,
+)
+from zquantum.core.openfermion import (
+    load_interaction_operator,
+    load_qubit_operator,
+    load_qubit_operator_set,
+)
+from zquantum.core.openfermion import (
+    remove_inactive_orbitals as _remove_inactive_orbitals,
+)
+from zquantum.core.openfermion import (
+    save_interaction_operator,
+    save_qubit_operator,
+    save_qubit_operator_set,
+)
 from zquantum.core.testing import create_random_qubitop as _create_random_qubitop
+
+
+def get_local_zero_state_operator(number_of_qubits: int):
+    operator = IsingOperator("")
+    for qubit_index in range(number_of_qubits):
+        operator -= IsingOperator("Z{}".format(qubit_index), 1 / (number_of_qubits))
+
+    save_qubit_operator(operator, "qubit-operator.json")
 
 
 def get_fermion_number_operator(
@@ -92,8 +110,11 @@ def reorder_fermionic_modes(
     reordered_operator = _reorder_fermionic_modes(interaction_operator, ordering)
     save_interaction_operator(reordered_operator, "reordered-operator.json")
 
-def get_one_qubit_hydrogen_hamiltonian(interaction_operator: Union[InteractionOperator, str]):
-    """Generate a one qubit H2 hamiltonian from a corresponding interaction operator. 
+
+def get_one_qubit_hydrogen_hamiltonian(
+    interaction_operator: Union[InteractionOperator, str]
+):
+    """Generate a one qubit H2 hamiltonian from a corresponding interaction operator.
 
     Original H2 hamiltonian will be reduced to a 2 x 2 matrix defined on a subspace spanned
     by |0011> and |1100> and expanded in terms of I, X, Y, and Z matrices
@@ -107,33 +128,39 @@ def get_one_qubit_hydrogen_hamiltonian(interaction_operator: Union[InteractionOp
     fermion_h = get_fermion_operator(interaction_operator)
 
     # H00
-    H00 = normal_ordered(FermionOperator('0 1') * fermion_h * FermionOperator('1^ 0^'))
+    H00 = normal_ordered(FermionOperator("0 1") * fermion_h * FermionOperator("1^ 0^"))
     H00 = H00.terms[()]
 
     # H11
-    H11 = normal_ordered(FermionOperator('2 3') * fermion_h * FermionOperator('3^ 2^'))
+    H11 = normal_ordered(FermionOperator("2 3") * fermion_h * FermionOperator("3^ 2^"))
     H11 = H11.terms[()]
 
     # H10
-    H10 = normal_ordered(FermionOperator('2 3') * fermion_h * FermionOperator('1^ 0^'))
+    H10 = normal_ordered(FermionOperator("2 3") * fermion_h * FermionOperator("1^ 0^"))
     H10 = H10.terms[()]
 
     # H01
     H01 = np.conj(H10)
 
     one_qubit_h_matrix = np.array([[H00, H01], [H10, H11]])
-    pauli_x = np.array([[0., 1.], [1., 0.]])
-    pauli_y = np.array([[0., -1.j], [1.j, 0.]])
-    pauli_z = np.array([[1., 0.], [0., -1.]])
+    pauli_x = np.array([[0.0, 1.0], [1.0, 0.0]])
+    pauli_y = np.array([[0.0, -1.0j], [1.0j, 0.0]])
+    pauli_z = np.array([[1.0, 0.0], [0.0, -1.0]])
 
     r_id = 0.5 * np.trace(one_qubit_h_matrix)
     r_x = 0.5 * np.trace(one_qubit_h_matrix @ pauli_x)
     r_y = 0.5 * np.trace(one_qubit_h_matrix @ pauli_y)
     r_z = 0.5 * np.trace(one_qubit_h_matrix @ pauli_z)
 
-    one_qubit_h = r_id * QubitOperator('') + r_x * QubitOperator('X0') + r_y * QubitOperator('Y0') + r_z * QubitOperator('Z0')
+    one_qubit_h = (
+        r_id * QubitOperator("")
+        + r_x * QubitOperator("X0")
+        + r_y * QubitOperator("Y0")
+        + r_z * QubitOperator("Z0")
+    )
 
-    save_qubit_operator(one_qubit_h, 'qubit-operator.json')
+    save_qubit_operator(one_qubit_h, "qubit-operator.json")
+
 
 def remove_inactive_orbitals(
     interaction_operator: str,

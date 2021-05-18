@@ -1,9 +1,9 @@
 """Protocols describing different kinds of functions."""
 from inspect import signature
-from typing import NamedTuple, Callable, Any, TypeVar, Optional, Union
-from typing_extensions import Protocol, runtime_checkable
-import numpy as np
+from typing import Any, Callable, NamedTuple, Optional, TypeVar, Union, cast
 
+import numpy as np
+from typing_extensions import Protocol, runtime_checkable
 
 T = TypeVar("T", covariant=True)
 S = TypeVar("S", contravariant=True)
@@ -54,7 +54,8 @@ def has_store_artifact_param(function) -> bool:
     try:
         return "store_artifact" in signature(function, follow_wrapped=True).parameters
     except ValueError:
-        # Rationale: the only callables that are of interest to us that aren't supported by
+        # Rationale:
+        # The only callables that are of interest to us that aren't supported by
         # signature that I am aware of are numpy ufunc's. Obviously, they don't have
         # store_artifact parameter.
         return False
@@ -63,7 +64,7 @@ def has_store_artifact_param(function) -> bool:
 class FunctionWithGradient(NamedTuple):
     """A callable with gradient."""
 
-    function: Callable[[np.ndarray], np.ndarray]
+    function: Callable[[np.ndarray], float]
     gradient: Callable[[np.ndarray], np.ndarray]
 
     def __call__(self, params: np.ndarray) -> float:
@@ -85,13 +86,18 @@ class FunctionWithGradientStoringArtifacts(NamedTuple):
 def function_with_gradient(
     function: Union[Callable[[np.ndarray], float], CallableStoringArtifacts],
     gradient: Callable[[np.ndarray], np.ndarray],
-) -> Callable[[np.ndarray], np.ndarray]:
-    """Combine function and gradient into an entity adhering to protocols used by history recorder.
+) -> Union[FunctionWithGradient, FunctionWithGradientStoringArtifacts]:
+    """Combine function and gradient into an entity adhering to protocols used by
+    history recorder.
 
     Note that this is a preferred method for adding gradient to your function,
     as it should automatically detect whether the function stores artifact or not.
     """
     if has_store_artifact_param(function):
-        return FunctionWithGradientStoringArtifacts(function, gradient)
+        return FunctionWithGradientStoringArtifacts(
+            cast(CallableStoringArtifacts, function), gradient
+        )
     else:
-        return FunctionWithGradient(function, gradient)
+        return FunctionWithGradient(
+            cast(Callable[[np.ndarray], float], function), gradient
+        )

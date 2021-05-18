@@ -1,18 +1,19 @@
-from abc import ABC, abstractmethod
-import numpy as np
-import copy
-import sympy
-from typing import List, Optional
-from overrides import EnforceOverrides
 import warnings
+from abc import ABC
+from typing import List, Optional
+
+import numpy as np
+import sympy
+from overrides import EnforceOverrides
+
 from ..circuit import Circuit
-from .ansatz_utils import ansatz_property
 from ..utils import create_symbols_map
+from .ansatz_utils import ansatz_property
 
 
 class Ansatz(ABC, EnforceOverrides):
 
-    supports_parametrized_circuits = None
+    supports_parametrized_circuits: Optional[bool] = None
     number_of_layers = ansatz_property("number_of_layers")
 
     def __init__(self, number_of_layers: int):
@@ -23,15 +24,17 @@ class Ansatz(ABC, EnforceOverrides):
             number_of_layers: number of layers of the ansatz
 
         Attributes:
-            number_of_layers (int): see Args
-            parametrized_circuit (zquantum.core.circuit.Circuit): parametrized circuit representation of the ansatz. Might not be supported for given ansatz, see supports_parametrized_circuits.
-            supports_parametrized_circuits(bool): flag indicating whether given ansatz supports parametrized circuits.
+            number_of_layers: see Args
+            parametrized_circuit (zquantum.core.circuit.Circuit): parametrized circuit
+                representation of the ansatz. Might not be supported for given ansatz,
+                see supports_parametrized_circuits.
+            supports_parametrized_circuits: a flag.
 
         """
         if number_of_layers < 0:
             raise ValueError("number_of_layers must be non-negative.")
         self.number_of_layers = number_of_layers
-        self._parametrized_circuit = None
+        self._parametrized_circuit: Optional[Circuit] = None
 
     @property
     def parametrized_circuit(self) -> Circuit:
@@ -80,7 +83,10 @@ class Ansatz(ABC, EnforceOverrides):
 
     def _generate_circuit(self, params: Optional[np.ndarray] = None) -> Circuit:
         """Returns a circuit represention of the ansatz.
-        Will return parametrized circuits if no parameters are passed and the ansatz supports parametrized circuits.
+
+        Will return parametrized circuits if no parameters are passed and the ansatz
+        supports parametrized circuits.
+
         Args:
             params: circuit params
         """
@@ -89,7 +95,8 @@ class Ansatz(ABC, EnforceOverrides):
     def get_symbols(self) -> List[sympy.Symbol]:
         """Returns a list of symbolic parameters used for creating the ansatz."""
         warnings.warn(
-            """`Ansatz.get_symbols()` will be deprecated in future releases of z-quantumcore.\
-                Please use `self.parametrized_circuit.symbolic_params` instead.""",
+            "`Ansatz.get_symbols()` will be deprecated in future releases of "
+            "z-quantum-core. Please use `self.parametrized_circuit.symbolic_params` "
+            "instead.",
         )
         return self.parametrized_circuit.symbolic_params

@@ -1,32 +1,30 @@
-import numpy as np
-import random
 import itertools
-import cirq
+import random
+from typing import List, Optional, Union, Iterable
 
+import cirq
+import numpy as np
 from openfermion import (
     FermionOperator,
+    InteractionOperator,
+    InteractionRDM,
+    PolynomialTensor,
     QubitOperator,
     count_qubits,
-    InteractionOperator,
-    PolynomialTensor,
-    number_operator,
-    normal_ordered,
-    get_sparse_operator,
-    get_interaction_operator,
-    InteractionRDM,
 )
 from openfermion import expectation as openfermion_expectation
-from openfermion.linalg import jw_get_ground_state_at_particle_number
-from openfermion.transforms import get_fermion_operator, freeze_orbitals
-from typing import List, Union, Optional
-
-from ..circuit import (
-    Circuit,
-    Gate,
-    Qubit,
+from openfermion import (
+    get_interaction_operator,
+    get_sparse_operator,
+    normal_ordered,
+    number_operator,
 )
-from ..utils import bin2dec, dec2bin, ValueEstimate
+from openfermion.linalg import jw_get_ground_state_at_particle_number
+from openfermion.transforms import freeze_orbitals, get_fermion_operator
+
+from ..circuit import Circuit, Gate, Qubit
 from ..measurement import ExpectationValues, expectation_values_to_real
+from ..utils import ValueEstimate, bin2dec, dec2bin
 
 
 def get_qubitop_from_matrix(operator: List[List]) -> QubitOperator:
@@ -138,9 +136,9 @@ def get_qubitop_from_coeffs_and_labels(
         The Hamiltonian H = 0.1 X1 X2 - 0.4 Y1 Y2 Z3 Z4 can be
         initiated by calling
 
-        H = QubitOperator([0.1, -0.4],\    # coefficients
-                    [[1 1 0 0],\  # label matrix
-                        [2 2 3 3]])
+        H = QubitOperator([0.1, -0.4],  # coefficients
+            [[1 1 0 0],  # label matrix
+            [2 2 3 3]])
     """
 
     output = QubitOperator()
@@ -210,16 +208,15 @@ def generate_random_qubitop(
 def evaluate_qubit_operator(
     qubit_operator: QubitOperator, expectation_values: ExpectationValues
 ) -> ValueEstimate:
-    """Evaluate the expectation value of a qubit operator using
-    expectation values for the terms.
+    """Evaluate the expectation value of a qubit operator using expectation values for
+    the terms.
 
     Args:
-        qubit_operator (openfermion.QubitOperator): the operator
-        expectation_values (core.measurement.ExpectationValues): the expectation values
+        qubit_operator: the operator
+        expectation_values: the expectation values
 
     Returns:
-        value_estimate (zquantum.core.utils.ValueEstimate): stores the value of the expectation and its
-             precision
+        value_estimate: stores the value of the expectation and its precision
     """
 
     # Sum the contributions from all terms
@@ -240,18 +237,17 @@ def evaluate_qubit_operator(
 def evaluate_qubit_operator_list(
     qubit_operator_list: List[QubitOperator], expectation_values: ExpectationValues
 ) -> ValueEstimate:
-    """Evaluate the expectation value of a qubit operator list using
-    expectation values for the terms. The expectation values should be in the order
-    given by the qubit operator list, and the value returned is the sum of all terms in
-    the qubit operator list.
+    """Evaluate the expectation value of a qubit operator list using expectation values
+    for the terms. The expectation values should be in the order given by the qubit
+    operator list, and the value returned is the sum of all terms in the qubit operator
+    list.
 
     Args:
-        qubit_operator_list (list of openfermion.QubitOperator): the operator list
-        expectation_values (core.measurement.ExpectationValues): the expectation values
+        qubit_operator_list: the operator list
+        expectation_values: the expectation values
 
     Returns:
-        value_estimate (zquantum.core.utils.ValueEstimate): stores the value of the expectation and its
-             precision
+        value_estimate: stores the value of the expectation and its precision
     """
 
     # Sum the contributions from all terms
@@ -287,11 +283,12 @@ def evaluate_operator_for_parameter_grid(
             of the ansatz
 
     Returns:
-        value_estimate (zquantum.core.utils.ValueEstimate): stores the value of the expectation and its
-             precision
-        optimal_parameters (numpy array): the ansatz parameters representing the ansatz parameters
-            resulting in the best minimum evaluation. If multiple sets of parameters evaluate to the same value,
-            the first set of parameters is chosen as the optimal.
+        value_estimate (zquantum.core.utils.ValueEstimate): stores the value of the
+            expectation and its precision
+        optimal_parameters (numpy array): the ansatz parameters representing the ansatz
+            parameters resulting in the best minimum evaluation. If multiple sets of
+            parameters evaluate to the same value, the first set of parameters is chosen
+            as the optimal.
     """
     parameter_grid_evaluation = []
     circuitset = []
@@ -338,7 +335,8 @@ def reverse_qubit_order(qubit_operator: QubitOperator, n_qubits: Optional[int] =
     Args:
         qubit_operator (openfermion.QubitOperator): the operator
         n_qubits (int): total number of qubits. Needs to be provided when
-                    the size of the system of interest is greater than the size of qubit operator (optional)
+            the size of the system of interest is greater than the size of qubit
+            operator (optional)
 
     Returns:
         reversed_op (openfermion.ops.QubitOperator)
@@ -406,9 +404,9 @@ def change_operator_type(operator, operatorType):
 
 
 def get_fermion_number_operator(n_qubits, n_particles=None):
-    """Return a FermionOperator representing the number operator
-    for n qubits.
-    If `n_particles` is specified, it can be used for creating constraint on the number of particles.
+    """Return a FermionOperator representing the number operator for n qubits.
+    If `n_particles` is specified, it can be used for creating constraint on the number
+    of particles.
 
     Args:
         n_qubits (int): number of qubits in the system
@@ -614,7 +612,7 @@ def qubitop_to_paulisum(
             converted_sum += coefficient
             continue
 
-        cirq_term = cirq.PauliString()
+        cirq_term: cirq.PauliString = cirq.PauliString()
         for qubit_index, operator in term:
             cirq_term *= operator_map[operator](qubits[qubit_index])
         converted_sum += cirq_term * coefficient
@@ -623,9 +621,9 @@ def qubitop_to_paulisum(
 
 
 def create_circuits_from_qubit_operator(qubit_operator: QubitOperator) -> List[Circuit]:
-    """Creates a list of zquantum.core.Circuit objects from the Pauli terms of a QubitOperator
+    """Creates a list of circuit objects from the Pauli terms of a QubitOperator
     Args:
-        qubit_operator: QubitOperator: qubit operator for which the Pauli terms are converted into Circuits
+        qubit_operator: operator for which the Pauli terms are converted into circuits
 
     Return:
         circuit_set: a list of Pauli string gate circuits
@@ -664,12 +662,11 @@ def get_ground_state_rdm_from_qubit_op(
     """Diagonalize operator and compute the ground state 1- and 2-RDM
 
     Args:
-        qubit_operator (openfermion.QubitOperator): The openfermion operator to diagonalize
-        n_particles (int): number of particles in the target ground state
+        qubit_operator: The openfermion operator to diagonalize
+        n_particles: number of particles in the target ground state
 
     Returns:
-        rdm (openfermion.InteractionRDM): interaction RDM of the ground state with the particle
-            number n_particles
+        rdm: interaction RDM of the ground state with the particle number n_particles
     """
 
     sparse_operator = get_sparse_operator(qubit_operator)
@@ -678,18 +675,18 @@ def get_ground_state_rdm_from_qubit_op(
     )  # float/np.array pair
     n_qubits = count_qubits(qubit_operator)
 
-    one_body_tensor = []
+    one_body_tensor_list = []
     for i in range(n_qubits):
         for j in range(n_qubits):
             idag_j = get_sparse_operator(
                 FermionOperator(f"{i}^ {j}"), n_qubits=n_qubits
             )
             idag_j = idag_j.toarray()
-            one_body_tensor.append(
+            one_body_tensor_list.append(
                 np.conjugate(ground_state_wf) @ idag_j @ ground_state_wf
             )
 
-    one_body_tensor = np.array(one_body_tensor)
+    one_body_tensor = np.array(one_body_tensor_list)
     one_body_tensor = one_body_tensor.reshape(n_qubits, n_qubits)
 
     two_body_tensor = np.zeros((n_qubits,) * 4, dtype=complex)
@@ -718,19 +715,21 @@ def remove_inactive_orbitals(
     """Remove orbitals not in the active space from an interaction operator.
 
     Args:
-        interaction_op (openfermion.ops.InteractionOperator): the operator, assumed to be ordered with alternating
-            spin-up and spin-down spin orbitals.
-        n_active (int): the number of active molecular orbitals. If None, include all orbitals beyond n_core.
-            Note that the number of active spin orbitals will be twice the number of active molecular orbitals.
-        n_core (int): the number of core molecular orbitals to be frozen.
+        interaction_op: the operator, assumed to be ordered with alternating spin-up and
+            spin-down spin orbitals.
+        n_active: the number of active molecular orbitals. If None, include all orbitals
+            beyond n_core. Note that the number of active spin orbitals will be twice
+            the number of active molecular orbitals.
+        n_core: the number of core molecular orbitals to be frozen.
 
     Returns:
-        openfermion.ops.InteractionOperator: the interaction operator with inactive orbitals removed, and the
-            Hartree-Fock energy of the core orbitals added to the constant.
+        The interaction operator with inactive orbitals removed, and the Hartree-Fock
+            energy of the core orbitals added to the constant.
     """
 
-    # This implementation is probably not very efficient, because it converts the interaction operator
-    # into a fermion operator and then back to an interaction operator.
+    # This implementation is probably not very efficient, because it converts the
+    # interaction operator into a fermion operator and then back to an interaction
+    # operator.
 
     # Convert the InteractionOperator to a FermionOperator
     fermion_op = get_fermion_operator(interaction_op)
@@ -738,6 +737,7 @@ def remove_inactive_orbitals(
     # Determine which occupied spin-orbitals are to be frozen
     occupied = range(2 * n_core)
 
+    unoccupied: Iterable
     # Determine which unoccupied spin-orbitals are to be frozen
     if n_active is not None:
         unoccupied = range(

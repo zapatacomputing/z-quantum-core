@@ -2,16 +2,13 @@
 from functools import singledispatch
 from itertools import chain
 from operator import attrgetter
-from typing import Union, Callable, Type, overload
+from typing import Callable, Dict, Type, Union, overload
 
 import cirq
 import numpy as np
 import sympy
 
-from .. import _builtin_gates
-from .. import _gates
-from .. import _circuit
-
+from .. import _builtin_gates, _circuit, _gates
 
 Parameter = Union[sympy.Expr, float]
 RotationGateFactory = Callable[[Parameter], cirq.EigenGate]
@@ -84,7 +81,11 @@ def make_rotation_factory(
     return _rotation
 
 
-ZQUANTUM_BUILTIN_GATE_NAME_TO_CIRQ_GATE = {
+def _cirq_u3_factory(*args):
+    return cirq.circuits.qasm_output.QasmUGate(*map(angle_to_exponent, args))
+
+
+ZQUANTUM_BUILTIN_GATE_NAME_TO_CIRQ_GATE: Dict[str, Callable] = {
     "X": cirq.X,
     "Y": cirq.Y,
     "Z": cirq.Z,
@@ -95,6 +96,7 @@ ZQUANTUM_BUILTIN_GATE_NAME_TO_CIRQ_GATE = {
     "RX": cirq.rx,
     "RY": cirq.ry,
     "RZ": cirq.rz,
+    "RH": make_rotation_factory(cirq.HPowGate, 0.0),
     "PHASE": make_rotation_factory(cirq.ZPowGate),
     "CNOT": cirq.CNOT,
     "CZ": cirq.CZ,
@@ -105,6 +107,7 @@ ZQUANTUM_BUILTIN_GATE_NAME_TO_CIRQ_GATE = {
     "YY": make_rotation_factory(cirq.YYPowGate, -0.5),
     "ZZ": make_rotation_factory(cirq.ZZPowGate, -0.5),
     "XY": make_rotation_factory(cirq.ISwapPowGate, 0.0),
+    "U3": _cirq_u3_factory,
 }
 
 
@@ -129,6 +132,7 @@ EIGENGATE_ROTATIONS = {
     (cirq.XPowGate, -0.5): _builtin_gates.RX,
     (cirq.YPowGate, -0.5): _builtin_gates.RY,
     (cirq.ZPowGate, -0.5): _builtin_gates.RZ,
+    (cirq.HPowGate, 0): _builtin_gates.RH,
     (cirq.ZPowGate, 0): _builtin_gates.PHASE,
     (cirq.CZPowGate, 0): _builtin_gates.CPHASE,
     (cirq.XXPowGate, -0.5): _builtin_gates.XX,
@@ -157,8 +161,22 @@ def export_to_cirq(circuit: _circuit.Circuit) -> cirq.Circuit:
     pass
 
 
-@singledispatch
 def export_to_cirq(obj):
+    """Export given native Zquantum object to its Cirq equivalent.
+
+    This should be primarily used with Circuit objects, but
+    also works for builtin gates and gate operations.
+
+    Exporting of user-defined gates is atm not supported.
+    """
+    # We need a facade wrapper becase mypy does not yet support overloads for
+    # functools.singledispatch. See mypy #8356.
+
+    return _export_to_cirq(obj)
+
+
+@singledispatch
+def _export_to_cirq(obj):
     """Export given native Zquantum object to its Cirq equivalent.
 
     This should be primarily used with Circuit objects, but
@@ -169,8 +187,8 @@ def export_to_cirq(obj):
     raise NotImplementedError(f"{obj} can't be exported to Cirq object.")
 
 
-@export_to_cirq.register
-def export_matrix_factory_gate_to_cirq(gate: _gates.MatrixFactoryGate) -> cirq.Gate:
+@_export_to_cirq.register
+def _export_matrix_factory_gate_to_cirq(gate: _gates.MatrixFactoryGate) -> cirq.Gate:
     try:
         cirq_factory = ZQUANTUM_BUILTIN_GATE_NAME_TO_CIRQ_GATE[gate.name]
         cirq_params = (
@@ -182,43 +200,30 @@ def export_matrix_factory_gate_to_cirq(gate: _gates.MatrixFactoryGate) -> cirq.G
         raise NotImplementedError(f"Gate {gate} can't be exported to Cirq.")
 
 
-@export_to_cirq.register
-def export_controlled_gate_to_cirq(gate: _gates.ControlledGate) -> cirq.Gate:
-    return export_to_cirq(gate.wrapped_gate).controlled(gate.num_control_qubits)
+@_export_to_cirq.register
+def _export_controlled_gate_to_cirq(gate: _gates.ControlledGate) -> cirq.Gate:
+    return _export_to_cirq(gate.wrapped_gate).controlled(gate.num_control_qubits)
 
 
-@export_to_cirq.register
-def export_dagger_to_cirq(gate: _gates.Dagger) -> cirq.Gate:
-    return cirq.inverse(export_to_cirq(gate.wrapped_gate))
+@_export_to_cirq.register
+def _export_dagger_to_cirq(gate: _gates.Dagger) -> cirq.Gate:
+    return cirq.inverse(_export_to_cirq(gate.wrapped_gate))
 
 
-@export_to_cirq.register
-def export_gate_operation_to_cirq(
+@_export_to_cirq.register
+def _export_gate_operation_to_cirq(
     operation: _gates.GateOperation,
 ) -> cirq.GateOperation:
-    return export_to_cirq(operation.gate)(*map(cirq.LineQubit, operation.qubit_indices))
+    return _export_to_cirq(operation.gate)(
+        *map(cirq.LineQubit, operation.qubit_indices)
+    )
 
 
-@export_to_cirq.register
-def export_circuit_to_cirq(circuit: _circuit.Circuit) -> cirq.Circuit:
-    return cirq.Circuit([export_to_cirq(operation) for operation in circuit.operations])
-
-
-@overload
-def import_from_cirq(eigengate: cirq.Gate) -> _gates.Gate:
-    pass
-
-
-@overload
-def import_from_cirq(circuit: cirq.Circuit) -> _circuit.Circuit:
-    pass
-
-
-@overload
-def import_from_cirq(
-    operation: Union[cirq.GateOperation, cirq.ControlledOperation]
-) -> _gates.GateOperation:
-    pass
+@_export_to_cirq.register
+def _export_circuit_to_cirq(circuit: _circuit.Circuit) -> cirq.Circuit:
+    return cirq.Circuit(
+        [_export_to_cirq(operation) for operation in circuit.operations]
+    )
 
 
 @singledispatch
@@ -232,12 +237,23 @@ def import_from_cirq(obj):
     there is no notion of GridQubit in Zquantum.
 
     Raises:
-        NotImplementedError: if the object to be imported is of currently unsupported type.
+        NotImplementedError: if the object to be imported is of currently unsupported
+            type.
     """
     try:
         return CIRQ_GATE_SPECIAL_CASES[obj]
     except KeyError:
         raise NotImplementedError(f"{obj} can't be imported into Zquantum.")
+
+
+@import_from_cirq.register
+def convert_qasm_u_gate_to_zquantum_gate(
+    ugate: cirq.circuits.qasm_output.QasmUGate,
+) -> _gates.Gate:
+    angles = (
+        exponent_to_angle(angle) for angle in (ugate.theta, ugate.phi, ugate.lmda)
+    )
+    return _builtin_gates.U3(*angles)
 
 
 @import_from_cirq.register

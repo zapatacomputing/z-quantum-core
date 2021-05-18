@@ -1,7 +1,6 @@
 from unittest.mock import Mock
 
 import pytest
-
 from zquantum.core.wip.compatibility_tools import compatible_with_old_type
 
 
@@ -41,7 +40,7 @@ class TestUsesWipTypeDecorator:
             ((1, 2), {"x": WipType(3), "y": WipType(4)}),
         ],
     )
-    def test_uses_wip_type_uses_original_callable_if_no_arguments_of_old_type_are_passed(
+    def test_uses_original_callable_if_no_arguments_of_old_type_are_passed(
         self, args, kwargs
     ):
         original_func = Mock()
@@ -61,7 +60,7 @@ class TestUsesWipTypeDecorator:
             ((1, 2), {"x": OldType(3)}, (1, 2), {"x": WipType(3)}),
         ],
     )
-    def test_uses_wip_type_translates_old_type_to_wip_type(
+    def test_translates_old_type_to_wip_type(
         self, original_args, original_kwargs, translated_args, translated_kwargs
     ):
         original_func = Mock()
@@ -84,7 +83,7 @@ class TestUsesWipTypeDecorator:
             ((1, 2), {"x": OldType(3)}),
         ],
     )
-    def test_deprecation_warning_is_raised_if_deprecation_msg_is_not_none_and_old_type_is_passed(
+    def test_deprecation_warning_is_raised(
         self, args, kwargs
     ):
         original_func = Mock()
@@ -184,7 +183,7 @@ class TestUsesWipTypeDecorator:
             (([OldType(1), "test"],), {"x": (OldType(2), 3)}, []),
         ],
     )
-    def test_old_type_objects_are_not_translated_if_they_occur_in_not_considered_iterables(
+    def test_old_type_is_not_translated_if_included_in_not_considered_iterables(
         self, args, kwargs, iterable_types
     ):
         original_func = Mock()

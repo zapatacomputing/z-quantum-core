@@ -1,17 +1,13 @@
-import sympy
 import numpy as np
+import pytest
 import qiskit
 import qiskit.circuit.random
-import pytest
-
+import sympy
+from zquantum.core.wip.circuits import _builtin_gates, _circuit, _gates
 from zquantum.core.wip.circuits.conversions.qiskit_conversions import (
     export_to_qiskit,
     import_from_qiskit,
 )
-from zquantum.core.wip.circuits import _gates
-from zquantum.core.wip.circuits import _builtin_gates
-from zquantum.core.wip.circuits import _circuit
-
 
 # --------- gates ---------
 
@@ -342,8 +338,8 @@ class TestExportingToQiskit:
             }
         )
         assert converted_bound == ref_bound, (
-            f"Converted circuit:\n{_draw_qiskit_circuit(converted_bound)}\n isn't equal "
-            f"to\n{_draw_qiskit_circuit(ref_bound)}"
+            f"Converted circuit:\n{_draw_qiskit_circuit(converted_bound)}\n isn't "
+            f"equal to\n{_draw_qiskit_circuit(ref_bound)}"
         )
 
     @pytest.mark.parametrize(
@@ -370,8 +366,8 @@ class TestExportingToQiskit:
             }
         )
         assert bound_converted == ref_bound, (
-            f"Converted circuit:\n{_draw_qiskit_circuit(bound_converted)}\n isn't equal "
-            f"to\n{_draw_qiskit_circuit(ref_bound)}"
+            f"Converted circuit:\n{_draw_qiskit_circuit(bound_converted)}\n isn't "
+            f"equal to\n{_draw_qiskit_circuit(ref_bound)}"
         )
 
     def test_converting_circuit_with_daggers_fails_explicitly(self):

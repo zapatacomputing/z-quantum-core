@@ -1,6 +1,6 @@
 """Definition of predefined gate matrices and related utility functions."""
-import sympy
 import numpy as np
+import sympy
 
 # --- non-parametric gates ---
 
@@ -90,12 +90,39 @@ def rz_matrix(angle):
     )
 
 
+def rh_matrix(angle):
+    phase_factor = sympy.cos(angle / 2) + 1j * sympy.sin(angle / 2)
+    return phase_factor * sympy.Matrix(
+        [
+            [
+                sympy.cos(angle / 2) - 1j / sympy.sqrt(2) * sympy.sin(angle / 2),
+                -1j / sympy.sqrt(2) * sympy.sin(angle / 2),
+            ],
+            [
+                -1j / sympy.sqrt(2) * sympy.sin(angle / 2),
+                sympy.cos(angle / 2) + 1j / sympy.sqrt(2) * sympy.sin(angle / 2),
+            ],
+        ]
+    )
+
+
 def phase_matrix(angle):
     return sympy.Matrix(
         [
             [1, 0],
             [0, sympy.exp(1j * angle)],
         ]
+    )
+
+
+def u3_matrix(theta, phi, lambda_):
+    """Based on
+    https://github.com/quantumlib/Cirq/blob/292080453e22e91dc5658a0cfa5043539944a950/cirq/circuits/qasm_output.py#L70
+    """
+    return (
+        rz_matrix(phi % (2 * sympy.pi))
+        * ry_matrix(theta % (2 * sympy.pi))
+        * rz_matrix(lambda_ % (2 * sympy.pi))
     )
 
 

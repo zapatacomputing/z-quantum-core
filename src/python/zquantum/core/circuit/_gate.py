@@ -1,20 +1,18 @@
 """Base class for quantum gates"""
 
-import sys
-import numpy as np
-import sympy
 import copy
+import sys
+from math import pi
 
 import cirq
+import numpy as np
 import pyquil
 import qiskit
-from math import pi, exp
-
-from pyquil.quilatom import quil_sin, quil_cos
-from qiskit import QuantumRegister, ClassicalRegister
-from qiskit.circuit.quantumregister import Qubit as QiskitQubit
-from qiskit.circuit.classicalregister import Clbit as QiskitClbit
+import sympy
+from qiskit import QuantumRegister
 from qiskit.circuit import ParameterExpression
+from qiskit.circuit.classicalregister import Clbit as QiskitClbit
+from qiskit.circuit.quantumregister import Qubit as QiskitQubit
 
 from ._gateset import ALL_GATES
 from ._qubit import Qubit
@@ -251,7 +249,7 @@ class Gate(object):
         if len(self.qubits) >= 2:
             q2 = self.qubits[1].index
         if len(self.qubits) >= 3:
-            q3 = self.qubits[2].index
+            self.qubits[2].index
         if len(self.params) > 0:
             params = self.params
 
@@ -366,6 +364,11 @@ class Gate(object):
             return g(cirq_qubits[0])
         if self.name == "RH":  # HPowGate
             g = cirq.H ** (params[0] / pi)
+            return g(cirq_qubits[0])
+        if self.name == "U3":  # HPowGate
+            g = cirq.circuits.qasm_output.QasmUGate(
+                params[0] / pi, params[1] / pi, params[2] / pi
+            )
             return g(cirq_qubits[0])
         if self.name == "Da":  # Damping alpha gate
             g = DampingAlpha(params[0])
@@ -752,6 +755,9 @@ class Gate(object):
             elif parsed_gatename == "Rz":
                 output.name = "Rz"
                 output.params = [cirq_gate.gate.exponent * pi]
+            elif parsed_gatename == "cirq.circuits.qasm_output.QasmUGate":
+                output.name = "U3"
+                output.params = [cirq_gate.gate.theta * pi, cirq_gate.gate.phi * pi, cirq_gate.gate.lmda * pi]
             else:
                 raise NotImplementedError(
                     "The cirq gate {} is currently not supported".format(
@@ -779,6 +785,7 @@ class Gate(object):
                 "YY",
                 "ZZ",
                 "XY",
+                "cirq.circuits.qasm_output.QasmUGate"
             }:
                 if len(parsed_gatename) == 1:  # discrete gate
                     output.name = name_str

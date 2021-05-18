@@ -1,6 +1,7 @@
 """Utilities for converting symbolic expressions between different dialects."""
+
 from numbers import Number
-from typing import NamedTuple, Any, Iterable, Union, Dict, Callable
+from typing import NamedTuple, Any, Iterable, Dict, Callable
 from functools import reduce
 
 
@@ -17,7 +18,10 @@ class FunctionCall(NamedTuple):
     args: Iterable["Expression"]
 
 
-Expression = Union[Symbol, FunctionCall, Number]
+# Note that mypy does not support recursive types, so for now Expression is set
+# to Any. See mypy #731 for details.
+Expression = Any
+# Expression = Union[Symbol, FunctionCall, Number]
 
 
 class ExpressionDialect(NamedTuple):

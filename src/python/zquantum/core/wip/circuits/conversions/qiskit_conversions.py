@@ -1,15 +1,13 @@
-from typing import Tuple, List, NamedTuple, Union, Dict
+from typing import List, NamedTuple, Union, Dict, Iterable, Sequence, Tuple
 import hashlib
 
-import qiskit
 import numpy as np
+import qiskit
 import sympy
 
-from .. import _gates
-from .. import _builtin_gates
-from .. import _circuit
-from ..symbolic.sympy_expressions import expression_from_sympy, SYMPY_DIALECT
-from ..symbolic.qiskit_expressions import expression_from_qiskit, QISKIT_DIALECT
+from .. import _builtin_gates, _circuit, _gates
+from ..symbolic.qiskit_expressions import QISKIT_DIALECT, expression_from_qiskit
+from ..symbolic.sympy_expressions import SYMPY_DIALECT, expression_from_sympy
 from ..symbolic.translations import translate_expression
 
 QiskitOperation = Tuple[
@@ -186,14 +184,17 @@ def _export_custom_gate(
 ):
     if gate.name not in custom_names:
         raise ValueError(
-            f"Can't export gate {gate} as a custom gate, the circuit is missing its definition"
+            f"Can't export gate {gate} as a custom gate, the circuit is missing its "
+            "definition"
         )
 
     if gate.params:
         raise ValueError(
-            f"Can't export parametrized gate {gate}, Qiskit doesn't support parametrized custom gates"
+            f"Can't export parametrized gate {gate}, Qiskit doesn't support "
+            "parametrized custom gates"
         )
-    # At that time of writing it, Qiskit doesn't support parametrized gates defined with a symbolic matrix
+    # At that time of writing it Qiskit doesn't support parametrized gates defined with
+    # a symbolic matrix.
     # See https://github.com/Qiskit/qiskit-terra/issues/4751 for more info.
 
     qiskit_qubits = [
@@ -222,7 +223,7 @@ def _apply_custom_gate(
     gate_def = custom_defs_map[anon_op.gate_name]
     # Qiskit doesn't support custom gates with parametrized matrices
     # so we can assume empty params list.
-    gate_params = tuple()
+    gate_params: Tuple[sympy.Symbol, ...] = tuple()
     gate = gate_def(*gate_params)
 
     return gate(*anon_op.qubit_indices)
@@ -234,7 +235,7 @@ def import_from_qiskit(circuit: qiskit.QuantumCircuit) -> _circuit.Circuit:
 
     # Qiskit doesn't support custom gates with parametrized matrices
     # so we can assume empty params list.
-    params_ordering = tuple()
+    params_ordering: Tuple[sympy.Symbol, ...] = tuple()
     custom_defs = {
         anon_op.gate_name: _gates.CustomGateDefinition(
             gate_name=anon_op.gate_name,
@@ -276,7 +277,8 @@ def _import_qiskit_op(qiskit_op, qiskit_qubits) -> ImportedOperation:
 
 
 def _import_qiskit_op_via_mapping(
-    qiskit_gate: qiskit.circuit.Instruction, qiskit_qubits: [qiskit.circuit.Qubit]
+    qiskit_gate: qiskit.circuit.Instruction,
+    qiskit_qubits: Iterable[qiskit.circuit.Qubit],
 ) -> _gates.GateOperation:
     try:
         gate_ref = QISKIT_ZQUANTUM_GATE_MAP[type(qiskit_gate)]
@@ -295,7 +297,8 @@ def _import_qiskit_op_via_mapping(
 
 
 def _import_controlled_qiskit_op(
-    qiskit_gate: qiskit.circuit.ControlledGate, qiskit_qubits: [qiskit.circuit.Qubit]
+    qiskit_gate: qiskit.circuit.ControlledGate,
+    qiskit_qubits: Sequence[qiskit.circuit.Qubit],
 ) -> _gates.GateOperation:
     if not isinstance(qiskit_gate, qiskit.circuit.ControlledGate):
         # Raising an exception here is redundant to the type hint, but it allows us
@@ -305,7 +308,12 @@ def _import_controlled_qiskit_op(
     wrapped_qubits = qiskit_qubits[qiskit_gate.num_ctrl_qubits :]
     wrapped_op = _import_qiskit_op(qiskit_gate.base_gate, wrapped_qubits)
     qubit_indices = map(_import_qiskit_qubit, qiskit_qubits)
-    return wrapped_op.gate.controlled(qiskit_gate.num_ctrl_qubits)(*qubit_indices)
+    if isinstance(wrapped_op, _gates.GateOperation):
+        return wrapped_op.gate.controlled(qiskit_gate.num_ctrl_qubits)(*qubit_indices)
+    else:
+        raise NotImplementedError(
+            "Importing of controlled anonymous gates not yet supported."
+        )
 
 
 def _hash_hex(bytes_):
@@ -327,5 +335,5 @@ def _import_custom_qiskit_gate(
             qiskit_op.label, qiskit_op.name, value_matrix
         ),
         matrix=sympy.Matrix(value_matrix),
-        qubit_indices=[_import_qiskit_qubit(qubit) for qubit in qiskit_qubits],
+        qubit_indices=tuple(_import_qiskit_qubit(qubit) for qubit in qiskit_qubits),
     )

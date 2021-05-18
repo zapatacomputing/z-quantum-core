@@ -1,6 +1,6 @@
-from functools import singledispatch, reduce
 import operator
-from typing import Union, Dict, Optional, Iterable, Any
+from functools import reduce, singledispatch
+from typing import Any, Dict, Iterable, Optional, Union
 
 import numpy as np
 import sympy
@@ -70,9 +70,9 @@ class Circuit:
             set(),
         )
 
-    def __eq__(self, other: "Circuit"):
+    def __eq__(self, other: object):
         if not isinstance(other, type(self)):
-            return False
+            return NotImplemented
 
         if self.n_qubits != other.n_qubits:
             return False
@@ -85,19 +85,20 @@ class Circuit:
     def __add__(self, other: Union["Circuit"]):
         return _append_to_circuit(other, self)
 
-    def collect_custom_gate_definitions(self):
-        custom_gate_definiions = (
+    def collect_custom_gate_definitions(self) -> Iterable[_gates.CustomGateDefinition]:
+        custom_gate_definitions = (
             operation.gate.matrix_factory.gate_definition
             for operation in self.operations
             if _operation_uses_custom_gate(operation)
         )
         unique_operation_dict = {}
-        for gate_def in custom_gate_definiions:
+        for gate_def in custom_gate_definitions:
             if gate_def.gate_name not in unique_operation_dict:
                 unique_operation_dict[gate_def.gate_name] = gate_def
             elif unique_operation_dict[gate_def.gate_name] != gate_def:
                 raise ValueError(
-                    f"Different gate definitions with the same name exist: {gate_def.gate_name}."
+                    "Different gate definitions with the same name exist: "
+                    f"{gate_def.gate_name}."
                 )
         return sorted(
             unique_operation_dict.values(), key=operator.attrgetter("gate_name")
@@ -117,8 +118,8 @@ class Circuit:
         return reduce(operator.matmul, lifted_matrices)
 
     def bind(self, symbols_map: Dict[sympy.Symbol, Any]):
-        """Create a copy of the current circuit with the parameters of each gate bound to
-        the values provided in the input symbols map
+        """Create a copy of the current circuit with the parameters of each gate bound
+        to the values provided in the input symbols map.
 
         Args:
             symbols_map: A map of the symbols/gate parameters to new values

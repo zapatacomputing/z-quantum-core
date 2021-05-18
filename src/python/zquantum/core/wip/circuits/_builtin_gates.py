@@ -1,15 +1,15 @@
-from typing import Callable, Union, Optional
+from typing import Callable, Union
 
-from . import _gates
-from . import _matrices
+from . import _gates, _matrices
 
-
-GatePrototype = Callable[..., _gates.MatrixFactoryGate]
+# GatePrototype is a function that accepts *args of type `_gates.Parameter` and returns
+# a `_gates.Gate`.
+GatePrototype = Callable[..., _gates.Gate]
 GateRef = Union[_gates.Gate, GatePrototype]
 
 
 def make_parametric_gate_prototype(name, matrix_factory, num_qubits) -> GatePrototype:
-    def _factory(*gate_parameters):
+    def _factory(*gate_parameters: _gates.Parameter):
         # TODO: check if len(gate_parameters) == len(arguments of matrix_factory)
         return _gates.MatrixFactoryGate(
             name, matrix_factory, gate_parameters, num_qubits
@@ -33,7 +33,9 @@ X = _gates.MatrixFactoryGate("X", _matrices.x_matrix, (), 1, is_hermitian=True)
 Y = _gates.MatrixFactoryGate("Y", _matrices.y_matrix, (), 1, is_hermitian=True)
 Z = _gates.MatrixFactoryGate("Z", _matrices.z_matrix, (), 1, is_hermitian=True)
 H = _gates.MatrixFactoryGate("H", _matrices.h_matrix, (), 1, is_hermitian=True)
-I = _gates.MatrixFactoryGate("I", _matrices.i_matrix, (), 1, is_hermitian=True)
+I = _gates.MatrixFactoryGate(  # noqa: E741
+    "I", _matrices.i_matrix, (), 1, is_hermitian=True
+)
 S = _gates.MatrixFactoryGate("S", _matrices.s_matrix, (), 1)
 T = _gates.MatrixFactoryGate("T", _matrices.t_matrix, (), 1)
 
@@ -44,7 +46,9 @@ T = _gates.MatrixFactoryGate("T", _matrices.t_matrix, (), 1)
 RX = make_parametric_gate_prototype("RX", _matrices.rx_matrix, 1)
 RY = make_parametric_gate_prototype("RY", _matrices.ry_matrix, 1)
 RZ = make_parametric_gate_prototype("RZ", _matrices.rz_matrix, 1)
+RH = make_parametric_gate_prototype("RH", _matrices.rh_matrix, 1)
 PHASE = make_parametric_gate_prototype("PHASE", _matrices.phase_matrix, 1)
+U3 = make_parametric_gate_prototype("U3", _matrices.u3_matrix, 1)
 
 
 # --- non-parametric, two qubit gates ---

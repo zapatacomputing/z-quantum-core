@@ -1,8 +1,6 @@
 """Tests for core.gradients module."""
 import numpy as np
 import pytest
-from unittest.mock import Mock
-
 from zquantum.core.gradients import finite_differences_gradient
 
 

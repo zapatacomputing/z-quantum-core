@@ -1,20 +1,18 @@
 """Base class for quantum gates"""
 
-import sys
-import numpy as np
-import sympy
 import copy
+import sys
+from math import pi
 
 import cirq
+import numpy as np
 import pyquil
 import qiskit
-from math import pi, exp
-
-from pyquil.quilatom import quil_sin, quil_cos
-from qiskit import QuantumRegister, ClassicalRegister
-from qiskit.circuit.quantumregister import Qubit as QiskitQubit
-from qiskit.circuit.classicalregister import Clbit as QiskitClbit
+import sympy
+from qiskit import QuantumRegister
 from qiskit.circuit import ParameterExpression
+from qiskit.circuit.classicalregister import Clbit as QiskitClbit
+from qiskit.circuit.quantumregister import Qubit as QiskitQubit
 
 from ._gateset import ALL_GATES
 from ._qubit import Qubit
@@ -32,8 +30,8 @@ class Gate(object):
             List of core.qubit.Qubit object that the gate operates on.
         params: list[any]
             List of parameters associated with the gate.
-        The above three attributes follow a standard convention that is enforced throughout
-        z-quantum-core
+        The above three attributes follow a standard convention that is enforced
+        throughout z-quantum-core.
 
         (optional attribute)
         info: dictionary
@@ -45,8 +43,8 @@ class Gate(object):
                     cirq
                     qiskit
             object: any
-                The gate object in the native package that describes the quantum gate, such
-                as pyquil Program object or cirq GateOperation object.
+                The gate object in the native package that describes the quantum gate,
+                such as pyquil Program object or cirq GateOperation object.
     """
 
     def __init__(
@@ -94,14 +92,18 @@ class Gate(object):
         return True
 
     def __repr__(self):
-        return f"zquantum.core.circuit.Gate(name={self.name}, qubits={self.qubits}, params={self.params})"
+        return (
+            f"zquantum.core.circuit.Gate(name={self.name}, qubits={self.qubits},"
+            f" params={self.params})"
+        )
 
     def evaluate(self, symbols_map):
-        """
-        Returns a copy of a gate with specified symbolic parameters evaluated to provided values.
+        """Returns a copy of a gate with specified symbolic parameters evaluated to
+        provided values.
 
         Args:
-            symbols_map list(tuple(sympy.Basic, number)): List containing symbols and values that they should take.
+            symbols_map list(tuple(sympy.Basic, number)): List containing symbols and
+                values that they should take.
         """
         gate_class = type(self)
         evaluated_gate = gate_class(
@@ -159,7 +161,8 @@ class Gate(object):
         If all the params are numerical, they will be serializable anyway.
 
         Args:
-            serialize_params(bool): flag indicating whether sympy parameters should be serialized.
+            serialize_params(bool): flag indicating whether sympy parameters should be
+                serialized.
 
         Returns:
             A dictionary with only serializable values.
@@ -251,7 +254,7 @@ class Gate(object):
         if len(self.qubits) >= 2:
             q2 = self.qubits[1].index
         if len(self.qubits) >= 3:
-            q3 = self.qubits[2].index
+            self.qubits[2].index
         if len(self.params) > 0:
             params = self.params
 
@@ -298,15 +301,15 @@ class Gate(object):
 
         Args:
             input_cirq_qubits: list[cirq.LineQubit]
-                (optional) a list of cirq Qubits that the gate can act on. If not provided
-                the function will generate new cirq.LineQubit objects.
+                (optional) a list of cirq Qubits that the gate can act on. If not
+                provided the function will generate new cirq.LineQubit objects.
         Returns:
         A cirq Circuit object that corresponds to the specification of the quantum gate.
-            In the special case the gate itself was natively generated from cirq, the function
-            will faithfully reproduce the original GateOperation object, taking into account
-            whether the gate acts on GridQubit objects or LineQubit objects.
-            In the other cases the resulting cirq gate simply assumes that the qubits are
-            LineQubit objects.
+            In the special case the gate itself was natively generated from cirq, the
+            function will faithfully reproduce the original GateOperation object, taking
+            into account whether the gate acts on GridQubit objects or LineQubit
+            objects. In the other cases the resulting cirq gate simply assumes that the
+            qubits areLineQubit objects.
         """
 
         if self.name not in ALL_GATES:
@@ -320,7 +323,7 @@ class Gate(object):
             q_inds.append(self.qubits[2].index)
 
         cirq_qubits = []
-        if input_cirq_qubits == None:
+        if input_cirq_qubits is None:
             for q in self.qubits:
                 if q.info["label"] == "cirq":
                     qkey = q.info["QubitKey"]
@@ -367,6 +370,11 @@ class Gate(object):
         if self.name == "RH":  # HPowGate
             g = cirq.H ** (params[0] / pi)
             return g(cirq_qubits[0])
+        if self.name == "U3":  # HPowGate
+            g = cirq.circuits.qasm_output.QasmUGate(
+                params[0] / pi, params[1] / pi, params[2] / pi
+            )
+            return g(cirq_qubits[0])
         if self.name == "Da":  # Damping alpha gate
             g = DampingAlpha(params[0])
             return g(cirq_qubits[0])
@@ -409,9 +417,9 @@ class Gate(object):
 
         Args:
             qreg: QuantumRegister
-                Optional feature in case the original circuit is not contructed from qiskit.
-                Then we will use a single QuantumRegister for all of the qubits for the qiskit
-                QuantumCircuit object.
+                Optional feature in case the original circuit is not constructed from
+                qiskit. Then we will use a single QuantumRegister for all of the qubits
+                for the qiskitQuantumCircuit object.
         Returns:
             A list of length N*3 where N is the number of gates used in the
             decomposition. For each gate, the items appended to the list are,
@@ -725,10 +733,10 @@ class Gate(object):
             Z**1.0
             Z**0.75
 
-            both have their name string to be 'Z' while the first one is the Z gate, while the
-            second one is Z rotation by angle 2·0.75π = 1.5π. This is in contrast with pyquil
-            where {X,Y,Z} are fixed single-qubit gates that are different from the rotation
-            gates {RX, RY, RZ}.
+            both have their name string to be 'Z' while the first one is the Z gate,
+            while the second one is Z rotation by angle 2·0.75π = 1.5π. This is in
+            contrast with pyquil where {X,Y,Z} are fixed single-qubit gates that are
+            different from the rotation gates {RX, RY, RZ}.
         """
 
         output = cls()
@@ -752,6 +760,13 @@ class Gate(object):
             elif parsed_gatename == "Rz":
                 output.name = "Rz"
                 output.params = [cirq_gate.gate.exponent * pi]
+            elif parsed_gatename == "cirq.circuits.qasm_output.QasmUGate":
+                output.name = "U3"
+                output.params = [
+                    cirq_gate.gate.theta * pi,
+                    cirq_gate.gate.phi * pi,
+                    cirq_gate.gate.lmda * pi,
+                ]
             else:
                 raise NotImplementedError(
                     "The cirq gate {} is currently not supported".format(
@@ -779,6 +794,7 @@ class Gate(object):
                 "YY",
                 "ZZ",
                 "XY",
+                "cirq.circuits.qasm_output.QasmUGate",
             }:
                 if len(parsed_gatename) == 1:  # discrete gate
                     output.name = name_str
@@ -823,9 +839,8 @@ class Gate(object):
                         output.params = [cirq_gate.gate.exponent * pi]
                     else:
                         raise NotImplementedError(
-                            "The cirq gate {} is currently not supported in exponential format".format(
-                                name_str
-                            )
+                            f"The cirq gate {name_str} is currently not supported in"
+                            " exponential format"
                         )
             else:
                 raise NotImplementedError(
@@ -926,34 +941,38 @@ class DampingBeta(cirq.ops.gate_features.SingleQubitGate):
 class MCTGate(object):
     """
     An Orquestra gate class that deals with synthesis of a Multi Toffoli Gate
-    Although this inherits the Gate class it has extra attributes fundamentally related to
-    the fact that the Multi Toffoli Gate is a circuit rather a gate applied natively on a device
+    Although this inherits the Gate class it has extra attributes fundamentally related
+    to the fact that the Multi Toffoli Gate is a circuit rather a gate applied natively
+    on a device.
 
     Attributes:
-    all_circuit_qubits (List): Needed to apply the mct gate from qiskit. In general we need more qubits than those
-                                 assigned as control and target qubits. We thus get all qubits in the circuit in order
-                                 to use them as possible ancilla qubits.
+        all_circuit_qubits (List): Needed to apply the mct gate from qiskit. In general
+            we need more qubits than those assigned as control and target qubits. We
+            thus get all qubits in the circuit in order to use them as possible ancilla
+            qubits.
+        control_qubits (list): This list contains integer labels for the qubits that
+            will act as the control qubits. e.g [1, 2, 3, 4]
+        target_qubits (list): This is a list that contains integer labels for the qubits
+            that are target qubits.
+        all_qubits (list): A list of zmachine.core.qubit.Qubit This is necessary to
+            determine what qubits are the ancilla.
+        ancilla_qubits (list): A list that contains integer labels for all the qubits
+            labels that are the ancilla. These are needed since the MCT synthesis
+            requires in general addition of ancilla qubits.
 
-    control_qubits (list): This list contains integer labels for the qubits thats will act as the
-    control qubits. e.g [1, 2, 3, 4]
-    target_qubits (list): This is a list that contains integer labels for the qubits that are target qubits
+        ccx_list (list): A list that contains CCX orquestra gates that represent the
+            decomposition of the MCT gate.
 
-    all_qubits (list): A list of zmachine.core.qubit.Qubit This is necessary to determine what qubits
-    are the ancilla
+        ccx_decomposition (qiskit circuit): Contains the Toffoli Decomposition which is
+            the output from the mct gate.
 
-    ancilla_qubits (list): A list that contians integer labels for all the qubits labels that are the ancilla. These are needed since the MCT synthesis
-    requires in general addition of ancilla qubits
+        qiskit_ctrl_q (list): List of qiskit qubits that are control qubits for the MCT
+            gate.
+        qiskit_targ_q (list): List of qiskit qubits that are targ qubits for the MCT
+            gate.
 
-    ccx_list (list): A list that contains CCX orquestra gates that represent the decompostion of the MCT gate
-
-    ccx_decomposition (qiskit circuit): Contains the Toffoli Decomposition which is the output from the mct gate
-
-    qiskit_ctrl_q (list): List of qiskit qubits that are control qubits for the MCT gate
-    qiskit_targ_q (list): List of qiskit qubits that are targ qubits for the MCT gate
-
-    qiskit_ancilla_q (list): List of qiskit qubits that are ancilla qubits for the mct gate synthesis
-
-
+        qiskit_ancilla_q (list): List of qiskit qubits that are ancilla qubits for the
+            mct gate synthesis.
     """
 
     def __init__(self, all_circuit_qubits, control_qubits=None, target_qubits=None):

@@ -1,14 +1,14 @@
-from openfermion import (
-    jordan_wigner,
-    bravyi_kitaev,
-    get_fermion_operator,
-    SymbolicOperator,
-)
 import time
 from typing import Union
 
-from zquantum.core.utils import save_timing
+from openfermion import (
+    SymbolicOperator,
+    bravyi_kitaev,
+    get_fermion_operator,
+    jordan_wigner,
+)
 from zquantum.core.openfermion import load_interaction_operator, save_qubit_operator
+from zquantum.core.utils import save_timing
 
 
 def transform_interaction_operator(

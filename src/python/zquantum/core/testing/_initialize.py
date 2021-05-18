@@ -1,12 +1,13 @@
-from pyquil import Program
-from pyquil.gates import *
-from pyquil.wavefunction import Wavefunction
 import math
 import random
+
 import numpy as np
-from openfermion.ops import QubitOperator, IsingOperator
+from openfermion.ops import IsingOperator, QubitOperator
+from pyquil import Program
+from pyquil.gates import CNOT, CPHASE, CZ, PHASE, RX, RY, RZ, SWAP, H, S, T, X, Y, Z
+from pyquil.wavefunction import Wavefunction
+
 from ..circuit import Circuit
-from ..utils import RNDSEED
 
 
 def create_random_circuit(nqubits, ngates, seed=None):
@@ -77,7 +78,9 @@ def create_random_circuit(nqubits, ngates, seed=None):
 
 
 def create_random_qubitop(nqubits, nterms, seed=None):
-    """Generates random qubit operator acting on nqubits with nterms for testing purposes.
+    """Generates random qubit operator acting on nqubits with nterms for testing
+    purposes.
+
     The resulting qubit operator it saved to file in JSON format under 'qubitop.json'.
 
     Args:
@@ -91,7 +94,8 @@ def create_random_qubitop(nqubits, nterms, seed=None):
             The see for the random number generator
 
     Returns:
-        None, a Qubit Operator (openfermion.QubitOperator) object is saved under 'qubitop.json'
+        None, a Qubit Operator (openfermion.QubitOperator) object is saved under
+            'qubitop.json'
     """
     NUM_QUBITS = range(0, nqubits)
 
@@ -132,7 +136,8 @@ def create_random_qubitop(nqubits, nterms, seed=None):
 
 
 def create_random_isingop(nqubits, nterms, seed=None):
-    """Generates random ising operator acting on nqubits with nterms for testing purposes.
+    """Generates random ising operator acting on nqubits with nterms for testing
+        purposes.
 
     Args:
         nqubits: integer

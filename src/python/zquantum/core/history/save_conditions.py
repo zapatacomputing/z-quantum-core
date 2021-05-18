@@ -1,10 +1,12 @@
 """Save conditions possible to use with recorder."""
 from typing import Any
+
 from typing_extensions import Protocol
 
 
 class SaveCondition(Protocol):
-    """Protocol of a function determining if given call should should be saved in the history."""
+    """Protocol of a function determining if given call should should be saved in the
+    history."""
 
     def __call__(self, value: Any, params: Any, call_number: int) -> bool:
         """Determine whether current call should be saved in the history.
@@ -24,7 +26,6 @@ class SaveCondition(Protocol):
             A boolean indicating whether the call being processed should be
             saved to history.
         """
-        pass
 
 
 def always(value: Any, params: Any, call_number: int) -> bool:

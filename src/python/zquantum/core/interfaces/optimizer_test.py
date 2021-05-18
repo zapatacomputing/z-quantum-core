@@ -1,8 +1,14 @@
+"""Test case prototypes that can be used in other projects.
+
+Note that this file won't be executed on its own by pytest.
+You need to define your own test cases that inherit from the ones defined here.
+"""
+
+
 import numpy as np
 import pytest
 from zquantum.core.interfaces.functions import FunctionWithGradient
 
-from .optimizer import optimization_result
 from ..gradients import finite_differences_gradient
 from ..history.recorder import recorder
 
@@ -39,7 +45,9 @@ class OptimizerTests(object):
     """
 
     def test_optimizer_succeeds_with_optimizing_rosenbrock_function(self, optimizer):
-        cost_function = FunctionWithGradient(rosenbrock_function, finite_differences_gradient(rosenbrock_function))
+        cost_function = FunctionWithGradient(
+            rosenbrock_function, finite_differences_gradient(rosenbrock_function)
+        )
 
         results = optimizer.minimize(cost_function, initial_params=np.array([0, 0]))
         assert results.opt_value == pytest.approx(0, abs=1e-4)
@@ -51,12 +59,14 @@ class OptimizerTests(object):
         assert "opt_params" in results
         assert "history" in results
 
-    def test_optimizer_succeeds_with_optimizing_sum_of_squares_function(self, optimizer):
-        cost_function = FunctionWithGradient(sum_x_squared, finite_differences_gradient(sum_x_squared))
-
-        results = optimizer.minimize(
-            cost_function, initial_params=np.array([1, -1])
+    def test_optimizer_succeeds_with_optimizing_sum_of_squares_function(
+        self, optimizer
+    ):
+        cost_function = FunctionWithGradient(
+            sum_x_squared, finite_differences_gradient(sum_x_squared)
         )
+
+        results = optimizer.minimize(cost_function, initial_params=np.array([1, -1]))
 
         assert results.opt_value == pytest.approx(0, abs=1e-5)
         assert results.opt_params == pytest.approx(np.zeros(2), abs=1e-4)
@@ -66,14 +76,11 @@ class OptimizerTests(object):
         assert "opt_value" in results
         assert "opt_params" in results
         assert "history" in results
-
 
     def test_optimizer_succeeds_on_cost_function_without_gradient(self, optimizer):
         cost_function = sum_x_squared
 
-        results = optimizer.minimize(
-            cost_function, initial_params=np.array([1, -1])
-        )
+        results = optimizer.minimize(cost_function, initial_params=np.array([1, -1]))
         assert results.opt_value == pytest.approx(0, abs=1e-5)
         assert results.opt_params == pytest.approx(np.zeros(2), abs=1e-4)
 
@@ -83,7 +90,9 @@ class OptimizerTests(object):
         assert "opt_params" in results
         assert "history" in results
 
-    def test_optimizer_records_history_if_keep_value_history_is_added_as_option(self, optimizer):
+    def test_optimizer_records_history_if_keep_value_history_is_added_as_option(
+        self, optimizer
+    ):
         optimizer.keep_value_history = True
 
         # To check that history is recorded correctly, we wrap cost_function
@@ -95,7 +104,9 @@ class OptimizerTests(object):
 
         assert result.history == cost_function.history
 
-    def test_optimizier_does_not_record_history_if_keep_value_history_is_set_to_false(self, optimizer):
+    def test_optimizier_does_not_record_history_if_keep_value_history_is_set_to_false(
+        self, optimizer
+    ):
         if getattr(self, "always_records_history", False):
             return
 
@@ -105,29 +116,12 @@ class OptimizerTests(object):
 
         assert result.history == []
 
-    def test_optimizer_does_not_record_history_if_keep_value_history_by_default(self, optimizer):
+    def test_optimizer_does_not_record_history_if_keep_value_history_by_default(
+        self, optimizer
+    ):
         if getattr(self, "always_records_history", False):
             return
 
         result = optimizer.minimize(sum_x_squared, np.array([-2, 0.5]))
 
         assert result.history == []
-
-def test_optimization_result_contains_opt_value_and_opt_params():
-    opt_value = 2.0
-    opt_params = [-1, 0, 3.2]
-
-    result = optimization_result(opt_value=opt_value, opt_params=opt_params)
-
-    assert result.opt_value == opt_value
-    assert result.opt_params == opt_params
-
-
-def test_optimization_result_contains_other_attributes_passed_as_kwargs():
-    opt_value = 0.0
-    opt_params = [1, 2, 3]
-    kwargs = {"bitstring": "01010", "foo": 3.0}
-
-    result = optimization_result(opt_value=opt_value, opt_params=opt_params, **kwargs)
-
-    assert all(getattr(result, key) == value for key, value in kwargs.items())

@@ -1,21 +1,34 @@
 from __future__ import annotations
-import json
+
 import copy
-from pyquil.wavefunction import Wavefunction
+import json
+from collections import Counter
+from typing import (
+    Optional,
+    List,
+    Tuple,
+    TextIO,
+    Iterable,
+    Sequence,
+    Dict,
+    Union,
+    Any,
+    cast,
+)
+
 import numpy as np
 from openfermion.ops import IsingOperator
+from pyquil.wavefunction import Wavefunction
+from zquantum.core.typing import AnyPath, LoadSource
+
+from .bitstring_distribution import BitstringDistribution
 from .utils import (
     SCHEMA_VERSION,
     convert_array_to_dict,
     convert_dict_to_array,
-    sample_from_probability_distribution,
-    convert_bitstrings_to_tuples,
     convert_tuples_to_bitstrings,
+    sample_from_probability_distribution,
 )
-from typing import Optional, List, Tuple, TextIO, Iterable, Dict
-from collections import Counter
-from .bitstring_distribution import BitstringDistribution
-from zquantum.core.typing import LoadSource, AnyPath
 
 
 def save_expectation_values(
@@ -81,7 +94,7 @@ def save_wavefunction(wavefunction: Wavefunction, filename: AnyPath) -> None:
         filename (str): the name of the file
     """
 
-    data = {"schema": SCHEMA_VERSION + "-wavefunction"}
+    data: Dict[str, Any] = {"schema": SCHEMA_VERSION + "-wavefunction"}
     data["amplitudes"] = convert_array_to_dict(wavefunction.amplitudes)
     with open(filename, "w") as f:
         f.write(json.dumps(data, indent=2))
@@ -118,10 +131,10 @@ class ExpectationValues:
         self.correlations = correlations
         self.estimator_covariances = estimator_covariances
 
-    def to_dict(self) -> dict:
+    def to_dict(self) -> Dict[str, Any]:
         """Convert to a dictionary"""
 
-        data = {
+        data: Dict[str, Any] = {
             "schema": SCHEMA_VERSION + "-expectation_values",
             "frames": [],
         }  # what is "frames" for?
@@ -147,16 +160,18 @@ class ExpectationValues:
         """Create an ExpectationValues object from a dictionary."""
 
         expectation_values = convert_dict_to_array(dictionary["expectation_values"])
-        correlations = None
+        correlations: Optional[List] = None
         if dictionary.get("correlations"):
             correlations = []
-            for correlation_matrx in dictionary.get("correlations"):
-                correlations.append(convert_dict_to_array(correlation_matrx))
+            for correlation_matrix in cast(Iterable, dictionary.get("correlations")):
+                correlations.append(convert_dict_to_array(correlation_matrix))
 
-        estimator_covariances = None
+        estimator_covariances: Union[List, None] = None
         if dictionary.get("estimator_covariances"):
             estimator_covariances = []
-            for covariance_matrix in dictionary.get("estimator_covariances"):
+            for covariance_matrix in cast(
+                Iterable, dictionary.get("estimator_covariances")
+            ):
                 estimator_covariances.append(convert_dict_to_array(covariance_matrix))
 
         return cls(expectation_values, correlations, estimator_covariances)
@@ -164,7 +179,7 @@ class ExpectationValues:
 
 def sample_from_wavefunction(
     wavefunction: Wavefunction, n_samples: int
-) -> List[Tuple[int]]:
+) -> List[Tuple[int, ...]]:
     """Sample bitstrings from a wavefunction.
 
     Args:
@@ -199,17 +214,20 @@ class Parities:
             to the number of samples with even and odd parities for term P_i,
             respectively.
         correlations (list): a list of 3-dimensional numpy arrays indicating how
-            many times each product of Pauli terms was observed with even and odd parity.
-            Here correlations[i][j][k][0] and correlations[i][j][k][1] correspond to the number
-            of samples with even and odd parities term P_j P_k in frame i, respectively.
+            many times each product of Pauli terms was observed with even and odd
+            parity. Here correlations[i][j][k][0] and correlations[i][j][k][1]
+            correspond to the number of samples with even and odd parities term P_j P_k
+            in frame i, respectively.
     """
 
-    def __init__(self, values: np.ndarray, correlations: Optional[np.ndarray] = None):
+    def __init__(
+        self, values: np.ndarray, correlations: Optional[List[np.ndarray]] = None
+    ):
         self.values = values
         self.correlations = correlations
 
     def to_dict(self) -> dict:
-        data = {"values": convert_array_to_dict(self.values)}
+        data: Dict[str, Any] = {"values": convert_array_to_dict(self.values)}
         if self.correlations:
             data["correlations"] = [
                 convert_array_to_dict(arr) for arr in self.correlations
@@ -220,7 +238,9 @@ class Parities:
     def from_dict(cls, data: dict):
         values = convert_dict_to_array(data["values"])
         if data.get("correlations"):
-            correlations = [convert_dict_to_array(arr) for arr in data["correlations"]]
+            correlations: Optional[List] = [
+                convert_dict_to_array(arr) for arr in data["correlations"]
+            ]
         else:
             correlations = None
         return cls(values, correlations)
@@ -260,13 +280,15 @@ def load_parities(file: LoadSource) -> Parities:
 
 
 def get_expectation_values_from_parities(parities: Parities) -> ExpectationValues:
-    """Get the expectation values of a set of operators (with precisions) from a set of samples (with even/odd parities) for them.
+    """Get the expectation values of a set of operators (with precisions) from a set of
+    samples (with even/odd parities) for them.
 
     Args:
-        parities (zquantum.core.measurement.Parities): Contains the number of samples with even and odd parities for each operator.
+        parities: Contains the number of samples with even and odd parities for each
+            operator.
 
     Returns:
-        A zquantum.core.measurement.ExpectationValues object: Contains the expectation values of the operators and the associated precisions.
+        Expectation values of the operators and the associated precisions.
     """
     values = []
     estimator_covariances = []
@@ -281,8 +303,9 @@ def get_expectation_values_from_parities(parities: Parities) -> ExpectationValue
         p = N0 / N
         value = 2.0 * p - 1.0
 
-        # If there are enough samples and the probability of getting a sample with even parity is not close to 0 or 1,
-        # then we can use p=N0/N to approximate this probability and plug it into the formula for the precision.
+        # If there are enough samples and the probability of getting a sample with even
+        # parity is not close to 0 or 1, then we can use p=N0/N to approximate this
+        # probability and plug it into the formula for the precision.
         if N >= 100 and p >= 0.1 and p <= 0.9:
             precision = 2.0 * np.sqrt(p * (1.0 - p)) / np.sqrt(N)
         else:
@@ -312,13 +335,13 @@ def get_parities_from_measurements(
     """
 
     # check input format
-    if isinstance(ising_operator, IsingOperator) == False:
-        raise Exception("Input operator not openfermion.IsingOperator")
+    if not isinstance(ising_operator, IsingOperator):
+        raise TypeError("Input operator not openfermion.IsingOperator")
 
     # Count number of occurrences of bitstrings
     bitstring_frequencies = Counter(measurements)
 
-    # Count parity occurences
+    # Count parity occurrences
     values = []
     for _, term in enumerate(ising_operator.terms):
         values.append([0, 0])
@@ -329,7 +352,7 @@ def get_parities_from_measurements(
             else:
                 values[-1][1] += count
 
-    # Count parity occurences for pairwise products of operators
+    # Count parity occurrences for pairwise products of operators
     correlations = [np.zeros((len(ising_operator.terms), len(ising_operator.terms), 2))]
     for term1_index, term1 in enumerate(ising_operator.terms):
         for term2_index, term2 in enumerate(ising_operator.terms):
@@ -370,7 +393,7 @@ def expectation_values_to_real(
     return expectation_values
 
 
-def convert_bitstring_to_int(bitstring: Iterable[int]) -> int:
+def convert_bitstring_to_int(bitstring: Sequence[int]) -> int:
     """Convert a bitstring to an integer.
 
     Args:
@@ -382,7 +405,9 @@ def convert_bitstring_to_int(bitstring: Iterable[int]) -> int:
     return int("".join(str(bit) for bit in bitstring[::-1]), 2)
 
 
-def check_parity(bitstring: Union[str, Tuple[int]], marked_qubits: Tuple[int]) -> bool:
+def check_parity(
+    bitstring: Union[str, Sequence[int]], marked_qubits: Iterable[int]
+) -> bool:
     """Determine if the marked qubits have even parity for the given bitstring.
 
     Args:
@@ -401,7 +426,7 @@ def check_parity(bitstring: Union[str, Tuple[int]], marked_qubits: Tuple[int]) -
 
 
 def get_expectation_value_from_frequencies(
-    marked_qubits: Tuple[int], bitstring_frequencies: Dict[str, int]
+    marked_qubits: Iterable[int], bitstring_frequencies: Dict[str, int]
 ) -> float:
     """Get the expectation value the product of Z operators on selected qubits
     from bitstring frequencies.
@@ -414,7 +439,7 @@ def get_expectation_value_from_frequencies(
         The expectation value of the product of Z operators on selected qubits.
     """
 
-    expectation = 0
+    expectation = 0.0
     num_measurements = sum(bitstring_frequencies.values())
     for bitstring, count in bitstring_frequencies.items():
         if check_parity(bitstring, marked_qubits):
@@ -427,11 +452,12 @@ def get_expectation_value_from_frequencies(
 
 
 class Measurements:
-    """A class representing measurements from a quantum circuit. The bitstrings variable represents the internal
-    data structure of the Measurements class. It is expressed as a list of tuples wherein each tuple is a measurement
-    and the value of the tuple at a given index is the measured bit-value of the qubit (indexed from 0 -> N-1)"""
+    """A class representing measurements from a quantum circuit. The bitstrings variable
+    represents the internal data structure of the Measurements class. It is expressed as
+    a list of tuples wherein each tuple is a measurement and the value of the tuple at a
+    given index is the measured bit-value of the qubit (indexed from 0 -> N-1)"""
 
-    def __init__(self, bitstrings: Optional[List[Tuple[int]]] = None):
+    def __init__(self, bitstrings: Optional[List[Tuple[int, ...]]] = None):
         if bitstrings is None:
             self.bitstrings = []
         else:
@@ -442,7 +468,8 @@ class Measurements:
         """Create an instance of the Measurements class from a dictionary
 
         Args:
-            counts (dict): mapping of bitstrings to integers representing the number of times the bitstring was measured
+            counts: mapping of bitstrings to integers representing the number of times
+                the bitstring was measured
         """
         measurements = cls()
         measurements.add_counts(counts)
@@ -452,13 +479,12 @@ class Measurements:
     def get_measurements_representing_distribution(
         cls, bitstring_distribution: BitstringDistribution, number_of_samples: int
     ):
-        """Create an instance of the Measurements class that exactly (or as closely as possible) resembles the input
-        bitstring distribution.
+        """Create an instance of the Measurements class that exactly (or as closely as
+        possible) resembles the input bitstring distribution.
 
         Args:
-            bitstring_distribution (zquantum.core.bitstring_distribution.BitstringDistribution): the bitstring
-                distribution to be sampled
-            number_of_samples (int): the number of measurements
+            bitstring_distribution: the bitstring distribution to be sampled
+            number_of_samples: the number of measurements
         """
         distribution = copy.deepcopy(bitstring_distribution.distribution_dict)
 
@@ -544,7 +570,8 @@ class Measurements:
         """Get the measurements as a histogram
 
         Returns:
-            A dictionary mapping bitstrings to integers representing the number of times the bitstring was measured
+            A dictionary mapping bitstrings to integers representing the number of times
+            the bitstring was measured
         """
         bitstrings = convert_tuples_to_bitstrings(self.bitstrings)
         return dict(Counter(bitstrings))
@@ -553,9 +580,10 @@ class Measurements:
         """Add measurements from a histogram
 
         Args:
-            counts (dict): mapping of bitstrings to integers representing the number of times the bitstring was measured
-                NOTE: bitstrings are also indexed from 0 -> N-1, where the "001" bitstring represents a measurement of
-                    qubit 2 in the 1 state
+            counts: mapping of bitstrings to integers representing the number of times
+                the bitstring was measured
+                NOTE: bitstrings are also indexed from 0 -> N-1, where the "001"
+                bitstring represents a measurement of qubit 2 in the 1 state
         """
         for bitstring in counts.keys():
             measurement = []
@@ -564,11 +592,11 @@ class Measurements:
 
             self.bitstrings += [tuple(measurement)] * counts[bitstring]
 
-    def get_distribution(self):
+    def get_distribution(self) -> BitstringDistribution:
         """Get the normalized probability distribution representing the measurements
 
         Returns:
-            distribution (BitstringDistribution): bitstring distribution based on the frequency of measurements
+            distribution: bitstring distribution based on the frequency of measurements
         """
         counts = self.get_counts()
         num_measurements = len(self.bitstrings)
@@ -592,27 +620,28 @@ class Measurements:
                 diverges when only one sample is taken.
 
         Returns:
-            zquantum.core.measurement.ExpectationValues: the expectation values of each term in the operator
+            expectation values of each term in the operator
         """
-        # We require operator to be IsingOperator because measurements are always performed in the Z basis,
-        # so we need the operator to be Ising (containing only Z terms).
-        # A general Qubit Operator could have X or Y terms which don’t get directly measured.
-        if isinstance(ising_operator, IsingOperator) == False:
-            raise Exception("Input operator is not openfermion.IsingOperator")
+        # We require operator to be IsingOperator because measurements are always
+        # performed in the Z basis, so we need the operator to be Ising (containing only
+        # Z terms). A general Qubit Operator could have X or Y terms which don’t get
+        # directly measured.
+        if not isinstance(ising_operator, IsingOperator):
+            raise TypeError("Input operator is not openfermion.IsingOperator")
 
         # Count number of occurrences of bitstrings
         bitstring_frequencies = self.get_counts()
         num_measurements = len(self.bitstrings)
 
         # Perform weighted average
-        expectation_values = [
+        expectation_values_list = [
             coefficient
             * get_expectation_value_from_frequencies(
-                [op[0] for op in term], bitstring_frequencies
+                [cast(int, op[0]) for op in term], bitstring_frequencies
             )
             for term, coefficient in ising_operator.terms.items()
         ]
-        expectation_values = np.array(expectation_values)
+        expectation_values = np.array(expectation_values_list)
 
         correlations = np.zeros((len(ising_operator.terms),) * 2)
         for i, first_term in enumerate(ising_operator.terms):
@@ -643,7 +672,7 @@ class Measurements:
         ) / denominator
 
         return ExpectationValues(
-            np.array(expectation_values), [correlations], [estimator_covariances]
+            expectation_values, [correlations], [estimator_covariances]
         )
 
 
@@ -659,7 +688,7 @@ def concatenate_expectation_values(
         The combined expectation values.
     """
 
-    combined_expectation_values = ExpectationValues(np.zeros(0,))
+    combined_expectation_values = ExpectationValues(np.zeros(0))
 
     for expectation_values in expectation_values_set:
         combined_expectation_values.values = np.concatenate(

@@ -1,44 +1,62 @@
-import numpy as np
-import pytest
-import functools
-from pyquil import Program
-from pyquil.gates import X, CNOT, H
-from pyquil.wavefunction import Wavefunction
-from openfermion import QubitOperator, IsingOperator
+"""Test case prototypes that can be used in other projects.
 
-from ..circuit import Circuit, Qubit, Gate
-from ..measurement import Measurements, ExpectationValues
-from ..bitstring_distribution import BitstringDistribution
-from ..estimator import BasicEstimator
-from ..testing.test_cases_for_backend_tests import *
+Note that this file won't be executed on its own by pytest.
+You need to define your own test cases that inherit from the ones defined here.
 
-"""
 Note regarding testing specific gates.
 
-To test that a gate is properly implemented, we can ask for its matrix representation 
-and check that each entry is correct. In some quantum simulator packages, 
-returning this matrix representation is either not possible or difficult to implement. 
-In such cases, we can check that the gate implementation is correct by ensuring that 
-the gate transforms input states to output states as expected. If the simulator has 
-the capability to provide the wavefunction as an output, then we can check that 
-the entries of the transformed wavefunction are correct. If the simulator does not 
-have the capability of providing the wavefunction as an output, but only gives 
-bitstring samples from the wavefunction, then we can check that the bitstring statistics 
-are as expected after taking sufficiently many samples. In both of these cases where 
-we cannot directly check the matrix corresponding to the gate, we must check the action 
-of the gate on multiple inputs (and outputs in the sampling case). We can picture 
-this process as a kind of "quantum process tomography" for gate unit testing. Mathematically, 
-correctness is ensured if the span of the input and outputs spans the full vector space. 
-Checking a tomographically complete set of input and outputs could be time consuming, 
-especially in the case of sampling. Furthermore, we expect that the bugs that will occur 
-will lead to an effect on many inputs (rather than, say, a single input-output pair). 
-Therefore, we are taking here a slightly lazy, but efficient approach to testing these gates 
-by testing how they transform a tomographically incomplete set of input and outputs.
+To test that a gate is properly implemented, we can ask for its matrix representation
+and check that each entry is correct. In some quantum simulator packages,
+returning this matrix representation is either not possible or difficult to implement.
+In such cases, we can check that the gate implementation is correct by ensuring that
+the gate transforms input states to output states as expected. If the simulator has
+the capability to provide the wavefunction as an output, then we can check that
+the entries of the transformed wavefunction are correct. If the simulator does not
+have the capability of providing the wavefunction as an output, but only gives
+bitstring samples from the wavefunction, then we can check that the bitstring statistics
+are as expected after taking sufficiently many samples. In both of these cases where
+we cannot directly check the matrix corresponding to the gate, we must check the action
+of the gate on multiple inputs (and outputs in the sampling case). We can picture
+this process as a kind of "quantum process tomography" for gate unit testing.
+Mathematically, correctness is ensured if the span of the input and outputs spans the
+full vector space.  Checking a tomographically complete set of input and outputs could
+be time consuming, especially in the case of sampling. Furthermore, we expect that the
+bugs that will occur will lead to an effect on many inputs (rather than, say, a single
+input-output pair).  Therefore, we are taking here a slightly lazy, but efficient
+approach to testing these gates by testing how they transform a tomographically
+incomplete set of input and outputs.
 
-Gates tests use `backend_for_gates_test` instead of `backend` as an input parameter because:
+Gates tests use `backend_for_gates_test` instead of `backend` as an input parameter
+because:
 a) it has high chance of failing for noisy backends
 b) having execution time in mind it's a good idea to use lower number of samples.
 """
+
+import functools
+from typing import List
+
+import numpy as np
+import pytest
+from openfermion import IsingOperator, QubitOperator
+from pyquil import Program
+from pyquil.gates import CNOT, H, X
+from pyquil.wavefunction import Wavefunction
+from zquantum.core.interfaces.estimation import EstimationTask
+
+from ..bitstring_distribution import BitstringDistribution
+from ..circuit import Circuit, Gate, Qubit
+from ..estimation import estimate_expectation_values_by_averaging
+from ..measurement import ExpectationValues, Measurements
+from ..testing.test_cases_for_backend_tests import (
+    one_qubit_non_parametric_gates_amplitudes_test_set,
+    one_qubit_non_parametric_gates_exp_vals_test_set,
+    one_qubit_parametric_gates_amplitudes_test_set,
+    one_qubit_parametric_gates_exp_vals_test_set,
+    two_qubit_non_parametric_gates_amplitudes_test_set,
+    two_qubit_non_parametric_gates_exp_vals_test_set,
+    two_qubit_parametric_gates_amplitudes_test_set,
+    two_qubit_parametric_gates_exp_vals_test_set,
+)
 
 
 def skip_tests_for_excluded_gates(func):
@@ -65,8 +83,8 @@ class QuantumBackendTests:
         backend.n_samples = n_samples
         measurements = backend.run_circuit_and_measure(circuit)
 
-        # Then (since SPAM error could result in unexpected bitstrings, we make sure the most common bitstring is
-        #   the one we expect)
+        # Then (since SPAM error could result in unexpected bitstrings, we make sure the
+        # most common bitstring is the one we expect)
         counts = measurements.get_counts()
         assert max(counts, key=counts.get) == "001"
         assert backend.number_of_circuits_run == 1
@@ -138,8 +156,8 @@ class QuantumBackendTests:
             [circuit] * number_of_circuits
         )
 
-        # Then (since SPAM error could result in unexpected bitstrings, we make sure the most common bitstring is
-        #   the one we expect)
+        # Then (since SPAM error could result in unexpected bitstrings, we make sure the
+        # most common bitstring is the one we expect)
         for measurements in measurements_set:
             counts = measurements.get_counts()
             assert max(counts, key=counts.get) == "001"
@@ -167,8 +185,8 @@ class QuantumBackendTests:
             [first_circuit, second_circuit], n_samples
         )
 
-        # Then (since SPAM error could result in unexpected bitstrings, we make sure the most common bitstring is
-        #   the one we expect)
+        # Then (since SPAM error could result in unexpected bitstrings, we make sure the
+        # most common bitstring is the one we expect)
         counts = measurements_set[0].get_counts()
         assert max(counts, key=counts.get) == "001"
         counts = measurements_set[1].get_counts()
@@ -186,7 +204,6 @@ class QuantumBackendTests:
         circuit = Circuit(Program(H(0), CNOT(0, 1), CNOT(1, 2)))
         operator = IsingOperator("[]")
         target_expectation_values = np.array([1])
-        n_samples = 1
         # When
         backend.n_samples = 1
         expectation_values = backend.get_expectation_values(circuit, operator)
@@ -269,7 +286,7 @@ class QuantumBackendTests:
 
 
 class QuantumBackendGatesTests:
-    gates_to_exclude = []
+    gates_to_exclude: List[str] = []
 
     @pytest.mark.parametrize(
         "initial_gate,tested_gate,target_values",
@@ -282,7 +299,8 @@ class QuantumBackendGatesTests:
 
         if backend_for_gates_test.n_samples is None:
             pytest.xfail(
-                "This test won't work for simulators without sampling, it should be covered by a test in QuantumSimulatorTests."
+                "This test won't work for simulators without sampling, it should be "
+                "covered by a test in QuantumSimulatorTests."
             )
 
         # Given
@@ -304,15 +322,16 @@ class QuantumBackendGatesTests:
 
         for i, operator in enumerate(operators):
             # When
-            estimator = BasicEstimator()
-            expectation_value = estimator.get_estimated_expectation_values(
-                backend_for_gates_test,
-                circuit,
-                operator,
-            ).values[0]
+            estimation_tasks = [
+                EstimationTask(operator, circuit, backend_for_gates_test.n_samples)
+            ]
+            expectation_values = estimate_expectation_values_by_averaging(
+                backend_for_gates_test, estimation_tasks
+            )
+            calculated_value = expectation_values.values[0]
 
             # Then
-            assert expectation_value == pytest.approx(target_values[i], abs=sigma * 3)
+            assert calculated_value == pytest.approx(target_values[i], abs=sigma * 3)
 
     @pytest.mark.parametrize(
         "initial_gate,tested_gate,params,target_values",
@@ -325,7 +344,8 @@ class QuantumBackendGatesTests:
 
         if backend_for_gates_test.n_samples is None:
             pytest.xfail(
-                "This test won't work for simulators without sampling, it's covered by a test in QuantumSimulatorTests."
+                "This test won't work for simulators without sampling, it's covered by "
+                "a test in QuantumSimulatorTests."
             )
 
         # Given
@@ -347,15 +367,16 @@ class QuantumBackendGatesTests:
 
         for i, operator in enumerate(operators):
             # When
-            estimator = BasicEstimator()
-            expectation_value = estimator.get_estimated_expectation_values(
-                backend_for_gates_test,
-                circuit,
-                operator,
-            ).values[0]
+            estimation_tasks = [
+                EstimationTask(operator, circuit, backend_for_gates_test.n_samples)
+            ]
+            expectation_values = estimate_expectation_values_by_averaging(
+                backend_for_gates_test, estimation_tasks
+            )
+            calculated_value = expectation_values.values[0]
 
             # Then
-            assert expectation_value == pytest.approx(target_values[i], abs=sigma * 3)
+            assert calculated_value == pytest.approx(target_values[i], abs=sigma * 3)
 
     @pytest.mark.parametrize(
         "initial_gates,tested_gate,operators,target_values",
@@ -373,7 +394,8 @@ class QuantumBackendGatesTests:
 
         if backend_for_gates_test.n_samples is None:
             pytest.xfail(
-                "This test won't work for simulators without sampling, it's covered by a test in QuantumSimulatorTests."
+                "This test won't work for simulators without sampling, it's covered by "
+                "a test in QuantumSimulatorTests."
             )
 
         # Given
@@ -391,15 +413,16 @@ class QuantumBackendGatesTests:
         for i, operator in enumerate(operators):
             # When
             operator = QubitOperator(operator)
-            estimator = BasicEstimator()
-            expectation_value = estimator.get_estimated_expectation_values(
-                backend_for_gates_test,
-                circuit,
-                operator,
-            ).values[0]
+            estimation_tasks = [
+                EstimationTask(operator, circuit, backend_for_gates_test.n_samples)
+            ]
+            expectation_values = estimate_expectation_values_by_averaging(
+                backend_for_gates_test, estimation_tasks
+            )
+            calculated_value = expectation_values.values[0]
 
             # Then
-            assert expectation_value == pytest.approx(target_values[i], abs=sigma * 5)
+            assert calculated_value == pytest.approx(target_values[i], abs=sigma * 5)
 
     @pytest.mark.parametrize(
         "initial_gates,tested_gate,params,operators,target_values",
@@ -418,7 +441,8 @@ class QuantumBackendGatesTests:
 
         if backend_for_gates_test.n_samples is None:
             pytest.xfail(
-                "This test won't work for simulators without sampling, it's covered by a test in QuantumSimulatorTests."
+                "This test won't work for simulators without sampling, it's covered by "
+                "a test in QuantumSimulatorTests."
             )
 
         # Given
@@ -436,15 +460,16 @@ class QuantumBackendGatesTests:
         for i, operator in enumerate(operators):
             # When
             operator = QubitOperator(operator)
-            estimator = BasicEstimator()
-            expectation_value = estimator.get_estimated_expectation_values(
-                backend_for_gates_test,
-                circuit,
-                operator,
-            ).values[0]
+            estimation_tasks = [
+                EstimationTask(operator, circuit, backend_for_gates_test.n_samples)
+            ]
+            expectation_values = estimate_expectation_values_by_averaging(
+                backend_for_gates_test, estimation_tasks
+            )
+            calculated_value = expectation_values.values[0]
 
             # Then
-            assert expectation_value == pytest.approx(target_values[i], abs=sigma * 5)
+            assert calculated_value == pytest.approx(target_values[i], abs=sigma * 5)
 
 
 class QuantumSimulatorTests(QuantumBackendTests):
@@ -524,7 +549,7 @@ class QuantumSimulatorTests(QuantumBackendTests):
 
 
 class QuantumSimulatorGatesTest:
-    gates_to_exclude = []
+    gates_to_exclude: List[str] = []
 
     @pytest.mark.parametrize(
         "initial_gate,tested_gate,target_amplitudes",

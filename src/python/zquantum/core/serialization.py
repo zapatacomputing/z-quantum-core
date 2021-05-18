@@ -2,15 +2,16 @@
 import json
 from numbers import Number
 from operator import attrgetter
-from typing import Any, Iterator
+from typing import Any, Iterator, Dict, Callable
+
 import numpy as np
 from scipy.optimize import OptimizeResult
 
-from .interfaces.optimizer import optimization_result
-from .history.recorder import HistoryEntry, HistoryEntryWithArtifacts
 from .bitstring_distribution import BitstringDistribution, is_bitstring_distribution
-from .utils import convert_array_to_dict, ValueEstimate, SCHEMA_VERSION
+from .history.recorder import HistoryEntry, HistoryEntryWithArtifacts
+from .interfaces.optimizer import optimization_result
 from .typing import AnyPath
+from .utils import SCHEMA_VERSION, ValueEstimate, convert_array_to_dict
 
 
 def has_numerical_keys(dictionary):
@@ -18,7 +19,8 @@ def has_numerical_keys(dictionary):
 
 
 def preprocess(tree):
-    """This inflates namedtuples into dictionaries, otherwise they would be serialized as lists.
+    """This inflates namedtuples into dictionaries, otherwise they would be serialized
+    as lists.
 
     KJ: I found initial version of this code a while ago in a related SO question:
     https://stackoverflow.com/questions/43913256/understanding-subclassing-of-jsonencoder
@@ -38,7 +40,7 @@ def preprocess(tree):
 
 
 class OrquestraEncoder(json.JSONEncoder):
-    ENCODERS_TABLE = {
+    ENCODERS_TABLE: Dict[Any, Callable[[Any], Any]] = {
         np.ndarray: convert_array_to_dict,
         ValueEstimate: ValueEstimate.to_dict,
         BitstringDistribution: attrgetter("distribution_dict"),
@@ -52,7 +54,7 @@ class OrquestraEncoder(json.JSONEncoder):
     def encode(self, o: Any):
         return super().encode(preprocess(o))
 
-    def iterencode(self, o: Any, _one_shot: bool = ...) -> Iterator[str]:
+    def iterencode(self, o: Any, _one_shot: bool = False) -> Iterator[str]:
         return super().iterencode(preprocess(o))
 
 

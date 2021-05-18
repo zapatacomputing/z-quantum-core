@@ -19,23 +19,21 @@
 Translates OpenFermion Objects to qiskit WeightedPauliOperator objects
 """
 from openfermion import QubitOperator, count_qubits
-from typing import Union
 from qiskit.aqua.operators import WeightedPauliOperator
 from qiskit.quantum_info import Pauli
 
 
 def qubitop_to_qiskitpauli(qubit_operator: QubitOperator) -> WeightedPauliOperator:
-    """
-    Convert a OpenFermion QubitOperator to a WeightedPauliOperator.
+    """Convert a OpenFermion QubitOperator to a WeightedPauliOperator.
 
     Args:
-        qubit_operator: OpenFermion QubitOperator to convert to a qiskit.aqua.operators.WeightedPauliOperator
+        qubit_operator: OpenFermion QubitOperator to convert
 
     Returns:
         WeightedPauliOperator representing the qubit operator
     """
     if not isinstance(qubit_operator, QubitOperator):
-        raise TypeError("qubit_operator must be a OpenFermion " "QubitOperator object")
+        raise TypeError("qubit_operator must be an OpenFermion QubitOperator object")
 
     terms = []
     for qubit_terms, coefficient in qubit_operator.terms.items():
@@ -50,12 +48,10 @@ def qubitop_to_qiskitpauli(qubit_operator: QubitOperator) -> WeightedPauliOperat
 
 
 def qiskitpauli_to_qubitop(qiskit_pauli: WeightedPauliOperator) -> QubitOperator:
-    """
-    Convert a qiskit's qiskit.aqua.operators.WeightedPauliOperator to a OpenFermion QubitOperator.
+    """Convert a qiskit's WeightedPauliOperator to an OpenFermion QubitOperator.
 
     Args:
-        qiskit_pauli: WeightedPauliOperator to convert to an
-    OpenFermion QubitOperator
+        qiskit_pauli: operator to convert
 
     Returns:
         QubitOperator representing the WeightedPauliOperator

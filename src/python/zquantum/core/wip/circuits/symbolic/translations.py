@@ -1,8 +1,9 @@
 """Utilities related to translation of symbolic expressions."""
 from functools import singledispatch
 from numbers import Number
-from typing import Union, Tuple, Iterable
-from .expressions import Expression, Symbol, FunctionCall, ExpressionDialect
+from typing import Iterable, Tuple, Union
+
+from .expressions import Expression, ExpressionDialect, FunctionCall, Symbol
 
 
 @singledispatch

@@ -1,12 +1,13 @@
-import networkx as nx
 import json
-from itertools import combinations
 import random
-from random import uniform, normalvariate, choice
-from .utils import SCHEMA_VERSION
-from typing import TextIO, Optional, Union
+from random import uniform, choice, normalvariate
+from typing import Optional, Union
 import ast
-from zquantum.core.typing import LoadSource, AnyPath
+
+import networkx as nx
+from zquantum.core.typing import AnyPath, LoadSource
+
+from .utils import SCHEMA_VERSION
 
 
 def save_graph(graph: nx.Graph, filename: AnyPath):
@@ -95,7 +96,7 @@ def generate_random_graph_erdos_renyi(
             By default False, i.e. all the edge weights are set to 1.
             More details on how to specify random distributions in weight_graph_edges()
 
-    
+
     Returns:
         A networkx.Graph object
     """
@@ -123,7 +124,7 @@ def generate_random_regular_graph(
             Flag indicating whether the weights should be random or constant.
             By default False, i.e. all the edge weights are set to 1.
             More details on how to specify random distributions in weight_graph_edges()
-    
+
     Returns:
         A networkx.Graph object
     """
@@ -177,7 +178,7 @@ def weight_graph_edges(
             if False (default) static weights, i.e. equal to 1.0
             if True weights are drawn from uniform(0,1)
             if a string it will be used when generating random values for the weights
-    
+
     Returns:
         A networkx.Graph object
     """
@@ -204,12 +205,12 @@ def generate_graph_from_specs(graph_specs: dict) -> nx.Graph:
 
     Args:
         graph_specs: dictionnary
-            Specifications of the graph to generate. It should contain at 
+            Specifications of the graph to generate. It should contain at
             least an entry with key 'type' and one with num_nodes.
             Note that some of the entries are processed using generate_random_value_from_string()
             i.e. they could contain a value (int or float) which will be untouched
             or a string specifying how the value should be randomly generated
-    
+
     Returns:
         A networkx.Graph object
     """
@@ -258,18 +259,18 @@ def generate_graph_from_specs(graph_specs: dict) -> nx.Graph:
 def generate_random_value_from_string(
     specs: Union[str, int, float]
 ) -> Union[int, float]:
-    """ Generate values (int or float) from a string specifying how the value
-    should be generated. If an int or float is passed as an input they will be 
+    """Generate values (int or float) from a string specifying how the value
+    should be generated. If an int or float is passed as an input they will be
     returned as an output.
 
     Args:
         random_string: string
-            Specifications of the random value to generate. 
-            of the form: type-randomness_arg0_arg1_.._argN                
-            
+            Specifications of the random value to generate.
+            of the form: type-randomness_arg0_arg1_.._argN
+
     Returns:
-        A int or float value (the type will depend on the specs, 
-        E.g. generate_random_value_from_string('choice_5_6_7') will return an int 
+        A int or float value (the type will depend on the specs,
+        E.g. generate_random_value_from_string('choice_5_6_7') will return an int
         while generate_random_value_from_string('choice_5._6._7.')  will return
         a float)
     """

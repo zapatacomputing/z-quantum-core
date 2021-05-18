@@ -439,7 +439,9 @@ class TestOtherUtils(unittest.TestCase):
 
     def test_remove_inactive_orbitals(self):
         fermion_ham = load_interaction_operator(
-            pkg_resources.resource_filename("zquantum.core.testing", "hamiltonian_HeH_plus_STO-3G.json")
+            pkg_resources.resource_filename(
+                "zquantum.core.testing", "hamiltonian_HeH_plus_STO-3G.json"
+            )
         )
         frozen_ham = remove_inactive_orbitals(fermion_ham, 1, 1)
         self.assertEqual(frozen_ham.one_body_tensor.shape[0], 2)

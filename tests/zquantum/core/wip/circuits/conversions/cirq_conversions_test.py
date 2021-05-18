@@ -56,8 +56,8 @@ EQUIVALENT_U3_GATES = [
         (0, 0, np.pi),
         (np.pi / 2, np.pi / 2, np.pi / 2),
         (0.1 * np.pi, 0.5 * np.pi, 0.3 * np.pi),
-        # Below example does not work. Although matrices are the same, the params stored in U3
-        # are different.
+        # Below example does not work. Although matrices are the same, the params stored
+        # in U3 are different.
         # (4.1 * np.pi / 2, 2.5 * np.pi, 3 * np.pi)
     ]
 ]

@@ -25,7 +25,6 @@ from zquantum.core.utils import SCHEMA_VERSION
 
 
 def test_dicts_with_nonnegative_values_are_nonnegative():
-    """The is_non_negative function returns True for dicts with nonnegative values."""
     n_elements = 10
     nonnegative_dict = {i: i + 1 for i in range(n_elements)}
     assert is_non_negative(nonnegative_dict)
@@ -35,42 +34,34 @@ def test_dicts_with_nonnegative_values_are_nonnegative():
     "dictionary", [{i: -i for i in range(10)}, {0: -1, 1: 2, 3: 0}]
 )
 def test_dicts_with_some_negative_values_are_not_nonnegative(dictionary):
-    """The is_non_negative function returns False for dicts with some negative values."""
     assert not is_non_negative(dictionary)
 
 
 def test_if_all_keys_have_the_same_length_the_key_length_is_fixed():
-    """The is_key_length_fixed returns True if all keys have the same length."""
     assert is_key_length_fixed({"abc": 3, "100": 2, "www": 1})
 
 
 def test_if_some_keys_have_different_length_the_key_length_is_not_fixed():
-    """The is_key_length_fixed returns False if some keys have different length."""
     assert not is_key_length_fixed({"a": 3, "10": 2, "www": 1})
 
 
 def test_if_dict_keys_have_only_01_characters_the_keys_are_binary_strings():
-    """The are_keys_binary_strings returns True for binary string keyed dicts."""
     assert are_keys_binary_strings({"100001": 3, "10": 2, "0101": 1})
 
 
 def test_if_dict_keys_have_characters_other_than_01_the_keys_are_not_binary_strings():
-    """The are_keys_binary_strings returns False for non-binary string keyed dicts."""
     assert not are_keys_binary_strings({"abc": 3, "100": 2, "www": 1})
 
 
 def test_dict_with_varying_key_length_is_not_bitstring_distributions():
-    """Dictionaries with varying key length are not bitstring distributions."""
     assert not is_bitstring_distribution({"100001": 3, "10": 2, "0101": 1})
 
 
 def test_dict_with_non_binary_string_key_is_not_bitstring_distribution():
-    """Dictionaries with non 0-1 chars in their keys are not bitstring distributions."""
     assert not is_bitstring_distribution({"abc": 3, "100": 2, "www": 1})
 
 
 def test_dicts_with_binary_keys_and_fixed_key_length_are_bitstring_distributions():
-    """Binary string keyed dictionaries with fixed key length are bitstring distributions."""
     assert is_bitstring_distribution({"100": 3, "110": 2, "010": 1})
 
 
@@ -83,7 +74,6 @@ def test_dicts_with_binary_keys_and_fixed_key_length_are_bitstring_distributions
     ],
 )
 def test_distributions_with_probabilities_summing_to_one_are_normalized(distribution):
-    """Distributions with probabilities summing to one are normalized."""
     assert is_normalized(distribution)
 
 
@@ -98,7 +88,6 @@ def test_distributions_with_probabilities_summing_to_one_are_normalized(distribu
 def test_distributions_with_probabilities_not_summing_to_one_are_not_normalized(
     distribution,
 ):
-    """Distributions with probabilities not summing to one are normalized."""
     assert not is_normalized(distribution)
 
 
@@ -111,7 +100,6 @@ def test_distributions_with_probabilities_not_summing_to_one_are_not_normalized(
     ],
 )
 def test_normalizing_distribution_gives_normalized_distribution(distribution):
-    """Normalizing bitstring distribution returns normalized bitstring distribution."""
     assert not is_normalized(distribution)
     normalize_bitstring_distribution(distribution)
     assert is_normalized(distribution)
@@ -179,7 +167,6 @@ def mock_open():
 def test_saving_bitstring_distribution_opens_file_for_writing_using_context_manager(
     mock_open,
 ):
-    """Saving bitstring distribution opens file for writing using context manager."""
     distribution = BitstringDistribution({"000": 0.1, "111": 0.9})
     save_bitstring_distribution(distribution, "/some/path/to/distribution.json")
 
@@ -191,7 +178,6 @@ def test_saving_bitstring_distribution_opens_file_for_writing_using_context_mana
 def test_saving_bitstring_distribution_set_opens_file_for_writing_using_context_manager(
     mock_open,
 ):
-    """Saving bitstring distribution set opens file for writing using context manager."""
     distributions = [
         BitstringDistribution({"000": 0.1, "111": 0.9}),
         BitstringDistribution({"01000": 0.5, "10110": 0.5}),
@@ -221,7 +207,6 @@ def test_saving_bitstring_distribution_writes_correct_json_data_to_file(mock_ope
 
 
 def test_saving_bitstring_distribution_set_writes_correct_json_data_to_file(mock_open):
-    """Saving bitstring distribution set writes correct list of json dictionaries to file."""
     distributions = [
         BitstringDistribution({"000": 0.1, "111": 0.9}),
         BitstringDistribution({"01000": 0.5, "10110": 0.5}),
@@ -242,8 +227,7 @@ def test_saving_bitstring_distribution_set_writes_correct_json_data_to_file(mock
     assert json.loads(written_data) == expected_dict
 
 
-def test_saved_bitstring_distribution_can_be_loaded(mock_open):
-    """Saved bitstring distribution can be loaded to obtain the same distribution."""
+def test_saved_bitstring_distribution_can_be_loaded_back(mock_open):
     fake_file = StringIO()
     mock_open().__enter__.return_value = fake_file
     dist = BitstringDistribution({"000": 0.1, "111": 0.9})
@@ -261,7 +245,6 @@ def test_saved_bitstring_distribution_can_be_loaded(mock_open):
 
 
 def test_saved_bitstring_distribution_set_can_be_loaded(mock_open):
-    """Saved bitstring distribution set can be loaded to obtain the same distribution set."""
     fake_file = StringIO()
     mock_open().__enter__.return_value = fake_file
     distributions = [
@@ -307,13 +290,11 @@ def test_saved_bitstring_distribution_set_can_be_loaded(mock_open):
     ],
 )
 def test_bitstring_distribution_gets_normalized_by_default(distribution):
-    """Constructing bitstring distribution normalizes it by default."""
     distribution = BitstringDistribution(distribution)
     assert is_normalized(distribution.distribution_dict)
 
 
-def test_bitstring_distribution_keeps_original_dict_if_normalization_should_not_be_performed():
-    """Bistring distribution keeps original dict if normalization is not requested."""
+def test_bitstring_distribution_keeps_original_dict_if_normalization_isnt_requested():
     distribution_dict = {"000": 0.1, "111": 9}
     distribution = BitstringDistribution({"000": 0.1, "111": 9}, normalize=False)
     assert distribution.distribution_dict == distribution_dict
@@ -330,5 +311,4 @@ def test_bitstring_distribution_keeps_original_dict_if_normalization_should_not_
 def test_number_of_qubits_in_bitstring_distribution_equals_length_of_keys(
     distribution, num_qubits
 ):
-    """Number of qubits of bitstring distribution is equal to length of keys of distribution."""
     assert distribution.get_qubits_number() == num_qubits

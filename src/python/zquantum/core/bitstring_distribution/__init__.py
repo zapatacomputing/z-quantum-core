@@ -19,4 +19,4 @@ from .distance_measures import (
     compute_multi_rbf_kernel,
     compute_rbf_kernel,
 )
-import math # This is needed for tests to work because of monkey patching
+import math  # This is needed for tests to work because of monkey patching

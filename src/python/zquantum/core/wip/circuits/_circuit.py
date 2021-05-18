@@ -1,6 +1,6 @@
 import operator
 from functools import reduce, singledispatch
-from typing import Any, Dict, Iterable, Optional, Union
+from typing import Any, Dict, Iterable, List, Optional, Union
 
 import numpy as np
 import sympy
@@ -55,20 +55,26 @@ class Circuit:
         return self._operations
 
     @property
-    def n_qubits(self):
+    def n_qubits(self) -> int:
         """Number of qubits in this circuit.
         Not every qubit has to be used by a gate.
         """
         return self._n_qubits
 
     @property
-    def free_symbols(self):
-        """Set of all the sympy symbols used as params of gates in the circuit."""
-        return reduce(
-            set.union,
-            (operation.gate.free_symbols for operation in self._operations),
-            set(),
-        )
+    def free_symbols(self) -> List[sympy.Symbol]:
+        """Set of all the sympy symbols used as params of gates in the circuit.
+        The output list is sorted based on the order of appearance
+        in `self._operations`."""
+        seen_symbols = set()
+        symbols_sequence = []
+        for operation in self._operations:
+            for symbol in operation.gate.free_symbols:
+                if symbol not in seen_symbols:
+                    seen_symbols.add(symbol)
+                    symbols_sequence.append(symbol)
+
+        return symbols_sequence
 
     def __eq__(self, other: object):
         if not isinstance(other, type(self)):
@@ -77,12 +83,9 @@ class Circuit:
         if self.n_qubits != other.n_qubits:
             return False
 
-        if list(self.operations) != list(other.operations):
-            return False
+        return list(self.operations) == list(other.operations)
 
-        return True
-
-    def __add__(self, other: Union["Circuit"]):
+    def __add__(self, other: Union["Circuit", _gates.GateOperation]):
         return _append_to_circuit(other, self)
 
     def collect_custom_gate_definitions(self) -> Iterable[_gates.CustomGateDefinition]:

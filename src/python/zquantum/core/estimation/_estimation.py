@@ -1,11 +1,10 @@
-from typing import List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 import sympy
 from openfermion import IsingOperator, QubitOperator
 
-from ..hamiltonian import (estimate_nmeas_for_frames,
-                           group_comeasureable_terms_greedy)
+from ..hamiltonian import estimate_nmeas_for_frames, group_comeasureable_terms_greedy
 from ..interfaces.backend import QuantumBackend, QuantumSimulator
 from ..interfaces.estimation import EstimationTask
 from ..measurement import ExpectationValues, expectation_values_to_real
@@ -172,7 +171,7 @@ def allocate_shots_proportionally(
 
 def evaluate_estimation_circuits(
     estimation_tasks: List[EstimationTask],
-    symbols_maps: List[List[Tuple[sympy.Basic, float]]],
+    symbols_maps: Dict[sympy.Symbol, float],
 ) -> List[EstimationTask]:
     """Evaluates circuits given in all estimation tasks using the given symbols_maps.
 

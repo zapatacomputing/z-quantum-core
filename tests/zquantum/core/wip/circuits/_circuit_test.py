@@ -54,12 +54,15 @@ def test_creating_circuit_has_correct_operations():
     assert circuit.operations == list(EXAMPLE_OPERATIONS)
 
 
-@pytest.mark.parametrize("circuit", [
-    Circuit(),
-    Circuit([]),
-    Circuit([H(0)]),
-    Circuit([H(0)], 5),
-])
+@pytest.mark.parametrize(
+    "circuit",
+    [
+        Circuit(),
+        Circuit([]),
+        Circuit([H(0)]),
+        Circuit([H(0)], 5),
+    ],
+)
 def test_printing_circuit_doesnt_raise_exception(circuit):
     str(circuit)
     repr(circuit)
@@ -143,7 +146,7 @@ class TestBindingParams:
         )
 
         bound_circuit = circuit.bind({theta1: 0.5, theta3: 3.14})
-        assert bound_circuit.free_symbols == {theta2}
+        assert bound_circuit.free_symbols == [theta2]
 
     def test_binding_excessive_params_binds_only_the_existing_ones(self):
         theta1, theta2, theta3 = sympy.symbols("theta1:4")
@@ -158,4 +161,4 @@ class TestBindingParams:
         )
 
         bound_circuit = circuit.bind({theta1: -np.pi, other_param: 42})
-        assert bound_circuit.free_symbols == {theta2, theta3}
+        assert bound_circuit.free_symbols == [theta2, theta3]

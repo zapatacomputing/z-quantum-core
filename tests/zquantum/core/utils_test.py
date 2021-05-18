@@ -7,7 +7,6 @@ import numpy as np
 import pkg_resources
 import pytest
 import sympy
-from types import FunctionType
 from scipy.stats import unitary_group
 from zquantum.core.openfermion import load_interaction_operator
 from zquantum.core.utils import (
@@ -255,7 +254,7 @@ class TestUtils:
         }
         # When
         with pytest.raises(ValueError):
-            function = create_object(specs, x=data)
+            _ = create_object(specs, x=data)
 
     def test_save_generic_dict(self):
         data = {"flavor": "chocolate", "weight": 42}
@@ -298,7 +297,7 @@ class TestUtils:
             )
 
         # When
-        noise_model = load_noise_model(filename)
+        _ = load_noise_model(filename)
 
         # Then
         remove_file_if_exists(filename)
@@ -376,7 +375,7 @@ class TestUtils:
         remove_file_if_exists("hamiltonian_analysis.json")
 
 
-def test_arithmetic_on_value_estimate_and_float_gives_the_same_result_as_arithmetic_on_two_floats():
+def test_arithmetic_on_estimate_and_float_gives_same_result_as_for_two_floats():
     value = 5.1
     estimate = ValueEstimate(value, precision=None)
     other = 3.4
@@ -391,8 +390,9 @@ def test_value_estimate_with_no_precision_is_equivalent_to_its_raw_value():
     value = 6.193
     estimate = ValueEstimate(value)
 
-    # Note that it is not that obvious that this comparison is symmetric, since we override
-    # the __eq__ method in ValueEstimate. The same goes about __ne__ method in the next test.
+    # Note that it is not that obvious that this comparison is symmetric, since we
+    # override the __eq__ method in ValueEstimate. The same goes about __ne__ method in
+    # the next test.
     assert value == estimate
     assert estimate == value
 

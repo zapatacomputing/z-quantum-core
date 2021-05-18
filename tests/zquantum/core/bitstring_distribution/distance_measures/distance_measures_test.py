@@ -6,17 +6,16 @@ from zquantum.core.bitstring_distribution._bitstring_distribution import (
     BitstringDistribution,
     evaluate_distribution_distance,
 )
-from zquantum.core.bitstring_distribution.distance_measures.clipped_negative_log_likelihood import (
+from zquantum.core.bitstring_distribution.distance_measures.clipped_negative_log_likelihood import (  # noqa: E501
     compute_clipped_negative_log_likelihood,
 )
-from zquantum.core.bitstring_distribution.distance_measures.jensen_shannon_divergence import (
+from zquantum.core.bitstring_distribution.distance_measures.jensen_shannon_divergence import (  # noqa: E501
     compute_jensen_shannon_divergence,
 )
 from zquantum.core.bitstring_distribution.distance_measures.mmd import compute_mmd
 
 
 def test_clipped_negative_log_likelihood_is_computed_correctly():
-    """Clipped negative log likelihood between distributions is computed correctly."""
     target_distr = BitstringDistribution({"000": 0.5, "111": 0.5})
     measured_dist = BitstringDistribution({"000": 0.1, "111": 0.9})
     distance_measure_params = {"epsilon": 0.1}
@@ -28,7 +27,6 @@ def test_clipped_negative_log_likelihood_is_computed_correctly():
 
 
 def test_uses_epsilon_instead_of_zero_in_target_distribution():
-    """Computing clipped negative log likelihood uses epsilon instead of zeros in log."""
     log_spy = mock.Mock(wraps=math.log)
     with mock.patch("zquantum.core.bitstring_distribution.math.log", log_spy):
         target_distr = BitstringDistribution({"000": 0.5, "111": 0.4, "010": 0.0})
@@ -51,7 +49,11 @@ def test_uses_epsilon_instead_of_zero_in_target_distribution():
             {"sigma": 0.5},
             0.32000000000000006,
         ),
-        (BitstringDistribution({"000": 0.5, "111": 0.5}), {"sigma": 1}, 0.00,),
+        (
+            BitstringDistribution({"000": 0.5, "111": 0.5}),
+            {"sigma": 1},
+            0.00,
+        ),
         (
             BitstringDistribution({"000": 0.5, "111": 0.5}),
             {"sigma": [1, 0.5, 2]},
@@ -62,7 +64,8 @@ def test_uses_epsilon_instead_of_zero_in_target_distribution():
 def test_gaussian_mmd_is_computed_correctly(
     measured_dist, distance_measure_params, expected_mmd
 ):
-    """Maximum mean discrepancy (MMD) with gaussian kernel between distributions is computed correctly."""
+    """Maximum mean discrepancy (MMD) with gaussian kernel between distributions is
+    computed correctly."""
     target_distr = BitstringDistribution({"000": 0.5, "111": 0.5})
     mmd = compute_mmd(target_distr, measured_dist, distance_measure_params)
 
@@ -72,7 +75,10 @@ def test_gaussian_mmd_is_computed_correctly(
 @pytest.mark.parametrize(
     "distance_measure_function, expected_default_values",
     [
-        (compute_mmd, {"sigma": 1.0},),
+        (
+            compute_mmd,
+            {"sigma": 1.0},
+        ),
         (compute_clipped_negative_log_likelihood, {"epsilon": 1e-9}),
         (compute_jensen_shannon_divergence, {"epsilon": 1e-9}),
     ],
@@ -80,7 +86,6 @@ def test_gaussian_mmd_is_computed_correctly(
 def test_distance_measure_default_parameters_are_set_correctly(
     distance_measure_function, expected_default_values
 ):
-    """Default values of distance measure parameters are set correctly."""
     target_distr = BitstringDistribution({"000": 0.5, "111": 0.5})
     measured_distr = BitstringDistribution({"000": 0.1, "111": 0.9})
     distance = distance_measure_function(target_distr, measured_distr, {})
@@ -108,7 +113,6 @@ def test_distance_measure_default_parameters_are_set_correctly(
 def test_distribution_distance_can_be_evaluated_only_for_bitstring_distributions(
     target_cls, measured_cls, distance_measure
 ):
-    """Distribution distance can be evaluated only if both arguments are bitstring distributions."""
     target = target_cls({"0": 10, "1": 5})
     measured = measured_cls({"0": 10, "1": 5})
 
@@ -117,12 +121,16 @@ def test_distribution_distance_can_be_evaluated_only_for_bitstring_distributions
 
 
 @pytest.mark.parametrize(
-    "distance_measure", [compute_clipped_negative_log_likelihood, compute_mmd, compute_jensen_shannon_divergence],
+    "distance_measure",
+    [
+        compute_clipped_negative_log_likelihood,
+        compute_mmd,
+        compute_jensen_shannon_divergence,
+    ],
 )
 def test_distribution_distance_cannot_be_evaluated_if_supports_are_incompatible(
     distance_measure,
 ):
-    """Distribution distance can be evaluated only if arguments have compatible support."""
     target = BitstringDistribution({"0": 10, "1": 5})
     measured = BitstringDistribution({"00": 10, "10": 5})
 
@@ -141,15 +149,15 @@ def test_distribution_distance_cannot_be_evaluated_if_supports_are_incompatible(
         (False, True, compute_jensen_shannon_divergence),
     ],
 )
-def test_distribution_distance_cannot_be_computed_if_distributions_differ_in_normalization(
+def test_distribution_distance_cant_be_computed_if_only_one_distribution_is_normalized(
     normalize_target, normalize_measured, distance_measure
 ):
-    """Distribution distance cannot be computed if only one distribution is normalized."""
     target = BitstringDistribution({"0": 10, "1": 5}, normalize_target)
     measured = BitstringDistribution({"0": 10, "1": 5}, normalize_measured)
 
     with pytest.raises(RuntimeError):
         evaluate_distribution_distance(target, measured, distance_measure)
+
 
 def test_jensen_shannon_divergence_is_computed_correctly():
     """jensen shannon divergence between distributions is computed correctly."""
@@ -161,18 +169,3 @@ def test_jensen_shannon_divergence_is_computed_correctly():
     )
 
     assert jensen_shannon_divergence == 0.9485599924429406
-
-def test_uses_epsilon_instead_of_zero_in_target_distribution():
-    """Computing jensen shannon divergence uses epsilon instead of zeros in log."""
-    log_spy = mock.Mock(wraps=math.log)
-    with mock.patch("zquantum.core.bitstring_distribution.math.log", log_spy):
-        target_distr = BitstringDistribution({"000": 0.5, "111": 0.4, "010": 0.0})
-        measured_dist = BitstringDistribution({"000": 0.1, "111": 0.9, "010": 0.0})
-        distance_measure_params = {"epsilon": 0.01}
-        compute_jensen_shannon_divergence(
-            target_distr, measured_dist, distance_measure_params
-        )
-
-        log_spy.assert_has_calls(
-            [mock.call(0.1), mock.call(0.9), mock.call(0.01)], any_order=True
-        )

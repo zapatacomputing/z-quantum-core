@@ -214,7 +214,8 @@ class TestGate(unittest.TestCase):
                 recreated_gate_evaluated = recreated_gate.evaluate(symbols_map)
 
                 # Then
-                # There were numerical & sympy related issues when comparing gates directly, so in this case we compare the evaluated forms of the gates.
+                # There were numerical & sympy related issues when comparing gates
+                # directly, so in this case we compare the evaluated forms of the gates.
                 self.assertEqual(gate_evaluated, recreated_gate_evaluated)
 
     def test_qiskit_io_for_symbolic_parameters(self):

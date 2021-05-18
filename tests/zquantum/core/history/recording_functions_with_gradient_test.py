@@ -19,4 +19,6 @@ def test_recorder_propagates_calls_to_wrapped_functions_and_its_gradient(
 ):
     target = recorder(function)
     assert target(params) == function(params)
-    np.testing.assert_array_almost_equal(target.gradient(params), function.gradient(params))
+    np.testing.assert_array_almost_equal(
+        target.gradient(params), function.gradient(params)
+    )

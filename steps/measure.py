@@ -1,7 +1,6 @@
 import json
 from typing import Dict, Optional, Union, List
 import openfermion
-from zquantum.core import estimation
 
 from zquantum.core.bitstring_distribution import save_bitstring_distribution
 from zquantum.core.cost_function import sum_expectation_values
@@ -36,6 +35,7 @@ from zquantum.core.utils import (
     save_list,
     save_nmeas_estimate,
     save_value_estimate,
+    SCHEMA_VERSION,
 )
 
 

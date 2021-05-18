@@ -76,7 +76,7 @@ def generate_graph_node_dict(graph: nx.Graph) -> dict:
 def generate_random_graph_erdos_renyi(
     num_nodes: int,
     probability: float,
-    random_weights: Union[bool, str] = False,
+    weights: str = "static",
     seed: Optional[int] = None,
 ) -> nx.Graph:
     """Randomly generate a graph from Erdos-Renyi ensemble.
@@ -90,9 +90,9 @@ def generate_random_graph_erdos_renyi(
             Number of nodes.
         probability: float
             Probability of two nodes connecting.
-        random_weights: bool or str
-            Flag indicating whether the weights should be random or constant.
-            By default False, i.e. all the edge weights are set to 1.
+        weights: str
+            String indicating how the edge weights should are assigned.
+            By default "static", i.e. all the edge weights are set to 1.
             More details on how to specify random distributions in weight_graph_edges()
 
 
@@ -100,7 +100,7 @@ def generate_random_graph_erdos_renyi(
         A networkx.Graph object
     """
     output_graph = nx.erdos_renyi_graph(n=num_nodes, p=probability, seed=seed)
-    output_graph = weight_graph_edges(output_graph, random_weights, seed)
+    output_graph = weight_graph_edges(output_graph, weights, seed)
 
     return output_graph
 
@@ -108,7 +108,7 @@ def generate_random_graph_erdos_renyi(
 def generate_random_regular_graph(
     num_nodes: int,
     degree: int,
-    random_weights: Union[bool, str] = False,
+    weights: str = "static",
     seed: Optional[int] = None,
 ) -> nx.Graph:
     """Randomly generate a d-regular graph.
@@ -119,16 +119,16 @@ def generate_random_regular_graph(
             Number of nodes.
         degree: int
             Degree of each edge.
-        random_weights: bool or str
-            Flag indicating whether the weights should be random or constant.
-            By default False, i.e. all the edge weights are set to 1.
+        weights: str
+            String indicating how the edge weights should are assigned.
+            By default "static", i.e. all the edge weights are set to 1.
             More details on how to specify random distributions in weight_graph_edges()
 
     Returns:
         A networkx.Graph object
     """
     output_graph = nx.random_regular_graph(d=degree, n=num_nodes, seed=seed)
-    output_graph = weight_graph_edges(output_graph, random_weights, seed)
+    output_graph = weight_graph_edges(output_graph, weights, seed)
 
     return output_graph
 
@@ -136,35 +136,35 @@ def generate_random_regular_graph(
 def generate_caveman_graph(
     number_of_cliques: int,
     size_of_cliques: int,
-    random_weights: bool = False,
+    weights: str = "static",
     seed: Optional[int] = None,
 ) -> nx.Graph:
     output_graph = nx.caveman_graph(number_of_cliques, size_of_cliques)
-    output_graph = weight_graph_edges(output_graph, random_weights, seed)
+    output_graph = weight_graph_edges(output_graph, weights, seed)
     return output_graph
 
 
 def generate_ladder_graph(
-    length_of_ladder: int, random_weights: bool = False, seed: Optional[int] = None
+    length_of_ladder: int, weights: str = "static", seed: Optional[int] = None
 ) -> nx.Graph:
     output_graph = nx.ladder_graph(length_of_ladder)
-    output_graph = weight_graph_edges(output_graph, random_weights, seed)
+    output_graph = weight_graph_edges(output_graph, weights, seed)
     return output_graph
 
 
 def generate_barbell_graph(
     number_of_vertices_complete_graph: int,
-    random_weights: bool = False,
+    weights: str = "static",
     seed: Optional[int] = None,
 ) -> nx.Graph:
     output_graph = nx.barbell_graph(number_of_vertices_complete_graph, 0)
-    output_graph = weight_graph_edges(output_graph, random_weights, seed)
+    output_graph = weight_graph_edges(output_graph, weights, seed)
     return output_graph
 
 
 def weight_graph_edges(
     graph: nx.Graph,
-    random_weights: Union[bool, str] = False,
+    weights: str = "static",
     seed: Optional[int] = None,
 ) -> nx.Graph:
     """Update the weights of all the edges of a graph.
@@ -172,11 +172,10 @@ def weight_graph_edges(
     Args:
         graph: nx.Graph
             The input graph.
-        random_weights: bool or str
-            Flag indicating whether the weights should be random or constant.
-            if False (default) static weights, i.e. equal to 1.0
-            if True weights are drawn from uniform(0,1)
-            if a string it will be used when generating random values for the weights
+        weights: str
+            String indicating how the edge weights should are assigned.
+            By default "static", i.e. all the edge weights are set to 1.
+            More details on how to specify random distributions in weight_graph_edges()
 
     Returns:
         A networkx.Graph object
@@ -184,15 +183,10 @@ def weight_graph_edges(
     assert not (graph.is_multigraph()), "Cannot deal with multigraphs"
     if seed is not None:
         random.seed(seed)
-    if random_weights == True:
-        weighted_edges = [(e[0], e[1], uniform(0, 1)) for e in graph.edges]
-    elif random_weights == False:
-        weighted_edges = [(e[0], e[1], 1.0) for e in graph.edges]
-    else:
-        weighted_edges = [
-            (e[0], e[1], generate_random_value_from_string(random_weights))
-            for e in graph.edges
-        ]
+
+    weighted_edges = [
+        (e[0], e[1], _generate_random_value_from_string(weights)) for e in graph.edges
+    ]
 
     # If edges already present, it will effectively update them (except for multigraph)
     graph.add_weighted_edges_from(weighted_edges)
@@ -206,7 +200,7 @@ def generate_graph_from_specs(graph_specs: dict) -> nx.Graph:
         graph_specs: dictionnary
             Specifications of the graph to generate. It should contain at
             least an entry with key 'type' and one with num_nodes.
-            Note that some of the entries are processed using generate_random_value_from_string()
+            Note that some of the entries are processed using _generate_random_value_from_string()
             i.e. they could contain a value (int or float) which will be untouched
             or a string specifying how the value should be randomly generated
 
@@ -215,7 +209,7 @@ def generate_graph_from_specs(graph_specs: dict) -> nx.Graph:
     """
     type_graph = graph_specs["type_graph"]
     num_nodes = graph_specs["num_nodes"]
-    random_weights = graph_specs.get("random_weights", False)
+    weights = graph_specs.get("weights", "static")
     seed = graph_specs.get("seed", None)
     number_of_cliques = graph_specs.get("number_of_cliques", None)
     size_of_cliques = graph_specs.get("size_of_cliques", None)
@@ -225,37 +219,37 @@ def generate_graph_from_specs(graph_specs: dict) -> nx.Graph:
     )
 
     if type_graph == "erdos_renyi":
-        probability = generate_random_value_from_string(graph_specs["probability"])
-        graph = generate_random_graph_erdos_renyi(
-            num_nodes, probability, random_weights, seed
-        )
+        probability = graph_specs["probability"]
+        if isinstance(probability, str):
+            probability = _generate_random_value_from_string(probability)
+        graph = generate_random_graph_erdos_renyi(num_nodes, probability, weights, seed)
 
     elif type_graph == "regular":
-        degree = generate_random_value_from_string(graph_specs["degree"])
-        graph = generate_random_regular_graph(num_nodes, degree, random_weights, seed)
+        degree = graph_specs["degree"]
+        if isinstance(degree, str):
+            degree = _generate_random_value_from_string(degree)
+        graph = generate_random_regular_graph(num_nodes, degree, weights, seed)
 
     elif type_graph == "complete":
-        graph = generate_random_graph_erdos_renyi(num_nodes, 1.0, random_weights, seed)
+        graph = generate_random_graph_erdos_renyi(num_nodes, 1.0, weights, seed)
 
     elif type_graph == "caveman":
         graph = generate_caveman_graph(
-            number_of_cliques, size_of_cliques, random_weights, seed
+            number_of_cliques, size_of_cliques, weights, seed
         )
 
     elif type_graph == "ladder":
-        graph = generate_ladder_graph(length_of_ladder, random_weights, seed)
+        graph = generate_ladder_graph(length_of_ladder, weights, seed)
 
     elif type_graph == "barbell":
-        graph = generate_barbell_graph(
-            number_of_vertices_complete_graph, random_weights, seed
-        )
+        graph = generate_barbell_graph(number_of_vertices_complete_graph, weights, seed)
     else:
         raise (NotImplementedError("This type of graph is not supported: ", type_graph))
 
     return graph
 
 
-def generate_random_value_from_string(
+def _generate_random_value_from_string(
     specs: Union[str, int, float]
 ) -> Union[int, float]:
     """Generate values (int or float) from a string specifying how the value
@@ -269,38 +263,39 @@ def generate_random_value_from_string(
 
     Returns:
         A int or float value (the type will depend on the specs,
-        E.g. generate_random_value_from_string('choice_5_6_7') will return an int
-        while generate_random_value_from_string('choice_5._6._7.')  will return
+        E.g. _generate_random_value_from_string('choice_5_6_7') will return an int
+        while _generate_random_value_from_string('choice_5._6._7.')  will return
         a float)
     """
-    if type(specs) in [int, float]:
-        return specs
-    else:
-        assert type(specs) is str
-        specs_split = specs.split("_")
-        type_random = specs_split[0]
+    specs_split = specs.split("_")
+    type_random = specs_split[0]
 
-        if type_random == "uniform":
+    if type_random == "static":
+        return 1
+
+    elif type_random == "uniform":
+        min_val = 0
+        max_val = 1
+        if len(specs_split) > 1:
             min_val = ast.literal_eval(specs_split[1])
-            max_val = ast.literal_eval(specs_split[2])
-            value = uniform(min_val, max_val)
+            if len(specs_split) > 2:
+                max_val = ast.literal_eval(specs_split[2])
+        value = uniform(min_val, max_val)
 
-        elif type_random == "uniformrange":
-            range_choice = range(
-                *[ast.literal_eval(split) for split in specs_split[1:]]
-            )
-            value = choice(range_choice)
+    elif type_random == "uniformrange":
+        range_choice = range(*[ast.literal_eval(split) for split in specs_split[1:]])
+        value = choice(range_choice)
 
-        elif type_random == "choice":
-            choices = [ast.literal_eval(split) for split in specs_split[1:]]
-            value = choice(choices)
+    elif type_random == "choice":
+        choices = [ast.literal_eval(split) for split in specs_split[1:]]
+        value = choice(choices)
 
-        elif type_random == "normal":
-            mu = ast.literal_eval(specs_split[1])
-            sigma = ast.literal_eval(specs_split[2])
-            value = normalvariate(mu, sigma)
+    elif type_random == "normal":
+        mu = ast.literal_eval(specs_split[1])
+        sigma = ast.literal_eval(specs_split[2])
+        value = normalvariate(mu, sigma)
 
-        elif type_random == "constant":
-            value = ast.literal_eval(specs_split[1])
+    elif type_random == "constant":
+        value = ast.literal_eval(specs_split[1])
 
-        return value
+    return value

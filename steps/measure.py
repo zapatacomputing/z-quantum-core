@@ -164,7 +164,7 @@ def evaluate_ansatz_based_cost_function(
     else:
         estimation_method = estimate_expectation_values_by_averaging
 
-    cost_function_specs["estimator"] = estimation_method
+    cost_function_specs["estimation_method"] = estimation_method
 
     if estimation_preprocessors_specs is not None:
         cost_function_specs["estimation_preprocessors"] = []

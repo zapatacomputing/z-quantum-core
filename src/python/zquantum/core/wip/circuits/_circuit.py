@@ -63,7 +63,9 @@ class Circuit:
 
     @property
     def free_symbols(self) -> List[sympy.Symbol]:
-        """Set of all the sympy symbols used as params of gates in the circuit."""
+        """Set of all the sympy symbols used as params of gates in the circuit.
+        The output list is sorted based on the order of appearance
+        in `self._operations`."""
         seen_symbols = set()
         symbols_sequence = []
         for operation in self._operations:

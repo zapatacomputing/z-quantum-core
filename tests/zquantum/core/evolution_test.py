@@ -192,7 +192,7 @@ class TestGenerateCircuitSequence:
 
         # When/Then
         with pytest.raises(ValueError):
-            sequence = _generate_circuit_sequence(
+            _ = _generate_circuit_sequence(
                 repeated_circuit, different_circuit, length, position
             )
 

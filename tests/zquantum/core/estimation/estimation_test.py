@@ -3,9 +3,8 @@ import pytest
 import sympy
 from openfermion import IsingOperator, QubitOperator, qubit_operator_sparse
 from pyquil import Program
-from pyquil.gates import RX, RY, RZ, X, Y
+from pyquil.gates import RX, RY, RZ, X
 from functools import partial
-from zquantum.core import estimation
 from zquantum.core.circuit import Circuit, Qubit, Gate
 from zquantum.core.interfaces.mock_objects import (
     MockQuantumBackend,
@@ -215,7 +214,7 @@ class TestEstimatorUtils:
     ):
         estimation_tasks = []
         with pytest.raises(ValueError):
-            allocate_shots = allocate_shots_proportionally(
+            _ = allocate_shots_proportionally(
                 estimation_tasks, total_n_shots, prior_expectation_values
             )
 
@@ -382,6 +381,6 @@ class TestBasicEstimationMethods:
     ):
         backend = MockQuantumBackend()
         with pytest.raises(AttributeError):
-            expectation_values_list = calculate_exact_expectation_values(
+            _ = calculate_exact_expectation_values(
                 backend, estimation_tasks
             )

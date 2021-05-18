@@ -130,7 +130,7 @@ class TestOptimizeParamterizedCircuit:
         estimation_preprocessors_specs = [
             (
                 '{"module_name": "zquantum.core.estimation", "function_name": '
-                '"group_greedily"}',
+                '"group_greedily"}'
             ),
             (
                 '{"module_name": "zquantum.core.estimation", "function_name": '

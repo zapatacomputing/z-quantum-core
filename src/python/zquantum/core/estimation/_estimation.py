@@ -252,8 +252,8 @@ def get_estimation_tasks_to_measure(
             coefficient = e.operator.terms[()]
             full_expectation_values[i] = ExpectationValues(
                 np.asarray([coefficient]),
-                correlations=[np.asarray([0.0])],
-                estimator_covariances=[np.asarray([0.0])],
+                correlations=[np.asarray([[0.0]])],
+                estimator_covariances=[np.asarray([[0.0]])],
             )
         elif e.number_of_shots == 0:
             raise RuntimeError(

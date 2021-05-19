@@ -402,8 +402,8 @@ class TestEstimatorUtils:
                     None,
                     ExpectationValues(
                         np.asarray([4.0]),
-                        correlations=[np.asarray([0.0])],
-                        estimator_covariances=[np.asarray([0.0])],
+                        correlations=[np.asarray([[0.0]])],
+                        estimator_covariances=[np.asarray([[0.0]])],
                     ),
                     None,
                 ],
@@ -438,8 +438,8 @@ class TestEstimatorUtils:
                 [
                     ExpectationValues(
                         np.asarray([-3.0]),
-                        correlations=[np.asarray([0.0])],
-                        estimator_covariances=[np.asarray([0.0])],
+                        correlations=[np.asarray([[0.0]])],
+                        estimator_covariances=[np.asarray([[0.0]])],
                     ),
                     None,
                     None,

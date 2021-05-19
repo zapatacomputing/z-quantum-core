@@ -1,6 +1,7 @@
 import json
-from typing import Dict, Optional, Union
+from typing import Dict, Optional, Union, List
 import openfermion
+from zquantum.core import estimation
 
 from zquantum.core.bitstring_distribution import save_bitstring_distribution
 from zquantum.core.cost_function import sum_expectation_values
@@ -21,6 +22,7 @@ from zquantum.core.measurement import (
     save_expectation_values,
     Measurements,
 )
+from zquantum.core.estimation import estimate_expectation_values_by_averaging
 from zquantum.core.openfermion import (
     load_interaction_rdm,
     load_qubit_operator,
@@ -117,14 +119,19 @@ def evaluate_ansatz_based_cost_function(
     backend_specs: Specs,
     cost_function_specs: Specs,
     ansatz_parameters: str,
-    qubit_operator: str,
+    target_operator: Union[str, openfermion.SymbolicOperator],
+    estimation_method_specs: Optional[Specs] = None,
+    estimation_preprocessors_specs: Optional[List[Specs]] = None,
     noise_model: Optional[str] = None,
     device_connectivity: Optional[str] = None,
     prior_expectation_values: Optional[str] = None,
 ):
     ansatz_parameters = load_circuit_template_params(ansatz_parameters)
     # Load qubit op
-    operator = load_qubit_operator(qubit_operator)
+    if isinstance(target_operator, str):
+        operator = load_qubit_operator(target_operator)
+    else:
+        operator = target_operator
     if isinstance(ansatz_specs, str):
         ansatz_specs = json.loads(ansatz_specs)
     if ansatz_specs["function_name"] == "QAOAFarhiAnsatz":
@@ -146,19 +153,27 @@ def evaluate_ansatz_based_cost_function(
     if isinstance(cost_function_specs, str):
         cost_function_specs = json.loads(cost_function_specs)
 
+    if (
+        "estimator-specs" in cost_function_specs.keys()
+        or "estimation-tasks-transformations-specs" in cost_function_specs.keys()
+    ):
+        raise RuntimeError(
+            "Estimation-related specs should be separate arguments and not in cost_function_specs"
+        )
+
     if prior_expectation_values is not None:
         if isinstance(prior_expectation_values, str):
             prior_expectation_values = load_expectation_values(prior_expectation_values)
 
-    estimator_specs = cost_function_specs.pop("estimator-specs", None)
-    if estimator_specs is not None:
-        if isinstance(estimator_specs, str):
-            estimator_specs = json.loads(estimator_specs)
-        cost_function_specs["estimator"] = create_object(estimator_specs)
+    if estimation_method_specs is not None:
+        if isinstance(estimation_method_specs, str):
+            estimation_method_specs = json.loads(estimation_method_specs)
+        estimation_method = create_object(estimation_method_specs)
+    else:
+        estimation_method = estimate_expectation_values_by_averaging
 
-    estimation_preprocessors_specs = cost_function_specs.pop(
-        "estimation-tasks-transformations-specs", None
-    )
+    cost_function_specs["estimation_method"] = estimation_method
+
     if estimation_preprocessors_specs is not None:
         cost_function_specs["estimation_preprocessors"] = []
         for estimation_tasks_transformation_specs in estimation_preprocessors_specs:

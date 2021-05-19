@@ -18,7 +18,11 @@ from .interfaces.functions import (
 from .circuit import combine_ansatz_params, Circuit
 from .gradients import finite_differences_gradient
 from .utils import create_symbols_map, ValueEstimate
-from .measurement import ExpectationValues, expectation_values_to_real, concatenate_expectation_values
+from .measurement import (
+    ExpectationValues,
+    expectation_values_to_real,
+    concatenate_expectation_values,
+)
 from typing import Optional, Callable, List, Any, Union
 import numpy as np
 import sympy

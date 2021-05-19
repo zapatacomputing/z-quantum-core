@@ -172,6 +172,14 @@ def evaluate_ansatz_based_cost_function(
     if isinstance(cost_function_specs, str):
         cost_function_specs = json.loads(cost_function_specs)
 
+    if (
+        "estimator-specs" in cost_function_specs.keys()
+        or "estimation-tasks-transformations-specs" in cost_function_specs.keys()
+    ):
+        raise RuntimeError(
+            "Estimation-related specs should be separate arguments and not in cost_function_specs"
+        )
+
     if prior_expectation_values is not None:
         if isinstance(prior_expectation_values, str):
             prior_expectation_values = load_expectation_values(prior_expectation_values)

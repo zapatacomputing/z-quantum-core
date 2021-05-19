@@ -107,8 +107,8 @@ def test_sample_from_wavefunction():
         bitstring = format(num, "b")
         while len(bitstring) < len(wavefunction):
             bitstring = "0" + bitstring
-        # NOTE: our indexing places the state of qubit i at the ith index of the tuple. Hence |01> will result in
-        # the tuple (1, 0)
+        # NOTE: our indexing places the state of qubit i at the ith index of the tuple.
+        # Hence |01> will result in the tuple (1, 0)
         bitstring = bitstring[::-1]
         measurement = convert_bitstrings_to_tuples([bitstring])[0]
         sampled_probabilities.append(sampled_dict[measurement] / 10000)
@@ -120,8 +120,8 @@ def test_sample_from_wavefunction():
 
 def test_sample_from_wavefunction_column_vector():
     n_qubits = 4
-    # NOTE: our indexing places the state of qubit i at the ith index of the tuple. Hence |01> will result in
-    # the tuple (1, 0)
+    # NOTE: our indexing places the state of qubit i at the ith index of the tuple.
+    # Hence |01> will result in the tuple (1, 0)
     expected_bitstring = (1, 0, 0, 0)
     amplitudes = np.array([0] * (2 ** n_qubits)).reshape(2 ** n_qubits, 1)
     amplitudes[1] = 1  # |0001> will be measured in all cases.
@@ -133,8 +133,8 @@ def test_sample_from_wavefunction_column_vector():
 
 def test_sample_from_wavefunction_row_vector():
     n_qubits = 4
-    # NOTE: our indexing places the state of qubit i at the ith index of the tuple. Hence |01> will result in
-    # the tuple (1, 0)
+    # NOTE: our indexing places the state of qubit i at the ith index of the tuple.
+    # Hence |01> will result in the tuple (1, 0)
     expected_bitstring = (1, 0, 0, 0)
     amplitudes = np.array([0] * (2 ** n_qubits))
     amplitudes[1] = 1  # |0001> will be measured in all cases.
@@ -146,8 +146,8 @@ def test_sample_from_wavefunction_row_vector():
 
 def test_sample_from_wavefunction_list():
     n_qubits = 4
-    # NOTE: our indexing places the state of qubit i at the ith index of the tuple. Hence |01> will result in
-    # the tuple (1, 0)
+    # NOTE: our indexing places the state of qubit i at the ith index of the tuple.
+    # Hence |01> will result in the tuple (1, 0)
     expected_bitstring = (1, 0, 0, 0)
     amplitudes = [0] * (2 ** n_qubits)
     amplitudes[1] = 1  # |0001> will be measured in all cases.
@@ -788,7 +788,7 @@ class TestMeasurements:
             ),
         ],
     )
-    def test_get_measurements_representing_distribution_correctly_samples_leftover_bitstrings(
+    def test_get_measurements_samples_correctly_leftover_bitstrings(
         self, bitstring_distribution, number_of_samples, expected_counts
     ):
         random.seed(RNDSEED)
@@ -797,7 +797,7 @@ class TestMeasurements:
         )
         assert measurements.get_counts() == expected_counts
 
-    def test_get_measurements_representing_distribution_randomly_samples_leftover_bitstrings_when_probabilities_equal(
+    def test_get_measurements_samples_correctly_leftover_bitstrings_for_equal_probas(
         self,
     ):
         random.seed(RNDSEED)

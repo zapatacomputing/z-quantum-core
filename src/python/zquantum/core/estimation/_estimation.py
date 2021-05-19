@@ -171,7 +171,7 @@ def allocate_shots_proportionally(
 
 def evaluate_estimation_circuits(
     estimation_tasks: List[EstimationTask],
-    symbols_maps: Dict[sympy.Symbol, float],
+    symbols_maps: List[Dict[sympy.Symbol, float]],
 ) -> List[EstimationTask]:
     """Evaluates circuits given in all estimation tasks using the given symbols_maps.
 

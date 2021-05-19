@@ -219,6 +219,57 @@ def evaluate_estimation_circuits(
     ]
 
 
+def get_estimation_tasks_to_measure(
+    estimation_tasks: List[EstimationTask],
+) -> Tuple[List[EstimationTask], List[int], List[ExpectationValues]]:
+    """This function returns a list of circuits that should actually be sent to the
+    backend. It filters out EstimationTasks that only contain a constant and those
+    that require 0 shot generate an error.
+
+    Args:
+        estimation_tasks (List[EstimationTask]): The list of estimation tasks for which
+                         Expectation Values are wanted.
+
+    Returns:
+        estimation_tasks_to_measure (List[Circuit]): A new list of estimation tasks that only
+                                     contains the ones that should actually be submitted to the
+                                     backend
+        indices_to_measure (List[int]): A list containing the indices of the EstimationTasks we will
+                            actually measure. This tells us where to store the expectation values of
+                            estimation_tasks_to_measure, i.e. the ith estimation_tasks_to_measure
+                            expectation values will go into full_expectation_values[indices_to_measure[i]]
+        full_expectation_values (List[ExpectationValues]): A list of len(estimation_tasks) elements.
+                                 All values are None except for EstimationTasks that
+                                 only contain a constant term, in which case the Expectation
+                                 Values are returned in the appropriate position.
+    """
+
+    estimation_tasks_to_measure = []
+    full_expectation_values = [None for _ in estimation_tasks]
+    indices_to_measure = []
+    for i, e in enumerate(estimation_tasks):
+        if len(e.operator.terms) == 1 and () in e.operator.terms.keys():
+            coefficient = e.operator.terms[()]
+            full_expectation_values[i] = ExpectationValues(
+                np.asarray([coefficient]),
+                correlations=[np.asarray([0.0])],
+                estimator_covariances=[np.asarray([0.0])],
+            )
+        elif e.number_of_shots == 0:
+            raise RuntimeError(
+                "An EstimationTask requested 0 shot for a non-constant term. It's unclear what the expectation values should be."
+            )
+        else:
+            indices_to_measure.append(i)
+            estimation_tasks_to_measure.append(e)
+
+    return (
+        estimation_tasks_to_measure,
+        indices_to_measure,
+        full_expectation_values,
+    )
+
+
 def estimate_expectation_values_by_averaging(
     backend: QuantumBackend,
     estimation_tasks: List[EstimationTask],
@@ -232,13 +283,23 @@ def estimate_expectation_values_by_averaging(
         backend: backend used for executing circuits
         estimation_tasks: list of estimation tasks
     """
+
+    (
+        estimation_tasks_to_measure,
+        indices_to_measure,
+        full_expectation_values,
+    ) = get_estimation_tasks_to_measure(estimation_tasks)
+
     circuits, operators, shots_per_circuit = zip(
-        *[(e.circuit, e.operator, e.number_of_shots) for e in estimation_tasks]
+        *[
+            (e.circuit, e.operator, e.number_of_shots)
+            for e in estimation_tasks_to_measure
+        ]
     )
 
     measurements_list = backend.run_circuitset_and_measure(circuits, shots_per_circuit)
 
-    expectation_values_list = [
+    measured_expectation_values_list = [
         expectation_values_to_real(
             measurements.get_expectation_values(
                 change_operator_type(frame_operator, IsingOperator)
@@ -247,7 +308,10 @@ def estimate_expectation_values_by_averaging(
         for frame_operator, measurements in zip(operators, measurements_list)
     ]
 
-    return expectation_values_list
+    for i, final_index in enumerate(indices_to_measure):
+        full_expectation_values[final_index] = measured_expectation_values_list[i]
+
+    return full_expectation_values
 
 
 def calculate_exact_expectation_values(

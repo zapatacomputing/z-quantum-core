@@ -42,12 +42,33 @@ EQUIVALENT_PARAMETRIC_GATES = [
     for theta in [0, -1, np.pi / 5, 2 * np.pi]
 ]
 
+EQUIVALENT_U3_GATES = [
+    (
+        _builtin_gates.U3(theta, phi, lambda_),
+        cirq.circuits.qasm_output.QasmUGate(
+            theta / np.pi, phi / np.pi, lambda_ / np.pi
+        ),
+    )
+    for theta, phi, lambda_ in [
+        (0, 0, 0),
+        (0, np.pi, 0),
+        (np.pi, 0, 0),
+        (0, 0, np.pi),
+        (np.pi / 2, np.pi / 2, np.pi / 2),
+        (0.1 * np.pi, 0.5 * np.pi, 0.3 * np.pi),
+        # Below example does not work. Although matrices are the same, the params stored in U3
+        # are different.
+        # (4.1 * np.pi / 2, 2.5 * np.pi, 3 * np.pi)
+    ]
+]
+
 
 @pytest.mark.parametrize(
     "zquantum_gate,cirq_gate",
     [
         *EQUIVALENT_NON_PARAMETRIC_GATES,
         *EQUIVALENT_PARAMETRIC_GATES,
+        *EQUIVALENT_U3_GATES,
     ],
 )
 class TestGateConversion:
@@ -55,7 +76,7 @@ class TestGateConversion:
         self, zquantum_gate, cirq_gate
     ):
         zquantum_matrix = np.array(zquantum_gate.matrix).astype(np.complex128)
-        np.testing.assert_allclose(zquantum_matrix, cirq.unitary(cirq_gate), atol=1e-8)
+        np.testing.assert_allclose(zquantum_matrix, cirq.unitary(cirq_gate), atol=1e-7)
 
     def test_exporting_gate_to_cirq_gives_expected_gate(self, zquantum_gate, cirq_gate):
         assert export_to_cirq(zquantum_gate) == cirq_gate

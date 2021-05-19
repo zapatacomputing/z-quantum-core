@@ -2,7 +2,6 @@ from typing import Any, Callable, List, Optional, Union
 
 import numpy as np
 import sympy
-
 from openfermion import SymbolicOperator
 
 from .circuit import combine_ansatz_params
@@ -24,7 +23,11 @@ from .interfaces.functions import (
     StoreArtifact,
     function_with_gradient,
 )
-from .measurement import ExpectationValues
+from .measurement import (
+    ExpectationValues,
+    concatenate_expectation_values,
+    expectation_values_to_real,
+)
 from .utils import ValueEstimate, create_symbols_map
 from .wip.circuits import Circuit
 
@@ -267,10 +270,8 @@ class AnsatzBasedCostFunction:
             self.estimation_tasks, [symbols_map for _ in self.estimation_tasks]
         )
         expectation_values_list = self.estimation_method(self.backend, estimation_tasks)
-        partial_sums: List[Any] = [
-            np.sum(expectation_values.values)
-            for expectation_values in expectation_values_list
-        ]
-        summed_values = ValueEstimate(np.sum(partial_sums))
+        combined_expectation_values = expectation_values_to_real(
+            concatenate_expectation_values(expectation_values_list)
+        )
 
-        return summed_values
+        return sum_expectation_values(combined_expectation_values)

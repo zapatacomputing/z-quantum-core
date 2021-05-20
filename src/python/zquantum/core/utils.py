@@ -477,7 +477,7 @@ def load_noise_model(file: LoadSource):
 
 
 def save_noise_model(
-        noise_model_data: dict, module_name: str, function_name: str, filename
+    noise_model_data: dict, module_name: str, function_name: str, filename
 ):
     """Save a noise model to file
 

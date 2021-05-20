@@ -113,8 +113,7 @@ def gate_is_parametric(gate_ref, gate_params):
 
 
 class Operation(Protocol):
-    """Represents arbitrary operation that can be applied to a circuit or wavefunction.
-    """
+    """Represents arbitrary operation that can be applied to a circuit or wavefunction."""
 
     @property
     def params(self) -> Tuple[Parameter, ...]:

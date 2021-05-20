@@ -183,9 +183,7 @@ def _unique_by(sequence, key):
 
 
 def _collect_unsupported_builtin_gate_defs(gates: Iterable[_gates.Gate]):
-    unwrapped_gates = _unique_by(
-        map(_unwrap_gate, gates), key=lambda gate: gate.name
-    )
+    unwrapped_gates = _unique_by(map(_unwrap_gate, gates), key=lambda gate: gate.name)
     return [
         _gate_definition_from_matrix_factory_gate(gate)
         for gate in unwrapped_gates

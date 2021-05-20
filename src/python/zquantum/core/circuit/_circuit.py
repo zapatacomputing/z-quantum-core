@@ -248,9 +248,7 @@ class Circuit(object):
 
                 # total number of entries in the list (which is 3x the number of
                 # elementary gates)
-                N = len(
-                    qiskit_gate_data
-                )
+                N = len(qiskit_gate_data)
 
                 if N % 3 != 0:
                     raise ValueError(
@@ -747,11 +745,15 @@ def cirq2pyquil(circuit):
     qubit_count = 0
     qubit = next(iter(circuit.all_qubits()))  # Grab a random qubit
     if isinstance(qubit, cirq.GridQubit):
+
         def qubit_key(q):
             return (q.row, q.col)
+
     elif isinstance(qubit, cirq.LineQubit):
+
         def qubit_key(q):
             return q.x
+
     else:
         raise ValueError("Qubit type {} not yet supported".format(type(qubit)))
     for qubit in sorted(circuit.all_qubits(), key=qubit_key):

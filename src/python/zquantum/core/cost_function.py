@@ -28,8 +28,8 @@ from .measurement import (
     concatenate_expectation_values,
     expectation_values_to_real,
 )
-from .utils import ValueEstimate, create_symbols_map
 from .wip.circuits import Circuit
+from .utils import create_symbols_map, ValueEstimate
 
 
 def _get_sorted_set_of_circuit_symbols(

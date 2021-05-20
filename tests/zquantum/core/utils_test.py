@@ -391,9 +391,9 @@ def test_value_estimate_with_no_precision_is_equivalent_to_its_raw_value():
     value = 6.193
     estimate = ValueEstimate(value)
 
-    # Note that it is not that obvious that this comparison is symmetric,
-    # since we override the __eq__ method in ValueEstimate.
-    # The same goes about __ne__ method in the next test.
+    # Note that it is not that obvious that this comparison is symmetric, since we
+    # override the __eq__ method in ValueEstimate. The same goes about __ne__ method in
+    # the next test.
     assert value == estimate
     assert estimate == value
 

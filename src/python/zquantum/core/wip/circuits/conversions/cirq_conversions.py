@@ -252,7 +252,14 @@ class NonNativeGate:
 
 
 def _import_non_built_in_gate(gate) -> NonNativeGate:
-    return NonNativeGate(matrix=cirq.unitary(gate), cirq_class=type(gate))
+    try:
+        matrix = cirq.unitary(gate)
+    except TypeError as e:
+        raise NotImplementedError(
+            f"Can't import gate {gate} from cirq, even as a custom definition"
+        ) from e
+
+    return NonNativeGate(matrix=matrix, cirq_class=type(gate))
 
 
 @singledispatch

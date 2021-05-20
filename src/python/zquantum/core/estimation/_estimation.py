@@ -122,6 +122,10 @@ def group_greedily(
     Args:
         estimation_tasks: list of estimation tasks
     """
+    if sort_terms:
+        print("Greedy grouping with pre-sorting")
+    else:
+        print("Greedy grouping without pre-sorting")
     output_estimation_tasks = []
     for estimation_task in estimation_tasks:
         groups = group_comeasureable_terms_greedy(

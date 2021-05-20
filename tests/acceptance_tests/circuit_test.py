@@ -51,9 +51,7 @@ class TestGenerateRandomAnsatzParams:
         "number_of_layers",
         [0, 1, 4, 7],
     )
-    def test_using_mock_ansatz_specs(
-        self, number_of_layers
-    ):
+    def test_using_mock_ansatz_specs(self, number_of_layers):
         # Given
         ansatz_specs = {
             "module_name": "zquantum.core.interfaces.mock_objects",

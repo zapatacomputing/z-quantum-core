@@ -1559,9 +1559,7 @@ class TestCircuit(unittest.TestCase):
         self.assertEqual(qiskit_gates == translated_ibm_circuit_1, True)
 
     def test_control_rotation_gates(self):
-        """Test addition of crx, cry and crz from qiskit
-
-        """
+        """Test addition of crx, cry and crz from qiskit"""
         qr = QuantumRegister(2, name="q")
         cr = ClassicalRegister(2, name="c")
         qc = QuantumCircuit(qr, cr)
@@ -1622,9 +1620,7 @@ class TestCircuit(unittest.TestCase):
         self.assertEqual(extended_circuit == expected_circuit, True)
 
     def test_cu1_gate(self):
-        """Test that qiskit CU1 gate is properly converted.
-
-        """
+        """Test that qiskit CU1 gate is properly converted."""
         qr = QuantumRegister(2, name="q")
         cr = ClassicalRegister(2, name="c")
         qiskit_circuit = QuantumCircuit(qr, cr)

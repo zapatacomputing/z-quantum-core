@@ -31,7 +31,6 @@ class PseudoAnsatz:
 
 
 class DynamicPropertyTests(unittest.TestCase):
-
     def test_uses_default_value_if_not_overwritten(self):
         class MyCls:
             x = DynamicProperty(name="x", default_value=-15)
@@ -81,7 +80,6 @@ class TestAnsatzProperty(unittest.TestCase):
 
 
 class InvalidatesParametrizedCircuitTest(unittest.TestCase):
-
     def test_resets_parametrized_circuit(self):
         ansatz = PseudoAnsatz(n_layers=10)
 

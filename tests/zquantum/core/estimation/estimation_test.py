@@ -381,6 +381,4 @@ class TestBasicEstimationMethods:
     ):
         backend = MockQuantumBackend()
         with pytest.raises(AttributeError):
-            _ = calculate_exact_expectation_values(
-                backend, estimation_tasks
-            )
+            _ = calculate_exact_expectation_values(backend, estimation_tasks)

@@ -3,10 +3,12 @@ import numpy as np
 import pytest
 import sympy
 from pyquil.paulis import PauliSum, PauliTerm
-from zquantum.core.evolution import (_generate_circuit_sequence,
-                                     time_evolution,
-                                     time_evolution_derivatives,
-                                     time_evolution_for_term)
+from zquantum.core.evolution import (
+    _generate_circuit_sequence,
+    time_evolution,
+    time_evolution_derivatives,
+    time_evolution_for_term,
+)
 from zquantum.core.testing import create_random_circuit
 from zquantum.core.utils import compare_unitary
 

@@ -230,6 +230,14 @@ class TestExportingToQiskit:
         )
 
 
+def _is_a_builtin_gate(gate: _gates.Gate):
+    try:
+        _builtin_gates.builtin_gate_by_name(gate.name)
+        return True
+    except KeyError:
+        return False
+
+
 class TestImportingFromCirq:
     @pytest.mark.parametrize("zquantum_circuit, cirq_circuit", EQUIVALENT_CIRCUITS)
     def test_gives_equivalent_circuit(self, zquantum_circuit, cirq_circuit):
@@ -240,7 +248,7 @@ class TestImportingFromCirq:
     def test_with_cirq_only_gates_returns_custom_gates(self, cirq_circuit):
         circuit = import_from_cirq(cirq_circuit)
         for operation in circuit.operations:
-            assert isinstance(operation.gate, _gates.CustomGateDefinition)
+            assert not _is_a_builtin_gate(operation.gate)
 
     @pytest.mark.parametrize("cirq_circuit", UNSUPPORTED_CIRQ_CIRCUITS)
     def test_importing_circuit_with_unsupported_gates(self, cirq_circuit):

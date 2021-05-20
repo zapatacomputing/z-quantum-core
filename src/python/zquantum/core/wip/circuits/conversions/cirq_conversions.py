@@ -111,12 +111,6 @@ ZQUANTUM_BUILTIN_GATE_NAME_TO_CIRQ_GATE: Dict[str, Callable] = {
 }
 
 
-CIRQ_GATE_TO_ZQUANTUM_BUILTIN_GATE_NAME = {
-    cirq_factory: name
-    for name, cirq_factory in ZQUANTUM_BUILTIN_GATE_NAME_TO_CIRQ_GATE.items()
-}
-
-
 EIGENGATE_SPECIAL_CASES = {
     (type(cirq.X), cirq.X.global_shift, cirq.X.exponent): _builtin_gates.X,
     (type(cirq.Y), cirq.Y.global_shift, cirq.Y.exponent): _builtin_gates.Y,

@@ -113,7 +113,7 @@ def group_individually(estimation_tasks: List[EstimationTask]) -> List[Estimatio
 
 
 def group_greedily(
-    estimation_tasks: List[EstimationTask],
+    estimation_tasks: List[EstimationTask], sort_terms: bool = False
 ) -> List[EstimationTask]:
     """
     Transforms list of estimation tasks by performing greedy grouping and adding
@@ -124,7 +124,9 @@ def group_greedily(
     """
     output_estimation_tasks = []
     for estimation_task in estimation_tasks:
-        groups = group_comeasureable_terms_greedy(estimation_task.operator)
+        groups = group_comeasureable_terms_greedy(
+            estimation_task.operator, sort_terms=sort_terms
+        )
         for group in groups:
             group_estimation_task = EstimationTask(
                 group, estimation_task.circuit, estimation_task.number_of_shots

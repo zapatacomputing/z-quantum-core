@@ -228,17 +228,18 @@ def _export_circuit_to_cirq(circuit: _circuit.Circuit) -> cirq.Circuit:
 
 @singledispatch
 def import_from_cirq(obj):
-    """Import given Cirq object, converting it to its Zquantum native counterpart.
+    """Import given Cirq object, converting it to its ZQuantum counterpart.
 
-    Currently we support gates corresponding to Zquantum builtin gates, operations
-    on such gates and circuits composed of such gates.
+    Gates corresponding to ZQuantum built-in gates, operations on such gates and
+    circuits composed of such gates will use the native definitions, e.g. `cirq.X` will
+    become `circuits.X`.
 
-    Also note that only objects using only LineQubits are supported, as currently
-    there is no notion of GridQubit in Zquantum.
+    Importing gates from Cirq that don't have built-in counterparts in ZQuantum will
+    result in custom gates. See `help(zquantum.core.wip.circuits)` for examples of
+    custom gates.
 
-    Raises:
-        NotImplementedError: if the object to be imported is of currently unsupported
-            type.
+    Also note that only objects using only LineQubits are supported, as currently there
+    is no notion of GridQubit in ZQuantum circuits.
     """
     try:
         return CIRQ_GATE_SPECIAL_CASES[obj]

@@ -251,6 +251,6 @@ class TestImportingFromCirq:
             assert not _is_a_builtin_gate(operation.gate)
 
     @pytest.mark.parametrize("cirq_circuit", UNSUPPORTED_CIRQ_CIRCUITS)
-    def test_importing_circuit_with_unsupported_gates(self, cirq_circuit):
+    def test_with_unsupported_gates_raises_not_implemented_error(self, cirq_circuit):
         with pytest.raises(NotImplementedError):
             import_from_cirq(cirq_circuit)

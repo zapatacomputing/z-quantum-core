@@ -11,21 +11,21 @@ from zquantum.core.wip.circuits.conversions.cirq_conversions import (
 
 # --------- gates ---------
 
+EQUIVALENT_IDENTITY_GATES = [
+    (_builtin_gates.I, cirq.I),
+]
+
 EQUIVALENT_NON_PARAMETRIC_GATES = [
     (_builtin_gates.X, cirq.X),
     (_builtin_gates.Y, cirq.Y),
     (_builtin_gates.Z, cirq.Z),
     (_builtin_gates.H, cirq.H),
-    (_builtin_gates.I, cirq.I),
     (_builtin_gates.S, cirq.S),
     (_builtin_gates.T, cirq.T),
     (_builtin_gates.CNOT, cirq.CNOT),
     (_builtin_gates.CZ, cirq.CZ),
     (_builtin_gates.SWAP, cirq.SWAP),
     (_builtin_gates.ISWAP, cirq.ISWAP),
-    (_builtin_gates.X, cirq.X ** 1),
-    (_builtin_gates.Y, cirq.Y ** 1),
-    (_builtin_gates.Z, cirq.Z ** 1),
 ]
 
 EQUIVALENT_PARAMETRIC_GATES = [
@@ -69,6 +69,7 @@ EQUIVALENT_U3_GATES = [
 @pytest.mark.parametrize(
     "zquantum_gate,cirq_gate",
     [
+        *EQUIVALENT_IDENTITY_GATES,
         *EQUIVALENT_NON_PARAMETRIC_GATES,
         *EQUIVALENT_PARAMETRIC_GATES,
         *EQUIVALENT_U3_GATES,
@@ -88,6 +89,23 @@ class TestGateConversion:
         self, zquantum_gate, cirq_gate
     ):
         assert import_from_cirq(cirq_gate) == zquantum_gate
+
+
+@pytest.mark.parametrize(
+    "zquantum_gate,cirq_gate",
+    [
+        *EQUIVALENT_NON_PARAMETRIC_GATES,
+        *EQUIVALENT_PARAMETRIC_GATES,
+    ],
+)
+def test_importing_gate_in_power_form_gives_expected_gate(zquantum_gate, cirq_gate):
+    pow_gate = cirq_gate ** 1.0
+    if "PowGate" not in str(type(pow_gate)):
+        raise TypeError(
+            f"This test expects power gates. Generated {type(pow_gate)} instead"
+        )
+
+    assert import_from_cirq(pow_gate) == zquantum_gate
 
 
 # circuits ---------

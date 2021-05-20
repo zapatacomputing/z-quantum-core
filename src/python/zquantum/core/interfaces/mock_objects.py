@@ -100,7 +100,7 @@ class MockQuantumSimulator(QuantumSimulator):
             length = n_operator if n_operator is not None else circuit.n_qubits
             values = np.asarray([2.0 * random.random() - 1.0 for i in range(length)])
             if n_operator is not None and constant_position is not None:
-                values[constant_position] = 1.0
+                values[constant_position] = operator.terms[()]
             return ExpectationValues(values)
         else:
             return super(MockQuantumSimulator, self).get_expectation_values(

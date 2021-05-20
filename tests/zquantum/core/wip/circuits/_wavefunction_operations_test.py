@@ -1,7 +1,7 @@
+import numpy as np
 import pytest
 import sympy
 from zquantum.core.wip.circuits import MultiPhaseOperation
-import numpy as np
 
 
 class TestMultiPhaseOperation:

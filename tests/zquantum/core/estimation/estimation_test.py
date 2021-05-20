@@ -1,30 +1,31 @@
+from functools import partial
+
 import numpy as np
 import pytest
 import sympy
 from openfermion import IsingOperator, QubitOperator, qubit_operator_sparse
 from pyquil import Program
 from pyquil.gates import RX, RY, RZ, X
-from functools import partial
-from zquantum.core.circuit import Circuit, Qubit, Gate
+from zquantum.core.circuit import Circuit, Gate, Qubit
+from zquantum.core.estimation import (
+    allocate_shots_proportionally,
+    allocate_shots_uniformly,
+    calculate_exact_expectation_values,
+    estimate_expectation_values_by_averaging,
+    evaluate_estimation_circuits,
+    get_context_selection_circuit,
+    get_context_selection_circuit_for_group,
+    group_greedily,
+    group_individually,
+    perform_context_selection,
+)
+from zquantum.core.interfaces.estimation import EstimationTask
 from zquantum.core.interfaces.mock_objects import (
     MockQuantumBackend,
     MockQuantumSimulator,
 )
 from zquantum.core.measurement import ExpectationValues
 from zquantum.core.openfermion._utils import change_operator_type
-from zquantum.core.estimation import (
-    calculate_exact_expectation_values,
-    get_context_selection_circuit,
-    get_context_selection_circuit_for_group,
-    estimate_expectation_values_by_averaging,
-    allocate_shots_proportionally,
-    allocate_shots_uniformly,
-    evaluate_estimation_circuits,
-    perform_context_selection,
-    group_greedily,
-    group_individually,
-)
-from zquantum.core.interfaces.estimation import EstimationTask
 
 
 class TestEstimatorUtils:

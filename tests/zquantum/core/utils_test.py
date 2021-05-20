@@ -1,7 +1,7 @@
-from functools import partial
 import json
 import os
 import random
+from functools import partial
 
 import numpy as np
 import pkg_resources

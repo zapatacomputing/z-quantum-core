@@ -1,6 +1,7 @@
 import numpy as np
 import pytest
 import sympy
+from zquantum.core import circuit as old_circuit
 from zquantum.core.wip.circuits import _builtin_gates, _circuit, _gates
 from zquantum.core.wip.circuits._serde import (
     circuit_from_dict,
@@ -9,7 +10,6 @@ from zquantum.core.wip.circuits._serde import (
     serialize_expr,
     to_dict,
 )
-from zquantum.core import circuit as old_circuit
 
 ALPHA = sympy.Symbol("alpha")
 GAMMA = sympy.Symbol("gamma")

@@ -2,6 +2,7 @@ import cirq
 import numpy as np
 import pytest
 import sympy
+from openfermion import QubitOperator
 from pyquil.paulis import PauliSum, PauliTerm
 from zquantum.core.utils import compare_unitary
 from zquantum.core.wip import circuits
@@ -11,8 +12,6 @@ from zquantum.core.wip.evolution import (
     time_evolution_derivatives,
     time_evolution_for_term,
 )
-
-from openfermion import QubitOperator
 
 PAULI_STRING_TO_CIRQ_GATE = {"XX": cirq.XX, "YY": cirq.YY, "ZZ": cirq.ZZ}
 OPENFERMION_TERM_TO_CIRQ_GATE = {

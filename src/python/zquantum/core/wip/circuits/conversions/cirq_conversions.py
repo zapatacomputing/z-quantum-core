@@ -247,7 +247,7 @@ def import_from_cirq(obj):
 
 
 @import_from_cirq.register
-def convert_qasm_u_gate_to_zquantum_gate(
+def _convert_qasm_u_gate_to_zquantum_gate(
     ugate: cirq.circuits.qasm_output.QasmUGate,
 ) -> _gates.Gate:
     angles = (
@@ -257,7 +257,7 @@ def convert_qasm_u_gate_to_zquantum_gate(
 
 
 @import_from_cirq.register
-def convert_eigengate_to_zquantum_gate(eigengate: cirq.EigenGate) -> _gates.Gate:
+def _convert_eigengate_to_zquantum_gate(eigengate: cirq.EigenGate) -> _gates.Gate:
     key = (type(eigengate), eigengate.global_shift, eigengate.exponent)
     try:
         return EIGENGATE_SPECIAL_CASES[key]
@@ -271,14 +271,14 @@ def convert_eigengate_to_zquantum_gate(eigengate: cirq.EigenGate) -> _gates.Gate
 
 
 @import_from_cirq.register
-def convert_cirq_identity_gate_to_zquantum_gate(
+def _convert_cirq_identity_gate_to_zquantum_gate(
     identity_gate: cirq.IdentityGate,
 ) -> _gates.Gate:
     return _builtin_gates.I
 
 
 @import_from_cirq.register
-def import_cirq_controlled_gate(controlled_gate: cirq.ControlledGate) -> _gates.Gate:
+def _import_cirq_controlled_gate(controlled_gate: cirq.ControlledGate) -> _gates.Gate:
     return import_from_cirq(controlled_gate.sub_gate).controlled(
         controlled_gate.num_controls()
     )
@@ -286,7 +286,7 @@ def import_cirq_controlled_gate(controlled_gate: cirq.ControlledGate) -> _gates.
 
 @import_from_cirq.register(cirq.GateOperation)
 @import_from_cirq.register(cirq.ControlledOperation)
-def convert_gate_operation_to_zquantum(operation) -> _gates.GateOperation:
+def _convert_gate_operation_to_zquantum(operation) -> _gates.GateOperation:
     if not all(isinstance(qubit, cirq.LineQubit) for qubit in operation.qubits):
         raise NotImplementedError(
             f"Failed to import {operation}. Grid qubits are not yet supported."
@@ -296,7 +296,7 @@ def convert_gate_operation_to_zquantum(operation) -> _gates.GateOperation:
 
 
 @import_from_cirq.register
-def import_circuit_from_cirq(circuit: cirq.Circuit) -> _circuit.Circuit:
+def _import_circuit_from_cirq(circuit: cirq.Circuit) -> _circuit.Circuit:
     return _circuit.Circuit(
         [import_from_cirq(op) for op in chain.from_iterable(circuit.moments)]
     )

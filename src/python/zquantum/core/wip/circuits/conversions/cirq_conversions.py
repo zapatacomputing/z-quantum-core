@@ -111,6 +111,12 @@ ZQUANTUM_BUILTIN_GATE_NAME_TO_CIRQ_GATE: Dict[str, Callable] = {
 }
 
 
+CIRQ_GATE_TO_ZQUANTUM_BUILTIN_GATE_NAME = {
+    cirq_factory: name
+    for name, cirq_factory in ZQUANTUM_BUILTIN_GATE_NAME_TO_CIRQ_GATE.items()
+}
+
+
 EIGENGATE_SPECIAL_CASES = {
     (type(cirq.X), cirq.X.global_shift, cirq.X.exponent): _builtin_gates.X,
     (type(cirq.Y), cirq.Y.global_shift, cirq.Y.exponent): _builtin_gates.Y,
@@ -126,6 +132,21 @@ EIGENGATE_SPECIAL_CASES = {
         cirq.ISWAP.global_shift,
         cirq.ISWAP.exponent,
     ): _builtin_gates.ISWAP,
+    (
+        cirq.ops.common_gates.XPowGate,
+        cirq.X.global_shift,
+        cirq.X.exponent,
+    ): _builtin_gates.X,
+    (
+        cirq.ops.common_gates.YPowGate,
+        cirq.Y.global_shift,
+        cirq.Y.exponent,
+    ): _builtin_gates.Y,
+    (
+        cirq.ops.common_gates.ZPowGate,
+        cirq.Z.global_shift,
+        cirq.Z.exponent,
+    ): _builtin_gates.Z,
 }
 
 EIGENGATE_ROTATIONS = {

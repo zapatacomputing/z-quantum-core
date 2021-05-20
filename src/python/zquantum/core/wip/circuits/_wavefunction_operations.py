@@ -1,9 +1,10 @@
 from dataclasses import dataclass
 from numbers import Number
+from typing import Sequence, Tuple
 
-from ._gates import _sub_symbols, Parameter
-from typing import Tuple, Sequence
 import numpy as np
+
+from ._gates import Parameter, _sub_symbols
 
 
 @dataclass(frozen=True)

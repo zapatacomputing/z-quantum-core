@@ -1,6 +1,6 @@
 import itertools
 import random
-from typing import List, Optional, Union, Iterable
+from typing import Iterable, List, Optional, Union
 
 import cirq
 import numpy as np

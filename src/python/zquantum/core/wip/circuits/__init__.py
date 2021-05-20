@@ -120,12 +120,12 @@ from ._builtin_gates import (
     CZ,
     ISWAP,
     PHASE,
+    RH,
     RX,
     RY,
     RZ,
-    RH,
-    U3,
     SWAP,
+    U3,
     XX,
     XY,
     YY,
@@ -140,7 +140,6 @@ from ._builtin_gates import (
     builtin_gate_by_name,
 )
 from ._circuit import Circuit
-
 from ._compatibility import new_circuit_from_old_circuit
 from ._gates import (
     ControlledGate,
@@ -151,7 +150,7 @@ from ._gates import (
     MatrixFactoryGate,
 )
 from ._serde import circuit_from_dict, to_dict
+from ._wavefunction_operations import MultiPhaseOperation
 from .conversions.cirq_conversions import export_to_cirq, import_from_cirq
 from .conversions.pyquil_conversions import export_to_pyquil, import_from_pyquil
 from .conversions.qiskit_conversions import export_to_qiskit, import_from_qiskit
-from ._wavefunction_operations import MultiPhaseOperation

@@ -1,6 +1,6 @@
 import warnings
 from abc import ABC, abstractmethod
-from typing import List, Optional, Sequence, Any
+from typing import Any, List, Optional, Sequence
 
 import numpy as np
 from openfermion import IsingOperator, SymbolicOperator

@@ -8,7 +8,6 @@ from typing import List, Tuple, Union
 import numpy as np
 import pyquil.paulis
 import sympy
-
 from openfermion import QubitOperator
 
 from .circuit import Circuit, Gate, Qubit

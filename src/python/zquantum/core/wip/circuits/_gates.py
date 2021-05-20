@@ -3,7 +3,7 @@ import math
 from dataclasses import dataclass, replace
 from functools import singledispatch
 from numbers import Number
-from typing import Callable, Dict, Tuple, Union, Iterable
+from typing import Callable, Dict, Iterable, Tuple, Union
 
 import numpy as np
 import sympy

@@ -2,7 +2,7 @@
 import json
 from numbers import Number
 from operator import attrgetter
-from typing import Any, Iterator, Dict, Callable
+from typing import Any, Callable, Dict, Iterator
 
 import numpy as np
 from scipy.optimize import OptimizeResult

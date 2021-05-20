@@ -1,18 +1,20 @@
 """General-purpose utilities."""
-from types import FunctionType
 import collections
 import copy
 import importlib
+import inspect
 import json
 import sys
 import warnings
-import inspect
-import numpy as np
 from functools import partial
-import sympy
+from types import FunctionType
+from typing import Any, Dict, Iterable, List, Optional, Tuple
+
 import lea
+import numpy as np
+import sympy
 from openfermion import InteractionRDM, hermitian_conjugated
-from typing import List, Tuple, Optional, Iterable, Dict, Any
+
 from .typing import AnyPath, LoadSource, Specs
 
 SCHEMA_VERSION = "zapata-v1"

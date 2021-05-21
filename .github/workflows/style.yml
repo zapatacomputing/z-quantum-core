@@ -40,9 +40,10 @@ jobs:
           use-pylint: false
           use-pycodestyle: false
           use-flake8: true
-          use-black: true
           use-mypy: true
-          use-isort: true
+          # We're not ready yet to validate black & isort
+          use-black: false
+          use-isort: false
 
           # Extra options: pylint $(extra-pylint-options) $(python-root-list)
           # extra-pylint-options: # optional, default is 

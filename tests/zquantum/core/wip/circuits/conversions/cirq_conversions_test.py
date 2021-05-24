@@ -42,12 +42,7 @@ EQUIVALENT_PARAMETRIC_GATES = [
         (_builtin_gates.ZZ, make_rotation_factory(cirq.ZZPowGate, -0.5)),
         (_builtin_gates.XY, make_rotation_factory(cirq.ISwapPowGate, 0.0)),
     ]
-    for theta in [
-        0,
-        -1,
-        np.pi / 5,
-        2 * np.pi,
-    ]
+    for theta in [0, -1, np.pi / 5, 2 * np.pi, -np.pi, -np.pi / 2, -np.pi / 4]
 ]
 
 EQUIVALENT_U3_GATES = [

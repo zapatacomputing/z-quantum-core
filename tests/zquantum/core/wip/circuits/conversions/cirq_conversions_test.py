@@ -42,7 +42,12 @@ EQUIVALENT_PARAMETRIC_GATES = [
         (_builtin_gates.ZZ, make_rotation_factory(cirq.ZZPowGate, -0.5)),
         (_builtin_gates.XY, make_rotation_factory(cirq.ISwapPowGate, 0.0)),
     ]
-    for theta in [0, -1, np.pi / 5, 2 * np.pi]
+    for theta in [
+        0,
+        -1,
+        np.pi / 5,
+        2 * np.pi,
+    ]
 ]
 
 EQUIVALENT_U3_GATES = [
@@ -197,7 +202,7 @@ UNSUPPORTED_CIRQ_CIRCUITS = [
 ]
 
 
-class TestExportingToQiskit:
+class TestExportingToCirq:
     @pytest.mark.parametrize("zquantum_circuit,cirq_circuit", EQUIVALENT_CIRCUITS)
     def test_exporting_circuit_gives_equivalent_circuit(
         self, zquantum_circuit, cirq_circuit

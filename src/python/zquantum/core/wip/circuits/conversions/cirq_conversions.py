@@ -128,6 +128,21 @@ EIGENGATE_SPECIAL_CASES = {
         cirq.ISWAP.global_shift,
         cirq.ISWAP.exponent,
     ): _builtin_gates.ISWAP,
+    (
+        cirq.ops.common_gates.XPowGate,
+        cirq.X.global_shift,
+        cirq.X.exponent,
+    ): _builtin_gates.X,
+    (
+        cirq.ops.common_gates.YPowGate,
+        cirq.Y.global_shift,
+        cirq.Y.exponent,
+    ): _builtin_gates.Y,
+    (
+        cirq.ops.common_gates.ZPowGate,
+        cirq.Z.global_shift,
+        cirq.Z.exponent,
+    ): _builtin_gates.Z,
 }
 
 EIGENGATE_ROTATIONS = {

@@ -1,7 +1,6 @@
 import json
 from typing import Dict, Optional, Union, List
 import openfermion
-from zquantum.core import estimation
 
 from zquantum.core.bitstring_distribution import save_bitstring_distribution
 from zquantum.core.cost_function import sum_expectation_values
@@ -158,7 +157,8 @@ def evaluate_ansatz_based_cost_function(
         or "estimation-tasks-transformations-specs" in cost_function_specs.keys()
     ):
         raise RuntimeError(
-            "Estimation-related specs should be separate arguments and not in cost_function_specs"
+            "Estimation-related specs should be separate arguments and not in "
+            "cost_function_specs"
         )
 
     if prior_expectation_values is not None:
@@ -184,8 +184,9 @@ def evaluate_ansatz_based_cost_function(
                 )
 
             if prior_expectation_values is not None:
-                # Since we don't know which estimation task transformation uses prior_expectation_values,
-                #    we add it to the kwargs of each one. If not used by a particular transformer, it will be ignored.
+                # Since we don't know which estimation task transformation uses
+                # prior_expectation_values, we add it to the kwargs of each one. If not
+                # used by a particular transformer, it will be ignored.
                 estimation_tasks_transformation_specs[
                     "prior_expectation_values"
                 ] = prior_expectation_values
@@ -214,18 +215,18 @@ def grouped_hamiltonian_analysis(
 
     We are assuming the exact expectation values are provided
     (i.e. infinite number of measurements or simulations without noise)
-    M ~ (\sum_{i} prec(H_i)) ** 2.0 / (epsilon ** 2.0)
+    M ~ (\\sum_{i} prec(H_i)) ** 2.0 / (epsilon ** 2.0)
     where prec(H_i) is the precision (square root of the variance)
     for each group of co-measurable terms H_{i}. It is computed as
-    prec(H_{i}) = \sum{ab} |h_{a}^{i}||h_{b}^{i}| cov(O_{a}^{i}, O_{b}^{i})
+    prec(H_{i}) = \\sum{ab} |h_{a}^{i}||h_{b}^{i}| cov(O_{a}^{i}, O_{b}^{i})
     where h_{a}^{i} is the coefficient of the a-th operator, O_{a}^{i}, in the
     i-th group. Covariances are assumed to be zero for a != b:
     cov(O_{a}^{i}, O_{b}^{i}) = <O_{a}^{i} O_{b}^{i}> - <O_{a}^{i}> <O_{b}^{i}> = 0
 
-    ARGS:
-        groups (str): The name of a file containing a list of QubitOperator objects,
+    Args:
+        groups: The name of a file containing a list of QubitOperator objects,
             where each element in the list is a group of co-measurable terms.
-        expectation_values (str): The name of a file containing a single ExpectationValues
+        expectation_values: The name of a file containing a single ExpectationValues
             object with all expectation values of the operators contained in groups.
             If absent, variances are assumed to be maximal, i.e. 1.
             NOTE: YOU HAVE TO MAKE SURE THAT THE ORDER OF EXPECTATION VALUES MATCHES
@@ -266,15 +267,16 @@ def expectation_values_from_rdms_for_qubitoperator_list(
 ):
     """Computes expectation values of Pauli strings in a list of QubitOperator given a
        fermionic InteractionRDM from OpenFermion. All the expectation values for the
-       operators in the list are written to file in a single ExpectationValues object in the
-       same order the operators came in.
+       operators in the list are written to file in a single ExpectationValues object in
+       the same order the operators came in.
 
-    ARGS:
-        interactionrdm (str): The name of the file containing the interaction RDM to
+    Args:
+        interactionrdm: The name of the file containing the interaction RDM to
             use for the expectation values computation
-        qubitoperator_list (str): The name of the file containing the list of qubit operators
-            to compute the expectation values for in the form of OpenFermion QubitOperator objects
-        sort_terms (bool): whether or not each input qubit operator needs to be sorted before
+        qubitoperator_list: The name of the file containing the list of qubit operators
+            to compute the expectation values for in the form of OpenFermion
+            QubitOperator objects
+        sort_terms: whether or not each input qubit operator needs to be sorted before
             calculating expectations
     """
 

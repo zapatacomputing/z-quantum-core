@@ -2,7 +2,7 @@ import cirq
 import numpy as np
 import pytest
 import sympy
-from zquantum.core.wip.circuits import _builtin_gates, _circuit
+from zquantum.core.wip.circuits import _builtin_gates, _circuit, _gates
 from zquantum.core.wip.circuits.conversions.cirq_conversions import (
     export_to_cirq,
     import_from_cirq,
@@ -11,12 +11,15 @@ from zquantum.core.wip.circuits.conversions.cirq_conversions import (
 
 # --------- gates ---------
 
+EQUIVALENT_IDENTITY_GATES = [
+    (_builtin_gates.I, cirq.I),
+]
+
 EQUIVALENT_NON_PARAMETRIC_GATES = [
     (_builtin_gates.X, cirq.X),
     (_builtin_gates.Y, cirq.Y),
     (_builtin_gates.Z, cirq.Z),
     (_builtin_gates.H, cirq.H),
-    (_builtin_gates.I, cirq.I),
     (_builtin_gates.S, cirq.S),
     (_builtin_gates.T, cirq.T),
     (_builtin_gates.CNOT, cirq.CNOT),
@@ -66,6 +69,7 @@ EQUIVALENT_U3_GATES = [
 @pytest.mark.parametrize(
     "zquantum_gate,cirq_gate",
     [
+        *EQUIVALENT_IDENTITY_GATES,
         *EQUIVALENT_NON_PARAMETRIC_GATES,
         *EQUIVALENT_PARAMETRIC_GATES,
         *EQUIVALENT_U3_GATES,
@@ -85,6 +89,23 @@ class TestGateConversion:
         self, zquantum_gate, cirq_gate
     ):
         assert import_from_cirq(cirq_gate) == zquantum_gate
+
+
+@pytest.mark.parametrize(
+    "zquantum_gate,cirq_gate",
+    [
+        *EQUIVALENT_NON_PARAMETRIC_GATES,
+        *EQUIVALENT_PARAMETRIC_GATES,
+    ],
+)
+def test_importing_gate_in_power_form_gives_expected_gate(zquantum_gate, cirq_gate):
+    pow_gate = cirq_gate ** 1.0
+    if "PowGate" not in str(type(pow_gate)):
+        raise TypeError(
+            f"This test expects power gates. Generated {type(pow_gate)} instead"
+        )
+
+    assert import_from_cirq(pow_gate) == zquantum_gate
 
 
 # circuits ---------
@@ -164,9 +185,14 @@ class CustomGate(cirq.Gate):
         return f"R({self.theta})"
 
 
-UNSUPPORTED_CIRQ_CIRCUITS = [
+CIRQ_ONLY_CIRCUITS = [
     cirq.Circuit([cirq.ZPowGate(exponent=1.2, global_shift=0.1)(lq(1))]),
     cirq.Circuit([cirq.CCXPowGate(exponent=-0.1, global_shift=THETA)(*lq.range(3))]),
+    cirq.Circuit([CustomGate(np.pi)(lq(1))]),
+]
+
+
+UNSUPPORTED_CIRQ_CIRCUITS = [
     cirq.Circuit([CustomGate(GAMMA)(lq(1))]),
 ]
 
@@ -225,15 +251,27 @@ class TestExportingToQiskit:
         )
 
 
+def _is_a_builtin_gate(gate: _gates.Gate):
+    try:
+        _builtin_gates.builtin_gate_by_name(gate.name)
+        return True
+    except KeyError:
+        return False
+
+
 class TestImportingFromCirq:
     @pytest.mark.parametrize("zquantum_circuit, cirq_circuit", EQUIVALENT_CIRCUITS)
-    def test_importing_circuit_gives_equivalent_circuit(
-        self, zquantum_circuit, cirq_circuit
-    ):
+    def test_gives_equivalent_circuit(self, zquantum_circuit, cirq_circuit):
         imported = import_from_cirq(cirq_circuit)
         assert imported == zquantum_circuit
 
+    @pytest.mark.parametrize("cirq_circuit", CIRQ_ONLY_CIRCUITS)
+    def test_with_cirq_only_gates_returns_custom_gates(self, cirq_circuit):
+        circuit = import_from_cirq(cirq_circuit)
+        for operation in circuit.operations:
+            assert not _is_a_builtin_gate(operation.gate)
+
     @pytest.mark.parametrize("cirq_circuit", UNSUPPORTED_CIRQ_CIRCUITS)
-    def test_importing_circuit_with_unsupported_gates_raises(self, cirq_circuit):
+    def test_with_unsupported_gates_raises_not_implemented_error(self, cirq_circuit):
         with pytest.raises(NotImplementedError):
             import_from_cirq(cirq_circuit)

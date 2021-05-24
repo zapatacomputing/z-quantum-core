@@ -1,4 +1,6 @@
 """Zquantum <-> Cirq conversions."""
+import hashlib
+from dataclasses import dataclass
 from functools import singledispatch
 from itertools import chain
 from operator import attrgetter
@@ -126,6 +128,21 @@ EIGENGATE_SPECIAL_CASES = {
         cirq.ISWAP.global_shift,
         cirq.ISWAP.exponent,
     ): _builtin_gates.ISWAP,
+    (
+        cirq.ops.common_gates.XPowGate,
+        cirq.X.global_shift,
+        cirq.X.exponent,
+    ): _builtin_gates.X,
+    (
+        cirq.ops.common_gates.YPowGate,
+        cirq.Y.global_shift,
+        cirq.Y.exponent,
+    ): _builtin_gates.Y,
+    (
+        cirq.ops.common_gates.ZPowGate,
+        cirq.Z.global_shift,
+        cirq.Z.exponent,
+    ): _builtin_gates.Z,
 }
 
 EIGENGATE_ROTATIONS = {
@@ -226,28 +243,50 @@ def _export_circuit_to_cirq(circuit: _circuit.Circuit) -> cirq.Circuit:
     )
 
 
-@singledispatch
 def import_from_cirq(obj):
-    """Import given Cirq object, converting it to its Zquantum native counterpart.
+    """Import given Cirq object, converting it to its ZQuantum counterpart.
 
-    Currently we support gates corresponding to Zquantum builtin gates, operations
-    on such gates and circuits composed of such gates.
+    Gates corresponding to ZQuantum built-in gates, operations on such gates and
+    circuits composed of such gates will use the native definitions, e.g. `cirq.X` will
+    become `circuits.X`.
 
-    Also note that only objects using only LineQubits are supported, as currently
-    there is no notion of GridQubit in Zquantum.
+    Importing gates from Cirq that don't have built-in counterparts in ZQuantum will
+    result in custom gates. See `help(zquantum.core.wip.circuits)` for examples of
+    custom gates.
 
-    Raises:
-        NotImplementedError: if the object to be imported is of currently unsupported
-            type.
+    Also note that only objects using only LineQubits are supported, as currently there
+    is no notion of GridQubit in ZQuantum circuits.
     """
+    return _import_from_cirq(obj)
+
+
+@dataclass
+class NonNativeGate:
+    matrix: sympy.Matrix
+    cirq_class: type
+
+
+def _import_non_built_in_gate(gate) -> NonNativeGate:
+    try:
+        matrix = cirq.unitary(gate)
+    except TypeError as e:
+        raise NotImplementedError(
+            f"Can't import gate {gate} from cirq, even as a custom definition"
+        ) from e
+
+    return NonNativeGate(matrix=matrix, cirq_class=type(gate))
+
+
+@singledispatch
+def _import_from_cirq(obj):
     try:
         return CIRQ_GATE_SPECIAL_CASES[obj]
     except KeyError:
-        raise NotImplementedError(f"{obj} can't be imported into Zquantum.")
+        return _import_non_built_in_gate(obj)
 
 
-@import_from_cirq.register
-def convert_qasm_u_gate_to_zquantum_gate(
+@_import_from_cirq.register
+def _convert_qasm_u_gate_to_zquantum_gate(
     ugate: cirq.circuits.qasm_output.QasmUGate,
 ) -> _gates.Gate:
     angles = (
@@ -256,8 +295,10 @@ def convert_qasm_u_gate_to_zquantum_gate(
     return _builtin_gates.U3(*angles)
 
 
-@import_from_cirq.register
-def convert_eigengate_to_zquantum_gate(eigengate: cirq.EigenGate) -> _gates.Gate:
+@_import_from_cirq.register
+def _convert_eigengate_to_zquantum_gate(
+    eigengate: cirq.EigenGate,
+) -> Union[_gates.Gate, NonNativeGate]:
     key = (type(eigengate), eigengate.global_shift, eigengate.exponent)
     try:
         return EIGENGATE_SPECIAL_CASES[key]
@@ -267,36 +308,60 @@ def convert_eigengate_to_zquantum_gate(eigengate: cirq.EigenGate) -> _gates.Gate
     try:
         return EIGENGATE_ROTATIONS[key[0:2]](exponent_to_angle(eigengate.exponent))
     except KeyError:
-        raise NotImplementedError(f"Gate {eigengate} can't be imported into Zquantum.")
+        pass
+
+    return _import_non_built_in_gate(eigengate)
 
 
-@import_from_cirq.register
-def convert_cirq_identity_gate_to_zquantum_gate(
+@_import_from_cirq.register
+def _convert_cirq_identity_gate_to_zquantum_gate(
     identity_gate: cirq.IdentityGate,
 ) -> _gates.Gate:
     return _builtin_gates.I
 
 
-@import_from_cirq.register
-def import_cirq_controlled_gate(controlled_gate: cirq.ControlledGate) -> _gates.Gate:
-    return import_from_cirq(controlled_gate.sub_gate).controlled(
+@_import_from_cirq.register
+def _import_cirq_controlled_gate(controlled_gate: cirq.ControlledGate) -> _gates.Gate:
+    return _import_from_cirq(controlled_gate.sub_gate).controlled(
         controlled_gate.num_controls()
     )
 
 
-@import_from_cirq.register(cirq.GateOperation)
-@import_from_cirq.register(cirq.ControlledOperation)
-def convert_gate_operation_to_zquantum(operation) -> _gates.GateOperation:
+def _hash_hex(bytes_):
+    return hashlib.sha256(bytes_).hexdigest()
+
+
+def _gen_custom_gate_name(gate_cls, matrix: np.ndarray):
+    matrix_hash = _hash_hex(matrix.tobytes())
+    return f"{gate_cls.__name__}.{matrix_hash}"
+
+
+@_import_from_cirq.register(cirq.GateOperation)
+@_import_from_cirq.register(cirq.ControlledOperation)
+def _convert_gate_operation_to_zquantum(operation) -> _gates.GateOperation:
     if not all(isinstance(qubit, cirq.LineQubit) for qubit in operation.qubits):
         raise NotImplementedError(
             f"Failed to import {operation}. Grid qubits are not yet supported."
         )
 
-    return import_from_cirq(operation.gate)(*map(qubit_index, operation.qubits))
+    imported_gate = _import_from_cirq(operation.gate)
+    qubit_indices = map(qubit_index, operation.qubits)
+
+    if isinstance(imported_gate, NonNativeGate):
+        custom_gate = _gates.CustomGateDefinition(
+            gate_name=_gen_custom_gate_name(
+                imported_gate.cirq_class, imported_gate.matrix
+            ),
+            matrix=imported_gate.matrix,
+            params_ordering=(),
+        )
+        return custom_gate()(*qubit_indices)
+    else:
+        return imported_gate(*qubit_indices)
 
 
-@import_from_cirq.register
-def import_circuit_from_cirq(circuit: cirq.Circuit) -> _circuit.Circuit:
+@_import_from_cirq.register
+def _import_circuit_from_cirq(circuit: cirq.Circuit) -> _circuit.Circuit:
     return _circuit.Circuit(
-        [import_from_cirq(op) for op in chain.from_iterable(circuit.moments)]
+        [_import_from_cirq(op) for op in chain.from_iterable(circuit.moments)]
     )

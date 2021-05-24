@@ -35,7 +35,7 @@ jobs:
         uses: ricardochaves/python-lint@v1.3.0
         with:
           # A list of all paths to test
-          python-root-list: "src/python/zquantum/core tests/zquantum/core tests/acceptance_tests"
+          python-root-list: "src/python/zquantum/core steps tests/zquantum/core tests/acceptance_tests"
 
           use-pylint: false
           use-pycodestyle: false

@@ -75,7 +75,8 @@ def create_random_circuit(
             qubits = tuple(int(i) for i in indices)
 
         if gates_list in [ONE_QUBIT_ONE_PARAM_GATES, TWO_QUBITS_ONE_PARAM_GATES]:
-            gate = gate(rng.uniform(-np.pi, np.pi, size=1))
+            param = rng.uniform(-np.pi, np.pi, size=1)
+            gate = gate(float(param))
 
         circuit += gate(*qubits)
     return circuit

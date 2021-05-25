@@ -1,8 +1,36 @@
+from typing import Tuple
+
 import numpy as np
 import numpy.random
 
 from . import _builtin_gates
 from ._circuit import Circuit
+
+ONE_QUBIT_NO_PARAMS_GATES = [
+    _builtin_gates.X,
+    _builtin_gates.Y,
+    _builtin_gates.Z,
+    _builtin_gates.H,
+    _builtin_gates.S,
+    _builtin_gates.T,
+]
+
+ONE_QUBIT_ONE_PARAM_GATES = [
+    _builtin_gates.RX,
+    _builtin_gates.RY,
+    _builtin_gates.RZ,
+    _builtin_gates.PHASE,
+]
+
+TWO_QUBITS_NO_PARAMS_GATES = [
+    _builtin_gates.CNOT,
+    _builtin_gates.CZ,
+    _builtin_gates.SWAP,
+]
+
+TWO_QUBITS_ONE_PARAM_GATES = [
+    _builtin_gates.CPHASE,
+]
 
 
 def create_random_circuit(
@@ -22,46 +50,31 @@ def create_random_circuit(
         Generated circuit.
     """
     # Initialize all gates in set, not including RH or ZXZ
-    singular_zero = [
-        _builtin_gates.X,
-        _builtin_gates.Y,
-        _builtin_gates.Z,
-        _builtin_gates.H,
-        _builtin_gates.S,
-        _builtin_gates.T,
-    ]
-    singular_one = [
-        _builtin_gates.RX,
-        _builtin_gates.RY,
-        _builtin_gates.RZ,
-        _builtin_gates.PHASE,
-    ]
-    two_zero = [
-        _builtin_gates.CNOT,
-        _builtin_gates.CZ,
-        _builtin_gates.SWAP,
-    ]
-    two_one = [
-        _builtin_gates.CPHASE,
-    ]
 
-    all_gate_factories = [singular_zero, two_zero, singular_one, two_one]
+    all_gates_lists = [
+        ONE_QUBIT_NO_PARAMS_GATES,
+        TWO_QUBITS_NO_PARAMS_GATES,
+        ONE_QUBIT_ONE_PARAM_GATES,
+        TWO_QUBITS_ONE_PARAM_GATES,
+    ]
 
     # Loop to add gates to circuit
     circuit = Circuit()
     for gate_i in range(n_gates):
         # Pick gate type
-        gates_list = rng.choice(all_gate_factories)
+        gates_list = rng.choice(all_gates_lists)
         gate = rng.choice(gates_list)
 
         # Pick qubit to act on (control if two qubit gate)
-
-        if gates_list in {singular_zero, singular_one}:
-            qubits = (rng.choice(range(n_qubits), size=1),)
+        qubits: Tuple[int, ...]
+        if gates_list in [ONE_QUBIT_NO_PARAMS_GATES, ONE_QUBIT_ONE_PARAM_GATES]:
+            index = rng.choice(range(n_qubits))
+            qubits = (int(index),)
         else:
-            qubits = rng.choice(range(n_qubits), size=2, replace=False)
+            indices = rng.choice(range(n_qubits), size=2, replace=False)
+            qubits = tuple(int(i) for i in indices)
 
-        if gates_list in {singular_one, two_one}:
+        if gates_list in [ONE_QUBIT_ONE_PARAM_GATES, TWO_QUBITS_ONE_PARAM_GATES]:
             gate = gate(rng.uniform(-np.pi, np.pi, size=1))
 
         circuit += gate(*qubits)

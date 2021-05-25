@@ -59,12 +59,13 @@ def build_ansatz_circuit(
     ansatz_specs: Specs, params: Optional[Union[str, List]] = None
 ):
     ansatz = load_from_specs(ansatz_specs)
+    params_array: np.ndarray
     if params is not None:
         if isinstance(params, str):
-            params = load_circuit_template_params(params)
+            params_array = load_circuit_template_params(params)
         else:
-            params = np.array(params)
-        circuit = ansatz.get_executable_circuit(params)
+            params_array = np.array(params)
+        circuit = ansatz.get_executable_circuit(params_array)
     elif ansatz.supports_parametrized_circuits:
         circuit = ansatz.parametrized_circuit
     else:
@@ -154,18 +155,18 @@ def batch_circuits(
     circuits: List[Union[str, Circuit]],
     circuit_set: Optional[Union[str, List[Circuit]]] = None,
 ):
+    loaded_circuit_set: List[Circuit]
     if circuit_set is None:
-        circuit_set = []
-    else:
-        if isinstance(circuit_set, str):
-            circuit_set = load_circuit_set(circuit_set)
+        loaded_circuit_set = []
+    elif isinstance(circuit_set, str):
+        loaded_circuit_set = load_circuit_set(circuit_set)
 
     for circuit in circuits:
         if isinstance(circuit, str):
             circuit = load_circuit(circuit)
-        circuit_set.append(circuit)
+        loaded_circuit_set.append(circuit)
 
-    save_circuit_set(circuit_set, "circuit-set.json")
+    save_circuit_set(loaded_circuit_set, "circuit-set.json")
 
 
 def evaluate_parametrized_circuit(

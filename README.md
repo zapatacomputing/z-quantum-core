@@ -1,5 +1,8 @@
 # z-quantum-core
 
+[![codecov](https://codecov.io/gh/zapatacomputing/z-quantum-core/branch/master/graph/badge.svg?token=ZWVLF7O2OQ)](https://codecov.io/gh/zapatacomputing/z-quantum-core)
+
+
 ## What is it?
 
 `z-quantum-core` is a core library of the scientific code for [Orquestra](https://www.zapatacomputing.com/orquestra/) – the platform developed by [Zapata Computing](https://www.zapatacomputing.com) for performing computations on quantum computers.

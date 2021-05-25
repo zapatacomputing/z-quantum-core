@@ -3,6 +3,7 @@ import json
 import os
 
 import numpy as np
+import numpy.random
 import pytest
 import zquantum.core.wip.circuits as new_circuits
 from zquantum.core.circuit import (
@@ -587,7 +588,7 @@ class TestCreateRandomCircuit:
         expected_circuit = new_circuits.create_random_circuit(
             number_of_qubits,
             number_of_gates,
-            seed=seed,
+            rng=np.random.default_rng(seed),
         )
 
         # When
@@ -619,7 +620,9 @@ class TestAddAncillaRegisterToCircuitPythonObject:
         number_of_qubits = 4
         number_of_gates = 10
         circuit = new_circuits.create_random_circuit(
-            number_of_qubits, number_of_gates, seed=RNDSEED
+            number_of_qubits,
+            number_of_gates,
+            rng=np.random.default_rng(RNDSEED),
         )
         circuit_filename = "circuit.json"
         with open(circuit_filename, "w") as f:
@@ -636,7 +639,9 @@ class TestAddAncillaRegisterToCircuitPythonObject:
         number_of_qubits = 4
         number_of_gates = 10
         circuit = new_circuits.create_random_circuit(
-            number_of_qubits, number_of_gates, seed=RNDSEED
+            number_of_qubits,
+            number_of_gates,
+            rng=np.random.default_rng(RNDSEED),
         )
         expected_extended_cirucit = new_circuits.add_ancilla_register_to_circuit(
             copy.deepcopy(circuit), number_of_ancilla_qubits

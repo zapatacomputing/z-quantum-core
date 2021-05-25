@@ -1,9 +1,10 @@
+import json
 from typing import List, Optional, Union
 
 import numpy as np
-import json
-from zquantum.core.circuit import Circuit
+import numpy.random
 import zquantum.core.wip.circuits as new_circuits
+from zquantum.core.circuit import Circuit
 from zquantum.core.circuit import (
     add_ancilla_register_to_circuit as _add_ancilla_register_to_circuit,
 )
@@ -25,7 +26,7 @@ from zquantum.core.circuit import (
 )
 from zquantum.core.testing import create_random_circuit as _create_random_circuit
 from zquantum.core.typing import Specs
-from zquantum.core.utils import load_from_specs, create_symbols_map
+from zquantum.core.utils import create_symbols_map, load_from_specs
 
 
 # Generate random parameters for an ansatz
@@ -120,8 +121,12 @@ def build_circuit_layers_and_connectivity(
 def create_random_circuit(
     number_of_qubits: int, number_of_gates: int, seed: Optional[int] = None
 ):
-    circuit = _create_random_circuit(number_of_qubits, number_of_gates, seed=seed)
-    save_circuit(circuit, "circuit.json")
+    rng = np.random.default_rng(seed)
+    circuit = new_circuits.create_random_circuit(
+        number_of_qubits, number_of_gates, rng=rng
+    )
+    with open("circuit.json", "w") as f:
+        json.dump(new_circuits.to_dict(circuit), f)
 
 
 # Add register of ancilla qubits to circuit

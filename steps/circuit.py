@@ -6,9 +6,6 @@ import numpy.random
 import zquantum.core.wip.circuits as new_circuits
 from zquantum.core.circuit import Circuit
 from zquantum.core.circuit import (
-    add_ancilla_register_to_circuit as _add_ancilla_register_to_circuit,
-)
-from zquantum.core.circuit import (
     build_circuit_layers_and_connectivity as _build_circuit_layers_and_connectivity,
 )
 from zquantum.core.circuit import build_uniform_param_grid as _build_uniform_param_grid
@@ -24,7 +21,6 @@ from zquantum.core.circuit import (
     save_circuit_template_params,
     save_parameter_grid,
 )
-from zquantum.core.testing import create_random_circuit as _create_random_circuit
 from zquantum.core.typing import Specs
 from zquantum.core.utils import create_symbols_map, load_from_specs
 
@@ -134,11 +130,13 @@ def add_ancilla_register_to_circuit(
     number_of_ancilla_qubits: int, circuit: Union[Circuit, str]
 ):
     if isinstance(circuit, str):
-        circuit = load_circuit(circuit)
-    extended_circuit = _add_ancilla_register_to_circuit(
+        with open(circuit) as f:
+            circuit = new_circuits.circuit_from_dict(json.load(f))
+    extended_circuit = new_circuits.add_ancilla_register(
         circuit, number_of_ancilla_qubits
     )
-    save_circuit(extended_circuit, "extended-circuit.json")
+    with open("extended-circuit.json", "w") as f:
+        json.dump(new_circuits.to_dict(extended_circuit), f)
 
 
 # Concatenate circuits in a circuitset to create a composite circuit

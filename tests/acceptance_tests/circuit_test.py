@@ -724,7 +724,7 @@ class TestConcatenateCircuits:
         # Given
         expected_concatenated_circuit_filename = "result-circuit.json"
         expected_concatenated_circuit = sum(
-            [circuit for circuit in circuit_set], start=new_circuits.Circuit()
+            [circuit for circuit in circuit_set], new_circuits.Circuit()
         )
 
         # When

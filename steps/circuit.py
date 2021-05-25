@@ -142,11 +142,11 @@ def add_ancilla_register_to_circuit(
 # Concatenate circuits in a circuitset to create a composite circuit
 def concatenate_circuits(circuit_set: Union[str, List[Circuit]]):
     if isinstance(circuit_set, str):
-        circuit_set = load_circuit_set(circuit_set)
-    result_circuit = Circuit()
-    for circuit in circuit_set:
-        result_circuit += circuit
-    save_circuit(result_circuit, "result-circuit.json")
+        with open(circuit_set) as f:
+            circuit_set = new_circuits.circuit_from_dict(json.load(f))
+    result_circuit = sum(circuit_set, new_circuits.Circuit())
+    with open("result-circuit.json", "w") as f:
+        json.dump(new_circuits.to_dict(result_circuit), f)
 
 
 # Create one circuitset from circuit and circuitset objects

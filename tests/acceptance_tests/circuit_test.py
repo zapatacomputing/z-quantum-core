@@ -742,10 +742,10 @@ class TestConcatenateCircuits:
         # Given
         expected_concatenated_circuit_filename = "result-circuit.json"
 
-        with open(expected_concatenated_circuit_filename) as f:
-            circuit_set = new_circuits.circuit_seq_from_dict(json.load(f))
+        with open(circuit_set_filename) as f:
+            circuit_set = new_circuits.circuitset_from_dict(json.load(f))
         expected_concatenated_circuit = sum(
-            [circuit for circuit in circuit_set], start=new_circuits.Circuit()
+            [circuit for circuit in circuit_set], new_circuits.Circuit()
         )
         # When
         concatenate_circuits(circuit_set_filename)
@@ -754,7 +754,7 @@ class TestConcatenateCircuits:
         try:
             with open(expected_concatenated_circuit_filename) as f:
                 concatenated_circuit = new_circuits.circuit_from_dict(json.load(f))
-            assert concatenated_circuit.gates == expected_concatenated_circuit.gates
+            assert concatenated_circuit == expected_concatenated_circuit
         finally:
             remove_file_if_exists(expected_concatenated_circuit_filename)
 
@@ -810,23 +810,23 @@ class TestBatchCircuits:
         self, input_circuits_filenames
     ):
         # Given
-        expected_circuit_seq_filename = "circuit-set.json"
-        expected_circuit_seq = []
+        expected_circuitset_filename = "circuit-set.json"
+        expected_circuitset = []
         for circuit_filename in input_circuits_filenames:
             with open(circuit_filename) as f:
                 circuit = new_circuits.circuit_from_dict(json.load(f))
-            expected_circuit_seq.append(circuit)
+            expected_circuitset.append(circuit)
 
         # When
         batch_circuits(input_circuits_filenames)
 
         # Then
         try:
-            with open(expected_circuit_seq_filename) as f:
-                circuit_seq = new_circuits.circuit_seq_from_dict(json.load(f))
-            assert circuit_seq == expected_circuit_seq
+            with open(expected_circuitset_filename) as f:
+                circuitset = new_circuits.circuitset_from_dict(json.load(f))
+            assert circuitset == expected_circuitset
         finally:
-            remove_file_if_exists(expected_circuit_seq_filename)
+            remove_file_if_exists(expected_circuitset_filename)
 
     def test_batch_circuits_all_artifacts_circuit_set_is_artifact(
         self, input_circuits_filenames, input_circuit_set_filename
@@ -834,12 +834,10 @@ class TestBatchCircuits:
         # Given
         expected_circuit_set_filename = "circuit-set.json"
         with open(input_circuit_set_filename) as f:
-            expected_circuit_seq = new_circuits.circuit_seq_from_dict(json.load(f))
+            expected_circuitset = new_circuits.circuitset_from_dict(json.load(f))
         for circuit_filename in input_circuits_filenames:
             with open(circuit_filename) as f:
-                expected_circuit_seq.append(
-                    new_circuits.circuit_from_dict(json.load(f))
-                )
+                expected_circuitset.append(new_circuits.circuit_from_dict(json.load(f)))
 
         # When
         batch_circuits(input_circuits_filenames, circuit_set=input_circuit_set_filename)
@@ -847,8 +845,8 @@ class TestBatchCircuits:
         # Then
         try:
             with open(expected_circuit_set_filename) as f:
-                circuit_seq = new_circuits.circuit_seq_from_dict(json.load(f))
-            assert circuit_seq == expected_circuit_seq
+                circuitset = new_circuits.circuitset_from_dict(json.load(f))
+            assert circuitset == expected_circuitset
         finally:
             remove_file_if_exists(expected_circuit_set_filename)
 
@@ -857,11 +855,11 @@ class TestBatchCircuits:
     ):
         # Given
         expected_circuit_set_filename = "circuit-set.json"
-        expected_circuit_seq = copy.deepcopy(input_circuit_set)
+        expected_circuitset = copy.deepcopy(input_circuit_set)
         for circuit_filename in input_circuits_filenames:
             with open(circuit_filename) as f:
                 circuit = new_circuits.circuit_from_dict(json.load(f))
-            expected_circuit_seq.append(circuit)
+            expected_circuitset.append(circuit)
 
         # When
         batch_circuits(
@@ -871,15 +869,15 @@ class TestBatchCircuits:
         # Then
         try:
             with open(expected_circuit_set_filename) as f:
-                circuit_seq = new_circuits.circuit_seq_from_dict(json.load(f))
-            assert circuit_seq == expected_circuit_seq
+                circuitset = new_circuits.circuitset_from_dict(json.load(f))
+            assert circuitset == expected_circuitset
         finally:
             remove_file_if_exists(expected_circuit_set_filename)
 
     def test_batch_circuits_all_objects_no_circuit_set(self, input_circuits):
         # Given
         expected_circuit_set_filename = "circuit-set.json"
-        expected_circuit_seq = copy.deepcopy(input_circuits)
+        expected_circuitset = copy.deepcopy(input_circuits)
 
         # When
         batch_circuits(input_circuits)
@@ -887,8 +885,8 @@ class TestBatchCircuits:
         # Then
         try:
             with open(expected_circuit_set_filename) as f:
-                circuit_seq = new_circuits.circuit_seq_from_dict(json.load(f))
-            assert circuit_seq == expected_circuit_seq
+                circuitset = new_circuits.circuitset_from_dict(json.load(f))
+            assert circuitset == expected_circuitset
         finally:
             remove_file_if_exists(expected_circuit_set_filename)
 
@@ -898,9 +896,9 @@ class TestBatchCircuits:
         # Given
         expected_circuit_set_filename = "circuit-set.json"
         with open(input_circuit_set_filename) as f:
-            expected_circuit_seq = new_circuits.circuit_seq_from_dict(json.load(f))
+            expected_circuitset = new_circuits.circuitset_from_dict(json.load(f))
         for circuit in input_circuits:
-            expected_circuit_seq.append(copy.deepcopy(circuit))
+            expected_circuitset.append(copy.deepcopy(circuit))
 
         # When
         batch_circuits(input_circuits, circuit_set=input_circuit_set_filename)
@@ -908,8 +906,8 @@ class TestBatchCircuits:
         # Then
         try:
             with open(expected_circuit_set_filename) as f:
-                circuit_seq = new_circuits.circuit_seq_from_dict(json.load(f))
-            assert circuit_seq == expected_circuit_seq
+                circuitset = new_circuits.circuitset_from_dict(json.load(f))
+            assert circuitset == expected_circuitset
         finally:
             remove_file_if_exists(expected_circuit_set_filename)
 
@@ -918,9 +916,9 @@ class TestBatchCircuits:
     ):
         # Given
         expected_circuit_set_filename = "circuit-set.json"
-        expected_circuit_seq = copy.deepcopy(input_circuit_set)
+        expected_circuitset = copy.deepcopy(input_circuit_set)
         for circuit in input_circuits:
-            expected_circuit_seq.append(copy.deepcopy(circuit))
+            expected_circuitset.append(copy.deepcopy(circuit))
 
         # When
         batch_circuits(input_circuits, circuit_set=copy.deepcopy(input_circuit_set))
@@ -928,7 +926,7 @@ class TestBatchCircuits:
         # Then
         try:
             with open(expected_circuit_set_filename) as f:
-                circuit_seq = new_circuits.circuit_seq_from_dict(json.load(f))
-            assert circuit_seq == expected_circuit_seq
+                circuitset = new_circuits.circuitset_from_dict(json.load(f))
+            assert circuitset == expected_circuitset
         finally:
             remove_file_if_exists(expected_circuit_set_filename)

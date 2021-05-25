@@ -144,7 +144,7 @@ def add_ancilla_register_to_circuit(
 def concatenate_circuits(circuit_set: Union[str, List[Circuit]]):
     if isinstance(circuit_set, str):
         with open(circuit_set) as f:
-            circuit_set = new_circuits.circuit_from_dict(json.load(f))
+            circuit_set = new_circuits.circuitset_from_dict(json.load(f))
     result_circuit = sum(circuit_set, new_circuits.Circuit())
     with open("result-circuit.json", "w") as f:
         json.dump(new_circuits.to_dict(result_circuit), f)
@@ -159,14 +159,22 @@ def batch_circuits(
     if circuit_set is None:
         loaded_circuit_set = []
     elif isinstance(circuit_set, str):
-        loaded_circuit_set = load_circuit_set(circuit_set)
+        with open(circuit_set) as f:
+            loaded_circuit_set = new_circuits.circuitset_from_dict(json.load(f))
+    else:
+        loaded_circuit_set = circuit_set
 
     for circuit in circuits:
         if isinstance(circuit, str):
-            circuit = load_circuit(circuit)
-        loaded_circuit_set.append(circuit)
+            with open(circuit) as f:
+                loaded_circuit = new_circuits.circuit_from_dict(json.load(f))
+        else:
+            loaded_circuit = circuit
 
-    save_circuit_set(loaded_circuit_set, "circuit-set.json")
+        loaded_circuit_set.append(loaded_circuit)
+
+    with open("circuit-set.json", "w") as f:
+        json.dump(new_circuits.to_dict(loaded_circuit_set), f)
 
 
 def evaluate_parametrized_circuit(

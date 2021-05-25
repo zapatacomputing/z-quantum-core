@@ -1,5 +1,5 @@
 from functools import singledispatch
-from typing import Iterable, List
+from typing import Iterable, List, Mapping
 
 import sympy
 
@@ -7,6 +7,7 @@ from ...utils import SCHEMA_VERSION
 from . import _builtin_gates, _circuit, _gates
 
 CIRCUIT_SCHEMA = SCHEMA_VERSION + "-circuit-v2"
+CIRCUITSET_SCHEMA = SCHEMA_VERSION + "-circuitset-v2"
 
 
 def serialize_expr(expr: sympy.Expr):
@@ -84,6 +85,20 @@ def _circuit_to_dict(circuit: _circuit.Circuit):
             if custom_gate_definitions
             else {}
         ),
+    }
+
+
+@to_dict.register(list)
+def _circuitset_to_dict(circuitset: List[_circuit.Circuit]) -> Mapping:
+    """
+    Returns:
+        A mapping with keys:
+            - "schema"
+            - "circuits" - list of circuits in this circuitset
+    """
+    return {
+        "schema": CIRCUITSET_SCHEMA,
+        "circuits": _map_eager(_circuit_to_dict, circuitset),
     }
 
 
@@ -237,3 +252,11 @@ def _custom_gate_instance_from_dict(dict_, custom_gate_defs) -> _gates.Gate:
     return gate_def(
         *[deserialize_expr(param, symbol_names) for param in dict_["params"]]
     )
+
+
+def circuitset_from_dict(dict_) -> List[_circuit.Circuit]:
+    schema = dict_.get("schema")
+    if schema != CIRCUITSET_SCHEMA:
+        raise ValueError(f"Invalid circuit schema: {schema}")
+
+    return _map_eager(circuit_from_dict, dict_["circuits"])

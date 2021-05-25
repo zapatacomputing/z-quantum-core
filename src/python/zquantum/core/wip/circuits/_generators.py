@@ -2,7 +2,7 @@ from typing import Optional, Union, cast
 
 import numpy as np
 
-from ._builtin_gates import GatePrototype
+from ._builtin_gates import GatePrototype, I
 from ._circuit import Circuit
 from ._gates import Gate
 
@@ -36,3 +36,19 @@ def create_layer_of_gates(
             circuit += gate_factory(i)
 
     return circuit
+
+
+def add_ancilla_register(circuit: Circuit, n_ancilla_qubits: int):
+    """Add a register of ancilla qubits (qubit + identity gate) to an existing circuit.
+
+    Args:
+        circuit: circuit to be extended
+        n_ancilla_qubits: number of ancilla qubits to add
+    Returns:
+        extended circuit
+    """
+    extended_circuit = circuit
+    for ancilla_qubit_i in range(n_ancilla_qubits):
+        qubit_index = circuit.n_qubits + ancilla_qubit_i
+        extended_circuit += I(qubit_index)
+    return extended_circuit

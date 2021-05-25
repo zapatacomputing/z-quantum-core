@@ -643,7 +643,7 @@ class TestAddAncillaRegisterToCircuitPythonObject:
             number_of_gates,
             rng=np.random.default_rng(RNDSEED),
         )
-        expected_extended_cirucit = new_circuits.add_ancilla_register_to_circuit(
+        expected_extended_cirucit = new_circuits.add_ancilla_register(
             copy.deepcopy(circuit), number_of_ancilla_qubits
         )
         expected_extended_circuit_filename = "extended-circuit.json"
@@ -674,7 +674,7 @@ class TestAddAncillaRegisterToCircuitPythonObject:
 
         with open(circuit_filename) as f:
             circuit = new_circuits.circuit_from_dict(json.load(f))
-        expected_extended_circuit = new_circuits.add_ancilla_register_to_circuit(
+        expected_extended_circuit = new_circuits.add_ancilla_register(
             circuit, number_of_ancilla_qubits
         )
 

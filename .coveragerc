@@ -1,0 +1,15 @@
+# .coveragerc to control coverage.py
+[run]
+branch = True
+omit = 
+    src/python/zquantum/core/interfaces/ansatz_test.py
+    src/python/zquantum/core/interfaces/backend_test.py
+    src/python/zquantum/core/interfaces/optimizer_test.py
+    src/python/zquantum/core/testing/generate_cases_for_backend_tests.py
+    src/python/zquantum/core/testing/test_cases_for_backend_tests.py
+
+[report]
+# Regexes for lines to exclude from consideration
+exclude_lines =
+    # Have to re-enable the standard pragma
+    pragma: no cover

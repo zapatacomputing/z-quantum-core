@@ -704,7 +704,7 @@ class TestConcatenateCircuits:
         number_of_gates = 10
         circuit_set = [
             new_circuits.create_random_circuit(
-                number_of_qubits, number_of_gates, seed=RNDSEED
+                number_of_qubits, number_of_gates, rng=np.random.default_rng(RNDSEED)
             )
             for _ in range(number_of_circuits)
         ]
@@ -764,11 +764,12 @@ class TestBatchCircuits:
     def input_circuits(self, request):
         number_of_qubits = 4
         number_of_gates = 10
+        rng = np.random.default_rng(RNDSEED)
         return [
             new_circuits.create_random_circuit(
-                number_of_qubits, number_of_gates, seed=RNDSEED + i
+                number_of_qubits, number_of_gates, rng=rng
             )
-            for i in range(request.param)
+            for _ in range(request.param)
         ]
 
     @pytest.fixture()
@@ -787,11 +788,12 @@ class TestBatchCircuits:
     def input_circuit_set(self, request):
         number_of_qubits = 4
         number_of_gates = 10
+        rng = np.random.default_rng(RNDSEED + 100)
         return [
             new_circuits.create_random_circuit(
-                number_of_qubits, number_of_gates, seed=RNDSEED + 100 + i
+                number_of_qubits, number_of_gates, rng=rng
             )
-            for i in range(request.param)
+            for _ in range(request.param)
         ]
 
     @pytest.fixture()

@@ -1,7 +1,9 @@
 from typing import List, Optional, Union
 
 import numpy as np
+import json
 from zquantum.core.circuit import Circuit
+import zquantum.core.wip.circuits as new_circuits
 from zquantum.core.circuit import (
     add_ancilla_register_to_circuit as _add_ancilla_register_to_circuit,
 )
@@ -74,7 +76,8 @@ def build_ansatz_circuit(
                 "Ansatz is not parametrizable and no parameters has been provided."
             )
         )
-    save_circuit(circuit, "circuit.json")
+    with open("circuit.json", "w") as f:
+        json.dump(new_circuits.to_dict(circuit), f)
 
 
 # Build uniform parameter grid
@@ -163,14 +166,17 @@ def batch_circuits(
 
 
 def evaluate_parametrized_circuit(
-    parametrized_circuit: Union[str, Circuit], parameters: Union[str, np.ndarray]
+    parametrized_circuit: Union[str, new_circuits.Circuit],
+    parameters: Union[str, np.ndarray],
 ):
     if isinstance(parametrized_circuit, str):
-        parametrized_circuit = load_circuit(parametrized_circuit)
+        with open(parametrized_circuit) as f:
+            parametrized_circuit = new_circuits.circuit_from_dict(json.load(f))
 
     if isinstance(parameters, str):
         parameters = load_circuit_template_params(parameters)
 
     symbols_map = create_symbols_map(parametrized_circuit.symbolic_params, parameters)
-    evaluated_circuit = parametrized_circuit.evaluate(symbols_map)
-    save_circuit(evaluated_circuit, "evaluated-circuit.json")
+    bound_circuit = parametrized_circuit.bind(symbols_map)
+    with open("evaluated-circuit.json", "w") as f:
+        json.dump(new_circuits.to_dict(bound_circuit), f)

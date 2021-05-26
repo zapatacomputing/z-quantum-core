@@ -3,32 +3,27 @@ import json
 import os
 
 import numpy as np
-import numpy.random
 import pytest
-import zquantum.core.wip.circuits as new_circuits
-from zquantum.core.circuit import (
-    build_circuit_layers_and_connectivity as _build_circuit_layers_and_connectivity,
-)
-from zquantum.core.circuit import build_uniform_param_grid as _build_uniform_param_grid
-from zquantum.core.circuit import (
-    load_circuit_connectivity,
-    load_circuit_layers,
-    load_circuit_template_params,
-    load_parameter_grid,
-    save_circuit_template_params,
-)
-from zquantum.core.utils import RNDSEED, create_object
-
 from steps.circuit import (
     add_ancilla_register_to_circuit,
     batch_circuits,
     build_ansatz_circuit,
     build_circuit_layers_and_connectivity,
-    build_uniform_param_grid,
     combine_ansatz_params,
     concatenate_circuits,
     create_random_circuit,
     generate_random_ansatz_params,
+)
+
+import zquantum.core.wip.circuits as new_circuits
+from zquantum.core.serialization import load_array, save_array
+from zquantum.core.utils import RNDSEED, create_object
+from zquantum.core.wip.circuits.layouts import (
+    build_circuit_layers_and_connectivity as _build_circuit_layers_and_connectivity,
+)
+from zquantum.core.wip.circuits.layouts import (
+    load_circuit_connectivity,
+    load_circuit_layers,
 )
 
 
@@ -62,7 +57,7 @@ class TestGenerateRandomAnsatzParams:
 
         # Then
         try:
-            parameters = load_circuit_template_params(filename)
+            parameters = load_array(filename)
             assert len(parameters) == number_of_layers
         finally:
             remove_file_if_exists(filename)
@@ -86,7 +81,7 @@ class TestGenerateRandomAnsatzParams:
 
         # Then
         try:
-            parameters = load_circuit_template_params(filename)
+            parameters = load_array(filename)
             assert len(parameters) == number_of_layers
         finally:
             remove_file_if_exists(filename)
@@ -112,7 +107,7 @@ class TestGenerateRandomAnsatzParams:
 
         # Then
         try:
-            parameters = load_circuit_template_params(filename)
+            parameters = load_array(filename)
             assert len(parameters) == number_of_parameters
         finally:
             remove_file_if_exists(filename)
@@ -167,10 +162,10 @@ class TestCombineAnsatzParams:
     )
     def params_filenames(self, request):
         params1_filename = "params1.json"
-        save_circuit_template_params(np.array(request.param[0]), params1_filename)
+        save_array(np.array(request.param[0]), params1_filename)
 
         params2_filename = "params2.json"
-        save_circuit_template_params(np.array(request.param[1]), params2_filename)
+        save_array(np.array(request.param[1]), params2_filename)
 
         yield (params1_filename, params2_filename)
 
@@ -187,9 +182,9 @@ class TestCombineAnsatzParams:
         # Then
         try:
             combined_parameters_filename = "combined-params.json"
-            parameters = load_circuit_template_params(combined_parameters_filename)
-            params1 = load_circuit_template_params(params1_filename)
-            params2 = load_circuit_template_params(params2_filename)
+            parameters = load_array(combined_parameters_filename)
+            params1 = load_array(params1_filename)
+            params2 = load_array(params2_filename)
             assert all(parameters == np.concatenate([params1, params2]))
         finally:
             remove_file_if_exists(combined_parameters_filename)
@@ -204,7 +199,7 @@ class TestBuildAnsatzCircuit:
     def params_filename_and_number_of_layers(self, number_of_layers):
         params = np.random.uniform(low=0, high=np.pi, size=number_of_layers)
         params_filename = "params.json"
-        save_circuit_template_params(np.array(params), params_filename)
+        save_array(np.array(params), params_filename)
 
         yield params_filename, number_of_layers
 
@@ -223,7 +218,7 @@ class TestBuildAnsatzCircuit:
             "problem_size": 2,
         }
 
-        parameters = load_circuit_template_params(params_filename)
+        parameters = load_array(params_filename)
         ansatz = create_object(copy.deepcopy(ansatz_specs))
         expected_circuit = ansatz.get_executable_circuit(parameters)
 
@@ -290,7 +285,7 @@ class TestBuildAnsatzCircuit:
 
     def test_build_ansatz_circuit_raises_exception_on_invalid_inputs(self):
         params_filename = "params.json"
-        save_circuit_template_params(np.array([1.0]), params_filename)
+        save_array(np.array([1.0]), params_filename)
 
         ansatz_specs = {
             "module_name": "zquantum.core.interfaces.mock_objects",
@@ -306,198 +301,6 @@ class TestBuildAnsatzCircuit:
         finally:
             remove_file_if_exists(params_filename)
             remove_file_if_exists(circuit_filename)
-
-
-class TestBuildUniformParameterGrid:
-    @pytest.mark.parametrize(
-        "number_of_ansatz_layers, problem_size, number_of_layers, min_value, "
-        "max_value, step",
-        [
-            (0, 2, 2, 0, 1, 0.5),
-            (1, 2, 2, 0, 1, 0.5),
-            (1, 0, 2, 0, 1, 0.5),
-            (6, 2, 2, 0, 1, 0.5),
-            (1, 2, 6, 0, 1, 0.5),
-            (1, 2, 6, -np.pi, 1, 0.5),
-            (1, 2, 6, -np.pi, np.pi, 0.5),
-            (1, 2, 6, 0, 1, 0.01),
-        ],
-    )
-    def test_ansatz_specs(
-        self,
-        number_of_ansatz_layers,
-        problem_size,
-        number_of_layers,
-        min_value,
-        max_value,
-        step,
-    ):
-        # Given
-        expected_parameter_grid_filename = "parameter-grid.json"
-        ansatz_specs = {
-            "module_name": "zquantum.core.interfaces.mock_objects",
-            "function_name": "MockAnsatz",
-            "number_of_layers": number_of_ansatz_layers,
-            "problem_size": problem_size,
-        }
-        ansatz = create_object(copy.deepcopy(ansatz_specs))
-        expected_parameter_grid = _build_uniform_param_grid(
-            ansatz.number_of_params,
-            number_of_layers,
-            min_value=min_value,
-            max_value=max_value,
-            step=step,
-        )
-
-        # When
-        build_uniform_param_grid(
-            ansatz_specs=ansatz_specs,
-            number_of_layers=number_of_layers,
-            min_value=min_value,
-            max_value=max_value,
-            step=step,
-        )
-
-        # Then
-        try:
-            parameter_grid = load_parameter_grid(expected_parameter_grid_filename)
-            assert [
-                tuple(param) for param in parameter_grid.param_ranges
-            ] == expected_parameter_grid.param_ranges
-        finally:
-            remove_file_if_exists(expected_parameter_grid_filename)
-
-    @pytest.mark.parametrize(
-        "number_of_ansatz_layers, problem_size, number_of_layers, min_value, "
-        "max_value, step",
-        [
-            (0, 2, 2, 0, 1, 0.5),
-            (1, 2, 2, 0, 1, 0.5),
-            (1, 0, 2, 0, 1, 0.5),
-            (6, 2, 2, 0, 1, 0.5),
-            (1, 2, 6, 0, 1, 0.5),
-            (1, 2, 6, -np.pi, 1, 0.5),
-            (1, 2, 6, -np.pi, np.pi, 0.5),
-            (1, 2, 6, 0, 1, 0.01),
-        ],
-    )
-    def test_ansatz_specs_as_string(
-        self,
-        number_of_ansatz_layers,
-        problem_size,
-        number_of_layers,
-        min_value,
-        max_value,
-        step,
-    ):
-        # Given
-        expected_parameter_grid_filename = "parameter-grid.json"
-        ansatz_specs = {
-            "module_name": "zquantum.core.interfaces.mock_objects",
-            "function_name": "MockAnsatz",
-            "number_of_layers": number_of_ansatz_layers,
-            "problem_size": problem_size,
-        }
-        ansatz = create_object(copy.deepcopy(ansatz_specs))
-        expected_parameter_grid = _build_uniform_param_grid(
-            ansatz.number_of_params,
-            number_of_layers,
-            min_value=min_value,
-            max_value=max_value,
-            step=step,
-        )
-
-        # When
-        build_uniform_param_grid(
-            ansatz_specs=json.dumps(ansatz_specs),
-            number_of_layers=number_of_layers,
-            min_value=min_value,
-            max_value=max_value,
-            step=step,
-        )
-
-        # Then
-        try:
-            parameter_grid = load_parameter_grid(expected_parameter_grid_filename)
-            assert [
-                tuple(param) for param in parameter_grid.param_ranges
-            ] == expected_parameter_grid.param_ranges
-        finally:
-            remove_file_if_exists(expected_parameter_grid_filename)
-
-    @pytest.mark.parametrize(
-        "number_of_params_per_layer, number_of_layers, min_value, max_value, step",
-        [
-            (0, 2, 0, 1, 0.5),
-            (1, 2, 0, 1, 0.5),
-            (6, 2, 0, 1, 0.5),
-            (1, 6, 0, 1, 0.5),
-            (1, 6, -np.pi, 1, 0.5),
-            (1, 6, -np.pi, np.pi, 0.5),
-            (1, 6, 0, 1, 0.01),
-        ],
-    )
-    def test_number_of_params_per_layer(
-        self, number_of_params_per_layer, number_of_layers, min_value, max_value, step
-    ):
-        # Given
-        expected_parameter_grid_filename = "parameter-grid.json"
-        expected_parameter_grid = _build_uniform_param_grid(
-            number_of_params_per_layer,
-            number_of_layers,
-            min_value=min_value,
-            max_value=max_value,
-            step=step,
-        )
-
-        # When
-        build_uniform_param_grid(
-            number_of_params_per_layer=number_of_params_per_layer,
-            number_of_layers=number_of_layers,
-            min_value=min_value,
-            max_value=max_value,
-            step=step,
-        )
-
-        # Then
-        try:
-            parameter_grid = load_parameter_grid(expected_parameter_grid_filename)
-            assert [
-                tuple(param) for param in parameter_grid.param_ranges
-            ] == expected_parameter_grid.param_ranges
-        finally:
-            remove_file_if_exists(expected_parameter_grid_filename)
-
-    def test_fails_with_both_ansatz_specs_and_number_of_params_per_layer(
-        self,
-    ):
-        expected_parameter_grid_filename = "parameter-grid.json"
-        number_of_params_per_layer = 2
-        ansatz_specs = {
-            "module_name": "zquantum.core.interfaces.mock_objects",
-            "function_name": "MockAnsatz",
-            "number_of_layers": 2,
-            "problem_size": 1,
-        }
-
-        try:
-            with pytest.raises(AssertionError):
-                build_uniform_param_grid(
-                    ansatz_specs=ansatz_specs,
-                    number_of_params_per_layer=number_of_params_per_layer,
-                )
-        finally:
-            remove_file_if_exists(expected_parameter_grid_filename)
-
-    def test_fails_with_neither_ansatz_specs_nor_number_of_params_per_layer(
-        self,
-    ):
-        expected_parameter_grid_filename = "parameter-grid.json"
-        try:
-            with pytest.raises(AssertionError):
-                build_uniform_param_grid()
-        finally:
-            remove_file_if_exists(expected_parameter_grid_filename)
 
 
 class TestBuildCircuitLayersAndConnectivity:

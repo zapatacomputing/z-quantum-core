@@ -2,7 +2,7 @@
 import json
 from numbers import Number
 from operator import attrgetter
-from typing import Any, Iterator, Dict, Callable
+from typing import Any, Callable, Dict, Iterator
 
 import numpy as np
 from scipy.optimize import OptimizeResult
@@ -10,8 +10,13 @@ from scipy.optimize import OptimizeResult
 from .bitstring_distribution import BitstringDistribution, is_bitstring_distribution
 from .history.recorder import HistoryEntry, HistoryEntryWithArtifacts
 from .interfaces.optimizer import optimization_result
-from .typing import AnyPath
-from .utils import SCHEMA_VERSION, ValueEstimate, convert_array_to_dict
+from .typing import AnyPath, LoadSource
+from .utils import (
+    SCHEMA_VERSION,
+    ValueEstimate,
+    convert_array_to_dict,
+    convert_dict_to_array,
+)
 
 
 def has_numerical_keys(dictionary):
@@ -100,3 +105,36 @@ def save_optimization_results(optimization_results: dict, filename: AnyPath):
 def load_optimization_results(filename: AnyPath):
     with open(filename, "rt") as source_file:
         return json.load(source_file, cls=OrquestraDecoder)
+
+
+def save_array(array: np.ndarray, filename: AnyPath) -> None:
+    """Saves array to a file.
+
+    Args:
+        array : the parameters to be saved
+        filename: the name of the file
+    """
+
+    dictionary: Dict[str, Any] = {"schema": SCHEMA_VERSION + "-array"}
+    dictionary["array"] = convert_array_to_dict(array)
+    with open(filename, "w") as f:
+        f.write(json.dumps(dictionary))
+
+
+def load_array(file: LoadSource):
+    """Loads array from a file.
+
+    Args:
+        file: the name of the file, or a file-like object.
+
+    Returns:
+        dict: the circuit template
+    """
+
+    if isinstance(file, str):
+        with open(file, "r") as f:
+            data = json.load(f)
+    else:
+        data = json.load(file)
+
+    return convert_dict_to_array(data["array"])

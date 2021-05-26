@@ -8,7 +8,6 @@ from zquantum.core.circuit import Circuit
 from zquantum.core.circuit import (
     build_circuit_layers_and_connectivity as _build_circuit_layers_and_connectivity,
 )
-from zquantum.core.circuit import build_uniform_param_grid as _build_uniform_param_grid
 from zquantum.core.circuit import combine_ansatz_params as _combine_ansatz_params
 from zquantum.core.circuit import (
     load_circuit,
@@ -19,7 +18,6 @@ from zquantum.core.circuit import (
     save_circuit_layers,
     save_circuit_set,
     save_circuit_template_params,
-    save_parameter_grid,
 )
 from zquantum.core.typing import Specs
 from zquantum.core.utils import create_symbols_map, load_from_specs
@@ -76,29 +74,6 @@ def build_ansatz_circuit(
         )
     with open("circuit.json", "w") as f:
         json.dump(new_circuits.to_dict(circuit), f)
-
-
-# Build uniform parameter grid
-def build_uniform_param_grid(
-    ansatz_specs: Optional[Specs] = None,
-    number_of_params_per_layer: Optional[int] = None,
-    number_of_layers: int = 1,
-    min_value: float = 0,
-    max_value: float = 2 * np.pi,
-    step: float = np.pi / 5,
-):
-    assert (ansatz_specs is None) != (number_of_params_per_layer is None)
-
-    if ansatz_specs is not None:
-        ansatz = load_from_specs(ansatz_specs)
-        number_of_params = ansatz.number_of_params
-    else:
-        number_of_params = number_of_params_per_layer
-
-    grid = _build_uniform_param_grid(
-        number_of_params, number_of_layers, min_value, max_value, step
-    )
-    save_parameter_grid(grid, "parameter-grid.json")
 
 
 # Build circuit layers and connectivity

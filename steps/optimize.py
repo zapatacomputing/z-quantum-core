@@ -1,27 +1,24 @@
 import json
+from typing import List, Optional, Union
+
 import numpy as np
-
+import zquantum.core.wip.circuits as new_circuits
 from openfermion import SymbolicOperator
-from typing import Union, Optional, List
-
 from zquantum.core.circuit import (
-    Circuit,
-    load_circuit,
     load_circuit_template_params,
-    save_circuit_template_params,
     load_parameter_grid,
+    save_circuit_template_params,
 )
 from zquantum.core.cost_function import (
-    get_ground_state_cost_function,
     AnsatzBasedCostFunction,
+    get_ground_state_cost_function,
 )
-from zquantum.core.estimation import (
-    estimate_expectation_values_by_averaging,
-)
-from zquantum.core.serialization import save_optimization_results
-from zquantum.core.utils import create_object, load_list
-from zquantum.core.typing import Specs
+from zquantum.core.estimation import estimate_expectation_values_by_averaging
 from zquantum.core.openfermion import load_qubit_operator
+from zquantum.core.serialization import save_optimization_results
+from zquantum.core.typing import Specs
+from zquantum.core.utils import create_object, load_list
+from zquantum.core.wip.circuits import Circuit
 
 
 def optimize_parametrized_circuit_for_ground_state_of_operator(
@@ -79,7 +76,8 @@ def optimize_parametrized_circuit_for_ground_state_of_operator(
         target_operator = load_qubit_operator(target_operator)
 
     if isinstance(parametrized_circuit, str):
-        parametrized_circuit = load_circuit(parametrized_circuit)
+        with open(parametrized_circuit) as f:
+            parametrized_circuit = new_circuits.circuit_from_dict(json.load(f))
 
     if isinstance(backend_specs, str):
         backend_specs = json.loads(backend_specs)

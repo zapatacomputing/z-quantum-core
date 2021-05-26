@@ -11,13 +11,9 @@ from zquantum.core.circuit import (
 from zquantum.core.circuit import build_uniform_param_grid as _build_uniform_param_grid
 from zquantum.core.circuit import combine_ansatz_params as _combine_ansatz_params
 from zquantum.core.circuit import (
-    load_circuit,
-    load_circuit_set,
     load_circuit_template_params,
-    save_circuit,
     save_circuit_connectivity,
     save_circuit_layers,
-    save_circuit_set,
     save_circuit_template_params,
     save_parameter_grid,
 )

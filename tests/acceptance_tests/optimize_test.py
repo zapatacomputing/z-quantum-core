@@ -106,8 +106,8 @@ class TestOptimizeParamterizedCircuit:
             "function_name": "MockQuantumSimulator",
             "n_samples": 10000,
         }
-        initial_parameters = "initial_parameters.json"
-        with open(initial_parameters, "w") as f:
+        initial_parameters_path = "initial_parameters.json"
+        with open(initial_parameters_path, "w") as f:
             json.dump(
                 {
                     "schema": "zapata-v1-circuit_template_params",
@@ -125,32 +125,24 @@ class TestOptimizeParamterizedCircuit:
                 },
                 f,
             )
-        estimation_method_specs = json.dumps(
+        estimation_method_specs = {
+            "module_name": "zquantum.core.estimation",
+            "function_name": "estimate_expectation_values_by_averaging",
+        }
+        estimation_preprocessors_specs = [
             {
                 "module_name": "zquantum.core.estimation",
-                "function_name": "estimate_expectation_values_by_averaging",
-            }
-        )
-        estimation_preprocessors_specs = [
-            json.dumps(
-                {
-                    "module_name": "zquantum.core.estimation",
-                    "function_name": "group_greedily",
-                }
-            ),
-            json.dumps(
-                {
-                    "module_name": "zquantum.core.estimation",
-                    "function_name": "perform_context_selection",
-                }
-            ),
-            json.dumps(
-                {
-                    "module_name": "zquantum.core.estimation",
-                    "function_name": "allocate_shots_uniformly",
-                    "number_of_shots": 10000,
-                }
-            ),
+                "function_name": "group_greedily",
+            },
+            {
+                "module_name": "zquantum.core.estimation",
+                "function_name": "perform_context_selection",
+            },
+            {
+                "module_name": "zquantum.core.estimation",
+                "function_name": "allocate_shots_uniformly",
+                "number_of_shots": 10000,
+            },
         ]
         optimization_results_path = "optimization-results.json"
         shutil.rmtree(optimization_results_path, ignore_errors=True)
@@ -163,11 +155,13 @@ class TestOptimizeParamterizedCircuit:
         optimize_parametrized_circuit_for_ground_state_of_operator(
             optimizer_specs=json.dumps(optimizer_specs),
             target_operator=TARGET_OPERATOR,
-            circuit=circuit_path,
+            parametrized_circuit=circuit_path,
             backend_specs=json.dumps(backend_specs),
             estimation_method_specs=json.dumps(estimation_method_specs),
-            estimation_preprocessors_specs=estimation_preprocessors_specs,
-            initial_parameters=initial_parameters,
+            estimation_preprocessors_specs=[
+                json.dumps(spec) for spec in estimation_preprocessors_specs
+            ],
+            initial_parameters=initial_parameters_path,
             fixed_parameters=fixed_parameters_path,
             parameter_precision=0.001,
             parameter_precision_seed=1234,

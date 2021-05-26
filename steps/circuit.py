@@ -4,25 +4,21 @@ from typing import List, Optional, Union
 import numpy as np
 import numpy.random
 import zquantum.core.wip.circuits as new_circuits
-from zquantum.core.circuit import Circuit
 from zquantum.core.circuit import (
     build_circuit_layers_and_connectivity as _build_circuit_layers_and_connectivity,
 )
 from zquantum.core.circuit import build_uniform_param_grid as _build_uniform_param_grid
 from zquantum.core.circuit import combine_ansatz_params as _combine_ansatz_params
 from zquantum.core.circuit import (
-    load_circuit,
-    load_circuit_set,
     load_circuit_template_params,
-    save_circuit,
     save_circuit_connectivity,
     save_circuit_layers,
-    save_circuit_set,
     save_circuit_template_params,
     save_parameter_grid,
 )
 from zquantum.core.typing import Specs
 from zquantum.core.utils import create_symbols_map, load_from_specs
+from zquantum.core.wip.circuits import Circuit
 
 
 # Generate random parameters for an ansatz

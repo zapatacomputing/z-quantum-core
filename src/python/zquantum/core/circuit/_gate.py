@@ -835,6 +835,12 @@ class Gate(object):
                     elif name_str == "S":
                         # In cirq, ZPowGate(exponent=-0.5) has a string
                         # representation of 'S**-1'.
+                        # cirq stores the exponent for ZPowGate directly
+                        output.name = "PHASE"
+                        output.params = [cirq_gate.gate.exponent * pi]
+                    elif name_str == "T":
+                        # In cirq, 'T' is equivalent to cirq.Z**0.25
+                        # cirq stores the exponent for ZPowGate directly
                         output.name = "PHASE"
                         output.params = [cirq_gate.gate.exponent * pi]
                     else:

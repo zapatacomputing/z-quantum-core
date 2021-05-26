@@ -2,6 +2,8 @@ import json
 import os
 import shutil
 
+import sympy
+import zquantum.core.wip.circuits as new_circuits
 from openfermion import QubitOperator
 
 from steps.optimize import optimize_parametrized_circuit_for_ground_state_of_operator
@@ -95,11 +97,92 @@ V1_CIRCUIT_DICT = {
 }
 
 
+# To regenerate the circuit, run:
+# import zquantum.core.wip.circuits as new_circuits
+# print(
+#     new_circuits.to_dict(
+#         new_circuits.Circuit(
+#             [
+#                 *[new_circuits.RX(sympy.Symbol("theta_0"))(i) for i in range(4)],
+#                 *[new_circuits.RY(sympy.Symbol("theta_1"))(i) for i in range(4)],
+#                 *[new_circuits.RZ(sympy.Symbol("theta_2"))(i) for i in range(4)],
+#             ]
+#         )
+#     )
+# )
+V2_CIRCUIT = {
+    "schema": "zapata-v1-circuit-v2",
+    "n_qubits": 4,
+    "operations": [
+        {
+            "type": "gate_operation",
+            "gate": {"name": "RX", "params": ["theta_0"], "free_symbols": ["theta_0"]},
+            "qubit_indices": [0],
+        },
+        {
+            "type": "gate_operation",
+            "gate": {"name": "RX", "params": ["theta_0"], "free_symbols": ["theta_0"]},
+            "qubit_indices": [1],
+        },
+        {
+            "type": "gate_operation",
+            "gate": {"name": "RX", "params": ["theta_0"], "free_symbols": ["theta_0"]},
+            "qubit_indices": [2],
+        },
+        {
+            "type": "gate_operation",
+            "gate": {"name": "RX", "params": ["theta_0"], "free_symbols": ["theta_0"]},
+            "qubit_indices": [3],
+        },
+        {
+            "type": "gate_operation",
+            "gate": {"name": "RY", "params": ["theta_1"], "free_symbols": ["theta_1"]},
+            "qubit_indices": [0],
+        },
+        {
+            "type": "gate_operation",
+            "gate": {"name": "RY", "params": ["theta_1"], "free_symbols": ["theta_1"]},
+            "qubit_indices": [1],
+        },
+        {
+            "type": "gate_operation",
+            "gate": {"name": "RY", "params": ["theta_1"], "free_symbols": ["theta_1"]},
+            "qubit_indices": [2],
+        },
+        {
+            "type": "gate_operation",
+            "gate": {"name": "RY", "params": ["theta_1"], "free_symbols": ["theta_1"]},
+            "qubit_indices": [3],
+        },
+        {
+            "type": "gate_operation",
+            "gate": {"name": "RZ", "params": ["theta_2"], "free_symbols": ["theta_2"]},
+            "qubit_indices": [0],
+        },
+        {
+            "type": "gate_operation",
+            "gate": {"name": "RZ", "params": ["theta_2"], "free_symbols": ["theta_2"]},
+            "qubit_indices": [1],
+        },
+        {
+            "type": "gate_operation",
+            "gate": {"name": "RZ", "params": ["theta_2"], "free_symbols": ["theta_2"]},
+            "qubit_indices": [2],
+        },
+        {
+            "type": "gate_operation",
+            "gate": {"name": "RZ", "params": ["theta_2"], "free_symbols": ["theta_2"]},
+            "qubit_indices": [3],
+        },
+    ],
+}
+
+
 class TestOptimizeParamterizedCircuit:
     def test_optimizer_specs_input(self):
         circuit_path = "circuit.json"
         with open(circuit_path, "w") as f:
-            f.write(json.dumps(V1_CIRCUIT_DICT))
+            json.dump(V2_CIRCUIT, f)
 
         backend_specs = {
             "module_name": "zquantum.core.interfaces.mock_objects",

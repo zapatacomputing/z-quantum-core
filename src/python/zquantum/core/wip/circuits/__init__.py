@@ -150,8 +150,9 @@ from ._gates import (
     GateOperation,
     MatrixFactoryGate,
 )
-from ._generators import create_layer_of_gates
-from ._serde import circuit_from_dict, to_dict
+from ._generators import add_ancilla_register, create_layer_of_gates
+from ._serde import circuit_from_dict, circuitset_from_dict, to_dict
+from ._testing import create_random_circuit
 from ._wavefunction_operations import MultiPhaseOperation
 from .conversions.cirq_conversions import export_to_cirq, import_from_cirq
 from .conversions.pyquil_conversions import export_to_pyquil, import_from_pyquil

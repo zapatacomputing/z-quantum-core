@@ -1,15 +1,16 @@
 import numpy as np
 import pytest
 import sympy
+from zquantum.core import circuit as old_circuit
 from zquantum.core.wip.circuits import _builtin_gates, _circuit, _gates
 from zquantum.core.wip.circuits._serde import (
     circuit_from_dict,
+    circuitset_from_dict,
     custom_gate_def_from_dict,
     deserialize_expr,
     serialize_expr,
     to_dict,
 )
-from zquantum.core import circuit as old_circuit
 
 ALPHA = sympy.Symbol("alpha")
 GAMMA = sympy.Symbol("gamma")
@@ -28,75 +29,78 @@ CUSTOM_U_GATE = _gates.CustomGateDefinition(
 )
 
 
+EXAMPLE_CIRCUITS = [
+    _circuit.Circuit(),
+    _circuit.Circuit([_builtin_gates.X(0)]),
+    _circuit.Circuit([_builtin_gates.X(2), _builtin_gates.Y(1)]),
+    _circuit.Circuit(
+        [
+            _builtin_gates.H(0),
+            _builtin_gates.CNOT(0, 1),
+            _builtin_gates.RX(0)(5),
+            _builtin_gates.RX(np.pi)(2),
+        ]
+    ),
+    _circuit.Circuit(
+        [
+            _builtin_gates.RX(GAMMA * 2)(3),
+        ]
+    ),
+    _circuit.Circuit(
+        operations=[
+            _builtin_gates.T(0),
+            CUSTOM_U_GATE(1, -1)(3),
+            CUSTOM_U_GATE(ALPHA, -1)(2),
+        ],
+    ),
+    _circuit.Circuit(
+        operations=[
+            CUSTOM_U_GATE(2 + 3j, -1)(2),
+        ],
+    ),
+    _circuit.Circuit(
+        [
+            _builtin_gates.H.controlled(1)(0, 1),
+        ]
+    ),
+    _circuit.Circuit(
+        [
+            _builtin_gates.Z.controlled(2)(4, 3, 0),
+        ]
+    ),
+    _circuit.Circuit(
+        [
+            _builtin_gates.RY(ALPHA * GAMMA).controlled(1)(3, 2),
+        ]
+    ),
+    _circuit.Circuit(
+        [
+            _builtin_gates.X.dagger(2),
+            _builtin_gates.I.dagger(4),
+            _builtin_gates.Y.dagger(1),
+            _builtin_gates.Z.dagger(2),
+            _builtin_gates.T.dagger(7),
+        ]
+    ),
+    _circuit.Circuit(
+        [
+            _builtin_gates.RX(-np.pi).dagger(2),
+            _builtin_gates.RY(-np.pi / 2).dagger(1),
+            _builtin_gates.RZ(0).dagger(0),
+            _builtin_gates.PHASE(np.pi / 5).dagger(2),
+        ]
+    ),
+    _circuit.Circuit(
+        [
+            _builtin_gates.RX(GAMMA * ALPHA).dagger(1),
+        ]
+    ),
+]
+
+
 @pytest.mark.parametrize(
     "circuit",
-    [
-        _circuit.Circuit(),
-        _circuit.Circuit([_builtin_gates.X(0)]),
-        _circuit.Circuit([_builtin_gates.X(2), _builtin_gates.Y(1)]),
-        _circuit.Circuit(
-            [
-                _builtin_gates.H(0),
-                _builtin_gates.CNOT(0, 1),
-                _builtin_gates.RX(0)(5),
-                _builtin_gates.RX(np.pi)(2),
-            ]
-        ),
-        _circuit.Circuit(
-            [
-                _builtin_gates.RX(GAMMA * 2)(3),
-            ]
-        ),
-        _circuit.Circuit(
-            operations=[
-                _builtin_gates.T(0),
-                CUSTOM_U_GATE(1, -1)(3),
-                CUSTOM_U_GATE(ALPHA, -1)(2),
-            ],
-        ),
-        _circuit.Circuit(
-            operations=[
-                CUSTOM_U_GATE(2 + 3j, -1)(2),
-            ],
-        ),
-        _circuit.Circuit(
-            [
-                _builtin_gates.H.controlled(1)(0, 1),
-            ]
-        ),
-        _circuit.Circuit(
-            [
-                _builtin_gates.Z.controlled(2)(4, 3, 0),
-            ]
-        ),
-        _circuit.Circuit(
-            [
-                _builtin_gates.RY(ALPHA * GAMMA).controlled(1)(3, 2),
-            ]
-        ),
-        _circuit.Circuit(
-            [
-                _builtin_gates.X.dagger(2),
-                _builtin_gates.I.dagger(4),
-                _builtin_gates.Y.dagger(1),
-                _builtin_gates.Z.dagger(2),
-                _builtin_gates.T.dagger(7),
-            ]
-        ),
-        _circuit.Circuit(
-            [
-                _builtin_gates.RX(-np.pi).dagger(2),
-                _builtin_gates.RY(-np.pi / 2).dagger(1),
-                _builtin_gates.RZ(0).dagger(0),
-                _builtin_gates.PHASE(np.pi / 5).dagger(2),
-            ]
-        ),
-        _circuit.Circuit(
-            [
-                _builtin_gates.RX(GAMMA * ALPHA).dagger(1),
-            ]
-        ),
-    ],
+    EXAMPLE_CIRCUITS,
 )
 class TestCircuitSerialization:
     def test_roundrip_results_in_same_circuit(self, circuit):
@@ -109,6 +113,30 @@ class TestCircuitSerialization:
             # matrices are computed lazily, so we have to call the getter to know if
             # we deserialized parameters properly
             operation.gate.matrix
+
+
+class TestCircuitsetSerialization:
+    @pytest.mark.parametrize(
+        "circuitset",
+        [
+            [],
+            list(EXAMPLE_CIRCUITS),
+        ],
+    )
+    def test_roundrip_results_in_same_circuitset(self, circuitset):
+        serialized = to_dict(circuitset)
+        assert circuitset_from_dict(serialized) == circuitset
+
+    @pytest.mark.parametrize(
+        "dict_",
+        [
+            {},
+            to_dict(_circuit.Circuit()),
+        ],
+    )
+    def test_raises_error_with_invalid_dict(self, dict_):
+        with pytest.raises(ValueError):
+            circuitset_from_dict(dict_)
 
 
 def _make_example_old_circuit():

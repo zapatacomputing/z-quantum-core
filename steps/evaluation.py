@@ -26,9 +26,6 @@ from zquantum.core.measurement import (
 )
 from zquantum.core.openfermion import convert_dict_to_qubitop
 from zquantum.core.openfermion import (
-    evaluate_operator_for_parameter_grid as _evaluate_operator_for_parameter_grid,
-)
-from zquantum.core.openfermion import (
     evaluate_qubit_operator_list as _evaluate_qubit_operator_list,
 )
 from zquantum.core.openfermion import (
@@ -87,59 +84,6 @@ def get_ground_state_rdm_from_qubit_operator(
     qubit_operator = load_qubit_operator(qubit_operator)
     rdm = _get_ground_state_rdm_from_qubit_op(qubit_operator, n_particles)
     save_interaction_rdm(rdm, "rdms.json")
-
-
-def evaluate_operator_for_parameter_grid(
-    ansatz_specs: Specs,
-    backend_specs: Specs,
-    grid: Union[str, ParameterGrid],
-    operator: Union[str, SymbolicOperator],
-    fixed_parameters: Union[List[float], np.ndarray, str] = None,
-):
-    """Measure the exception values of the terms in an input operator with respect to
-    the states prepared by the input ansatz circuits when set to the different
-    parameters in the input parameter grid on the backend described by the
-    `backend_specs`. The results are serialized into a JSON under the files:
-    "parameter-grid-evaluation.json" and "optimal-parameters.json"
-
-    Args:
-        ansatz_specs: The ansatz producing the parameterized quantum circuits
-        backend_specs: The backend on which to run the quantum circuit
-        grid: The parameter grid describing the different ansatz parameters to use
-        operator: The operator to measure
-        fixed_parameters: Any fixed parameter values that the ansatz should be
-            evaluated to that are not described by the parameter grid
-    """
-    if isinstance(ansatz_specs, str):
-        ansatz_specs = json.loads(ansatz_specs)
-    ansatz = create_object(ansatz_specs)
-
-    if isinstance(backend_specs, str):
-        backend_specs = json.loads(backend_specs)
-    backend = create_object(backend_specs)
-
-    if isinstance(grid, str):
-        grid = load_parameter_grid(grid)
-    if isinstance(operator, str):
-        operator = load_qubit_operator(operator)
-
-    if fixed_parameters is not None:
-        if isinstance(fixed_parameters, str):
-            fixed_parameters = load_circuit_template_params(fixed_parameters)
-    else:
-        fixed_parameters = []
-
-    (
-        parameter_grid_evaluation,
-        optimal_parameters,
-    ) = _evaluate_operator_for_parameter_grid(
-        ansatz, grid, backend, operator, previous_layer_params=fixed_parameters
-    )
-
-    save_parameter_grid_evaluation(
-        parameter_grid_evaluation, "parameter-grid-evaluation.json"
-    )
-    save_circuit_template_params(optimal_parameters, "optimal-parameters.json")
 
 
 def jw_get_ground_state_at_particle_number(

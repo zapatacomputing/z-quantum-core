@@ -102,7 +102,19 @@ class OptimizerTests(object):
 
         result = optimizer.minimize(cost_function, np.array([-1, 1]))
 
-        assert result.history == cost_function.history
+        for result_history_entry, cost_function_history_entry in zip(
+            result.history, cost_function.history
+        ):
+            assert (
+                result_history_entry.call_number
+                == cost_function_history_entry.call_number
+            )
+            assert np.allclose(
+                result_history_entry.params, cost_function_history_entry.params
+            )
+            assert np.isclose(
+                result_history_entry.value, cost_function_history_entry.value
+            )
 
     def test_optimizier_does_not_record_history_if_keep_value_history_is_set_to_false(
         self, optimizer

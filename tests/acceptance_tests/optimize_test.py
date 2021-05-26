@@ -2,99 +2,11 @@ import json
 import os
 import shutil
 
-import sympy
-import zquantum.core.wip.circuits as new_circuits
 from openfermion import QubitOperator
 
 from steps.optimize import optimize_parametrized_circuit_for_ground_state_of_operator
 
 TARGET_OPERATOR = QubitOperator("X0 X1 Z2 Y4", 1.5)
-
-V1_CIRCUIT_DICT = {
-    "schema": "zapata-v1-circuit",
-    "name": "Unnamed",
-    "gates": [
-        {
-            "name": "Rx",
-            "qubits": [{"index": 0, "info": {"label": "none"}}],
-            "info": {"label": "none"},
-            "params": ["theta_0"],
-        },
-        {
-            "name": "Rx",
-            "qubits": [{"index": 1, "info": {"label": "none"}}],
-            "info": {"label": "none"},
-            "params": ["theta_0"],
-        },
-        {
-            "name": "Rx",
-            "qubits": [{"index": 2, "info": {"label": "none"}}],
-            "info": {"label": "none"},
-            "params": ["theta_0"],
-        },
-        {
-            "name": "Rx",
-            "qubits": [{"index": 3, "info": {"label": "none"}}],
-            "info": {"label": "none"},
-            "params": ["theta_0"],
-        },
-        {
-            "name": "Ry",
-            "qubits": [{"index": 0, "info": {"label": "none"}}],
-            "info": {"label": "none"},
-            "params": ["theta_1"],
-        },
-        {
-            "name": "Ry",
-            "qubits": [{"index": 1, "info": {"label": "none"}}],
-            "info": {"label": "none"},
-            "params": ["theta_1"],
-        },
-        {
-            "name": "Ry",
-            "qubits": [{"index": 2, "info": {"label": "none"}}],
-            "info": {"label": "none"},
-            "params": ["theta_1"],
-        },
-        {
-            "name": "Ry",
-            "qubits": [{"index": 3, "info": {"label": "none"}}],
-            "info": {"label": "none"},
-            "params": ["theta_1"],
-        },
-        {
-            "name": "Rz",
-            "qubits": [{"index": 0, "info": {"label": "none"}}],
-            "info": {"label": "none"},
-            "params": ["theta_2"],
-        },
-        {
-            "name": "Rz",
-            "qubits": [{"index": 1, "info": {"label": "none"}}],
-            "info": {"label": "none"},
-            "params": ["theta_2"],
-        },
-        {
-            "name": "Rz",
-            "qubits": [{"index": 2, "info": {"label": "none"}}],
-            "info": {"label": "none"},
-            "params": ["theta_2"],
-        },
-        {
-            "name": "Rz",
-            "qubits": [{"index": 3, "info": {"label": "none"}}],
-            "info": {"label": "none"},
-            "params": ["theta_2"],
-        },
-    ],
-    "qubits": [
-        {"index": 0, "info": {"label": "none"}},
-        {"index": 1, "info": {"label": "none"}},
-        {"index": 2, "info": {"label": "none"}},
-        {"index": 3, "info": {"label": "none"}},
-    ],
-    "info": {"label": None},
-}
 
 
 # To regenerate the circuit, run:
@@ -110,7 +22,7 @@ V1_CIRCUIT_DICT = {
 #         )
 #     )
 # )
-V2_CIRCUIT = {
+CIRCUIT_DICT = {
     "schema": "zapata-v1-circuit-v2",
     "n_qubits": 4,
     "operations": [
@@ -182,7 +94,7 @@ class TestOptimizeParamterizedCircuit:
     def test_optimizer_specs_input(self):
         circuit_path = "circuit.json"
         with open(circuit_path, "w") as f:
-            json.dump(V2_CIRCUIT, f)
+            json.dump(CIRCUIT_DICT, f)
 
         backend_specs = {
             "module_name": "zquantum.core.interfaces.mock_objects",

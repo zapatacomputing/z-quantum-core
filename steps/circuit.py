@@ -6,7 +6,7 @@ import numpy.random
 import zquantum.core.wip.circuits as new_circuits
 import zquantum.core.wip.circuits.layouts as layouts
 from zquantum.core import serialization
-from zquantum.core.circuit import combine_ansatz_params as _combine_ansatz_params
+from zquantum.core.interfaces import ansatz_utils
 from zquantum.core.typing import Specs
 from zquantum.core.utils import create_symbols_map, load_from_specs
 from zquantum.core.wip.circuits import Circuit
@@ -37,7 +37,7 @@ def generate_random_ansatz_params(
 def combine_ansatz_params(params1: str, params2: str):
     parameters1 = serialization.load_array(params1)
     parameters2 = serialization.load_array(params2)
-    combined_params = _combine_ansatz_params(parameters1, parameters2)
+    combined_params = ansatz_utils.combine_ansatz_params(parameters1, parameters2)
     layouts.save_circuit_template_params(combined_params, "combined-params.json")
 
 

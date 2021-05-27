@@ -1,3 +1,5 @@
+import io
+
 import numpy as np
 import pytest
 import sympy
@@ -8,6 +10,10 @@ from zquantum.core.wip.circuits._serde import (
     circuitset_from_dict,
     custom_gate_def_from_dict,
     deserialize_expr,
+    load_circuit,
+    load_circuitset,
+    save_circuit,
+    save_circuitset,
     serialize_expr,
     to_dict,
 )
@@ -205,3 +211,19 @@ class TestExpressionSerialization:
         # `deserialized == expr` wouldn't work here for complex literals because of
         # how Sympy compares expressions
         assert deserialized - expr == 0
+
+
+class TestIOHelpers:
+    @pytest.mark.parametrize("circuit", EXAMPLE_CIRCUITS)
+    def test_load_save_circuit_roundtrip(self, circuit):
+        buf = io.StringIO()
+        save_circuit(circuit, buf)
+        buf.seek(0)
+        assert load_circuit(buf) == circuit
+
+    def test_load_save_circuitset_roundtrip(self):
+        circuitset = EXAMPLE_CIRCUITS
+        buf = io.StringIO()
+        save_circuitset(circuitset, buf)
+        buf.seek(0)
+        assert load_circuitset(buf) == circuitset

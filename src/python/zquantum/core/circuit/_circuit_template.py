@@ -5,6 +5,7 @@ from typing import Any, Dict, List, Optional, TextIO, Tuple
 import numpy as np
 
 from ..circuit import Circuit, Gate, Qubit
+from ..interfaces.ansatz_utils import combine_ansatz_params
 from ..utils import SCHEMA_VERSION, convert_array_to_dict, convert_dict_to_array
 
 
@@ -103,19 +104,6 @@ def build_ansatz_circuit(ansatz: dict, params: np.ndarray) -> Circuit:
     qprog = func(params, **ansatz["ansatz_kwargs"])
 
     return qprog
-
-
-def combine_ansatz_params(params1: np.ndarray, params2: np.ndarray) -> np.ndarray:
-    """Combine two sets of ansatz parameters.
-
-    Args:
-        params1 (numpy.ndarray): the first set of parameters
-        params2 (numpy.ndarray): the second set of parameters
-
-    Returns:
-        numpy.ndarray: the combined parameters
-    """
-    return np.concatenate((params1, params2))
 
 
 class ParameterGrid:

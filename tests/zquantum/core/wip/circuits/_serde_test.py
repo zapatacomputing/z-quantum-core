@@ -213,61 +213,54 @@ class TestExpressionSerialization:
         assert deserialized - expr == 0
 
 
-EXAMPLE_FILE_CONTENTS = json.dumps({"hello": "world"})
-
-
+@pytest.mark.parametrize(
+    "example_contents",
+    [
+        json.dumps({"hello": "world"}),
+        "",
+        "Zażółć gęślą jaźń",
+    ],
+)
 class TestEnsureOpen:
     @pytest.yield_fixture
     def tmp_path(self):
         with tempfile.NamedTemporaryFile() as tmp_file:
             yield tmp_file.name
 
-    def test_reading_from_str_path(self, tmp_path: str):
+    @pytest.mark.parametrize(
+        "path_mapper",
+        [
+            str,
+            lambda path: path.encode(),
+            pathlib.Path,
+        ],
+    )
+    def test_reading_from_path(self, tmp_path: str, path_mapper, example_contents):
         with open(tmp_path, "w") as f:
-            f.write(EXAMPLE_FILE_CONTENTS)
+            f.write(example_contents)
 
-        with ensure_open(tmp_path) as f:
-            read_contents = f.read()
-
-        assert read_contents == EXAMPLE_FILE_CONTENTS
-
-    def test_reading_from_byte_path(self, tmp_path: str):
-        with open(tmp_path, "w") as f:
-            f.write(EXAMPLE_FILE_CONTENTS)
-
-        with ensure_open(tmp_path.encode()) as f:
-            read_contents = f.read()
-
-        assert read_contents == EXAMPLE_FILE_CONTENTS
-
-    def test_reading_from_pathlib_path(self, tmp_path: str):
-        with open(tmp_path, "w") as f:
-            f.write(EXAMPLE_FILE_CONTENTS)
-
-        with ensure_open(pathlib.Path(tmp_path)) as f:
-            read_contents = f.read()
-
-        assert read_contents == EXAMPLE_FILE_CONTENTS
-
-    def test_reading_from_open_file(self, tmp_path: str):
-        with open(tmp_path, "w") as f:
-            f.write(EXAMPLE_FILE_CONTENTS)
-
-        path = pathlib.Path(tmp_path)
-        with open(path, "w") as f:
-            f.write(EXAMPLE_FILE_CONTENTS)
-
+        path = path_mapper(tmp_path)
         with ensure_open(path) as f:
             read_contents = f.read()
 
-        assert read_contents == EXAMPLE_FILE_CONTENTS
+        assert read_contents == example_contents
 
-    def test_reading_from_io(self):
+    def test_reading_from_open_file(self, tmp_path: str, example_contents):
+        with open(tmp_path, "w") as f:
+            f.write(example_contents)
+
+        with open(tmp_path) as open_file:
+            with ensure_open(open_file) as f:
+                read_contents = f.read()
+
+        assert read_contents == example_contents
+
+    def test_reading_from_io(self, example_contents):
         buffer = io.StringIO()
-        buffer.write(EXAMPLE_FILE_CONTENTS)
+        buffer.write(example_contents)
         buffer.seek(0)
 
         with ensure_open(buffer) as f:
             read_contents = f.read()
 
-        assert read_contents == EXAMPLE_FILE_CONTENTS
+        assert read_contents == example_contents

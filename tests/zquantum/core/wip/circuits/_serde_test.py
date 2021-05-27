@@ -264,3 +264,41 @@ class TestEnsureOpen:
             read_contents = f.read()
 
         assert read_contents == example_contents
+
+    @pytest.mark.parametrize(
+        "path_mapper",
+        [
+            str,
+            lambda path: path.encode(),
+            pathlib.Path,
+        ],
+    )
+    def test_writing_to_path(self, tmp_path: str, path_mapper, example_contents):
+        path = path_mapper(tmp_path)
+        with ensure_open(path, "w") as f:
+            f.write(example_contents)
+
+        with open(tmp_path) as f:
+            read_contents = f.read()
+
+        assert read_contents == example_contents
+
+    def test_writing_to_open_file(self, tmp_path: str, example_contents):
+        with open(tmp_path, "w") as open_file:
+            with ensure_open(open_file, "w") as f:
+                f.write(example_contents)
+
+        with open(tmp_path) as f:
+            read_contents = f.read()
+
+        assert read_contents == example_contents
+
+    def test_writing_to_io(self, example_contents):
+        buffer = io.StringIO()
+        with ensure_open(buffer) as f:
+            f.write(example_contents)
+
+        buffer.seek(0)
+        read_contents = buffer.read()
+
+        assert read_contents == example_contents

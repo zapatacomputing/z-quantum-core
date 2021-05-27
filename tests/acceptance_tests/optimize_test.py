@@ -106,8 +106,8 @@ class TestOptimizeParamterizedCircuit:
         with open(initial_parameters_path, "w") as f:
             json.dump(
                 {
-                    "schema": "zapata-v1-circuit_template_params",
-                    "parameters": {"real": [1.0, 1.0]},
+                    "schema": "zapata-v1-array",
+                    "array": {"real": [1.0, 1.0]},
                 },
                 f,
             )
@@ -116,8 +116,8 @@ class TestOptimizeParamterizedCircuit:
         with open(fixed_parameters_path, "w") as f:
             json.dump(
                 {
-                    "schema": "zapata-v1-circuit_template_params",
-                    "parameters": {"real": [1.0]},
+                    "schema": "zapata-v1-array",
+                    "array": {"real": [1.0]},
                 },
                 f,
             )
@@ -169,5 +169,5 @@ class TestOptimizeParamterizedCircuit:
         os.remove(optimization_results_path)
         os.remove("optimized-parameters.json")
         os.remove(circuit_path)
-        os.remove("initial_parameters.json")
+        os.remove(initial_parameters_path)
         os.remove(fixed_parameters_path)

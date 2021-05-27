@@ -2,9 +2,12 @@
 import unittest
 from unittest import mock
 
+import numpy as np
+import numpy.testing
 from zquantum.core.interfaces.ansatz_utils import (
     DynamicProperty,
     ansatz_property,
+    combine_ansatz_params,
     invalidates_parametrized_circuit,
 )
 
@@ -31,7 +34,6 @@ class PseudoAnsatz:
 
 
 class DynamicPropertyTests(unittest.TestCase):
-
     def test_uses_default_value_if_not_overwritten(self):
         class MyCls:
             x = DynamicProperty(name="x", default_value=-15)
@@ -81,7 +83,6 @@ class TestAnsatzProperty(unittest.TestCase):
 
 
 class InvalidatesParametrizedCircuitTest(unittest.TestCase):
-
     def test_resets_parametrized_circuit(self):
         ansatz = PseudoAnsatz(n_layers=10)
 
@@ -103,3 +104,13 @@ class InvalidatesParametrizedCircuitTest(unittest.TestCase):
 
         # Check that arguments were passed to underlying method
         method_mock.assert_called_once_with(ansatz, 2.0, 1.0, x=100, label="test")
+
+
+def test_combine_ansatz_params():
+    params1 = np.array([1.0, 2.0])
+    params2 = np.array([3.0, 4.0])
+    target_params = np.array([1.0, 2.0, 3.0, 4.0])
+
+    combined_params = combine_ansatz_params(params1, params2)
+
+    np.testing.assert_array_equal(combined_params, target_params)

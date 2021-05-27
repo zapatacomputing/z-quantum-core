@@ -1,7 +1,11 @@
+import json
+import os
+from contextlib import contextmanager
 from functools import singledispatch
-from typing import Iterable, List, Mapping
+from typing import Iterable, List, Mapping, Union
 
 import sympy
+from zquantum.core.typing import DumpTarget, LoadSource
 
 from ...utils import SCHEMA_VERSION
 from . import _builtin_gates, _circuit, _gates

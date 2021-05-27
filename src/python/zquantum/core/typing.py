@@ -9,9 +9,15 @@ class Readable(Protocol):
     def read(self) -> str:
         pass
 
+    def writable(self) -> bool:
+        pass
+
 
 class Writeable(Protocol):
     def write(self, content: str):
+        pass
+
+    def writable(self) -> bool:
         pass
 
 

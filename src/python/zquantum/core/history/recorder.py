@@ -37,7 +37,7 @@ class HistoryEntryWithArtifacts(NamedTuple):
 
 
 class HistoryEntry(NamedTuple):
-    """A basic history entry storing call number, parameters and target function value."""
+    """A history entry storing call number, parameters and target function value."""
 
     call_number: int
     params: Any
@@ -158,7 +158,7 @@ def recorder(
     function: CallableWithGradientStoringArtifacts,
     save_condition: SaveCondition = always,
 ) -> ArtifactRecorderWithGradient:
-    """The recorder function: variant for callables with gradient and storing artifacts."""
+    """The recorder function: variant for artifact-storing callables with gradient."""
 
 
 @overload

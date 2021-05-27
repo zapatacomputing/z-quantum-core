@@ -1,8 +1,10 @@
 """Serialization module."""
 import json
+import os
+from contextlib import contextmanager
 from numbers import Number
 from operator import attrgetter
-from typing import Any, Callable, Dict, Iterator
+from typing import Any, Callable, Dict, Iterator, Union
 
 import numpy as np
 from scipy.optimize import OptimizeResult
@@ -10,7 +12,7 @@ from scipy.optimize import OptimizeResult
 from .bitstring_distribution import BitstringDistribution, is_bitstring_distribution
 from .history.recorder import HistoryEntry, HistoryEntryWithArtifacts
 from .interfaces.optimizer import optimization_result
-from .typing import AnyPath, LoadSource
+from .typing import AnyPath, DumpTarget, LoadSource
 from .utils import (
     SCHEMA_VERSION,
     ValueEstimate,
@@ -107,6 +109,19 @@ def load_optimization_results(filename: AnyPath):
         return json.load(source_file, cls=OrquestraDecoder)
 
 
+@contextmanager
+def ensure_open(path_like: Union[LoadSource, DumpTarget], mode="r"):
+    # str | bytes | PathLike | Readable
+    if isinstance(path_like, (str, bytes, os.PathLike)):
+        with open(path_like, mode) as f:
+            yield f
+    else:
+        # Readable | Writable
+        if set(mode).intersection(set("wxa+")) and not path_like.writable():
+            raise ValueError(f"File isn't writable, can't ensure mode {mode}")
+        yield path_like
+
+
 def save_array(array: np.ndarray, filename: AnyPath) -> None:
     """Saves array to a file.
 
@@ -117,7 +132,7 @@ def save_array(array: np.ndarray, filename: AnyPath) -> None:
 
     dictionary: Dict[str, Any] = {"schema": SCHEMA_VERSION + "-array"}
     dictionary["array"] = convert_array_to_dict(array)
-    with open(filename, "w") as f:
+    with ensure_open(filename, "w") as f:
         f.write(json.dumps(dictionary))
 
 
@@ -131,10 +146,7 @@ def load_array(file: LoadSource):
         dict: the circuit template
     """
 
-    if isinstance(file, str):
-        with open(file, "r") as f:
-            data = json.load(f)
-    else:
-        data = json.load(file)
+    with ensure_open(file, "r") as f:
+        data = json.load(f)
 
     return convert_dict_to_array(data["array"])

@@ -264,18 +264,3 @@ def circuitset_from_dict(dict_) -> List[_circuit.Circuit]:
         raise ValueError(f"Invalid circuit schema: {schema}")
 
     return _map_eager(circuit_from_dict, dict_["circuits"])
-
-
-@contextmanager
-def ensure_open(path_like: Union[LoadSource, DumpTarget], mode="r"):
-    # str | bytes | PathLike | Readable
-    if isinstance(path_like, (str, bytes, os.PathLike)):
-        with open(path_like, mode) as f:
-            yield f
-    else:
-        # Readable | Writable
-        if set(mode).intersection(set("wxa+")):
-            if not path_like.writable():
-                raise ValueError(f"File isn't writable, can't ensure mode {mode}")
-
-        yield path_like

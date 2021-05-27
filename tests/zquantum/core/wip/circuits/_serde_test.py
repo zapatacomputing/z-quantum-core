@@ -1,8 +1,3 @@
-import io
-import json
-import pathlib
-import tempfile
-
 import numpy as np
 import pytest
 import sympy
@@ -13,7 +8,6 @@ from zquantum.core.wip.circuits._serde import (
     circuitset_from_dict,
     custom_gate_def_from_dict,
     deserialize_expr,
-    ensure_open,
     serialize_expr,
     to_dict,
 )
@@ -211,102 +205,3 @@ class TestExpressionSerialization:
         # `deserialized == expr` wouldn't work here for complex literals because of
         # how Sympy compares expressions
         assert deserialized - expr == 0
-
-
-@pytest.fixture
-def tmp_path():
-    with tempfile.NamedTemporaryFile() as tmp_file:
-        yield tmp_file.name
-
-
-@pytest.mark.parametrize(
-    "example_contents",
-    [
-        json.dumps({"hello": "world"}),
-        "",
-        "Zażółć gęślą jaźń",
-    ],
-)
-class TestEnsureOpen:
-    @pytest.mark.parametrize(
-        "path_mapper",
-        [
-            str,
-            lambda path: path.encode(),
-            pathlib.Path,
-        ],
-    )
-    def test_reading_from_path(self, tmp_path: str, path_mapper, example_contents):
-        with open(tmp_path, "w") as f:
-            f.write(example_contents)
-
-        path = path_mapper(tmp_path)
-        with ensure_open(path) as f:
-            read_contents = f.read()
-
-        assert read_contents == example_contents
-
-    def test_reading_from_open_file(self, tmp_path: str, example_contents):
-        with open(tmp_path, "w") as f:
-            f.write(example_contents)
-
-        with open(tmp_path) as open_file:
-            with ensure_open(open_file) as f:
-                read_contents = f.read()
-
-        assert read_contents == example_contents
-
-    def test_reading_from_io(self, example_contents):
-        buffer = io.StringIO()
-        buffer.write(example_contents)
-        buffer.seek(0)
-
-        with ensure_open(buffer) as f:
-            read_contents = f.read()
-
-        assert read_contents == example_contents
-
-    @pytest.mark.parametrize(
-        "path_mapper",
-        [
-            str,
-            lambda path: path.encode(),
-            pathlib.Path,
-        ],
-    )
-    def test_writing_to_path(self, tmp_path: str, path_mapper, example_contents):
-        path = path_mapper(tmp_path)
-        with ensure_open(path, "w") as f:
-            f.write(example_contents)
-
-        with open(tmp_path) as f:
-            read_contents = f.read()
-
-        assert read_contents == example_contents
-
-    def test_writing_to_open_file(self, tmp_path: str, example_contents):
-        with open(tmp_path, "w") as open_file:
-            with ensure_open(open_file, "w") as f:
-                f.write(example_contents)
-
-        with open(tmp_path) as f:
-            read_contents = f.read()
-
-        assert read_contents == example_contents
-
-    def test_writing_to_io(self, example_contents):
-        buffer = io.StringIO()
-        with ensure_open(buffer) as f:
-            f.write(example_contents)
-
-        buffer.seek(0)
-        read_contents = buffer.read()
-
-        assert read_contents == example_contents
-
-
-def test_ensure_open_with_write_flag_and_read_only_file_raises_error(tmp_path: str):
-    with open(tmp_path) as open_file:
-        with pytest.raises(ValueError):
-            with ensure_open(open_file, "w"):
-                pass

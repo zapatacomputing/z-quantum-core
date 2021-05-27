@@ -4,7 +4,6 @@ from typing import List, Optional, Union
 import numpy as np
 import zquantum.core.wip.circuits as new_circuits
 from openfermion import SymbolicOperator
-from zquantum.core.circuit import load_parameter_grid
 from zquantum.core.cost_function import (
     AnsatzBasedCostFunction,
     get_ground_state_cost_function,
@@ -56,19 +55,10 @@ def optimize_parametrized_circuit_for_ground_state_of_operator(
             parameter, if any.
         parameter_precision_seed: seed for randomly generating parameter deviation if
             using parameter_precision
-        kwaargs:
-            The following keyword arguments are handled explicitly when appropriate:
-            - parameter_grid: A parameter grid artifact that defines a 2D grid for
-                parameter values
+        kwargs: unused, exists for compatibility
     """
     if isinstance(optimizer_specs, str):
         optimizer_specs = json.loads(optimizer_specs)
-
-    parameter_grid = kwargs.pop("parameter_grid", None)
-    # Load parameter grid
-    if parameter_grid is not None:
-        parameter_grid = load_parameter_grid(parameter_grid)
-        optimizer_specs["grid"] = parameter_grid
 
     optimizer = create_object(optimizer_specs)
 
@@ -163,18 +153,10 @@ def optimize_ansatz_based_cost_function(
             using parameter_precision
         kwargs:
             The following key word arguments are handled explicitly when appropriate:
-                - parameter_grid: A parameter grid artifact that defines a 2D grid for
-                    parameter values
                 - thetas: A list of thetas used to initialize the WarmStartQAOAAnsatz
     """
     if isinstance(optimizer_specs, str):
         optimizer_specs = json.loads(optimizer_specs)
-
-    parameter_grid = kwargs.pop("parameter_grid", None)
-    # Load parameter grid
-    if parameter_grid is not None:
-        parameter_grid = load_parameter_grid(parameter_grid)
-        optimizer_specs["grid"] = parameter_grid
 
     optimizer = create_object(optimizer_specs)
 

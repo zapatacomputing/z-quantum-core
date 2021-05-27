@@ -35,7 +35,7 @@ def generate_random_ansatz_params(
         np.random.seed(seed)
 
     params = np.random.uniform(min_value, max_value, number_of_parameters)
-    layouts.save_circuit_template_params(params, "params.json")
+    serialization.save_array(params, "params.json")
 
 
 # Combine two sets of ansatz parameters
@@ -43,7 +43,7 @@ def combine_ansatz_params(params1: str, params2: str):
     parameters1 = serialization.load_array(params1)
     parameters2 = serialization.load_array(params2)
     combined_params = ansatz_utils.combine_ansatz_params(parameters1, parameters2)
-    layouts.save_circuit_template_params(combined_params, "combined-params.json")
+    serialization.save_array(combined_params, "combined-params.json")
 
 
 # Build circuit from ansatz
@@ -98,7 +98,7 @@ def add_ancilla_register_to_circuit(
     if isinstance(circuit, str):
         circuit = load_circuit(circuit)
     extended_circuit = circuits.add_ancilla_register(circuit, number_of_ancilla_qubits)
-    save_circuit("extended-circuit.json", extended_circuit)
+    save_circuit(extended_circuit, "extended-circuit.json")
 
 
 # Concatenate circuits in a circuitset to create a composite circuit
@@ -106,7 +106,7 @@ def concatenate_circuits(circuit_set: Union[str, List[Circuit]]):
     if isinstance(circuit_set, str):
         circuit_set = load_circuitset(circuit_set)
     result_circuit = sum(circuit_set, Circuit())
-    save_circuitset(result_circuit)
+    save_circuitset(result_circuit, "result-circuit.json")
 
 
 # Create one circuitset from circuit and circuitset objects

@@ -24,7 +24,6 @@ from zquantum.core.openfermion._io import load_interaction_operator
 from zquantum.core.openfermion._utils import (
     change_operator_type,
     create_circuits_from_qubit_operator,
-    evaluate_operator_for_parameter_grid,
     evaluate_qubit_operator,
     evaluate_qubit_operator_list,
     generate_random_qubitop,
@@ -124,41 +123,6 @@ class TestQubitOperator(unittest.TestCase):
         value_estimate = evaluate_qubit_operator_list(qubit_op_list, expectation_values)
         # Then
         self.assertAlmostEqual(value_estimate.value, 0.74)
-
-    def test_evaluate_operator_for_parameter_grid(self):
-        # Given
-        ansatz = MockAnsatz(4, 2)
-        grid = build_uniform_param_grid(1, 2, 0, np.pi, np.pi / 10)
-        backend = create_object(
-            {
-                "module_name": "zquantum.core.interfaces.mock_objects",
-                "function_name": "MockQuantumSimulator",
-            }
-        )
-        op = QubitOperator("0.5 [] + 0.5 [Z1]")
-        previous_layer_parameters = [1, 1]
-        # When
-        (
-            parameter_grid_evaluation,
-            optimal_parameters,
-        ) = evaluate_operator_for_parameter_grid(
-            ansatz, grid, backend, op, previous_layer_params=previous_layer_parameters
-        )
-        # Then (for brevity, only check first and last evaluations)
-        self.assertIsInstance(parameter_grid_evaluation[0]["value"].value, float)
-        self.assertEqual(parameter_grid_evaluation[0]["parameter1"], 0)
-        self.assertEqual(parameter_grid_evaluation[0]["parameter2"], 0)
-        self.assertIsInstance(parameter_grid_evaluation[99]["value"].value, float)
-        self.assertEqual(
-            parameter_grid_evaluation[99]["parameter1"], np.pi - np.pi / 10
-        )
-        self.assertEqual(
-            parameter_grid_evaluation[99]["parameter2"], np.pi - np.pi / 10
-        )
-
-        self.assertEqual(len(optimal_parameters), 4)
-        self.assertEqual(optimal_parameters[0], 1)
-        self.assertEqual(optimal_parameters[1], 1)
 
     def test_reverse_qubit_order(self):
         # Given

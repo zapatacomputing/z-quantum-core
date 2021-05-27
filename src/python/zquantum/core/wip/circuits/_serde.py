@@ -274,4 +274,8 @@ def ensure_open(path_like: Union[LoadSource, DumpTarget], mode="r"):
             yield f
     else:
         # Readable | Writable
+        if set(mode).intersection(set("wxa+")):
+            if not path_like.writable():
+                raise ValueError(f"File isn't writable, can't ensure mode {mode}")
+
         yield path_like

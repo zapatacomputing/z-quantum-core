@@ -213,6 +213,12 @@ class TestExpressionSerialization:
         assert deserialized - expr == 0
 
 
+@pytest.fixture
+def tmp_path():
+    with tempfile.NamedTemporaryFile() as tmp_file:
+        yield tmp_file.name
+
+
 @pytest.mark.parametrize(
     "example_contents",
     [
@@ -222,11 +228,6 @@ class TestExpressionSerialization:
     ],
 )
 class TestEnsureOpen:
-    @pytest.yield_fixture
-    def tmp_path(self):
-        with tempfile.NamedTemporaryFile() as tmp_file:
-            yield tmp_file.name
-
     @pytest.mark.parametrize(
         "path_mapper",
         [
@@ -302,3 +303,10 @@ class TestEnsureOpen:
         read_contents = buffer.read()
 
         assert read_contents == example_contents
+
+
+def test_ensure_open_with_write_flag_and_read_only_file_raises_error(tmp_path: str):
+    with open(tmp_path) as open_file:
+        with pytest.raises(ValueError):
+            with ensure_open(open_file, "w"):
+                pass

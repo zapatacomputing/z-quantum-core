@@ -1,7 +1,11 @@
+import json
+import os
+from contextlib import contextmanager
 from functools import singledispatch
-from typing import Iterable, List, Mapping
+from typing import Iterable, List, Mapping, Union
 
 import sympy
+from zquantum.core.typing import DumpTarget, LoadSource
 
 from ...utils import SCHEMA_VERSION
 from . import _builtin_gates, _circuit, _gates
@@ -260,3 +264,14 @@ def circuitset_from_dict(dict_) -> List[_circuit.Circuit]:
         raise ValueError(f"Invalid circuit schema: {schema}")
 
     return _map_eager(circuit_from_dict, dict_["circuits"])
+
+
+@contextmanager
+def ensure_open(path_like: Union[LoadSource, DumpTarget], mode="r"):
+    # str | bytes | PathLike | Readable
+    if isinstance(path_like, (str, bytes, os.PathLike)):
+        with open(path_like, mode) as f:
+            yield f
+    else:
+        # Readable | Writable
+        yield path_like

@@ -1,3 +1,8 @@
+import io
+import json
+import pathlib
+import tempfile
+
 import numpy as np
 import pytest
 import sympy
@@ -8,6 +13,7 @@ from zquantum.core.wip.circuits._serde import (
     circuitset_from_dict,
     custom_gate_def_from_dict,
     deserialize_expr,
+    ensure_open,
     serialize_expr,
     to_dict,
 )
@@ -205,3 +211,63 @@ class TestExpressionSerialization:
         # `deserialized == expr` wouldn't work here for complex literals because of
         # how Sympy compares expressions
         assert deserialized - expr == 0
+
+
+EXAMPLE_FILE_CONTENTS = json.dumps({"hello": "world"})
+
+
+class TestEnsureOpen:
+    @pytest.yield_fixture
+    def tmp_path(self):
+        with tempfile.NamedTemporaryFile() as tmp_file:
+            yield tmp_file.name
+
+    def test_reading_from_str_path(self, tmp_path: str):
+        with open(tmp_path, "w") as f:
+            f.write(EXAMPLE_FILE_CONTENTS)
+
+        with ensure_open(tmp_path) as f:
+            read_contents = f.read()
+
+        assert read_contents == EXAMPLE_FILE_CONTENTS
+
+    def test_reading_from_byte_path(self, tmp_path: str):
+        with open(tmp_path, "w") as f:
+            f.write(EXAMPLE_FILE_CONTENTS)
+
+        with ensure_open(tmp_path.encode()) as f:
+            read_contents = f.read()
+
+        assert read_contents == EXAMPLE_FILE_CONTENTS
+
+    def test_reading_from_pathlib_path(self, tmp_path: str):
+        with open(tmp_path, "w") as f:
+            f.write(EXAMPLE_FILE_CONTENTS)
+
+        with ensure_open(pathlib.Path(tmp_path)) as f:
+            read_contents = f.read()
+
+        assert read_contents == EXAMPLE_FILE_CONTENTS
+
+    def test_reading_from_open_file(self, tmp_path: str):
+        with open(tmp_path, "w") as f:
+            f.write(EXAMPLE_FILE_CONTENTS)
+
+        path = pathlib.Path(tmp_path)
+        with open(path, "w") as f:
+            f.write(EXAMPLE_FILE_CONTENTS)
+
+        with ensure_open(path) as f:
+            read_contents = f.read()
+
+        assert read_contents == EXAMPLE_FILE_CONTENTS
+
+    def test_reading_from_io(self):
+        buffer = io.StringIO()
+        buffer.write(EXAMPLE_FILE_CONTENTS)
+        buffer.seek(0)
+
+        with ensure_open(buffer) as f:
+            read_contents = f.read()
+
+        assert read_contents == EXAMPLE_FILE_CONTENTS

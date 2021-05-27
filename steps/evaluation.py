@@ -1,23 +1,12 @@
 import json
 from typing import Dict, List, Union
 
-import numpy as np
-import zquantum.core.circuit as old_circuit
-import zquantum.core.wip.circuits as new_circuits
 from openfermion import QubitOperator, SymbolicOperator
 from openfermion.linalg import (
     jw_get_ground_state_at_particle_number as _jw_get_ground_state_at_particle_number,
 )
 from openfermion.linalg import qubit_operator_sparse
 from pyquil.wavefunction import Wavefunction
-from zquantum.core.circuit import (
-    Circuit,
-    ParameterGrid,
-    load_circuit,
-    load_circuit_template_params,
-    load_parameter_grid,
-    save_circuit_template_params,
-)
 from zquantum.core.measurement import (
     ExpectationValues,
     load_expectation_values,
@@ -35,10 +24,10 @@ from zquantum.core.openfermion import (
     load_qubit_operator,
     load_qubit_operator_set,
     save_interaction_rdm,
-    save_parameter_grid_evaluation,
 )
 from zquantum.core.typing import Specs
 from zquantum.core.utils import ValueEstimate, create_object, save_value_estimate
+from zquantum.core.wip.circuits import Circuit, circuit_from_dict, load_circuit
 
 
 def get_expectation_values_for_qubit_operator(
@@ -59,7 +48,7 @@ def get_expectation_values_for_qubit_operator(
     if isinstance(circuit, str):
         circuit = load_circuit(circuit)
     elif isinstance(circuit, dict):
-        circuit = Circuit.from_dict(circuit)
+        circuit = circuit_from_dict(circuit)
     if isinstance(qubit_operator, str):
         qubit_operator = load_qubit_operator(qubit_operator)
     elif isinstance(qubit_operator, dict):

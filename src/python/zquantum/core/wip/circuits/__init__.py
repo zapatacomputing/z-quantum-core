@@ -151,7 +151,15 @@ from ._gates import (
     MatrixFactoryGate,
 )
 from ._generators import add_ancilla_register, create_layer_of_gates
-from ._serde import circuit_from_dict, circuitset_from_dict, to_dict
+from ._serde import (
+    circuit_from_dict,
+    circuitset_from_dict,
+    load_circuit,
+    load_circuitset,
+    save_circuit,
+    save_circuitset,
+    to_dict,
+)
 from ._testing import create_random_circuit
 from ._wavefunction_operations import MultiPhaseOperation
 from .conversions.cirq_conversions import export_to_cirq, import_from_cirq

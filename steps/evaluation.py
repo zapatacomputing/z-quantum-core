@@ -1,7 +1,6 @@
 import json
 from typing import Dict, List, Union
 
-import zquantum.core.wip.circuits as new_circuits
 from openfermion import QubitOperator, SymbolicOperator
 from openfermion.linalg import (
     jw_get_ground_state_at_particle_number as _jw_get_ground_state_at_particle_number,
@@ -28,11 +27,12 @@ from zquantum.core.openfermion import (
 )
 from zquantum.core.typing import Specs
 from zquantum.core.utils import ValueEstimate, create_object, save_value_estimate
+from zquantum.core.wip.circuits import Circuit, circuit_from_dict, load_circuit
 
 
 def get_expectation_values_for_qubit_operator(
     backend_specs: Specs,
-    circuit: Union[str, new_circuits.Circuit, Dict],
+    circuit: Union[str, Circuit, Dict],
     qubit_operator: Union[str, SymbolicOperator, Dict],
 ):
     """Measure the expectation values of the terms in an input operator with respect to
@@ -46,9 +46,9 @@ def get_expectation_values_for_qubit_operator(
         qubit_operator: The operator to measure
     """
     if isinstance(circuit, str):
-        circuit = new_circuits.load_circuit(circuit)
+        circuit = load_circuit(circuit)
     elif isinstance(circuit, dict):
-        circuit = new_circuits.circuit_from_dict(circuit)
+        circuit = circuit_from_dict(circuit)
     if isinstance(qubit_operator, str):
         qubit_operator = load_qubit_operator(qubit_operator)
     elif isinstance(qubit_operator, dict):

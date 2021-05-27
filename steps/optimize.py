@@ -4,18 +4,18 @@ from typing import List, Optional, Union
 import numpy as np
 import zquantum.core.wip.circuits as new_circuits
 from openfermion import SymbolicOperator
-from zquantum.core.circuit import (
-    load_circuit_template_params,
-    load_parameter_grid,
-    save_circuit_template_params,
-)
+from zquantum.core.circuit import load_parameter_grid
 from zquantum.core.cost_function import (
     AnsatzBasedCostFunction,
     get_ground_state_cost_function,
 )
 from zquantum.core.estimation import estimate_expectation_values_by_averaging
 from zquantum.core.openfermion import load_qubit_operator
-from zquantum.core.serialization import save_optimization_results
+from zquantum.core.serialization import (
+    load_array,
+    save_array,
+    save_optimization_results,
+)
 from zquantum.core.typing import Specs
 from zquantum.core.utils import create_object, load_list
 from zquantum.core.wip.circuits import Circuit
@@ -103,11 +103,11 @@ def optimize_parametrized_circuit_for_ground_state_of_operator(
 
     if initial_parameters is not None:
         if isinstance(initial_parameters, str):
-            initial_parameters = load_circuit_template_params(initial_parameters)
+            initial_parameters = load_array(initial_parameters)
 
     if fixed_parameters is not None:
         if isinstance(fixed_parameters, str):
-            fixed_parameters = load_circuit_template_params(fixed_parameters)
+            fixed_parameters = load_array(fixed_parameters)
 
     cost_function = get_ground_state_cost_function(
         target_operator,
@@ -123,9 +123,7 @@ def optimize_parametrized_circuit_for_ground_state_of_operator(
     optimization_results = optimizer.minimize(cost_function, initial_parameters)
 
     save_optimization_results(optimization_results, "optimization-results.json")
-    save_circuit_template_params(
-        optimization_results.opt_params, "optimized-parameters.json"
-    )
+    save_array(optimization_results.opt_params, "optimized-parameters.json")
 
 
 def optimize_ansatz_based_cost_function(
@@ -217,11 +215,11 @@ def optimize_ansatz_based_cost_function(
 
     if initial_parameters is not None:
         if isinstance(initial_parameters, str):
-            initial_parameters = load_circuit_template_params(initial_parameters)
+            initial_parameters = load_array(initial_parameters)
 
     if fixed_parameters is not None:
         if isinstance(fixed_parameters, str):
-            fixed_parameters = load_circuit_template_params(fixed_parameters)
+            fixed_parameters = load_array(fixed_parameters)
 
     cost_function = AnsatzBasedCostFunction(
         target_operator,
@@ -237,6 +235,4 @@ def optimize_ansatz_based_cost_function(
     optimization_results = optimizer.minimize(cost_function, initial_parameters)
 
     save_optimization_results(optimization_results, "optimization-results.json")
-    save_circuit_template_params(
-        optimization_results.opt_params, "optimized-parameters.json"
-    )
+    save_array(optimization_results.opt_params, "optimized-parameters.json")

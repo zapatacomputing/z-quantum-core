@@ -122,7 +122,7 @@ def ensure_open(path_like: Union[LoadSource, DumpTarget], mode="r"):
         yield path_like
 
 
-def save_array(array: np.ndarray, filename: AnyPath) -> None:
+def save_array(array: np.ndarray, path_like: DumpTarget) -> None:
     """Saves array to a file.
 
     Args:
@@ -132,7 +132,7 @@ def save_array(array: np.ndarray, filename: AnyPath) -> None:
 
     dictionary: Dict[str, Any] = {"schema": SCHEMA_VERSION + "-array"}
     dictionary["array"] = convert_array_to_dict(array)
-    with ensure_open(filename, "w") as f:
+    with ensure_open(path_like, "w") as f:
         f.write(json.dumps(dictionary))
 
 

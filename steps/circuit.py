@@ -4,16 +4,9 @@ from typing import List, Optional, Union
 import numpy as np
 import numpy.random
 import zquantum.core.wip.circuits as new_circuits
-from zquantum.core.circuit import (
-    build_circuit_layers_and_connectivity as _build_circuit_layers_and_connectivity,
-)
+import zquantum.core.wip.circuits.layouts as layouts
+from zquantum.core import serialization
 from zquantum.core.circuit import combine_ansatz_params as _combine_ansatz_params
-from zquantum.core.circuit import (
-    load_circuit_template_params,
-    save_circuit_connectivity,
-    save_circuit_layers,
-    save_circuit_template_params,
-)
 from zquantum.core.typing import Specs
 from zquantum.core.utils import create_symbols_map, load_from_specs
 from zquantum.core.wip.circuits import Circuit
@@ -37,15 +30,15 @@ def generate_random_ansatz_params(
         np.random.seed(seed)
 
     params = np.random.uniform(min_value, max_value, number_of_parameters)
-    save_circuit_template_params(params, "params.json")
+    layouts.save_circuit_template_params(params, "params.json")
 
 
 # Combine two sets of ansatz parameters
 def combine_ansatz_params(params1: str, params2: str):
-    parameters1 = load_circuit_template_params(params1)
-    parameters2 = load_circuit_template_params(params2)
+    parameters1 = serialization.load_array(params1)
+    parameters2 = serialization.load_array(params2)
     combined_params = _combine_ansatz_params(parameters1, parameters2)
-    save_circuit_template_params(combined_params, "combined-params.json")
+    layouts.save_circuit_template_params(combined_params, "combined-params.json")
 
 
 # Build circuit from ansatz
@@ -56,7 +49,7 @@ def build_ansatz_circuit(
     params_array: np.ndarray
     if params is not None:
         if isinstance(params, str):
-            params_array = load_circuit_template_params(params)
+            params_array = serialization.load_array(params)
         else:
             params_array = np.array(params)
         circuit = ansatz.get_executable_circuit(params_array)
@@ -68,8 +61,7 @@ def build_ansatz_circuit(
                 "Ansatz is not parametrizable and no parameters has been provided."
             )
         )
-    with open("circuit.json", "w") as f:
-        json.dump(new_circuits.to_dict(circuit), f)
+    new_circuits.save_circuit(circuit, "circuit.json")
 
 
 # Build circuit layers and connectivity
@@ -78,11 +70,11 @@ def build_circuit_layers_and_connectivity(
     y_dimension: Optional[int] = None,
     layer_type: str = "nearest-neighbor",
 ):
-    connectivity, layers = _build_circuit_layers_and_connectivity(
+    connectivity, layers = layouts.build_circuit_layers_and_connectivity(
         x_dimension, y_dimension, layer_type
     )
-    save_circuit_layers(layers, "circuit-layers.json")
-    save_circuit_connectivity(connectivity, "circuit-connectivity.json")
+    layouts.save_circuit_layers(layers, "circuit-layers.json")
+    layouts.save_circuit_connectivity(connectivity, "circuit-connectivity.json")
 
 
 # Create random circuit
@@ -93,8 +85,7 @@ def create_random_circuit(
     circuit = new_circuits.create_random_circuit(
         number_of_qubits, number_of_gates, rng=rng
     )
-    with open("circuit.json", "w") as f:
-        json.dump(new_circuits.to_dict(circuit), f)
+    new_circuits.save_circuit(circuit, "circuit.json")
 
 
 # Add register of ancilla qubits to circuit
@@ -102,23 +93,19 @@ def add_ancilla_register_to_circuit(
     number_of_ancilla_qubits: int, circuit: Union[Circuit, str]
 ):
     if isinstance(circuit, str):
-        with open(circuit) as f:
-            circuit = new_circuits.circuit_from_dict(json.load(f))
+        circuit = new_circuits.load_circuit(circuit)
     extended_circuit = new_circuits.add_ancilla_register(
         circuit, number_of_ancilla_qubits
     )
-    with open("extended-circuit.json", "w") as f:
-        json.dump(new_circuits.to_dict(extended_circuit), f)
+    new_circuits.save_circuit("extended-circuit.json", extended_circuit)
 
 
 # Concatenate circuits in a circuitset to create a composite circuit
 def concatenate_circuits(circuit_set: Union[str, List[Circuit]]):
     if isinstance(circuit_set, str):
-        with open(circuit_set) as f:
-            circuit_set = new_circuits.circuitset_from_dict(json.load(f))
+        circuit_set = new_circuits.load_circuit_set(circuit_set)
     result_circuit = sum(circuit_set, new_circuits.Circuit())
-    with open("result-circuit.json", "w") as f:
-        json.dump(new_circuits.to_dict(result_circuit), f)
+    new_circuits.save_circuitset(result_circuit)
 
 
 # Create one circuitset from circuit and circuitset objects
@@ -130,15 +117,13 @@ def batch_circuits(
     if circuit_set is None:
         loaded_circuit_set = []
     elif isinstance(circuit_set, str):
-        with open(circuit_set) as f:
-            loaded_circuit_set = new_circuits.circuitset_from_dict(json.load(f))
+        loaded_circuit_set = new_circuits.load_circuitset(circuit_set)
     else:
         loaded_circuit_set = circuit_set
 
     for circuit in circuits:
         if isinstance(circuit, str):
-            with open(circuit) as f:
-                loaded_circuit = new_circuits.circuit_from_dict(json.load(f))
+            loaded_circuit = new_circuits.load_circuits(circuit)
         else:
             loaded_circuit = circuit
 
@@ -153,13 +138,11 @@ def evaluate_parametrized_circuit(
     parameters: Union[str, np.ndarray],
 ):
     if isinstance(parametrized_circuit, str):
-        with open(parametrized_circuit) as f:
-            parametrized_circuit = new_circuits.circuit_from_dict(json.load(f))
+        parametrized_circuit = new_circuits.load_circuit(parametrized_circuit)
 
     if isinstance(parameters, str):
-        parameters = load_circuit_template_params(parameters)
+        parameters = serialization.load_array(parameters)
 
     symbols_map = create_symbols_map(parametrized_circuit.symbolic_params, parameters)
     bound_circuit = parametrized_circuit.bind(symbols_map)
-    with open("evaluated-circuit.json", "w") as f:
-        json.dump(new_circuits.to_dict(bound_circuit), f)
+    new_circuits.save_circuit(bound_circuit, "evaluated-circuit.json")

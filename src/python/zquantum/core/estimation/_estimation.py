@@ -219,11 +219,12 @@ def evaluate_estimation_circuits(
     ]
 
 
-def get_estimation_tasks_to_measure(
+def split_constant_estimation_tasks(
     estimation_tasks: List[EstimationTask],
-) -> Tuple[List[EstimationTask], List[int], List[ExpectationValues]]:
-    """This function returns a list of circuits that should actually be sent to the
-    backend. It filters out EstimationTasks that only contain a constant and those
+) -> Tuple[List[EstimationTask], List[EstimationTask], List[int], List[int]]:
+    """This function splits a give list of EstimationTask into two: one that
+    contains EstimationTasks that only contain constants, and one that contains
+    EstimationTasks that should actually be submitted to a backend. EstimationTask
     that require 0 shot generate an error.
 
     Args:
@@ -234,30 +235,26 @@ def get_estimation_tasks_to_measure(
         estimation_tasks_to_measure (List[Circuit]): A new list of estimation tasks that only
                                      contains the ones that should actually be submitted to the
                                      backend
+        estimation_tasks_for_constants (List[Circuit]): A new list of estimation tasks that
+                                        contains the EstimationTasks with only constant terms
         indices_to_measure (List[int]): A list containing the indices of the EstimationTasks we will
-                            actually measure. This tells us where to store the expectation values of
-                            estimation_tasks_to_measure, i.e. the ith estimation_tasks_to_measure
-                            expectation values will go into full_expectation_values[indices_to_measure[i]]
-        full_expectation_values (List[ExpectationValues]): A list of len(estimation_tasks) elements.
-                                 All values are None except for EstimationTasks that
-                                 only contain a constant term, in which case the Expectation
-                                 Values are returned in the appropriate position.
+                            actually measure, i.e. the ith estimation_tasks_to_measure expectation
+                            value will go into the indices_to_measure[i] position.
+        indices_for_constants (List[int]): A list containing the indices of the EstimationTasks for
+                               constant terms.
     """
 
     estimation_tasks_to_measure = []
-    full_expectation_values = [None for _ in estimation_tasks]
+    estimation_tasks_for_constants = []
     indices_to_measure = []
+    indices_for_constants = []
     for i, e in enumerate(estimation_tasks):
         if len(e.operator.terms) == 1 and () in e.operator.terms.keys():
-            coefficient = e.operator.terms[()]
-            full_expectation_values[i] = ExpectationValues(
-                np.asarray([coefficient]),
-                correlations=[np.asarray([[0.0]])],
-                estimator_covariances=[np.asarray([[0.0]])],
-            )
+            indices_for_constants.append(i)
+            estimation_tasks_for_constants.append(e)
         elif e.number_of_shots == 0:
             raise RuntimeError(
-                "An EstimationTask requested 0 shot for a non-constant term. It's unclear what the expectation values should be."
+                "An EstimationTask requested 0 shot for a non-constant term. It's unclear what to do with that."
             )
         else:
             indices_to_measure.append(i)
@@ -265,9 +262,43 @@ def get_estimation_tasks_to_measure(
 
     return (
         estimation_tasks_to_measure,
+        estimation_tasks_for_constants,
         indices_to_measure,
-        full_expectation_values,
+        indices_for_constants,
     )
+
+
+def evaluate_constant_estimation_tasks(
+    estimation_tasks: List[EstimationTask],
+) -> List[ExpectationValues]:
+    """This function evaluates a list of EstimationTask over constant terms.
+
+    Args:
+        estimation_tasks (List[EstimationTask]): The list of estimation tasks for which
+                         Expectation Values are wanted, they must only contain constant terms.
+
+    Returns:
+        expectation_values (List[ExpectationValues]): the expectation values over constant terms,
+                            with their correlations and estimator_covariances.
+    """
+
+    expectation_values = []
+    for e in estimation_tasks:
+        if len(e.operator.terms) > 1 or () not in e.operator.terms.keys():
+            raise RuntimeError(
+                "evaluate_constant_estimation_tasks received an EstimationTask that contained a non-constant term."
+            )
+        else:
+            coefficient = e.operator.terms[()]
+            expectation_values.append(
+                ExpectationValues(
+                    np.asarray([coefficient]),
+                    correlations=[np.asarray([[0.0]])],
+                    estimator_covariances=[np.asarray([[0.0]])],
+                )
+            )
+
+    return expectation_values
 
 
 def estimate_expectation_values_by_averaging(
@@ -286,9 +317,14 @@ def estimate_expectation_values_by_averaging(
 
     (
         estimation_tasks_to_measure,
+        estimation_tasks_for_constants,
         indices_to_measure,
-        full_expectation_values,
-    ) = get_estimation_tasks_to_measure(estimation_tasks)
+        indices_for_constants,
+    ) = split_constant_estimation_tasks(estimation_tasks)
+
+    expectation_values_for_constants = evaluate_constant_estimation_tasks(
+        estimation_tasks_for_constants
+    )
 
     circuits, operators, shots_per_circuit = zip(
         *[
@@ -308,8 +344,16 @@ def estimate_expectation_values_by_averaging(
         for frame_operator, measurements in zip(operators, measurements_list)
     ]
 
-    for i, final_index in enumerate(indices_to_measure):
-        full_expectation_values[final_index] = measured_expectation_values_list[i]
+    full_expectation_values = [
+        None
+        for _ in range(
+            len(estimation_tasks_for_constants) + len(estimation_tasks_to_measure)
+        )
+    ]
+    for e, final_index in zip(expectation_values_for_constants, indices_for_constants):
+        full_expectation_values[final_index] = e
+    for e, final_index in zip(measured_expectation_values_list, indices_to_measure):
+        full_expectation_values[final_index] = e
 
     return full_expectation_values
 

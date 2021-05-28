@@ -22,9 +22,9 @@ from openfermion import (
 from openfermion.linalg import jw_get_ground_state_at_particle_number
 from openfermion.transforms import freeze_orbitals, get_fermion_operator
 
-from ..circuit import Circuit, Gate, Qubit
 from ..measurement import ExpectationValues, expectation_values_to_real
 from ..utils import ValueEstimate, bin2dec, dec2bin
+from ..wip.circuits import Circuit, builtin_gate_by_name
 
 
 def get_qubitop_from_matrix(operator: List[List]) -> QubitOperator:
@@ -575,18 +575,12 @@ def create_circuits_from_qubit_operator(qubit_operator: QubitOperator) -> List[C
     for term in pauli_terms:
 
         circuit = Circuit()
-        pauli_gates = []
-        qubits = []
 
         # Loop over Pauli factors in Pauli term and construct Pauli term circuit
         for pauli in term:  # loop over pauli operators in an n qubit pauli term
             pauli_index = pauli[0]
             pauli_factor = pauli[1]
-            pauli_gates.append(Gate(pauli_factor, qubits=[Qubit(pauli_index)]))
-            qubits.append(Qubit(pauli[0]))
-
-        circuit.gates = pauli_gates
-        circuit.qubits += qubits
+            circuit += builtin_gate_by_name(pauli_factor)(pauli_index)
 
         circuit_set += [circuit]
 

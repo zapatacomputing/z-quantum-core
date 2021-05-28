@@ -228,25 +228,25 @@ def evaluate_estimation_circuits(
 def split_constant_estimation_tasks(
     estimation_tasks: List[EstimationTask],
 ) -> Tuple[List[EstimationTask], List[EstimationTask], List[int], List[int]]:
-    """This function splits a give list of EstimationTask into two: one that
+    """This function splits a given list of EstimationTask into two: one that
     contains EstimationTasks that only contain constants, and one that contains
-    EstimationTasks that should actually be submitted to a backend. EstimationTask
+    EstimationTasks that have non-constant terms as well.
     that require 0 shot generate an error.
 
     Args:
-        estimation_tasks (List[EstimationTask]): The list of estimation tasks for which
+        estimation_tasks: The list of estimation tasks for which
                          Expectation Values are wanted.
 
     Returns:
-        estimation_tasks_to_measure (List[Circuit]): A new list of estimation tasks that only
+        estimation_tasks_to_measure: A new list of estimation tasks that only
                                      contains the ones that should actually be submitted to the
                                      backend
-        estimation_tasks_for_constants (List[Circuit]): A new list of estimation tasks that
+        estimation_tasks_for_constants: A new list of estimation tasks that
                                         contains the EstimationTasks with only constant terms
-        indices_to_measure (List[int]): A list containing the indices of the EstimationTasks we will
+        indices_to_measure: A list containing the indices of the EstimationTasks we will
                             actually measure, i.e. the ith estimation_tasks_to_measure expectation
                             value will go into the indices_to_measure[i] position.
-        indices_for_constants (List[int]): A list containing the indices of the EstimationTasks for
+        indices_for_constants: A list containing the indices of the EstimationTasks for
                                constant terms.
     """
 

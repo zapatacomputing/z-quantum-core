@@ -254,17 +254,17 @@ def split_constant_estimation_tasks(
     estimation_tasks_for_constants = []
     indices_to_measure = []
     indices_for_constants = []
-    for i, e in enumerate(estimation_tasks):
-        if len(e.operator.terms) == 1 and () in e.operator.terms.keys():
+    for i, task in enumerate(estimation_tasks):
+        if len(task.operator.terms) == 1 and () in task.operator.terms.keys():
             indices_for_constants.append(i)
-            estimation_tasks_for_constants.append(e)
-        elif e.number_of_shots == 0:
+            estimation_tasks_for_constants.append(task)
+        elif task.number_of_shots == 0:
             raise RuntimeError(
                 "An EstimationTask requested 0 shot for a non-constant term. It's unclear what to do with that."
             )
         else:
             indices_to_measure.append(i)
-            estimation_tasks_to_measure.append(e)
+            estimation_tasks_to_measure.append(task)
 
     return (
         estimation_tasks_to_measure,
@@ -289,13 +289,13 @@ def evaluate_constant_estimation_tasks(
     """
 
     expectation_values = []
-    for e in estimation_tasks:
-        if len(e.operator.terms) > 1 or () not in e.operator.terms.keys():
+    for task in estimation_tasks:
+        if len(task.operator.terms) > 1 or () not in task.operator.terms.keys():
             raise RuntimeError(
                 "evaluate_constant_estimation_tasks received an EstimationTask that contained a non-constant term."
             )
         else:
-            coefficient = e.operator.terms[()]
+            coefficient = task.operator.terms[()]
             expectation_values.append(
                 ExpectationValues(
                     np.asarray([coefficient]),
@@ -356,10 +356,14 @@ def estimate_expectation_values_by_averaging(
             len(estimation_tasks_for_constants) + len(estimation_tasks_to_measure)
         )
     ]
-    for e, final_index in zip(expectation_values_for_constants, indices_for_constants):
-        full_expectation_values[final_index] = e
-    for e, final_index in zip(measured_expectation_values_list, indices_to_measure):
-        full_expectation_values[final_index] = e
+    for ex_val, final_index in zip(
+        expectation_values_for_constants, indices_for_constants
+    ):
+        full_expectation_values[final_index] = ex_val
+    for ex_val, final_index in zip(
+        measured_expectation_values_list, indices_to_measure
+    ):
+        full_expectation_values[final_index] = ex_val
 
     return full_expectation_values
 

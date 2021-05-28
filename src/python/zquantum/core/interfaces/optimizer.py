@@ -69,3 +69,13 @@ def optimization_result(
     return scipy.optimize.OptimizeResult(
         opt_value=opt_value, opt_params=opt_params, **kwargs
     )
+
+
+def construct_history_info(cost_function, keep_value_history):
+    histories = {
+        "history": cost_function.history if keep_value_history else [],
+    }
+
+    if keep_value_history and hasattr(cost_function, "gradient"):
+        histories["gradient_history"] = cost_function.gradient.history
+    return histories

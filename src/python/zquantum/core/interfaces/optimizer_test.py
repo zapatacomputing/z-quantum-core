@@ -123,7 +123,7 @@ class OptimizerTests(object):
                 result_history_entry.value, cost_function_history_entry.value
             )
 
-    def test_optimizer_records_gradients_history_if_keep_value_history_is_added_as_option(
+    def test_gradients_history_is_recorded_if_keep_value_history_is_added_as_option(
         self, optimizer
     ):
         try:

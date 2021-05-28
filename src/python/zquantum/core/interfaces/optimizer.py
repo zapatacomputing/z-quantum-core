@@ -19,9 +19,9 @@ class Optimizer(ABC):
 
     def __init__(self, options: Optional[Dict] = None):
         warnings.warn(
-            "Default input argument \"options\" will soon be removed from the "
+            'Default input argument "options" will soon be removed from the '
             "optimizer interface. However, this does not preclude particular "
-            "optimizers from continuing to declare \"options\" within their individual "
+            'optimizers from continuing to declare "options" within their individual '
             "constructors.",
             DeprecationWarning,
         )

@@ -13,6 +13,9 @@ from ..gradients import finite_differences_gradient
 from ..history.recorder import recorder
 
 
+MANDATORY_OPTIMIZATION_RESULT_FIELDS = ("nfev", "nit", "opt_value", "opt_params")
+
+
 def rosenbrock_function(x):
     """The Rosenbrock function"""
     return sum(100.0 * (x[1:] - x[:-1] ** 2.0) ** 2.0 + (1 - x[:-1]) ** 2.0)
@@ -53,11 +56,10 @@ class OptimizerTests(object):
         assert results.opt_value == pytest.approx(0, abs=1e-4)
         assert results.opt_params == pytest.approx(np.ones(2), abs=1e-3)
 
-        assert "nfev" in results
-        assert "nit" in results
-        assert "opt_value" in results
-        assert "opt_params" in results
-        assert "history" in results
+        assert all(field in results for field in MANDATORY_OPTIMIZATION_RESULT_FIELDS)
+
+        assert "history" in results or not optimizer.keep_value_history
+        assert "gradient_history" in results or not optimizer.keep_value_history
 
     def test_optimizer_succeeds_with_optimizing_sum_of_squares_function(
         self, optimizer
@@ -71,11 +73,10 @@ class OptimizerTests(object):
         assert results.opt_value == pytest.approx(0, abs=1e-5)
         assert results.opt_params == pytest.approx(np.zeros(2), abs=1e-4)
 
-        assert "nfev" in results
-        assert "nit" in results
-        assert "opt_value" in results
-        assert "opt_params" in results
-        assert "history" in results
+        assert all(field in results for field in MANDATORY_OPTIMIZATION_RESULT_FIELDS)
+
+        assert "history" in results or not optimizer.keep_value_history
+        assert "gradient_history" in results or not optimizer.keep_value_history
 
     def test_optimizer_succeeds_on_cost_function_without_gradient(self, optimizer):
         cost_function = sum_x_squared
@@ -84,16 +85,22 @@ class OptimizerTests(object):
         assert results.opt_value == pytest.approx(0, abs=1e-5)
         assert results.opt_params == pytest.approx(np.zeros(2), abs=1e-4)
 
-        assert "nfev" in results
-        assert "nit" in results
-        assert "opt_value" in results
-        assert "opt_params" in results
-        assert "history" in results
+        assert all(field in results for field in MANDATORY_OPTIMIZATION_RESULT_FIELDS)
+
+        assert "history" in results or not optimizer.keep_value_history
+        assert "gradient_history" not in results
 
     def test_optimizer_records_history_if_keep_value_history_is_added_as_option(
         self, optimizer
     ):
-        optimizer.keep_value_history = True
+        try:
+            optimizer.keep_value_history = True
+        except AttributeError:
+            if not optimizer.keep_value_history:
+                pytest.fail(
+                    "Failed to set keep_value_history=True and the optimizer does not "
+                    "store history by default."
+                )
 
         # To check that history is recorded correctly, we wrap cost_function
         # with a recorder. Optimizer should wrap it a second time and
@@ -116,7 +123,46 @@ class OptimizerTests(object):
                 result_history_entry.value, cost_function_history_entry.value
             )
 
-    def test_optimizier_does_not_record_history_if_keep_value_history_is_set_to_false(
+    def test_gradients_history_is_recorded_if_keep_value_history_is_added_as_option(
+        self, optimizer
+    ):
+        try:
+            optimizer.keep_value_history = True
+        except AttributeError:
+            if not optimizer.keep_value_history:
+                pytest.fail(
+                    "Failed to set keep_value_history=True and the optimizer does not "
+                    "store history by default."
+                )
+
+        # To check that history is recorded correctly, we wrap cost_function
+        # with a recorder. Optimizer should wrap it a second time and
+        # therefore we can compare two histories to see if they agree.
+        cost_function = recorder(
+            FunctionWithGradient(
+                sum_x_squared, finite_differences_gradient(sum_x_squared)
+            )
+        )
+
+        result = optimizer.minimize(cost_function, np.array([-1, 1]))
+
+        assert len(result.gradient_history) == len(cost_function.gradient.history)
+
+        for result_history_entry, cost_function_history_entry in zip(
+            result.gradient_history, cost_function.gradient.history
+        ):
+            assert (
+                result_history_entry.call_number
+                == cost_function_history_entry.call_number
+            )
+            assert np.allclose(
+                result_history_entry.params, cost_function_history_entry.params
+            )
+            assert np.allclose(
+                result_history_entry.value, cost_function_history_entry.value
+            )
+
+    def test_optimizer_does_not_record_history_if_keep_value_history_is_set_to_false(
         self, optimizer
     ):
         if getattr(self, "always_records_history", False):

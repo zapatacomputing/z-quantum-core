@@ -37,7 +37,7 @@ class HistoryEntryWithArtifacts(NamedTuple):
 
 
 class HistoryEntry(NamedTuple):
-    "A basic history entry storing call number, parameters and target function value."
+    """A history entry storing call number, parameters and target function value."""
 
     call_number: int
     params: Any
@@ -86,7 +86,7 @@ class SimpleRecorderWithGradient(SimpleRecorder):
 
     def __init__(self, target: CallableWithGradient, save_condition: SaveCondition):
         super().__init__(target, save_condition)
-        self.gradient = target.gradient
+        self.gradient = recorder(target.gradient, save_condition)
 
 
 class ArtifactRecorder(Generic[S, T]):
@@ -129,7 +129,7 @@ class ArtifactRecorderWithGradient(ArtifactRecorder):
         save_condition: SaveCondition,
     ):
         super().__init__(target, save_condition)
-        self.gradient = target.gradient
+        self.gradient = recorder(target.gradient, save_condition)
 
 
 def store_artifact(artifacts) -> StoreArtifact:
@@ -158,7 +158,7 @@ def recorder(
     function: CallableWithGradientStoringArtifacts,
     save_condition: SaveCondition = always,
 ) -> ArtifactRecorderWithGradient:
-    "The recorder function: variant for callables with gradient and storing artifacts."
+    """The recorder function: variant for artifact-storing callables with gradient."""
 
 
 @overload

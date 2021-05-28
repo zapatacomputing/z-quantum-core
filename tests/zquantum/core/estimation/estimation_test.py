@@ -23,6 +23,8 @@ from zquantum.core.estimation import (
     perform_context_selection,
     group_greedily,
     group_individually,
+    split_constant_estimation_tasks,
+    evaluate_constant_estimation_tasks,
 )
 from zquantum.core.interfaces.estimation import EstimationTask
 
@@ -333,6 +335,244 @@ class TestEstimatorUtils:
         for task in grouped_tasks:
             assert task.operator.terms in expected_operator_terms_per_frame
 
+    @pytest.mark.parametrize(
+        "estimation_tasks,ref_estimation_tasks_to_measure,ref_constant_estimation_tasks,ref_indices_to_measure,ref_constant_indices",
+        [
+            (
+                [
+                    EstimationTask(
+                        IsingOperator("2[Z0] + 3 [Z1 Z2]"), Circuit(Program(X(0))), 10
+                    ),
+                    EstimationTask(
+                        IsingOperator("2[Z0] + 3 [Z1 Z2] + 4[]"),
+                        Circuit(Program(RZ(np.pi / 2, 0))),
+                        1000,
+                    ),
+                    EstimationTask(
+                        IsingOperator("4[Z3]"),
+                        Circuit(Program(RY(np.pi / 2, 0))),
+                        17,
+                    ),
+                ],
+                [
+                    EstimationTask(
+                        IsingOperator("2[Z0] + 3 [Z1 Z2]"), Circuit(Program(X(0))), 10
+                    ),
+                    EstimationTask(
+                        IsingOperator("2[Z0] + 3 [Z1 Z2] + 4 []"),
+                        Circuit(Program(RZ(np.pi / 2, 0))),
+                        1000,
+                    ),
+                    EstimationTask(
+                        IsingOperator("4[Z3]"),
+                        Circuit(Program(RY(np.pi / 2, 0))),
+                        17,
+                    ),
+                ],
+                [],
+                [0, 1, 2],
+                [],
+            ),
+            (
+                [
+                    EstimationTask(
+                        IsingOperator("2[Z0] + 3 [Z1 Z2]"), Circuit(Program(X(0))), 10
+                    ),
+                    EstimationTask(
+                        IsingOperator("4[] "),
+                        Circuit(Program(RZ(np.pi / 2, 0))),
+                        1000,
+                    ),
+                    EstimationTask(
+                        IsingOperator("4[Z3]"),
+                        Circuit(Program(RY(np.pi / 2, 0))),
+                        17,
+                    ),
+                ],
+                [
+                    EstimationTask(
+                        IsingOperator("2[Z0] + 3 [Z1 Z2]"), Circuit(Program(X(0))), 10
+                    ),
+                    EstimationTask(
+                        IsingOperator("4[Z3]"),
+                        Circuit(Program(RY(np.pi / 2, 0))),
+                        17,
+                    ),
+                ],
+                [
+                    EstimationTask(
+                        IsingOperator("4[]"), Circuit(Program(RZ(np.pi / 2, 0))), 1000
+                    )
+                ],
+                [0, 2],
+                [1],
+            ),
+            (
+                [
+                    EstimationTask(IsingOperator("- 3 []"), Circuit(Program(X(0))), 0),
+                    EstimationTask(
+                        IsingOperator("2[Z0] + 3 [Z1 Z2] + 4[]"),
+                        Circuit(Program(RZ(np.pi / 2, 0))),
+                        1000,
+                    ),
+                    EstimationTask(
+                        IsingOperator("4[Z3]"),
+                        Circuit(Program(RY(np.pi / 2, 0))),
+                        17,
+                    ),
+                ],
+                [
+                    EstimationTask(
+                        IsingOperator("2[Z0] + 3 [Z1 Z2] + 4 []"),
+                        Circuit(Program(RZ(np.pi / 2, 0))),
+                        1000,
+                    ),
+                    EstimationTask(
+                        IsingOperator("4[Z3]"),
+                        Circuit(Program(RY(np.pi / 2, 0))),
+                        17,
+                    ),
+                ],
+                [
+                    EstimationTask(IsingOperator("- 3 []"), Circuit(Program(X(0))), 0),
+                ],
+                [1, 2],
+                [0],
+            ),
+        ],
+    )
+    def test_split_constant_estimation_tasks(
+        self,
+        estimation_tasks,
+        ref_estimation_tasks_to_measure,
+        ref_constant_estimation_tasks,
+        ref_indices_to_measure,
+        ref_constant_indices,
+    ):
+
+        (
+            estimation_task_to_measure,
+            constant_estimation_tasks,
+            indices_to_measure,
+            indices_for_constants,
+        ) = split_constant_estimation_tasks(estimation_tasks)
+
+        assert estimation_task_to_measure == ref_estimation_tasks_to_measure
+        assert constant_estimation_tasks == ref_constant_estimation_tasks
+        assert indices_to_measure == ref_indices_to_measure
+        assert ref_constant_indices == indices_for_constants
+
+    @pytest.mark.parametrize(
+        "estimation_tasks",
+        [
+            [
+                EstimationTask(IsingOperator("- 3 []"), Circuit(Program(X(0))), 0),
+                EstimationTask(
+                    IsingOperator("2[Z0] + 3 [Z1 Z2] + 4[]"),
+                    Circuit(Program(RZ(np.pi / 2, 0))),
+                    0,
+                ),
+                EstimationTask(
+                    IsingOperator("4[Z3]"),
+                    Circuit(Program(RY(np.pi / 2, 0))),
+                    17,
+                ),
+            ],
+        ],
+    )
+    def test_split_constant_estimation_tasks_fails_with_zero_shots(
+        self, estimation_tasks
+    ):
+
+        with pytest.raises(RuntimeError):
+            _ = split_constant_estimation_tasks(estimation_tasks)
+
+    @pytest.mark.parametrize(
+        "estimation_tasks,ref_expectation_values",
+        [
+            (
+                [
+                    EstimationTask(
+                        IsingOperator("4[] "),
+                        Circuit(Program(RZ(np.pi / 2, 0))),
+                        1000,
+                    ),
+                ],
+                [
+                    ExpectationValues(
+                        np.asarray([4.0]),
+                        correlations=[np.asarray([[0.0]])],
+                        estimator_covariances=[np.asarray([[0.0]])],
+                    ),
+                ],
+            ),
+            (
+                [
+                    EstimationTask(
+                        IsingOperator("- 2.5 [] - 0.5 []"), Circuit(Program(X(0))), 0
+                    ),
+                    EstimationTask(
+                        IsingOperator("0.001[] "), Circuit(Program(RZ(np.pi / 2, 0))), 2
+                    ),
+                ],
+                [
+                    ExpectationValues(
+                        np.asarray([-3.0]),
+                        correlations=[np.asarray([[0.0]])],
+                        estimator_covariances=[np.asarray([[0.0]])],
+                    ),
+                    ExpectationValues(
+                        np.asarray([0.001]),
+                        correlations=[np.asarray([[0.0]])],
+                        estimator_covariances=[np.asarray([[0.0]])],
+                    ),
+                ],
+            ),
+        ],
+    )
+    def test_evaluate_constant_estimation_tasks(
+        self, estimation_tasks, ref_expectation_values
+    ):
+
+        expectation_values = evaluate_constant_estimation_tasks(estimation_tasks)
+
+        for ex_val, ref_ex_val in zip(expectation_values, ref_expectation_values):
+            assert np.allclose(ex_val.values, ref_ex_val.values)
+            assert np.allclose(ex_val.correlations, ref_ex_val.correlations)
+            assert np.allclose(
+                ex_val.estimator_covariances, ref_ex_val.estimator_covariances
+            )
+
+    @pytest.mark.parametrize(
+        "estimation_tasks",
+        [
+            (
+                [
+                    EstimationTask(
+                        IsingOperator("- 2.5 [] - 0.5 [Z1]"), Circuit(Program(X(0))), 0
+                    ),
+                ]
+            ),
+            (
+                [
+                    EstimationTask(
+                        IsingOperator("0.001 [Z0]"),
+                        Circuit(Program(RZ(np.pi / 2, 0))),
+                        0,
+                    ),
+                    EstimationTask(
+                        IsingOperator("2.0[] "), Circuit(Program(RZ(np.pi / 2, 0))), 2
+                    ),
+                ]
+            ),
+        ],
+    )
+    def test_evaluate_constant_estimation_tasks_fails_with_non_constant(
+        self, estimation_tasks
+    ):
+        with pytest.raises(RuntimeError):
+            _ = evaluate_constant_estimation_tasks(estimation_tasks)
+
 
 class TestBasicEstimationMethods:
     @pytest.fixture()
@@ -366,6 +606,10 @@ class TestBasicEstimationMethods:
         )
         assert len(expectation_values_list) == 3
         for expectation_values, task in zip(expectation_values_list, estimation_tasks):
+            if () in task.operator.terms.keys():
+                for i, term in enumerate(task.operator.terms.items()):
+                    if term[0] == ():
+                        assert expectation_values.values[i] == term[1]
             assert len(expectation_values.values) == len(task.operator.terms)
 
     def test_calculate_exact_expectation_values(self, simulator, estimation_tasks):
@@ -374,6 +618,10 @@ class TestBasicEstimationMethods:
         )
         assert len(expectation_values_list) == 3
         for expectation_values, task in zip(expectation_values_list, estimation_tasks):
+            if () in task.operator.terms.keys():
+                for i, term in enumerate(task.operator.terms.items()):
+                    if term[0] == ():
+                        assert expectation_values.values[i] == term[1]
             assert len(expectation_values.values) == len(task.operator.terms)
 
     def test_calculate_exact_expectation_values_fails_with_non_simulator(
@@ -381,6 +629,4 @@ class TestBasicEstimationMethods:
     ):
         backend = MockQuantumBackend()
         with pytest.raises(AttributeError):
-            _ = calculate_exact_expectation_values(
-                backend, estimation_tasks
-            )
+            _ = calculate_exact_expectation_values(backend, estimation_tasks)

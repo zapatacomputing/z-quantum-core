@@ -132,6 +132,6 @@ class Function5:
         Returns:
             self.alpha * [yz, xz, xy] where x, y, z = params.
         """
-        return self.alpha * np.ndarray(
+        return self.alpha * np.array(
             [params[1] * params[2], params[0] * params[2], params[0] * params[1]]
         )

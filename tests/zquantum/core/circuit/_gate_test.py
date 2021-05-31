@@ -2,6 +2,10 @@ import unittest
 from math import pi
 
 import qiskit
+import cirq
+
+import numpy as np
+
 from sympy import Symbol
 from zquantum.core.circuit._gate import Gate
 from zquantum.core.circuit._gateset import COMMON_GATES
@@ -147,6 +151,99 @@ class TestGate(unittest.TestCase):
 
             # Then
             self.assertEqual(gate, recreated_gate)
+
+    # The test below checks conversion from cirq for exponentiated
+    # gates that convert without a global phase difference
+    def test_cirq_exponentiated_gate_no_global_phase_io(self):
+        a = cirq.NamedQubit("a")
+        for exponent in [
+            1.0,
+            -1.0,
+            0.5,
+            -0.5,
+            np.random.rand() * 2 * np.pi,
+            np.random.rand() * 2 * np.pi,
+        ]:
+            for exp_gate in [
+                cirq.T ** exponent,
+                cirq.S ** exponent,
+                cirq.ZPowGate(exponent=exponent),
+                cirq.HPowGate(exponent=exponent),
+                cirq.PhasedXPowGate(
+                    exponent=exponent, phase_exponent=np.random.rand() * 2 * np.pi
+                ),
+                cirq.rx(exponent),
+                cirq.ry(exponent),
+                cirq.rz(exponent),
+            ]:
+
+                gate = exp_gate(a)
+                ref_unitary = gate._unitary_()
+
+                qubits = [Qubit(0)]
+                zquantum_gate = Gate.from_cirq(gate, qubits)
+                unitary = zquantum_gate.to_unitary()
+
+                #    assert np.allclose(
+                #        unitary * np.exp(exponent * 1.0j / 2 * np.pi), ref_unitary
+                #    )
+                assert np.allclose(unitary, ref_unitary)
+
+    # The test below checks conversion from cirq for exponentiated
+    # gates that convert with a global phase difference, i.e.
+    # XPowGate and YPowGate that don't have a converted equivalent
+    # Exponent 1.0 is just X and Y gates which are tested in test_cirq_io
+    # so it is not tested here
+    def test_cirq_exponentiated_gate_with_global_phase_io(self):
+        a = cirq.NamedQubit("a")
+        for exponent in [
+            -1.0,
+            0.5,
+            -0.5,
+            np.random.rand() * 2 * np.pi,
+            np.random.rand() * 2 * np.pi,
+        ]:
+            for exp_gate in [
+                cirq.XPowGate(exponent=exponent),
+                cirq.YPowGate(exponent=exponent),
+            ]:
+
+                gate = exp_gate(a)
+                ref_unitary = gate._unitary_()
+
+                qubits = [Qubit(0)]
+                zquantum_gate = Gate.from_cirq(gate, qubits)
+                unitary = zquantum_gate.to_unitary()
+
+                assert np.allclose(
+                    unitary * np.exp(exponent * 1.0j / 2 * np.pi), ref_unitary
+                )
+
+    # The test below checks conversion from cirq for exponentiated
+    # 2-qubit gates
+    def test_cirq_exponentiated_2qgates_io(self):
+        a = cirq.NamedQubit("a")
+        b = cirq.NamedQubit("b")
+        for exponent in [
+            1.0,
+            -1.0,
+            0.5,
+            -0.5,
+            np.random.rand() * 2 * np.pi,
+            np.random.rand() * 2 * np.pi,
+        ]:
+            for exp_gate in [
+                cirq.CZPowGate(exponent=exponent),
+            ]:
+
+                gate = exp_gate(a, b)
+                ref_unitary = gate._unitary_()
+
+                qubits = [Qubit(0), Qubit(1)]
+                zquantum_gate = Gate.from_cirq(gate, qubits)
+                unitary = zquantum_gate.to_unitary()
+
+                assert np.allclose(unitary, ref_unitary)
 
     def test_qiskit_io(self):
         for gate_name in COMMON_GATES:

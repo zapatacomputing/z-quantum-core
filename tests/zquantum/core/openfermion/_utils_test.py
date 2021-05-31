@@ -1,10 +1,11 @@
 import random
 import unittest
 
+import cirq
 import numpy as np
 import pkg_resources
 import pyquil
-from cirq import GridQubit, LineQubit, PauliString, PauliSum, X, Y, Z
+from cirq import GridQubit, LineQubit, PauliString, PauliSum
 from openfermion import (
     FermionOperator,
     IsingOperator,
@@ -17,7 +18,6 @@ from openfermion import (
 )
 from openfermion.hamiltonians import fermi_hubbard
 from openfermion.linalg import jw_get_ground_state_at_particle_number
-from zquantum.core.circuit import Circuit, Gate, Qubit, build_uniform_param_grid
 from zquantum.core.interfaces.mock_objects import MockAnsatz
 from zquantum.core.measurement import ExpectationValues
 from zquantum.core.openfermion._io import load_interaction_operator
@@ -39,6 +39,7 @@ from zquantum.core.openfermion._utils import (
     reverse_qubit_order,
 )
 from zquantum.core.utils import RNDSEED, create_object, hf_rdm
+from zquantum.core.wip.circuits import Circuit, X, Y, Z
 
 
 class TestQubitOperator(unittest.TestCase):
@@ -219,23 +220,8 @@ class TestQubitOperator(unittest.TestCase):
 
     def test_create_circuits_from_qubit_operator(self):
         # Initialize target
-        qubits = [Qubit(i) for i in range(0, 2)]
-
-        gate_Z0 = Gate("Z", [qubits[0]])
-        gate_X1 = Gate("X", [qubits[1]])
-
-        gate_Y0 = Gate("Y", [qubits[0]])
-        gate_Z1 = Gate("Z", [qubits[1]])
-
-        circuit1 = Circuit()
-        circuit1.qubits = qubits
-        circuit1.gates = [gate_Z0, gate_X1]
-
-        circuit2 = Circuit()
-        circuit2.qubits = qubits
-        circuit2.gates = [gate_Y0, gate_Z1]
-
-        target_circuits_list = [circuit1, circuit2]
+        circuit1 = Circuit([Z(0), X(1)])
+        circuit2 = Circuit([Y(0), Z(1)])
 
         # Given
         qubit_op = QubitOperator("Z0 X1") + QubitOperator("Y0 Z1")
@@ -244,14 +230,8 @@ class TestQubitOperator(unittest.TestCase):
         pauli_circuits = create_circuits_from_qubit_operator(qubit_op)
 
         # Then
-        self.assertEqual(pauli_circuits[0].gates, target_circuits_list[0].gates)
-        self.assertEqual(pauli_circuits[1].gates, target_circuits_list[1].gates)
-        self.assertEqual(
-            str(pauli_circuits[0].qubits), str(target_circuits_list[0].qubits)
-        )
-        self.assertEqual(
-            str(pauli_circuits[1].qubits), str(target_circuits_list[1].qubits)
-        )
+        self.assertEqual(pauli_circuits[0], circuit1)
+        self.assertEqual(pauli_circuits[1], circuit2)
 
 
 class TestOtherUtils(unittest.TestCase):
@@ -315,8 +295,8 @@ class TestOtherUtils(unittest.TestCase):
         expected_qubits = (GridQubit(0, 0), GridQubit(1, 0))
         expected_paulisum = (
             PauliSum()
-            + PauliString(Z.on(expected_qubits[0]))
-            * PauliString(Z.on(expected_qubits[1]))
+            + PauliString(cirq.Z.on(expected_qubits[0]))
+            * PauliString(cirq.Z.on(expected_qubits[1]))
             * -1.5
         )
 
@@ -333,8 +313,8 @@ class TestOtherUtils(unittest.TestCase):
         expected_qubits = (LineQubit(0), LineQubit(5))
         expected_paulisum = (
             PauliSum()
-            + PauliString(Z.on(expected_qubits[0]))
-            * PauliString(Z.on(expected_qubits[1]))
+            + PauliString(cirq.Z.on(expected_qubits[0]))
+            * PauliString(cirq.Z.on(expected_qubits[1]))
             * -1.5
         )
 
@@ -356,13 +336,13 @@ class TestOtherUtils(unittest.TestCase):
         expected_paulisum = (
             PauliSum()
             + (
-                PauliString(Z.on(expected_qubits[0]))
-                * PauliString(Z.on(expected_qubits[1]))
-                * PauliString(Z.on(expected_qubits[2]))
+                PauliString(cirq.Z.on(expected_qubits[0]))
+                * PauliString(cirq.Z.on(expected_qubits[1]))
+                * PauliString(cirq.Z.on(expected_qubits[2]))
                 * -1.5
             )
-            + (PauliString(X.on(expected_qubits[0]) * 2.5))
-            + (PauliString(Y.on(expected_qubits[1]) * 3.5))
+            + (PauliString(cirq.X.on(expected_qubits[0]) * 2.5))
+            + (PauliString(cirq.Y.on(expected_qubits[1]) * 3.5))
         )
 
         # When

@@ -9,13 +9,13 @@ from zquantum.core.estimation import (
     allocate_shots_uniformly,
     calculate_exact_expectation_values,
     estimate_expectation_values_by_averaging,
+    evaluate_constant_estimation_tasks,
     evaluate_estimation_circuits,
     get_context_selection_circuit_for_group,
     group_greedily,
     group_individually,
     perform_context_selection,
     split_constant_estimation_tasks,
-    evaluate_constant_estimation_tasks,
 )
 from zquantum.core.interfaces.estimation import EstimationTask
 from zquantum.core.interfaces.mock_objects import (
@@ -307,36 +307,44 @@ class TestEstimatorUtils:
             assert task.operator.terms in expected_operator_terms_per_frame
 
     @pytest.mark.parametrize(
-        "estimation_tasks,ref_estimation_tasks_to_measure,ref_constant_estimation_tasks,ref_indices_to_measure,ref_constant_indices",
+        ",".join(
+            [
+                "estimation_tasks",
+                "ref_estimation_tasks_to_measure",
+                "ref_constant_estimation_tasks",
+                "ref_indices_to_measure",
+                "ref_constant_indices",
+            ]
+        ),
         [
             (
                 [
                     EstimationTask(
-                        IsingOperator("2[Z0] + 3 [Z1 Z2]"), Circuit(Program(X(0))), 10
+                        IsingOperator("2[Z0] + 3 [Z1 Z2]"), Circuit([X(0)]), 10
                     ),
                     EstimationTask(
                         IsingOperator("2[Z0] + 3 [Z1 Z2] + 4[]"),
-                        Circuit(Program(RZ(np.pi / 2, 0))),
+                        Circuit([RZ(np.pi / 2)(0)]),
                         1000,
                     ),
                     EstimationTask(
                         IsingOperator("4[Z3]"),
-                        Circuit(Program(RY(np.pi / 2, 0))),
+                        Circuit([RY(np.pi / 2)(0)]),
                         17,
                     ),
                 ],
                 [
                     EstimationTask(
-                        IsingOperator("2[Z0] + 3 [Z1 Z2]"), Circuit(Program(X(0))), 10
+                        IsingOperator("2[Z0] + 3 [Z1 Z2]"), Circuit([X(0)]), 10
                     ),
                     EstimationTask(
                         IsingOperator("2[Z0] + 3 [Z1 Z2] + 4 []"),
-                        Circuit(Program(RZ(np.pi / 2, 0))),
+                        Circuit([RZ(np.pi / 2)(0)]),
                         1000,
                     ),
                     EstimationTask(
                         IsingOperator("4[Z3]"),
-                        Circuit(Program(RY(np.pi / 2, 0))),
+                        Circuit([RY(np.pi / 2)(0)]),
                         17,
                     ),
                 ],
@@ -347,32 +355,32 @@ class TestEstimatorUtils:
             (
                 [
                     EstimationTask(
-                        IsingOperator("2[Z0] + 3 [Z1 Z2]"), Circuit(Program(X(0))), 10
+                        IsingOperator("2[Z0] + 3 [Z1 Z2]"), Circuit([X(0)]), 10
                     ),
                     EstimationTask(
                         IsingOperator("4[] "),
-                        Circuit(Program(RZ(np.pi / 2, 0))),
+                        Circuit([RZ(np.pi / 2)(0)]),
                         1000,
                     ),
                     EstimationTask(
                         IsingOperator("4[Z3]"),
-                        Circuit(Program(RY(np.pi / 2, 0))),
+                        Circuit([RY(np.pi / 2)(0)]),
                         17,
                     ),
                 ],
                 [
                     EstimationTask(
-                        IsingOperator("2[Z0] + 3 [Z1 Z2]"), Circuit(Program(X(0))), 10
+                        IsingOperator("2[Z0] + 3 [Z1 Z2]"), Circuit([X(0)]), 10
                     ),
                     EstimationTask(
                         IsingOperator("4[Z3]"),
-                        Circuit(Program(RY(np.pi / 2, 0))),
+                        Circuit([RY(np.pi / 2)(0)]),
                         17,
                     ),
                 ],
                 [
                     EstimationTask(
-                        IsingOperator("4[]"), Circuit(Program(RZ(np.pi / 2, 0))), 1000
+                        IsingOperator("4[]"), Circuit([RZ(np.pi / 2)(0)]), 1000
                     )
                 ],
                 [0, 2],
@@ -380,32 +388,32 @@ class TestEstimatorUtils:
             ),
             (
                 [
-                    EstimationTask(IsingOperator("- 3 []"), Circuit(Program(X(0))), 0),
+                    EstimationTask(IsingOperator("- 3 []"), Circuit([X(0)]), 0),
                     EstimationTask(
                         IsingOperator("2[Z0] + 3 [Z1 Z2] + 4[]"),
-                        Circuit(Program(RZ(np.pi / 2, 0))),
+                        Circuit([RZ(np.pi / 2)(0)]),
                         1000,
                     ),
                     EstimationTask(
                         IsingOperator("4[Z3]"),
-                        Circuit(Program(RY(np.pi / 2, 0))),
+                        Circuit([RY(np.pi / 2)(0)]),
                         17,
                     ),
                 ],
                 [
                     EstimationTask(
                         IsingOperator("2[Z0] + 3 [Z1 Z2] + 4 []"),
-                        Circuit(Program(RZ(np.pi / 2, 0))),
+                        Circuit([RZ(np.pi / 2)(0)]),
                         1000,
                     ),
                     EstimationTask(
                         IsingOperator("4[Z3]"),
-                        Circuit(Program(RY(np.pi / 2, 0))),
+                        Circuit([RY(np.pi / 2)(0)]),
                         17,
                     ),
                 ],
                 [
-                    EstimationTask(IsingOperator("- 3 []"), Circuit(Program(X(0))), 0),
+                    EstimationTask(IsingOperator("- 3 []"), Circuit([X(0)]), 0),
                 ],
                 [1, 2],
                 [0],
@@ -437,15 +445,15 @@ class TestEstimatorUtils:
         "estimation_tasks",
         [
             [
-                EstimationTask(IsingOperator("- 3 []"), Circuit(Program(X(0))), 0),
+                EstimationTask(IsingOperator("- 3 []"), Circuit([X(0)]), 0),
                 EstimationTask(
                     IsingOperator("2[Z0] + 3 [Z1 Z2] + 4[]"),
-                    Circuit(Program(RZ(np.pi / 2, 0))),
+                    Circuit([RZ(np.pi / 2)(0)]),
                     0,
                 ),
                 EstimationTask(
                     IsingOperator("4[Z3]"),
-                    Circuit(Program(RY(np.pi / 2, 0))),
+                    Circuit([RY(np.pi / 2)(0)]),
                     17,
                 ),
             ],
@@ -465,7 +473,7 @@ class TestEstimatorUtils:
                 [
                     EstimationTask(
                         IsingOperator("4[] "),
-                        Circuit(Program(RZ(np.pi / 2, 0))),
+                        Circuit([RZ(np.pi / 2)(0)]),
                         1000,
                     ),
                 ],
@@ -480,10 +488,10 @@ class TestEstimatorUtils:
             (
                 [
                     EstimationTask(
-                        IsingOperator("- 2.5 [] - 0.5 []"), Circuit(Program(X(0))), 0
+                        IsingOperator("- 2.5 [] - 0.5 []"), Circuit([X(0)]), 0
                     ),
                     EstimationTask(
-                        IsingOperator("0.001[] "), Circuit(Program(RZ(np.pi / 2, 0))), 2
+                        IsingOperator("0.001[] "), Circuit([RZ(np.pi / 2)(0)]), 2
                     ),
                 ],
                 [
@@ -520,7 +528,7 @@ class TestEstimatorUtils:
             (
                 [
                     EstimationTask(
-                        IsingOperator("- 2.5 [] - 0.5 [Z1]"), Circuit(Program(X(0))), 0
+                        IsingOperator("- 2.5 [] - 0.5 [Z1]"), Circuit([X(0)]), 0
                     ),
                 ]
             ),
@@ -528,11 +536,11 @@ class TestEstimatorUtils:
                 [
                     EstimationTask(
                         IsingOperator("0.001 [Z0]"),
-                        Circuit(Program(RZ(np.pi / 2, 0))),
+                        Circuit([RZ(np.pi / 2)(0)]),
                         0,
                     ),
                     EstimationTask(
-                        IsingOperator("2.0[] "), Circuit(Program(RZ(np.pi / 2, 0))), 2
+                        IsingOperator("2.0[] "), Circuit([RZ(np.pi / 2)(0)]), 2
                     ),
                 ]
             ),

@@ -36,6 +36,7 @@ from zquantum.core.utils import (
     save_timing,
     save_value_estimate,
     scale_and_discretize,
+    get_ordered_list_of_bitstrings,
 )
 
 
@@ -473,3 +474,9 @@ def test_scale_and_discretize(values, total, expected_result):
 def test_hf_rdm_energy(hamiltonian, ref_energy, nalpha):
     rdm = hf_rdm(nalpha, 1, 2)
     assert np.isclose(ref_energy, rdm.expectation(hamiltonian))
+
+
+@pytest.mark.parametrize("num_qubits", [2, 3, 5, 10])
+def test_ordered_bitstring(num_qubits):
+    bitstrings = get_ordered_list_of_bitstrings(num_qubits)
+    assert np.all([len(bit) == num_qubits for bit in bitstrings])

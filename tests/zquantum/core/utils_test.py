@@ -21,6 +21,7 @@ from zquantum.core.utils import (
     create_symbols_map,
     dec2bin,
     get_func_from_specs,
+    get_ordered_list_of_bitstrings,
     hf_rdm,
     is_identity,
     is_unitary,
@@ -36,7 +37,6 @@ from zquantum.core.utils import (
     save_timing,
     save_value_estimate,
     scale_and_discretize,
-    get_ordered_list_of_bitstrings,
 )
 
 

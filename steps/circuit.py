@@ -1,8 +1,7 @@
 from typing import List, Optional, Union
 
 import numpy as np
-import numpy.random
-import zquantum.core.wip.circuits.layouts as layouts
+import zquantum.core.circuits.layouts as layouts
 from zquantum.core import serialization
 from zquantum.core.interfaces import ansatz_utils
 from zquantum.core.typing import Specs

@@ -43,7 +43,7 @@ jobs:
           # We're not ready yet to validate mypy, black & isort on every PR. In the 
           # mean time, please rely on local pre-commit hook checks.
           use-mypy: false
-          use-black: true
+          use-black: false
           use-isort: true
 
           # Extra options: pylint $(extra-pylint-options) $(python-root-list)

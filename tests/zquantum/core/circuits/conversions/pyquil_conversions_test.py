@@ -2,8 +2,8 @@ import numpy as np
 import pyquil
 import pytest
 import sympy
-from zquantum.core.wip.circuits import _builtin_gates, _circuit, _gates
-from zquantum.core.wip.circuits.conversions.pyquil_conversions import (
+from zquantum.core.circuits import _builtin_gates, _circuit, _gates
+from zquantum.core.circuits.conversions.pyquil_conversions import (
     export_to_pyquil,
     import_from_pyquil,
 )

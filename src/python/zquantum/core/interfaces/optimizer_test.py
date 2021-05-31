@@ -12,7 +12,6 @@ from zquantum.core.interfaces.functions import FunctionWithGradient
 from ..gradients import finite_differences_gradient
 from ..history.recorder import recorder
 
-
 MANDATORY_OPTIMIZATION_RESULT_FIELDS = ("nfev", "nit", "opt_value", "opt_params")
 
 

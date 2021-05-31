@@ -4,6 +4,7 @@ import numpy as np
 import pytest
 import sympy
 from openfermion import IsingOperator, QubitOperator, qubit_operator_sparse
+from zquantum.core.circuits import RX, RY, RZ, Circuit, X
 from zquantum.core.estimation import (
     allocate_shots_proportionally,
     allocate_shots_uniformly,
@@ -24,7 +25,6 @@ from zquantum.core.interfaces.mock_objects import (
 )
 from zquantum.core.measurement import ExpectationValues
 from zquantum.core.openfermion._utils import change_operator_type
-from zquantum.core.wip.circuits import RX, RY, RZ, Circuit, X
 
 
 class TestEstimatorUtils:

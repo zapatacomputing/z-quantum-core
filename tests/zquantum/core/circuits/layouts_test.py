@@ -1,6 +1,6 @@
 import os
 
-from zquantum.core.wip.circuits.layouts import (
+from zquantum.core.circuits.layouts import (
     CircuitConnectivity,
     CircuitLayers,
     build_circuit_layers_and_connectivity,

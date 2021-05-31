@@ -8,10 +8,9 @@ from typing import List, Tuple, Union
 import numpy as np
 import pyquil.paulis
 import sympy
+from openfermion import QubitOperator
 from zquantum.core.wip import circuits
 from zquantum.core.wip.circuits import CNOT, RX, RZ, H
-
-from openfermion import QubitOperator
 
 
 def time_evolution(

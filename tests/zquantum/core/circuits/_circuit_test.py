@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 import sympy
-from zquantum.core.wip.circuits._builtin_gates import (
+from zquantum.core.circuits._builtin_gates import (
     CNOT,
     CPHASE,
     CZ,
@@ -21,7 +21,7 @@ from zquantum.core.wip.circuits._builtin_gates import (
     Y,
     Z,
 )
-from zquantum.core.wip.circuits._circuit import Circuit
+from zquantum.core.circuits._circuit import Circuit
 
 RNG = np.random.default_rng(42)
 

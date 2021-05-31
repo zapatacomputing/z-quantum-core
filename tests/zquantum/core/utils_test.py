@@ -8,7 +8,6 @@ import pkg_resources
 import pytest
 import sympy
 from scipy.stats import unitary_group
-
 from zquantum.core.openfermion import load_interaction_operator
 from zquantum.core.utils import (
     RNDSEED,

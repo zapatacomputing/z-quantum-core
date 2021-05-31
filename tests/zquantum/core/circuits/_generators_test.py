@@ -1,14 +1,8 @@
 import cirq
 import numpy as np
 import pytest
+from zquantum.core.circuits import RY, Circuit, X, create_layer_of_gates, export_to_cirq
 from zquantum.core.utils import compare_unitary
-from zquantum.core.wip.circuits import (
-    RY,
-    Circuit,
-    X,
-    create_layer_of_gates,
-    export_to_cirq,
-)
 
 
 def test_create_layer_of_gates_not_parametrized():

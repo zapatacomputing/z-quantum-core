@@ -2,8 +2,8 @@ import cirq
 import numpy as np
 import pytest
 import sympy
-from zquantum.core.wip.circuits import _builtin_gates, _circuit, _gates
-from zquantum.core.wip.circuits.conversions.cirq_conversions import (
+from zquantum.core.circuits import _builtin_gates, _circuit, _gates
+from zquantum.core.circuits.conversions.cirq_conversions import (
     export_to_cirq,
     import_from_cirq,
     make_rotation_factory,

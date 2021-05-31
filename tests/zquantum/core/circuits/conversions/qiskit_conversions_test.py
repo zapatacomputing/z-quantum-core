@@ -3,8 +3,8 @@ import pytest
 import qiskit
 import qiskit.circuit.random
 import sympy
-from zquantum.core.wip.circuits import _builtin_gates, _circuit, _gates
-from zquantum.core.wip.circuits.conversions.qiskit_conversions import (
+from zquantum.core.circuits import _builtin_gates, _circuit, _gates
+from zquantum.core.circuits.conversions.qiskit_conversions import (
     export_to_qiskit,
     import_from_qiskit,
 )

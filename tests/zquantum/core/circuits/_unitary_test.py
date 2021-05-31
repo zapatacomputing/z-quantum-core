@@ -2,7 +2,7 @@ import cirq
 import numpy as np
 import pytest
 import sympy
-from zquantum.core.wip.circuits import (
+from zquantum.core.circuits import (
     RX,
     RY,
     RZ,

@@ -2,15 +2,16 @@ import cirq
 import numpy as np
 import pytest
 import sympy
-from pyquil.paulis import PauliSum, PauliTerm
-from zquantum.core.utils import compare_unitary
-from zquantum.core.wip import circuits
-from zquantum.core.wip.evolution import (_generate_circuit_sequence,
-                                         time_evolution,
-                                         time_evolution_derivatives,
-                                         time_evolution_for_term)
-
 from openfermion import QubitOperator
+from pyquil.paulis import PauliSum, PauliTerm
+from zquantum.core import circuits
+from zquantum.core.evolution import (
+    _generate_circuit_sequence,
+    time_evolution,
+    time_evolution_derivatives,
+    time_evolution_for_term,
+)
+from zquantum.core.utils import compare_unitary
 
 PAULI_STRING_TO_CIRQ_GATE = {"XX": cirq.XX, "YY": cirq.YY, "ZZ": cirq.ZZ}
 OPENFERMION_TERM_TO_CIRQ_GATE = {
@@ -228,9 +229,7 @@ class TestTimeEvolutionDerivatives:
         return request.param
 
     @pytest.mark.parametrize("time", [0.4, sympy.Symbol("t")])
-    def test_gives_correct_number_of_derivatives_and_factors(
-        self, time, hamiltonian
-    ):
+    def test_gives_correct_number_of_derivatives_and_factors(self, time, hamiltonian):
 
         order = 3
         reference_factors_1 = [1.0 / order, 0.5 / order, 0.3 / order] * 3

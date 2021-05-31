@@ -10,7 +10,6 @@ from openfermion import (
     get_interaction_operator,
     hermitian_conjugated,
 )
-from zquantum.core.circuit import build_uniform_param_grid, save_circuit_template_params
 from zquantum.core.interfaces.mock_objects import MockAnsatz
 from zquantum.core.openfermion._io import (
     convert_dict_to_interaction_op,

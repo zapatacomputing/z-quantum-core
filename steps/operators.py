@@ -1,14 +1,14 @@
 from typing import List, Optional, Union
+
+import numpy as np
 from openfermion import (
-    InteractionOperator,
     FermionOperator,
-    QubitOperator,
+    InteractionOperator,
     IsingOperator,
+    QubitOperator,
     normal_ordered,
 )
 from openfermion.transforms import get_fermion_operator
-import numpy as np
-
 from zquantum.core.hamiltonian import (
     group_comeasureable_terms_greedy as _group_comeasurable_terms_greedy,
 )
@@ -79,7 +79,7 @@ def get_diagonal_component(interaction_operator: Union[InteractionOperator, str]
 def interpolate_qubit_operators(
     reference_qubit_operator: Union[InteractionOperator, str],
     target_qubit_operator: Union[InteractionOperator, str],
-    epsilon: Optional[float] = 0.5,
+    epsilon: float = 0.5,
 ):
     """Produce a qubit operator which is the interpolation of two operators through the
     function: epsilon * target_qubit_operator + (1.0 - epsilon) *
@@ -211,11 +211,17 @@ def concatenate_qubit_operator_lists(
     qubit_operator_list_B: Union[str, List[QubitOperator]],
 ):
     if isinstance(qubit_operator_list_A, str):
-        qubit_operator_list_A = load_qubit_operator_set(qubit_operator_list_A)
+        qubit_operator_list_A_loaded = load_qubit_operator_set(qubit_operator_list_A)
+    else:
+        qubit_operator_list_A_loaded = qubit_operator_list_A
     if isinstance(qubit_operator_list_B, str):
-        qubit_operator_list_B = load_qubit_operator_set(qubit_operator_list_B)
+        qubit_operator_list_B_loaded = load_qubit_operator_set(qubit_operator_list_B)
+    else:
+        qubit_operator_list_B_loaded = qubit_operator_list_B
 
-    qubit_operator_list_final = qubit_operator_list_A + qubit_operator_list_B
+    qubit_operator_list_final = (
+        qubit_operator_list_A_loaded + qubit_operator_list_B_loaded
+    )
 
     save_qubit_operator_set(
         qubit_operator_list_final, "concatenated-qubit-operators.json"

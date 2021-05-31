@@ -3,7 +3,7 @@ from typing import Dict, List, TextIO, Tuple
 
 import numpy as np
 
-from ...utils import SCHEMA_VERSION
+from ..utils import SCHEMA_VERSION
 
 
 class CircuitLayers:

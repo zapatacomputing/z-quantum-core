@@ -1,7 +1,7 @@
 import json
 import random
 from random import uniform
-from typing import Optional, cast, Dict
+from typing import Dict, Optional, cast
 
 import networkx as nx
 from zquantum.core.typing import AnyPath, LoadSource

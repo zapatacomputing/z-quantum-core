@@ -1,6 +1,6 @@
 """Test cases for _builtin_gates_module."""
 import pytest
-from zquantum.core.wip.circuits import _builtin_gates
+from zquantum.core.circuits import _builtin_gates
 
 
 class TestBuiltinGatesProperties:

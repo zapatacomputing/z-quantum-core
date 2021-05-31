@@ -2,10 +2,8 @@
 import numpy as np
 import pytest
 from pyquil import quil, quilatom
-from zquantum.core.wip.circuits.symbolic.expressions import FunctionCall, Symbol
-from zquantum.core.wip.circuits.symbolic.pyquil_expressions import (
-    expression_from_pyquil,
-)
+from zquantum.core.circuits.symbolic.expressions import FunctionCall, Symbol
+from zquantum.core.circuits.symbolic.pyquil_expressions import expression_from_pyquil
 
 
 @pytest.mark.parametrize("number", [3, 4.0, 1j, 3.0 - 2j])

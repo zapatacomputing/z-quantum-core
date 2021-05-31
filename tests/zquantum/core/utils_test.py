@@ -1,13 +1,14 @@
-from functools import partial
 import json
 import os
 import random
+from functools import partial
 
 import numpy as np
 import pkg_resources
 import pytest
 import sympy
 from scipy.stats import unitary_group
+
 from zquantum.core.openfermion import load_interaction_operator
 from zquantum.core.utils import (
     RNDSEED,
@@ -327,7 +328,7 @@ class TestUtils:
         symbol_2 = sympy.Symbol("beta")
         symbols = [symbol_1, symbol_2]
         params = np.array([1, 2])
-        target_symbols_map = [(symbol_1, 1), (symbol_2, 2)]
+        target_symbols_map = {symbol_1: 1, symbol_2: 2}
 
         # When
         symbols_map = create_symbols_map(symbols, params)
@@ -375,7 +376,7 @@ class TestUtils:
         remove_file_if_exists("hamiltonian_analysis.json")
 
 
-def test_arithmetic_on_estimate_and_float_gives_same_result_as_for_two_floats():
+def test_arithmetic_on_value_estimate_and_float():
     value = 5.1
     estimate = ValueEstimate(value, precision=None)
     other = 3.4

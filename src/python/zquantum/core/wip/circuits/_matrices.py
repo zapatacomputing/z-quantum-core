@@ -196,13 +196,12 @@ def yy_matrix(angle):
 
 
 def zz_matrix(angle):
-    arg = angle / 2
     return sympy.Matrix(
         [
-            [sympy.cos(arg) - 1j * sympy.sin(arg), 0, 0, 0],
-            [0, sympy.cos(arg) + 1j * sympy.sin(arg), 0, 0],
-            [0, 0, sympy.cos(arg) + 1j * sympy.sin(arg), 0],
-            [0, 0, 0, sympy.cos(arg) - 1j * sympy.sin(arg)],
+            [sympy.cos(angle / 2) - 1j * sympy.sin(angle / 2), 0, 0, 0],
+            [0, sympy.cos(angle / 2) + 1j * sympy.sin(angle / 2), 0, 0],
+            [0, 0, sympy.cos(angle / 2) + 1j * sympy.sin(angle / 2), 0],
+            [0, 0, 0, sympy.cos(angle / 2) - 1j * sympy.sin(angle / 2)],
         ]
     )
 

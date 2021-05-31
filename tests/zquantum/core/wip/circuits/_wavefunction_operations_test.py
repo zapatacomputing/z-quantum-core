@@ -1,7 +1,7 @@
+import numpy as np
 import pytest
 import sympy
 from zquantum.core.wip.circuits import MultiPhaseOperation
-import numpy as np
 
 
 class TestMultiPhaseOperation:
@@ -90,6 +90,19 @@ class TestMultiPhaseOperation:
                 )
                 / 2,
             ],
+            [
+                np.array([1, 1, 1, 1]) / 2,
+                np.array([sympy.pi, sympy.sympify(0), 0, 0]),
+                np.array(
+                    [
+                        np.exp(np.pi * 1j),
+                        1,
+                        1,
+                        1,
+                    ]
+                )
+                / 2,
+            ],
         ],
     )
     def test_correctly_transforms_wavefunction(
@@ -106,7 +119,7 @@ class TestMultiPhaseOperation:
     @pytest.mark.parametrize(
         "params", [tuple(sympy.symbols("alpha_0:4")), (sympy.Symbol("theta"), 1, 1, 1)]
     )
-    def test_apply_works_with_symbolic_params(self, wavefunction, params):
+    def test_apply_does_not_work_with_symbolic_params(self, wavefunction, params):
         operation = MultiPhaseOperation(params)
         with pytest.raises(RuntimeError):
             operation.apply(wavefunction)

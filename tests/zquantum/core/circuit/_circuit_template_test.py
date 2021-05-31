@@ -68,18 +68,6 @@ class TestCircuitTemplate(unittest.TestCase):
         np.testing.assert_array_equal(params, recreated_params)
         os.remove(filename)
 
-    def test_combine_ansatz_params(self):
-        # Given
-        params1 = np.array([1.0, 2.0])
-        params2 = np.array([3.0, 4.0])
-        target_params = np.array([1.0, 2.0, 3.0, 4.0])
-
-        # When
-        combined_params = combine_ansatz_params(params1, params2)
-
-        # Then
-        self.assertTrue(np.allclose(combined_params, target_params))
-
 
 class TestParameterGrid(unittest.TestCase):
     def test_dict_io(self):

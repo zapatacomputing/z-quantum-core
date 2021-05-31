@@ -1,27 +1,23 @@
 import json
+from typing import List, Optional, Union
+
 import numpy as np
-
+import zquantum.core.wip.circuits as new_circuits
 from openfermion import SymbolicOperator
-from typing import Union, Optional, List
-
-from zquantum.core.circuit import (
-    Circuit,
-    load_circuit,
-    load_circuit_template_params,
-    save_circuit_template_params,
-    load_parameter_grid,
-)
 from zquantum.core.cost_function import (
-    get_ground_state_cost_function,
     AnsatzBasedCostFunction,
+    get_ground_state_cost_function,
 )
-from zquantum.core.estimation import (
-    estimate_expectation_values_by_averaging,
-)
-from zquantum.core.serialization import save_optimization_results
-from zquantum.core.utils import create_object, load_list
-from zquantum.core.typing import Specs
+from zquantum.core.estimation import estimate_expectation_values_by_averaging
 from zquantum.core.openfermion import load_qubit_operator
+from zquantum.core.serialization import (
+    load_array,
+    save_array,
+    save_optimization_results,
+)
+from zquantum.core.typing import Specs
+from zquantum.core.utils import create_object, load_list
+from zquantum.core.wip.circuits import Circuit
 
 
 def optimize_parametrized_circuit_for_ground_state_of_operator(
@@ -59,19 +55,10 @@ def optimize_parametrized_circuit_for_ground_state_of_operator(
             parameter, if any.
         parameter_precision_seed: seed for randomly generating parameter deviation if
             using parameter_precision
-        kwaargs:
-            The following keyword arguments are handled explicitly when appropriate:
-            - parameter_grid: A parameter grid artifact that defines a 2D grid for
-                parameter values
+        kwargs: unused, exists for compatibility
     """
     if isinstance(optimizer_specs, str):
         optimizer_specs = json.loads(optimizer_specs)
-
-    parameter_grid = kwargs.pop("parameter_grid", None)
-    # Load parameter grid
-    if parameter_grid is not None:
-        parameter_grid = load_parameter_grid(parameter_grid)
-        optimizer_specs["grid"] = parameter_grid
 
     optimizer = create_object(optimizer_specs)
 
@@ -79,7 +66,8 @@ def optimize_parametrized_circuit_for_ground_state_of_operator(
         target_operator = load_qubit_operator(target_operator)
 
     if isinstance(parametrized_circuit, str):
-        parametrized_circuit = load_circuit(parametrized_circuit)
+        with open(parametrized_circuit) as f:
+            parametrized_circuit = new_circuits.circuit_from_dict(json.load(f))
 
     if isinstance(backend_specs, str):
         backend_specs = json.loads(backend_specs)
@@ -105,11 +93,11 @@ def optimize_parametrized_circuit_for_ground_state_of_operator(
 
     if initial_parameters is not None:
         if isinstance(initial_parameters, str):
-            initial_parameters = load_circuit_template_params(initial_parameters)
+            initial_parameters = load_array(initial_parameters)
 
     if fixed_parameters is not None:
         if isinstance(fixed_parameters, str):
-            fixed_parameters = load_circuit_template_params(fixed_parameters)
+            fixed_parameters = load_array(fixed_parameters)
 
     cost_function = get_ground_state_cost_function(
         target_operator,
@@ -125,9 +113,7 @@ def optimize_parametrized_circuit_for_ground_state_of_operator(
     optimization_results = optimizer.minimize(cost_function, initial_parameters)
 
     save_optimization_results(optimization_results, "optimization-results.json")
-    save_circuit_template_params(
-        optimization_results.opt_params, "optimized-parameters.json"
-    )
+    save_array(optimization_results.opt_params, "optimized-parameters.json")
 
 
 def optimize_ansatz_based_cost_function(
@@ -167,18 +153,10 @@ def optimize_ansatz_based_cost_function(
             using parameter_precision
         kwargs:
             The following key word arguments are handled explicitly when appropriate:
-                - parameter_grid: A parameter grid artifact that defines a 2D grid for
-                    parameter values
                 - thetas: A list of thetas used to initialize the WarmStartQAOAAnsatz
     """
     if isinstance(optimizer_specs, str):
         optimizer_specs = json.loads(optimizer_specs)
-
-    parameter_grid = kwargs.pop("parameter_grid", None)
-    # Load parameter grid
-    if parameter_grid is not None:
-        parameter_grid = load_parameter_grid(parameter_grid)
-        optimizer_specs["grid"] = parameter_grid
 
     optimizer = create_object(optimizer_specs)
 
@@ -219,11 +197,11 @@ def optimize_ansatz_based_cost_function(
 
     if initial_parameters is not None:
         if isinstance(initial_parameters, str):
-            initial_parameters = load_circuit_template_params(initial_parameters)
+            initial_parameters = load_array(initial_parameters)
 
     if fixed_parameters is not None:
         if isinstance(fixed_parameters, str):
-            fixed_parameters = load_circuit_template_params(fixed_parameters)
+            fixed_parameters = load_array(fixed_parameters)
 
     cost_function = AnsatzBasedCostFunction(
         target_operator,
@@ -239,6 +217,4 @@ def optimize_ansatz_based_cost_function(
     optimization_results = optimizer.minimize(cost_function, initial_parameters)
 
     save_optimization_results(optimization_results, "optimization-results.json")
-    save_circuit_template_params(
-        optimization_results.opt_params, "optimized-parameters.json"
-    )
+    save_array(optimization_results.opt_params, "optimized-parameters.json")

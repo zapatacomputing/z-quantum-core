@@ -1,9 +1,22 @@
 from dataclasses import dataclass
-from numbers import Number
+from functools import singledispatch
+from numbers import Complex
+from typing import Sequence, Tuple
 
-from ._gates import _sub_symbols, Parameter
-from typing import Tuple, Sequence
 import numpy as np
+import sympy
+
+from ._gates import Parameter, _sub_symbols
+
+
+@singledispatch
+def _is_real(number: Complex):
+    return number.imag == 0
+
+
+@_is_real.register
+def _is_sympy_number_real(number: sympy.Number):
+    return number.is_real
 
 
 @dataclass(frozen=True)
@@ -18,7 +31,9 @@ class MultiPhaseOperation:
     params: Tuple[Parameter, ...]
 
     def __post_init__(self):
-        if any(isinstance(param, Number) and param.imag != 0 for param in self.params):
+        if any(
+            isinstance(param, Complex) and not _is_real(param) for param in self.params
+        ):
             raise ValueError("MultiPhaseOperation supports only real parameters.")
 
     @property

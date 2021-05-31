@@ -1,5 +1,7 @@
 from functools import wraps
 
+import numpy as np
+
 
 class _InvalidatingSetter(object):
     """Setter descriptor that sets target object's _parametrized_circuit to None.
@@ -67,3 +69,16 @@ class DynamicProperty:
 
 def ansatz_property(name: str, default_value=None):
     return _InvalidatingSetter(DynamicProperty(name, default_value))
+
+
+def combine_ansatz_params(params1: np.ndarray, params2: np.ndarray) -> np.ndarray:
+    """Combine two sets of ansatz parameters.
+
+    Args:
+        params1 (numpy.ndarray): the first set of parameters
+        params2 (numpy.ndarray): the second set of parameters
+
+    Returns:
+        numpy.ndarray: the combined parameters
+    """
+    return np.concatenate((params1, params2))

@@ -18,6 +18,7 @@ from openfermion import (
 )
 from openfermion.hamiltonians import fermi_hubbard
 from openfermion.linalg import jw_get_ground_state_at_particle_number
+from zquantum.core.circuits import Circuit, X, Y, Z
 from zquantum.core.interfaces.mock_objects import MockAnsatz
 from zquantum.core.measurement import ExpectationValues
 from zquantum.core.openfermion._io import load_interaction_operator
@@ -39,7 +40,6 @@ from zquantum.core.openfermion._utils import (
     reverse_qubit_order,
 )
 from zquantum.core.utils import RNDSEED, create_object, hf_rdm
-from zquantum.core.wip.circuits import Circuit, X, Y, Z
 
 
 class TestQubitOperator(unittest.TestCase):

@@ -2,7 +2,9 @@ import json
 from typing import Dict, List, Optional, Union
 
 import openfermion
+from zquantum.core import circuits
 from zquantum.core.bitstring_distribution import save_bitstring_distribution
+from zquantum.core.circuits import layouts
 from zquantum.core.cost_function import sum_expectation_values
 from zquantum.core.estimation import estimate_expectation_values_by_averaging
 from zquantum.core.hamiltonian import (
@@ -30,8 +32,6 @@ from zquantum.core.utils import (
     save_nmeas_estimate,
     save_value_estimate,
 )
-from zquantum.core.wip import circuits
-from zquantum.core.wip.circuits import layouts
 
 
 def run_circuit_and_measure(

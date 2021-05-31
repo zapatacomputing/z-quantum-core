@@ -29,7 +29,7 @@ class Gate(Protocol):
     """Interface of a quantum gate representable by a matrix, translatable to other
     frameworks and backends.
 
-    See `zquantum.core.wip.circuits` for a list of built-in gates and usage guide.
+    See `zquantum.core.circuits` for a list of built-in gates and usage guide.
     """
 
     @property
@@ -189,7 +189,7 @@ class MatrixFactoryGate:
     """Data structure for a `Gate` with deferred matrix construction.
 
     Most built-in gates are instances of this class.
-    See `zquantum.core.wip.circuits` for built-in gates and usage guide.
+    See `zquantum.core.circuits` for built-in gates and usage guide.
 
     This class requires the gate definition to be present during deserialization, so
     it's not easily applicable for gates defined in Orquestra steps. If you want to
@@ -406,7 +406,7 @@ class CustomGateMatrixFactory:
 class CustomGateDefinition:
     """Use this class to define a non-built-in gate.
 
-    See "Defining new gates" section in `help(zquantum.core.wip.circuits)` for
+    See "Defining new gates" section in `help(zquantum.core.circuits)` for
     usage guide.
 
     User-defined gates are treated differently than the built-in ones,

@@ -7,9 +7,9 @@ from openfermion import SymbolicOperator
 from overrides import overrides
 from pyquil.wavefunction import Wavefunction
 
+from ..circuits import RX, Circuit
 from ..measurement import ExpectationValues, Measurements
 from ..utils import create_symbols_map
-from ..wip.circuits import RX, Circuit
 from .ansatz import Ansatz
 from .ansatz_utils import ansatz_property
 from .backend import QuantumBackend, QuantumSimulator

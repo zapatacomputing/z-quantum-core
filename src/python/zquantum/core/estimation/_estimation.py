@@ -4,13 +4,13 @@ import numpy as np
 import sympy
 from openfermion import IsingOperator, QubitOperator
 
+from ..circuits import RX, RY, Circuit
 from ..hamiltonian import estimate_nmeas_for_frames, group_comeasureable_terms_greedy
 from ..interfaces.backend import QuantumBackend, QuantumSimulator
 from ..interfaces.estimation import EstimationTask
 from ..measurement import ExpectationValues, expectation_values_to_real
 from ..openfermion import change_operator_type
 from ..utils import scale_and_discretize
-from ..wip.circuits import RX, RY, Circuit
 
 
 def get_context_selection_circuit_for_group(

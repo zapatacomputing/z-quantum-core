@@ -4,7 +4,7 @@ import os
 
 import numpy as np
 import pytest
-import zquantum.core.wip.circuits as new_circuits
+import zquantum.core.circuits as new_circuits
 from zquantum.core.circuits.layouts import (
     build_circuit_layers_and_connectivity as _build_circuit_layers_and_connectivity,
 )

@@ -251,7 +251,7 @@ def import_from_cirq(obj):
     become `circuits.X`.
 
     Importing gates from Cirq that don't have built-in counterparts in ZQuantum will
-    result in custom gates. See `help(zquantum.core.wip.circuits)` for examples of
+    result in custom gates. See `help(zquantum.core.circuits)` for examples of
     custom gates.
 
     Also note that only objects using only LineQubits are supported, as currently there

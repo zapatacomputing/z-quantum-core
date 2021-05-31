@@ -9,8 +9,8 @@ import numpy as np
 import pyquil.paulis
 import sympy
 from openfermion import QubitOperator
-from zquantum.core.wip import circuits
-from zquantum.core.wip.circuits import CNOT, RX, RZ, H
+from zquantum.core import circuits
+from zquantum.core.circuits import CNOT, RX, RZ, H
 
 
 def time_evolution(

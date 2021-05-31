@@ -2,8 +2,9 @@ import json
 from typing import List, Optional, Union
 
 import numpy as np
-import zquantum.core.wip.circuits as new_circuits
+import zquantum.core.circuits as new_circuits
 from openfermion import SymbolicOperator
+from zquantum.core.circuits import Circuit
 from zquantum.core.cost_function import (
     AnsatzBasedCostFunction,
     get_ground_state_cost_function,
@@ -17,7 +18,6 @@ from zquantum.core.serialization import (
 )
 from zquantum.core.typing import Specs
 from zquantum.core.utils import create_object, load_list
-from zquantum.core.wip.circuits import Circuit
 
 
 def optimize_parametrized_circuit_for_ground_state_of_operator(

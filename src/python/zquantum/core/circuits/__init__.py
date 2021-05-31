@@ -98,16 +98,16 @@ Using custom gates::
 
 Extending built-in gates requires:
 
-- Adding its definition to `zquantum.core.wip.circuits._builtin_gates`. Refer to other
+- Adding its definition to `zquantum.core.circuits._builtin_gates`. Refer to other
     1- or multi-qubit, parametric/nonparametric gates there to see how it's been done
     for other gates.
 
-- Adding its matrix to `zquantum.core.wip.circuits._matrices`.
+- Adding its matrix to `zquantum.core.circuits._matrices`.
 
 - Adding tests for conversion to other frameworks in:
-    - `zquantum.core.wip.conversions.cirq_conversions_test`
-    - `zquantum.core.wip.conversions.pyquil_conversions_test`
-    - `zquantum.core.wip.conversions.qiskit_conversions_test`
+    - `zquantum.core.conversions.cirq_conversions_test`
+    - `zquantum.core.conversions.pyquil_conversions_test`
+    - `zquantum.core.conversions.qiskit_conversions_test`
 
 - Implement conversions. Some might work out of the box, e.g. if there's a gate with the
     same name defined in PyQuil our converters will use it by default without need for

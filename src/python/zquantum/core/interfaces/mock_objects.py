@@ -5,14 +5,11 @@ import numpy as np
 import sympy
 from openfermion import SymbolicOperator
 from overrides import overrides
+from pyquil.wavefunction import Wavefunction
 
-from ..circuit import Circuit as OldCircuit
+from ..circuits import RX, Circuit
 from ..measurement import ExpectationValues, Measurements
 from ..utils import create_symbols_map
-from ..wip.circuits import RX
-from ..wip.circuits import Circuit as NewCircuit
-from ..wip.circuits import new_circuit_from_old_circuit
-from ..wip.compatibility_tools import compatible_with_old_type
 from .ansatz import Ansatz
 from .ansatz_utils import ansatz_property
 from .backend import QuantumBackend, QuantumSimulator
@@ -26,9 +23,8 @@ class MockQuantumBackend(QuantumBackend):
     def __init__(self, n_samples: Optional[int] = None):
         super().__init__(n_samples)
 
-    @compatible_with_old_type(OldCircuit, new_circuit_from_old_circuit)
     def run_circuit_and_measure(
-        self, circuit: NewCircuit, n_samples: Optional[int] = None, **kwargs
+        self, circuit: Circuit, n_samples: Optional[int] = None, **kwargs
     ) -> Measurements:
         super(MockQuantumBackend, self).run_circuit_and_measure(circuit)
         measurements = Measurements()
@@ -50,10 +46,10 @@ class MockQuantumBackend(QuantumBackend):
 
         return measurements
 
-    def get_wavefunction(self, circuit: NewCircuit):
+    def get_wavefunction(self, circuit: Circuit):
         raise NotImplementedError
 
-    def get_density_matrix(self, circuit: NewCircuit):
+    def get_density_matrix(self, circuit: Circuit):
         raise NotImplementedError
 
 
@@ -64,9 +60,8 @@ class MockQuantumSimulator(QuantumSimulator):
     def __init__(self, n_samples: Optional[int] = None):
         super().__init__(n_samples)
 
-    @compatible_with_old_type(OldCircuit, new_circuit_from_old_circuit)
     def run_circuit_and_measure(
-        self, circuit: NewCircuit, n_samples=None, **kwargs
+        self, circuit: Circuit, n_samples=None, **kwargs
     ) -> Measurements:
         super(MockQuantumSimulator, self).run_circuit_and_measure(circuit)
         measurements = Measurements()
@@ -79,9 +74,8 @@ class MockQuantumSimulator(QuantumSimulator):
 
         return measurements
 
-    @compatible_with_old_type(OldCircuit, new_circuit_from_old_circuit)
     def get_expectation_values(
-        self, circuit: NewCircuit, operator: SymbolicOperator, **kwargs
+        self, circuit: Circuit, operator: SymbolicOperator, **kwargs
     ) -> ExpectationValues:
         if self.n_samples is None:
             self.number_of_circuits_run += 1
@@ -106,14 +100,12 @@ class MockQuantumSimulator(QuantumSimulator):
                 circuit, operator
             )
 
-    @compatible_with_old_type(OldCircuit, new_circuit_from_old_circuit)
     def get_exact_expectation_values(
-        self, circuit: NewCircuit, operator: SymbolicOperator, **kwargs
+        self, circuit: Circuit, operator: SymbolicOperator, **kwargs
     ) -> ExpectationValues:
         return self.get_expectation_values(circuit, operator)
 
-    @compatible_with_old_type(OldCircuit, new_circuit_from_old_circuit)
-    def get_wavefunction(self, circuit: NewCircuit):
+    def get_wavefunction(self, circuit: Circuit, **kwargs) -> Wavefunction:
         raise NotImplementedError
 
 
@@ -150,7 +142,7 @@ class MockAnsatz(Ansatz):
 
     @overrides
     def _generate_circuit(self, parameters: Optional[np.ndarray] = None):
-        circuit = NewCircuit()
+        circuit = Circuit()
         symbols = [
             sympy.Symbol(f"theta_{layer_index}")
             for layer_index in range(self._number_of_layers)

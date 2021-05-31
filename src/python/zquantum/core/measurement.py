@@ -4,15 +4,15 @@ import copy
 import json
 from collections import Counter
 from typing import (
-    Optional,
-    List,
-    Tuple,
-    TextIO,
-    Iterable,
-    Sequence,
-    Dict,
-    Union,
     Any,
+    Dict,
+    Iterable,
+    List,
+    Optional,
+    Sequence,
+    TextIO,
+    Tuple,
+    Union,
     cast,
 )
 

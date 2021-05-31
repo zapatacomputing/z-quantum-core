@@ -4,13 +4,14 @@ import numpy as np
 import sympy
 from openfermion import SymbolicOperator
 
-from .circuit import combine_ansatz_params
+from .circuits import Circuit
 from .estimation import (
     estimate_expectation_values_by_averaging,
     evaluate_estimation_circuits,
 )
 from .gradients import finite_differences_gradient
 from .interfaces.ansatz import Ansatz
+from .interfaces.ansatz_utils import combine_ansatz_params
 from .interfaces.backend import QuantumBackend
 from .interfaces.estimation import (
     EstimateExpectationValues,
@@ -29,7 +30,6 @@ from .measurement import (
     expectation_values_to_real,
 )
 from .utils import ValueEstimate, create_symbols_map
-from .wip.circuits import Circuit
 
 
 def _get_sorted_set_of_circuit_symbols(

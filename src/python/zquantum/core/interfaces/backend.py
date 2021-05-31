@@ -1,6 +1,6 @@
 import warnings
 from abc import ABC, abstractmethod
-from typing import List, Optional, Sequence, Any
+from typing import Any, List, Optional, Sequence
 
 import numpy as np
 from openfermion import IsingOperator, SymbolicOperator
@@ -11,10 +11,10 @@ from ..bitstring_distribution import (
     BitstringDistribution,
     create_bitstring_distribution_from_probability_distribution,
 )
-from ..circuit import CircuitConnectivity
+from ..circuits import Circuit
+from ..circuits.layouts import CircuitConnectivity
 from ..measurement import ExpectationValues, Measurements, expectation_values_to_real
 from ..openfermion import change_operator_type, get_expectation_value
-from ..wip.circuits._compatibility import AnyCircuit
 
 
 class QuantumBackend(ABC):
@@ -49,7 +49,7 @@ class QuantumBackend(ABC):
 
     @abstractmethod
     def run_circuit_and_measure(
-        self, circuit: AnyCircuit, n_samples: Optional[int] = None, **kwargs
+        self, circuit: Circuit, n_samples: Optional[int] = None, **kwargs
     ) -> Measurements:
         """
         Method for executing the circuit and measuring the outcome.
@@ -72,7 +72,7 @@ class QuantumBackend(ABC):
 
     def run_circuitset_and_measure(
         self,
-        circuits: Sequence[AnyCircuit],
+        circuits: Sequence[Circuit],
         n_samples: Optional[List[int]] = None,
         **kwargs
     ) -> List[Measurements]:
@@ -120,7 +120,7 @@ class QuantumBackend(ABC):
             return measurement_set
 
     def get_expectation_values(
-        self, circuit: AnyCircuit, operator: SymbolicOperator, **kwargs
+        self, circuit: Circuit, operator: SymbolicOperator, **kwargs
     ) -> ExpectationValues:
         """
         Executes the circuit and calculates the expectation values for given operator.
@@ -139,7 +139,7 @@ class QuantumBackend(ABC):
         return expectation_values
 
     def get_expectation_values_for_circuitset(
-        self, circuits: Sequence[AnyCircuit], operator: SymbolicOperator, **kwargs
+        self, circuits: Sequence[Circuit], operator: SymbolicOperator, **kwargs
     ) -> List[ExpectationValues]:
         """Calculates the expectation values for given operator, based on the exact
         quantum state produced by a set of circuits.
@@ -170,7 +170,7 @@ class QuantumBackend(ABC):
             return expectation_values_set
 
     def get_bitstring_distribution(
-        self, circuit: AnyCircuit, **kwargs
+        self, circuit: Circuit, **kwargs
     ) -> BitstringDistribution:
         """Calculates a bitstring distribution.
 
@@ -197,7 +197,7 @@ class QuantumSimulator(QuantumBackend):
         super().__init__(n_samples)
 
     @abstractmethod
-    def get_wavefunction(self, circuit: AnyCircuit, **kwargs) -> Wavefunction:
+    def get_wavefunction(self, circuit: Circuit, **kwargs) -> Wavefunction:
         """Returns a wavefunction representing quantum state produced by a circuit
 
         Args:
@@ -208,7 +208,7 @@ class QuantumSimulator(QuantumBackend):
 
     @overrides
     def get_expectation_values(
-        self, circuit: AnyCircuit, operator: SymbolicOperator, **kwargs
+        self, circuit: Circuit, operator: SymbolicOperator, **kwargs
     ) -> ExpectationValues:
         """Run a circuit and measure the expectation values of given operator.
 
@@ -231,7 +231,7 @@ class QuantumSimulator(QuantumBackend):
 
     @overrides
     def get_expectation_values_for_circuitset(
-        self, circuits: Sequence[AnyCircuit], operator: SymbolicOperator, **kwargs
+        self, circuits: Sequence[Circuit], operator: SymbolicOperator, **kwargs
     ) -> List[ExpectationValues]:
         """Calculates the expectation values for given operator, based on the exact
         quantum state produced by a set of circuits.
@@ -272,7 +272,7 @@ class QuantumSimulator(QuantumBackend):
                 return expectation_values_set
 
     def get_exact_expectation_values(
-        self, circuit: AnyCircuit, operator: SymbolicOperator, **kwargs
+        self, circuit: Circuit, operator: SymbolicOperator, **kwargs
     ) -> ExpectationValues:
         """Calculates the expectation values for given operator, based on the exact
         quantum state produced by circuit.
@@ -292,7 +292,7 @@ class QuantumSimulator(QuantumBackend):
         return expectation_values
 
     def get_bitstring_distribution(
-        self, circuit: AnyCircuit, **kwargs
+        self, circuit: Circuit, **kwargs
     ) -> BitstringDistribution:
         """Calculates a bitstring distribution.
 

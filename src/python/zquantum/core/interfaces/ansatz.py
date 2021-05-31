@@ -6,8 +6,8 @@ import numpy as np
 import sympy
 from overrides import EnforceOverrides
 
+from ..circuits import Circuit
 from ..utils import create_symbols_map
-from ..wip.circuits import Circuit
 from .ansatz_utils import ansatz_property
 
 

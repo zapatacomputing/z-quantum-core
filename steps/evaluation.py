@@ -7,6 +7,7 @@ from openfermion.linalg import (
 )
 from openfermion.linalg import qubit_operator_sparse
 from pyquil.wavefunction import Wavefunction
+from zquantum.core.circuits import Circuit, circuit_from_dict, load_circuit
 from zquantum.core.measurement import (
     ExpectationValues,
     load_expectation_values,
@@ -27,7 +28,6 @@ from zquantum.core.openfermion import (
 )
 from zquantum.core.typing import Specs
 from zquantum.core.utils import ValueEstimate, create_object, save_value_estimate
-from zquantum.core.wip.circuits import Circuit, circuit_from_dict, load_circuit
 
 
 def get_expectation_values_for_qubit_operator(

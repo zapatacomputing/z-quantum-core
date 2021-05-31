@@ -83,9 +83,7 @@ class TestUsesWipTypeDecorator:
             ((1, 2), {"x": OldType(3)}),
         ],
     )
-    def test_deprecation_warning_is_raised(
-        self, args, kwargs
-    ):
+    def test_deprecation_warning_is_raised(self, args, kwargs):
         original_func = Mock()
         deprecation_msg = "OldType will soon be deprecated"
         decorated_func = compatible_with_old_type(

@@ -1,20 +1,18 @@
 from typing import List, Optional, Union
 
 import numpy as np
-import numpy.random
-import zquantum.core.wip.circuits.layouts as layouts
-from zquantum.core import serialization
-from zquantum.core.interfaces import ansatz_utils
-from zquantum.core.typing import Specs
-from zquantum.core.utils import create_symbols_map, load_from_specs
-from zquantum.core.wip import circuits
-from zquantum.core.wip.circuits import (
+import zquantum.core.circuits.layouts as layouts
+from zquantum.core import circuits, serialization
+from zquantum.core.circuits import (
     Circuit,
     load_circuit,
     load_circuitset,
     save_circuit,
     save_circuitset,
 )
+from zquantum.core.interfaces import ansatz_utils
+from zquantum.core.typing import Specs
+from zquantum.core.utils import create_symbols_map, load_from_specs
 
 
 # Generate random parameters for an ansatz

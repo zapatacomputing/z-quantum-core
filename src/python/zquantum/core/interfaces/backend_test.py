@@ -42,6 +42,7 @@ from pyquil.wavefunction import Wavefunction
 from zquantum.core.interfaces.estimation import EstimationTask
 
 from ..bitstring_distribution import BitstringDistribution
+from ..circuits import CNOT, Circuit, H, X, builtin_gate_by_name
 from ..estimation import estimate_expectation_values_by_averaging
 from ..measurement import ExpectationValues, Measurements
 from ..testing.test_cases_for_backend_tests import (
@@ -54,7 +55,6 @@ from ..testing.test_cases_for_backend_tests import (
     two_qubit_parametric_gates_amplitudes_test_set,
     two_qubit_parametric_gates_exp_vals_test_set,
 )
-from ..wip.circuits import CNOT, Circuit, H, X, builtin_gate_by_name
 
 
 def skip_tests_for_excluded_gates(func):

@@ -4,6 +4,17 @@ import os
 
 import numpy as np
 import pytest
+import zquantum.core.circuits as new_circuits
+from zquantum.core.circuits.layouts import (
+    build_circuit_layers_and_connectivity as _build_circuit_layers_and_connectivity,
+)
+from zquantum.core.circuits.layouts import (
+    load_circuit_connectivity,
+    load_circuit_layers,
+)
+from zquantum.core.serialization import load_array, save_array
+from zquantum.core.utils import RNDSEED, create_object
+
 from steps.circuit import (
     add_ancilla_register_to_circuit,
     batch_circuits,
@@ -13,17 +24,6 @@ from steps.circuit import (
     concatenate_circuits,
     create_random_circuit,
     generate_random_ansatz_params,
-)
-
-import zquantum.core.wip.circuits as new_circuits
-from zquantum.core.serialization import load_array, save_array
-from zquantum.core.utils import RNDSEED, create_object
-from zquantum.core.wip.circuits.layouts import (
-    build_circuit_layers_and_connectivity as _build_circuit_layers_and_connectivity,
-)
-from zquantum.core.wip.circuits.layouts import (
-    load_circuit_connectivity,
-    load_circuit_layers,
 )
 
 

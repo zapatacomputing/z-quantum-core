@@ -22,9 +22,9 @@ from openfermion import (
 from openfermion.linalg import jw_get_ground_state_at_particle_number
 from openfermion.transforms import freeze_orbitals, get_fermion_operator
 
+from ..circuits import Circuit, X, Y, Z
 from ..measurement import ExpectationValues, expectation_values_to_real
 from ..utils import ValueEstimate, bin2dec, dec2bin
-from ..wip.circuits import Circuit, X, Y, Z
 
 
 def get_qubitop_from_matrix(operator: List[List]) -> QubitOperator:

@@ -10,7 +10,7 @@ TARGET_OPERATOR = QubitOperator("X0 X1 Z2 Y4", 1.5)
 
 
 # To regenerate the circuit, run:
-# import zquantum.core.wip.circuits as new_circuits
+# import zquantum.core.circuits as new_circuits
 # import sympy
 # print(
 #     new_circuits.to_dict(

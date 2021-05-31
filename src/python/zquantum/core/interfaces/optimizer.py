@@ -1,3 +1,4 @@
+import warnings
 from abc import ABC, abstractmethod
 from typing import Callable, Dict, Optional, Union
 
@@ -5,7 +6,6 @@ import numpy as np
 import scipy
 from scipy.optimize import OptimizeResult
 from zquantum.core.interfaces.functions import CallableWithGradient
-import warnings
 
 
 class Optimizer(ABC):

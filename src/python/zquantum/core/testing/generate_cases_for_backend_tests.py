@@ -280,7 +280,14 @@ def main():
         ]
     )
 
-    XY = XX * YY
+    XY = sympy.Matrix(
+        [
+            [1, 0, 0, 0],
+            [0, sympy.cos(theta / 2), 1j * sympy.sin(theta / 2), 0],
+            [0, 1j * sympy.sin(theta / 2), sympy.cos(theta / 2), 0],
+            [0, 0, 0, 1],
+        ]
+    )
     XY.simplify()
     angles = [-sympy.pi / 2, 0, sympy.pi / 5, sympy.pi / 2, sympy.pi]
     print("**" * 10)

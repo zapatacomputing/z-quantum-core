@@ -210,7 +210,7 @@ def evaluate_ansatz_based_cost_function(
                     "prior_expectation_values"
                 ] = prior_expectation_values
             cost_function_specs["estimation_preprocessors"].append(
-                create_object(estimation_tasks_transformation_specs, kwargs)
+                create_object(estimation_tasks_transformation_specs, **kwargs)
             )
 
     # cost_function.estimator.prior_expectation_values

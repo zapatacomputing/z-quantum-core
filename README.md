@@ -63,12 +63,12 @@ Here's an example of how to use methods from `z-quantum-core` in a python task:
 from zquantum.core.circuit import (
     build_ansatz_circuit,
     load_circuit_template,
-    load_circuit_template_params,
+    load_array,
     save_circuit,
 )
 
 ansatz = load_circuit_template("ansatz.json")
-params = load_circuit_template_params("params.json")
+params = load_array("params.json")
 circuit = build_ansatz_circuit(ansatz, params)
 save_circuit(circuit, "circuit.json")
 ```

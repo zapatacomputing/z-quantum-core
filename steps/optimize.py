@@ -2,7 +2,7 @@ import json
 import numpy as np
 
 from openfermion import SymbolicOperator
-from typing import Union, Dict, Optional, List
+from typing import Union, Optional, List
 
 from zquantum.core.circuit import (
     Circuit,
@@ -37,24 +37,32 @@ def optimize_parametrized_circuit_for_ground_state_of_operator(
     parameter_precision_seed: Optional[int] = None,
     **kwargs
 ):
-    """Optimize the parameters of a parametrized quantum circuit to prepare the ground state of a target operator.
+    """Optimize the parameters of a parametrized quantum circuit to prepare the ground
+    state of a target operator.
 
     Args:
-        optimizer_specs: The specs of the optimizer to use to refine the parameter values
+        optimizer_specs: The specs of the optimizer to use to refine the parameter
+            values
         target_operator: The operator of which to prepare the ground state
-        parametrized_circuit: The parametrized quantum circuit that prepares trial states
-        backend_specs: The specs of the quantum backend (or simulator) to use to run the circuits
-        estimation_method_specs: A reference to a callable to use to estimate the expectation value of the operator.
-            The default is the estimate_expectation_values_by_averaging function.
-        estimation_preprocessors_specs: A list of Specs that describe callable functions that adhere to the
-            EstimationPreprocessor protocol.
+        parametrized_circuit: The parametrized quantum circuit that prepares trial
+            states
+        backend_specs: The specs of the quantum backend (or simulator) to use to run the
+            circuits
+        estimation_method_specs: A reference to a callable to use to estimate the
+            expectation value of the operator. The default is the
+            estimate_expectation_values_by_averaging function.
+        estimation_preprocessors_specs: A list of Specs that describe callable functions
+            that adhere to the EstimationPreprocessor protocol.
         initial_parameters: The initial parameter values to begin optimization
         fixed_parameters: values for the circuit parameters that should be fixed.
-        parameter_precision: the standard deviation of the Gaussian noise to add to each parameter, if any.
-        parameter_precision_seed: seed for randomly generating parameter deviation if using parameter_precision
+        parameter_precision: the standard deviation of the Gaussian noise to add to each
+            parameter, if any.
+        parameter_precision_seed: seed for randomly generating parameter deviation if
+            using parameter_precision
         kwaargs:
-            The following key word arguments are handled explicitly when appropriate:
-                parameter_grid: A parameter grid artifact that defines a 2D grid for parameter values
+            The following keyword arguments are handled explicitly when appropriate:
+            - parameter_grid: A parameter grid artifact that defines a 2D grid for
+                parameter values
     """
     if isinstance(optimizer_specs, str):
         optimizer_specs = json.loads(optimizer_specs)
@@ -135,25 +143,33 @@ def optimize_ansatz_based_cost_function(
     parameter_precision_seed: Optional[int] = None,
     **kwargs
 ):
-    """Optimize the parameters of an ansatz circuit to prepare the ground state of a target operator.
+    """Optimize the parameters of an ansatz circuit to prepare the ground state of a
+    target operator.
 
     Args:
-        optimizer_specs: The specs of the optimizer to use to refine the parameter values
+        optimizer_specs: The specs of the optimizer to use to refine the parameter
+            values
         target_operator: The operator of which to prepare the ground state
-        ansatz_specs: The specs describing an Ansatz which will prepare the quantum circuit
-        backend_specs: The specs of the quantum backend (or simulator) to use to run the circuits
-        estimation_method_specs: A reference to a callable to use to estimate the expectation value of the operator.
-            The default is the estimate_expectation_values_by_averaging function.
-        estimation_preprocessors_specs: A list of Specs that describe callable functions that adhere to the
-            EstimationPreprocessor protocol.
+        ansatz_specs: The specs describing an Ansatz which will prepare the quantum
+            circuit
+        backend_specs: The specs of the quantum backend (or simulator) to use to run the
+            circuits
+        estimation_method_specs: A reference to a callable to use to estimate the
+            expectation value of the operator. The default is the
+            estimate_expectation_values_by_averaging function.
+        estimation_preprocessors_specs: A list of Specs that describe callable functions
+            that adhere to the EstimationPreprocessor protocol.
         initial_parameters: The initial parameter values to begin optimization
         fixed_parameters: values for the circuit parameters that should be fixed.
-        parameter_precision: the standard deviation of the Gaussian noise to add to each parameter, if any.
-        parameter_precision_seed: seed for randomly generating parameter deviation if using parameter_precision
+        parameter_precision: the standard deviation of the Gaussian noise to add to each
+            parameter, if any.
+        parameter_precision_seed: seed for randomly generating parameter deviation if
+            using parameter_precision
         kwargs:
             The following key word arguments are handled explicitly when appropriate:
-                parameter_grid: A parameter grid artifact that defines a 2D grid for parameter values
-                thetas: A list of thetas used to initialize the WarmStartQAOAAnsatz
+                - parameter_grid: A parameter grid artifact that defines a 2D grid for
+                    parameter values
+                - thetas: A list of thetas used to initialize the WarmStartQAOAAnsatz
     """
     if isinstance(optimizer_specs, str):
         optimizer_specs = json.loads(optimizer_specs)

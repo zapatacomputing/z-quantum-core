@@ -23,7 +23,8 @@ from zquantum.core.estimation import (
     perform_context_selection,
     group_greedily,
     group_individually,
-    get_estimation_tasks_to_measure,
+    split_constant_estimation_tasks,
+    evaluate_constant_estimation_tasks,
 )
 from zquantum.core.interfaces.estimation import EstimationTask
 
@@ -335,7 +336,7 @@ class TestEstimatorUtils:
             assert task.operator.terms in expected_operator_terms_per_frame
 
     @pytest.mark.parametrize(
-        "estimation_tasks,ref_estimation_tasks,ref_indices,ref_expectations",
+        "estimation_tasks,ref_estimation_tasks_to_measure,ref_constant_estimation_tasks,ref_indices_to_measure,ref_constant_indices",
         [
             (
                 [
@@ -368,8 +369,9 @@ class TestEstimatorUtils:
                         17,
                     ),
                 ],
+                [],
                 [0, 1, 2],
-                [None, None, None],
+                [],
             ),
             (
                 [
@@ -397,16 +399,13 @@ class TestEstimatorUtils:
                         17,
                     ),
                 ],
-                [0, 2],
                 [
-                    None,
-                    ExpectationValues(
-                        np.asarray([4.0]),
-                        correlations=[np.asarray([[0.0]])],
-                        estimator_covariances=[np.asarray([[0.0]])],
-                    ),
-                    None,
+                    EstimationTask(
+                        IsingOperator("4[]"), Circuit(Program(RZ(np.pi / 2, 0))), 1000
+                    )
                 ],
+                [0, 2],
+                [1],
             ),
             (
                 [
@@ -434,40 +433,34 @@ class TestEstimatorUtils:
                         17,
                     ),
                 ],
-                [1, 2],
                 [
-                    ExpectationValues(
-                        np.asarray([-3.0]),
-                        correlations=[np.asarray([[0.0]])],
-                        estimator_covariances=[np.asarray([[0.0]])],
-                    ),
-                    None,
-                    None,
+                    EstimationTask(IsingOperator("- 3 []"), Circuit(Program(X(0))), 0),
                 ],
+                [1, 2],
+                [0],
             ),
         ],
     )
-    def test_get_estimation_tasks_to_measure(
-        self, estimation_tasks, ref_estimation_tasks, ref_indices, ref_expectations
+    def test_split_constant_estimation_tasks(
+        self,
+        estimation_tasks,
+        ref_estimation_tasks_to_measure,
+        ref_constant_estimation_tasks,
+        ref_indices_to_measure,
+        ref_constant_indices,
     ):
 
         (
-            estimation_tasks_to_measure,
+            estimation_task_to_measure,
+            constant_estimation_tasks,
             indices_to_measure,
-            expectation_values,
-        ) = get_estimation_tasks_to_measure(estimation_tasks)
+            indices_for_constants,
+        ) = split_constant_estimation_tasks(estimation_tasks)
 
-        assert estimation_tasks_to_measure == ref_estimation_tasks
-        assert indices_to_measure == ref_indices
-        for ex_val, ref_ex_val in zip(expectation_values, ref_expectations):
-            if ex_val is None:
-                assert ex_val == ref_ex_val
-            else:
-                assert np.allclose(ex_val.values, ref_ex_val.values)
-                assert np.allclose(ex_val.correlations, ref_ex_val.correlations)
-                assert np.allclose(
-                    ex_val.estimator_covariances, ref_ex_val.estimator_covariances
-                )
+        assert estimation_task_to_measure == ref_estimation_tasks_to_measure
+        assert constant_estimation_tasks == ref_constant_estimation_tasks
+        assert indices_to_measure == ref_indices_to_measure
+        assert ref_constant_indices == indices_for_constants
 
     @pytest.mark.parametrize(
         "estimation_tasks",
@@ -487,12 +480,98 @@ class TestEstimatorUtils:
             ],
         ],
     )
-    def test_get_estimation_tasks_to_measure_fails_with_zero_shots(
+    def test_split_constant_estimation_tasks_fails_with_zero_shots(
         self, estimation_tasks
     ):
 
         with pytest.raises(RuntimeError):
-            _, _, _ = get_estimation_tasks_to_measure(estimation_tasks)
+            _ = split_constant_estimation_tasks(estimation_tasks)
+
+    @pytest.mark.parametrize(
+        "estimation_tasks,ref_expectation_values",
+        [
+            (
+                [
+                    EstimationTask(
+                        IsingOperator("4[] "),
+                        Circuit(Program(RZ(np.pi / 2, 0))),
+                        1000,
+                    ),
+                ],
+                [
+                    ExpectationValues(
+                        np.asarray([4.0]),
+                        correlations=[np.asarray([[0.0]])],
+                        estimator_covariances=[np.asarray([[0.0]])],
+                    ),
+                ],
+            ),
+            (
+                [
+                    EstimationTask(
+                        IsingOperator("- 2.5 [] - 0.5 []"), Circuit(Program(X(0))), 0
+                    ),
+                    EstimationTask(
+                        IsingOperator("0.001[] "), Circuit(Program(RZ(np.pi / 2, 0))), 2
+                    ),
+                ],
+                [
+                    ExpectationValues(
+                        np.asarray([-3.0]),
+                        correlations=[np.asarray([[0.0]])],
+                        estimator_covariances=[np.asarray([[0.0]])],
+                    ),
+                    ExpectationValues(
+                        np.asarray([0.001]),
+                        correlations=[np.asarray([[0.0]])],
+                        estimator_covariances=[np.asarray([[0.0]])],
+                    ),
+                ],
+            ),
+        ],
+    )
+    def test_evaluate_constant_estimation_tasks(
+        self, estimation_tasks, ref_expectation_values
+    ):
+
+        expectation_values = evaluate_constant_estimation_tasks(estimation_tasks)
+
+        for ex_val, ref_ex_val in zip(expectation_values, ref_expectation_values):
+            assert np.allclose(ex_val.values, ref_ex_val.values)
+            assert np.allclose(ex_val.correlations, ref_ex_val.correlations)
+            assert np.allclose(
+                ex_val.estimator_covariances, ref_ex_val.estimator_covariances
+            )
+
+    @pytest.mark.parametrize(
+        "estimation_tasks",
+        [
+            (
+                [
+                    EstimationTask(
+                        IsingOperator("- 2.5 [] - 0.5 [Z1]"), Circuit(Program(X(0))), 0
+                    ),
+                ]
+            ),
+            (
+                [
+                    EstimationTask(
+                        IsingOperator("0.001 [Z0]"),
+                        Circuit(Program(RZ(np.pi / 2, 0))),
+                        0,
+                    ),
+                    EstimationTask(
+                        IsingOperator("2.0[] "), Circuit(Program(RZ(np.pi / 2, 0))), 2
+                    ),
+                ]
+            ),
+        ],
+    )
+    def test_evaluate_constant_estimation_tasks_fails_with_non_constant(
+        self, estimation_tasks
+    ):
+        with pytest.raises(RuntimeError):
+            _ = evaluate_constant_estimation_tasks(estimation_tasks)
 
 
 class TestBasicEstimationMethods:

@@ -131,6 +131,7 @@ def optimize_ansatz_based_cost_function(
     fixed_parameters: Optional[Union[np.ndarray, str]] = None,
     parameter_precision: Optional[float] = None,
     parameter_precision_seed: Optional[int] = None,
+    keep_history: bool = False,
     **kwargs,
 ):
     """Optimize the parameters of an ansatz circuit to prepare the ground state of a
@@ -155,6 +156,7 @@ def optimize_ansatz_based_cost_function(
             parameter, if any.
         parameter_precision_seed: seed for randomly generating parameter deviation if
             using parameter_precision
+        keep_history: flag indicating whether to store optimization history.
         kwargs:
             The following key word arguments are handled explicitly when appropriate:
                 - thetas: A list of thetas used to initialize the WarmStartQAOAAnsatz
@@ -218,7 +220,9 @@ def optimize_ansatz_based_cost_function(
         parameter_precision_seed=parameter_precision_seed,
     )
 
-    optimization_results = optimizer.minimize(cost_function, initial_parameters)
+    optimization_results = optimizer.minimize(
+        cost_function, initial_parameters, keep_history
+    )
 
     save_optimization_results(optimization_results, "optimization-results.json")
     save_array(optimization_results.opt_params, "optimized-parameters.json")

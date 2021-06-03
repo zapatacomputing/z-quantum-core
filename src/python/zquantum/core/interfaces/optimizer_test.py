@@ -50,6 +50,9 @@ class OptimizerTests(object):
     def test_optimizer_succeeds_with_optimizing_rosenbrock_function(
         self, optimizer, keep_history
     ):
+        if getattr(self, "always_records_history", False) and not keep_history:
+            return
+
         cost_function = FunctionWithGradient(
             rosenbrock_function, finite_differences_gradient(rosenbrock_function)
         )
@@ -69,6 +72,9 @@ class OptimizerTests(object):
     def test_optimizer_succeeds_with_optimizing_sum_of_squares_function(
         self, optimizer, keep_history
     ):
+        if getattr(self, "always_records_history", False) and not keep_history:
+            return
+
         cost_function = FunctionWithGradient(
             sum_x_squared, finite_differences_gradient(sum_x_squared)
         )
@@ -89,6 +95,9 @@ class OptimizerTests(object):
     def test_optimizer_succeeds_on_cost_function_without_gradient(
         self, optimizer, keep_history
     ):
+        if getattr(self, "always_records_history", False) and not keep_history:
+            return
+
         cost_function = sum_x_squared
 
         results = optimizer.minimize(
@@ -160,7 +169,7 @@ class OptimizerTests(object):
             return
 
         result = optimizer.minimize(
-            sum_x_squared, np.array([-2, 0.5]), keep_history=True
+            sum_x_squared, np.array([-2, 0.5]), keep_history=False
         )
 
         assert result.history == []

@@ -19,9 +19,9 @@ class Optimizer(ABC):
 
     def __init__(self, options: Optional[Dict] = None):
         warnings.warn(
-            "Default input argument \"options\" will soon be removed from the "
+            'Default input argument "options" will soon be removed from the '
             "optimizer interface. However, this does not preclude particular "
-            "optimizers from continuing to declare \"options\" within their individual "
+            'optimizers from continuing to declare "options" within their individual '
             "constructors.",
             DeprecationWarning,
         )
@@ -69,3 +69,13 @@ def optimization_result(
     return scipy.optimize.OptimizeResult(
         opt_value=opt_value, opt_params=opt_params, **kwargs
     )
+
+
+def construct_history_info(cost_function, keep_value_history):
+    histories = {
+        "history": cost_function.history if keep_value_history else [],
+    }
+
+    if keep_value_history and hasattr(cost_function, "gradient"):
+        histories["gradient_history"] = cost_function.gradient.history
+    return histories

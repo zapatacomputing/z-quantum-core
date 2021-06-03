@@ -23,7 +23,7 @@ from zquantum.core.openfermion import (
     load_qubit_operator,
     load_qubit_operator_set,
 )
-from zquantum.core.serialization import load_circuit_template_params
+from zquantum.core.serialization import load_array
 from zquantum.core.typing import Specs
 from zquantum.core.utils import (
     create_object,
@@ -121,7 +121,7 @@ def evaluate_ansatz_based_cost_function(
     device_connectivity: Optional[str] = None,
     prior_expectation_values: Optional[str] = None,
 ):
-    ansatz_parameters = load_circuit_template_params(ansatz_parameters)
+    ansatz_parameters = load_array(ansatz_parameters)
     # Load qubit op
     if isinstance(target_operator, str):
         operator = load_qubit_operator(target_operator)

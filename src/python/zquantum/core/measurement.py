@@ -102,6 +102,8 @@ def save_wavefunction(wavefunction: Wavefunction, filename: AnyPath) -> None:
 
 class ExpectationValues:
     """A class representing expectation values of operators.
+    For more context on how it is being used, please see the docstring of
+    EstimateExpectationValues Protocol in interfaces/estimation.py.
 
     Args:
         values: The expectation values of a set of operators.

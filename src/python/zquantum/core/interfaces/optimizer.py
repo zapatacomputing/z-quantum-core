@@ -17,32 +17,20 @@ class Optimizer(ABC):
 
     """
 
-    def __init__(self, options: Optional[Dict] = None):
-        warnings.warn(
-            'Default input argument "options" will soon be removed from the '
-            "optimizer interface. However, this does not preclude particular "
-            'optimizers from continuing to declare "options" within their individual '
-            "constructors.",
-            DeprecationWarning,
-        )
-        if options is None:
-            options = {}
-        self.options = options
-        if "keep_value_history" not in self.options.keys():
-            self.options["keep_value_history"] = False
-
     @abstractmethod
     def minimize(
         self,
         cost_function: Union[CallableWithGradient, Callable],
         initial_params: np.ndarray,
-        **kwargs
+        keep_history: bool = False,
     ) -> OptimizeResult:
         """Finds the parameters which minimize given cost function.
 
         Args:
             cost_function: an object representing the cost function.
             initial_params: initial parameters for the cost function.
+            keep_history: flag indicating whether history of cost function
+                evaluations should be recorded.
 
         Returns:
             OptimizeResults
@@ -71,11 +59,11 @@ def optimization_result(
     )
 
 
-def construct_history_info(cost_function, keep_value_history):
+def construct_history_info(cost_function, keep_history):
     histories = {
-        "history": cost_function.history if keep_value_history else [],
+        "history": cost_function.history if keep_history else [],
     }
 
-    if keep_value_history and hasattr(cost_function, "gradient"):
+    if keep_history and hasattr(cost_function, "gradient"):
         histories["gradient_history"] = cost_function.gradient.history
     return histories

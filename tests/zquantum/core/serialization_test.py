@@ -258,8 +258,10 @@ def test_load_optimization_results_successfully_loads_optimization_result_from_f
 
 @pytest.fixture
 def tmp_path():
-    with tempfile.NamedTemporaryFile() as tmp_file:
-        yield tmp_file.name
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        handle, path = tempfile.mkstemp(dir=tmp_dir)
+        os.close(handle)  # This is needed, so that we can reopen on MS Windows
+        yield path
 
 
 @pytest.mark.parametrize(
@@ -280,20 +282,20 @@ class TestEnsureOpen:
         ],
     )
     def test_reading_from_path(self, tmp_path: str, path_mapper, example_contents):
-        with open(tmp_path, "w") as f:
+        with open(tmp_path, "w", encoding="utf-8") as f:
             f.write(example_contents)
 
         path = path_mapper(tmp_path)
-        with ensure_open(path) as f:
+        with ensure_open(path, encoding="utf-8") as f:
             read_contents = f.read()
 
         assert read_contents == example_contents
 
     def test_reading_from_open_file(self, tmp_path: str, example_contents):
-        with open(tmp_path, "w") as f:
+        with open(tmp_path, "w", encoding="utf-8") as f:
             f.write(example_contents)
 
-        with open(tmp_path) as open_file:
+        with open(tmp_path, encoding="utf-8") as open_file:
             with ensure_open(open_file) as f:
                 read_contents = f.read()
 
@@ -322,17 +324,17 @@ class TestEnsureOpen:
         with ensure_open(path, "w") as f:
             f.write(example_contents)
 
-        with open(tmp_path) as f:
+        with open(tmp_path, encoding="utf-8") as f:
             read_contents = f.read()
 
         assert read_contents == example_contents
 
     def test_writing_to_open_file(self, tmp_path: str, example_contents):
-        with open(tmp_path, "w") as open_file:
+        with open(tmp_path, "w", encoding="utf-8") as open_file:
             with ensure_open(open_file, "w") as f:
                 f.write(example_contents)
 
-        with open(tmp_path) as f:
+        with open(tmp_path, encoding="utf-8") as f:
             read_contents = f.read()
 
         assert read_contents == example_contents

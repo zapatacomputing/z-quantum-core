@@ -110,10 +110,10 @@ def load_optimization_results(filename: AnyPath):
 
 
 @contextmanager
-def ensure_open(path_like: Union[LoadSource, DumpTarget], mode="r"):
+def ensure_open(path_like: Union[LoadSource, DumpTarget], mode="r", encoding="utf-8"):
     # str | bytes | PathLike | Readable
     if isinstance(path_like, (str, bytes, os.PathLike)):
-        with open(path_like, mode) as f:
+        with open(path_like, mode, encoding=encoding if "b" not in mode else None) as f:
             yield f
     else:
         # Readable | Writable

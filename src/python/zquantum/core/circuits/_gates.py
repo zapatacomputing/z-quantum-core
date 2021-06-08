@@ -135,6 +135,10 @@ class GateOperation:
             else _lift_matrix_numpy(self.gate.matrix, self.qubit_indices, num_qubits)
         )
 
+    @property
+    def free_symbols(self) ->  Iterable[sympy.Symbol]:
+        return self.gate.free_symbols
+
     def __str__(self):
         return f"{self.gate}({','.join(map(str, self.qubit_indices))})"
 

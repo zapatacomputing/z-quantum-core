@@ -1,8 +1,6 @@
 """Data structures for ZQuantum gates."""
 import math
 from dataclasses import dataclass, replace
-from functools import singledispatch
-from numbers import Number
 from typing import Callable, Dict, Iterable, Tuple, Union
 
 import numpy as np
@@ -10,7 +8,7 @@ import sympy
 from typing_extensions import Protocol, runtime_checkable
 
 from ._unitary_tools import _lift_matrix_numpy, _lift_matrix_sympy
-from ._operations import Parameter
+from ._operations import Parameter, _sub_symbols
 
 
 def _get_free_symbols(parameters: Tuple[Parameter, ...]) -> Iterable[sympy.Symbol]:
@@ -141,32 +139,6 @@ class GateOperation:
 
     def __str__(self):
         return f"{self.gate}({','.join(map(str, self.qubit_indices))})"
-
-
-@singledispatch
-def _sub_symbols(parameter, symbols_map: Dict[sympy.Symbol, Parameter]) -> Parameter:
-    raise NotImplementedError()
-
-
-@_sub_symbols.register
-def _sub_symbols_in_number(
-    parameter: Number, symbols_map: Dict[sympy.Symbol, Parameter]
-) -> Number:
-    return parameter
-
-
-@_sub_symbols.register
-def _sub_symbols_in_expression(
-    parameter: sympy.Expr, symbols_map: Dict[sympy.Symbol, Parameter]
-) -> sympy.Expr:
-    return parameter.subs(symbols_map)
-
-
-@_sub_symbols.register
-def _sub_symbols_in_symbol(
-    parameter: sympy.Symbol, symbols_map: Dict[sympy.Symbol, Parameter]
-) -> Parameter:
-    return symbols_map.get(parameter, parameter)
 
 
 def _all_attrs_equal(obj, other_obj, attrs):

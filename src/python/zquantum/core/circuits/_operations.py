@@ -1,3 +1,4 @@
+from functools import singledispatch
 from numbers import Number
 from typing import Protocol, Tuple, Union, Dict, TypeVar, Iterable
 
@@ -43,3 +44,29 @@ class Operation(Protocol):
         might not comprise free symbols at all.
         """
         raise NotImplementedError()
+
+
+@singledispatch
+def _sub_symbols(parameter, symbols_map: Dict[sympy.Symbol, Parameter]) -> Parameter:
+    raise NotImplementedError()
+
+
+@_sub_symbols.register
+def _sub_symbols_in_number(
+    parameter: Number, symbols_map: Dict[sympy.Symbol, Parameter]
+) -> Number:
+    return parameter
+
+
+@_sub_symbols.register
+def _sub_symbols_in_expression(
+    parameter: sympy.Expr, symbols_map: Dict[sympy.Symbol, Parameter]
+) -> sympy.Expr:
+    return parameter.subs(symbols_map)
+
+
+@_sub_symbols.register
+def _sub_symbols_in_symbol(
+    parameter: sympy.Symbol, symbols_map: Dict[sympy.Symbol, Parameter]
+) -> Parameter:
+    return symbols_map.get(parameter, parameter)

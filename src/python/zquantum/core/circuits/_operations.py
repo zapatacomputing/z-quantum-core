@@ -1,8 +1,9 @@
 from functools import singledispatch
 from numbers import Number
-from typing import Protocol, Tuple, Union, Dict, TypeVar, Iterable
+from typing import Tuple, Union, Dict, TypeVar, Iterable
 
 import sympy
+from typing_extensions import Protocol
 
 Parameter = Union[sympy.Symbol, Number]
 

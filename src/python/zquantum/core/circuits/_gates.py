@@ -10,8 +10,7 @@ import sympy
 from typing_extensions import Protocol, runtime_checkable
 
 from ._unitary_tools import _lift_matrix_numpy, _lift_matrix_sympy
-
-Parameter = Union[sympy.Symbol, Number]
+from ._operations import Parameter
 
 
 def _get_free_symbols(parameters: Tuple[Parameter, ...]) -> Iterable[sympy.Symbol]:

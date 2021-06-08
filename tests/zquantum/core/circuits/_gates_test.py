@@ -223,3 +223,9 @@ class TestGateOperation:
         new_params = tuple(-1 * param for param in op.params)
 
         assert op.replace_params(new_params).params == new_params
+
+    def test_free_symbols_of_gate_operation_are_the_same_as_the_ones_in_wrapped_gate(
+        self, gate
+    ):
+        op = GateOperation(gate, tuple(range(gate.num_qubits)))
+        assert op.free_symbols == gate.free_symbols

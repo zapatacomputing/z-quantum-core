@@ -70,3 +70,13 @@ def _sub_symbols_in_symbol(
     parameter: sympy.Symbol, symbols_map: Dict[sympy.Symbol, Parameter]
 ) -> Parameter:
     return symbols_map.get(parameter, parameter)
+
+
+def _get_free_symbols(parameters: Tuple[Parameter, ...]) -> Iterable[sympy.Symbol]:
+    symbols = set(
+        symbol
+        for param in parameters
+        if isinstance(param, sympy.Expr)
+        for symbol in param.free_symbols
+    )
+    return sorted(symbols, key=str)

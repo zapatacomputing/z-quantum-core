@@ -7,18 +7,8 @@ import numpy as np
 import sympy
 from typing_extensions import Protocol, runtime_checkable
 
-from ._operations import Parameter, _sub_symbols
+from ._operations import _get_free_symbols, Parameter, _sub_symbols
 from ._unitary_tools import _lift_matrix_numpy, _lift_matrix_sympy
-
-
-def _get_free_symbols(parameters: Tuple[Parameter, ...]) -> Iterable[sympy.Symbol]:
-    symbols = set(
-        symbol
-        for param in parameters
-        if isinstance(param, sympy.Expr)
-        for symbol in param.free_symbols
-    )
-    return sorted(symbols, key=str)
 
 
 @runtime_checkable

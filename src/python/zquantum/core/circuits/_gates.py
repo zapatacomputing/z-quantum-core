@@ -7,7 +7,7 @@ import numpy as np
 import sympy
 from typing_extensions import Protocol, runtime_checkable
 
-from ._operations import Parameter, _get_free_symbols, _sub_symbols
+from ._operations import Parameter, get_free_symbols, sub_symbols
 from ._unitary_tools import _lift_matrix_numpy, _lift_matrix_sympy
 
 
@@ -59,7 +59,7 @@ class Gate(Protocol):
         - a `RX(sympy.sympify("theta * alpha")).bind({sympy.Symbol("theta"): 0.42})`
             gate has one free symbol, `alpha`
         """
-        return _get_free_symbols(self.params)
+        return get_free_symbols(self.params)
 
     @property
     def num_qubits(self) -> int:
@@ -180,7 +180,7 @@ class MatrixFactoryGate:
 
     def bind(self, symbols_map) -> "MatrixFactoryGate":
         return self.replace_params(
-            tuple(_sub_symbols(param, symbols_map) for param in self.params)
+            tuple(sub_symbols(param, symbols_map) for param in self.params)
         )
 
     def replace_params(self, new_params: Tuple[Parameter, ...]) -> "MatrixFactoryGate":
@@ -223,7 +223,7 @@ class MatrixFactoryGate:
     @property
     def free_symbols(self) -> Iterable[sympy.Symbol]:
         """Unbound symbols in the gate matrix. See Gate.free_symbols for details."""
-        return _get_free_symbols(self.params)
+        return get_free_symbols(self.params)
 
     __call__ = Gate.__call__
 

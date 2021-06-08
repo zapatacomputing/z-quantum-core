@@ -6,7 +6,7 @@ from typing import Iterable, Sequence, Tuple
 import numpy as np
 import sympy
 
-from ._operations import Parameter, _get_free_symbols, _sub_symbols
+from ._operations import Parameter, get_free_symbols, sub_symbols
 
 
 @singledispatch
@@ -43,7 +43,7 @@ class MultiPhaseOperation:
 
     def bind(self, symbols_map) -> "MultiPhaseOperation":
         return self.replace_params(
-            tuple(_sub_symbols(param, symbols_map) for param in self.params)
+            tuple(sub_symbols(param, symbols_map) for param in self.params)
         )
 
     def replace_params(
@@ -80,4 +80,4 @@ class MultiPhaseOperation:
         - a `RX(sympy.sympify("theta * alpha")).bind({sympy.Symbol("theta"): 0.42})`
             gate has one free symbol, `alpha`
         """
-        return _get_free_symbols(self.params)
+        return get_free_symbols(self.params)

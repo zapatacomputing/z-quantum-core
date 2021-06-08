@@ -48,32 +48,32 @@ class Operation(Protocol):
 
 
 @singledispatch
-def _sub_symbols(parameter, symbols_map: Dict[sympy.Symbol, Parameter]) -> Parameter:
+def sub_symbols(parameter, symbols_map: Dict[sympy.Symbol, Parameter]) -> Parameter:
     raise NotImplementedError()
 
 
-@_sub_symbols.register
+@sub_symbols.register
 def _sub_symbols_in_number(
     parameter: Number, symbols_map: Dict[sympy.Symbol, Parameter]
 ) -> Number:
     return parameter
 
 
-@_sub_symbols.register
+@sub_symbols.register
 def _sub_symbols_in_expression(
     parameter: sympy.Expr, symbols_map: Dict[sympy.Symbol, Parameter]
 ) -> sympy.Expr:
     return parameter.subs(symbols_map)
 
 
-@_sub_symbols.register
+@sub_symbols.register
 def _sub_symbols_in_symbol(
     parameter: sympy.Symbol, symbols_map: Dict[sympy.Symbol, Parameter]
 ) -> Parameter:
     return symbols_map.get(parameter, parameter)
 
 
-def _get_free_symbols(parameters: Tuple[Parameter, ...]) -> Iterable[sympy.Symbol]:
+def get_free_symbols(parameters: Tuple[Parameter, ...]) -> Iterable[sympy.Symbol]:
     symbols = set(
         symbol
         for param in parameters

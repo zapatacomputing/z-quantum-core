@@ -1,12 +1,12 @@
 from dataclasses import dataclass
 from functools import singledispatch
 from numbers import Complex
-from typing import Sequence, Tuple
+from typing import Iterable, Sequence, Tuple
 
 import numpy as np
 import sympy
 
-from ._gates import Parameter, _sub_symbols
+from ._operations import Parameter, get_free_symbols, sub_symbols
 
 
 @singledispatch
@@ -43,7 +43,7 @@ class MultiPhaseOperation:
 
     def bind(self, symbols_map) -> "MultiPhaseOperation":
         return self.replace_params(
-            tuple(_sub_symbols(param, symbols_map) for param in self.params)
+            tuple(sub_symbols(param, symbols_map) for param in self.params)
         )
 
     def replace_params(
@@ -66,3 +66,18 @@ class MultiPhaseOperation:
                 "parameters are bound to real numbers."
             ) from e
         return np.multiply(np.asarray(wavefunction), exp_params)
+
+    @property
+    def free_symbols(self) -> Iterable[sympy.Symbol]:
+        """Unbound symbols in the gate matrix.
+
+        Examples:
+        - an `H` gate has no free symbols
+        - a `RX(np.pi)` gate has no free symbols
+        - a `RX(sympy.Symbol("theta"))` gate has a single free symbol `theta`
+        - a `RX(sympy.sympify("theta * alpha"))` gate has two free symbols, `alpha` and
+            `theta`
+        - a `RX(sympy.sympify("theta * alpha")).bind({sympy.Symbol("theta"): 0.42})`
+            gate has one free symbol, `alpha`
+        """
+        return get_free_symbols(self.params)

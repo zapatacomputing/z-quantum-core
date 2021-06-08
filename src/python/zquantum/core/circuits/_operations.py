@@ -9,6 +9,7 @@ T = TypeVar("T", bound="Operation")
 
 
 class Operation(Protocol):
+    """Represents arbitrary operation applicable to a circuit or wavefunction."""
 
     @property
     def params(self) -> Tuple[Parameter, ...]:

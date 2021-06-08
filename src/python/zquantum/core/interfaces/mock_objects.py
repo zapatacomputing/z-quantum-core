@@ -110,7 +110,9 @@ class MockQuantumSimulator(QuantumSimulator):
 
 
 class MockOptimizer(Optimizer):
-    def minimize(self, cost_function, initial_params: np.ndarray, **kwargs):
+    def _minimize(
+        self, cost_function, initial_params: np.ndarray, keep_history: bool = False
+    ):
         new_parameters = initial_params
         for i in range(len(initial_params)):
             new_parameters[i] += random.random()

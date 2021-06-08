@@ -7,8 +7,8 @@ import numpy as np
 import sympy
 from typing_extensions import Protocol, runtime_checkable
 
-from ._unitary_tools import _lift_matrix_numpy, _lift_matrix_sympy
 from ._operations import Parameter, _sub_symbols
+from ._unitary_tools import _lift_matrix_numpy, _lift_matrix_sympy
 
 
 def _get_free_symbols(parameters: Tuple[Parameter, ...]) -> Iterable[sympy.Symbol]:

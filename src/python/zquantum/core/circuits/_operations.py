@@ -1,3 +1,4 @@
+from abc import abstractmethod
 from functools import singledispatch
 from numbers import Number
 from typing import Dict, Iterable, Tuple, TypeVar, Union
@@ -14,10 +15,11 @@ class Operation(Protocol):
     """Represents arbitrary operation applicable to a circuit or wavefunction."""
 
     @property
+    @abstractmethod
     def params(self) -> Tuple[Parameter, ...]:
         """Parameters of this operation."""
-        raise NotImplementedError()
 
+    @abstractmethod
     def bind(self: T, symbols_map: Dict[sympy.Symbol, Parameter]) -> T:
         """Create new operation by replacing free symbols in operation params.
 
@@ -25,8 +27,8 @@ class Operation(Protocol):
         as self, e.g. binding parameters to GateOperation should produce
         GateOperation.
         """
-        raise NotImplementedError()
 
+    @abstractmethod
     def replace_params(self: T, new_params: Tuple[Parameter, ...]) -> T:
         """Create new operation by replacing params.
 
@@ -34,9 +36,9 @@ class Operation(Protocol):
         parameter substitution - in particular, parameters without free symbols
         are unaffected by bind, whereas replace_params replaces *all* params.
         """
-        raise NotImplementedError()
 
     @property
+    @abstractmethod
     def free_symbols(self) -> Iterable[sympy.Symbol]:
         """Free symbols parameterizing this operation.
 
@@ -44,7 +46,6 @@ class Operation(Protocol):
         Some params can be expressions with multiple free symbols, while other params
         might not comprise free symbols at all.
         """
-        raise NotImplementedError()
 
 
 @singledispatch

@@ -1,5 +1,5 @@
 from numbers import Number
-from typing import Protocol, Tuple, Union, Dict, TypeVar
+from typing import Protocol, Tuple, Union, Dict, TypeVar, Iterable
 
 import sympy
 
@@ -35,7 +35,7 @@ class Operation(Protocol):
         raise NotImplementedError()
 
     @property
-    def free_symbols(self):
+    def free_symbols(self) -> Iterable[sympy.Symbol]:
         """Free symbols parameterizing this operation.
 
         Note that number of free_symbols is unrelated to number of params.

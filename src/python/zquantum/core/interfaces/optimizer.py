@@ -5,6 +5,7 @@ from typing import Callable, Dict, Optional, Union
 import numpy as np
 import scipy
 from scipy.optimize import OptimizeResult
+from zquantum.core.history.recorder import recorder as _recorder
 from zquantum.core.interfaces.functions import CallableWithGradient
 
 
@@ -13,11 +14,13 @@ class Optimizer(ABC):
     Interface for implementing different optimizers.
 
     Args:
-        options (dict): dictionary containing optimizer options.
+        recorder: recorder object which defines how to store the optimization history.
 
     """
 
-    @abstractmethod
+    def __init__(self, recorder: _recorder) -> None:
+        self.recorder = recorder
+
     def minimize(
         self,
         cost_function: Union[CallableWithGradient, Callable],
@@ -31,9 +34,23 @@ class Optimizer(ABC):
             initial_params: initial parameters for the cost function.
             keep_history: flag indicating whether history of cost function
                 evaluations should be recorded.
+        """
+        if keep_history:
+            cost_function = self.recorder(cost_function)
+        return self._minimize(cost_function, initial_params, keep_history)
 
-        Returns:
-            OptimizeResults
+    @abstractmethod
+    def _minimize(
+        self,
+        cost_function: Union[CallableWithGradient, Callable],
+        initial_params: np.ndarray,
+        keep_history: bool = False,
+    ) -> OptimizeResult:
+        """Finds the parameters which minimize given cost function.
+        This private method should contain the integration with specific optimizer.
+
+        Args:
+            Same as for minimize.
         """
         raise NotImplementedError
 

@@ -46,13 +46,9 @@ class OptimizerTests(object):
     perform tests for various configurations of your optimizer.
     """
 
-    @pytest.mark.parametrize("keep_history", [True, False])
     def test_optimizer_succeeds_with_optimizing_rosenbrock_function(
         self, optimizer, keep_history
     ):
-        if getattr(self, "always_records_history", False) and not keep_history:
-            return
-
         cost_function = FunctionWithGradient(
             rosenbrock_function, finite_differences_gradient(rosenbrock_function)
         )
@@ -68,12 +64,9 @@ class OptimizerTests(object):
         assert "history" in results or not keep_history
         assert "gradient_history" in results or not keep_history
 
-    @pytest.mark.parametrize("keep_history", [True, False])
     def test_optimizer_succeeds_with_optimizing_sum_of_squares_function(
         self, optimizer, keep_history
     ):
-        if getattr(self, "always_records_history", False) and not keep_history:
-            return
 
         cost_function = FunctionWithGradient(
             sum_x_squared, finite_differences_gradient(sum_x_squared)
@@ -91,13 +84,9 @@ class OptimizerTests(object):
         assert "history" in results or not keep_history
         assert "gradient_history" in results or not keep_history
 
-    @pytest.mark.parametrize("keep_history", [True, False])
     def test_optimizer_succeeds_on_cost_function_without_gradient(
         self, optimizer, keep_history
     ):
-        if getattr(self, "always_records_history", False) and not keep_history:
-            return
-
         cost_function = sum_x_squared
 
         results = optimizer.minimize(
@@ -165,9 +154,6 @@ class OptimizerTests(object):
     def test_optimizer_does_not_record_history_if_keep_history_is_set_to_false(
         self, optimizer
     ):
-        if getattr(self, "always_records_history", False):
-            return
-
         result = optimizer.minimize(
             sum_x_squared, np.array([-2, 0.5]), keep_history=False
         )
@@ -177,9 +163,6 @@ class OptimizerTests(object):
     def test_optimizer_does_not_record_history_if_keep_history_by_default(
         self, optimizer
     ):
-        if getattr(self, "always_records_history", False):
-            return
-
         result = optimizer.minimize(sum_x_squared, np.array([-2, 0.5]))
 
         assert result.history == []

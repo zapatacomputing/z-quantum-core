@@ -480,8 +480,8 @@ def test_hf_rdm_energy(hamiltonian, ref_energy, nalpha):
 @pytest.mark.parametrize("num_qubits", [2, 3, 5, 10])
 def test_ordered_bitstring(num_qubits):
     bitstrings = get_ordered_list_of_bitstrings(num_qubits)
-    integers = np.arange(num_qubits)
     expected_bitstrings = convert_tuples_to_bitstrings(
-        [dec2bin(integer, num_qubits) for integer in integers]
+        [dec2bin(integer, num_qubits) for integer in range(2 ** num_qubits)]
     )
+    assert np.all(expected_bitstrings == bitstrings)
     assert np.all([len(bitstring) == num_qubits for bitstring in bitstrings])

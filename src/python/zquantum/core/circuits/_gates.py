@@ -1,27 +1,14 @@
 """Data structures for ZQuantum gates."""
 import math
 from dataclasses import dataclass, replace
-from functools import singledispatch
-from numbers import Number
 from typing import Callable, Dict, Iterable, Tuple, Union
 
 import numpy as np
 import sympy
 from typing_extensions import Protocol, runtime_checkable
 
+from ._operations import Parameter, get_free_symbols, sub_symbols
 from ._unitary_tools import _lift_matrix_numpy, _lift_matrix_sympy
-
-Parameter = Union[sympy.Symbol, Number]
-
-
-def _get_free_symbols(parameters: Tuple[Parameter, ...]) -> Iterable[sympy.Symbol]:
-    symbols = set(
-        symbol
-        for param in parameters
-        if isinstance(param, sympy.Expr)
-        for symbol in param.free_symbols
-    )
-    return sorted(symbols, key=str)
 
 
 @runtime_checkable
@@ -72,7 +59,7 @@ class Gate(Protocol):
         - a `RX(sympy.sympify("theta * alpha")).bind({sympy.Symbol("theta"): 0.42})`
             gate has one free symbol, `alpha`
         """
-        return _get_free_symbols(self.params)
+        return get_free_symbols(self.params)
 
     @property
     def num_qubits(self) -> int:
@@ -112,20 +99,6 @@ def gate_is_parametric(gate_ref, gate_params):
     return not not gate_params
 
 
-class Operation(Protocol):
-    """Represents arbitrary operation applicable to a circuit or wavefunction."""
-
-    @property
-    def params(self) -> Tuple[Parameter, ...]:
-        raise NotImplementedError()
-
-    def bind(self, symbols_map: Dict[sympy.Symbol, Parameter]) -> "Operation":
-        raise NotImplementedError()
-
-    def replace_params(self, new_params: Tuple[Parameter, ...]) -> "Operation":
-        raise NotImplementedError()
-
-
 @dataclass(frozen=True)
 class GateOperation:
     """Represents applying a `Gate` to 1 or more qubits in a circuit."""
@@ -150,34 +123,12 @@ class GateOperation:
             else _lift_matrix_numpy(self.gate.matrix, self.qubit_indices, num_qubits)
         )
 
+    @property
+    def free_symbols(self) -> Iterable[sympy.Symbol]:
+        return self.gate.free_symbols
+
     def __str__(self):
         return f"{self.gate}({','.join(map(str, self.qubit_indices))})"
-
-
-@singledispatch
-def _sub_symbols(parameter, symbols_map: Dict[sympy.Symbol, Parameter]) -> Parameter:
-    raise NotImplementedError()
-
-
-@_sub_symbols.register
-def _sub_symbols_in_number(
-    parameter: Number, symbols_map: Dict[sympy.Symbol, Parameter]
-) -> Number:
-    return parameter
-
-
-@_sub_symbols.register
-def _sub_symbols_in_expression(
-    parameter: sympy.Expr, symbols_map: Dict[sympy.Symbol, Parameter]
-) -> sympy.Expr:
-    return parameter.subs(symbols_map)
-
-
-@_sub_symbols.register
-def _sub_symbols_in_symbol(
-    parameter: sympy.Symbol, symbols_map: Dict[sympy.Symbol, Parameter]
-) -> Parameter:
-    return symbols_map.get(parameter, parameter)
 
 
 def _all_attrs_equal(obj, other_obj, attrs):
@@ -229,7 +180,7 @@ class MatrixFactoryGate:
 
     def bind(self, symbols_map) -> "MatrixFactoryGate":
         return self.replace_params(
-            tuple(_sub_symbols(param, symbols_map) for param in self.params)
+            tuple(sub_symbols(param, symbols_map) for param in self.params)
         )
 
     def replace_params(self, new_params: Tuple[Parameter, ...]) -> "MatrixFactoryGate":
@@ -272,7 +223,7 @@ class MatrixFactoryGate:
     @property
     def free_symbols(self) -> Iterable[sympy.Symbol]:
         """Unbound symbols in the gate matrix. See Gate.free_symbols for details."""
-        return _get_free_symbols(self.params)
+        return get_free_symbols(self.params)
 
     __call__ = Gate.__call__
 

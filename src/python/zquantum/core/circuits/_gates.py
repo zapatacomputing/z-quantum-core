@@ -112,20 +112,6 @@ def gate_is_parametric(gate_ref, gate_params):
     return not not gate_params
 
 
-class Operation(Protocol):
-    """Represents arbitrary operation applicable to a circuit or wavefunction."""
-
-    @property
-    def params(self) -> Tuple[Parameter, ...]:
-        raise NotImplementedError()
-
-    def bind(self, symbols_map: Dict[sympy.Symbol, Parameter]) -> "Operation":
-        raise NotImplementedError()
-
-    def replace_params(self, new_params: Tuple[Parameter, ...]) -> "Operation":
-        raise NotImplementedError()
-
-
 @dataclass(frozen=True)
 class GateOperation:
     """Represents applying a `Gate` to 1 or more qubits in a circuit."""

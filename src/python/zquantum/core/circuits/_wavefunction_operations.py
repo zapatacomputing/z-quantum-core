@@ -1,12 +1,12 @@
 from dataclasses import dataclass
 from functools import singledispatch
 from numbers import Complex
-from typing import Sequence, Tuple
+from typing import Sequence, Tuple, Iterable
 
 import numpy as np
 import sympy
 
-from ._operations import Parameter, _sub_symbols
+from ._operations import Parameter, _sub_symbols, _get_free_symbols
 
 
 @singledispatch
@@ -66,3 +66,18 @@ class MultiPhaseOperation:
                 "parameters are bound to real numbers."
             ) from e
         return np.multiply(np.asarray(wavefunction), exp_params)
+
+    @property
+    def free_symbols(self) -> Iterable[sympy.Symbol]:
+        """Unbound symbols in the gate matrix.
+
+        Examples:
+        - an `H` gate has no free symbols
+        - a `RX(np.pi)` gate has no free symbols
+        - a `RX(sympy.Symbol("theta"))` gate has a single free symbol `theta`
+        - a `RX(sympy.sympify("theta * alpha"))` gate has two free symbols, `alpha` and
+            `theta`
+        - a `RX(sympy.sympify("theta * alpha")).bind({sympy.Symbol("theta"): 0.42})`
+            gate has one free symbol, `alpha`
+        """
+        return _get_free_symbols(self.params)

@@ -262,7 +262,7 @@ def import_from_cirq(obj):
 
 @dataclass
 class NonNativeGate:
-    matrix: sympy.Matrix
+    matrix: np.ndarray
     cirq_class: type
 
 
@@ -352,7 +352,7 @@ def _convert_gate_operation_to_zquantum(operation) -> _gates.GateOperation:
             gate_name=_gen_custom_gate_name(
                 imported_gate.cirq_class, imported_gate.matrix
             ),
-            matrix=imported_gate.matrix,
+            matrix=sympy.Matrix(imported_gate.matrix),
             params_ordering=(),
         )
         return custom_gate()(*qubit_indices)

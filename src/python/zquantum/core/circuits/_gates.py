@@ -134,7 +134,7 @@ class GateOperation:
         )
 
     @property
-    def free_symbols(self) ->  Iterable[sympy.Symbol]:
+    def free_symbols(self) -> Iterable[sympy.Symbol]:
         return self.gate.free_symbols
 
     def __str__(self):

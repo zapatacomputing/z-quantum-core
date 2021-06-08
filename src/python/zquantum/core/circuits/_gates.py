@@ -7,7 +7,7 @@ import numpy as np
 import sympy
 from typing_extensions import Protocol, runtime_checkable
 
-from ._operations import _get_free_symbols, Parameter, _sub_symbols
+from ._operations import Parameter, _get_free_symbols, _sub_symbols
 from ._unitary_tools import _lift_matrix_numpy, _lift_matrix_sympy
 
 

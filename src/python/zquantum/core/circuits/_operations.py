@@ -1,6 +1,6 @@
 from functools import singledispatch
 from numbers import Number
-from typing import Tuple, Union, Dict, TypeVar, Iterable
+from typing import Dict, Iterable, Tuple, TypeVar, Union
 
 import sympy
 from typing_extensions import Protocol

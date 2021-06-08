@@ -1,12 +1,12 @@
 from dataclasses import dataclass
 from functools import singledispatch
 from numbers import Complex
-from typing import Sequence, Tuple, Iterable
+from typing import Iterable, Sequence, Tuple
 
 import numpy as np
 import sympy
 
-from ._operations import Parameter, _sub_symbols, _get_free_symbols
+from ._operations import Parameter, _get_free_symbols, _sub_symbols
 
 
 @singledispatch

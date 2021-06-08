@@ -647,3 +647,22 @@ def load_from_specs(specs: Specs):
     if isinstance(specs, str):
         specs = json.loads(specs)
     return create_object(specs)  # type: ignore
+
+
+def get_ordered_list_of_bitstrings(num_qubits: int) -> List[str]:
+    """Create list of binary strings corresponding to 2^num_qubits integers
+    and save them in ascending order.
+
+    Args:
+        num_qubits: number of binary digits in each bitstring
+
+    Returns:
+        The ordered bitstring representations of the integers
+    """
+    bitstrings = []
+    for i in range(2 ** num_qubits):
+        bitstring = "{0:b}".format(i)
+        while len(bitstring) < num_qubits:
+            bitstring = "0" + bitstring
+        bitstrings.append(bitstring)
+    return bitstrings

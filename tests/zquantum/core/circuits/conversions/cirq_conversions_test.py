@@ -185,11 +185,18 @@ class CustomGate(cirq.Gate):
         return f"R({self.theta})"
 
 
-CIRQ_ONLY_CIRCUITS = [
-    cirq.Circuit([cirq.ZPowGate(exponent=1.2, global_shift=0.1)(lq(1))]),
-    cirq.Circuit([cirq.CCXPowGate(exponent=-0.1, global_shift=THETA)(*lq.range(3))]),
-    cirq.Circuit([CustomGate(np.pi)(lq(1))]),
+CIRQ_ONLY_CIRCUITS_WITH_FREE_SYMBOLS = [
+    cirq.Circuit([cirq.CCXPowGate(exponent=-0.1, global_shift=THETA)(*lq.range(3))])
 ]
+
+CIRQ_ONLY_CIRCUITS_WITHOUT_FREE_SYMBOLS = [
+    cirq.Circuit([cirq.ZPowGate(exponent=1.2, global_shift=0.1)(lq(0))]),
+    cirq.Circuit([CustomGate(np.pi)(lq(0))]),
+]
+
+CIRQ_ONLY_CIRCUITS = (
+    CIRQ_ONLY_CIRCUITS_WITH_FREE_SYMBOLS + CIRQ_ONLY_CIRCUITS_WITHOUT_FREE_SYMBOLS
+)
 
 
 UNSUPPORTED_CIRQ_CIRCUITS = [
@@ -270,6 +277,11 @@ class TestImportingFromCirq:
         circuit = import_from_cirq(cirq_circuit)
         for operation in circuit.operations:
             assert not _is_a_builtin_gate(operation.gate)
+
+    @pytest.mark.parametrize("cirq_circuit", CIRQ_ONLY_CIRCUITS_WITHOUT_FREE_SYMBOLS)
+    def test_with_cirq_only_gates_yields_correct_unitary(self, cirq_circuit):
+        circuit = import_from_cirq(cirq_circuit)
+        assert np.allclose(circuit.to_unitary(), cirq.unitary(cirq_circuit))
 
     @pytest.mark.parametrize("cirq_circuit", UNSUPPORTED_CIRQ_CIRCUITS)
     def test_with_unsupported_gates_raises_not_implemented_error(self, cirq_circuit):

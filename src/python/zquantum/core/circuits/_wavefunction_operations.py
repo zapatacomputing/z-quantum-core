@@ -6,7 +6,7 @@ from typing import Sequence, Tuple
 import numpy as np
 import sympy
 
-from ._gates import Parameter, _sub_symbols
+from ._operations import Parameter, _sub_symbols
 
 
 @singledispatch

@@ -4,6 +4,19 @@ from functools import singledispatch
 from numbers import Number
 
 import sympy
+import sympy.core
+
+try:
+    # for sympy>=1.6 - import the module as usual
+    import sympy.core.numbers as sympy_numbers
+except ImportError:
+    # for sympy<=1.5.1
+    # There's a wildcard import in sympy that messes up the imports. This is a
+    # workaround to be able to work with sympy numbers from both old and recent sympy
+    # versions. See more at:
+    # https://github.com/sympy/sympy/blob/70381f282f2d9d039da860e391fe51649df2779d/sympy/__init__.py#L57
+    sympy_numbers = sympy.numbers
+
 
 from .expressions import ExpressionDialect, FunctionCall, Symbol
 
@@ -55,7 +68,7 @@ def native_float_from_sympy_rational(number: sympy.Rational):
 
 @expression_from_sympy.register
 def native_imaginary_unit_from_sympy_imaginary_unit(
-    _unit: sympy.core.numbers.ImaginaryUnit,
+    _unit: sympy_numbers.ImaginaryUnit,
 ):
     return 1j
 

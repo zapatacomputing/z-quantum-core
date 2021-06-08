@@ -77,7 +77,7 @@ def run_circuitset_and_measure(
             device_connectivity
         )
 
-    circuit_set = circuits.load_circuit_set(circuitset)
+    circuit_set = circuits.load_circuitset(circuitset)
     backend = create_object(backend_specs)
 
     measurements_set = backend.run_circuitset_and_measure(

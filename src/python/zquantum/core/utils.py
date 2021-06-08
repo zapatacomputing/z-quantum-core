@@ -649,7 +649,7 @@ def load_from_specs(specs: Specs):
     return create_object(specs)  # type: ignore
 
 
-def get_ordered_list_of_bitstrings(num_qubits: int):
+def get_ordered_list_of_bitstrings(num_qubits: int) -> List[str]:
     """Create list of binary strings corresponding to 2^num_qubits integers
     and save them in ascending order.
 
@@ -657,9 +657,8 @@ def get_ordered_list_of_bitstrings(num_qubits: int):
         num_qubits: number of binary digits in each bitstring
 
     Returns:
-        List[string]: the ordered bitstring representations of the integers
+        The ordered bitstring representations of the integers
     """
-    # Determine occupancy of each spin orbital
     bitstrings = []
     for i in range(2 ** num_qubits):
         bitstring = "{0:b}".format(i)

@@ -123,3 +123,28 @@ class TestMultiPhaseOperation:
         operation = MultiPhaseOperation(params)
         with pytest.raises(RuntimeError):
             operation.apply(wavefunction)
+
+    @pytest.mark.parametrize(
+        "params, expected_free_symbols",
+        [
+            ((0, 1, 1, -2), []),
+            (
+                (sympy.Symbol("a"), sympy.Symbol("b")),
+                [sympy.Symbol("a"), sympy.Symbol("b")],
+            ),
+            (
+                (
+                    1,
+                    sympy.Symbol("a") + sympy.Symbol("d"),
+                    -1,
+                    sympy.Symbol("c") - sympy.Symbol("b"),
+                ),
+                list(sympy.symbols("a, b, c, d")),
+            ),
+        ],
+    )
+    def test_free_symbols_in_parameters_are_correctly_reported(
+        self, params, expected_free_symbols
+    ):
+        operation = MultiPhaseOperation(params)
+        assert operation.free_symbols == expected_free_symbols

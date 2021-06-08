@@ -1,12 +1,14 @@
 import warnings
 from abc import ABC, abstractmethod
-from typing import Callable, Dict, Optional, Union
+from typing import Callable, Union
 
 import numpy as np
 import scipy
 from scipy.optimize import OptimizeResult
 from zquantum.core.history.recorder import recorder as _recorder
 from zquantum.core.interfaces.functions import CallableWithGradient
+
+from ..typing import RecorderFactory
 
 
 class Optimizer(ABC):
@@ -18,7 +20,7 @@ class Optimizer(ABC):
 
     """
 
-    def __init__(self, recorder: _recorder) -> None:
+    def __init__(self, recorder: RecorderFactory = _recorder) -> None:
         self.recorder = recorder
 
     def minimize(

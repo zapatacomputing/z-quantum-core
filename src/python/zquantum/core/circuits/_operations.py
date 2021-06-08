@@ -33,6 +33,7 @@ class Operation(Protocol):
         """
         raise NotImplementedError()
 
+    @property
     def free_symbols(self):
         """Free symbols parameterizing this operation.
 

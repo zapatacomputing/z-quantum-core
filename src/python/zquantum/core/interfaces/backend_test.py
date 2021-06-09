@@ -195,73 +195,6 @@ class QuantumBackendTests:
 
         assert backend.number_of_circuits_run == 2
 
-    def test_get_expectation_values_identity(self, backend):
-        # Given
-        backend.number_of_circuits_run = 0
-        backend.number_of_jobs_run = 0
-        circuit = Circuit([H(0), CNOT(0, 1), CNOT(1, 2)])
-        operator = IsingOperator("[]")
-        target_expectation_values = np.array([1])
-        # When
-        backend.n_samples = 1
-        expectation_values = backend.get_expectation_values(circuit, operator)
-        # Then
-        assert isinstance(expectation_values, ExpectationValues)
-        assert isinstance(expectation_values.values, np.ndarray)
-        assert expectation_values.values == pytest.approx(
-            target_expectation_values, abs=1e-15
-        )
-        assert backend.number_of_circuits_run == 1
-        assert backend.number_of_jobs_run == 1
-
-    def test_get_expectation_values_empty_op(self, backend):
-        # Given
-        backend.number_of_circuits_run = 0
-        backend.number_of_jobs_run = 0
-        circuit = Circuit([H(0), CNOT(0, 1), CNOT(1, 2)])
-        operator = IsingOperator()
-        # When
-        backend.n_samples = 1
-        expectation_values = backend.get_expectation_values(circuit, operator)
-        # Then
-        assert expectation_values.values == pytest.approx(0.0, abs=1e-7)
-        assert backend.number_of_circuits_run == 1
-        assert backend.number_of_jobs_run == 1
-
-    def test_get_expectation_values_for_circuitset(self, backend):
-        # Given
-        backend.number_of_circuits_run = 0
-        backend.number_of_jobs_run = 0
-        num_circuits = 10
-        circuitset = [
-            Circuit([H(0), CNOT(0, 1), CNOT(1, 2)]) for _ in range(num_circuits)
-        ]
-        operator = IsingOperator("[]")
-        target_expectation_values = np.array([1])
-
-        # When
-        backend.n_samples = 1
-        expectation_values_set = backend.get_expectation_values_for_circuitset(
-            circuitset, operator
-        )
-
-        # Then
-        assert len(expectation_values_set) == num_circuits
-
-        for expectation_values in expectation_values_set:
-            assert isinstance(expectation_values, ExpectationValues)
-            assert isinstance(expectation_values.values, np.ndarray)
-            assert expectation_values.values == pytest.approx(
-                target_expectation_values, abs=1e-15
-            )
-        assert backend.number_of_circuits_run == num_circuits
-        if backend.supports_batching:
-            assert backend.number_of_jobs_run == int(
-                np.ceil(num_circuits / backend.batch_size)
-            )
-        else:
-            assert backend.number_of_jobs_run == num_circuits
-
     def test_get_bitstring_distribution(self, backend):
         # Given
         backend.number_of_circuits_run = 0
@@ -473,42 +406,6 @@ class QuantumSimulatorTests(QuantumBackendTests):
         assert len(wavefunction.probabilities()) == 8
         assert wavefunction[0] == pytest.approx((1 / np.sqrt(2) + 0j), abs=1e-7)
         assert wavefunction[7] == pytest.approx((1 / np.sqrt(2) + 0j), abs=1e-7)
-        assert wf_simulator.number_of_circuits_run == 1
-        assert wf_simulator.number_of_jobs_run == 1
-
-    def test_get_exact_expectation_values(self, wf_simulator):
-        # Given
-        wf_simulator.number_of_circuits_run = 0
-        wf_simulator.number_of_jobs_run = 0
-        circuit = Circuit([H(0), CNOT(0, 1), CNOT(1, 2)])
-        qubit_operator = QubitOperator("2[] - [Z0 Z1] + [X0 X2]")
-        target_expectation_values = np.array([2.0, -1.0, 0.0])
-
-        # When
-        expectation_values = wf_simulator.get_exact_expectation_values(
-            circuit, qubit_operator
-        )
-        # Then
-        assert expectation_values.values == pytest.approx(
-            target_expectation_values, abs=1e-15
-        )
-        assert isinstance(expectation_values.values, np.ndarray)
-        assert wf_simulator.number_of_circuits_run == 1
-        assert wf_simulator.number_of_jobs_run == 1
-
-    def test_get_exact_expectation_values_empty_op(self, wf_simulator):
-        # Given
-        wf_simulator.number_of_circuits_run = 0
-        wf_simulator.number_of_jobs_run = 0
-        circuit = Circuit([H(0), CNOT(0, 1), CNOT(1, 2)])
-        qubit_operator = QubitOperator()
-        target_value = 0.0
-        # When
-        expectation_values = wf_simulator.get_exact_expectation_values(
-            circuit, qubit_operator
-        )
-        # Then
-        assert sum(expectation_values.values) == pytest.approx(target_value, abs=1e-7)
         assert wf_simulator.number_of_circuits_run == 1
         assert wf_simulator.number_of_jobs_run == 1
 

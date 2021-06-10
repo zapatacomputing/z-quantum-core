@@ -69,7 +69,7 @@ def generate_graph_node_dict(graph: nx.Graph) -> dict:
 Sampler = Iterator[float]
 
 
-def uniform_sampler(min_value=0, max_value=1) -> Sampler:
+def uniform_sampler(min_value: float=0.0, max_value: float=1.0) -> Sampler:
     while True:
         yield random.uniform(min_value, max_value)
 
@@ -93,7 +93,7 @@ def uniform_range_sampler(*range_args) -> Sampler:
         yield random.choice(choices)
 
 
-def normal_sampler(mu, sigma) -> Sampler:
+def normal_sampler(mu: float = 0.0, sigma: float = 1.0) -> Sampler:
     while True:
         yield random.normalvariate(mu, sigma)
 

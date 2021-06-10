@@ -70,6 +70,9 @@ class FunctionWithGradient(NamedTuple):
     def __call__(self, params: np.ndarray) -> float:
         return self.function(params)
 
+    def __getattr__(self, name):
+        return getattr(self.function, name)
+
 
 class FunctionWithGradientStoringArtifacts(NamedTuple):
     """A callable with gradient that also stores artifacts."""

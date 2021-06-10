@@ -195,13 +195,31 @@ def weight_graph_edges(
 def generate_graph_from_specs(graph_specs: dict) -> nx.Graph:
     """Generate a graph from a specs dictionary.
 
+    Graph generation is controlled via the "type_graph" key. Each graph generator
+    requires additional arguments passed as additional keys in the `graph_specs` dict.
+    The available `type_graph` values are:
+        - "erdos_renyi". Additional keys:
+            - "probability" (int)
+        - "regular". Additional keys:
+            - "degree" (int)
+        - "complete". Same as "erdos_renyi" with probability set to 1.0.
+        - "caveman". Additional keys:
+            - "number_of_cliques" (int)
+            - "size_of_cliques" (int)
+        - "ladder". Additional keys:
+            - "length_of_ladder" (int)
+        - "barbell". Additional keys:
+            - "number_of_vertices_complete_graph" (int)
+
     Args:
         graph_specs: specification of graphs to generate. Required keys:
-                - type_graph
-                - num_nodes
+                - "type_graph"
+                - "num_nodes"
+                - additional arguments to graph generator depending on the choice of
+                    "type_graph" (see above)
             Optional keys:
-                - weights, defaults to "static"
-                - seed
+                - "weights", defaults to "static"
+                - "seed'
     """
     type_graph = graph_specs["type_graph"]
     num_nodes = graph_specs["num_nodes"]

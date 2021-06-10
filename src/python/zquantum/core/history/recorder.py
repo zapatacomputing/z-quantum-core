@@ -77,6 +77,14 @@ class SimpleRecorder(Generic[S, T]):
         self.call_number += 1
         return return_value
 
+    def __getattr__(self, item):
+        return getattr(self.target, item)
+
+    def __setattr__(self, key, value):
+        if key in ("predicate", "history", "target", "call_number", "gradient"):
+            return object.__setattr__(self, key, value)
+        return setattr(self.target, key, value)
+
 
 class SimpleRecorderWithGradient(SimpleRecorder):
     """A recorder saving history entries that works with callables with gradient.
@@ -116,6 +124,14 @@ class ArtifactRecorder(Generic[S, T]):
             )
         self.call_number += 1
         return return_value
+
+    def __getattr__(self, name):
+        return getattr(self.target, name)
+
+    def __setattr__(self, name, value):
+        if name in ("predicate", "history", "target", "call_number", "gradient"):
+            return object.__setattr__(self, name, value)
+        return setattr(self.target, name, value)
 
 
 class ArtifactRecorderWithGradient(ArtifactRecorder):

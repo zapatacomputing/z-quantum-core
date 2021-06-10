@@ -1,7 +1,7 @@
-from functools import partial
 import json
 import os
 import random
+from functools import partial
 
 import numpy as np
 import pkg_resources
@@ -17,10 +17,12 @@ from zquantum.core.utils import (
     compare_unitary,
     convert_array_to_dict,
     convert_dict_to_array,
+    convert_tuples_to_bitstrings,
     create_object,
     create_symbols_map,
     dec2bin,
     get_func_from_specs,
+    get_ordered_list_of_bitstrings,
     hf_rdm,
     is_identity,
     is_unitary,
@@ -327,7 +329,7 @@ class TestUtils:
         symbol_2 = sympy.Symbol("beta")
         symbols = [symbol_1, symbol_2]
         params = np.array([1, 2])
-        target_symbols_map = [(symbol_1, 1), (symbol_2, 2)]
+        target_symbols_map = {symbol_1: 1, symbol_2: 2}
 
         # When
         symbols_map = create_symbols_map(symbols, params)
@@ -375,7 +377,7 @@ class TestUtils:
         remove_file_if_exists("hamiltonian_analysis.json")
 
 
-def test_arithmetic_on_estimate_and_float_gives_same_result_as_for_two_floats():
+def test_arithmetic_on_value_estimate_and_float():
     value = 5.1
     estimate = ValueEstimate(value, precision=None)
     other = 3.4
@@ -473,3 +475,13 @@ def test_scale_and_discretize(values, total, expected_result):
 def test_hf_rdm_energy(hamiltonian, ref_energy, nalpha):
     rdm = hf_rdm(nalpha, 1, 2)
     assert np.isclose(ref_energy, rdm.expectation(hamiltonian))
+
+
+@pytest.mark.parametrize("num_qubits", [2, 3, 5, 10])
+def test_ordered_bitstring(num_qubits):
+    bitstrings = get_ordered_list_of_bitstrings(num_qubits)
+    expected_bitstrings = convert_tuples_to_bitstrings(
+        [dec2bin(integer, num_qubits) for integer in range(2 ** num_qubits)]
+    )
+    assert np.all(expected_bitstrings == bitstrings)
+    assert np.all([len(bitstring) == num_qubits for bitstring in bitstrings])

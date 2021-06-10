@@ -1,14 +1,14 @@
 from typing import List, Optional, Union
+
+import numpy as np
 from openfermion import (
-    InteractionOperator,
     FermionOperator,
-    QubitOperator,
+    InteractionOperator,
     IsingOperator,
+    QubitOperator,
     normal_ordered,
 )
 from openfermion.transforms import get_fermion_operator
-import numpy as np
-
 from zquantum.core.hamiltonian import (
     group_comeasureable_terms_greedy as _group_comeasurable_terms_greedy,
 )
@@ -46,23 +46,25 @@ def get_local_zero_state_operator(number_of_qubits: int):
 def get_fermion_number_operator(
     number_of_qubits: int, number_of_particles: Optional[int] = None
 ):
-    """Get the number operator for the input number of qubits. Optionally, the number of particles can be passed.
-    Outputs are serialized to JSON under the file: "number-operator.json"
+    """Get the number operator for the input number of qubits. Optionally, the number of
+    particles can be passed.  Outputs are serialized to JSON under the file:
+    "number-operator.json"
 
-    ARGS:
-        number_of_qubits (int): The number of qubits
-        number_of_particles (int): The number of particles
+    Args:
+        number_of_qubits: The number of qubits
+        number_of_particles: The number of particles
     """
     number_op = _get_fermion_number_operator(number_of_qubits, number_of_particles)
     save_interaction_operator(number_op, "number-operator.json")
 
 
 def get_diagonal_component(interaction_operator: Union[InteractionOperator, str]):
-    """Get the diagonal component and remainder of an input interaction operator. Outputs are serialized to JSON
-    under the files: "diagonal-operator.json" and "remainder-operator.json"
+    """Get the diagonal component and remainder of an input interaction operator.
+    Outputs are serialized to JSON under the files: "diagonal-operator.json" and
+    "remainder-operator.json"
 
-    ARGS:
-        interaction_operator (Union[InteractionOperator, str]): The input interaction operator
+    Args:
+        interaction_operator: The input interaction operator
     """
     if isinstance(interaction_operator, str):
         interaction_operator = load_interaction_operator(interaction_operator)
@@ -77,16 +79,18 @@ def get_diagonal_component(interaction_operator: Union[InteractionOperator, str]
 def interpolate_qubit_operators(
     reference_qubit_operator: Union[InteractionOperator, str],
     target_qubit_operator: Union[InteractionOperator, str],
-    epsilon: Optional[float] = 0.5,
+    epsilon: float = 0.5,
 ):
-    """Produce a qubit operator which is the interpolation of two operators through the function:
-        epsilon * target_qubit_operator + (1.0 - epsilon) * reference_qubit_operator.
+    """Produce a qubit operator which is the interpolation of two operators through the
+    function: epsilon * target_qubit_operator + (1.0 - epsilon) *
+    reference_qubit_operator.
+
     Outputs are serialized to JSON under the file: "qubit-operator.json"
 
-    ARGS:
-        reference_qubit_operator (Union[InteractionOperator, str]): The initial operator
-        target_qubit_operator (Union[InteractionOperator, str]): The target operator
-        epsilon (float): The parameterization between the two operators. Default value is 0.5
+    Args:
+        reference_qubit_operator: The initial operator
+        target_qubit_operator: The target operator
+        epsilon: The parameterization between the two operators. Default value is 0.5
     """
     reference_qubit_operator = load_qubit_operator(reference_qubit_operator)
     target_qubit_operator = load_qubit_operator(target_qubit_operator)
@@ -116,11 +120,11 @@ def get_one_qubit_hydrogen_hamiltonian(
 ):
     """Generate a one qubit H2 hamiltonian from a corresponding interaction operator.
 
-    Original H2 hamiltonian will be reduced to a 2 x 2 matrix defined on a subspace spanned
-    by |0011> and |1100> and expanded in terms of I, X, Y, and Z matrices
+    Original H2 hamiltonian will be reduced to a 2 x 2 matrix defined on a subspace
+    spanned by |0011> and |1100> and expanded in terms of I, X, Y, and Z matrices
 
-    ARGS:
-        interaction_operator (Union[InteractionOperator, str]): The input interaction operator
+    Args:
+        interaction_operator: The input interaction operator
     """
     if isinstance(interaction_operator, str):
         interaction_operator = load_interaction_operator(interaction_operator)
@@ -207,11 +211,17 @@ def concatenate_qubit_operator_lists(
     qubit_operator_list_B: Union[str, List[QubitOperator]],
 ):
     if isinstance(qubit_operator_list_A, str):
-        qubit_operator_list_A = load_qubit_operator_set(qubit_operator_list_A)
+        qubit_operator_list_A_loaded = load_qubit_operator_set(qubit_operator_list_A)
+    else:
+        qubit_operator_list_A_loaded = qubit_operator_list_A
     if isinstance(qubit_operator_list_B, str):
-        qubit_operator_list_B = load_qubit_operator_set(qubit_operator_list_B)
+        qubit_operator_list_B_loaded = load_qubit_operator_set(qubit_operator_list_B)
+    else:
+        qubit_operator_list_B_loaded = qubit_operator_list_B
 
-    qubit_operator_list_final = qubit_operator_list_A + qubit_operator_list_B
+    qubit_operator_list_final = (
+        qubit_operator_list_A_loaded + qubit_operator_list_B_loaded
+    )
 
     save_qubit_operator_set(
         qubit_operator_list_final, "concatenated-qubit-operators.json"

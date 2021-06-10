@@ -10,7 +10,6 @@ from openfermion import (
     get_interaction_operator,
     hermitian_conjugated,
 )
-from zquantum.core.circuit import build_uniform_param_grid, save_circuit_template_params
 from zquantum.core.interfaces.mock_objects import MockAnsatz
 from zquantum.core.openfermion._io import (
     convert_dict_to_interaction_op,
@@ -34,7 +33,6 @@ from zquantum.core.openfermion._io import (
     save_qubit_operator,
     save_qubit_operator_set,
 )
-from zquantum.core.openfermion._utils import evaluate_operator_for_parameter_grid
 from zquantum.core.utils import SCHEMA_VERSION, convert_dict_to_array, create_object
 
 
@@ -153,41 +151,6 @@ class TestQubitOperator(unittest.TestCase):
         # Then
         self.assertEqual(ising_op, loaded_op)
         os.remove("ising_op.json")
-
-    def test_save_parameter_grid_evaluation(self):
-        # Given
-        ansatz = MockAnsatz(2, 2)
-        grid = build_uniform_param_grid(1, 2, 0, np.pi, np.pi / 10)
-        backend = create_object(
-            {
-                "module_name": "zquantum.core.interfaces.mock_objects",
-                "function_name": "MockQuantumSimulator",
-            }
-        )
-        op = QubitOperator("0.5 [] + 0.5 [Z1]")
-        (
-            parameter_grid_evaluation,
-            optimal_parameters,
-        ) = evaluate_operator_for_parameter_grid(ansatz, grid, backend, op)
-        # When
-        save_parameter_grid_evaluation(
-            parameter_grid_evaluation, "parameter-grid-evaluation.json"
-        )
-        save_circuit_template_params(optimal_parameters, "optimal-parameters.json")
-        # Then
-        # TODO
-
-        files_to_remove = ("parameter-grid-evaluation.json", "optimal-parameters.json")
-        failed_to_remove = []
-
-        for path in files_to_remove:
-            try:
-                os.remove(path)
-            except OSError:
-                failed_to_remove.append(path)
-
-        if failed_to_remove:
-            raise RuntimeError(f"Failed to remove files: {failed_to_remove}")
 
     def test_interaction_rdm_io(self):
         # Given

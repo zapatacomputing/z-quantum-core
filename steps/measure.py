@@ -1,32 +1,29 @@
 import json
-from typing import Dict, Optional, Union
-import openfermion
+from typing import Dict, List, Optional, Union
 
+import openfermion
+from zquantum.core import circuits
 from zquantum.core.bitstring_distribution import save_bitstring_distribution
+from zquantum.core.circuits import layouts
 from zquantum.core.cost_function import sum_expectation_values
-from zquantum.core.circuit import (
-    Circuit,
-    load_circuit,
-    load_circuit_connectivity,
-    load_circuit_set,
-    load_circuit_template_params,
-)
+from zquantum.core.estimation import estimate_expectation_values_by_averaging
 from zquantum.core.hamiltonian import (
     estimate_nmeas_for_frames,
     get_expectation_values_from_rdms,
     get_expectation_values_from_rdms_for_qubitoperator_list,
 )
 from zquantum.core.measurement import (
+    Measurements,
     load_expectation_values,
     save_expectation_values,
-    Measurements,
 )
 from zquantum.core.openfermion import (
+    change_operator_type,
     load_interaction_rdm,
     load_qubit_operator,
     load_qubit_operator_set,
-    change_operator_type,
 )
+from zquantum.core.serialization import load_array
 from zquantum.core.typing import Specs
 from zquantum.core.utils import (
     create_object,
@@ -49,15 +46,15 @@ def run_circuit_and_measure(
     if noise_model is not None:
         backend_specs["noise_model"] = load_noise_model(noise_model)
     if device_connectivity is not None:
-        backend_specs["device_connectivity"] = load_circuit_connectivity(
+        backend_specs["device_connectivity"] = layouts.load_circuit_connectivity(
             device_connectivity
         )
 
     backend = create_object(backend_specs)
     if isinstance(circuit, str):
-        circuit = load_circuit(circuit)
+        circuit = circuits.load_circuit(circuit)
     else:
-        circuit = Circuit.from_dict(circuit)
+        circuit = circuits.circuit_from_dict(circuit)
 
     measurements = backend.run_circuit_and_measure(circuit, n_samples=n_samples)
     measurements.save("measurements.json")
@@ -76,11 +73,11 @@ def run_circuitset_and_measure(
     if noise_model is not None:
         backend_specs["noise_model"] = load_noise_model(noise_model)
     if device_connectivity is not None:
-        backend_specs["device_connectivity"] = load_circuit_connectivity(
+        backend_specs["device_connectivity"] = layouts.load_circuit_connectivity(
             device_connectivity
         )
 
-    circuit_set = load_circuit_set(circuitset)
+    circuit_set = circuits.load_circuitset(circuitset)
     backend = create_object(backend_specs)
 
     measurements_set = backend.run_circuitset_and_measure(
@@ -101,12 +98,12 @@ def get_bitstring_distribution(
     if noise_model is not None:
         backend_specs["noise_model"] = load_noise_model(noise_model)
     if device_connectivity is not None:
-        backend_specs["device_connectivity"] = load_circuit_connectivity(
+        backend_specs["device_connectivity"] = layouts.load_circuit_connectivity(
             device_connectivity
         )
 
     backend = create_object(backend_specs)
-    circuit = load_circuit(circuit)
+    circuit = circuits.load_circuit(circuit)
 
     bitstring_distribution = backend.get_bitstring_distribution(circuit)
     save_bitstring_distribution(bitstring_distribution, "bitstring-distribution.json")
@@ -117,14 +114,19 @@ def evaluate_ansatz_based_cost_function(
     backend_specs: Specs,
     cost_function_specs: Specs,
     ansatz_parameters: str,
-    qubit_operator: str,
+    target_operator: Union[str, openfermion.SymbolicOperator],
+    estimation_method_specs: Optional[Specs] = None,
+    estimation_preprocessors_specs: Optional[List[Specs]] = None,
     noise_model: Optional[str] = None,
     device_connectivity: Optional[str] = None,
     prior_expectation_values: Optional[str] = None,
 ):
-    ansatz_parameters = load_circuit_template_params(ansatz_parameters)
+    ansatz_parameters = load_array(ansatz_parameters)
     # Load qubit op
-    operator = load_qubit_operator(qubit_operator)
+    if isinstance(target_operator, str):
+        operator = load_qubit_operator(target_operator)
+    else:
+        operator = target_operator
     if isinstance(ansatz_specs, str):
         ansatz_specs = json.loads(ansatz_specs)
     if ansatz_specs["function_name"] == "QAOAFarhiAnsatz":
@@ -137,7 +139,7 @@ def evaluate_ansatz_based_cost_function(
     if noise_model is not None:
         backend_specs["noise_model"] = load_noise_model(noise_model)
     if device_connectivity is not None:
-        backend_specs["device_connectivity"] = load_circuit_connectivity(
+        backend_specs["device_connectivity"] = layouts.load_circuit_connectivity(
             device_connectivity
         )
 
@@ -146,19 +148,28 @@ def evaluate_ansatz_based_cost_function(
     if isinstance(cost_function_specs, str):
         cost_function_specs = json.loads(cost_function_specs)
 
+    if (
+        "estimator-specs" in cost_function_specs.keys()
+        or "estimation-tasks-transformations-specs" in cost_function_specs.keys()
+    ):
+        raise RuntimeError(
+            "Estimation-related specs should be separate arguments and not in "
+            "cost_function_specs"
+        )
+
     if prior_expectation_values is not None:
         if isinstance(prior_expectation_values, str):
             prior_expectation_values = load_expectation_values(prior_expectation_values)
 
-    estimator_specs = cost_function_specs.pop("estimator-specs", None)
-    if estimator_specs is not None:
-        if isinstance(estimator_specs, str):
-            estimator_specs = json.loads(estimator_specs)
-        cost_function_specs["estimator"] = create_object(estimator_specs)
+    if estimation_method_specs is not None:
+        if isinstance(estimation_method_specs, str):
+            estimation_method_specs = json.loads(estimation_method_specs)
+        estimation_method = create_object(estimation_method_specs)
+    else:
+        estimation_method = estimate_expectation_values_by_averaging
 
-    estimation_preprocessors_specs = cost_function_specs.pop(
-        "estimation-tasks-transformations-specs", None
-    )
+    cost_function_specs["estimation_method"] = estimation_method
+
     if estimation_preprocessors_specs is not None:
         cost_function_specs["estimation_preprocessors"] = []
         for estimation_tasks_transformation_specs in estimation_preprocessors_specs:
@@ -169,8 +180,9 @@ def evaluate_ansatz_based_cost_function(
                 )
 
             if prior_expectation_values is not None:
-                # Since we don't know which estimation task transformation uses prior_expectation_values,
-                #    we add it to the kwargs of each one. If not used by a particular transformer, it will be ignored.
+                # Since we don't know which estimation task transformation uses
+                # prior_expectation_values, we add it to the kwargs of each one. If not
+                # used by a particular transformer, it will be ignored.
                 estimation_tasks_transformation_specs[
                     "prior_expectation_values"
                 ] = prior_expectation_values
@@ -199,18 +211,18 @@ def grouped_hamiltonian_analysis(
 
     We are assuming the exact expectation values are provided
     (i.e. infinite number of measurements or simulations without noise)
-    M ~ (\sum_{i} prec(H_i)) ** 2.0 / (epsilon ** 2.0)
+    M ~ (\\sum_{i} prec(H_i)) ** 2.0 / (epsilon ** 2.0)
     where prec(H_i) is the precision (square root of the variance)
     for each group of co-measurable terms H_{i}. It is computed as
-    prec(H_{i}) = \sum{ab} |h_{a}^{i}||h_{b}^{i}| cov(O_{a}^{i}, O_{b}^{i})
+    prec(H_{i}) = \\sum{ab} |h_{a}^{i}||h_{b}^{i}| cov(O_{a}^{i}, O_{b}^{i})
     where h_{a}^{i} is the coefficient of the a-th operator, O_{a}^{i}, in the
     i-th group. Covariances are assumed to be zero for a != b:
     cov(O_{a}^{i}, O_{b}^{i}) = <O_{a}^{i} O_{b}^{i}> - <O_{a}^{i}> <O_{b}^{i}> = 0
 
-    ARGS:
-        groups (str): The name of a file containing a list of QubitOperator objects,
+    Args:
+        groups: The name of a file containing a list of QubitOperator objects,
             where each element in the list is a group of co-measurable terms.
-        expectation_values (str): The name of a file containing a single ExpectationValues
+        expectation_values: The name of a file containing a single ExpectationValues
             object with all expectation values of the operators contained in groups.
             If absent, variances are assumed to be maximal, i.e. 1.
             NOTE: YOU HAVE TO MAKE SURE THAT THE ORDER OF EXPECTATION VALUES MATCHES
@@ -251,15 +263,16 @@ def expectation_values_from_rdms_for_qubitoperator_list(
 ):
     """Computes expectation values of Pauli strings in a list of QubitOperator given a
        fermionic InteractionRDM from OpenFermion. All the expectation values for the
-       operators in the list are written to file in a single ExpectationValues object in the
-       same order the operators came in.
+       operators in the list are written to file in a single ExpectationValues object in
+       the same order the operators came in.
 
-    ARGS:
-        interactionrdm (str): The name of the file containing the interaction RDM to
+    Args:
+        interactionrdm: The name of the file containing the interaction RDM to
             use for the expectation values computation
-        qubitoperator_list (str): The name of the file containing the list of qubit operators
-            to compute the expectation values for in the form of OpenFermion QubitOperator objects
-        sort_terms (bool): whether or not each input qubit operator needs to be sorted before
+        qubitoperator_list: The name of the file containing the list of qubit operators
+            to compute the expectation values for in the form of OpenFermion
+            QubitOperator objects
+        sort_terms: whether or not each input qubit operator needs to be sorted before
             calculating expectations
     """
 
@@ -277,9 +290,12 @@ def get_summed_expectation_values(
     if isinstance(operator, str):
         operator = load_qubit_operator(operator)
         operator = change_operator_type(operator, openfermion.IsingOperator)
+    loaded_measurements: Measurements
     if isinstance(measurements, str):
-        measurements = Measurements.load_from_file(measurements)
-    expectation_values = measurements.get_expectation_values(
+        loaded_measurements = Measurements.load_from_file(measurements)
+    else:
+        loaded_measurements = measurements
+    expectation_values = loaded_measurements.get_expectation_values(
         operator, use_bessel_correction=use_bessel_correction
     )
     value_estimate = sum_expectation_values(expectation_values)

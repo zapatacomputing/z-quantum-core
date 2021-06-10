@@ -1,3 +1,4 @@
+from functools import partial
 from unittest import mock
 
 import numpy as np
@@ -9,19 +10,15 @@ from zquantum.core.cost_function import (
     get_ground_state_cost_function,
     sum_expectation_values,
 )
-from functools import partial
 from zquantum.core.estimation import (
-    estimate_expectation_values_by_averaging,
-    calculate_exact_expectation_values,
-    allocate_shots_uniformly,
     allocate_shots_proportionally,
+    allocate_shots_uniformly,
+    calculate_exact_expectation_values,
+    estimate_expectation_values_by_averaging,
 )
-from zquantum.core.utils import create_symbols_map
-from zquantum.core.interfaces.mock_objects import (
-    MockAnsatz,
-    MockQuantumSimulator,
-)
+from zquantum.core.interfaces.mock_objects import MockAnsatz, MockQuantumSimulator
 from zquantum.core.measurement import ExpectationValues
+from zquantum.core.utils import create_symbols_map
 
 RNGSEED = 1234
 
@@ -106,7 +103,7 @@ def test_noisy_ground_state_cost_function_adds_noise_to_parameters():
     parametrized_circuit = MockAnsatz(
         number_of_layers=2, problem_size=1
     ).parametrized_circuit
-    parametrized_circuit.evaluate = mock.Mock(wraps=parametrized_circuit.evaluate)
+    parametrized_circuit.bind = mock.Mock(wraps=parametrized_circuit.bind)
     backend = MockQuantumSimulator()
     estimation_method = estimate_expectation_values_by_averaging
     estimation_preprocessors = [partial(allocate_shots_uniformly, number_of_shots=1)]
@@ -127,24 +124,24 @@ def test_noisy_ground_state_cost_function_adds_noise_to_parameters():
 
     params = np.array([0.1, 2.3], dtype=float)
 
-    expected_symbols_map = [
-        (Symbol("theta_0"), noise[0] + params[0]),
-        (Symbol("theta_1"), noise[1] + params[1]),
-    ]
+    expected_symbols_map = {
+        Symbol("theta_0"): noise[0] + params[0],
+        Symbol("theta_1"): noise[1] + params[1],
+    }
 
     # ansatz based cost function may modify params in place
     # and we need original ones - therefore we pass a copy
     noisy_ground_state_cost_function(np.array(params))
 
     # We only called our function once, therefore the following should be true
-    parametrized_circuit.evaluate.assert_called_with(expected_symbols_map)
+    parametrized_circuit.bind.assert_called_with(expected_symbols_map)
 
     # and if only everything went right, this only call should be of the form
     # noisy_ansatz.ansatz.get_executable_circuit(params+noise)
     # Therefore, we extract the single argument and compare it to the
     # expected one.
     assert np.array_equal(
-        parametrized_circuit.evaluate.call_args[0][0], expected_symbols_map
+        parametrized_circuit.bind.call_args[0][0], expected_symbols_map
     )
 
     # Note, normally, we weould just do it in a single assert:
@@ -234,13 +231,11 @@ def test_ansatz_based_cost_function_adds_noise_to_parameters(
 
     # Here, we make the expected executable circuit with the noisy parameters
     noisy_symbols_map = create_symbols_map(
-        ansatz.parametrized_circuit.symbolic_params, noise + params
+        ansatz.parametrized_circuit.free_symbols, noise + params
     )
-    expected_noisy_circuit = ansatz.parametrized_circuit.evaluate(
-        noisy_symbols_map
-    ).gates
+    expected_noisy_circuit = ansatz.parametrized_circuit.bind(noisy_symbols_map)
 
     assert (
-        noisy_ansatz_cost_function.estimation_method.call_args[0][1][0].circuit.gates
+        noisy_ansatz_cost_function.estimation_method.call_args[0][1][0].circuit
         == expected_noisy_circuit
     )

@@ -1,27 +1,23 @@
 import json
+from typing import List, Optional, Union
+
 import numpy as np
-
+import zquantum.core.circuits as new_circuits
 from openfermion import SymbolicOperator
-from typing import Union, Dict, Optional, List
-
-from zquantum.core.circuit import (
-    Circuit,
-    load_circuit,
-    load_circuit_template_params,
-    save_circuit_template_params,
-    load_parameter_grid,
-)
+from zquantum.core.circuits import Circuit
 from zquantum.core.cost_function import (
-    get_ground_state_cost_function,
     AnsatzBasedCostFunction,
+    get_ground_state_cost_function,
 )
-from zquantum.core.estimation import (
-    estimate_expectation_values_by_averaging,
-)
-from zquantum.core.serialization import save_optimization_results
-from zquantum.core.utils import create_object, load_list
-from zquantum.core.typing import Specs
+from zquantum.core.estimation import estimate_expectation_values_by_averaging
 from zquantum.core.openfermion import load_qubit_operator
+from zquantum.core.serialization import (
+    load_array,
+    save_array,
+    save_optimization_results,
+)
+from zquantum.core.typing import Specs
+from zquantum.core.utils import create_object, load_list
 
 
 def optimize_parametrized_circuit_for_ground_state_of_operator(
@@ -35,35 +31,36 @@ def optimize_parametrized_circuit_for_ground_state_of_operator(
     fixed_parameters: Optional[Union[np.ndarray, str]] = None,
     parameter_precision: Optional[float] = None,
     parameter_precision_seed: Optional[int] = None,
-    **kwargs
+    keep_history: bool = True,
+    **kwargs,
 ):
-    """Optimize the parameters of a parametrized quantum circuit to prepare the ground state of a target operator.
+    """Optimize the parameters of a parametrized quantum circuit to prepare the ground
+    state of a target operator.
 
     Args:
-        optimizer_specs: The specs of the optimizer to use to refine the parameter values
+        optimizer_specs: The specs of the optimizer to use to refine the parameter
+            values
         target_operator: The operator of which to prepare the ground state
-        parametrized_circuit: The parametrized quantum circuit that prepares trial states
-        backend_specs: The specs of the quantum backend (or simulator) to use to run the circuits
-        estimation_method_specs: A reference to a callable to use to estimate the expectation value of the operator.
-            The default is the estimate_expectation_values_by_averaging function.
-        estimation_preprocessors_specs: A list of Specs that describe callable functions that adhere to the
-            EstimationPreprocessor protocol.
+        parametrized_circuit: The parametrized quantum circuit that prepares trial
+            states
+        backend_specs: The specs of the quantum backend (or simulator) to use to run the
+            circuits
+        estimation_method_specs: A reference to a callable to use to estimate the
+            expectation value of the operator. The default is the
+            estimate_expectation_values_by_averaging function.
+        estimation_preprocessors_specs: A list of Specs that describe callable functions
+            that adhere to the EstimationPreprocessor protocol.
         initial_parameters: The initial parameter values to begin optimization
         fixed_parameters: values for the circuit parameters that should be fixed.
-        parameter_precision: the standard deviation of the Gaussian noise to add to each parameter, if any.
-        parameter_precision_seed: seed for randomly generating parameter deviation if using parameter_precision
-        kwaargs:
-            The following key word arguments are handled explicitly when appropriate:
-                parameter_grid: A parameter grid artifact that defines a 2D grid for parameter values
+        parameter_precision: the standard deviation of the Gaussian noise to add to each
+            parameter, if any.
+        parameter_precision_seed: seed for randomly generating parameter deviation if
+            using parameter_precision
+        keep_history: flag indicating whether to store optimization history.
+        kwargs: unused, exists for compatibility
     """
     if isinstance(optimizer_specs, str):
         optimizer_specs = json.loads(optimizer_specs)
-
-    parameter_grid = kwargs.pop("parameter_grid", None)
-    # Load parameter grid
-    if parameter_grid is not None:
-        parameter_grid = load_parameter_grid(parameter_grid)
-        optimizer_specs["grid"] = parameter_grid
 
     optimizer = create_object(optimizer_specs)
 
@@ -71,7 +68,8 @@ def optimize_parametrized_circuit_for_ground_state_of_operator(
         target_operator = load_qubit_operator(target_operator)
 
     if isinstance(parametrized_circuit, str):
-        parametrized_circuit = load_circuit(parametrized_circuit)
+        with open(parametrized_circuit) as f:
+            parametrized_circuit = new_circuits.circuit_from_dict(json.load(f))
 
     if isinstance(backend_specs, str):
         backend_specs = json.loads(backend_specs)
@@ -97,11 +95,11 @@ def optimize_parametrized_circuit_for_ground_state_of_operator(
 
     if initial_parameters is not None:
         if isinstance(initial_parameters, str):
-            initial_parameters = load_circuit_template_params(initial_parameters)
+            initial_parameters = load_array(initial_parameters)
 
     if fixed_parameters is not None:
         if isinstance(fixed_parameters, str):
-            fixed_parameters = load_circuit_template_params(fixed_parameters)
+            fixed_parameters = load_array(fixed_parameters)
 
     cost_function = get_ground_state_cost_function(
         target_operator,
@@ -114,12 +112,12 @@ def optimize_parametrized_circuit_for_ground_state_of_operator(
         parameter_precision_seed=parameter_precision_seed,
     )
 
-    optimization_results = optimizer.minimize(cost_function, initial_parameters)
+    optimization_results = optimizer.minimize(
+        cost_function, initial_parameters, keep_history
+    )
 
     save_optimization_results(optimization_results, "optimization-results.json")
-    save_circuit_template_params(
-        optimization_results.opt_params, "optimized-parameters.json"
-    )
+    save_array(optimization_results.opt_params, "optimized-parameters.json")
 
 
 def optimize_ansatz_based_cost_function(
@@ -133,36 +131,38 @@ def optimize_ansatz_based_cost_function(
     fixed_parameters: Optional[Union[np.ndarray, str]] = None,
     parameter_precision: Optional[float] = None,
     parameter_precision_seed: Optional[int] = None,
-    **kwargs
+    keep_history: bool = False,
+    **kwargs,
 ):
-    """Optimize the parameters of an ansatz circuit to prepare the ground state of a target operator.
+    """Optimize the parameters of an ansatz circuit to prepare the ground state of a
+    target operator.
 
     Args:
-        optimizer_specs: The specs of the optimizer to use to refine the parameter values
+        optimizer_specs: The specs of the optimizer to use to refine the parameter
+            values
         target_operator: The operator of which to prepare the ground state
-        ansatz_specs: The specs describing an Ansatz which will prepare the quantum circuit
-        backend_specs: The specs of the quantum backend (or simulator) to use to run the circuits
-        estimation_method_specs: A reference to a callable to use to estimate the expectation value of the operator.
-            The default is the estimate_expectation_values_by_averaging function.
-        estimation_preprocessors_specs: A list of Specs that describe callable functions that adhere to the
-            EstimationPreprocessor protocol.
+        ansatz_specs: The specs describing an Ansatz which will prepare the quantum
+            circuit
+        backend_specs: The specs of the quantum backend (or simulator) to use to run the
+            circuits
+        estimation_method_specs: A reference to a callable to use to estimate the
+            expectation value of the operator. The default is the
+            estimate_expectation_values_by_averaging function.
+        estimation_preprocessors_specs: A list of Specs that describe callable functions
+            that adhere to the EstimationPreprocessor protocol.
         initial_parameters: The initial parameter values to begin optimization
         fixed_parameters: values for the circuit parameters that should be fixed.
-        parameter_precision: the standard deviation of the Gaussian noise to add to each parameter, if any.
-        parameter_precision_seed: seed for randomly generating parameter deviation if using parameter_precision
-        kwaargs:
+        parameter_precision: the standard deviation of the Gaussian noise to add to each
+            parameter, if any.
+        parameter_precision_seed: seed for randomly generating parameter deviation if
+            using parameter_precision
+        keep_history: flag indicating whether to store optimization history.
+        kwargs:
             The following key word arguments are handled explicitly when appropriate:
-                parameter_grid: A parameter grid artifact that defines a 2D grid for parameter values
-                thetas: A list of thetas used to initialize the WarmStartQAOAAnsatz
+                - thetas: A list of thetas used to initialize the WarmStartQAOAAnsatz
     """
     if isinstance(optimizer_specs, str):
         optimizer_specs = json.loads(optimizer_specs)
-
-    parameter_grid = kwargs.pop("parameter_grid", None)
-    # Load parameter grid
-    if parameter_grid is not None:
-        parameter_grid = load_parameter_grid(parameter_grid)
-        optimizer_specs["grid"] = parameter_grid
 
     optimizer = create_object(optimizer_specs)
 
@@ -203,11 +203,11 @@ def optimize_ansatz_based_cost_function(
 
     if initial_parameters is not None:
         if isinstance(initial_parameters, str):
-            initial_parameters = load_circuit_template_params(initial_parameters)
+            initial_parameters = load_array(initial_parameters)
 
     if fixed_parameters is not None:
         if isinstance(fixed_parameters, str):
-            fixed_parameters = load_circuit_template_params(fixed_parameters)
+            fixed_parameters = load_array(fixed_parameters)
 
     cost_function = AnsatzBasedCostFunction(
         target_operator,
@@ -220,9 +220,9 @@ def optimize_ansatz_based_cost_function(
         parameter_precision_seed=parameter_precision_seed,
     )
 
-    optimization_results = optimizer.minimize(cost_function, initial_parameters)
+    optimization_results = optimizer.minimize(
+        cost_function, initial_parameters, keep_history
+    )
 
     save_optimization_results(optimization_results, "optimization-results.json")
-    save_circuit_template_params(
-        optimization_results.opt_params, "optimized-parameters.json"
-    )
+    save_array(optimization_results.opt_params, "optimized-parameters.json")

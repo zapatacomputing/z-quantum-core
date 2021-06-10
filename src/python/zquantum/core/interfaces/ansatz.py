@@ -1,12 +1,12 @@
 import warnings
 from abc import ABC
-from typing import List, Optional
+from typing import List, Optional, Sequence, Tuple
 
 import numpy as np
 import sympy
 from overrides import EnforceOverrides
 
-from ..circuit import Circuit
+from ..circuits import Circuit
 from ..utils import create_symbols_map
 from .ansatz_utils import ansatz_property
 
@@ -62,7 +62,7 @@ class Ansatz(ABC, EnforceOverrides):
         """Returns number of parameters in the ansatz."""
 
         if self.supports_parametrized_circuits:
-            return len(self.parametrized_circuit.symbolic_params)
+            return len(self.parametrized_circuit.free_symbols)
         else:
             raise NotImplementedError
 
@@ -72,11 +72,11 @@ class Ansatz(ABC, EnforceOverrides):
             params: circuit parameters
         """
         if params is None:
-            raise (Exception("Parameters can't be None for executable circuit."))
+            raise Exception("Parameters can't be None for executable circuit.")
         if self.supports_parametrized_circuits:
-            symbols = self.parametrized_circuit.symbolic_params
+            symbols = self.parametrized_circuit.free_symbols
             symbols_map = create_symbols_map(symbols, params)
-            executable_circuit = self.parametrized_circuit.evaluate(symbols_map)
+            executable_circuit = self.parametrized_circuit.bind(symbols_map)
             return executable_circuit
         else:
             return self._generate_circuit(params)
@@ -91,12 +91,3 @@ class Ansatz(ABC, EnforceOverrides):
             params: circuit params
         """
         raise NotImplementedError
-
-    def get_symbols(self) -> List[sympy.Symbol]:
-        """Returns a list of symbolic parameters used for creating the ansatz."""
-        warnings.warn(
-            "`Ansatz.get_symbols()` will be deprecated in future releases of "
-            "z-quantum-core. Please use `self.parametrized_circuit.symbolic_params` "
-            "instead.",
-        )
-        return self.parametrized_circuit.symbolic_params

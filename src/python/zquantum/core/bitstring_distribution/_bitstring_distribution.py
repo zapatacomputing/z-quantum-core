@@ -2,8 +2,8 @@ import json
 import math
 import sys
 import warnings
-from typing import Any, Callable, Dict, List
 from collections import Counter
+from typing import Any, Callable, Dict, List
 
 import numpy as np
 

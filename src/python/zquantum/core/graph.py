@@ -1,8 +1,9 @@
+import ast
 import json
 import random
-from random import uniform, choice, normalvariate
+from random import choice, normalvariate, uniform
 from typing import Optional, Union
-import ast
+
 import networkx as nx
 
 from .typing import AnyPath, LoadSource
@@ -200,7 +201,8 @@ def generate_graph_from_specs(graph_specs: dict) -> nx.Graph:
         graph_specs: dictionnary
             Specifications of the graph to generate. It should contain at
             least an entry with key 'type' and one with num_nodes.
-            Note that some of the entries are processed using _generate_random_value_from_string()
+            Note that some of the entries are processed using
+            _generate_random_value_from_string()
             i.e. they could contain a value (int or float) which will be untouched
             or a string specifying how the value should be randomly generated
 

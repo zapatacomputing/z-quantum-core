@@ -1,8 +1,11 @@
+import numbers
 import os
 
 import networkx as nx
+import pytest
 from zquantum.core.graph import (
     compare_graphs,
+    constant_sampler,
     generate_barbell_graph,
     generate_caveman_graph,
     generate_graph_from_specs,
@@ -11,7 +14,10 @@ from zquantum.core.graph import (
     generate_random_graph_erdos_renyi,
     generate_random_regular_graph,
     load_graph,
+    normal_sampler,
     save_graph,
+    static_sampler,
+    uniform_range_sampler,
     uniform_sampler,
 )
 
@@ -215,3 +221,23 @@ class TestGraph:
         # Then
         for edge in graph.edges:
             assert "weight" in graph.edges[edge].keys()
+
+
+@pytest.mark.parametrize(
+    "sampler",
+    [
+        uniform_sampler(),
+        uniform_sampler(2, 3),
+        static_sampler(),
+        constant_sampler(-1),
+        normal_sampler(2, 1),
+        uniform_range_sampler(2, 10, 2),
+    ],
+)
+class TestSamplers:
+    def test_generates_numbers(self, sampler):
+        assert isinstance(next(sampler), numbers.Number)
+
+    def test_can_be_reused(self, sampler):
+        next(sampler)
+        next(sampler)

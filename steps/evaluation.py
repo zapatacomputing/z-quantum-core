@@ -61,9 +61,7 @@ def get_expectation_values_for_qubit_operator(
         backend_specs = json.loads(backend_specs)
     backend = cast(QuantumBackend, create_object(backend_specs))
 
-    estimation_tasks = [
-        EstimationTask(qubit_operator, circuit, backend.n_samples)
-    ]
+    estimation_tasks = [EstimationTask(qubit_operator, circuit, backend.n_samples)]
 
     expectation_values = estimate_expectation_values_by_averaging(
         backend, estimation_tasks

@@ -2,7 +2,7 @@ import itertools
 import json
 import random
 import warnings
-from typing import Iterator, Optional
+from typing import Iterator, Optional, Sequence, TypeVar
 
 import networkx as nx
 
@@ -66,34 +66,27 @@ def generate_graph_node_dict(graph: nx.Graph) -> dict:
     return nodes_dict
 
 
-Sampler = Iterator[float]
+T = TypeVar("T")
 
 
-def uniform_sampler(min_value: float=0.0, max_value: float=1.0) -> Sampler:
+Sampler = Iterator[T]
+
+
+def uniform_sampler(min_value: float = 0.0, max_value: float = 1.0) -> Sampler[float]:
     while True:
         yield random.uniform(min_value, max_value)
 
 
-def constant_sampler(value) -> Sampler:
+def constant_sampler(value: T) -> Sampler[T]:
     return itertools.repeat(value)
 
 
-def static_sampler() -> Sampler:
-    return constant_sampler(1.0)
-
-
-def choice_sampler(choices) -> Sampler:
+def choice_sampler(choices: Sequence[T]) -> Sampler[T]:
     while True:
         yield random.choice(choices)
 
 
-def uniform_range_sampler(*range_args) -> Sampler:
-    while True:
-        choices = range(*range_args)
-        yield random.choice(choices)
-
-
-def normal_sampler(mu: float = 0.0, sigma: float = 1.0) -> Sampler:
+def normal_sampler(mu: float = 0.0, sigma: float = 1.0) -> Sampler[float]:
     while True:
         yield random.normalvariate(mu, sigma)
 
@@ -101,7 +94,7 @@ def normal_sampler(mu: float = 0.0, sigma: float = 1.0) -> Sampler:
 def generate_random_graph_erdos_renyi(
     num_nodes: int,
     edge_probability: float,
-    weight_sampler: Sampler = static_sampler(),
+    weight_sampler: Sampler = constant_sampler(1.0),
     seed: Optional[int] = None,
 ) -> nx.Graph:
     """Randomly generate a graph from Erdos-Renyi ensemble.  A graph is constructed by
@@ -125,7 +118,7 @@ def generate_random_graph_erdos_renyi(
 def generate_random_regular_graph(
     num_nodes: int,
     degree: int,
-    weight_sampler: Sampler = static_sampler(),
+    weight_sampler: Sampler = constant_sampler(1.0),
     seed: Optional[int] = None,
 ) -> nx.Graph:
     """Randomly generate a d-regular graph.
@@ -147,7 +140,7 @@ def generate_random_regular_graph(
 def generate_caveman_graph(
     number_of_cliques: int,
     size_of_cliques: int,
-    weight_sampler: Sampler = static_sampler(),
+    weight_sampler: Sampler = constant_sampler(1.0),
     seed: Optional[int] = None,
 ) -> nx.Graph:
     output_graph = nx.caveman_graph(number_of_cliques, size_of_cliques)
@@ -157,7 +150,7 @@ def generate_caveman_graph(
 
 def generate_ladder_graph(
     length_of_ladder: int,
-    weight_sampler: Sampler = static_sampler(),
+    weight_sampler: Sampler = constant_sampler(1.0),
     seed: Optional[int] = None,
 ) -> nx.Graph:
     graph = nx.ladder_graph(length_of_ladder)
@@ -167,7 +160,7 @@ def generate_ladder_graph(
 
 def generate_barbell_graph(
     number_of_vertices_complete_graph: int,
-    weight_sampler: Sampler = static_sampler(),
+    weight_sampler: Sampler = constant_sampler(1.0),
     seed: Optional[int] = None,
 ) -> nx.Graph:
     graph = nx.barbell_graph(number_of_vertices_complete_graph, 0)
@@ -244,7 +237,7 @@ def generate_graph_from_specs(graph_specs: dict) -> nx.Graph:
     if graph_specs.get("random_weights", False):
         weight_sampler = uniform_sampler(0, 1)
     else:
-        weight_sampler = static_sampler()
+        weight_sampler = constant_sampler(1.0)
 
     seed = graph_specs.get("seed")
 

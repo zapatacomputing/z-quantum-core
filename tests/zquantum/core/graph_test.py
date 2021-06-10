@@ -20,8 +20,6 @@ from zquantum.core.graph import (
     load_graph,
     normal_sampler,
     save_graph,
-    static_sampler,
-    uniform_range_sampler,
     uniform_sampler,
 )
 
@@ -232,11 +230,9 @@ class TestGraph:
     [
         uniform_sampler(),
         uniform_sampler(2, 3),
-        static_sampler(),
         constant_sampler(-1),
         normal_sampler(2, 1),
         choice_sampler([2, 1, 6]),
-        uniform_range_sampler(2, 10, 2),
     ],
 )
 class TestSamplers:

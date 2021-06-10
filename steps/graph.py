@@ -8,11 +8,18 @@ from zquantum.core.utils import create_object
 
 
 def _make_sampler(specs: Optional[Specs] = None) -> zquantum.core.graph.Sampler:
-    if isinstance(specs, str):
+    if specs is None:
+        return zquantum.core.graph.constant_sampler(1)
+
+    elif isinstance(specs, str):
         sampler_dict = json.loads(specs)
         return create_object(sampler_dict)()
+
     elif isinstance(specs, dict):
         return create_object(specs)()
+
+    else:
+        raise ValueError(f"Invalid specs {specs}")
 
 
 def generate_random_graph_erdos_renyi(

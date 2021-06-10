@@ -62,12 +62,11 @@ class TestGraph(unittest.TestCase):
     def test_generate_random_graph_erdos_renyi(self):
         # Given
         num_nodes = 3
-        conn_sampler = constant_sampler(1)
         target_graph = nx.Graph()
         target_graph.add_edges_from([(0, 1), (1, 2), (0, 2)])
 
         # When
-        graph = generate_random_graph_erdos_renyi(num_nodes, conn_sampler)
+        graph = generate_random_graph_erdos_renyi(num_nodes, 1)
 
         # Then
         self.assertTrue(compare_graphs(graph, target_graph))
@@ -78,19 +77,18 @@ class TestGraph(unittest.TestCase):
         target_graph = nx.Graph()
 
         # When
-        graph = generate_random_graph_erdos_renyi(num_nodes, conn_sampler)
+        graph = generate_random_graph_erdos_renyi(num_nodes, 1)
 
         # Then
         self.assertTrue(compare_graphs(graph, target_graph))
 
         # Given
         num_nodes = 20
-        conn_sampler = constant_sampler(0.8)
         weight_sampler = uniform_sampler()
 
         # When
         graph = generate_random_graph_erdos_renyi(
-            num_nodes, conn_sampler, weight_sampler
+            num_nodes, 0.8, weight_sampler
         )
 
     def test_generate_random_regular_graph(self):

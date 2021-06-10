@@ -1,7 +1,10 @@
 import numbers
 import os
+import random
 
 import networkx as nx
+import numpy as np
+import numpy.testing
 import pytest
 from zquantum.core.graph import (
     compare_graphs,
@@ -241,3 +244,11 @@ class TestSamplers:
     def test_can_be_reused(self, sampler):
         next(sampler)
         next(sampler)
+
+    def test_generates_same_number_when_seeded(self, sampler):
+        samples = []
+        for _ in range(100):
+            random.seed(0)
+            samples.append(next(sampler))
+
+        np.testing.assert_array_equal(samples, samples[0])

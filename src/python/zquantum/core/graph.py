@@ -82,6 +82,22 @@ def static_sampler() -> Sampler:
     return constant_sampler(1.0)
 
 
+def choice_sampler(choices) -> Sampler:
+    while True:
+        yield random.choice(choices)
+
+
+def uniform_range_sampler(*range_args) -> Sampler:
+    while True:
+        choices = range(*range_args)
+        yield random.choice(choices)
+
+
+def normal_sampler(mu, sigma) -> Sampler:
+    while True:
+        yield random.normalvariate(mu, sigma)
+
+
 def generate_random_graph_erdos_renyi(
     num_nodes: int,
     edge_probability: float,

@@ -7,6 +7,7 @@ import numpy as np
 import numpy.testing
 import pytest
 from zquantum.core.graph import (
+    choice_sampler,
     compare_graphs,
     constant_sampler,
     generate_barbell_graph,
@@ -234,6 +235,7 @@ class TestGraph:
         static_sampler(),
         constant_sampler(-1),
         normal_sampler(2, 1),
+        choice_sampler([2, 1, 6]),
         uniform_range_sampler(2, 10, 2),
     ],
 )

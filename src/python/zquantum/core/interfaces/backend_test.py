@@ -39,8 +39,8 @@ import numpy as np
 import pytest
 from openfermion import QubitOperator
 from pyquil.wavefunction import Wavefunction
-
 from zquantum.core.interfaces.estimation import EstimationTask
+
 from ..bitstring_distribution import BitstringDistribution
 from ..circuits import CNOT, Circuit, H, X, builtin_gate_by_name
 from ..estimation import estimate_expectation_values_by_averaging

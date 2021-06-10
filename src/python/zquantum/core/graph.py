@@ -193,30 +193,20 @@ def weight_graph_edges(
 
 
 def generate_graph_from_specs(graph_specs: dict) -> nx.Graph:
-    """Generate a graph from a specs dictionary
+    """Generate a graph from a specs dictionary.
 
     Args:
-        graph_specs: dictionnary
-            Specifications of the graph to generate. It should contain at
-            least an entry with key 'type' and one with num_nodes.
-            Note that some of the entries are processed using
-            _generate_random_value_from_string()
-            i.e. they could contain a value (int or float) which will be untouched
-            or a string specifying how the value should be randomly generated
-
-    Returns:
-        A networkx.Graph object
+        graph_specs: specification of graphs to generate. Required keys:
+                - type_graph
+                - num_nodes
+            Optional keys:
+                - weights, defaults to "static"
+                - seed
     """
     type_graph = graph_specs["type_graph"]
     num_nodes = graph_specs["num_nodes"]
     weights = graph_specs.get("weights", "static")
-    seed = graph_specs.get("seed", None)
-    number_of_cliques = graph_specs.get("number_of_cliques", None)
-    size_of_cliques = graph_specs.get("size_of_cliques", None)
-    length_of_ladder = graph_specs.get("length_of_ladder", None)
-    number_of_vertices_complete_graph = graph_specs.get(
-        "number_of_vertices_complete_graph", None
-    )
+    seed = graph_specs.get("seed")
 
     if type_graph == "erdos_renyi":
         probability = graph_specs["probability"]
@@ -234,14 +224,20 @@ def generate_graph_from_specs(graph_specs: dict) -> nx.Graph:
         graph = generate_random_graph_erdos_renyi(num_nodes, 1.0, weights, seed)
 
     elif type_graph == "caveman":
+        number_of_cliques = graph_specs["number_of_cliques"]
+        size_of_cliques = graph_specs["size_of_cliques"]
         graph = generate_caveman_graph(
             number_of_cliques, size_of_cliques, weights, seed
         )
 
     elif type_graph == "ladder":
+        length_of_ladder = graph_specs["length_of_ladder"]
         graph = generate_ladder_graph(length_of_ladder, weights, seed)
 
     elif type_graph == "barbell":
+        number_of_vertices_complete_graph = graph_specs[
+            "number_of_vertices_complete_graph"
+        ]
         graph = generate_barbell_graph(number_of_vertices_complete_graph, weights, seed)
     else:
         raise (NotImplementedError("This type of graph is not supported: ", type_graph))

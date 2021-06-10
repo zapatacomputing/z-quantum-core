@@ -73,6 +73,9 @@ class FunctionWithGradient(NamedTuple):
     def __getattr__(self, name):
         return getattr(self.function, name)
 
+    def __setattr__(self, name, value):
+        return setattr(self.function, name, value)
+
 
 class FunctionWithGradientStoringArtifacts(NamedTuple):
     """A callable with gradient that also stores artifacts."""
@@ -87,6 +90,9 @@ class FunctionWithGradientStoringArtifacts(NamedTuple):
 
     def __getattr__(self, name):
         return getattr(self.function, name)
+
+    def __setattr__(self, name, value):
+        return setattr(self.function, name, value)
 
 
 def function_with_gradient(

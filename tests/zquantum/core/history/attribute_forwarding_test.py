@@ -35,7 +35,14 @@ def test_recorder_correctly_sets_attributes_of_recorder_function(func):
 
 
 @pytest.mark.parametrize("func", [function_1, function_6])
-def test_function_with_gradient_forwards_function_attributes(func):
+def test_function_with_gradient_gets_wrapped_function_attributes(func):
     func.function.test = "test-value"
 
     assert func.test == "test-value"
+
+
+@pytest.mark.parametrize("func", [function_1, function_6])
+def test_function_with_gradient_sets_function_attributes(func):
+    func.test = "test-value"
+
+    assert func.function.test == "test-value"

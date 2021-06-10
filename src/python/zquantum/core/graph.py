@@ -1,13 +1,14 @@
+import itertools
 import json
 import random
 import warnings
-from typing import Callable, Dict, Optional
+from typing import Iterator, Optional
 
 import networkx as nx
 
 from .serialization import ensure_open
 from .typing import DumpTarget, LoadSource
-from .utils import SCHEMA_VERSION, create_object
+from .utils import SCHEMA_VERSION
 
 GRAPH_SCHEMA = SCHEMA_VERSION + "-graph"
 
@@ -65,28 +66,20 @@ def generate_graph_node_dict(graph: nx.Graph) -> dict:
     return nodes_dict
 
 
-Sampler = Callable[[], float]
-
-
-def static_sampler() -> Sampler:
-    def _sample_next():
-        return 1.0
-
-    return _sample_next
+Sampler = Iterator[float]
 
 
 def uniform_sampler(min_value=0, max_value=1) -> Sampler:
-    def _sample_next():
-        return random.uniform(min_value, max_value)
-
-    return _sample_next
+    while True:
+        yield random.uniform(min_value, max_value)
 
 
 def constant_sampler(value) -> Sampler:
-    def _sample_next():
-        return value
+    return itertools.repeat(value)
 
-    return _sample_next
+
+def static_sampler() -> Sampler:
+    return constant_sampler(1.0)
 
 
 def generate_random_graph_erdos_renyi(
@@ -108,7 +101,7 @@ def generate_random_graph_erdos_renyi(
             i.e. all edge weights are set to 1.0.
         seed: if provided, sets the global seed
     """
-    probability = connection_sampler()
+    probability = next(connection_sampler)
     output_graph = nx.erdos_renyi_graph(n=num_nodes, p=probability, seed=seed)
     _weight_graph_edges(output_graph, weight_sampler, seed)
 
@@ -186,7 +179,7 @@ def _weight_graph_edges(
     if seed is not None:
         random.seed(seed)
 
-    weighted_edges = [(e[0], e[1], sampler()) for e in graph.edges]
+    weighted_edges = [(e[0], e[1], next(sampler)) for e in graph.edges]
 
     # If edges already present, it will effectively update them (except for multigraph)
     graph.add_weighted_edges_from(weighted_edges)

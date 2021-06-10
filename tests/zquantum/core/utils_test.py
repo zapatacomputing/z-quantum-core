@@ -214,13 +214,13 @@ class TestUtils:
 
     def test_create_object_func_with_kwargs_in_specs(self):
         # Given
-        function_name = "sum_x_squared"
+        function_name = "mock_cost_function"
         data = np.array([1.0, 2.0])
         target_value = 5.0
         specs = {
-            "module_name": "zquantum.core.interfaces.optimizer_test",
+            "module_name": "zquantum.core.interfaces.mock_objects",
             "function_name": function_name,
-            "x": data,
+            "parameters": data,
         }
         # When
         function = create_object(specs)
@@ -231,15 +231,15 @@ class TestUtils:
 
     def test_create_object_func_with_kwargs(self):
         # Given
-        function_name = "sum_x_squared"
+        function_name = "mock_cost_function"
         data = np.array([1.0, 2.0])
         target_value = 5.0
         specs = {
-            "module_name": "zquantum.core.interfaces.optimizer_test",
+            "module_name": "zquantum.core.interfaces.mock_objects",
             "function_name": function_name,
         }
         # When
-        function = create_object(specs, x=data)
+        function = create_object(specs, parameters=data)
 
         # Then
         assert isinstance(function, partial)
@@ -247,16 +247,16 @@ class TestUtils:
 
     def test_create_object_func_fails_with_multiple_assignments(self):
         # Given
-        function_name = "sum_x_squared"
+        function_name = "mock_cost_function"
         data = np.array([1.0, 2.0])
         specs = {
-            "module_name": "zquantum.core.interfaces.optimizer_test",
+            "module_name": "zquantum.core.interfaces.mock_objects",
             "function_name": function_name,
-            "x": data,
+            "parameters": data,
         }
         # When
         with pytest.raises(ValueError):
-            _ = create_object(specs, x=data)
+            _ = create_object(specs, parameters=data)
 
     def test_save_generic_dict(self):
         data = {"flavor": "chocolate", "weight": 42}
@@ -269,13 +269,13 @@ class TestUtils:
 
     def test_get_func_from_specs(self):
         # Given
-        function_name = "sum_x_squared"
-        specs = {
-            "module_name": "zquantum.core.interfaces.optimizer_test",
-            "function_name": function_name,
-        }
+        function_name = "mock_cost_function"
         data = np.array([1.0, 2.0])
         target_value = 5.0
+        specs = {
+            "module_name": "zquantum.core.interfaces.mock_objects",
+            "function_name": function_name,
+        }
         # When
         function = get_func_from_specs(specs)
 

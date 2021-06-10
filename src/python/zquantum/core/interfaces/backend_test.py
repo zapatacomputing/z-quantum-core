@@ -37,14 +37,14 @@ from typing import List
 
 import numpy as np
 import pytest
-from openfermion import IsingOperator, QubitOperator
+from openfermion import QubitOperator
 from pyquil.wavefunction import Wavefunction
-from zquantum.core.interfaces.estimation import EstimationTask
 
+from zquantum.core.interfaces.estimation import EstimationTask
 from ..bitstring_distribution import BitstringDistribution
 from ..circuits import CNOT, Circuit, H, X, builtin_gate_by_name
 from ..estimation import estimate_expectation_values_by_averaging
-from ..measurement import ExpectationValues, Measurements
+from ..measurement import Measurements
 from ..testing.test_cases_for_backend_tests import (
     one_qubit_non_parametric_gates_amplitudes_test_set,
     one_qubit_non_parametric_gates_exp_vals_test_set,

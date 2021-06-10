@@ -75,7 +75,7 @@ def static_sampler() -> Sampler:
     return _sample_next
 
 
-def uniform_sampler(min_value, max_value) -> Sampler:
+def uniform_sampler(min_value=0, max_value=1) -> Sampler:
     def _sample_next():
         return random.uniform(min_value, max_value)
 

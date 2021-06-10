@@ -4,6 +4,7 @@ import unittest
 import networkx as nx
 from zquantum.core.graph import (
     compare_graphs,
+    constant_sampler,
     generate_barbell_graph,
     generate_caveman_graph,
     generate_graph_from_specs,
@@ -13,6 +14,7 @@ from zquantum.core.graph import (
     generate_random_regular_graph,
     load_graph,
     save_graph,
+    uniform_sampler,
 )
 
 
@@ -60,34 +62,36 @@ class TestGraph(unittest.TestCase):
     def test_generate_random_graph_erdos_renyi(self):
         # Given
         num_nodes = 3
-        probability = 1
+        conn_sampler = constant_sampler(1)
         target_graph = nx.Graph()
         target_graph.add_edges_from([(0, 1), (1, 2), (0, 2)])
 
         # When
-        graph = generate_random_graph_erdos_renyi(num_nodes, probability)
+        graph = generate_random_graph_erdos_renyi(num_nodes, conn_sampler)
 
         # Then
         self.assertTrue(compare_graphs(graph, target_graph))
 
         # Given
         num_nodes = 3
-        probability = 0
+        conn_sampler = constant_sampler(1)
         target_graph = nx.Graph()
 
         # When
-        graph = generate_random_graph_erdos_renyi(num_nodes, probability)
+        graph = generate_random_graph_erdos_renyi(num_nodes, conn_sampler)
 
         # Then
         self.assertTrue(compare_graphs(graph, target_graph))
 
         # Given
         num_nodes = 20
-        probability = 0.8
-        weights = "uniform"
+        conn_sampler = constant_sampler(0.8)
+        weight_sampler = uniform_sampler()
 
         # When
-        graph = generate_random_graph_erdos_renyi(num_nodes, probability, weights)
+        graph = generate_random_graph_erdos_renyi(
+            num_nodes, conn_sampler, weight_sampler
+        )
 
     def test_generate_random_regular_graph(self):
         # Given
@@ -105,10 +109,10 @@ class TestGraph(unittest.TestCase):
         # Given
         num_nodes = 20
         degree = 3
-        weights = "uniform"
+        weight_sampler = uniform_sampler()
 
         # When
-        graph = generate_random_regular_graph(num_nodes, degree, weights)
+        graph = generate_random_regular_graph(num_nodes, degree, weight_sampler)
 
         # Then
         for edge in graph.edges:
@@ -120,10 +124,12 @@ class TestGraph(unittest.TestCase):
         # Given
         number_of_cliques = 3
         size_of_cliques = 4
-        weights = "uniform"
+        weight_sampler = uniform_sampler()
 
         # When
-        graph = generate_caveman_graph(number_of_cliques, size_of_cliques, weights)
+        graph = generate_caveman_graph(
+            number_of_cliques, size_of_cliques, weight_sampler
+        )
 
         # Then
         for edge in graph.edges:
@@ -134,10 +140,10 @@ class TestGraph(unittest.TestCase):
     def test_generate_ladder_graph(self):
         # Given
         length_of_ladder = 4
-        weights = "uniform"
+        weight_sampler = uniform_sampler()
 
         # When
-        graph = generate_ladder_graph(length_of_ladder, weights)
+        graph = generate_ladder_graph(length_of_ladder, weight_sampler)
 
         # Then
         for edge in graph.edges:
@@ -146,32 +152,28 @@ class TestGraph(unittest.TestCase):
         self.assertEqual(len(graph.nodes), length_of_ladder * 2)
 
     def test_generate_barbell_graph(self):
-        # Given
-        number_of_vertices_complete_graph = 4
-        weights = "uniform"
+        n_vertices = 4
+        graph = generate_barbell_graph(n_vertices, uniform_sampler())
 
-        # When
-        graph = generate_barbell_graph(number_of_vertices_complete_graph, weights)
-
-        # Then
         for edge in graph.edges:
             self.assertIn("weight", graph.edges[edge].keys())
 
-        self.assertEqual(len(graph.nodes), number_of_vertices_complete_graph * 2)
+        self.assertEqual(len(graph.nodes), n_vertices * 2)
 
     def test_seed(self):
         # Given
         num_nodes = 4
         degree = 2
         seed = 123
+        weight_sampler = uniform_sampler()
 
         target_graph = generate_random_regular_graph(
-            num_nodes, degree, weights="uniform", seed=seed
+            num_nodes, degree, weight_sampler=weight_sampler, seed=seed
         )
 
         # When
         graph = generate_random_regular_graph(
-            num_nodes, degree, weights="uniform", seed=seed
+            num_nodes, degree, weight_sampler=uniform_sampler(), seed=seed
         )
 
         # Then
@@ -212,7 +214,7 @@ class TestGraph(unittest.TestCase):
         self.assertTrue(compare_graphs(graph, target_graph))
 
         # When
-        specs = {"type_graph": "complete", "num_nodes": 10, "weights": "uniform"}
+        specs = {"type_graph": "complete", "num_nodes": 10, "random_weights": True}
 
         # When
         graph = generate_graph_from_specs(specs)
@@ -220,32 +222,3 @@ class TestGraph(unittest.TestCase):
         # Then
         for edge in graph.edges:
             self.assertIn("weight", graph.edges[edge].keys())
-
-    def test_generate_graph_from_specs_with_string_random(self):
-        # Given
-        specs = {"type_graph": "regular", "num_nodes": 8, "degree": "choice_3_4"}
-
-        # When
-        graph = generate_graph_from_specs(specs)
-
-        # Then
-        degrees = [deg for node, deg in graph.degree]
-        degree_ref = degrees[0]
-        self.assertTrue(degree_ref in [3, 4])
-        for degree in degrees:
-            self.assertEqual(degree, degree_ref)
-
-        # Given
-        specs = {
-            "type_graph": "regular",
-            "num_nodes": 8,
-            "degree": 3,
-            "weights": "uniform_-1_-0.5",
-        }
-
-        # When
-        graph = generate_graph_from_specs(specs)
-
-        # Then
-        for node1, node2, weight in graph.edges(data="weight"):
-            self.assertTrue((weight > -1) and (weight < -0.5))

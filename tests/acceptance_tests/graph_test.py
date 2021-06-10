@@ -45,3 +45,5 @@ def test_generates_non_empty_file(step_fn, step_kwargs):
         written_graph = json.load(f)
 
     assert len(written_graph) > 0
+
+    os.remove(graph_path)

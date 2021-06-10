@@ -84,25 +84,23 @@ def static_sampler() -> Sampler:
 
 def generate_random_graph_erdos_renyi(
     num_nodes: int,
-    connection_sampler: Sampler,
+    edge_probability: float,
     weight_sampler: Sampler = static_sampler(),
     seed: Optional[int] = None,
 ) -> nx.Graph:
-    """Randomly generate a graph from Erdos-Renyi ensemble.
-    A graph is constructed by connecting nodes randomly.
-    Each edge is included in the graph with probability p independent from
-    every other edge. Equivalently, all graphs with n nodes and M edges have
-    equal probability.
+    """Randomly generate a graph from Erdos-Renyi ensemble.  A graph is constructed by
+    connecting nodes randomly.  Each edge is included in the graph with probability p
+    independent from every other edge. Equivalently, all graphs with n nodes and M edges
+    have equal probability.
 
     Args:
         num_nodes: Number of nodes in the result graph.
-        connection_sampler: Used to sample probability of two nodes connecting.
+        edge_probability: Probability of connecting two nodes.
         weight_sampler: Used to sample edge weights. Defaults `static_sampler`,
             i.e. all edge weights are set to 1.0.
         seed: if provided, sets the global seed
     """
-    probability = next(connection_sampler)
-    output_graph = nx.erdos_renyi_graph(n=num_nodes, p=probability, seed=seed)
+    output_graph = nx.erdos_renyi_graph(n=num_nodes, p=edge_probability, seed=seed)
     _weight_graph_edges(output_graph, weight_sampler, seed)
 
     return output_graph
@@ -235,10 +233,9 @@ def generate_graph_from_specs(graph_specs: dict) -> nx.Graph:
     seed = graph_specs.get("seed")
 
     if type_graph == "erdos_renyi":
-        proba_sampler = constant_sampler(graph_specs["probability"])
         graph = generate_random_graph_erdos_renyi(
             num_nodes,
-            proba_sampler,
+            graph_specs["probability"],
             weight_sampler,
             seed,
         )
@@ -248,10 +245,7 @@ def generate_graph_from_specs(graph_specs: dict) -> nx.Graph:
         graph = generate_random_regular_graph(num_nodes, degree, weight_sampler, seed)
 
     elif type_graph == "complete":
-        connection_sampler = constant_sampler(1.0)
-        graph = generate_random_graph_erdos_renyi(
-            num_nodes, connection_sampler, weight_sampler, seed
-        )
+        graph = generate_random_graph_erdos_renyi(num_nodes, 1.0, weight_sampler, seed)
 
     elif type_graph == "caveman":
         number_of_cliques = graph_specs["number_of_cliques"]

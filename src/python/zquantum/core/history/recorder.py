@@ -92,6 +92,23 @@ class SimpleRecorder(Generic[S, T]):
         self.history: List[HistoryEntry] = []
         self.call_number = 0
 
+    def __call__(self, params: S) -> T:
+        """Call the underlying target function, possibly saving call to the history.
+
+        Args:
+            params: argument to be passed to the target function.
+
+        Returns:
+            The value returned by the target function.
+        """
+        return_value = self.target(params)
+        if self.predicate(return_value, params, self.call_number):
+            self.history.append(
+                HistoryEntry(self.call_number, copy.copy(params), return_value)
+            )
+        self.call_number += 1
+        return return_value
+
     def __getattr__(self, item):
         return getattr(self.target, item)
 

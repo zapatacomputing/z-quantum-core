@@ -1,10 +1,8 @@
 import os
-import unittest
 
 import networkx as nx
 from zquantum.core.graph import (
     compare_graphs,
-    constant_sampler,
     generate_barbell_graph,
     generate_caveman_graph,
     generate_graph_from_specs,
@@ -18,7 +16,7 @@ from zquantum.core.graph import (
 )
 
 
-class TestGraph(unittest.TestCase):
+class TestGraph:
     def test_compare_graphs(self):
         # Given
         G1 = nx.Graph()
@@ -30,8 +28,8 @@ class TestGraph(unittest.TestCase):
         G3.add_edges_from([(1, 2), (2, 3)])
 
         # When/Then
-        self.assertTrue(compare_graphs(G1, G2))
-        self.assertFalse(compare_graphs(G2, G3))
+        assert compare_graphs(G1, G2)
+        assert not compare_graphs(G2, G3)
 
     def test_graph_io(self):
         # Given
@@ -43,7 +41,7 @@ class TestGraph(unittest.TestCase):
         G2 = load_graph("Graph.json")
 
         # Then
-        self.assertTrue(compare_graphs(G, G2))
+        assert compare_graphs(G, G2)
 
         os.remove("Graph.json")
 
@@ -57,7 +55,7 @@ class TestGraph(unittest.TestCase):
         node_dict = generate_graph_node_dict(G)
 
         # Then
-        self.assertDictEqual(node_dict, target_node_dict)
+        assert node_dict == target_node_dict
 
     def test_generate_random_graph_erdos_renyi(self):
         # Given
@@ -69,27 +67,24 @@ class TestGraph(unittest.TestCase):
         graph = generate_random_graph_erdos_renyi(num_nodes, 1)
 
         # Then
-        self.assertTrue(compare_graphs(graph, target_graph))
+        assert compare_graphs(graph, target_graph)
 
         # Given
         num_nodes = 3
-        conn_sampler = constant_sampler(1)
         target_graph = nx.Graph()
 
         # When
         graph = generate_random_graph_erdos_renyi(num_nodes, 1)
 
         # Then
-        self.assertTrue(compare_graphs(graph, target_graph))
+        assert compare_graphs(graph, target_graph)
 
         # Given
         num_nodes = 20
         weight_sampler = uniform_sampler()
 
         # When
-        graph = generate_random_graph_erdos_renyi(
-            num_nodes, 0.8, weight_sampler
-        )
+        graph = generate_random_graph_erdos_renyi(num_nodes, 0.8, weight_sampler)
 
     def test_generate_random_regular_graph(self):
         # Given
@@ -102,7 +97,7 @@ class TestGraph(unittest.TestCase):
         # Then
         for n in graph.nodes():
             node_in_edge = [n in e for e in graph.edges()]
-            self.assertTrue(sum(node_in_edge) == degree)
+            assert sum(node_in_edge) == degree
 
         # Given
         num_nodes = 20
@@ -114,9 +109,9 @@ class TestGraph(unittest.TestCase):
 
         # Then
         for edge in graph.edges:
-            self.assertIn("weight", graph.edges[edge].keys())
+            assert "weight" in graph.edges[edge].keys()
 
-        self.assertEqual(len(graph.nodes), num_nodes)
+        assert len(graph.nodes) == num_nodes
 
     def test_generate_caveman_graph(self):
         # Given
@@ -131,9 +126,9 @@ class TestGraph(unittest.TestCase):
 
         # Then
         for edge in graph.edges:
-            self.assertIn("weight", graph.edges[edge].keys())
+            assert "weight" in graph.edges[edge].keys()
 
-        self.assertEqual(len(graph.nodes), number_of_cliques * 4)
+        assert len(graph.nodes) == number_of_cliques * 4
 
     def test_generate_ladder_graph(self):
         # Given
@@ -145,18 +140,18 @@ class TestGraph(unittest.TestCase):
 
         # Then
         for edge in graph.edges:
-            self.assertIn("weight", graph.edges[edge].keys())
+            assert "weight" in graph.edges[edge].keys()
 
-        self.assertEqual(len(graph.nodes), length_of_ladder * 2)
+        assert len(graph.nodes) == length_of_ladder * 2
 
     def test_generate_barbell_graph(self):
         n_vertices = 4
         graph = generate_barbell_graph(n_vertices, uniform_sampler())
 
         for edge in graph.edges:
-            self.assertIn("weight", graph.edges[edge].keys())
+            assert "weight" in graph.edges[edge].keys()
 
-        self.assertEqual(len(graph.nodes), n_vertices * 2)
+        assert len(graph.nodes) == n_vertices * 2
 
     def test_seed(self):
         # Given
@@ -175,7 +170,7 @@ class TestGraph(unittest.TestCase):
         )
 
         # Then
-        self.assertTrue(compare_graphs(graph, target_graph))
+        assert compare_graphs(graph, target_graph)
 
     def test_generate_graph_from_specs(self):
         # Given
@@ -187,7 +182,7 @@ class TestGraph(unittest.TestCase):
         graph = generate_graph_from_specs(specs)
 
         # Then
-        self.assertTrue(compare_graphs(graph, target_graph))
+        assert compare_graphs(graph, target_graph)
 
         # Given
         specs = {"type_graph": "regular", "num_nodes": 4, "degree": 2}
@@ -198,7 +193,7 @@ class TestGraph(unittest.TestCase):
         # Then
         for n in graph.nodes():
             node_in_edge = [n in e for e in graph.edges()]
-            self.assertTrue(sum(node_in_edge) == 2)
+            assert sum(node_in_edge) == 2
 
         # Given
         specs = {"type_graph": "complete", "num_nodes": 4}
@@ -209,7 +204,7 @@ class TestGraph(unittest.TestCase):
         graph = generate_graph_from_specs(specs)
 
         # Then
-        self.assertTrue(compare_graphs(graph, target_graph))
+        assert compare_graphs(graph, target_graph)
 
         # When
         specs = {"type_graph": "complete", "num_nodes": 10, "random_weights": True}
@@ -219,4 +214,4 @@ class TestGraph(unittest.TestCase):
 
         # Then
         for edge in graph.edges:
-            self.assertIn("weight", graph.edges[edge].keys())
+            assert "weight" in graph.edges[edge].keys()

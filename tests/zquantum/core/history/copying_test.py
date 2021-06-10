@@ -23,7 +23,7 @@ def test_recorder_can_be_copied_shallowly(func):
 
 
 @pytest.mark.parametrize("func", [Function2(5), function_3, function_4, Function5(0.5)])
-def test_recorder_can_be_copied_shallowly(func):
+def test_recorder_can_be_copied_deeply(func):
     recorded = recorder(func)
 
     recorded_copy = deepcopy(recorded)

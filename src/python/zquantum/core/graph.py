@@ -99,7 +99,7 @@ def generate_random_graph_erdos_renyi(
         A networkx.Graph object
     """
     output_graph = nx.erdos_renyi_graph(n=num_nodes, p=probability, seed=seed)
-    output_graph = weight_graph_edges(output_graph, weights, seed)
+    _weight_graph_edges(output_graph, weights, seed)
 
     return output_graph
 
@@ -127,7 +127,7 @@ def generate_random_regular_graph(
         A networkx.Graph object
     """
     output_graph = nx.random_regular_graph(d=degree, n=num_nodes, seed=seed)
-    output_graph = weight_graph_edges(output_graph, weights, seed)
+    _weight_graph_edges(output_graph, weights, seed)
 
     return output_graph
 
@@ -139,7 +139,7 @@ def generate_caveman_graph(
     seed: Optional[int] = None,
 ) -> nx.Graph:
     output_graph = nx.caveman_graph(number_of_cliques, size_of_cliques)
-    output_graph = weight_graph_edges(output_graph, weights, seed)
+    _weight_graph_edges(output_graph, weights, seed)
     return output_graph
 
 
@@ -147,7 +147,7 @@ def generate_ladder_graph(
     length_of_ladder: int, weights: str = "static", seed: Optional[int] = None
 ) -> nx.Graph:
     output_graph = nx.ladder_graph(length_of_ladder)
-    output_graph = weight_graph_edges(output_graph, weights, seed)
+    _weight_graph_edges(output_graph, weights, seed)
     return output_graph
 
 
@@ -157,11 +157,11 @@ def generate_barbell_graph(
     seed: Optional[int] = None,
 ) -> nx.Graph:
     output_graph = nx.barbell_graph(number_of_vertices_complete_graph, 0)
-    output_graph = weight_graph_edges(output_graph, weights, seed)
+    _weight_graph_edges(output_graph, weights, seed)
     return output_graph
 
 
-def weight_graph_edges(
+def _weight_graph_edges(
     graph: nx.Graph,
     weights: str = "static",
     seed: Optional[int] = None,
@@ -175,9 +175,6 @@ def weight_graph_edges(
             String indicating how the edge weights should are assigned.
             By default "static", i.e. all the edge weights are set to 1.
             More details on how to specify random distributions in weight_graph_edges()
-
-    Returns:
-        A networkx.Graph object
     """
     assert not (graph.is_multigraph()), "Cannot deal with multigraphs"
     if seed is not None:
@@ -189,7 +186,6 @@ def weight_graph_edges(
 
     # If edges already present, it will effectively update them (except for multigraph)
     graph.add_weighted_edges_from(weighted_edges)
-    return graph
 
 
 def generate_graph_from_specs(graph_specs: dict) -> nx.Graph:

@@ -6,39 +6,37 @@ from typing import Optional, Union
 
 import networkx as nx
 
-from .typing import AnyPath, LoadSource
+from .serialization import ensure_open
+from .typing import DumpTarget, LoadSource
 from .utils import SCHEMA_VERSION
 
+GRAPH_SCHEMA = SCHEMA_VERSION + "-graph"
 
-def save_graph(graph: nx.Graph, filename: AnyPath):
+
+def save_graph(graph: nx.Graph, filename: DumpTarget):
     """Saves a NetworkX graph object to JSON file.
 
     Args:
-        graph (networks.Graph): the input graph object
-        filename (string): name of the output file
+        graph: the input graph object
+        filename: name of the output file
     """
-    f = open(filename, "w")
-    graph_dict = nx.readwrite.json_graph.node_link_data(graph)
-    graph_dict["schema"] = SCHEMA_VERSION + "-graph"
-    json.dump(graph_dict, f, indent=2)
-    f.close()
+    with ensure_open(filename, "w") as f:
+        graph_dict = {
+            **nx.readwrite.json_graph.node_link_data(graph),
+            "schema": GRAPH_SCHEMA,
+        }
+        json.dump(graph_dict, f, indent=2)
 
 
 def load_graph(file: LoadSource) -> nx.Graph:
     """Reads a JSON file for extracting the NetworkX graph object.
 
     Args:
-        file (str or file-like object): the file to load
-
-    Returns:
-        networkx.Graph: the graph
+        file: the file or filepath to load
     """
 
-    if isinstance(file, str):
-        with open(file, "r") as f:
-            data = json.load(f)
-    else:
-        data = json.load(file)
+    with ensure_open(file) as f:
+        data = json.load(f)
 
     return nx.readwrite.json_graph.node_link_graph(data)
 
@@ -252,7 +250,7 @@ def generate_graph_from_specs(graph_specs: dict) -> nx.Graph:
 
 
 def _generate_random_value_from_string(
-    specs: Union[str, int, float]
+    specs: str,
 ) -> Union[int, float]:
     """Generate values (int or float) from a string specifying how the value
     should be generated. If an int or float is passed as an input they will be

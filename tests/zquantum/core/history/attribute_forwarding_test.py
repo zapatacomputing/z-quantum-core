@@ -5,6 +5,7 @@ from zquantum.core.history.example_functions import (
     function_1,
     function_3,
     function_4,
+    function_6,
 )
 from zquantum.core.history.recorder import recorder
 
@@ -33,7 +34,8 @@ def test_recorder_correctly_sets_attributes_of_recorder_function(func):
     assert func.custom_attribute == "new-value"
 
 
-def test_function_with_gradient_forwards_function_attributes():
-    function_1.function.test = "test-value"
+@pytest.mark.parametrize("func", [function_1, function_6])
+def test_function_with_gradient_forwards_function_attributes(func):
+    func.function.test = "test-value"
 
-    assert function_1.test == "test-value"
+    assert func.test == "test-value"

@@ -7,7 +7,11 @@ from typing import Optional
 
 import numpy as np
 
-from ..interfaces.functions import FunctionWithGradient, StoreArtifact
+from ..interfaces.functions import (
+    FunctionWithGradient,
+    FunctionWithGradientStoringArtifacts,
+    StoreArtifact,
+)
 
 
 def sum_of_squares(params):
@@ -135,3 +139,8 @@ class Function5:
         return self.alpha * np.array(
             [params[1] * params[2], params[0] * params[2], params[0] * params[1]]
         )
+
+
+function_6 = FunctionWithGradientStoringArtifacts(
+    function=Function5(5), gradient=Function5(5).gradient
+)

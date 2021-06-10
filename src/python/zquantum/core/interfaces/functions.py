@@ -85,6 +85,9 @@ class FunctionWithGradientStoringArtifacts(NamedTuple):
     ) -> float:
         return self.function(params, store_artifact)
 
+    def __getattr__(self, name):
+        return getattr(self.function, name)
+
 
 def function_with_gradient(
     function: Union[Callable[[np.ndarray], float], CallableStoringArtifacts],

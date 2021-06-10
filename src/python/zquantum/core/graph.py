@@ -3,6 +3,7 @@ import json
 import random
 from random import choice, normalvariate, uniform
 from typing import Optional, Union
+import warnings
 
 import networkx as nx
 
@@ -189,7 +190,10 @@ def _weight_graph_edges(
 
 
 def generate_graph_from_specs(graph_specs: dict) -> nx.Graph:
-    """Generate a graph from a specs dictionary.
+    """(Deprecated) select graph generator by its name and arguments in the graph specs.
+
+    This is deprecated because each graph generator function requires slightly different
+    arguments, so wrapping all of them is convoluted and results in deeply nested dicts.
 
     Graph generation is controlled via the "type_graph" key. Each graph generator
     requires additional arguments passed as additional keys in the `graph_specs` dict.
@@ -216,7 +220,14 @@ def generate_graph_from_specs(graph_specs: dict) -> nx.Graph:
             Optional keys:
                 - "weights", defaults to "static"
                 - "seed'
+
     """
+    warnings.warn(
+        "zquantum.core.generate_graph_from_specs is deprecated. Please use other, "
+        "specialized functions from this module directly.",
+        DeprecationWarning,
+    )
+
     type_graph = graph_specs["type_graph"]
     num_nodes = graph_specs["num_nodes"]
     weights = graph_specs.get("weights", "static")

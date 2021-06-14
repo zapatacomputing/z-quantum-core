@@ -1,43 +1,42 @@
+import itertools
 import json
 import random
-from random import uniform
-from typing import Optional, cast, Dict
+import warnings
+from typing import Iterator, Optional, Sequence, TypeVar
 
 import networkx as nx
-from zquantum.core.typing import AnyPath, LoadSource
 
+from .serialization import ensure_open
+from .typing import DumpTarget, LoadSource
 from .utils import SCHEMA_VERSION
 
+GRAPH_SCHEMA = SCHEMA_VERSION + "-graph"
 
-def save_graph(graph: nx.Graph, filename: AnyPath):
+
+def save_graph(graph: nx.Graph, filename: DumpTarget):
     """Saves a NetworkX graph object to JSON file.
 
     Args:
-        graph (networks.Graph): the input graph object
-        filename (string): name of the output file
+        graph: the input graph object
+        filename: name of the output file
     """
-    f = open(filename, "w")
-    graph_dict = nx.readwrite.json_graph.node_link_data(graph)
-    graph_dict["schema"] = SCHEMA_VERSION + "-graph"
-    json.dump(graph_dict, f, indent=2)
-    f.close()
+    with ensure_open(filename, "w") as f:
+        graph_dict = {
+            **nx.readwrite.json_graph.node_link_data(graph),
+            "schema": GRAPH_SCHEMA,
+        }
+        json.dump(graph_dict, f, indent=2)
 
 
 def load_graph(file: LoadSource) -> nx.Graph:
     """Reads a JSON file for extracting the NetworkX graph object.
 
     Args:
-        file (str or file-like object): the file to load
-
-    Returns:
-        networkx.Graph: the graph
+        file: the file or filepath to load
     """
 
-    if isinstance(file, str):
-        with open(file, "r") as f:
-            data = json.load(f)
-    else:
-        data = json.load(file)
+    with ensure_open(file) as f:
+        data = json.load(f)
 
     return nx.readwrite.json_graph.node_link_graph(data)
 
@@ -58,13 +57,7 @@ def compare_graphs(graph1: nx.Graph, graph2: nx.Graph) -> bool:
 
 def generate_graph_node_dict(graph: nx.Graph) -> dict:
     """Generates a dictionary containing key:value pairs in the form of
-                    nx.Graph node : integer index of the node
-
-    Args:
-        graph: nx.Graph object
-
-    Returns:
-        A dictionary as described
+    nx.Graph node : integer index of the node
     """
     nodes_int_map = []
     for node_index, node in enumerate(graph.nodes):
@@ -73,31 +66,51 @@ def generate_graph_node_dict(graph: nx.Graph) -> dict:
     return nodes_dict
 
 
+T = TypeVar("T")
+
+
+Sampler = Iterator[T]
+
+
+def uniform_sampler(min_value: float = 0.0, max_value: float = 1.0) -> Sampler[float]:
+    while True:
+        yield random.uniform(min_value, max_value)
+
+
+def constant_sampler(value: T) -> Sampler[T]:
+    return itertools.repeat(value)
+
+
+def choice_sampler(choices: Sequence[T]) -> Sampler[T]:
+    while True:
+        yield random.choice(choices)
+
+
+def normal_sampler(mu: float = 0.0, sigma: float = 1.0) -> Sampler[float]:
+    while True:
+        yield random.normalvariate(mu, sigma)
+
+
 def generate_random_graph_erdos_renyi(
     num_nodes: int,
-    probability: float,
-    random_weights: bool = False,
+    edge_probability: float,
+    weight_sampler: Sampler = constant_sampler(1.0),
     seed: Optional[int] = None,
 ) -> nx.Graph:
-    """Randomly generate a graph from Erdos-Renyi ensemble.
-    A graph is constructed by connecting nodes randomly.
-    Each edge is included in the graph with probability p independent from
-    every other edge. Equivalently, all graphs with n nodes and M edges have
-    equal probability.
+    """Randomly generate a graph from Erdos-Renyi ensemble.  A graph is constructed by
+    connecting nodes randomly.  Each edge is included in the graph with probability p
+    independent from every other edge. Equivalently, all graphs with n nodes and M edges
+    have equal probability.
 
     Args:
-        num_nodes: integer
-            Number of nodes.
-        probability: float
-            Probability of two nodes connecting.
-        random_weights: bool
-            Flag indicating whether the weights should be random or constant.
-
-    Returns:
-        A networkx.Graph object
+        num_nodes: Number of nodes in the result graph.
+        edge_probability: Probability of connecting two nodes.
+        weight_sampler: Used to sample edge weights. Defaults `static_sampler`,
+            i.e. all edge weights are set to 1.0.
+        seed: if provided, sets the global seed
     """
-    output_graph = nx.erdos_renyi_graph(n=num_nodes, p=probability, seed=seed)
-    output_graph = weight_graph_edges(output_graph, random_weights, seed)
+    output_graph = nx.erdos_renyi_graph(n=num_nodes, p=edge_probability, seed=seed)
+    _weight_graph_edges(output_graph, weight_sampler, seed)
 
     return output_graph
 
@@ -105,25 +118,21 @@ def generate_random_graph_erdos_renyi(
 def generate_random_regular_graph(
     num_nodes: int,
     degree: int,
-    random_weights: bool = False,
+    weight_sampler: Sampler = constant_sampler(1.0),
     seed: Optional[int] = None,
 ) -> nx.Graph:
     """Randomly generate a d-regular graph.
     A graph is generated by picking uniformly a graph among the set of graphs
-    with the desired number of nodes and degre.
+    with the desired number of nodes and degree.
     Args:
-        num_nodes: integer
-            Number of nodes.
-        degree: int
-            Degree of each edge.
-        random_weights: bool
-            Flag indicating whether the weights should be random or constant.
-
-    Returns:
-        A networkx.Graph object
+        num_nodes: Number of nodes in the generated graph.
+        degree: Degree of each edge.
+        weight_sampler: Used to sample edge weights. Defaults `static_sampler`,
+            i.e. all edge weights are set to 1.0.
+        seed: if provided, sets the global seed
     """
     output_graph = nx.random_regular_graph(d=degree, n=num_nodes, seed=seed)
-    output_graph = weight_graph_edges(output_graph, random_weights, seed)
+    _weight_graph_edges(output_graph, weight_sampler, seed)
 
     return output_graph
 
@@ -131,105 +140,142 @@ def generate_random_regular_graph(
 def generate_caveman_graph(
     number_of_cliques: int,
     size_of_cliques: int,
-    random_weights: bool = False,
+    weight_sampler: Sampler = constant_sampler(1.0),
     seed: Optional[int] = None,
 ) -> nx.Graph:
     output_graph = nx.caveman_graph(number_of_cliques, size_of_cliques)
-    output_graph = weight_graph_edges(output_graph, random_weights, seed)
+    _weight_graph_edges(output_graph, weight_sampler, seed)
     return output_graph
 
 
 def generate_ladder_graph(
-    length_of_ladder: int, random_weights: bool = False, seed: Optional[int] = None
+    length_of_ladder: int,
+    weight_sampler: Sampler = constant_sampler(1.0),
+    seed: Optional[int] = None,
 ) -> nx.Graph:
-    output_graph = nx.ladder_graph(length_of_ladder)
-    output_graph = weight_graph_edges(output_graph, random_weights, seed)
-    return output_graph
+    graph = nx.ladder_graph(length_of_ladder)
+    _weight_graph_edges(graph, weight_sampler, seed)
+    return graph
 
 
 def generate_barbell_graph(
     number_of_vertices_complete_graph: int,
-    random_weights: bool = False,
+    weight_sampler: Sampler = constant_sampler(1.0),
     seed: Optional[int] = None,
 ) -> nx.Graph:
-    output_graph = nx.barbell_graph(number_of_vertices_complete_graph, 0)
-    output_graph = weight_graph_edges(output_graph, random_weights, seed)
-    return output_graph
+    graph = nx.barbell_graph(number_of_vertices_complete_graph, 0)
+    _weight_graph_edges(graph, weight_sampler, seed)
 
-
-def weight_graph_edges(
-    graph: nx.Graph, random_weights: bool = False, seed: Optional[int] = None
-) -> nx.Graph:
-    """Update the weights of all the edges of a graph.
-
-    Args:
-        graph: nx.Graph
-            The input graph.
-        random_weights: bool
-            Flag indicating whether the weights should be random or constant (1.).
-
-    Returns:
-        A networkx.Graph object
-    """
-    assert not graph.is_multigraph(), "Cannot deal with multigraphs"
-
-    random.seed(seed)
-    if random_weights:
-        weighted_edges = [(e[0], e[1], uniform(0, 1)) for e in graph.edges]
-    else:
-        weighted_edges = [(e[0], e[1], 1.0) for e in graph.edges]
-
-    # If edges already present, it will effectively update them (except for multigraph)
-    graph.add_weighted_edges_from(weighted_edges)
     return graph
 
 
-def generate_graph_from_specs(graph_specs: dict) -> nx.Graph:
-    """Generate a graph from a specs dictionary
+def _weight_graph_edges(
+    graph: nx.Graph,
+    sampler: Sampler,
+    seed: Optional[int] = None,
+) -> nx.Graph:
+    """Update the weights of all the edges of a graph in place.
 
     Args:
-        graph_specs: dictionary
-            Specifications of the graph to generate. It should contain at
-            least an entry with key 'type' and one with num_nodes
-
-    Returns:
-        A networkx.Graph object
+        graph: The graph to mutate.
+        sampler:
     """
-    type_graph = cast(str, graph_specs["type_graph"])
-    num_nodes = cast(int, graph_specs.get("num_nodes"))
-    random_weights = graph_specs.get("random_weights", False)
-    seed = graph_specs.get("seed")
-    number_of_cliques = cast(int, graph_specs.get("number_of_cliques"))
-    size_of_cliques = cast(int, graph_specs.get("size_of_cliques"))
-    length_of_ladder = cast(int, graph_specs.get("length_of_ladder"))
-    number_of_vertices_complete_graph = cast(
-        int, graph_specs.get("number_of_vertices_complete_graph")
+    if graph.is_multigraph():
+        raise ValueError("Cannot deal with multigraphs")
+
+    if seed is not None:
+        random.seed(seed)
+
+    weighted_edges = [(e[0], e[1], next(sampler)) for e in graph.edges]
+
+    # If edges already present, it will effectively update them (except for multigraph)
+    graph.add_weighted_edges_from(weighted_edges)
+
+
+def generate_graph_from_specs(graph_specs: dict) -> nx.Graph:
+    """(Deprecated) select graph generator by its name and arguments in the graph specs.
+
+    This is deprecated because each graph generator function requires slightly different
+    arguments, so wrapping all of them is convoluted and results in deeply nested dicts.
+
+    Graph generation is controlled via the "type_graph" key. Each graph generator
+    requires additional arguments passed as additional keys in the `graph_specs` dict.
+    The available `type_graph` values are:
+        - "erdos_renyi". Additional keys:
+            - "probability" (int)
+        - "regular". Additional keys:
+            - "degree" (int)
+        - "complete". Same as "erdos_renyi" with probability set to 1.0.
+        - "caveman". Additional keys:
+            - "number_of_cliques" (int)
+            - "size_of_cliques" (int)
+        - "ladder". Additional keys:
+            - "length_of_ladder" (int)
+        - "barbell". Additional keys:
+            - "number_of_vertices_complete_graph" (int)
+
+    Args:
+        graph_specs: specification of graphs to generate. Required keys:
+                - "type_graph" (str)
+                - "num_nodes" (int)
+                - "random_weights" (bool) - if True, weights are sampled from U(0, 1).
+                    Defaults to False.
+                - additional arguments to graph generator depending on the choice of
+                    "type_graph" (see above)
+            Optional keys:
+                - "seed"
+
+    """
+    warnings.warn(
+        "zquantum.core.generate_graph_from_specs is deprecated. Please use other, "
+        "specialized functions from this module directly.",
+        DeprecationWarning,
     )
 
+    type_graph = graph_specs["type_graph"]
+    num_nodes = graph_specs["num_nodes"]
+    if graph_specs.get("random_weights", False):
+        weight_sampler = uniform_sampler(0, 1)
+    else:
+        weight_sampler = constant_sampler(1.0)
+
+    seed = graph_specs.get("seed")
+
     if type_graph == "erdos_renyi":
-        probability = graph_specs["probability"]
         graph = generate_random_graph_erdos_renyi(
-            num_nodes, probability, random_weights, seed
+            num_nodes,
+            graph_specs["probability"],
+            weight_sampler,
+            seed,
         )
 
     elif type_graph == "regular":
         degree = graph_specs["degree"]
-        graph = generate_random_regular_graph(num_nodes, degree, random_weights, seed)
+        graph = generate_random_regular_graph(num_nodes, degree, weight_sampler, seed)
 
     elif type_graph == "complete":
-        graph = generate_random_graph_erdos_renyi(num_nodes, 1.0, random_weights, seed)
+        graph = generate_random_graph_erdos_renyi(num_nodes, 1.0, weight_sampler, seed)
 
     elif type_graph == "caveman":
+        number_of_cliques = graph_specs["number_of_cliques"]
+        size_of_cliques = graph_specs["size_of_cliques"]
         graph = generate_caveman_graph(
-            number_of_cliques, size_of_cliques, random_weights, seed
+            number_of_cliques,
+            size_of_cliques,
+            weight_sampler,
+            seed,
         )
 
     elif type_graph == "ladder":
-        graph = generate_ladder_graph(length_of_ladder, random_weights, seed)
+        length_of_ladder = graph_specs["length_of_ladder"]
+        graph = generate_ladder_graph(length_of_ladder, weight_sampler, seed)
 
     elif type_graph == "barbell":
+        n_vertices = graph_specs["number_of_vertices_complete_graph"]
         graph = generate_barbell_graph(
-            number_of_vertices_complete_graph, random_weights, seed
+            number_of_vertices_complete_graph=n_vertices,
+            weight_sampler=weight_sampler,
+            seed=seed,
         )
     else:
         raise (NotImplementedError("This type of graph is not supported: ", type_graph))

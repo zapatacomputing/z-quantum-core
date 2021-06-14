@@ -1,41 +1,16 @@
-from typing import List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple, cast
 
 import numpy as np
-import pyquil
 import sympy
 from openfermion import IsingOperator, QubitOperator
 
-from ..circuit._circuit import Circuit
+from ..circuits import RX, RY, Circuit
 from ..hamiltonian import estimate_nmeas_for_frames, group_comeasureable_terms_greedy
 from ..interfaces.backend import QuantumBackend, QuantumSimulator
 from ..interfaces.estimation import EstimationTask
 from ..measurement import ExpectationValues, expectation_values_to_real
 from ..openfermion import change_operator_type
 from ..utils import scale_and_discretize
-
-
-def get_context_selection_circuit(
-    operator: QubitOperator,
-) -> Tuple[Circuit, IsingOperator]:
-    """Get the context selection circuit for measuring the expectation value
-    of a Pauli term.
-
-    Args:
-        operator: operator consisting of a single Pauli Term
-
-    """
-    context_selection_circuit = Circuit()
-    output_operator = IsingOperator(())
-    terms = list(operator.terms.keys())[0]
-    for term in terms:
-        term_type = term[1]
-        qubit_id = term[0]
-        if term_type == "X":
-            context_selection_circuit += Circuit(pyquil.gates.RY(-np.pi / 2, qubit_id))
-        elif term_type == "Y":
-            context_selection_circuit += Circuit(pyquil.gates.RX(np.pi / 2, qubit_id))
-        output_operator *= IsingOperator((qubit_id, "Z"))
-    return context_selection_circuit, output_operator
 
 
 def get_context_selection_circuit_for_group(
@@ -64,9 +39,9 @@ def get_context_selection_circuit_for_group(
 
     for factor in context:
         if factor[1] == "X":
-            context_selection_circuit += Circuit(pyquil.gates.RY(-np.pi / 2, factor[0]))
+            context_selection_circuit += RY(-np.pi / 2)(factor[0])
         elif factor[1] == "Y":
-            context_selection_circuit += Circuit(pyquil.gates.RX(np.pi / 2, factor[0]))
+            context_selection_circuit += RX(np.pi / 2)(factor[0])
 
     return context_selection_circuit, transformed_operator
 
@@ -202,7 +177,7 @@ def allocate_shots_proportionally(
 
 def evaluate_estimation_circuits(
     estimation_tasks: List[EstimationTask],
-    symbols_maps: List[List[Tuple[sympy.Basic, float]]],
+    symbols_maps: List[Dict[sympy.Symbol, float]],
 ) -> List[EstimationTask]:
     """Evaluates circuits given in all estimation tasks using the given symbols_maps.
 
@@ -218,7 +193,7 @@ def evaluate_estimation_circuits(
     return [
         EstimationTask(
             operator=estimation_task.operator,
-            circuit=estimation_task.circuit.evaluate(symbols_map),
+            circuit=estimation_task.circuit.bind(symbols_map),
             number_of_shots=estimation_task.number_of_shots,
         )
         for estimation_task, symbols_map in zip(estimation_tasks, symbols_maps)
@@ -239,15 +214,14 @@ def split_constant_estimation_tasks(
 
     Returns:
         estimation_tasks_to_measure: A new list of estimation tasks that only
-                                     contains the ones that should actually be submitted to the
-                                     backend
+            contains the ones that should actually be submitted to the backend
         estimation_tasks_for_constants: A new list of estimation tasks that
-                                        contains the EstimationTasks with only constant terms
+            contains the EstimationTasks with only constant terms
         indices_to_measure: A list containing the indices of the EstimationTasks we will
-                            actually measure, i.e. the ith estimation_tasks_to_measure expectation
-                            value will go into the indices_to_measure[i] position.
+            actually measure, i.e. the ith estimation_tasks_to_measure expectation
+            value will go into the indices_to_measure[i] position.
         indices_for_constants: A list containing the indices of the EstimationTasks for
-                               constant terms.
+            constant terms.
     """
 
     estimation_tasks_to_measure = []
@@ -260,7 +234,8 @@ def split_constant_estimation_tasks(
             estimation_tasks_for_constants.append(task)
         elif task.number_of_shots == 0:
             raise RuntimeError(
-                "An EstimationTask requested 0 shot for a non-constant term. It's unclear what to do with that."
+                "An EstimationTask requested 0 shot for a non-constant term. "
+                "It's unclear what to do with that."
             )
         else:
             indices_to_measure.append(i)
@@ -280,29 +255,29 @@ def evaluate_constant_estimation_tasks(
     """This function evaluates a list of EstimationTask over constant terms.
 
     Args:
-        estimation_tasks (List[EstimationTask]): The list of estimation tasks for which
-                         Expectation Values are wanted, they must only contain constant terms.
+        estimation_tasks: The list of estimation tasks for which
+            Expectation Values are wanted, they must only contain constant terms.
 
     Returns:
-        expectation_values (List[ExpectationValues]): the expectation values over constant terms,
-                            with their correlations and estimator_covariances.
+        expectation_values: the expectation values over constant terms,
+            with their correlations and estimator_covariances.
     """
 
     expectation_values = []
     for task in estimation_tasks:
         if len(task.operator.terms) > 1 or () not in task.operator.terms.keys():
             raise RuntimeError(
-                "evaluate_constant_estimation_tasks received an EstimationTask that contained a non-constant term."
+                "evaluate_constant_estimation_tasks received an EstimationTask "
+                "that contained a non-constant term."
             )
-        else:
-            coefficient = task.operator.terms[()]
-            expectation_values.append(
-                ExpectationValues(
-                    np.asarray([coefficient]),
-                    correlations=[np.asarray([[0.0]])],
-                    estimator_covariances=[np.asarray([[0.0]])],
-                )
+        coefficient = task.operator.terms[()]
+        expectation_values.append(
+            ExpectationValues(
+                np.asarray([coefficient]),
+                correlations=[np.asarray([[0.0]])],
+                estimator_covariances=[np.asarray([[0.0]])],
             )
+        )
 
     return expectation_values
 
@@ -350,12 +325,13 @@ def estimate_expectation_values_by_averaging(
         for frame_operator, measurements in zip(operators, measurements_list)
     ]
 
-    full_expectation_values = [
+    full_expectation_values: List[Optional[ExpectationValues]] = [
         None
         for _ in range(
             len(estimation_tasks_for_constants) + len(estimation_tasks_to_measure)
         )
     ]
+
     for ex_val, final_index in zip(
         expectation_values_for_constants, indices_for_constants
     ):
@@ -365,7 +341,7 @@ def estimate_expectation_values_by_averaging(
     ):
         full_expectation_values[final_index] = ex_val
 
-    return full_expectation_values
+    return cast(List[ExpectationValues], full_expectation_values)
 
 
 def calculate_exact_expectation_values(

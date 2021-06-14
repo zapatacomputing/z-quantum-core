@@ -16,6 +16,14 @@ from .save_conditions import SaveCondition, always
 T = TypeVar("T")
 S = TypeVar("S")
 
+NATIVE_RECORDER_ATTRIBUTES = (
+    "predicate",
+    "history",
+    "target",
+    "call_number",
+    "gradient",
+)
+
 
 class ArtifactCollection(dict):
     """A dict with additional `forced` attribute.
@@ -42,6 +50,30 @@ class HistoryEntry(NamedTuple):
     call_number: int
     params: Any
     value: Any
+
+
+def copy_recorder(recorder_to_copy):
+    attributes_dict = {
+        "target": recorder_to_copy.target,
+        "save_condition": recorder_to_copy.predicate,
+    }
+
+    recorder_copy = type(recorder_to_copy)(**attributes_dict)
+    recorder_copy.call_number = recorder_to_copy.call_number
+    recorder_copy.history = recorder_to_copy.history
+    return recorder_copy
+
+
+def deepcopy_recorder(recorder_to_copy, memo):
+    attributes_dict = {
+        "target": copy.deepcopy(recorder_to_copy.target, memo=memo),
+        "save_condition": copy.deepcopy(recorder_to_copy.predicate, memo=memo),
+    }
+
+    recorder_copy = type(recorder_to_copy)(**attributes_dict)
+    recorder_copy.call_number = recorder_to_copy.call_number
+    recorder_copy.history = copy.deepcopy(recorder_to_copy.history, memo=memo)
+    return recorder_copy
 
 
 class SimpleRecorder(Generic[S, T]):
@@ -76,6 +108,18 @@ class SimpleRecorder(Generic[S, T]):
             )
         self.call_number += 1
         return return_value
+
+    def __getattr__(self, item):
+        return getattr(self.target, item)
+
+    def __setattr__(self, key, value):
+        if key in NATIVE_RECORDER_ATTRIBUTES:
+            return object.__setattr__(self, key, value)
+        return setattr(self.target, key, value)
+
+    __copy__ = copy_recorder
+
+    __deepcopy__ = deepcopy_recorder
 
 
 class SimpleRecorderWithGradient(SimpleRecorder):
@@ -116,6 +160,18 @@ class ArtifactRecorder(Generic[S, T]):
             )
         self.call_number += 1
         return return_value
+
+    def __getattr__(self, name):
+        return getattr(self.target, name)
+
+    def __setattr__(self, name, value):
+        if name in ("predicate", "history", "target", "call_number", "gradient"):
+            return object.__setattr__(self, name, value)
+        return setattr(self.target, name, value)
+
+    __copy__ = copy_recorder
+
+    __deepcopy__ = deepcopy_recorder
 
 
 class ArtifactRecorderWithGradient(ArtifactRecorder):

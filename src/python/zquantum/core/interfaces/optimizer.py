@@ -1,11 +1,14 @@
+import warnings
 from abc import ABC, abstractmethod
-from typing import Callable, Dict, Optional, Union
+from typing import Callable, Union
 
 import numpy as np
 import scipy
 from scipy.optimize import OptimizeResult
+from zquantum.core.history.recorder import recorder as _recorder
 from zquantum.core.interfaces.functions import CallableWithGradient
-import warnings
+
+from ..typing import RecorderFactory
 
 
 class Optimizer(ABC):
@@ -13,39 +16,43 @@ class Optimizer(ABC):
     Interface for implementing different optimizers.
 
     Args:
-        options (dict): dictionary containing optimizer options.
+        recorder: recorder object which defines how to store the optimization history.
 
     """
 
-    def __init__(self, options: Optional[Dict] = None):
-        warnings.warn(
-            'Default input argument "options" will soon be removed from the '
-            "optimizer interface. However, this does not preclude particular "
-            'optimizers from continuing to declare "options" within their individual '
-            "constructors.",
-            DeprecationWarning,
-        )
-        if options is None:
-            options = {}
-        self.options = options
-        if "keep_value_history" not in self.options.keys():
-            self.options["keep_value_history"] = False
+    def __init__(self, recorder: RecorderFactory = _recorder) -> None:
+        self.recorder = recorder
 
-    @abstractmethod
     def minimize(
         self,
         cost_function: Union[CallableWithGradient, Callable],
         initial_params: np.ndarray,
-        **kwargs
+        keep_history: bool = False,
     ) -> OptimizeResult:
         """Finds the parameters which minimize given cost function.
 
         Args:
             cost_function: an object representing the cost function.
             initial_params: initial parameters for the cost function.
+            keep_history: flag indicating whether history of cost function
+                evaluations should be recorded.
+        """
+        if keep_history:
+            cost_function = self.recorder(cost_function)
+        return self._minimize(cost_function, initial_params, keep_history)
 
-        Returns:
-            OptimizeResults
+    @abstractmethod
+    def _minimize(
+        self,
+        cost_function: Union[CallableWithGradient, Callable],
+        initial_params: np.ndarray,
+        keep_history: bool = False,
+    ) -> OptimizeResult:
+        """Finds the parameters which minimize given cost function.
+        This private method should contain the integration with specific optimizer.
+
+        Args:
+            Same as for minimize.
         """
         raise NotImplementedError
 
@@ -71,11 +78,11 @@ def optimization_result(
     )
 
 
-def construct_history_info(cost_function, keep_value_history):
+def construct_history_info(cost_function, keep_history):
     histories = {
-        "history": cost_function.history if keep_value_history else [],
+        "history": cost_function.history if keep_history else [],
     }
 
-    if keep_value_history and hasattr(cost_function, "gradient"):
+    if keep_history and hasattr(cost_function, "gradient"):
         histories["gradient_history"] = cost_function.gradient.history
     return histories

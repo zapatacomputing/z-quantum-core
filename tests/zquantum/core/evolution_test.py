@@ -2,15 +2,16 @@ import cirq
 import numpy as np
 import pytest
 import sympy
+from openfermion import QubitOperator
 from pyquil.paulis import PauliSum, PauliTerm
-from zquantum.core.evolution import (_generate_circuit_sequence,
-                                     time_evolution,
-                                     time_evolution_derivatives,
-                                     time_evolution_for_term)
-from zquantum.core.testing import create_random_circuit
+from zquantum.core import circuits
+from zquantum.core.evolution import (
+    _generate_circuit_sequence,
+    time_evolution,
+    time_evolution_derivatives,
+    time_evolution_for_term,
+)
 from zquantum.core.utils import compare_unitary
-
-from openfermion.ops.operators.qubit_operator import QubitOperator
 
 PAULI_STRING_TO_CIRQ_GATE = {"XX": cirq.XX, "YY": cirq.YY, "ZZ": cirq.ZZ}
 OPENFERMION_TERM_TO_CIRQ_GATE = {
@@ -40,7 +41,7 @@ def _cirq_exponentiate_hamiltonian(hamiltonian, qubits, time, trotter_order):
                 _cirq_exponentiate_qubit_hamiltonian_term(
                     term, qubits, time, trotter_order
                 )
-                for term in list(hamiltonian.get_operators())
+                for term in hamiltonian.get_operators()
             ]
             * trotter_order
         )
@@ -85,14 +86,14 @@ class TestTimeEvolutionOfTerm:
         self, term, time, expected_unitary
     ):
         time_symbol = sympy.Symbol("t")
-        symbol_map = [(time_symbol, time)]
+        symbol_map = {time_symbol: time}
         evolution_circuit = time_evolution_for_term(term, time_symbol)
 
-        actual_unitary = evolution_circuit.evaluate(symbol_map).to_unitary()
+        actual_unitary = evolution_circuit.bind(symbol_map).to_unitary()
         np.testing.assert_array_almost_equal(actual_unitary, expected_unitary)
 
 
-class TestTimeEvolutionOfHamiltonian:
+class TestTimeEvolutionOfPauliSum:
     @pytest.fixture(
         params=[
             PauliSum(
@@ -108,8 +109,8 @@ class TestTimeEvolutionOfHamiltonian:
     def hamiltonian(self, request):
         return request.param
 
-    @pytest.mark.parametrize("time", [0.1])  # [0.1, 0.4, 1.0])
-    @pytest.mark.parametrize("order", [2])  # [1, 2, 3])
+    @pytest.mark.parametrize("time", [0.1, 0.4, 1.0])
+    @pytest.mark.parametrize("order", [1, 2, 3])
     def test_evolution_with_numerical_time_produces_correct_result(
         self, hamiltonian, time, order
     ):
@@ -120,6 +121,7 @@ class TestTimeEvolutionOfHamiltonian:
 
         reference_unitary = cirq.unitary(expected_cirq_circuit)
         unitary = time_evolution(hamiltonian, time, trotter_order=order).to_unitary()
+
         assert compare_unitary(unitary, reference_unitary, tol=1e-10)
 
     @pytest.mark.parametrize("time_value", [0.1, 0.4, 1.0])
@@ -128,7 +130,7 @@ class TestTimeEvolutionOfHamiltonian:
         self, hamiltonian, time_value, order
     ):
         time_symbol = sympy.Symbol("t")
-        symbols_map = [(time_symbol, time_value)]
+        symbols_map = {time_symbol: time_value}
 
         cirq_qubits = cirq.LineQubit(0), cirq.LineQubit(1)
 
@@ -140,60 +142,73 @@ class TestTimeEvolutionOfHamiltonian:
 
         unitary = (
             time_evolution(hamiltonian, time_symbol, trotter_order=order)
-            .evaluate(symbols_map)
+            .bind(symbols_map)
             .to_unitary()
         )
+
         assert compare_unitary(unitary, reference_unitary, tol=1e-10)
 
 
-class TestGenerateCircuitSequence:
-    def test_generate_circuit_sequence(self):
-        # Given
-        repeated_circuit_len = 3
-        different_circuit_len = 5
-        length = 3
-        position_1 = 0
-        position_2 = 1
-        repeated_circuit = create_random_circuit(2, repeated_circuit_len)
-        different_circuit = create_random_circuit(2, different_circuit_len)
+class TestGeneratingCircuitSequence:
+    @pytest.mark.parametrize(
+        "repeated_circuit, different_circuit, length, position, expected_result",
+        [
+            (
+                circuits.Circuit([circuits.X(0), circuits.Y(1)]),
+                circuits.Circuit([circuits.Z(1)]),
+                5,
+                1,
+                circuits.Circuit(
+                    [
+                        *[circuits.X(0), circuits.Y(1)],
+                        circuits.Z(1),
+                        *([circuits.X(0), circuits.Y(1)] * 3),
+                    ]
+                ),
+            ),
+            (
+                circuits.Circuit([circuits.RX(0.5)(1)]),
+                circuits.Circuit([circuits.CNOT(0, 2)]),
+                3,
+                0,
+                circuits.Circuit(
+                    [circuits.CNOT(0, 2), circuits.RX(0.5)(1), circuits.RX(0.5)(1)]
+                ),
+            ),
+            (
+                circuits.Circuit([circuits.RX(0.5)(1)]),
+                circuits.Circuit([circuits.CNOT(0, 2)]),
+                3,
+                2,
+                circuits.Circuit(
+                    [
+                        circuits.RX(0.5)(1),
+                        circuits.RX(0.5)(1),
+                        circuits.CNOT(0, 2),
+                    ]
+                ),
+            ),
+        ],
+    )
+    def test_produces_correct_sequence(
+        self, repeated_circuit, different_circuit, position, length, expected_result
+    ):
+        actual_result = _generate_circuit_sequence(
+            repeated_circuit, different_circuit, length, position
+        )
 
-        # When
-        sequence_1 = _generate_circuit_sequence(
-            repeated_circuit, different_circuit, length, position_1
-        )
-        sequence_2 = _generate_circuit_sequence(
-            repeated_circuit, different_circuit, length, position_2
-        )
+        assert actual_result == expected_result
 
-        # Then
-        assert len(sequence_1.gates) == different_circuit_len + repeated_circuit_len * (
-            length - 1
-        )
-        different_circuit_start_1 = repeated_circuit_len * position_1
-        different_circuit_start_2 = repeated_circuit_len * position_2
-        assert (
-            sequence_1.gates[
-                different_circuit_start_1 : different_circuit_start_1
-                + different_circuit_len
-            ]
-            == different_circuit.gates
-        )
-        assert (
-            sequence_2.gates[
-                different_circuit_start_2 : different_circuit_start_2
-                + different_circuit_len
-            ]
-            == different_circuit.gates
-        )
+    @pytest.mark.parametrize("length, invalid_position", [(5, 5), (4, 6)])
+    def test_raises_error_if_position_is_larger_or_equal_to_length(
+        self, length, invalid_position
+    ):
+        repeated_circuit = circuits.Circuit([circuits.X(0)])
+        different_circuit = circuits.Circuit([circuits.Y(0)])
 
-        # Given
-        length = 3
-        position = 10
-
-        # When/Then
         with pytest.raises(ValueError):
-            _ = _generate_circuit_sequence(
-                repeated_circuit, different_circuit, length, position
+            _generate_circuit_sequence(
+                repeated_circuit, different_circuit, length, invalid_position
             )
 
 
@@ -214,9 +229,8 @@ class TestTimeEvolutionDerivatives:
         return request.param
 
     @pytest.mark.parametrize("time", [0.4, sympy.Symbol("t")])
-    def test_time_evolution_derivatives_gives_correct_number_of_derivatives_and_factors(
-        self, time, hamiltonian
-    ):
+    def test_gives_correct_number_of_derivatives_and_factors(self, time, hamiltonian):
+
         order = 3
         reference_factors_1 = [1.0 / order, 0.5 / order, 0.3 / order] * 3
         reference_factors_2 = [-1.0 * x for x in reference_factors_1]
@@ -224,12 +238,8 @@ class TestTimeEvolutionDerivatives:
         derivatives, factors = time_evolution_derivatives(
             hamiltonian, time, trotter_order=order
         )
-        if isinstance(hamiltonian, QubitOperator):
-            terms = list(hamiltonian.get_operators())
-        elif isinstance(hamiltonian, PauliSum):
-            terms = hamiltonian.terms
 
-        assert len(derivatives) == order * 2 * len(terms)
-        assert len(factors) == order * 2 * len(terms)
+        assert len(derivatives) == order * 2 * len(hamiltonian.terms)
+        assert len(factors) == order * 2 * len(hamiltonian.terms)
         assert factors[0:18:2] == reference_factors_1
         assert factors[1:18:2] == reference_factors_2

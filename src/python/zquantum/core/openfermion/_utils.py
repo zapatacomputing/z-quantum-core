@@ -1,6 +1,6 @@
 import itertools
 import random
-from typing import List, Optional, Union, Iterable
+from typing import Iterable, List, Optional, Union
 
 import cirq
 import numpy as np
@@ -22,7 +22,7 @@ from openfermion import (
 from openfermion.linalg import jw_get_ground_state_at_particle_number
 from openfermion.transforms import freeze_orbitals, get_fermion_operator
 
-from ..circuit import Circuit, Gate, Qubit
+from ..circuits import Circuit, X, Y, Z
 from ..measurement import ExpectationValues, expectation_values_to_real
 from ..utils import ValueEstimate, bin2dec, dec2bin
 
@@ -264,69 +264,6 @@ def evaluate_qubit_operator_list(
 
     value_estimate = ValueEstimate(total)
     return value_estimate
-
-
-def evaluate_operator_for_parameter_grid(
-    ansatz, grid, backend, operator, previous_layer_params=[]
-):
-    """Evaluate the expectation value of an operator for every set of circuit
-    parameters in the parameter grid.
-
-    Args:
-        ansatz (dict): the ansatz
-        grid (zquantum.core.circuit.ParameterGrid): The parameter grid containing
-            the parameters for the last layer of the ansatz
-        backend (zquantum.core.interfaces.backend.QuantumSimulator): the backend
-            to run the circuits on
-        operator (openfermion.ops.QubitOperator): the operator
-        previous_layer_params (array): A list of the parameters for previous layers
-            of the ansatz
-
-    Returns:
-        value_estimate (zquantum.core.utils.ValueEstimate): stores the value of the
-            expectation and its precision
-        optimal_parameters (numpy array): the ansatz parameters representing the ansatz
-            parameters resulting in the best minimum evaluation. If multiple sets of
-            parameters evaluate to the same value, the first set of parameters is chosen
-            as the optimal.
-    """
-    parameter_grid_evaluation = []
-    circuitset = []
-    params_set = []
-    for last_layer_params in grid.params_list:
-        # Build the ansatz circuit
-        params = np.concatenate(
-            (np.asarray(previous_layer_params), np.asarray(last_layer_params))
-        )
-
-        # Build the ansatz circuit
-        circuitset.append(ansatz.get_executable_circuit(params))
-        params_set.append(params)
-
-    expectation_values_set = backend.get_expectation_values_for_circuitset(
-        circuitset, operator
-    )
-
-    min_value_estimate = None
-    for params, expectation_values in zip(params_set, expectation_values_set):
-        expectation_values = expectation_values_to_real(expectation_values)
-        value_estimate = ValueEstimate(sum(expectation_values.values))
-        parameter_grid_evaluation.append(
-            {
-                "value": value_estimate,
-                "parameter1": params[-2],
-                "parameter2": params[-1],
-            }
-        )
-
-        if min_value_estimate is None:
-            min_value_estimate = value_estimate
-            optimal_parameters = params
-        elif value_estimate.value < min_value_estimate.value:
-            min_value_estimate = value_estimate
-            optimal_parameters = params
-
-    return parameter_grid_evaluation, optimal_parameters
 
 
 def reverse_qubit_order(qubit_operator: QubitOperator, n_qubits: Optional[int] = None):
@@ -631,25 +568,19 @@ def create_circuits_from_qubit_operator(qubit_operator: QubitOperator) -> List[C
 
     # Get the Pauli terms, ignoring coefficients
     pauli_terms = list(qubit_operator.terms.keys())
-
+    term_gate_map = {"X": X, "Y": Y, "Z": Z}
     circuit_set = []
 
     # Loop over Pauli terms and populate circuit set list
     for term in pauli_terms:
 
         circuit = Circuit()
-        pauli_gates = []
-        qubits = []
 
         # Loop over Pauli factors in Pauli term and construct Pauli term circuit
         for pauli in term:  # loop over pauli operators in an n qubit pauli term
             pauli_index = pauli[0]
             pauli_factor = pauli[1]
-            pauli_gates.append(Gate(pauli_factor, qubits=[Qubit(pauli_index)]))
-            qubits.append(Qubit(pauli[0]))
-
-        circuit.gates = pauli_gates
-        circuit.qubits += qubits
+            circuit += term_gate_map[pauli_factor](pauli_index)
 
         circuit_set += [circuit]
 

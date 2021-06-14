@@ -46,9 +46,6 @@ class MockQuantumBackend(QuantumBackend):
 
         return measurements
 
-    def get_wavefunction(self, circuit: Circuit):
-        raise NotImplementedError
-
     def get_density_matrix(self, circuit: Circuit):
         raise NotImplementedError
 
@@ -74,7 +71,7 @@ class MockQuantumSimulator(QuantumSimulator):
 
         return measurements
 
-    def get_expectation_values(
+    def get_exact_expectation_values(
         self, circuit: Circuit, operator: SymbolicOperator, **kwargs
     ) -> ExpectationValues:
         if self.n_samples is None:
@@ -96,14 +93,7 @@ class MockQuantumSimulator(QuantumSimulator):
                 values[constant_position] = operator.terms[()]
             return ExpectationValues(values)
         else:
-            return super(MockQuantumSimulator, self).get_expectation_values(
-                circuit, operator
-            )
-
-    def get_exact_expectation_values(
-        self, circuit: Circuit, operator: SymbolicOperator, **kwargs
-    ) -> ExpectationValues:
-        return self.get_expectation_values(circuit, operator)
+            raise NotImplementedError
 
     def get_wavefunction(self, circuit: Circuit, **kwargs) -> Wavefunction:
         raise NotImplementedError

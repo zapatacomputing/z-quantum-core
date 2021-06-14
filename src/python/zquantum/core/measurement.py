@@ -451,6 +451,50 @@ def get_expectation_value_from_frequencies(
     return expectation
 
 
+def _check_sample_elimination(
+    samples: collections.Counter,
+    bitstring_samples: List[Tuple[int, ...]],
+    leftover_distribution: BitstringDistribution,
+) -> collections.Counter:
+    """This is a recursive function, that checks that all elements in samples
+    are present in bitstring_samples. If they are not, we eliminate the
+    elements not in bitstring samples, set their probability to 0 in leftover_distribution
+    and resample the appropriate number of times. Then, we re-check the new samples.
+    Args:
+        samples: The bitstrings to eliminate and how many times to eliminate them
+        bitstring_samples: the bitstring distribution from where the bitstrings
+                           should be removed
+        leftover_distribution: the distribution from which samples to eliminate are
+                               sampled
+    Returns:
+        correct_samples: A sample object that only contains bitstrings that can actually
+                     be removed from bitstring_samples
+    """
+    bitstring_counts = Counter(bitstring_samples)
+    new_samples = None
+    correct_samples = samples
+    for sample in samples:
+        bitstring = tuple([int(measurement_value) for measurement_value in sample])
+        if samples[sample] > bitstring_counts[bitstring]:
+            nresamples = samples[sample] - bitstring_counts[bitstring]
+            samples[sample] = bitstring_counts[bitstring]
+            distribution_dict = leftover_distribution.distribution_dict
+            distribution_dict[sample] = 0
+            leftover_distribution = BitstringDistribution(distribution_dict, True)
+            new_samples = sample_from_probability_distribution(
+                leftover_distribution.distribution_dict, nresamples
+            )
+            correct_samples = samples + new_samples
+            break
+
+    if new_samples is None:
+        return correct_samples
+    else:
+        return _check_sample_elimination(
+            correct_samples, bitstring_samples, leftover_distribution
+        )
+
+
 class Measurements:
     """A class representing measurements from a quantum circuit. The bitstrings variable
     represents the internal data structure of the Measurements class. It is expressed as
@@ -520,6 +564,11 @@ class Measurements:
                         tuple([int(measurement_value) for measurement_value in sample])
                     ] * samples[sample]
             else:
+                # Eliminating samples: need to ensure they are present in the
+                # bitstring_samples list
+                samples = _check_sample_elimination(
+                    samples, bitstring_samples, leftover_distribution
+                )
                 for sample in samples:
                     for _ in range(samples[sample]):
                         bitstring_samples.remove(

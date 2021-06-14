@@ -26,6 +26,7 @@ from zquantum.core.measurement import (
     save_expectation_values,
     save_parities,
     save_wavefunction,
+    _check_sample_elimination,
 )
 from zquantum.core.testing import create_random_wavefunction
 from zquantum.core.utils import RNDSEED, SCHEMA_VERSION, convert_bitstrings_to_tuples
@@ -849,3 +850,81 @@ class TestMeasurements:
         counts = measurements.get_counts()
         for bitstring, probability in bitstring_distribution.distribution_dict.items():
             assert probability * number_of_samples == counts[bitstring]
+
+    @pytest.mark.parametrize(
+        "bitstring_distribution",
+        [
+            BitstringDistribution(
+                {
+                    "0011": 0.0049,
+                    "1100": 0.0049,
+                    "1111": 0.008,
+                    "0000": 0.008,
+                    "0001": 0.008,
+                    "0010": 0.008,
+                    "0100": 0.008,
+                    "1000": 0.008,
+                    "1001": 0.008,
+                    "1010": 0.008,
+                    "1110": 0.008,
+                    "1101": 0.008,
+                    "0110": 0.9102,
+                }
+            )
+        ],
+    )
+    def test_get_measurements_representing_distribution_does_not_remove_bitstrings_not_sampled(
+        self, bitstring_distribution
+    ):
+        number_of_samples = 100
+        max_number_of_trials = 100
+        cnt = 0
+        for _ in range(max_number_of_trials):
+            measurements = Measurements.get_measurements_representing_distribution(
+                bitstring_distribution, number_of_samples
+            )
+
+    @pytest.mark.parametrize(
+        "samples, bitstring_samples, leftover_distribution",
+        [
+            (
+                Counter({"0011": 3, "1100": 1, "0101": 2}),
+                [
+                    (0, 0, 1, 1),
+                    (1, 1, 0, 0),
+                    (0, 1, 0, 1),
+                    (0, 1, 0, 1),
+                    (0, 1, 0, 1),
+                    (1, 1, 0, 0),
+                    (0, 0, 1, 1),
+                ],
+                BitstringDistribution({"0011": 0.3, "1100": 0.3, "0101": 0.3}),
+            ),
+            (
+                Counter({"0011": 3, "1100": 1, "0101": 2, "0001": 1}),
+                [
+                    (0, 0, 1, 1),
+                    (1, 1, 0, 0),
+                    (0, 1, 0, 1),
+                    (0, 1, 0, 1),
+                    (0, 1, 0, 1),
+                    (1, 1, 0, 0),
+                    (0, 0, 1, 1),
+                ],
+                BitstringDistribution(
+                    {"0011": 0.3, "1100": 0.001, "0101": 0.001, "0001": 0.698}
+                ),
+            ),
+        ],
+    )
+    def test_check_sample_elimination(
+        self, samples, bitstring_samples, leftover_distribution
+    ):
+        correct_samples = _check_sample_elimination(
+            samples, bitstring_samples, leftover_distribution
+        )
+
+        bitstring_counts = Counter(bitstring_samples)
+        for sample in correct_samples:
+            bitstring = tuple([int(measurement_value) for measurement_value in sample])
+            assert correct_samples[sample] <= bitstring_counts[bitstring]

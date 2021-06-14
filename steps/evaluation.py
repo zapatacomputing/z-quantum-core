@@ -1,5 +1,5 @@
 import json
-from typing import Dict, List, Union
+from typing import Dict, List, Union, cast
 
 from openfermion import QubitOperator, SymbolicOperator
 from openfermion.linalg import (
@@ -8,6 +8,9 @@ from openfermion.linalg import (
 from openfermion.linalg import qubit_operator_sparse
 from pyquil.wavefunction import Wavefunction
 from zquantum.core.circuits import Circuit, circuit_from_dict, load_circuit
+from zquantum.core.estimation import estimate_expectation_values_by_averaging
+from zquantum.core.interfaces.backend import QuantumBackend
+from zquantum.core.interfaces.estimation import EstimationTask
 from zquantum.core.measurement import (
     ExpectationValues,
     load_expectation_values,
@@ -55,10 +58,15 @@ def get_expectation_values_for_qubit_operator(
         qubit_operator = convert_dict_to_qubitop(qubit_operator)
     if isinstance(backend_specs, str):
         backend_specs = json.loads(backend_specs)
-    backend = create_object(backend_specs)
+    backend = cast(QuantumBackend, create_object(backend_specs))
 
-    expectation_values = backend.get_expectation_values(circuit, qubit_operator)
-    save_expectation_values(expectation_values, "expectation-values.json")
+    estimation_tasks = [EstimationTask(qubit_operator, circuit, backend.n_samples)]
+
+    expectation_values = estimate_expectation_values_by_averaging(
+        backend, estimation_tasks
+    )
+
+    save_expectation_values(expectation_values[0], "expectation-values.json")
 
 
 def get_ground_state_rdm_from_qubit_operator(

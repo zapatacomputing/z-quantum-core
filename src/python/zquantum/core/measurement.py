@@ -714,6 +714,9 @@ class Measurements:
         denominator = (
             num_measurements - 1 if use_bessel_correction else num_measurements
         )
+        # Try to avoid the divergence of the Bessel correction
+        if denominator == 0:
+            denominator = 1
 
         estimator_covariances = (
             correlations

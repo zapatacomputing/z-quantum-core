@@ -3,6 +3,7 @@ from typing import List, Optional, Tuple
 import numpy as np
 import pyquil
 import sympy
+import warnings
 from openfermion import IsingOperator, QubitOperator
 
 from ..circuit._circuit import Circuit
@@ -254,14 +255,16 @@ def split_constant_estimation_tasks(
     estimation_tasks_for_constants = []
     indices_to_measure = []
     indices_for_constants = []
+    # TODO: indices will be wrong if eliminating tasks. TEST for that
     for i, task in enumerate(estimation_tasks):
         if len(task.operator.terms) == 1 and () in task.operator.terms.keys():
             indices_for_constants.append(i)
             estimation_tasks_for_constants.append(task)
         elif task.number_of_shots == 0:
-            raise RuntimeError(
-                "An EstimationTask requested 0 shot for a non-constant term. It's unclear what to do with that."
+            warnings.warn(
+                "An EstimationTask requested 0 shot for a non-constant term, and has been neglected."
             )
+            continue
         else:
             indices_to_measure.append(i)
             estimation_tasks_to_measure.append(task)

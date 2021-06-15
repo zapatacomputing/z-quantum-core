@@ -480,12 +480,19 @@ class TestEstimatorUtils:
             ],
         ],
     )
-    def test_split_constant_estimation_tasks_fails_with_zero_shots(
+    def test_split_constant_estimation_tasks_neglects_zero_shots(
         self, estimation_tasks
     ):
 
-        with pytest.raises(RuntimeError):
-            _ = split_constant_estimation_tasks(estimation_tasks)
+        (
+            estimation_task_to_measure,
+            constant_estimation_tasks,
+            indices_to_measure,
+            indices_for_constants,
+        ) = split_constant_estimation_tasks(estimation_tasks)
+
+        assert len(constant_estimation_tasks) == 0
+        assert len(estimation_task_to_measure) == 1
 
     @pytest.mark.parametrize(
         "estimation_tasks,ref_expectation_values",

@@ -87,7 +87,7 @@ There are codestyle-related [Github Actions](.github/workflows/style.yml) runnin
 Additionally, you can set up our [pre-commit hooks](.pre-commit-config.yaml) with `pre-commit install` . It checks for minor errors right before commiting or pushing code for quick feedback. More info [here](https://pre-commit.com). Note that if needed, you can skip these checks with the `--no-verify` option, i.e. `git commit -m "Add quickfix, prod is on fire" --no-verify`.
 
 - If you'd like to report a bug/issue please create a new issue in this repository.
-- If you'd like to contribute, please create a pull request.
+- If you'd like to contribute please create a pull request.
 
 ### Running tests
 

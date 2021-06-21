@@ -1,0 +1,68 @@
+name: publish-release
+
+on: 
+  # run automatically on each push to master
+  push:
+    branches:
+      - master
+
+  # allow triggering manually 
+  workflow_dispatch:
+    inputs:
+      manual_version: 
+        description: Manually selected new project version. If not passed, the workflow will read current version and bump the minor.
+        required: false
+
+
+jobs:
+  publish-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v2
+        with:
+          # Fetch whole repo to get access to tags. We need tags to read current package
+          # version.
+          fetch-depth: 0
+
+      - name: Infer new version
+        id: infer-new-version
+        run: |
+          MANUAL_VERSION="${{ github.event.inputs.manual_version }}"
+          if [ -n "$MANUAL_VERSION" ]; then
+            NEW_VERSION="$MANUAL_VERSION"
+            echo "using manually provided $NEW_VERSION"
+          else
+            PKG_VERSION=$(python3 setup.py --version)
+
+            MAJOR=$(echo $PKG_VERSION | sed -r 's/^([0-9]+)\.([0-9]+)\.([0-9]+)([-\.].+)?$/\1/')
+            MINOR=$(echo $PKG_VERSION | sed -r 's/^([0-9]+)\.([0-9]+)\.([0-9]+)([-\.].+)?$/\2/')
+            PATCH=$(echo $PKG_VERSION | sed -r 's/^([0-9]+)\.([0-9]+)\.([0-9]+)([-\.].+)?$/\3/')
+            DEV=$(echo $PKG_VERSION | sed -r 's/^([0-9]+)\.([0-9]+)\.([0-9]+)([-\.].+)?$/\4/')
+            echo "read version: $MAJOR.$MINOR.$PATCH$DEV"
+
+            NEW_VERSION="$MAJOR.$(expr $MINOR + 1).0"
+            echo "new version: $NEW_VERSION"
+          fi
+          # special github syntax for setting step outputs
+          # see https://docs.github.com/en/actions/reference/workflow-commands-for-github-actions#setting-an-output-parameter
+          echo "::set-output name=new_version::$NEW_VERSION"
+
+      - name: Push new version tag
+        id: push-new-version-tag
+        run: |
+          NEW_VERSION_TAG="v${{steps.infer-new-version.outputs.new_version}}"
+          git tag "$NEW_VERSION_TAG"
+          git push --tags
+
+          echo "::set-output name=new_version_tag::$NEW_VERSION_TAG"
+
+      - name: Create GH release
+        uses: actions/github-script@v4
+        with:
+          script: |
+            github.repos.createRelease({
+              ...context.repo,
+              tag_name: "${{steps.push-new-version-tag.outputs.new_version_tag}}",
+            })
+

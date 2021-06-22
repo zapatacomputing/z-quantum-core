@@ -142,3 +142,11 @@ class TestDecompositionOfPowerGates:
             isinstance(op, GateOperation) and op.gate.name in ("X", "PHASE", "RX", "RY")
             for op in zquantum_circuit.operations
         )
+
+    def test_accepts_only_xpowgate_or_ypowgate_in_initializer_argument(self):
+        with pytest.raises(ValueError):
+            PowerGateToPhaseAndRotation(cirq.ZPowGate, cirq.XPowGate)
+
+    def test_requires_at_least_one_gate_class_in_initializer_argument(self):
+        with pytest.raises(ValueError):
+            PowerGateToPhaseAndRotation()

@@ -49,7 +49,7 @@ class PowerGateToPhaseAndRotation(DecompositionRule[cirq.Operation]):
         rotation_type = type(operation.gate)
         phase_exponent = (original_gate.global_shift + 0.5) * original_gate.exponent
         return [
-            # Global phase, equivalent to Identity * exp((global_shift + 0.5) * exponent)
+            # Global phase, equivalent to Identity*exp((global_shift+0.5)*exponent)
             cirq.ZPowGate(exponent=phase_exponent).on(target_qubit),
             cirq.X.on(target_qubit),
             cirq.ZPowGate(exponent=phase_exponent).on(target_qubit),

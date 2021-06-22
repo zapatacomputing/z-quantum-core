@@ -28,7 +28,7 @@ def decompose_operation(
     if not decomposition_rules:
         return [operation]
 
-    current_rule, remaining_rules = decomposition_rules[0], decomposition_rules[1:]
+    current_rule, *remaining_rules = decomposition_rules
 
     new_operations_to_decompose = (
         current_rule.production(operation)

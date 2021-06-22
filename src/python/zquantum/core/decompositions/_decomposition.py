@@ -9,11 +9,16 @@ OperationType = TypeVar("OperationType")
 class DecompositionRule(Protocol[OperationType]):
     @abstractmethod
     def production(self, operation: OperationType) -> Iterable[OperationType]:
-        pass
+        """Decompose given operation.
+
+        Implementers should make sure that the result of applying the decomposed
+        sequence to any wavefunction is the same as after applying the original
+        operation.
+        """
 
     @abstractmethod
     def predicate(self, operation: OperationType) -> bool:
-        pass
+        """Determine if this rule should be applied to given operation."""
 
 
 def decompose_operation(

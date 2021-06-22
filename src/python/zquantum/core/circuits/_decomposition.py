@@ -1,4 +1,3 @@
-from abc import abstractmethod
 from typing import Iterable, TypeVar
 
 from typing_extensions import Protocol
@@ -7,12 +6,9 @@ OperationType = TypeVar("OperationType")
 
 
 class DecompositionRule(Protocol[OperationType]):
-
-    @abstractmethod
     def production(self, operation: OperationType) -> Iterable[OperationType]:
         raise NotImplementedError()
 
-    @abstractmethod
     def predicate(self, operation: OperationType) -> bool:
         raise NotImplementedError()
 

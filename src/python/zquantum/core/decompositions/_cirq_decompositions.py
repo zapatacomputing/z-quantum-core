@@ -1,7 +1,6 @@
 from typing import Iterable, cast
 
 import cirq
-
 from zquantum.core.decompositions._decomposition import (
     DecompositionRule,
     decompose_operations,

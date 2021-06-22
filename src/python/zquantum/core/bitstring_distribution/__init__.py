@@ -10,10 +10,10 @@ from ._bitstring_distribution import (
     is_non_negative,
     is_normalized,
     load_bitstring_distribution,
-    load_bitstring_distribution_set,
+    load_bitstring_distributions,
     normalize_bitstring_distribution,
     save_bitstring_distribution,
-    save_bitstring_distribution_set,
+    save_bitstring_distributions,
 )
 from .distance_measures import (
     compute_clipped_negative_log_likelihood,

@@ -1,7 +1,6 @@
 from abc import abstractmethod
 from typing import Iterable, TypeVar
 
-import cirq
 from typing_extensions import Protocol
 
 OperationType = TypeVar("OperationType")

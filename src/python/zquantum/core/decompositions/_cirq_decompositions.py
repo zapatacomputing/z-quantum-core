@@ -2,7 +2,10 @@ from typing import Iterable, cast
 
 import cirq
 
-from ._decomposition import DecompositionRule, decompose_operations
+from zquantum.core.decompositions._decomposition import (
+    DecompositionRule,
+    decompose_operations,
+)
 
 
 def _is_cirq_rotation(gate: cirq.EigenGate):
@@ -13,7 +16,9 @@ def _is_pauli_gate(gate: cirq.Gate):
     return (
         # Note that below predicate handles both PowGate's with exponent 1
         # and global_shift=0 as well as _PauliX etc.
-        gate == cirq.X or gate == cirq.Y or gate == cirq.Z
+        gate == cirq.X
+        or gate == cirq.Y
+        or gate == cirq.Z
     )
 
 

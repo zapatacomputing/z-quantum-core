@@ -9,17 +9,11 @@ def _is_cirq_rotation(gate: cirq.EigenGate):
     return gate.global_shift == -0.5
 
 
-def _is_pauli(gate: cirq.Gate):
+def _is_pauli_gate(gate: cirq.Gate):
     return (
-        # covers _PauliX etc.
-        isinstance(gate, (type(cirq.X), type(cirq.Y), type(cirq.Z)))
-        or
-        # covers X ** 1 etc.
-        (
-            isinstance(gate, (cirq.XPowGate, cirq.YPowGate, cirq.ZPowGate))
-            and gate.exponent == 1
-            and gate.global_shift == 0
-        )
+        # Note that below predicate handles both PowGate's with exponent 1
+        # and global_shift=0 as well as _PauliX etc.
+        gate == cirq.X or gate == cirq.Y or gate == cirq.Z
     )
 
 
@@ -46,7 +40,7 @@ class PowerGateToPhaseAndRotation(DecompositionRule[cirq.Operation]):
             isinstance(operation, cirq.GateOperation)
             and isinstance(operation.gate, self.gate_types)
             and not _is_cirq_rotation(cast(cirq.EigenGate, operation.gate))
-            and not _is_pauli(operation.gate)
+            and not _is_pauli_gate(operation.gate)
         )
 
     def production(self, operation: cirq.Operation) -> Iterable[cirq.Operation]:

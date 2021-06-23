@@ -21,10 +21,6 @@ def _circuit_size_by_operations(operations):
     )
 
 
-def _bind_operation(op: _gates.GateOperation, symbols_map) -> _gates.GateOperation:
-    return op.gate.bind(symbols_map)(*op.qubit_indices)
-
-
 def _operation_uses_custom_gate(operation):
     return isinstance(operation.gate, _gates.MatrixFactoryGate) and isinstance(
         operation.gate.matrix_factory, _gates.CustomGateMatrixFactory
@@ -128,7 +124,7 @@ class Circuit:
             symbols_map: A map of the symbols/gate parameters to new values
         """
         return type(self)(
-            operations=[_bind_operation(op, symbols_map) for op in self.operations],
+            operations=[op.bind(symbols_map) for op in self.operations],
             n_qubits=self.n_qubits,
         )
 

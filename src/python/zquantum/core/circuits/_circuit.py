@@ -69,7 +69,7 @@ class Circuit:
         seen_symbols = set()
         symbols_sequence = []
         for operation in self._operations:
-            for symbol in operation.gate.free_symbols:
+            for symbol in operation.free_symbols:
                 if symbol not in seen_symbols:
                     seen_symbols.add(symbol)
                     symbols_sequence.append(symbol)

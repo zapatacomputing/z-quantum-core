@@ -46,6 +46,9 @@ class SymbolicSimulator(QuantumSimulator):
         return Measurements(bitstrings)
 
     def get_wavefunction(self, circuit: Circuit, **kwargs) -> Wavefunction:
+        if circuit.free_symbols:
+            raise ValueError("Currently circuits with free symbols are not supported")
+
         super().get_wavefunction(circuit, **kwargs)
         state = np.zeros(2 ** circuit.n_qubits)
         state[0] = 1

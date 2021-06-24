@@ -164,7 +164,7 @@ class TestBindingParams:
         bound_circuit = circuit.bind({theta1: -np.pi, other_param: 42})
         assert bound_circuit.free_symbols == [theta2, theta3]
 
-    def test_free_symbols_of_wavefunction_operations_are_present_in_circuits_free_symbols(
+    def test_symbols_of_wavefunction_operations_are_present_in_circuits_free_symbols(
         self,
     ):
         alpha, beta = sympy.symbols("alpha, beta")

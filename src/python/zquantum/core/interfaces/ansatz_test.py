@@ -54,4 +54,4 @@ class AnsatzTests:
 
         # Then
         for operation in circuit.operations:
-            assert len(operation.gate.free_symbols) == 0
+            assert len(operation.free_symbols) == 0

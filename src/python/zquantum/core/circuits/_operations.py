@@ -1,7 +1,7 @@
 from abc import abstractmethod
 from functools import singledispatch
 from numbers import Number
-from typing import Dict, Iterable, Tuple, TypeVar, Union
+from typing import Dict, Iterable, Sequence, Tuple, TypeVar, Union
 
 import sympy
 from typing_extensions import Protocol
@@ -35,6 +35,14 @@ class Operation(Protocol):
         The difference between bind and replace params is that it bind performs
         parameter substitution - in particular, parameters without free symbols
         are unaffected by bind, whereas replace_params replaces *all* params.
+        """
+
+    @abstractmethod
+    def apply(self: T, wavefunction: Sequence[Parameter]) -> Sequence[Parameter]:
+        """Apply this operation to given wavefunction.
+
+        Operations that cannot be applied deterministically should raise
+        NotImplementedError.
         """
 
     @property

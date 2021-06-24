@@ -1,6 +1,5 @@
 import pytest
 import sympy
-
 from zquantum.core import circuits
 from zquantum.core.interfaces.backend_test import (
     QuantumSimulatorGatesTest,

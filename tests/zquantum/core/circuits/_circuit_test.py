@@ -1,6 +1,7 @@
 import numpy as np
 import pytest
 import sympy
+from zquantum.core.circuits import MultiPhaseOperation
 from zquantum.core.circuits._builtin_gates import (
     CNOT,
     CPHASE,
@@ -162,3 +163,20 @@ class TestBindingParams:
 
         bound_circuit = circuit.bind({theta1: -np.pi, other_param: 42})
         assert bound_circuit.free_symbols == [theta2, theta3]
+
+    def test_free_symbols_of_wavefunction_operations_are_present_in_circuits_free_symbols(
+        self,
+    ):
+        alpha, beta = sympy.symbols("alpha, beta")
+        circuit = Circuit([RX(alpha)(0), MultiPhaseOperation((beta, 0.5))])
+
+        assert circuit.free_symbols == [alpha, beta]
+
+    def test_binding_symbols_to_circuit_binds_them_to_wavefunction_operation(self):
+        alpha, beta = sympy.symbols("alpha, beta")
+        circuit = Circuit([RX(alpha)(0), MultiPhaseOperation((beta, 0.5))]).bind(
+            {beta: 0.3}
+        )
+
+        assert circuit.free_symbols == [alpha]
+        assert circuit.operations == [RX(alpha)(0), MultiPhaseOperation((0.3, 0.5))]

@@ -22,7 +22,7 @@ def wf_simulator():
 class TestSymbolicSimulator(QuantumSimulatorTests):
 
     def test_get_wavefunction_raises_if_circuit_contains_free_symbols(
-        self,  wf_simulator
+        self, wf_simulator
     ):
         circuit = circuits.Circuit([circuits.RX(sympy.Symbol("theta"))(2)])
         with pytest.raises(ValueError):

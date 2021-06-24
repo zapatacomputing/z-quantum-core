@@ -1,7 +1,7 @@
 """Data structures for ZQuantum gates."""
 import math
 from dataclasses import dataclass, replace
-from typing import Callable, Dict, Iterable, Tuple, Union
+from typing import Callable, Dict, Iterable, Sequence, Tuple, Union
 
 import numpy as np
 import sympy
@@ -122,6 +122,16 @@ class GateOperation:
             if self.gate.free_symbols
             else _lift_matrix_numpy(self.gate.matrix, self.qubit_indices, num_qubits)
         )
+
+    def apply(self, wavefunction: Sequence[Parameter]) -> Sequence[Parameter]:
+        num_qubits = np.log2(len(wavefunction))
+        if 2 ** num_qubits != len(wavefunction):
+            raise ValueError(
+                "GateOperation can only be applied to multi-qubit state vector but "
+                f"vector of length {len(wavefunction)} was provided."
+            )
+
+        return self.lifted_matrix(int(num_qubits)) @ wavefunction
 
     @property
     def free_symbols(self) -> Iterable[sympy.Symbol]:

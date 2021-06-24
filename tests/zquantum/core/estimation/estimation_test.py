@@ -667,7 +667,9 @@ class TestBasicEstimationMethods:
         ):
             assert len(expectation_values.values) == len(task.operator.terms)
             # TODO: add tests for correlations and covariances
-            np.testing.assert_array_equal(expectation_values.values, target.values)
+            np.testing.assert_array_almost_equal(
+                expectation_values.values, target.values
+            )
 
     def test_calculate_exact_expectation_values_fails_with_non_simulator(
         self, estimation_tasks

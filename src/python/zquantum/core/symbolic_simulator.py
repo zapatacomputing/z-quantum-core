@@ -36,7 +36,8 @@ class SymbolicSimulator(QuantumSimulator):
         if n_samples is None:
             if self.n_samples is None:
                 raise ValueError(
-                    "n_samples needs to be specified either as backend attribute or as a function argument."
+                    "n_samples needs to be specified either as backend attribute or "
+                    "as a function argument."
                 )
             else:
                 n_samples = self.n_samples

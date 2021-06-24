@@ -174,9 +174,13 @@ class TestBindingParams:
 
     def test_binding_symbols_to_circuit_binds_them_to_wavefunction_operation(self):
         alpha, beta = sympy.symbols("alpha, beta")
-        circuit = Circuit([RX(alpha)(0), MultiPhaseOperation((beta, 0.5))]).bind(
-            {beta: 0.3}
-        )
+        circuit = Circuit(
+            [RX(alpha)(0), MultiPhaseOperation((beta, 0.5)), RX(beta)(1)]
+        ).bind({beta: 0.3})
 
         assert circuit.free_symbols == [alpha]
-        assert circuit.operations == [RX(alpha)(0), MultiPhaseOperation((0.3, 0.5))]
+        assert circuit.operations == [
+            RX(alpha)(0),
+            MultiPhaseOperation((0.3, 0.5)),
+            RX(0.3)(1),
+        ]

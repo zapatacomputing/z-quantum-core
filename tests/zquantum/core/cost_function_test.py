@@ -5,7 +5,6 @@ import numpy as np
 import pytest
 from openfermion import QubitOperator
 from sympy import Symbol
-
 from zquantum.core.cost_function import (
     AnsatzBasedCostFunction,
     get_ground_state_cost_function,

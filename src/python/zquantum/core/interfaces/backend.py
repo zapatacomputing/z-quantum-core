@@ -3,7 +3,7 @@ from abc import ABC, abstractmethod
 from typing import Any, List, Optional, Sequence
 
 import numpy as np
-from openfermion import SymbolicOperator
+from openfermion import IsingOperator, QubitOperator, SymbolicOperator
 from pyquil.wavefunction import Wavefunction
 
 from ..bitstring_distribution import (
@@ -13,7 +13,7 @@ from ..bitstring_distribution import (
 from ..circuits import Circuit
 from ..circuits.layouts import CircuitConnectivity
 from ..measurement import ExpectationValues, Measurements, expectation_values_to_real
-from ..openfermion import get_expectation_value
+from ..openfermion import change_operator_type, get_expectation_value
 
 
 class QuantumBackend(ABC):
@@ -169,6 +169,8 @@ class QuantumSimulator(QuantumBackend):
             Expectation values for given operator.
         """
         wavefunction = self.get_wavefunction(circuit)
+        if isinstance(operator, IsingOperator):
+            operator = change_operator_type(operator, QubitOperator)
         expectation_values = ExpectationValues(
             np.array([get_expectation_value(term, wavefunction) for term in operator])
         )

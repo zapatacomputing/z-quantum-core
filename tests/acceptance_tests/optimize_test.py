@@ -98,8 +98,8 @@ class TestOptimizeParamterizedCircuit:
             json.dump(CIRCUIT_DICT, f)
 
         backend_specs = {
-            "module_name": "zquantum.core.interfaces.mock_objects",
-            "function_name": "MockQuantumSimulator",
+            "module_name": "zquantum.core.symbolic_simulator",
+            "function_name": "SymbolicSimulator",
             "n_samples": 10000,
         }
         initial_parameters_path = "initial_parameters.json"

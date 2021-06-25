@@ -16,8 +16,9 @@ from zquantum.core.estimation import (
     calculate_exact_expectation_values,
     estimate_expectation_values_by_averaging,
 )
-from zquantum.core.interfaces.mock_objects import MockAnsatz, MockQuantumSimulator
+from zquantum.core.interfaces.mock_objects import MockAnsatz
 from zquantum.core.measurement import ExpectationValues
+from zquantum.core.symbolic_simulator import SymbolicSimulator
 from zquantum.core.utils import create_symbols_map
 
 RNGSEED = 1234
@@ -30,7 +31,7 @@ RNGSEED = 1234
             "parametrized_circuit": MockAnsatz(
                 number_of_layers=1, problem_size=1
             ).parametrized_circuit,
-            "backend": MockQuantumSimulator(),
+            "backend": SymbolicSimulator(),
             "estimation_method": estimate_expectation_values_by_averaging,
             "estimation_preprocessors": [
                 partial(allocate_shots_uniformly, number_of_shots=1)
@@ -41,7 +42,7 @@ RNGSEED = 1234
             "parametrized_circuit": MockAnsatz(
                 number_of_layers=1, problem_size=2
             ).parametrized_circuit,
-            "backend": MockQuantumSimulator(),
+            "backend": SymbolicSimulator(),
             "estimation_method": estimate_expectation_values_by_averaging,
             "estimation_preprocessors": [
                 partial(allocate_shots_uniformly, number_of_shots=1)
@@ -52,7 +53,7 @@ RNGSEED = 1234
             "parametrized_circuit": MockAnsatz(
                 number_of_layers=2, problem_size=2
             ).parametrized_circuit,
-            "backend": MockQuantumSimulator(),
+            "backend": SymbolicSimulator(),
             "estimation_method": estimate_expectation_values_by_averaging,
             "fixed_parameters": [1.2],
             "estimation_preprocessors": [
@@ -64,7 +65,7 @@ RNGSEED = 1234
             "parametrized_circuit": MockAnsatz(
                 number_of_layers=2, problem_size=2
             ).parametrized_circuit,
-            "backend": MockQuantumSimulator(),
+            "backend": SymbolicSimulator(),
             "estimation_method": estimate_expectation_values_by_averaging,
             "fixed_parameters": [1.2],
             "parameter_precision": 0.001,
@@ -78,7 +79,7 @@ RNGSEED = 1234
             "parametrized_circuit": MockAnsatz(
                 number_of_layers=1, problem_size=1
             ).parametrized_circuit,
-            "backend": MockQuantumSimulator(),
+            "backend": SymbolicSimulator(),
             "estimation_method": estimate_expectation_values_by_averaging,
             "estimation_preprocessors": [
                 partial(allocate_shots_proportionally, total_n_shots=1)
@@ -104,7 +105,7 @@ def test_noisy_ground_state_cost_function_adds_noise_to_parameters():
         number_of_layers=2, problem_size=1
     ).parametrized_circuit
     parametrized_circuit.bind = mock.Mock(wraps=parametrized_circuit.bind)
-    backend = MockQuantumSimulator()
+    backend = SymbolicSimulator()
     estimation_method = estimate_expectation_values_by_averaging
     estimation_preprocessors = [partial(allocate_shots_uniformly, number_of_shots=1)]
     noisy_ground_state_cost_function = get_ground_state_cost_function(
@@ -171,7 +172,7 @@ def test_sum_expectation_values_with_covariances():
 def ansatz_based_cost_function():
     target_operator = QubitOperator("Z0")
     ansatz = MockAnsatz(number_of_layers=1, problem_size=1)
-    backend = MockQuantumSimulator()
+    backend = SymbolicSimulator()
     estimation_method = estimate_expectation_values_by_averaging
     estimation_preprocessors = [partial(allocate_shots_uniformly, number_of_shots=1)]
     return AnsatzBasedCostFunction(
@@ -195,7 +196,7 @@ def test_ansatz_based_cost_function_returns_value_between_plus_and_minus_one(
 def noisy_ansatz_cost_function_with_ansatz():
     target_operator = QubitOperator("Z0")
     ansatz = MockAnsatz(number_of_layers=2, problem_size=1)
-    backend = MockQuantumSimulator()
+    backend = SymbolicSimulator()
     estimation_method = mock.Mock(wraps=calculate_exact_expectation_values)
     return (
         AnsatzBasedCostFunction(

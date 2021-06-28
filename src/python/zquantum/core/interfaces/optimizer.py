@@ -37,8 +37,8 @@ class Optimizer(ABC):
             keep_history: flag indicating whether history of cost function
                 evaluations should be recorded.
         """
-        if keep_history:
-            cost_function = self.recorder(cost_function)
+        #if keep_history:
+         #   cost_function = self.recorder(cost_function)
         return self._minimize(cost_function, initial_params, keep_history)
 
     @abstractmethod

@@ -229,3 +229,8 @@ class TestGateOperation:
     ):
         op = GateOperation(gate, tuple(range(gate.num_qubits)))
         assert op.free_symbols == gate.free_symbols
+
+    def test_cannot_be_applied_to_vector_of_not_power_of_two_length(self, gate):
+        state_vector = np.array([0.1 for _ in range(2 ** gate.num_qubits + 1)])
+        with pytest.raises(ValueError):
+            GateOperation(gate, tuple(range(gate.num_qubits))).apply(state_vector)

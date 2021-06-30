@@ -458,7 +458,7 @@ def _check_sample_elimination(
     bitstring_samples: List[Tuple[int, ...]],
     leftover_distribution: BitstringDistribution,
 ) -> collections.Counter:
-    """This is a recursive function, that checks that all elements in samples
+    """This is a function that checks that all elements in samples
     are present in bitstring_samples. If they are not, we eliminate the
     elements not in bitstring samples, set their probability to 0 in leftover_distribution
     and resample the appropriate number of times. Then, we re-check the new samples.
@@ -473,28 +473,32 @@ def _check_sample_elimination(
                      be removed from bitstring_samples
     """
     bitstring_counts = Counter(bitstring_samples)
-    new_samples = None
-    correct_samples = samples
-    for sample in samples:
-        bitstring = tuple([int(measurement_value) for measurement_value in sample])
-        if samples[sample] > bitstring_counts[bitstring]:
-            nresamples = samples[sample] - bitstring_counts[bitstring]
-            samples[sample] = bitstring_counts[bitstring]
-            distribution_dict = leftover_distribution.distribution_dict
-            distribution_dict[sample] = 0
-            leftover_distribution = BitstringDistribution(distribution_dict, True)
-            new_samples = sample_from_probability_distribution(
-                leftover_distribution.distribution_dict, nresamples
-            )
-            correct_samples = samples + new_samples
-            break
 
-    if new_samples is None:
-        return correct_samples
-    else:
-        return _check_sample_elimination(
-            correct_samples, bitstring_samples, leftover_distribution
-        )
+    nresamples = 1  # Initializing so that the loop starts
+    corrected_leftover_distribution = BitstringDistribution(
+        dict(leftover_distribution.distribution_dict)
+    )
+    correct_samples = samples.copy()
+    while nresamples != 0:
+        new_samples = None
+        nresamples = 0
+        for sample in correct_samples:
+            bitstring = tuple([int(measurement_value) for measurement_value in sample])
+            if correct_samples[sample] > bitstring_counts[bitstring]:
+                nresamples = correct_samples[sample] - bitstring_counts[bitstring]
+                correct_samples[sample] = bitstring_counts[bitstring]
+                distribution_dict = corrected_leftover_distribution.distribution_dict
+                distribution_dict[sample] = 0
+                corrected_leftover_distribution = BitstringDistribution(
+                    distribution_dict, True
+                )
+                new_samples = sample_from_probability_distribution(
+                    corrected_leftover_distribution.distribution_dict, nresamples
+                )
+                correct_samples = correct_samples + new_samples
+                break
+
+    return correct_samples
 
 
 class Measurements:

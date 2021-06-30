@@ -610,7 +610,7 @@ class Measurements:
         return BitstringDistribution(distribution)
 
     def get_expectation_values(
-        self, ising_operator: IsingOperator, use_bessel_correction: bool = True
+        self, ising_operator: IsingOperator, use_bessel_correction: bool = False
     ) -> ExpectationValues:
         """Get the expectation values of an operator from the measurements.
 
@@ -667,9 +667,6 @@ class Measurements:
         denominator = (
             num_measurements - 1 if use_bessel_correction else num_measurements
         )
-        # Try to avoid the divergence of the Bessel correction
-        if denominator == 0:
-            denominator = 1
 
         estimator_covariances = (
             correlations

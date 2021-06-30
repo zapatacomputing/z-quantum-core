@@ -201,13 +201,12 @@ def evaluate_estimation_circuits(
     ]
 
 
-def split_constant_estimation_tasks(
+def split_estimation_tasks_to_measure(
     estimation_tasks: List[EstimationTask],
 ) -> Tuple[List[EstimationTask], List[EstimationTask], List[int], List[int]]:
     """This function splits a given list of EstimationTask into two: one that
-    contains EstimationTasks that only contain constants, and one that contains
-    EstimationTasks that have non-constant terms as well.
-    that require 0 shot generate an error.
+    contains EstimationTasks that should be measured, and one that contains
+    EstimationTasks with constants or with 0 shots.
 
     Args:
         estimation_tasks: The list of estimation tasks for which
@@ -216,63 +215,68 @@ def split_constant_estimation_tasks(
     Returns:
         estimation_tasks_to_measure: A new list of estimation tasks that only
             contains the ones that should actually be submitted to the backend
-        estimation_tasks_for_constants: A new list of estimation tasks that
-            contains the EstimationTasks with only constant terms
+        estimation_tasks_not_measured: A new list of estimation tasks that
+            contains the EstimationTasks with only constant terms or with
+            0 shot
         indices_to_measure: A list containing the indices of the EstimationTasks we will
             actually measure, i.e. the ith estimation_tasks_to_measure expectation
             value will go into the indices_to_measure[i] position.
-        indices_for_constants: A list containing the indices of the EstimationTasks for
-            constant terms.
+        indices_to_not_measure: A list containing the indices of the EstimationTasks for
+            constant terms or with 0 shot.
     """
 
     estimation_tasks_to_measure = []
-    estimation_tasks_for_constants = []
+    estimation_tasks_not_measured = []
     indices_to_measure = []
-    indices_for_constants = []
+    indices_to_not_measure = []
     # TODO: indices will be wrong if eliminating tasks. TEST for that
     for i, task in enumerate(estimation_tasks):
-        if len(task.operator.terms) == 1 and () in task.operator.terms.keys():
-            indices_for_constants.append(i)
-            estimation_tasks_for_constants.append(task)
-        elif task.number_of_shots == 0:
-            warnings.warn(
-                "An EstimationTask requested 0 shot for a non-constant term, and has been neglected."
-            )
-            continue
+        if (
+            len(task.operator.terms) == 1 and () in task.operator.terms.keys()
+        ) or task.number_of_shots == 0:
+            indices_to_not_measure.append(i)
+            estimation_tasks_not_measured.append(task)
         else:
             indices_to_measure.append(i)
             estimation_tasks_to_measure.append(task)
 
     return (
         estimation_tasks_to_measure,
-        estimation_tasks_for_constants,
+        estimation_tasks_not_measured,
         indices_to_measure,
-        indices_for_constants,
+        indices_to_not_measure,
     )
 
 
-def evaluate_constant_estimation_tasks(
+def evaluate_non_measured_estimation_tasks(
     estimation_tasks: List[EstimationTask],
 ) -> List[ExpectationValues]:
-    """This function evaluates a list of EstimationTask over constant terms.
+    """This function evaluates a list of EstimationTask that are not
+    measured, and either contain only a constant term or require 0 shot.
+    Non-constant EstimationTask with 0 shot return 0.0 as their
+    ExpectationValue, with a precision of 0.0 as well.
 
     Args:
         estimation_tasks: The list of estimation tasks for which
-            Expectation Values are wanted, they must only contain constant terms.
+            Expectation Values are wanted.
 
     Returns:
-        expectation_values: the expectation values over constant terms,
+        expectation_values: the expectation values over non-measured terms,
             with their correlations and estimator_covariances.
     """
 
     expectation_values = []
     for task in estimation_tasks:
         if len(task.operator.terms) > 1 or () not in task.operator.terms.keys():
-            raise RuntimeError(
-                "evaluate_constant_estimation_tasks received an EstimationTask "
-                "that contained a non-constant term."
-            )
-        coefficient = task.operator.terms[()]
+            if task.number_of_shots > 0:
+                raise RuntimeError(
+                    "An EstimationTask required shots but was classified as a non-measured task"
+                )
+            else:
+                coefficient = 0.0
+        else:
+            coefficient = task.operator.terms[()]
+
         expectation_values.append(
             ExpectationValues(
                 np.asarray([coefficient]),
@@ -300,13 +304,13 @@ def estimate_expectation_values_by_averaging(
 
     (
         estimation_tasks_to_measure,
-        estimation_tasks_for_constants,
+        estimation_tasks_not_measured,
         indices_to_measure,
-        indices_for_constants,
-    ) = split_constant_estimation_tasks(estimation_tasks)
+        indices_not_to_measure,
+    ) = split_estimation_tasks_to_measure(estimation_tasks)
 
-    expectation_values_for_constants = evaluate_constant_estimation_tasks(
-        estimation_tasks_for_constants
+    expectation_values_for_constants = evaluate_non_measured_estimation_tasks(
+        estimation_tasks_not_measured
     )
 
     circuits, operators, shots_per_circuit = zip(
@@ -330,12 +334,12 @@ def estimate_expectation_values_by_averaging(
     full_expectation_values: List[Optional[ExpectationValues]] = [
         None
         for _ in range(
-            len(estimation_tasks_for_constants) + len(estimation_tasks_to_measure)
+            len(estimation_tasks_not_measured) + len(estimation_tasks_to_measure)
         )
     ]
 
     for ex_val, final_index in zip(
-        expectation_values_for_constants, indices_for_constants
+        expectation_values_for_constants, indices_not_to_measure
     ):
         full_expectation_values[final_index] = ex_val
     for ex_val, final_index in zip(

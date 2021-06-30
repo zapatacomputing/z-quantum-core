@@ -454,14 +454,15 @@ def get_expectation_value_from_frequencies(
 
 
 def _check_sample_elimination(
-    samples: collections.Counter,
+    samples: Counter,
     bitstring_samples: List[Tuple[int, ...]],
     leftover_distribution: BitstringDistribution,
-) -> collections.Counter:
+) -> Counter:
     """This is a function that checks that all elements in samples
     are present in bitstring_samples. If they are not, we eliminate the
-    elements not in bitstring samples, set their probability to 0 in leftover_distribution
-    and resample the appropriate number of times. Then, we re-check the new samples.
+    elements not in bitstring samples, set their probability to 0 in
+    leftover_distribution and resample the appropriate number of times.
+    Then, we re-check the new samples.
     Args:
         samples: The bitstrings to eliminate and how many times to eliminate them
         bitstring_samples: the bitstring distribution from where the bitstrings

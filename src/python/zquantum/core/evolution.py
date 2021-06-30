@@ -8,10 +8,9 @@ from typing import List, Tuple, Union
 import numpy as np
 import pyquil.paulis
 import sympy
-
 from openfermion import QubitOperator
-
-from .circuit import Circuit, Gate, Qubit
+from zquantum.core import circuits
+from zquantum.core.circuits import CNOT, RX, RZ, H
 
 
 def time_evolution(
@@ -19,7 +18,7 @@ def time_evolution(
     time: Union[float, sympy.Expr],
     method: str = "Trotter",
     trotter_order: int = 1,
-) -> Circuit:
+) -> circuits.Circuit:
     """Create a circuit simulating evolution under given Hamiltonian.
 
     Args:
@@ -54,6 +53,31 @@ def time_evolution(
     )
 
 
+def _adjust_gate_angle(operation: circuits.GateOperation, time):
+    """Adjust angle in gate operation to account for evolution in time.
+
+    Since this handles outputs from `pyquil.paulis.exponentiate`, the only
+    time-dependent gates are RZ and PHASE (other rotations have fixed
+    angles as they correspond to change of basis).
+
+    Therefore, we multiply angles in RZ and PHASE by `time`, and leave other
+    gates unchanged.
+    """
+    # The below should not happen, however, we leave it to reproduce logic from
+    # the original code.
+    if len(operation.params) > 1:
+        raise ValueError(
+            "Time evolution of multi-parameter gates with symbolic parameter is "
+            "not supported."
+        )
+    if operation.gate.name in ("RZ", "PHASE"):
+        evolved = operation.replace_params((operation.params[0] * time,))
+    else:
+        evolved = operation
+
+    return evolved
+
+
 @singledispatch
 def time_evolution_for_term(term, time: Union[float, sympy.Expr]):
     raise NotImplementedError
@@ -62,41 +86,34 @@ def time_evolution_for_term(term, time: Union[float, sympy.Expr]):
 @time_evolution_for_term.register
 def _time_evolution_for_term_pyquil(
     term: pyquil.paulis.PauliTerm, time: Union[float, sympy.Expr]
-) -> Circuit:
-    """Evolves a Pauli term for a given time and returns a circuit representing it.
+) -> circuits.Circuit:
+    """Construct a circuit simulating evolution under a given Pauli hamiltonian.
+
     Args:
-        term: Pauli term to be evolved
+        term: Pauli term describing evolution
         time: time of evolution
     Returns:
-        Circuit: Circuit representing evolved pyquil term.
+        Circuit simulating time evolution.
     """
     if isinstance(time, sympy.Expr):
-        circuit = Circuit(pyquil.paulis.exponentiate(term))
-        for gate in circuit.gates:
-            if len(gate.params) > 1:
-                raise (
-                    NotImplementedError(
-                        "Time evolution of multi-parametered gates with symbolic "
-                        "parameters is not supported."
-                    )
-                )
-            elif gate.name == "Rz" or gate.name == "PHASE":
-                # We only want to modify the parameter of Rz gate or PHASE gate.
-                gate.params[0] = gate.params[0] * time
+        circuit = circuits.import_from_pyquil(pyquil.paulis.exponentiate(term))
+
+        new_circuit = circuits.Circuit(
+            [_adjust_gate_angle(operation, time) for operation in circuit.operations]
+        )
     else:
         exponent = term * time
-        assert isinstance(exponent, pyquil.paulis.PauliTerm)
-        circuit = Circuit(pyquil.paulis.exponentiate(exponent))
-    return circuit
+        new_circuit = circuits.import_from_pyquil(pyquil.paulis.exponentiate(exponent))
+
+    return new_circuit
 
 
 @time_evolution_for_term.register
 def _time_evolution_for_term_qubit_operator(
     term: QubitOperator, time: Union[float, sympy.Expr]
-) -> Circuit:
+) -> circuits.Circuit:
     """Evolves a Pauli term for a given time and returns a circuit representing it.
     Based on section 4 from https://arxiv.org/abs/1001.3855 .
-
     Args:
         term: Pauli term to be evolved
         time: time of evolution
@@ -117,48 +134,40 @@ def _time_evolution_for_term_qubit_operator(
 
     for i, (term_type, qubit_id) in enumerate(zip(term_types, qubit_indices)):
         if term_type == "X":
-            base_changes.append(Gate("H", qubits=[Qubit(qubit_id)]))
-            base_reversals.append(Gate("H", qubits=[Qubit(qubit_id)]))
+            base_changes.append(H(qubit_id))
+            base_reversals.append(H(qubit_id))
         elif term_type == "Y":
-            base_changes.append(
-                Gate("Rx", qubits=[Qubit(qubit_id)], params=[np.pi / 2])
-            )
-            base_reversals.append(
-                Gate("Rx", qubits=[Qubit(qubit_id)], params=[-np.pi / 2])
-            )
+            base_changes.append(RX(np.pi / 2)(qubit_id))
+            base_reversals.append(RX(-np.pi / 2)(qubit_id))
         if i == len(term_components) - 1:
-            central_gate = Gate(
-                "Rz", qubits=[Qubit(qubit_id)], params=[2 * time * coefficient]
-            )
+            central_gate = RZ(2 * time * coefficient)(qubit_id)
         else:
-            cnot_gates.append(
-                Gate("CNOT", qubits=[Qubit(qubit_id), Qubit(qubit_indices[i + 1])])
-            )
+            cnot_gates.append(CNOT(qubit_id, qubit_indices[i + 1]))
 
-    circuit = Circuit()
+    circuit = circuits.Circuit()
     for gate in base_changes:
-        circuit.gates.append(gate)
+        circuit += gate
 
     for gate in cnot_gates:
-        circuit.gates.append(gate)
+        circuit += gate
 
-    circuit.gates.append(central_gate)
+    circuit += central_gate
 
     for gate in reversed(cnot_gates):
-        circuit.gates.append(gate)
+        circuit += gate
 
     for gate in base_reversals:
-        circuit.gates.append(gate)
+        circuit += gate
 
     return circuit
 
 
 def time_evolution_derivatives(
-    hamiltonian: Union[pyquil.paulis.PauliSum, QubitOperator],
+    hamiltonian: pyquil.paulis.PauliSum,
     time: float,
     method: str = "Trotter",
     trotter_order: int = 1,
-) -> Tuple[List[Circuit], List[float]]:
+) -> Tuple[List[circuits.Circuit], List[float]]:
     """Generates derivative circuits for the time evolution operator defined in
     function time_evolution
 
@@ -190,7 +199,7 @@ def time_evolution_derivatives(
 
     for i, term_1 in enumerate(terms):
         for factor in factors:
-            output = Circuit()
+            output = circuits.Circuit()
 
             try:
                 if isinstance(term_1, QubitOperator):
@@ -237,27 +246,35 @@ def time_evolution_derivatives(
 
 
 def _generate_circuit_sequence(
-    repeated_circuit: Circuit, different_circuit: Circuit, length: int, position: int
-) -> Circuit:
-    """
-    Auxiliary function to generate a sequence of the "repeated_circuit",
-    "length" times, where at position "position" we have "different_circuit"
-    instead.
+    repeated_circuit: circuits.Circuit,
+    different_circuit: circuits.Circuit,
+    length: int,
+    position: int,
+):
+    """Join multiple copies of circuit, replacing one copy with a different circuit.
+
     Args:
-        repeated_circuit (core.circuit.Circuit)
-        different_circuit (core.circuit.Circuit)
-        length (int)
-        position (int)
+        repeated_circuit: circuit which copies should be concatenated
+        different_circuit: circuit that will replace one copy of `repeated_circuit
+        length: total number of circuits to join
+        position: which copy of repeated_circuit should be replaced by
+        `different_circuit`.
     Returns:
-        circuit_sequence (core.circuit.Circuit))
+        Concatenation of circuits C_1, ..., C_length, where C_i = `repeated_circuit`
+        if i != position and C_i = `different_circuit` if i == position.
     """
     if position >= length:
-        raise ValueError("The position must be less than the total length")
+        raise ValueError(f"Position {position} should be < {length}")
 
-    circuit_sequence = Circuit()
-    for index in range(length):
-        if index == position:
-            circuit_sequence += different_circuit
-        else:
-            circuit_sequence += repeated_circuit
-    return circuit_sequence
+    return circuits.Circuit(
+        list(
+            chain.from_iterable(
+                [
+                    (
+                        repeated_circuit if i != position else different_circuit
+                    ).operations
+                    for i in range(length)
+                ]
+            )
+        )
+    )

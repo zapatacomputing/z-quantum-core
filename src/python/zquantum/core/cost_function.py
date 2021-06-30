@@ -1,32 +1,35 @@
-from .interfaces.backend import QuantumBackend
+from typing import Any, Callable, List, Optional, Union
+
+import numpy as np
+import sympy
+from openfermion import SymbolicOperator
+
+from .circuits import Circuit
+from .estimation import (
+    estimate_expectation_values_by_averaging,
+    evaluate_estimation_circuits,
+)
+from .gradients import finite_differences_gradient
 from .interfaces.ansatz import Ansatz
+from .interfaces.ansatz_utils import combine_ansatz_params
+from .interfaces.backend import QuantumBackend
 from .interfaces.estimation import (
     EstimateExpectationValues,
     EstimationPreprocessor,
     EstimationTask,
 )
-from .estimation import (
-    estimate_expectation_values_by_averaging,
-    evaluate_estimation_circuits,
-)
 from .interfaces.functions import (
-    function_with_gradient,
-    StoreArtifact,
     FunctionWithGradient,
     FunctionWithGradientStoringArtifacts,
+    StoreArtifact,
+    function_with_gradient,
 )
-from .circuit import combine_ansatz_params, Circuit
-from .gradients import finite_differences_gradient
-from .utils import create_symbols_map, ValueEstimate
 from .measurement import (
     ExpectationValues,
-    expectation_values_to_real,
     concatenate_expectation_values,
+    expectation_values_to_real,
 )
-from typing import Optional, Callable, List, Any, Union
-import numpy as np
-import sympy
-from openfermion import SymbolicOperator
+from .utils import ValueEstimate, create_symbols_map
 
 
 def _get_sorted_set_of_circuit_symbols(
@@ -39,7 +42,7 @@ def _get_sorted_set_of_circuit_symbols(
                 [
                     param
                     for task in estimation_tasks
-                    for param in task.circuit.symbolic_params
+                    for param in task.circuit.free_symbols
                 ]
             )
         ),

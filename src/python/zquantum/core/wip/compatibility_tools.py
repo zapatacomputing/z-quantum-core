@@ -66,6 +66,7 @@ def compatible_with_old_type(
     Raises:
         TranslationFailure: if translation failed and no fallback_function is provided.
     """
+
     def _compatible_with_old_type(wrapped: Callable):
         def _inner(*args, **kwargs):
             try:

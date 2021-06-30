@@ -1,7 +1,7 @@
-from functools import partial
 import json
 import os
 import random
+from functools import partial
 
 import numpy as np
 import pkg_resources
@@ -17,10 +17,12 @@ from zquantum.core.utils import (
     compare_unitary,
     convert_array_to_dict,
     convert_dict_to_array,
+    convert_tuples_to_bitstrings,
     create_object,
     create_symbols_map,
     dec2bin,
     get_func_from_specs,
+    get_ordered_list_of_bitstrings,
     hf_rdm,
     is_identity,
     is_unitary,
@@ -193,7 +195,7 @@ class TestUtils:
     def test_create_object(self):
         # Given
         n_samples = 100
-        function_name = "MockQuantumSimulator"
+        function_name = "MockQuantumBackend"
         specs = {
             "module_name": "zquantum.core.interfaces.mock_objects",
             "function_name": function_name,
@@ -201,24 +203,24 @@ class TestUtils:
         }
 
         # When
-        mock_simulator = create_object(specs)
+        mock_backend = create_object(specs)
 
         # Then
-        assert type(mock_simulator).__name__ == function_name
-        assert mock_simulator.n_samples == n_samples
+        assert type(mock_backend).__name__ == function_name
+        assert mock_backend.n_samples == n_samples
 
     def test_create_object_func_without_kwargs(self):
         self.test_get_func_from_specs()
 
     def test_create_object_func_with_kwargs_in_specs(self):
         # Given
-        function_name = "sum_x_squared"
+        function_name = "mock_cost_function"
         data = np.array([1.0, 2.0])
         target_value = 5.0
         specs = {
-            "module_name": "zquantum.core.interfaces.optimizer_test",
+            "module_name": "zquantum.core.interfaces.mock_objects",
             "function_name": function_name,
-            "x": data,
+            "parameters": data,
         }
         # When
         function = create_object(specs)
@@ -229,15 +231,15 @@ class TestUtils:
 
     def test_create_object_func_with_kwargs(self):
         # Given
-        function_name = "sum_x_squared"
+        function_name = "mock_cost_function"
         data = np.array([1.0, 2.0])
         target_value = 5.0
         specs = {
-            "module_name": "zquantum.core.interfaces.optimizer_test",
+            "module_name": "zquantum.core.interfaces.mock_objects",
             "function_name": function_name,
         }
         # When
-        function = create_object(specs, x=data)
+        function = create_object(specs, parameters=data)
 
         # Then
         assert isinstance(function, partial)
@@ -245,16 +247,16 @@ class TestUtils:
 
     def test_create_object_func_fails_with_multiple_assignments(self):
         # Given
-        function_name = "sum_x_squared"
+        function_name = "mock_cost_function"
         data = np.array([1.0, 2.0])
         specs = {
-            "module_name": "zquantum.core.interfaces.optimizer_test",
+            "module_name": "zquantum.core.interfaces.mock_objects",
             "function_name": function_name,
-            "x": data,
+            "parameters": data,
         }
         # When
         with pytest.raises(ValueError):
-            _ = create_object(specs, x=data)
+            _ = create_object(specs, parameters=data)
 
     def test_save_generic_dict(self):
         data = {"flavor": "chocolate", "weight": 42}
@@ -267,13 +269,13 @@ class TestUtils:
 
     def test_get_func_from_specs(self):
         # Given
-        function_name = "sum_x_squared"
-        specs = {
-            "module_name": "zquantum.core.interfaces.optimizer_test",
-            "function_name": function_name,
-        }
+        function_name = "mock_cost_function"
         data = np.array([1.0, 2.0])
         target_value = 5.0
+        specs = {
+            "module_name": "zquantum.core.interfaces.mock_objects",
+            "function_name": function_name,
+        }
         # When
         function = get_func_from_specs(specs)
 
@@ -327,7 +329,7 @@ class TestUtils:
         symbol_2 = sympy.Symbol("beta")
         symbols = [symbol_1, symbol_2]
         params = np.array([1, 2])
-        target_symbols_map = [(symbol_1, 1), (symbol_2, 2)]
+        target_symbols_map = {symbol_1: 1, symbol_2: 2}
 
         # When
         symbols_map = create_symbols_map(symbols, params)
@@ -375,7 +377,7 @@ class TestUtils:
         remove_file_if_exists("hamiltonian_analysis.json")
 
 
-def test_arithmetic_on_estimate_and_float_gives_same_result_as_for_two_floats():
+def test_arithmetic_on_value_estimate_and_float():
     value = 5.1
     estimate = ValueEstimate(value, precision=None)
     other = 3.4
@@ -473,3 +475,13 @@ def test_scale_and_discretize(values, total, expected_result):
 def test_hf_rdm_energy(hamiltonian, ref_energy, nalpha):
     rdm = hf_rdm(nalpha, 1, 2)
     assert np.isclose(ref_energy, rdm.expectation(hamiltonian))
+
+
+@pytest.mark.parametrize("num_qubits", [2, 3, 5, 10])
+def test_ordered_bitstring(num_qubits):
+    bitstrings = get_ordered_list_of_bitstrings(num_qubits)
+    expected_bitstrings = convert_tuples_to_bitstrings(
+        [dec2bin(integer, num_qubits) for integer in range(2 ** num_qubits)]
+    )
+    assert np.all(expected_bitstrings == bitstrings)
+    assert np.all([len(bitstring) == num_qubits for bitstring in bitstrings])

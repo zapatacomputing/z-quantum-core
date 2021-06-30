@@ -2,8 +2,8 @@ import json
 import math
 import sys
 import warnings
-from typing import Any, Callable, Dict, List
 from collections import Counter
+from typing import Any, Callable, Dict, List
 
 import numpy as np
 
@@ -183,20 +183,20 @@ def save_bitstring_distribution(
         f.write(json.dumps(dictionary, indent=2))
 
 
-def save_bitstring_distribution_set(
-    bitstring_distribution_set: List[BitstringDistribution], filename: str
+def save_bitstring_distributions(
+    bitstring_distributions: List[BitstringDistribution], filename: str
 ) -> None:
     """Save a set of bitstring distributions to a file.
 
     Args:
-       bitstring_distribution_set (list): a list of distributions to be saved
+       bitstring_distributions (list): a list of distributions to be saved
        file (str): the name of the file
     """
     dictionary: Dict[str, Any] = {}
     dictionary["schema"] = SCHEMA_VERSION + "-bitstring-probability-distribution-set"
     dictionary["bitstring_distribution"] = []
 
-    for distribution in bitstring_distribution_set:
+    for distribution in bitstring_distributions:
         dictionary["bitstring_distribution"].append(distribution.distribution_dict)
 
     with open(filename, "w") as f:
@@ -222,7 +222,7 @@ def load_bitstring_distribution(file: str) -> BitstringDistribution:
     return bitstring_distribution
 
 
-def load_bitstring_distribution_set(file: str) -> List[BitstringDistribution]:
+def load_bitstring_distributions(file: str) -> List[BitstringDistribution]:
     """Load a list of bitstring_distributions from a json file using a schema.
 
     Arguments:

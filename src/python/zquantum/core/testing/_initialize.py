@@ -4,77 +4,7 @@ import random
 import numpy as np
 from openfermion.ops import IsingOperator, QubitOperator
 from pyquil import Program
-from pyquil.gates import CNOT, CPHASE, CZ, PHASE, RX, RY, RZ, SWAP, H, S, T, X, Y, Z
 from pyquil.wavefunction import Wavefunction
-
-from ..circuit import Circuit
-
-
-def create_random_circuit(nqubits, ngates, seed=None):
-    """Generates random circuit acting on nqubits with ngates for testing purposes.
-    The resulting circuit it saved to file in JSON format under 'circuit.json'.
-
-    Args:
-        nqubits: integer
-            The number of qubits in the circuit
-        ngates: integer
-            The number of gates in the circuit
-
-        *** OPTIONAL ***
-        seed: integer
-            The see for the random number generator
-
-    Returns:
-        None, a Circuit (core.circuit) object is saved under 'circuit.json'
-    """
-    # Initialize all gates in set, not including RH or ZXZ
-    SING_ZERO = [X, Y, Z, H, S, T]
-    SING_ONE = [RX, RY, RZ, PHASE]
-    TWO_ZERO = [CNOT, CZ, SWAP]
-    TWO_ONE = [CPHASE]
-
-    ALL = [SING_ZERO, TWO_ZERO, SING_ONE, TWO_ONE]
-
-    NUM_QUBITS = range(0, nqubits)
-
-    if seed is not None:
-        random.seed(seed)
-
-    # Create empty pyquil circuit
-    p = Program()
-
-    # Loop to add gates to pyquil circuit
-    for i in range(0, ngates):
-        # Pick gate type
-        TYPE_OF_GATE = random.choice(ALL)
-        gate = random.choice(TYPE_OF_GATE)
-
-        # Pick qubit to act on (control if two qubit gate)
-        qubit = random.choice(NUM_QUBITS)
-
-        if TYPE_OF_GATE == SING_ZERO:
-            p += gate(qubit)
-        elif TYPE_OF_GATE == SING_ONE:
-            # Choose random parameter between +/- pi
-            param = random.uniform(-math.pi, math.pi)
-            p += gate(param, qubit)
-        elif TYPE_OF_GATE == TWO_ZERO:
-            target = random.choice(NUM_QUBITS)
-            while target == qubit:
-                # Loop to ensure target =/= control
-                target = random.choice(NUM_QUBITS)
-            p += gate(qubit, target)
-        elif TYPE_OF_GATE == TWO_ONE:
-            target = random.choice(NUM_QUBITS)
-            while target == qubit:
-                # Loop to ensure target =/= control
-                target = random.choice(NUM_QUBITS)
-            # Choose random parameter between +/- pi
-            param = random.uniform(-math.pi, math.pi)
-            p += gate(param, qubit, target)
-
-    c = Circuit(p)
-    return c
 
 
 def create_random_qubitop(nqubits, nterms, seed=None):

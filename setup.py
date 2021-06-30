@@ -32,7 +32,7 @@ def _read_version():
 
 setuptools.setup(
     name="z-quantum-core",
-    version=_read_version(),
+    use_scm_version=True,
     license="Apache-2.0",
     author="Zapata Computing, Inc.",
     author_email="info@zapatacomputing.com",
@@ -53,14 +53,15 @@ setuptools.setup(
         "networkx==2.4",
         "numpy>=1.20",
         "scipy>=1.4.1",
-        "sympy>=1.7",
+        "sympy>=1.5",
         "openfermion>=1.0.0",
         "openfermioncirq==0.4.0",
         "lea>=3.2.0",
         "pyquil~=2.25",
         "cirq>=0.9.1,<=0.10",
-        "qiskit~=0.25",
+        "qiskit~=0.26",
         "overrides~=3.1",
     ],
     extras_require=extras_require,
+    setup_requires=["setuptools_scm~=6.0"],
 )

@@ -4,7 +4,10 @@ import numpy as np
 import pytest
 import sympy
 from openfermion import IsingOperator, QubitOperator, qubit_operator_sparse
-from zquantum.core.circuits import RX, RY, RZ, Circuit, X
+from openfermion.linalg.sparse_tools import (
+    expectation_one_body_db_operator_computational_basis_state,
+)
+from zquantum.core.circuits import RX, RY, RZ, Circuit, H, X
 from zquantum.core.estimation import (
     allocate_shots_proportionally,
     allocate_shots_uniformly,
@@ -19,12 +22,10 @@ from zquantum.core.estimation import (
     split_constant_estimation_tasks,
 )
 from zquantum.core.interfaces.estimation import EstimationTask
-from zquantum.core.interfaces.mock_objects import (
-    MockQuantumBackend,
-    MockQuantumSimulator,
-)
+from zquantum.core.interfaces.mock_objects import MockQuantumBackend
 from zquantum.core.measurement import ExpectationValues
 from zquantum.core.openfermion._utils import change_operator_type
+from zquantum.core.symbolic_simulator import SymbolicSimulator
 
 
 class TestEstimatorUtils:
@@ -553,14 +554,47 @@ class TestEstimatorUtils:
             _ = evaluate_constant_estimation_tasks(estimation_tasks)
 
 
+TEST_CASES_EIGENSTATES = [
+    (
+        [
+            EstimationTask(
+                IsingOperator("Z0"), circuit=Circuit([X(0)]), number_of_shots=10
+            ),
+            EstimationTask(
+                IsingOperator((), coefficient=2.0),
+                circuit=Circuit([RY(np.pi / 4)(0)]),
+                number_of_shots=30,
+            ),
+        ],
+        [ExpectationValues(np.array([-1])), ExpectationValues(np.array([2]))],
+    ),
+]
+TEST_CASES_NONEIGENSTATES = [
+    (
+        [
+            EstimationTask(
+                IsingOperator("Z0"),
+                circuit=Circuit([H(0)]),
+                number_of_shots=1000,
+            ),
+            EstimationTask(
+                IsingOperator("Z0", coefficient=-2),
+                circuit=Circuit([RY(np.pi / 4)(0)]),
+                number_of_shots=1000,
+            ),
+        ],
+        [
+            ExpectationValues(np.array([0])),
+            ExpectationValues(np.array([-2 * (np.cos(np.pi / 8) ** 2 - 0.5) * 2])),
+        ],
+    ),
+]
+
+
 class TestBasicEstimationMethods:
     @pytest.fixture()
-    def backend(self):
-        return MockQuantumBackend(n_samples=20)
-
-    @pytest.fixture()
     def simulator(self):
-        return MockQuantumSimulator()
+        return SymbolicSimulator()
 
     @pytest.fixture()
     def estimation_tasks(self):
@@ -569,7 +603,7 @@ class TestBasicEstimationMethods:
         )
         task_2 = EstimationTask(
             IsingOperator("Z0"),
-            circuit=Circuit([RZ(np.pi / 2)(0)]),
+            circuit=Circuit([RY(np.pi / 2)(0)]),
             number_of_shots=20,
         )
         task_3 = EstimationTask(
@@ -579,29 +613,63 @@ class TestBasicEstimationMethods:
         )
         return [task_1, task_2, task_3]
 
-    def test_estimate_expectation_values_by_averaging(self, backend, estimation_tasks):
-        expectation_values_list = estimate_expectation_values_by_averaging(
-            backend, estimation_tasks
-        )
-        assert len(expectation_values_list) == 3
-        for expectation_values, task in zip(expectation_values_list, estimation_tasks):
-            if () in task.operator.terms.keys():
-                for i, term in enumerate(task.operator.terms.items()):
-                    if term[0] == ():
-                        assert expectation_values.values[i] == term[1]
-            assert len(expectation_values.values) == len(task.operator.terms)
+    @pytest.fixture()
+    def target_expectation_values(self):
+        return [ExpectationValues(-1), ExpectationValues(0), ExpectationValues(2)]
 
-    def test_calculate_exact_expectation_values(self, simulator, estimation_tasks):
+    @pytest.mark.parametrize(
+        "estimation_tasks,target_expectations", TEST_CASES_EIGENSTATES
+    )
+    def test_estimate_expectation_values_by_averaging_for_eigenstates(
+        self, simulator, estimation_tasks, target_expectations
+    ):
+        expectation_values_list = estimate_expectation_values_by_averaging(
+            simulator, estimation_tasks
+        )
+        for expectation_values, target, task in zip(
+            expectation_values_list, target_expectations, estimation_tasks
+        ):
+            assert len(expectation_values.values) == len(task.operator.terms)
+            # TODO: add tests for correlations and covariances
+            np.testing.assert_array_equal(expectation_values.values, target.values)
+
+    @pytest.mark.parametrize(
+        "estimation_tasks,target_expectations", TEST_CASES_NONEIGENSTATES
+    )
+    def test_estimate_expectation_values_by_averaging_for_non_eigenstates(
+        self, simulator, estimation_tasks, target_expectations
+    ):
+
+        expectation_values_list = estimate_expectation_values_by_averaging(
+            simulator, estimation_tasks
+        )
+        for expectation_values, target, task in zip(
+            expectation_values_list, target_expectations, estimation_tasks
+        ):
+            assert len(expectation_values.values) == len(task.operator.terms)
+            # TODO: add tests for correlations and covariances
+            np.testing.assert_allclose(
+                expectation_values.values, target.values, atol=0.1
+            )
+
+    @pytest.mark.parametrize(
+        "estimation_tasks,target_expectations",
+        TEST_CASES_EIGENSTATES + TEST_CASES_NONEIGENSTATES,
+    )
+    def test_calculate_exact_expectation_values(
+        self, simulator, estimation_tasks, target_expectations
+    ):
         expectation_values_list = calculate_exact_expectation_values(
             simulator, estimation_tasks
         )
-        assert len(expectation_values_list) == 3
-        for expectation_values, task in zip(expectation_values_list, estimation_tasks):
-            if () in task.operator.terms.keys():
-                for i, term in enumerate(task.operator.terms.items()):
-                    if term[0] == ():
-                        assert expectation_values.values[i] == term[1]
+        for expectation_values, target, task in zip(
+            expectation_values_list, target_expectations, estimation_tasks
+        ):
             assert len(expectation_values.values) == len(task.operator.terms)
+            # TODO: add tests for correlations and covariances
+            np.testing.assert_array_almost_equal(
+                expectation_values.values, target.values
+            )
 
     def test_calculate_exact_expectation_values_fails_with_non_simulator(
         self, estimation_tasks

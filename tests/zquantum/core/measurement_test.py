@@ -12,6 +12,7 @@ from zquantum.core.measurement import (
     ExpectationValues,
     Measurements,
     Parities,
+    _check_sample_elimination,
     check_parity,
     concatenate_expectation_values,
     convert_bitstring_to_int,
@@ -26,7 +27,6 @@ from zquantum.core.measurement import (
     save_expectation_values,
     save_parities,
     save_wavefunction,
-    _check_sample_elimination,
 )
 from zquantum.core.testing import create_random_wavefunction
 from zquantum.core.utils import RNDSEED, SCHEMA_VERSION, convert_bitstrings_to_tuples

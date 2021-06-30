@@ -2,7 +2,6 @@ from typing import Dict, List, Optional, Tuple, cast
 
 import numpy as np
 import sympy
-import warnings
 from openfermion import IsingOperator, QubitOperator
 
 from ..circuits import RX, RY, Circuit
@@ -229,7 +228,6 @@ def split_estimation_tasks_to_measure(
     estimation_tasks_not_measured = []
     indices_to_measure = []
     indices_to_not_measure = []
-    # TODO: indices will be wrong if eliminating tasks. TEST for that
     for i, task in enumerate(estimation_tasks):
         if (
             len(task.operator.terms) == 1 and () in task.operator.terms.keys()

@@ -44,7 +44,7 @@ jobs:
           # mean time, please rely on local pre-commit hook checks.
           use-mypy: false
           use-black: false
-          use-isort: false
+          use-isort: true
 
           # Extra options: pylint $(extra-pylint-options) $(python-root-list)
           # extra-pylint-options: # optional, default is 

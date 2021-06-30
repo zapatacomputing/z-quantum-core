@@ -1,6 +1,9 @@
 """Test cases for serialization module."""
+import io
 import json
 import os
+import pathlib
+import tempfile
 
 import numpy as np
 import pytest
@@ -11,6 +14,7 @@ from zquantum.core.interfaces.optimizer import optimization_result
 from zquantum.core.serialization import (
     OrquestraDecoder,
     OrquestraEncoder,
+    ensure_open,
     load_optimization_results,
     save_optimization_results,
 )
@@ -250,3 +254,104 @@ def test_load_optimization_results_successfully_loads_optimization_result_from_f
     assert optimization_results_equal(result_to_serialize, loaded_data)
 
     os.remove(optimization_result_filename)
+
+
+@pytest.fixture
+def tmp_path():
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        handle, path = tempfile.mkstemp(dir=tmp_dir)
+        os.close(handle)  # This is needed, so that we can reopen on MS Windows
+        yield path
+
+
+@pytest.mark.parametrize(
+    "example_contents",
+    [
+        json.dumps({"hello": "world"}),
+        "",
+        "Zażółć gęślą jaźń",
+    ],
+)
+class TestEnsureOpen:
+    @pytest.mark.parametrize(
+        "path_mapper",
+        [
+            str,
+            lambda path: path.encode(),
+            pathlib.Path,
+        ],
+    )
+    def test_reading_from_path(self, tmp_path: str, path_mapper, example_contents):
+        with open(tmp_path, "w", encoding="utf-8") as f:
+            f.write(example_contents)
+
+        path = path_mapper(tmp_path)
+        with ensure_open(path, encoding="utf-8") as f:
+            read_contents = f.read()
+
+        assert read_contents == example_contents
+
+    def test_reading_from_open_file(self, tmp_path: str, example_contents):
+        with open(tmp_path, "w", encoding="utf-8") as f:
+            f.write(example_contents)
+
+        with open(tmp_path, encoding="utf-8") as open_file:
+            with ensure_open(open_file) as f:
+                read_contents = f.read()
+
+        assert read_contents == example_contents
+
+    def test_reading_from_io(self, example_contents):
+        buffer = io.StringIO()
+        buffer.write(example_contents)
+        buffer.seek(0)
+
+        with ensure_open(buffer) as f:
+            read_contents = f.read()
+
+        assert read_contents == example_contents
+
+    @pytest.mark.parametrize(
+        "path_mapper",
+        [
+            str,
+            lambda path: path.encode(),
+            pathlib.Path,
+        ],
+    )
+    def test_writing_to_path(self, tmp_path: str, path_mapper, example_contents):
+        path = path_mapper(tmp_path)
+        with ensure_open(path, "w") as f:
+            f.write(example_contents)
+
+        with open(tmp_path, encoding="utf-8") as f:
+            read_contents = f.read()
+
+        assert read_contents == example_contents
+
+    def test_writing_to_open_file(self, tmp_path: str, example_contents):
+        with open(tmp_path, "w", encoding="utf-8") as open_file:
+            with ensure_open(open_file, "w") as f:
+                f.write(example_contents)
+
+        with open(tmp_path, encoding="utf-8") as f:
+            read_contents = f.read()
+
+        assert read_contents == example_contents
+
+    def test_writing_to_io(self, example_contents):
+        buffer = io.StringIO()
+        with ensure_open(buffer) as f:
+            f.write(example_contents)
+
+        buffer.seek(0)
+        read_contents = buffer.read()
+
+        assert read_contents == example_contents
+
+
+def test_ensure_open_with_write_flag_and_read_only_file_raises_error(tmp_path: str):
+    with open(tmp_path) as open_file:
+        with pytest.raises(ValueError):
+            with ensure_open(open_file, "w"):
+                pass

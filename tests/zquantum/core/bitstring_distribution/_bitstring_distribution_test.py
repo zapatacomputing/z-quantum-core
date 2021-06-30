@@ -16,10 +16,10 @@ from zquantum.core.bitstring_distribution._bitstring_distribution import (
     is_non_negative,
     is_normalized,
     load_bitstring_distribution,
-    load_bitstring_distribution_set,
+    load_bitstring_distributions,
     normalize_bitstring_distribution,
     save_bitstring_distribution,
-    save_bitstring_distribution_set,
+    save_bitstring_distributions,
 )
 from zquantum.core.utils import SCHEMA_VERSION
 
@@ -175,16 +175,14 @@ def test_saving_bitstring_distribution_opens_file_for_writing_using_context_mana
     mock_open().__exit__.assert_called_once()
 
 
-def test_saving_bitstring_distribution_set_opens_file_for_writing_using_context_manager(
+def test_saving_bitstring_distributions_opens_file_for_writing_using_context_manager(
     mock_open,
 ):
     distributions = [
         BitstringDistribution({"000": 0.1, "111": 0.9}),
         BitstringDistribution({"01000": 0.5, "10110": 0.5}),
     ]
-    save_bitstring_distribution_set(
-        distributions, "/some/path/to/distribution/set.json"
-    )
+    save_bitstring_distributions(distributions, "/some/path/to/distribution/set.json")
 
     mock_open.assert_called_once_with("/some/path/to/distribution/set.json", "w")
     mock_open().__enter__.assert_called_once()
@@ -206,7 +204,7 @@ def test_saving_bitstring_distribution_writes_correct_json_data_to_file(mock_ope
     assert json.loads(written_data) == expected_dict
 
 
-def test_saving_bitstring_distribution_set_writes_correct_json_data_to_file(mock_open):
+def test_saving_bitstring_distributions_writes_correct_json_data_to_file(mock_open):
     distributions = [
         BitstringDistribution({"000": 0.1, "111": 0.9}),
         BitstringDistribution({"01000": 0.5, "10110": 0.5}),
@@ -219,9 +217,7 @@ def test_saving_bitstring_distribution_set_writes_correct_json_data_to_file(mock
         "schema": SCHEMA_VERSION + "-bitstring-probability-distribution-set",
     }
 
-    save_bitstring_distribution_set(
-        distributions, "/some/path/to/distribution/set.json"
-    )
+    save_bitstring_distributions(distributions, "/some/path/to/distribution/set.json")
 
     written_data = mock_open().__enter__().write.call_args[0][0]
     assert json.loads(written_data) == expected_dict
@@ -244,7 +240,7 @@ def test_saved_bitstring_distribution_can_be_loaded_back(mock_open):
     assert dist.distribution_dict.keys() == loaded_dist.distribution_dict.keys()
 
 
-def test_saved_bitstring_distribution_set_can_be_loaded(mock_open):
+def test_saved_bitstring_distributions_can_be_loaded(mock_open):
     fake_file = StringIO()
     mock_open().__enter__.return_value = fake_file
     distributions = [
@@ -252,10 +248,10 @@ def test_saved_bitstring_distribution_set_can_be_loaded(mock_open):
         BitstringDistribution({"01000": 0.5, "10110": 0.5}),
     ]
 
-    save_bitstring_distribution_set(distributions, "distributions.json")
+    save_bitstring_distributions(distributions, "distributions.json")
     fake_file.seek(0)
 
-    loaded_distributions = load_bitstring_distribution_set(fake_file)
+    loaded_distributions = load_bitstring_distributions(fake_file)
     assert all(
         (
             math.isclose(

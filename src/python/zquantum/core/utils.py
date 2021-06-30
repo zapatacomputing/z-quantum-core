@@ -1,18 +1,20 @@
 """General-purpose utilities."""
-from types import FunctionType
 import collections
 import copy
 import importlib
+import inspect
 import json
 import sys
 import warnings
-import inspect
-import numpy as np
 from functools import partial
-import sympy
+from types import FunctionType
+from typing import Any, Dict, Iterable, List, Optional, Tuple
+
 import lea
+import numpy as np
+import sympy
 from openfermion import InteractionRDM, hermitian_conjugated
-from typing import List, Tuple, Optional, Iterable, Dict, Any
+
 from .typing import AnyPath, LoadSource, Specs
 
 SCHEMA_VERSION = "zapata-v1"
@@ -477,7 +479,7 @@ def load_noise_model(file: LoadSource):
 
 
 def save_noise_model(
-        noise_model_data: dict, module_name: str, function_name: str, filename
+    noise_model_data: dict, module_name: str, function_name: str, filename
 ):
     """Save a noise model to file
 
@@ -503,7 +505,7 @@ def save_noise_model(
 
 def create_symbols_map(
     symbols: List[sympy.Symbol], params: np.ndarray
-) -> List[Tuple[sympy.Symbol, float]]:
+) -> Dict[sympy.Symbol, float]:
     """
     Creates a map to be used for evaluating sympy expressions.
 
@@ -519,7 +521,7 @@ def create_symbols_map(
                 )
             )
         )
-    return [(symbol, param) for symbol, param in zip(symbols, params.tolist())]
+    return {symbol: param for symbol, param in zip(symbols, params.tolist())}
 
 
 def save_timing(walltime: float, filename: AnyPath) -> None:
@@ -645,3 +647,22 @@ def load_from_specs(specs: Specs):
     if isinstance(specs, str):
         specs = json.loads(specs)
     return create_object(specs)  # type: ignore
+
+
+def get_ordered_list_of_bitstrings(num_qubits: int) -> List[str]:
+    """Create list of binary strings corresponding to 2^num_qubits integers
+    and save them in ascending order.
+
+    Args:
+        num_qubits: number of binary digits in each bitstring
+
+    Returns:
+        The ordered bitstring representations of the integers
+    """
+    bitstrings = []
+    for i in range(2 ** num_qubits):
+        bitstring = "{0:b}".format(i)
+        while len(bitstring) < num_qubits:
+            bitstring = "0" + bitstring
+        bitstrings.append(bitstring)
+    return bitstrings

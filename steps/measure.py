@@ -80,7 +80,7 @@ def run_circuitset_and_measure(
     circuit_set = circuits.load_circuitset(circuitset)
     backend = create_object(backend_specs)
 
-    n_samples_list = [n_samples for _ in circuits]
+    n_samples_list = [n_samples for _ in circuit_set]
     measurements_set = backend.run_circuitset_and_measure(
         circuit_set, n_samples=n_samples_list
     )

@@ -233,14 +233,7 @@ def convert_tuples_to_bitstrings(tuples: List[Tuple[int]]) -> List[str]:
         A list of bitstrings
     """
     # Convert from tuples to bitstrings
-    bitstrings = []
-    for tuple_item in tuples:
-
-        bitstring = ""
-        for bit in tuple_item:
-            bitstring = bitstring + str(bit)
-
-        bitstrings.append(bitstring)
+    bitstrings = ["".join(map(str, tup)) for tup in tuples]
     return bitstrings
 
 

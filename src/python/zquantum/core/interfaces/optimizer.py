@@ -60,6 +60,19 @@ class Optimizer(ABC):
     def _preprocess_cost_function(
         self, cost_function: Union[CallableWithGradient, Callable]
     ) -> Union[CallableWithGradient, Callable]:
+        """Preprocess cost function before minimizing it.
+
+        This method can be overridden to add some optimizer-specific features
+        to cost function. For instance, an optimizer can ensure that the
+        cost function has gradient, supplying a default for functions
+        without one.
+
+        Args:
+            cost_function: a cost function to be preprocessed. Implementers of this
+                method shouldn't mutate it.
+        Returns:
+            preprocess cost function, with the same signature as the original one.
+        """
         return cost_function
 
 

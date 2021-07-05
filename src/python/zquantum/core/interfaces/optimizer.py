@@ -37,6 +37,7 @@ class Optimizer(ABC):
             keep_history: flag indicating whether history of cost function
                 evaluations should be recorded.
         """
+        cost_function = self._preprocess_cost_function(cost_function)
         if keep_history:
             cost_function = self.recorder(cost_function)
         return self._minimize(cost_function, initial_params, keep_history)
@@ -55,6 +56,11 @@ class Optimizer(ABC):
             Same as for minimize.
         """
         raise NotImplementedError
+
+    def _preprocess_cost_function(
+        self, cost_function: Union[CallableWithGradient, Callable]
+    ) -> Union[CallableWithGradient, Callable]:
+        return cost_function
 
 
 def optimization_result(

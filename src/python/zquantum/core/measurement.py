@@ -185,8 +185,8 @@ def sample_from_wavefunction(
     """Sample bitstrings from a wavefunction.
 
     Args:
-        wavefunction (Wavefunction): the wavefunction to sample from.
-        n_samples (int): the number of samples taken.
+        wavefunction: the wavefunction to sample from.
+        n_samples: the number of samples taken.
 
     Returns:
         List[Tuple[int]]: A list of tuples where the each tuple is a sampled bitstring.

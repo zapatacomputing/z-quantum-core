@@ -39,6 +39,7 @@ import numpy as np
 import pytest
 from openfermion import QubitOperator
 from pyquil.wavefunction import Wavefunction
+from zquantum.core.interfaces.backend import QuantumSimulator
 from zquantum.core.interfaces.estimation import EstimationTask
 
 from ..bitstring_distribution import BitstringDistribution
@@ -78,8 +79,7 @@ class QuantumBackendTests:
         circuit = Circuit([X(0), X(0), X(1), X(1), X(2)])
         n_samples = 100
         # When
-        backend.n_samples = n_samples
-        measurements = backend.run_circuit_and_measure(circuit)
+        measurements = backend.run_circuit_and_measure(circuit, n_samples)
 
         # Then (since SPAM error could result in unexpected bitstrings, we make sure the
         # most common bitstring is the one we expect)
@@ -88,9 +88,9 @@ class QuantumBackendTests:
         assert backend.number_of_circuits_run == 1
         assert backend.number_of_jobs_run == 1
 
-    @pytest.mark.parametrize("n_shots", [1, 2, 10, 100])
+    @pytest.mark.parametrize("n_samples", [1, 2, 10, 100])
     def test_run_circuit_and_measure_correct_num_measurements_attribute(
-        self, backend, n_shots
+        self, backend, n_samples
     ):
         # Given
         backend.number_of_circuits_run = 0
@@ -98,18 +98,17 @@ class QuantumBackendTests:
         circuit = Circuit([X(0), X(0), X(1), X(1), X(2)])
 
         # When
-        backend.n_samples = n_shots
-        measurements = backend.run_circuit_and_measure(circuit)
+        measurements = backend.run_circuit_and_measure(circuit, n_samples)
 
         # Then
         assert isinstance(measurements, Measurements)
-        assert len(measurements.bitstrings) == n_shots
+        assert len(measurements.bitstrings) == n_samples
         assert backend.number_of_circuits_run == 1
         assert backend.number_of_jobs_run == 1
 
-    @pytest.mark.parametrize("n_shots", [1, 2, 10, 100])
+    @pytest.mark.parametrize("n_samples", [1, 2, 10, 100])
     def test_run_circuit_and_measure_correct_num_measurements_argument(
-        self, backend, n_shots
+        self, backend, n_samples
     ):
         # Given
         backend.number_of_circuits_run = 0
@@ -117,11 +116,11 @@ class QuantumBackendTests:
         circuit = Circuit([X(0), X(0), X(1), X(1), X(2)])
 
         # When
-        measurements = backend.run_circuit_and_measure(circuit, n_shots)
+        measurements = backend.run_circuit_and_measure(circuit, n_samples)
 
         # Then
         assert isinstance(measurements, Measurements)
-        assert len(measurements.bitstrings) == n_shots
+        assert len(measurements.bitstrings) == n_samples
         assert backend.number_of_circuits_run == 1
         assert backend.number_of_jobs_run == 1
 
@@ -132,8 +131,7 @@ class QuantumBackendTests:
         circuit = Circuit([X(0), X(0), X(1), X(1), X(2)])
 
         # When
-        backend.n_samples = 100
-        measurements = backend.run_circuit_and_measure(circuit)
+        measurements = backend.run_circuit_and_measure(circuit, n_samples=100)
 
         # Then
         assert all(len(bitstring) == 3 for bitstring in measurements.bitstrings)
@@ -149,9 +147,9 @@ class QuantumBackendTests:
         n_samples = 100
         number_of_circuits = 25
         # When
-        backend.n_samples = n_samples
+        n_samples_per_circuit = [n_samples] * number_of_circuits
         measurements_set = backend.run_circuitset_and_measure(
-            [circuit] * number_of_circuits
+            [circuit] * number_of_circuits, n_samples_per_circuit
         )
 
         # Then (since SPAM error could result in unexpected bitstrings, we make sure the
@@ -175,12 +173,11 @@ class QuantumBackendTests:
         backend.number_of_jobs_run = 0
         first_circuit = Circuit([X(0), X(0), X(1), X(1), X(2)])
         second_circuit = Circuit([X(0), X(1), X(2)])
-        n_samples = [100, 105]
+        n_samples_per_circuit = [100, 105]
 
         # When
-        backend.n_samples = n_samples
         measurements_set = backend.run_circuitset_and_measure(
-            [first_circuit, second_circuit], n_samples
+            [first_circuit, second_circuit], n_samples_per_circuit
         )
 
         # Then (since SPAM error could result in unexpected bitstrings, we make sure the
@@ -190,8 +187,8 @@ class QuantumBackendTests:
         counts = measurements_set[1].get_counts()
         assert max(counts, key=counts.get) == "111"
 
-        assert len(measurements_set[0].bitstrings) == n_samples[0]
-        assert len(measurements_set[1].bitstrings) == n_samples[1]
+        assert len(measurements_set[0].bitstrings) == n_samples_per_circuit[0]
+        assert len(measurements_set[1].bitstrings) == n_samples_per_circuit[1]
 
         assert backend.number_of_circuits_run == 2
 
@@ -202,10 +199,10 @@ class QuantumBackendTests:
         circuit = Circuit([H(0), CNOT(0, 1), CNOT(1, 2)])
         n_samples = 1000
 
-        backend.n_samples = n_samples
-
         # When
-        bitstring_distribution = backend.get_bitstring_distribution(circuit)
+        bitstring_distribution = backend.get_bitstring_distribution(
+            circuit, n_samples=n_samples
+        )
 
         # Then
         assert isinstance(bitstring_distribution, BitstringDistribution)
@@ -227,12 +224,7 @@ class QuantumBackendGatesTests:
     def test_one_qubit_non_parametric_gates_using_expectation_values(
         self, backend_for_gates_test, initial_gate, tested_gate, target_values
     ):
-
-        if backend_for_gates_test.n_samples is None:
-            pytest.xfail(
-                "This test won't work for simulators without sampling, it should be "
-                "covered by a test in QuantumSimulatorTests."
-            )
+        n_samples = 1000
 
         # Given
         gate_1 = builtin_gate_by_name(initial_gate)(0)
@@ -246,13 +238,11 @@ class QuantumBackendGatesTests:
             QubitOperator("[Z0]"),
         ]
 
-        sigma = 1 / np.sqrt(backend_for_gates_test.n_samples)
+        sigma = 1 / np.sqrt(n_samples)
 
         for i, operator in enumerate(operators):
             # When
-            estimation_tasks = [
-                EstimationTask(operator, circuit, backend_for_gates_test.n_samples)
-            ]
+            estimation_tasks = [EstimationTask(operator, circuit, n_samples)]
             expectation_values = estimate_expectation_values_by_averaging(
                 backend_for_gates_test, estimation_tasks
             )
@@ -269,13 +259,7 @@ class QuantumBackendGatesTests:
     def test_one_qubit_parametric_gates_using_expectation_values(
         self, backend_for_gates_test, initial_gate, tested_gate, params, target_values
     ):
-
-        if backend_for_gates_test.n_samples is None:
-            pytest.xfail(
-                "This test won't work for simulators without sampling, it's covered by "
-                "a test in QuantumSimulatorTests."
-            )
-
+        n_samples = 1000
         # Given
         gate_1 = builtin_gate_by_name(initial_gate)(0)
         gate_2 = builtin_gate_by_name(tested_gate)(*params)(0)
@@ -288,13 +272,11 @@ class QuantumBackendGatesTests:
             QubitOperator("[Z0]"),
         ]
 
-        sigma = 1 / np.sqrt(backend_for_gates_test.n_samples)
+        sigma = 1 / np.sqrt(n_samples)
 
         for i, operator in enumerate(operators):
             # When
-            estimation_tasks = [
-                EstimationTask(operator, circuit, backend_for_gates_test.n_samples)
-            ]
+            estimation_tasks = [EstimationTask(operator, circuit, n_samples)]
             expectation_values = estimate_expectation_values_by_averaging(
                 backend_for_gates_test, estimation_tasks
             )
@@ -316,12 +298,7 @@ class QuantumBackendGatesTests:
         operators,
         target_values,
     ):
-
-        if backend_for_gates_test.n_samples is None:
-            pytest.xfail(
-                "This test won't work for simulators without sampling, it's covered by "
-                "a test in QuantumSimulatorTests."
-            )
+        n_samples = 1000
 
         # Given
         gate_1 = builtin_gate_by_name(initial_gates[0])(0)
@@ -330,14 +307,12 @@ class QuantumBackendGatesTests:
 
         circuit = Circuit([gate_1, gate_2, gate_3])
 
-        sigma = 1 / np.sqrt(backend_for_gates_test.n_samples)
+        sigma = 1 / np.sqrt(n_samples)
 
         for i, operator in enumerate(operators):
             # When
             operator = QubitOperator(operator)
-            estimation_tasks = [
-                EstimationTask(operator, circuit, backend_for_gates_test.n_samples)
-            ]
+            estimation_tasks = [EstimationTask(operator, circuit, n_samples)]
             expectation_values = estimate_expectation_values_by_averaging(
                 backend_for_gates_test, estimation_tasks
             )
@@ -360,12 +335,7 @@ class QuantumBackendGatesTests:
         operators,
         target_values,
     ):
-
-        if backend_for_gates_test.n_samples is None:
-            pytest.xfail(
-                "This test won't work for simulators without sampling, it's covered by "
-                "a test in QuantumSimulatorTests."
-            )
+        n_samples = 1000
 
         # Given
         gate_1 = builtin_gate_by_name(initial_gates[0])(0)
@@ -374,14 +344,12 @@ class QuantumBackendGatesTests:
 
         circuit = Circuit([gate_1, gate_2, gate_3])
 
-        sigma = 1 / np.sqrt(backend_for_gates_test.n_samples)
+        sigma = 1 / np.sqrt(n_samples)
 
         for i, operator in enumerate(operators):
             # When
             operator = QubitOperator(operator)
-            estimation_tasks = [
-                EstimationTask(operator, circuit, backend_for_gates_test.n_samples)
-            ]
+            estimation_tasks = [EstimationTask(operator, circuit, n_samples)]
             expectation_values = estimate_expectation_values_by_averaging(
                 backend_for_gates_test, estimation_tasks
             )

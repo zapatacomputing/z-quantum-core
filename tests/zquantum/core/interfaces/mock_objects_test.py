@@ -5,7 +5,7 @@ from zquantum.core.interfaces.mock_objects import MockQuantumBackend
 
 @pytest.fixture
 def backend():
-    return MockQuantumBackend(n_samples=1000)
+    return MockQuantumBackend()
 
 
 class TestMockQuantumBackend(QuantumBackendTests):

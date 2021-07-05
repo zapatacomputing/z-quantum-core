@@ -13,43 +13,29 @@ class SymbolicSimulator(QuantumSimulator):
 
     def __init__(
         self,
-        n_samples: Optional[int] = None,
         noise_model: Optional[Any] = None,
         device_connectivity: Optional[CircuitConnectivity] = None,
     ):
-        super().__init__(n_samples, noise_model, device_connectivity)
+        super().__init__(noise_model, device_connectivity)
 
-    def run_circuit_and_measure(
-        self, circuit: Circuit, n_samples: Optional[int] = None, **kwargs
-    ) -> Measurements:
+    def run_circuit_and_measure(self, circuit: Circuit, n_samples: int) -> Measurements:
         """Run a circuit and measure a certain number of bitstrings
 
         Args:
             circuit: the circuit to prepare the state
             n_samples: the number of bitstrings to sample
-        Returns:
-            The measured bitstrings.
         """
         if circuit.free_symbols:
             raise ValueError("Cannot sample from circuit with symbolic parameters.")
 
-        if n_samples is None:
-            if self.n_samples is None:
-                raise ValueError(
-                    "n_samples needs to be specified either as backend attribute or "
-                    "as a function argument."
-                )
-            else:
-                n_samples = self.n_samples
         wavefunction = self.get_wavefunction(circuit)
         bitstrings = sample_from_wavefunction(wavefunction, n_samples)
         return Measurements(bitstrings)
 
-    def get_wavefunction(self, circuit: Circuit, **kwargs) -> Wavefunction:
+    def get_wavefunction(self, circuit: Circuit) -> Wavefunction:
         if circuit.free_symbols:
             raise ValueError("Currently circuits with free symbols are not supported")
-
-        super().get_wavefunction(circuit, **kwargs)
+        super().get_wavefunction(circuit)
         state = np.zeros(2 ** circuit.n_qubits)
         state[0] = 1
 

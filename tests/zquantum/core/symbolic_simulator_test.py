@@ -19,7 +19,6 @@ def wf_simulator():
 
 
 class TestSymbolicSimulator(QuantumSimulatorTests):
-
     def test_get_wavefunction_raises_if_circuit_contains_free_symbols(
         self, wf_simulator
     ):
@@ -30,7 +29,7 @@ class TestSymbolicSimulator(QuantumSimulatorTests):
     def test_cannot_sample_from_circuit_containing_free_symbols(self, wf_simulator):
         circuit = circuits.Circuit([circuits.XX(sympy.Symbol("theta"))(2, 1)])
         with pytest.raises(ValueError):
-            wf_simulator.run_circuit_and_measure(circuit)
+            wf_simulator.run_circuit_and_measure(circuit, n_samples=1000)
 
 
 class TestSymbolicSimulatorGates(QuantumSimulatorGatesTest):

@@ -41,9 +41,7 @@ class QuantumBackend(ABC):
             assert self.batch_size > 0
 
     @abstractmethod
-    def run_circuit_and_measure(
-        self, circuit: Circuit, n_samples: int, **kwargs
-    ) -> Measurements:
+    def run_circuit_and_measure(self, circuit: Circuit, n_samples: int) -> Measurements:
         """
         Method for executing the circuit and measuring the outcome.
         Args:
@@ -60,7 +58,7 @@ class QuantumBackend(ABC):
         return Measurements()
 
     def run_circuitset_and_measure(
-        self, circuits: Sequence[Circuit], n_samples: List[int], **kwargs
+        self, circuits: Sequence[Circuit], n_samples: List[int]
     ) -> List[Measurements]:
         """Run a set of circuits and measure a certain number of bitstrings.
 
@@ -78,7 +76,7 @@ class QuantumBackend(ABC):
             for circuit, n_samples_for_circuit in zip(circuits, n_samples):
                 measurement_set.append(
                     self.run_circuit_and_measure(
-                        circuit, n_samples=n_samples_for_circuit, **kwargs
+                        circuit, n_samples=n_samples_for_circuit
                     )
                 )
 
@@ -95,7 +93,7 @@ class QuantumBackend(ABC):
             return measurement_set
 
     def get_bitstring_distribution(
-        self, circuit: Circuit, n_samples: int, **kwargs
+        self, circuit: Circuit, n_samples: int
     ) -> BitstringDistribution:
         """Calculates a bitstring distribution.
 
@@ -107,7 +105,7 @@ class QuantumBackend(ABC):
 
         """
         # Get the expectation values
-        measurements = self.run_circuit_and_measure(circuit, n_samples, **kwargs)
+        measurements = self.run_circuit_and_measure(circuit, n_samples)
         return measurements.get_distribution()
 
 
@@ -123,7 +121,7 @@ class QuantumSimulator(QuantumBackend):
         self.device_connectivity = device_connectivity
 
     @abstractmethod
-    def get_wavefunction(self, circuit: Circuit, **kwargs) -> Wavefunction:
+    def get_wavefunction(self, circuit: Circuit) -> Wavefunction:
         """Returns a wavefunction representing quantum state produced by a circuit
 
         Args:
@@ -152,7 +150,7 @@ class QuantumSimulator(QuantumBackend):
         return expectation_values
 
     def get_bitstring_distribution(
-        self, circuit: Circuit, n_samples: Optional[int] = None, **kwargs
+        self, circuit: Circuit, n_samples: Optional[int] = None
     ) -> BitstringDistribution:
         """Calculates a bitstring distribution.
 
@@ -163,13 +161,13 @@ class QuantumSimulator(QuantumBackend):
             Probability distribution of getting specific bistrings.
         """
         if n_samples is None:
-            wavefunction = self.get_wavefunction(circuit, **kwargs)
+            wavefunction = self.get_wavefunction(circuit)
             return create_bitstring_distribution_from_probability_distribution(
                 wavefunction.probabilities()
             )
         else:
             # Get the expectation values
-            measurements = self.run_circuit_and_measure(circuit, n_samples, **kwargs)
+            measurements = self.run_circuit_and_measure(circuit, n_samples)
             return measurements.get_distribution()
 
 

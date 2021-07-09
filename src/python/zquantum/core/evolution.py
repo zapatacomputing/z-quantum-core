@@ -151,7 +151,8 @@ def _time_evolution_for_term_qubit_operator(
     for gate in cnot_gates:
         circuit += gate
 
-    circuit += central_gate
+    if central_gate:
+        circuit += central_gate
 
     for gate in reversed(cnot_gates):
         circuit += gate

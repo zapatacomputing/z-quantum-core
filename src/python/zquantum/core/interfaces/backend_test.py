@@ -45,7 +45,7 @@ from zquantum.core.interfaces.estimation import EstimationTask
 from ..bitstring_distribution import BitstringDistribution
 from ..circuits import CNOT, Circuit, H, X, builtin_gate_by_name
 from ..estimation import estimate_expectation_values_by_averaging
-from ..measurement import Measurements
+from ..measurement import ExpectationValues, Measurements
 from ..testing.test_cases_for_backend_tests import (
     one_qubit_non_parametric_gates_amplitudes_test_set,
     one_qubit_non_parametric_gates_exp_vals_test_set,
@@ -406,6 +406,23 @@ class QuantumSimulatorTests(QuantumBackendTests):
         assert bitstring_distribution.distribution_dict["111"] == pytest.approx(
             0.5, abs=1e-7
         )
+        assert wf_simulator.number_of_circuits_run == 1
+        assert wf_simulator.number_of_jobs_run == 1
+
+    def test_get_exact_expectation_values(self, wf_simulator):
+        # Given
+        wf_simulator.number_of_circuits_run = 0
+        wf_simulator.number_of_jobs_run = 0
+        circuit = Circuit([H(0), X(1)])
+        operator = QubitOperator("[Z0] + 2[Z1]")
+        target_expectation_values = ExpectationValues(np.array([0.0, -2.0]))
+
+        # When
+        expectation_values = wf_simulator.get_exact_expectation_values(
+            circuit, operator
+        )
+
+        assert np.allclose(expectation_values.values, target_expectation_values.values)
         assert wf_simulator.number_of_circuits_run == 1
         assert wf_simulator.number_of_jobs_run == 1
 

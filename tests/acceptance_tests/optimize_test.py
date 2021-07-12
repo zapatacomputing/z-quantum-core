@@ -100,7 +100,6 @@ class TestOptimizeParamterizedCircuit:
         backend_specs = {
             "module_name": "zquantum.core.symbolic_simulator",
             "function_name": "SymbolicSimulator",
-            "n_samples": 10000,
         }
         initial_parameters_path = "initial_parameters.json"
         with open(initial_parameters_path, "w") as f:

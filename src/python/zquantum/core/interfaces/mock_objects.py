@@ -3,17 +3,15 @@ from typing import Optional
 
 import numpy as np
 import sympy
-from openfermion import SymbolicOperator
 from overrides import overrides
-from pyquil.wavefunction import Wavefunction
 
 from ..circuits import RX, Circuit
-from ..measurement import ExpectationValues, Measurements
+from ..measurement import Measurements
 from ..symbolic_simulator import SymbolicSimulator
 from ..utils import create_symbols_map
 from .ansatz import Ansatz
 from .ansatz_utils import ansatz_property
-from .backend import QuantumBackend, QuantumSimulator
+from .backend import QuantumBackend
 from .optimizer import Optimizer, optimization_result
 
 
@@ -21,18 +19,16 @@ class MockQuantumBackend(QuantumBackend):
 
     supports_batching = False
 
-    def __init__(self, n_samples: Optional[int] = None):
-        super().__init__(n_samples)
+    def __init__(self):
+        super().__init__()
+        self._simulator = SymbolicSimulator()
 
     def run_circuit_and_measure(
-        self, circuit: Circuit, n_samples: Optional[int] = None, **kwargs
+        self, circuit: Circuit, n_samples: int, **kwargs
     ) -> Measurements:
         super(MockQuantumBackend, self).run_circuit_and_measure(circuit, n_samples)
-        if n_samples is not None:
-            simulator = SymbolicSimulator(n_samples=n_samples)
-        else:
-            simulator = SymbolicSimulator(n_samples=self.n_samples)
-        return simulator.run_circuit_and_measure(circuit, n_samples)
+
+        return self._simulator.run_circuit_and_measure(circuit, n_samples)
 
 
 class MockOptimizer(Optimizer):

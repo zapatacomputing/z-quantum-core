@@ -194,12 +194,10 @@ class TestUtils:
 
     def test_create_object(self):
         # Given
-        n_samples = 100
         function_name = "MockQuantumBackend"
         specs = {
             "module_name": "zquantum.core.interfaces.mock_objects",
             "function_name": function_name,
-            "n_samples": n_samples,
         }
 
         # When
@@ -207,7 +205,6 @@ class TestUtils:
 
         # Then
         assert type(mock_backend).__name__ == function_name
-        assert mock_backend.n_samples == n_samples
 
     def test_create_object_func_without_kwargs(self):
         self.test_get_func_from_specs()

@@ -4,17 +4,14 @@ import numpy as np
 import pytest
 import sympy
 from openfermion import IsingOperator, QubitOperator, qubit_operator_sparse
-from openfermion.linalg.sparse_tools import (
-    expectation_one_body_db_operator_computational_basis_state,
-)
 from zquantum.core.circuits import RX, RY, RZ, Circuit, H, X
 from zquantum.core.estimation import (
     allocate_shots_proportionally,
     allocate_shots_uniformly,
     calculate_exact_expectation_values,
     estimate_expectation_values_by_averaging,
-    evaluate_non_measured_estimation_tasks,
     evaluate_estimation_circuits,
+    evaluate_non_measured_estimation_tasks,
     get_context_selection_circuit_for_group,
     group_greedily,
     group_individually,

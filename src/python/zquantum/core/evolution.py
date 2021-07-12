@@ -135,7 +135,7 @@ def _time_evolution_for_term_qubit_operator(
     circuit = circuits.Circuit()
 
     # If constant term, return empty circuit.
-    if term_components is None:
+    if not term_components:
         return circuit
 
     for i, (term_type, qubit_id) in enumerate(zip(term_types, qubit_indices)):

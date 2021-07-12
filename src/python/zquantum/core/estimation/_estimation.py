@@ -268,7 +268,8 @@ def evaluate_non_measured_estimation_tasks(
         if len(task.operator.terms) > 1 or () not in task.operator.terms.keys():
             if task.number_of_shots > 0:
                 raise RuntimeError(
-                    "An EstimationTask required shots but was classified as a non-measured task"
+                    "An EstimationTask required shots but was classified as\
+                         a non-measured task"
                 )
             else:
                 coefficient = 0.0
@@ -307,7 +308,7 @@ def estimate_expectation_values_by_averaging(
         indices_not_to_measure,
     ) = split_estimation_tasks_to_measure(estimation_tasks)
 
-    expectation_values_for_constants = evaluate_non_measured_estimation_tasks(
+    expectation_values_not_measured = evaluate_non_measured_estimation_tasks(
         estimation_tasks_not_measured
     )
 
@@ -337,7 +338,7 @@ def estimate_expectation_values_by_averaging(
     ]
 
     for ex_val, final_index in zip(
-        expectation_values_for_constants, indices_not_to_measure
+        expectation_values_not_measured, indices_not_to_measure
     ):
         full_expectation_values[final_index] = ex_val
     for ex_val, final_index in zip(

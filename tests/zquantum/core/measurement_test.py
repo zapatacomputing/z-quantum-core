@@ -159,6 +159,16 @@ def test_sample_from_wavefunction_list():
     assert sample.pop() == expected_bitstring
 
 
+@pytest.mark.parametrize("n_samples", [-1, 0.0, 100.2, 1000.0])
+def test_sample_from_wavefunction_fails_for_invalid_n_samples(n_samples):
+    n_qubits = 4
+    amplitudes = [0] * (2 ** n_qubits)
+    amplitudes[1] = 1  # |0001> will be measured in all cases.
+    wavefunction = Wavefunction(amplitudes)
+    with pytest.raises(AssertionError):
+        sample_from_wavefunction(wavefunction, n_samples)
+
+
 def test_parities_io():
     measurements = [(1, 0), (1, 0), (0, 1), (0, 0)]
     op = IsingOperator("[Z0] + [Z1] + [Z0 Z1]")

@@ -185,12 +185,13 @@ def sample_from_wavefunction(
     """Sample bitstrings from a wavefunction.
 
     Args:
-        wavefunction (Wavefunction): the wavefunction to sample from.
-        n_samples (int): the number of samples taken.
+        wavefunction: the wavefunction to sample from.
+        n_samples: the number of samples taken. Needs to be greater than 0.
 
     Returns:
         List[Tuple[int]]: A list of tuples where the each tuple is a sampled bitstring.
     """
+    assert isinstance(n_samples, int) and n_samples > 0
     rng = np.random.default_rng()
     outcomes_str, probabilities_np = zip(*wavefunction.get_outcome_probs().items())
     probabilities = [

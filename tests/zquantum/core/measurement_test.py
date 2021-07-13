@@ -881,8 +881,7 @@ class TestMeasurements:
             )
         ],
     )
-    # Only checking that no Exception is raised
-    def test_get_measurements_representing_distribution_removes_only_sampled_bitstrings(
+    def test_get_measurements_representing_distribution_doesnt_raise(
         self, bitstring_distribution
     ):
         number_of_samples = 100

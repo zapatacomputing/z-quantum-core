@@ -73,18 +73,12 @@ def _cirq_exponentiate_hamiltonian(hamiltonian, qubits, time, trotter_order):
             np.diag([1j, -1j, -1j, 1j])[::-1],
         ),
         (QubitOperator("[Z0 Z1]"), np.pi, -np.eye(4)),
-        (QubitOperator((), 1), np.pi, []),
     ],
 )
 class TestTimeEvolutionOfTerm:
     def test_evolving_pauli_term_with_numerical_time_gives_correct_unitary(
         self, term, time, expected_unitary
     ):
-        # If constant term, check is empty circuit.
-        if isinstance(term, QubitOperator) and () in term.terms:
-            assert time_evolution_for_term(term, time) == circuits.Circuit()
-            return
-
         actual_unitary = time_evolution_for_term(term, time).to_unitary()
         np.testing.assert_array_almost_equal(actual_unitary, expected_unitary)
 
@@ -95,13 +89,16 @@ class TestTimeEvolutionOfTerm:
         symbol_map = {time_symbol: time}
         evolution_circuit = time_evolution_for_term(term, time_symbol)
 
-        # If constant term, check is empty circuit.
-        if isinstance(term, QubitOperator) and () in term.terms:
-            assert evolution_circuit == circuits.Circuit()
-            return
-
         actual_unitary = evolution_circuit.bind(symbol_map).to_unitary()
         np.testing.assert_array_almost_equal(actual_unitary, expected_unitary)
+
+
+class TestTimeEvolutionOfConstantTerm:
+    # This test is added to make sure that constant terms in qubit operators
+    # do not cause errors.
+    def test_evolving_constant_term_qubit_operator_gives_empty_circuit(self):
+        evolution_circuit = time_evolution_for_term(QubitOperator((), 1), np.pi)
+        assert evolution_circuit == circuits.Circuit()
 
 
 class TestTimeEvolutionOfPauliSum:

@@ -13,7 +13,7 @@ from numbers import Number
 import qiskit
 
 from .expressions import ExpressionDialect, reduction
-from .sympy_expressions import expression_from_sympy
+from .symengine_expressions import expression_from_symengine
 
 
 @singledispatch
@@ -36,8 +36,8 @@ def _expr_from_qiskit_param_expr(
     # At the moment of writing this the qiskit version that we use (0.23.2) as well
     # as the newest version 0.23.5) does not provide a better way to access symbolic
     # expression wrapped by ParameterExpression.
-    sympy_expr = qiskit_expr._symbol_expr
-    return expression_from_sympy(sympy_expr)
+    symengine_expr = qiskit_expr._symbol_expr
+    return expression_from_symengine(symengine_expr)
 
 
 def integer_pow(base, exponent: int):

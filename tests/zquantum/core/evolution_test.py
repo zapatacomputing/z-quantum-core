@@ -93,6 +93,14 @@ class TestTimeEvolutionOfTerm:
         np.testing.assert_array_almost_equal(actual_unitary, expected_unitary)
 
 
+class TestTimeEvolutionOfConstantTerm:
+    # This test is added to make sure that constant terms in qubit operators
+    # do not cause errors.
+    def test_evolving_constant_term_qubit_operator_gives_empty_circuit(self):
+        evolution_circuit = time_evolution_for_term(QubitOperator((), 1), np.pi)
+        assert evolution_circuit == circuits.Circuit()
+
+
 class TestTimeEvolutionOfPauliSum:
     @pytest.fixture(
         params=[

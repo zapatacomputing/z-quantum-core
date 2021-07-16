@@ -132,6 +132,12 @@ def _time_evolution_for_term_qubit_operator(
     qubit_indices = [component[0] for component in term_components]
     coefficient = list(term.terms.values())[0]
 
+    circuit = circuits.Circuit()
+
+    # If constant term, return empty circuit.
+    if not term_components:
+        return circuit
+
     for i, (term_type, qubit_id) in enumerate(zip(term_types, qubit_indices)):
         if term_type == "X":
             base_changes.append(H(qubit_id))
@@ -144,7 +150,6 @@ def _time_evolution_for_term_qubit_operator(
         else:
             cnot_gates.append(CNOT(qubit_id, qubit_indices[i + 1]))
 
-    circuit = circuits.Circuit()
     for gate in base_changes:
         circuit += gate
 

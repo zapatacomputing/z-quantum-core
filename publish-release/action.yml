@@ -43,8 +43,19 @@ runs:
         echo "::set-output name=inferred_version::$INFERRED_VERSION"
 
     - name: Push new version tag
+      id: push-new-version-tag
       shell: bash
       run: |
         TAG="v${{steps.infer-release-version.outputs.inferred_version}}"
         git tag "$TAG"
         git push --tags
+        echo "::set-output name=tag::$TAG"
+
+    - name: Create entry on GH Releases
+      uses: actions/github-script@v4
+      with:
+        script: |
+          github.repos.createRelease({
+            ...context.repo,
+            tag_name: "${{steps.push-new-version-tag.outputs.tag}}",
+          })

@@ -1,3 +1,8 @@
+# This workflow is meant to be run on each push to the base branch. It allows executing
+# the "publish release" action.
+#
+# Don't extend this workflow. If any more steps are needed please add them to the
+# action instead. This allows reusing it between repos.
 name: Publish release
 
 description: Infers current project version, pushes a tag with a new version, and creates an entry on GitHub Releases

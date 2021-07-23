@@ -2,6 +2,7 @@ name: Publish release
 
 description: Infers current project version, pushes a tag with a new version, and creates an entry on GitHub Releases
 
+# Note: this action assumes that the repo was already cloned
 
 inputs:
   new-version:
@@ -17,19 +18,6 @@ outputs:
 runs:
   using: composite
   steps:
-    # ATM the "uses" keyword is unsupported for steps nested in a composite action.
-    # - name: Check out the released repo
-    #   uses: actions/checkout@v2
-    #   with:
-    #     # Fetch whole repo to get access to tags. We need tags to read current package
-    #     # version.
-    #     fetch-depth: 0
-    - name: Run git clone     
-      shell: bash
-      run: |
-        git clone https://${{ github.token }}@github.com/${{ github.token }}.git
-
-
     - name: Infer release version
       id: infer-release-version
       shell: bash

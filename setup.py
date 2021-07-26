@@ -25,11 +25,6 @@ def _read_readme():
         return f.read()
 
 
-def _read_version():
-    with open(os.path.join(_this_path(), "VERSION")) as f:
-        return f.read().strip()
-
-
 setuptools.setup(
     name="z-quantum-core",
     use_scm_version=True,

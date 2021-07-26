@@ -4,21 +4,21 @@
 # composite action instead. This allows reusing it between repos.
 name: submit-dev-master-pr
 
-# on: 
-#   workflow_dispatch:
+on: 
+  workflow_dispatch:
 
-# jobs:
-#   submit-pr:
-#     runs-on: ubuntu-latest
-#     steps:
-#       - name: Submit dev -> master PR
-#         uses: actions/github-script@v4
-#         with:
-#           script: |
-#             github.pulls.create({
-#               ...context.repo,
-#               title: "Merge dev to master",
-#               head: "dev",
-#               base: "master",
-#             })
+jobs:
+  submit-pr:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Submit dev -> master PR
+        uses: actions/github-script@v4
+        with:
+          script: |
+            github.pulls.create({
+              ...context.repo,
+              title: "Merge dev to master",
+              head: "dev",
+              base: "master",
+            })
 

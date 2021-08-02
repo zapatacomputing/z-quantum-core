@@ -117,12 +117,36 @@ def phase_matrix(angle):
 
 def u3_matrix(theta, phi, lambda_):
     """Based on
-    https://github.com/quantumlib/Cirq/blob/292080453e22e91dc5658a0cfa5043539944a950/cirq/circuits/qasm_output.py#L70
+    https://qiskit.org/documentation/stubs/qiskit.circuit.library.U3Gate.html
     """
-    return (
-        rz_matrix(phi % (2 * sympy.pi))
-        * ry_matrix(theta % (2 * sympy.pi))
-        * rz_matrix(lambda_ % (2 * sympy.pi))
+
+    # Can also be defined this way (modulo only required for Cirq conversions)
+    # """Based on
+    # https://github.com/quantumlib/Cirq/blob/292080453e22e91dc5658a0cfa5043539944a950/cirq/circuits/qasm_output.py#L70
+    # """
+    from math import pi
+
+    # return (
+    #     rz_matrix(sympy.Mod(phi, 2 * pi))
+    #     * ry_matrix(theta % (2 * pi))
+    #     * rz_matrix(lambda_ % (2 * pi))
+    # )
+
+    theta = theta
+    phi = phi
+    lambda_ = lambda_
+    cos_term = sympy.cos(0.5 * theta)
+    sin_term = sympy.sin(0.5 * theta)
+
+    exp_phi = sympy.exp(1j * phi)
+    exp_lambda = sympy.exp(1j * lambda_)
+    exp_both = sympy.exp(1j * (phi + lambda_))
+
+    return sympy.Matrix(
+        [
+            [cos_term, -1 * exp_lambda * sin_term],
+            [exp_phi * sin_term, exp_both * cos_term],
+        ]
     )
 
 

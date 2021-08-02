@@ -108,18 +108,26 @@ def pyquil_rh_definition():
 
 
 def pyquil_u3_definition():
+    # Note: need to add an extra global phase to match to z-quantum's definition
     cos_term = pyquil.quilatom.quil_cos(0.5 * QUIL_THETA_IDX)
     sin_term = pyquil.quilatom.quil_sin(0.5 * QUIL_THETA_IDX)
 
-    exp_phi = pyquil.quilatom.quil_exp(1j * QUIL_PHI)
-    exp_lambda = pyquil.quilatom.quil_exp(1j * QUIL_LAMBDA)
-    exp_both = pyquil.quilatom.quil_exp(1j * (QUIL_PHI + QUIL_LAMBDA))
+    global_phase_phi = pyquil.quilatom.quil_exp(0.5j * QUIL_PHI)
+    global_phase_lambda = pyquil.quilatom.quil_exp(0.5j * QUIL_LAMBDA)
+    global_phase_phi_neg = pyquil.quilatom.quil_exp(-0.5j * QUIL_PHI)
+    global_phase_lambda_neg = pyquil.quilatom.quil_exp(-0.5j * QUIL_LAMBDA)
 
     return pyquil.quil.DefGate(
         name="U3",
         matrix=[
-            [cos_term, -1 * exp_lambda * sin_term],
-            [exp_phi * sin_term, cos_term * exp_both],
+            [
+                cos_term * global_phase_phi_neg * global_phase_lambda_neg,
+                -1 * global_phase_lambda * global_phase_phi_neg * sin_term,
+            ],
+            [
+                global_phase_phi * global_phase_lambda_neg * sin_term,
+                cos_term * global_phase_phi * global_phase_lambda,
+            ],
         ],
         parameters=[QUIL_THETA_IDX, QUIL_PHI, QUIL_LAMBDA],
     )
@@ -204,8 +212,10 @@ EQUIVALENT_CIRCUITS = [
         pyquil.Program([PYQUIL_RH, PYQUIL_RH.get_constructor()(np.pi / 5)(3)]),
     ),
     (
-        _circuit.Circuit([_builtin_gates.U3(np.pi / 2, 0, 0)(3)]),
-        pyquil.Program([PYQUIL_U3, PYQUIL_U3.get_constructor()(np.pi / 2, 0, 0)(3)]),
+        _circuit.Circuit([_builtin_gates.U3(np.pi / 2, np.pi / 4, 0)(3)]),
+        pyquil.Program(
+            [PYQUIL_U3, PYQUIL_U3.get_constructor()(np.pi / 2, np.pi / 4, 0)(3)]
+        ),
     ),
 ]
 

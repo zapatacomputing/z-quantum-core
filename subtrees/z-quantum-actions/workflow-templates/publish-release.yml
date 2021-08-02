@@ -24,5 +24,4 @@ jobs:
           fetch-depth: 0
       
       - name: Run publish release action
-        uses: ./subtrees/z-quantum-actions/publish-release
-
+        uses: ./vendor/z-quantum-actions/publish-release

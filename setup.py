@@ -25,11 +25,6 @@ def _read_readme():
         return f.read()
 
 
-def _read_version():
-    with open(os.path.join(_this_path(), "VERSION")) as f:
-        return f.read().strip()
-
-
 setuptools.setup(
     name="z-quantum-core",
     use_scm_version=True,
@@ -59,8 +54,9 @@ setuptools.setup(
         "lea>=3.2.0",
         "pyquil~=2.25",
         "cirq>=0.9.1,<=0.10",
-        "qiskit~=0.26",
+        "qiskit~=0.28",
         "overrides~=3.1",
+        "symengine~=0.7",
     ],
     extras_require=extras_require,
     setup_requires=["setuptools_scm~=6.0"],

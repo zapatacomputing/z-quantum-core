@@ -185,12 +185,13 @@ def sample_from_wavefunction(
     """Sample bitstrings from a wavefunction.
 
     Args:
-        wavefunction (Wavefunction): the wavefunction to sample from.
-        n_samples (int): the number of samples taken.
+        wavefunction: the wavefunction to sample from.
+        n_samples: the number of samples taken. Needs to be greater than 0.
 
     Returns:
         List[Tuple[int]]: A list of tuples where the each tuple is a sampled bitstring.
     """
+    assert isinstance(n_samples, int) and n_samples > 0
     rng = np.random.default_rng()
     outcomes_str, probabilities_np = zip(*wavefunction.get_outcome_probs().items())
     probabilities = [
@@ -453,6 +454,55 @@ def get_expectation_value_from_frequencies(
     return expectation
 
 
+def _check_sample_elimination(
+    samples: Counter,
+    bitstring_samples: List[Tuple[int, ...]],
+    leftover_distribution: BitstringDistribution,
+) -> Counter:
+    """This is a function that checks that all elements in samples
+    are present in bitstring_samples. If they are not, we eliminate the
+    elements not in bitstring samples, set their probability to 0 in
+    leftover_distribution and resample the appropriate number of times.
+    Then, we re-check the new samples.
+    Args:
+        samples: The bitstrings to eliminate and how many times to eliminate them
+        bitstring_samples: the bitstring distribution from where the bitstrings
+                           should be removed
+        leftover_distribution: the distribution from which samples to eliminate are
+                               sampled
+    Returns:
+        correct_samples: A sample object that only contains bitstrings that can actually
+                     be removed from bitstring_samples
+    """
+    bitstring_counts = Counter(bitstring_samples)
+
+    nresamples = 1  # Initializing so that the loop starts
+    corrected_leftover_distribution = BitstringDistribution(
+        dict(leftover_distribution.distribution_dict)
+    )
+    correct_samples = samples.copy()
+    while nresamples != 0:
+        new_samples = None
+        nresamples = 0
+        for sample in correct_samples:
+            bitstring = tuple([int(measurement_value) for measurement_value in sample])
+            if correct_samples[sample] > bitstring_counts[bitstring]:
+                nresamples = correct_samples[sample] - bitstring_counts[bitstring]
+                correct_samples[sample] = bitstring_counts[bitstring]
+                distribution_dict = corrected_leftover_distribution.distribution_dict
+                distribution_dict[sample] = 0
+                corrected_leftover_distribution = BitstringDistribution(
+                    distribution_dict, True
+                )
+                new_samples = sample_from_probability_distribution(
+                    corrected_leftover_distribution.distribution_dict, nresamples
+                )
+                correct_samples = correct_samples + new_samples
+                break
+
+    return correct_samples
+
+
 class Measurements:
     """A class representing measurements from a quantum circuit. The bitstrings variable
     represents the internal data structure of the Measurements class. It is expressed as
@@ -522,6 +572,11 @@ class Measurements:
                         tuple([int(measurement_value) for measurement_value in sample])
                     ] * samples[sample]
             else:
+                # Eliminating samples: need to ensure they are present in the
+                # bitstring_samples list
+                samples = _check_sample_elimination(
+                    samples, bitstring_samples, leftover_distribution
+                )
                 for sample in samples:
                     for _ in range(samples[sample]):
                         bitstring_samples.remove(
@@ -610,7 +665,7 @@ class Measurements:
         return BitstringDistribution(distribution)
 
     def get_expectation_values(
-        self, ising_operator: IsingOperator, use_bessel_correction: bool = True
+        self, ising_operator: IsingOperator, use_bessel_correction: bool = False
     ) -> ExpectationValues:
         """Get the expectation values of an operator from the measurements.
 

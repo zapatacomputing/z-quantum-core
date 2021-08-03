@@ -239,7 +239,7 @@ def _example_parametric_pyquil_program():
     gate_constructor = gate_def.get_constructor()
 
     return pyquil.Program(
-        pyquil.quil.Declare("theta", "REAL"),
+        pyquil.quil.Declare(QUIL_THETA.name, "REAL"),
         gate_def,
         gate_constructor(QUIL_THETA)(0),
     )
@@ -266,7 +266,10 @@ EQUIVALENT_PARAMETRIZED_CIRCUITS = [
             ],
         ),
         pyquil.Program(
-            [pyquil.quil.Declare("theta", "REAL"), pyquil.gates.RX(QUIL_THETA, 1)]
+            [
+                pyquil.quil.Declare(QUIL_THETA.name, "REAL"),
+                pyquil.gates.RX(QUIL_THETA, 1),
+            ]
         ),
     ),
     (
@@ -279,8 +282,8 @@ EQUIVALENT_PARAMETRIZED_CIRCUITS = [
         ),
         pyquil.Program(
             [
-                pyquil.quil.Declare("gamma", "REAL"),
-                pyquil.quil.Declare("theta", "REAL"),
+                pyquil.quil.Declare(QUIL_GAMMA.name, "REAL"),
+                pyquil.quil.Declare(QUIL_THETA.name, "REAL"),
                 pyquil.gates.RX(QUIL_GAMMA * QUIL_THETA, 1),
             ]
         ),

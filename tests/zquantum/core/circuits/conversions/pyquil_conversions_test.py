@@ -17,17 +17,17 @@ QUIL_THETA = pyquil.quil.Parameter("theta")
 QUIL_GAMMA = pyquil.quil.Parameter("gamma")
 
 """
-Note: Those differently named Symbols/Parameters are needed due 
+Note: Those differently named Symbols/Parameters are needed due
 to the manner the conversion logic abstracts the names of the Symbols
 
-Example: 
+Example:
 SYMPY_THETA = sympy.Symbol("theta_0")
 QUIL_THETA = pyquil.quil.Parameter("theta")
 
 SYMPY_THETA = sympy.Symbol("theta")
 QUIL_THETA = pyquil.quil.Parameter("theta")
 ----------------------------------------------
-Export fails, Import passes 
+Export fails, Import passes
 """
 SYMPY_THETA_IDX = sympy.Symbol("theta_0")
 SYMPY_PHI_IDX = sympy.Symbol("theta_1")

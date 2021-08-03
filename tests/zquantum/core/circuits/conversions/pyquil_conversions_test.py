@@ -29,12 +29,13 @@ QUIL_THETA = pyquil.quil.Parameter("theta")
 ----------------------------------------------
 Export fails, Import passes
 """
-SYMPY_THETA_IDX = sympy.Symbol("theta_0")
-SYMPY_PHI_IDX = sympy.Symbol("theta_1")
-SYMPY_LAMBDA_IDX = sympy.Symbol("theta_2")
-QUIL_THETA_IDX = pyquil.quil.Parameter("theta_0")
-QUIL_PHI = pyquil.quil.Parameter("theta_1")
-QUIL_LAMBDA = pyquil.quil.Parameter("theta_2")
+SYMPY_THETA_0 = sympy.Symbol("theta_0")
+SYMPY_THETA_1 = sympy.Symbol("theta_1")
+SYMPY_THETA_2 = sympy.Symbol("theta_2")
+QUIL_THETA_0 = pyquil.quil.Parameter("theta_0")
+QUIL_THETA_1 = pyquil.quil.Parameter("theta_1")
+QUIL_THETA_2 = pyquil.quil.Parameter("theta_2")
+
 
 SQRT_X_DEF = _gates.CustomGateDefinition(
     "SQRT-X",
@@ -57,37 +58,37 @@ PYQUIL_XX = pyquil.quil.DefGate(
     name="XX",
     matrix=[
         [
-            pyquil.quilatom.quil_cos(0.5 * QUIL_THETA_IDX),
+            pyquil.quilatom.quil_cos(0.5 * QUIL_THETA_0),
             0,
             0,
-            -1j * pyquil.quilatom.quil_sin(0.5 * QUIL_THETA_IDX),
+            -1j * pyquil.quilatom.quil_sin(0.5 * QUIL_THETA_0),
         ],
         [
             0,
-            pyquil.quilatom.quil_cos(0.5 * QUIL_THETA_IDX),
-            -1j * pyquil.quilatom.quil_sin(0.5 * QUIL_THETA_IDX),
+            pyquil.quilatom.quil_cos(0.5 * QUIL_THETA_0),
+            -1j * pyquil.quilatom.quil_sin(0.5 * QUIL_THETA_0),
             0,
         ],
         [
             0,
-            -1j * pyquil.quilatom.quil_sin(0.5 * QUIL_THETA_IDX),
-            pyquil.quilatom.quil_cos(0.5 * QUIL_THETA_IDX),
+            -1j * pyquil.quilatom.quil_sin(0.5 * QUIL_THETA_0),
+            pyquil.quilatom.quil_cos(0.5 * QUIL_THETA_0),
             0,
         ],
         [
-            -1j * pyquil.quilatom.quil_sin(0.5 * QUIL_THETA_IDX),
+            -1j * pyquil.quilatom.quil_sin(0.5 * QUIL_THETA_0),
             0,
             0,
-            pyquil.quilatom.quil_cos(0.5 * QUIL_THETA_IDX),
+            pyquil.quilatom.quil_cos(0.5 * QUIL_THETA_0),
         ],
     ],
-    parameters=[QUIL_THETA_IDX],
+    parameters=[QUIL_THETA_0],
 )
 
 
 def pyquil_rh_definition():
-    cos_term = pyquil.quilatom.quil_cos(0.5 * QUIL_THETA_IDX)
-    sin_term = pyquil.quilatom.quil_sin(0.5 * QUIL_THETA_IDX)
+    cos_term = pyquil.quilatom.quil_cos(0.5 * QUIL_THETA_0)
+    sin_term = pyquil.quilatom.quil_sin(0.5 * QUIL_THETA_0)
     phase_factor = 1j * sin_term + cos_term
     return pyquil.quil.DefGate(
         name="RH",
@@ -103,19 +104,19 @@ def pyquil_rh_definition():
                 * (0.5j * pyquil.quilatom.quil_sqrt(2) * sin_term + cos_term),
             ],
         ],
-        parameters=[QUIL_THETA_IDX],
+        parameters=[QUIL_THETA_0],
     )
 
 
 def pyquil_u3_definition():
     # Note: need to add an extra global phase to match to z-quantum's definition
-    cos_term = pyquil.quilatom.quil_cos(0.5 * QUIL_THETA_IDX)
-    sin_term = pyquil.quilatom.quil_sin(0.5 * QUIL_THETA_IDX)
+    cos_term = pyquil.quilatom.quil_cos(0.5 * QUIL_THETA_0)
+    sin_term = pyquil.quilatom.quil_sin(0.5 * QUIL_THETA_0)
 
-    global_phase_phi = pyquil.quilatom.quil_exp(0.5j * QUIL_PHI)
-    global_phase_lambda = pyquil.quilatom.quil_exp(0.5j * QUIL_LAMBDA)
-    global_phase_phi_neg = pyquil.quilatom.quil_exp(-0.5j * QUIL_PHI)
-    global_phase_lambda_neg = pyquil.quilatom.quil_exp(-0.5j * QUIL_LAMBDA)
+    global_phase_phi = pyquil.quilatom.quil_exp(0.5j * QUIL_THETA_1)
+    global_phase_lambda = pyquil.quilatom.quil_exp(0.5j * QUIL_THETA_2)
+    global_phase_phi_neg = pyquil.quilatom.quil_exp(-0.5j * QUIL_THETA_1)
+    global_phase_lambda_neg = pyquil.quilatom.quil_exp(-0.5j * QUIL_THETA_2)
 
     return pyquil.quil.DefGate(
         name="U3",
@@ -129,7 +130,7 @@ def pyquil_u3_definition():
                 cos_term * global_phase_phi * global_phase_lambda,
             ],
         ],
-        parameters=[QUIL_THETA_IDX, QUIL_PHI, QUIL_LAMBDA],
+        parameters=[QUIL_THETA_0, QUIL_THETA_1, QUIL_THETA_2],
     )
 
 
@@ -249,11 +250,11 @@ def _example_u3_pyquil_program():
     gate_constructor = gate_def.get_constructor()
 
     return pyquil.Program(
-        pyquil.quil.Declare("theta_0", "REAL"),
-        pyquil.quil.Declare("theta_1", "REAL"),
-        pyquil.quil.Declare("theta_2", "REAL"),
+        pyquil.quil.Declare(QUIL_THETA_0.name, "REAL"),
+        pyquil.quil.Declare(QUIL_THETA_1.name, "REAL"),
+        pyquil.quil.Declare(QUIL_THETA_2.name, "REAL"),
         gate_def,
-        gate_constructor(QUIL_THETA_IDX, QUIL_PHI, QUIL_LAMBDA)(0),
+        gate_constructor(QUIL_THETA_0, QUIL_THETA_1, QUIL_THETA_2)(0),
     )
 
 
@@ -295,7 +296,7 @@ EQUIVALENT_PARAMETRIZED_CIRCUITS = [
     (
         _circuit.Circuit(
             [
-                _builtin_gates.U3(SYMPY_THETA_IDX, SYMPY_PHI_IDX, SYMPY_LAMBDA_IDX)(0),
+                _builtin_gates.U3(SYMPY_THETA_0, SYMPY_THETA_1, SYMPY_THETA_2)(0),
             ],
         ),
         _example_u3_pyquil_program(),

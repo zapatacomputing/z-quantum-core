@@ -8,12 +8,7 @@ from zquantum.core.circuits.conversions.pyquil_conversions import (
     import_from_pyquil,
 )
 
-SYMPY_THETA = sympy.Symbol("theta")
-SYMPY_PHI = sympy.Symbol("phi")
-SYMPY_LAMBDA = sympy.Symbol("lambda")
 SYMPY_GAMMA = sympy.Symbol("gamma")
-
-QUIL_THETA = pyquil.quil.Parameter("theta")
 QUIL_GAMMA = pyquil.quil.Parameter("gamma")
 
 """
@@ -42,6 +37,7 @@ SQRT_X_DEF = _gates.CustomGateDefinition(
     sympy.Matrix([[0.5 + 0.5j, 0.5 - 0.5j], [0.5 - 0.5j, 0.5 + 0.5j]]),
     tuple(),
 )
+
 CUSTOM_PARAMETRIC_DEF = _gates.CustomGateDefinition(
     "CUSTOM-PARAMETRIC",
     sympy.Matrix(
@@ -52,7 +48,6 @@ CUSTOM_PARAMETRIC_DEF = _gates.CustomGateDefinition(
     ),
     (SYMPY_GAMMA,),
 )
-
 
 PYQUIL_XX = pyquil.quil.DefGate(
     name="XX",
@@ -90,6 +85,7 @@ def pyquil_rh_definition():
     cos_term = pyquil.quilatom.quil_cos(0.5 * QUIL_THETA_0)
     sin_term = pyquil.quilatom.quil_sin(0.5 * QUIL_THETA_0)
     phase_factor = 1j * sin_term + cos_term
+
     return pyquil.quil.DefGate(
         name="RH",
         matrix=[
@@ -239,9 +235,31 @@ def _example_parametric_pyquil_program():
     gate_constructor = gate_def.get_constructor()
 
     return pyquil.Program(
-        pyquil.quil.Declare(QUIL_THETA.name, "REAL"),
+        pyquil.quil.Declare(QUIL_THETA_0.name, "REAL"),
         gate_def,
-        gate_constructor(QUIL_THETA)(0),
+        gate_constructor(QUIL_THETA_0)(0),
+    )
+
+
+def _example_rh_pyquil_program():
+    gate_def = PYQUIL_RH
+    gate_constructor = gate_def.get_constructor()
+
+    return pyquil.Program(
+        pyquil.quil.Declare(QUIL_THETA_0.name, "REAL"),
+        gate_def,
+        gate_constructor(QUIL_THETA_0)(0),
+    )
+
+
+def _example_xx_pyquil_program():
+    gate_def = PYQUIL_XX
+    gate_constructor = gate_def.get_constructor()
+
+    return pyquil.Program(
+        pyquil.quil.Declare(QUIL_THETA_0.name, "REAL"),
+        gate_def,
+        gate_constructor(QUIL_THETA_0)(0),
     )
 
 
@@ -262,39 +280,55 @@ EQUIVALENT_PARAMETRIZED_CIRCUITS = [
     (
         _circuit.Circuit(
             [
-                _builtin_gates.RX(SYMPY_THETA)(1),
+                _builtin_gates.RX(SYMPY_THETA_0)(1),
             ],
         ),
         pyquil.Program(
             [
-                pyquil.quil.Declare(QUIL_THETA.name, "REAL"),
-                pyquil.gates.RX(QUIL_THETA, 1),
+                pyquil.quil.Declare(QUIL_THETA_0.name, "REAL"),
+                pyquil.gates.RX(QUIL_THETA_0, 1),
             ]
         ),
     ),
     (
         _circuit.Circuit(
             [
-                _builtin_gates.RX(sympy.Mul(SYMPY_GAMMA, SYMPY_THETA, evaluate=False))(
-                    1
-                ),
+                _builtin_gates.RX(
+                    sympy.Mul(SYMPY_THETA_0, SYMPY_THETA_1, evaluate=False)
+                )(1),
             ],
         ),
         pyquil.Program(
             [
-                pyquil.quil.Declare(QUIL_GAMMA.name, "REAL"),
-                pyquil.quil.Declare(QUIL_THETA.name, "REAL"),
-                pyquil.gates.RX(QUIL_GAMMA * QUIL_THETA, 1),
+                pyquil.quil.Declare(QUIL_THETA_0.name, "REAL"),
+                pyquil.quil.Declare(QUIL_THETA_1.name, "REAL"),
+                pyquil.gates.RX(QUIL_THETA_0 * QUIL_THETA_1, 1),
             ]
         ),
     ),
     (
         _circuit.Circuit(
             [
-                CUSTOM_PARAMETRIC_DEF(SYMPY_THETA)(0),
+                CUSTOM_PARAMETRIC_DEF(SYMPY_THETA_0)(0),
             ],
         ),
         _example_parametric_pyquil_program(),
+    ),
+    (
+        _circuit.Circuit(
+            [
+                _builtin_gates.RH(SYMPY_THETA_0)(0),
+            ],
+        ),
+        _example_rh_pyquil_program(),
+    ),
+    (
+        _circuit.Circuit(
+            [
+                _builtin_gates.XX(SYMPY_THETA_0)(0),
+            ],
+        ),
+        _example_xx_pyquil_program(),
     ),
     (
         _circuit.Circuit(

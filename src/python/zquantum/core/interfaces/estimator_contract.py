@@ -1,10 +1,24 @@
-from openfermion import IsingOperator
-from zquantum.core.circuits import Circuit, H, RX, RY, RZ
-from zquantum.core.interfaces.estimation import EstimationTask
-from zquantum.core.symbolic_simulator import SymbolicSimulator
+"""Test case prototypes of instances of the EstimateExpectationValues protocol
+that can be used in other projects.
+
+Note that this file won't be executed on its own by pytest.
+You need to define your own test cases that import the ones defined here.
+Here is an example of how you would do that:
+
+    from zquantum.core.interfaces.estimator_contract import ESTIMATOR_CONTRACT
+
+    @pytest.mark.parametrize("contract", ESTIMATOR_CONTRACT)
+    def test_estimator_contract(contract):
+        estimator = CvarEstimator(alpha=0.2)
+        assert contract(estimator)
+"""
 
 import numpy as np
 import pytest
+from openfermion import IsingOperator
+from zquantum.core.circuits import RX, RY, RZ, Circuit, H
+from zquantum.core.interfaces.estimation import EstimationTask
+from zquantum.core.symbolic_simulator import SymbolicSimulator
 
 backend = SymbolicSimulator()
 

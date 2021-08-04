@@ -14,13 +14,12 @@ Here is an example of how you would do that:
 """
 
 import numpy as np
-import pytest
 from openfermion import IsingOperator
 from zquantum.core.circuits import RX, RY, RZ, Circuit, H
 from zquantum.core.interfaces.estimation import EstimationTask
 from zquantum.core.symbolic_simulator import SymbolicSimulator
 
-backend = SymbolicSimulator()
+backend = SymbolicSimulator(seed=1997)
 
 estimation_tasks = [
     EstimationTask(IsingOperator("Z0"), Circuit([H(0)]), 10000),
@@ -61,11 +60,9 @@ def _validate_order_of_outputs_matches_order_of_inputs(estimator):
         estimation_tasks=estimation_tasks,
     )
 
-    # TODO: experiment with seeds to achieve determinism
-
     return all(
         [
-            pytest.approx(expectation_values[i].values, abs=2e-1)
+            expectation_values[i].values
             == estimator(
                 backend=backend,
                 estimation_tasks=[task],
@@ -91,9 +88,7 @@ def _validate_expectation_value_includes_coefficients(estimator):
         estimation_tasks=estimation_tasks,
     )
 
-    return expectation_values[0].values != pytest.approx(
-        expectation_values[1].values, abs=2e-1
-    )
+    return expectation_values[0].values != expectation_values[1].values
 
 
 def _validate_constant_terms_are_included_in_output(estimator):
@@ -112,9 +107,7 @@ def _validate_constant_terms_are_included_in_output(estimator):
         estimation_tasks=estimation_tasks,
     )
 
-    return expectation_values[0].values != pytest.approx(
-        expectation_values[1].values, abs=2e-1
-    )
+    return expectation_values[0].values != expectation_values[1].values
 
 
 ESTIMATOR_CONTRACT = [

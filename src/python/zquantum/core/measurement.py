@@ -180,19 +180,22 @@ class ExpectationValues:
 
 
 def sample_from_wavefunction(
-    wavefunction: Wavefunction, n_samples: int
+    wavefunction: Wavefunction,
+    n_samples: int,
+    seed: Optional[int] = None,
 ) -> List[Tuple[int, ...]]:
     """Sample bitstrings from a wavefunction.
 
     Args:
         wavefunction: the wavefunction to sample from.
         n_samples: the number of samples taken. Needs to be greater than 0.
+        seed: the seed of the sampler
 
     Returns:
         List[Tuple[int]]: A list of tuples where the each tuple is a sampled bitstring.
     """
     assert isinstance(n_samples, int) and n_samples > 0
-    rng = np.random.default_rng()
+    rng = np.random.default_rng(seed)
     outcomes_str, probabilities_np = zip(*wavefunction.get_outcome_probs().items())
     probabilities = [
         x[0] if isinstance(x, (list, np.ndarray)) else x for x in list(probabilities_np)

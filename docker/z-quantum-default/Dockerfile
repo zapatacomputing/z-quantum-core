@@ -3,12 +3,14 @@ FROM ubuntu
 WORKDIR /app
 USER root
 RUN apt-get clean && apt-get update
-# Install python, pip, and other utilities
+
+# Install Python 3.7
 RUN apt-get install -y software-properties-common && \
     add-apt-repository -y ppa:deadsnakes/ppa && \
     apt-get install -y python3.7 && \
     apt-get install -y python3-pip && \
     apt-get install -y python3.7-dev
+
 RUN apt-get -y install \
                 wget \
                 git \
@@ -23,18 +25,20 @@ RUN apt-get -y install \
                 libblas-dev \
                 liblapack-dev
 
-# Set the default version of Python3 to Python 3.7 since z-quantum-core uses Python 3.7 features
+
+# ZQuantum requires Python 3.7. By installing `python3-pip` we have also installed 
+# Python 3.8. We need to set back the Python version to 3.7.
 RUN update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.7 1 && \
     update-alternatives --set python3 /usr/bin/python3.7
 
 ENV PYTHONPATH="/usr/local/lib/python3.7/dist-packages:${PYTHONPATH}"
 
-# We fix pip version to 20.2.4 until the issues with dependency resolving in pip is solved.
-RUN pip3 install pip==20.2.4
+# Downgrade pip to 20.2.4 until the issues with dependency resolving in pip is solved.
+RUN python3 -m pip install pip==20.2.4
 # Make sure to upgrade setuptools else z-quantum-core won't be installed because it uses find_namespace_packages
-RUN pip3 install --upgrade setuptools
-# Install Rigetti QVM
-#RUN tar xjf sbcl-1.5.4-x86-64-linux-binary.tar.bz2
+RUN python3 -m pip install --upgrade setuptools
+
+# Build & install Rigetti QVM simulator
 WORKDIR /root
 RUN curl -O https://beta.quicklisp.org/quicklisp.lisp && \
     echo '(quicklisp-quickstart:install)'  | sbcl --load quicklisp.lisp

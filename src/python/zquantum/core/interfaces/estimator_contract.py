@@ -72,14 +72,9 @@ def _validate_order_of_outputs_matches_order_of_inputs(estimator):
     )
 
 
-def _validate_number_of_entries_in_each_expectation_value_is_not_restricted(estimator):
-    return True
-
-
 def _validate_expectation_value_includes_coefficients(estimator):
     estimation_tasks = [
         EstimationTask(IsingOperator("Z0"), Circuit([H(0)]), 10000),
-        # EstimationTask(IsingOperator("Z0", 1.9971997), Circuit([H(0)]), 10000),
         EstimationTask(IsingOperator("Z0", 19.971997), Circuit([H(0)]), 10000),
     ]
 
@@ -94,9 +89,8 @@ def _validate_expectation_value_includes_coefficients(estimator):
 def _validate_constant_terms_are_included_in_output(estimator):
     estimation_tasks = [
         EstimationTask(IsingOperator("Z0"), Circuit([H(0)]), 10000),
-        # EstimationTask(IsingOperator("Z0", 1.9971997), Circuit([H(0)]), 10000),
         EstimationTask(
-            IsingOperator("Z0", 19.971997) + IsingOperator("[]", 19.971997),
+            IsingOperator("Z0") + IsingOperator("[]", 19.971997),
             Circuit([H(0)]),
             10000,
         ),
@@ -113,7 +107,6 @@ def _validate_constant_terms_are_included_in_output(estimator):
 ESTIMATOR_CONTRACT = [
     _validate_each_task_returns_one_expecation_value,
     _validate_order_of_outputs_matches_order_of_inputs,
-    _validate_number_of_entries_in_each_expectation_value_is_not_restricted,
     _validate_expectation_value_includes_coefficients,
     _validate_constant_terms_are_included_in_output,
 ]

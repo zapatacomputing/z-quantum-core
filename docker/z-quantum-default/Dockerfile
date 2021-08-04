@@ -57,23 +57,15 @@ RUN git clone https://github.com/rigetti/qvm.git && \
                 make QVM_WORKSPACE=10240 qvm && \
                 mv qvm /usr/local/bin
 
-RUN python3 -m pip install rpcq==3.6.0 \
-                    pytest==5.3.5 \
-                    networkx==2.4 \
-                    pyquil==2.25.0 \
-                    cirq==0.9.1 \
-                    openfermion==1.0.0 \
-                    openfermioncirq==0.4.0 \
-                    qiskit==0.24 \
-                    scipy==1.4.1 \
-                    lea==3.2.0 \
-                    numpy==1.18.1 \
-                    pyyaml==5.1 \
-                    overrides>=3.1.0 \
-                    sympy==1.7 \
-                    codecarbon==1.1.0 \
-                    cvxpy==1.1.11
-                    
+# Install z-quantum-core's dependencies, but not the library itself.
+RUN python3 -m pip install --no-cache git+git://github.com/zapatacomputing/z-quantum-core && \
+    python3 -m pip uninstall -y z-quantum-core
+
+# Misc libraries that we'd like to have already preinstalled.
+RUN python3 -m pip install \
+        codecarbon \
+        cvxpy
+
                     
 WORKDIR /app
 ENTRYPOINT bash

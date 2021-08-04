@@ -45,7 +45,7 @@ RUN curl -O https://beta.quicklisp.org/quicklisp.lisp && \
 RUN git clone https://github.com/rigetti/quilc.git && \
                 cd quilc && \
                 git fetch && \
-                git checkout v1.23.0 && \
+                git checkout v1.25.1 && \
                 git submodule init && \
                 git submodule update --init && \
                 make && \

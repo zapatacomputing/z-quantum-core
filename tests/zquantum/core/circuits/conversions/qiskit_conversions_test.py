@@ -99,6 +99,45 @@ class TestU3GateConversion:
         np.testing.assert_allclose(zquantum_matrix, qiskit_matrix, atol=1e-7)
 
 
+def _reorder_gate(G, perm):
+    perm = list(perm)
+
+    # number of qubits
+    n = len(perm)
+
+    # reorder both input and output dimensions
+    perm2 = perm + [n + i for i in perm]
+
+    return np.reshape(np.transpose(np.reshape(G, 2 * n * [2]), perm2), (2 ** n, 2 ** n))
+
+
+class TestCU3GateConversion:
+    @pytest.mark.parametrize(
+        "theta, phi, lambda_",
+        [
+            (0, 0, 0),
+            (0, np.pi / 5, 0),
+            (np.pi / 3, 0, 0),
+            (0, 0, np.pi / 7),
+            (42, -20, 30),
+        ],
+    )
+    def test_matrices_are_equal_up_to_phase_factor(self, theta, phi, lambda_):
+        zquantum_matrix = np.array(
+            _builtin_gates.U3(theta, phi, lambda_).controlled(1)(0, 1).lifted_matrix(2)
+        ).astype(np.complex128)
+        qiskit_matrix = (
+            qiskit.extensions.U3Gate(theta, phi, lambda_).control(1).to_matrix()
+        )
+
+        # Rearrange the qiskit matrix, such that it matches the endianness of z-quantum
+        qiskit_matrix_reversed_control = _reorder_gate(qiskit_matrix, [1, 0])
+
+        np.testing.assert_allclose(
+            zquantum_matrix, qiskit_matrix_reversed_control, atol=1e-7
+        )
+
+
 # --------- circuits ---------
 
 # NOTE: In Qiskit, 0 is the most significant qubit,

@@ -253,6 +253,25 @@ EQUIVALENT_NON_PARAMETRIZED_CIRCUITS = [
             ],
         ),
     ),
+    (
+        _circuit.Circuit(
+            [_builtin_gates.U3(np.pi / 5, np.pi / 2, np.pi / 4).controlled(1)(1, 2)]
+        ),
+        _make_qiskit_circuit(
+            3,
+            [
+                (
+                    "append",
+                    (
+                        qiskit.extensions.U3Gate(
+                            np.pi / 5, np.pi / 2, np.pi / 4
+                        ).control(1),
+                        [1, 2],
+                    ),
+                )
+            ],
+        ),
+    ),
 ]
 
 
@@ -299,6 +318,29 @@ EQUIVALENT_PARAMETRIZED_CIRCUITS = [
                             QISKIT_THETA, QISKIT_GAMMA, QISKIT_LAMBDA
                         ),
                         [3],
+                    ),
+                )
+            ],
+        ),
+    ),
+    (
+        _circuit.Circuit(
+            [
+                _builtin_gates.U3(SYMPY_THETA, SYMPY_GAMMA, SYMPY_LAMBDA).controlled(1)(
+                    2, 3
+                )
+            ]
+        ),
+        _make_qiskit_circuit(
+            4,
+            [
+                (
+                    "append",
+                    (
+                        qiskit.extensions.U3Gate(
+                            QISKIT_THETA, QISKIT_GAMMA, QISKIT_LAMBDA
+                        ).control(1),
+                        [2, 3],
                     ),
                 )
             ],

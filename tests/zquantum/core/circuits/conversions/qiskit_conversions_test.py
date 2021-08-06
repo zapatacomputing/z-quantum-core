@@ -79,18 +79,6 @@ class TestGateConversion:
         np.testing.assert_allclose(zquantum_matrix, qiskit_matrix)
 
 
-def _is_scaled_identity(matrix: np.ndarray):
-    assert matrix.shape == (
-        matrix.shape[0],
-        matrix.shape[0],
-    ), "This test is meaningful only for square matrices"
-
-    target_matrix = np.diag(matrix).mean() * np.eye(
-        matrix.shape[0], dtype=np.complex128
-    )
-    return np.allclose(matrix, target_matrix)
-
-
 class TestU3GateConversion:
     @pytest.mark.parametrize(
         "theta, phi, lambda_",
@@ -108,7 +96,7 @@ class TestU3GateConversion:
         ).astype(np.complex128)
         qiskit_matrix = qiskit.extensions.U3Gate(theta, phi, lambda_).to_matrix()
 
-        assert _is_scaled_identity(zquantum_matrix @ np.linalg.inv(qiskit_matrix))
+        np.testing.assert_allclose(zquantum_matrix, qiskit_matrix, atol=1e-7)
 
 
 # --------- circuits ---------

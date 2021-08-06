@@ -109,21 +109,20 @@ def pyquil_u3_definition():
     cos_term = pyquil.quilatom.quil_cos(0.5 * QUIL_THETA_0)
     sin_term = pyquil.quilatom.quil_sin(0.5 * QUIL_THETA_0)
 
-    global_phase_phi = pyquil.quilatom.quil_exp(0.5j * QUIL_THETA_1)
-    global_phase_lambda = pyquil.quilatom.quil_exp(0.5j * QUIL_THETA_2)
-    global_phase_phi_neg = pyquil.quilatom.quil_exp(-0.5j * QUIL_THETA_1)
-    global_phase_lambda_neg = pyquil.quilatom.quil_exp(-0.5j * QUIL_THETA_2)
+    exp_phi = pyquil.quilatom.quil_exp(1j * QUIL_THETA_1)
+    exp_lambda = pyquil.quilatom.quil_exp(1j * QUIL_THETA_2)
+    exp_both = pyquil.quilatom.quil_exp(1j * (QUIL_THETA_1 + QUIL_THETA_2))
 
     return pyquil.quil.DefGate(
         name="U3",
         matrix=[
             [
-                cos_term * global_phase_phi_neg * global_phase_lambda_neg,
-                -1 * global_phase_lambda * global_phase_phi_neg * sin_term,
+                cos_term,
+                -1 * exp_lambda * sin_term,
             ],
             [
-                global_phase_phi * global_phase_lambda_neg * sin_term,
-                cos_term * global_phase_phi * global_phase_lambda,
+                exp_phi * sin_term,
+                cos_term * exp_both,
             ],
         ],
         parameters=[QUIL_THETA_0, QUIL_THETA_1, QUIL_THETA_2],

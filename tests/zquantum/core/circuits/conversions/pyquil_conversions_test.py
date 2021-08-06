@@ -213,6 +213,17 @@ EQUIVALENT_CIRCUITS = [
             [PYQUIL_U3, PYQUIL_U3.get_constructor()(np.pi / 2, np.pi / 4, 0)(3)]
         ),
     ),
+    (
+        _circuit.Circuit(
+            [_builtin_gates.U3(np.pi / 2, np.pi / 4, 0).controlled(1)(2, 3)]
+        ),
+        pyquil.Program(
+            [
+                PYQUIL_U3,
+                PYQUIL_U3.get_constructor()(np.pi / 2, np.pi / 4, 0)(3).controlled(2),
+            ]
+        ),
+    ),
 ]
 
 

@@ -10,11 +10,18 @@ from zquantum.core.decompositions._decomposition import (
 
 
 class U3GateToRotation(DecompositionRule[GateOperation]):
-    """Decomposition of ZQuantum's U3 gate."""
+    """Decomposition of ZQuantum's U3 gate.
+
+    Note that this gets rid of global phase.
+    """
 
     def predicate(self, operation: GateOperation) -> bool:
         # Only decompose U3 and its controlled version
-        return operation.gate.name == "U3" or operation.gate.wrapped_gate.name == "U3"
+        return (
+            operation.gate.name == "U3"
+            or hasattr(operation.gate, "wrapped_gate")
+            and operation.gate.wrapped_gate.name == "U3"
+        )
 
     def production(self, operation: GateOperation) -> Iterable[GateOperation]:
 
@@ -24,19 +31,19 @@ class U3GateToRotation(DecompositionRule[GateOperation]):
 
         # Problem: no efficient way for unpacking the tuple (?)
 
-        if hasattr(operation.gate, "wrapped_gate"):
-            control, target = operation.qubit_indices
-        else:
-            (target,) = operation.qubit_indices
-
         theta, phi, lambda_ = operation.params
 
-        decomposition = [RZ(phi)(target), RY(theta)(target), RZ(lambda_)(target)]
+        decomposition = [RZ(phi), RY(theta), RZ(lambda_)]
 
         if hasattr(operation.gate, "wrapped_gate"):
+            # operation.gate is controlled U3
+            num_controlled_qubits = operation.gate.num_control_qubits
             decomposition = [
-                gate.controlled(1)(control, target) for gate in decomposition
+                gate.controlled(num_controlled_qubits)(*operation.qubit_indices)
+                for gate in decomposition
             ]
+        else:
+            decomposition = [gate(*operation.qubit_indices) for gate in decomposition]
 
         return decomposition
 

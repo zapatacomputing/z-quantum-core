@@ -242,9 +242,9 @@ def test_ansatz_based_cost_function_adds_noise_to_parameters(
     )
 
 
-class TestParameterPreprocessors:
+class TestFixParametersPreprocessor:
 
-    def test_fix_parameters_preprocessors_concatenates_params(self):
+    def test_concatenates_params(self):
         preprocessor = fix_parameters(np.array([1.0, 2.0, 3.0]))
         params = np.array([0.5, 0.0, -1.0, np.pi])
 
@@ -254,7 +254,7 @@ class TestParameterPreprocessors:
             new_params, [0.5, 0.0, -1.0, np.pi, 1.0,  2.0, 3.0]
         )
 
-    def test_fix_parameters_does_not_modify_arguments_in_place(self):
+    def test_does_not_mutate_parameters(self):
         preprocessor = fix_parameters(np.array([-1.5, 2.0]))
         params = np.array([0.1, 0.2])
 
@@ -262,7 +262,10 @@ class TestParameterPreprocessors:
 
         np.testing.assert_array_equal(params, [0.1, 0.2])
 
-    def test_add_noise_preprocessor_correctly_seeds_rng(self):
+
+class TestAddNoisePreprocessor:
+
+    def test_correctly_seeds_rng(self):
         preprocessor_1 = add_noise(1e-5, RNGSEED)
         preprocessor_2 = add_noise(1e-5, RNGSEED)
 
@@ -272,12 +275,12 @@ class TestParameterPreprocessors:
             preprocessor_1(params), preprocessor_2(params)
         )
 
-    def test_add_noise_seeds_rng_during_initialization(self):
+    def test_seeds_rng_during_initialization(self):
         preprocessor = add_noise(1e-4, RNGSEED)
         params = np.array([0.1, 0.2, -0.5])
 
-        # The second call to preprocessor should advance generator if it is was
-        # seeded only during initialization, hancce the second call should produce
+        # The second call to preprocessor should advance generator if it was
+        # seeded only during initialization, hence the second call should produce
         # different result.
         assert not np.array_equal(preprocessor(params), preprocessor(params))
 
@@ -307,7 +310,7 @@ class TestParameterPreprocessors:
 
         np.testing.assert_allclose(np.std(sample), 0.001, atol=1e-03)
 
-    def test_add_noise_does_not_mutate_parameters(self):
+    def test_does_not_mutate_parameters(self):
         preprocessor = add_noise(0.1, RNGSEED)
         params = np.ones(3)
 

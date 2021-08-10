@@ -301,3 +301,13 @@ def fix_parameters(fixed_parameters: np.ndarray) -> ParameterPreprocessor:
         return combine_ansatz_params(parameters, fixed_parameters)
 
     return _preprocess
+
+
+def add_noise(parameter_precision, parameter_precision_seed) -> ParameterPreprocessor:
+    rng = np.random.default_rng(parameter_precision_seed)
+
+    def _preprocess(parameters: np.ndarray) -> np.ndarray:
+        noise = rng.normal(0.0, parameter_precision, len(parameters))
+        return parameters + noise
+
+    return _preprocess

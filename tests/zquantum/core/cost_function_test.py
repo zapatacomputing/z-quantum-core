@@ -8,7 +8,7 @@ from sympy import Symbol
 from zquantum.core.cost_function import (
     AnsatzBasedCostFunction,
     get_ground_state_cost_function,
-    sum_expectation_values, fix_parameters,
+    sum_expectation_values, fix_parameters, add_noise,
 )
 from zquantum.core.estimation import (
     allocate_shots_proportionally,
@@ -261,3 +261,56 @@ class TestParameterPreprocessors:
         preprocessor(params)
 
         np.testing.assert_array_equal(params, [0.1, 0.2])
+
+    def test_add_noise_preprocessor_correctly_seeds_rng(self):
+        preprocessor_1 = add_noise(1e-5, 1234)
+        preprocessor_2 = add_noise(1e-5, 1234)
+
+        params = np.linspace(0, np.pi, 10)
+
+        np.testing.assert_array_equal(
+            preprocessor_1(params), preprocessor_2(params)
+        )
+
+    def test_add_noise_seeds_rng_during_initialization(self):
+        preprocessor = add_noise(1e-4, 42)
+        params = np.array([0.1, 0.2, -0.5])
+
+        # The second call to preprocessor should advance generator if it is was
+        # seeded only during initialization, hancce the second call should produce
+        # different result.
+        assert not np.array_equal(preprocessor(params), preprocessor(params))
+
+    def test_mean_of_added_noise_is_correct(self):
+        preprocessor = add_noise(0.001, 123)
+        num_params = 100
+        num_repetitions = 10
+        params = np.ones(num_params)
+
+        average_diff = sum(
+            (params - preprocessor(params)).sum() for _ in range(num_repetitions)
+        ) / (num_repetitions * num_params)
+
+        np.testing.assert_allclose(average_diff, 0.0, atol=1e-03)
+
+    def test_std_of_added_noise_is_correct(self):
+        preprocessor = add_noise(0.001, 123)
+        num_params = 100
+        num_repetitions = 100
+        params = np.ones(num_params)
+
+        sample = [
+            diff
+            for diff in (params - preprocessor(params))
+            for _ in range(num_repetitions)
+        ]
+
+        np.testing.assert_allclose(np.std(sample), 0.001, atol=1e-03)
+
+    def test_add_noise_does_not_mutate_parameters(self):
+        preprocessor = add_noise(0.1, 60)
+        params = np.ones(3)
+
+        preprocessor(params)
+
+        np.testing.assert_array_equal(params, np.ones(3))

@@ -263,8 +263,8 @@ class TestParameterPreprocessors:
         np.testing.assert_array_equal(params, [0.1, 0.2])
 
     def test_add_noise_preprocessor_correctly_seeds_rng(self):
-        preprocessor_1 = add_noise(1e-5, 1234)
-        preprocessor_2 = add_noise(1e-5, 1234)
+        preprocessor_1 = add_noise(1e-5, RNGSEED)
+        preprocessor_2 = add_noise(1e-5, RNGSEED)
 
         params = np.linspace(0, np.pi, 10)
 
@@ -273,7 +273,7 @@ class TestParameterPreprocessors:
         )
 
     def test_add_noise_seeds_rng_during_initialization(self):
-        preprocessor = add_noise(1e-4, 42)
+        preprocessor = add_noise(1e-4, RNGSEED)
         params = np.array([0.1, 0.2, -0.5])
 
         # The second call to preprocessor should advance generator if it is was
@@ -282,7 +282,7 @@ class TestParameterPreprocessors:
         assert not np.array_equal(preprocessor(params), preprocessor(params))
 
     def test_mean_of_added_noise_is_correct(self):
-        preprocessor = add_noise(0.001, 123)
+        preprocessor = add_noise(0.001, RNGSEED)
         num_params = 100
         num_repetitions = 10
         params = np.ones(num_params)
@@ -294,7 +294,7 @@ class TestParameterPreprocessors:
         np.testing.assert_allclose(average_diff, 0.0, atol=1e-03)
 
     def test_std_of_added_noise_is_correct(self):
-        preprocessor = add_noise(0.001, 123)
+        preprocessor = add_noise(0.001, RNGSEED)
         num_params = 100
         num_repetitions = 100
         params = np.ones(num_params)
@@ -308,7 +308,7 @@ class TestParameterPreprocessors:
         np.testing.assert_allclose(np.std(sample), 0.001, atol=1e-03)
 
     def test_add_noise_does_not_mutate_parameters(self):
-        preprocessor = add_noise(0.1, 60)
+        preprocessor = add_noise(0.1, RNGSEED)
         params = np.ones(3)
 
         preprocessor(params)

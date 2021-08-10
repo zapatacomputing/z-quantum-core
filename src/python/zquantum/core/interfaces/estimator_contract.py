@@ -123,7 +123,7 @@ def _validate_constant_terms_are_included_in_output(
     )
 
 
-ESTIMATOR_CONTRACT = [
+ESTIMATOR_CONTRACTS = [
     _validate_each_task_returns_one_expecation_value,
     _validate_order_of_outputs_matches_order_of_inputs,
     _validate_expectation_value_includes_coefficients,

@@ -30,7 +30,7 @@ class U3GateToRotation(DecompositionRule[GateOperation]):
 
         preprocessing = (
             lambda x: x.controlled(operation.gate.num_control_qubits)
-            if hasattr(operation.gate, "wrapped_gate")
+            if operation.gate.name == "Control"
             else x
         )
 

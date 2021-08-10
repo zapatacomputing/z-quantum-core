@@ -1,5 +1,5 @@
 import abc
-from typing import Any, Callable, List, Optional, Union
+from typing import Any, Callable, Iterable, List, Optional, Union
 
 import numpy as np
 import sympy
@@ -346,3 +346,121 @@ def add_noise(parameter_precision, parameter_precision_seed) -> ParameterPreproc
         return parameters + noise
 
     return _preprocess
+
+
+def create_cost_function(
+    backend: QuantumBackend,
+    estimation_tasks_factory: EstimationTasksFactory,
+    estimation_method: EstimateExpectationValues = _by_averaging,
+    parameter_preprocessors: Iterable[ParameterPreprocessor] = None,
+) -> CostFunction:
+    """This cost function factory is part of a larger suite of tools that can be used
+    to generate cost functions for parametric circuits, with any predifined backend,
+    ansatz, and target operator.
+
+    Args:
+        backend: backend used for evaluation.
+        estimation_tasks_factory: factory for producing estimation tasks from params.
+        estimation_method: used to compute expectation value of target operator.
+        parameter_preprocessors: a list of callable functions that adhere to the
+            ParameterPreprocessor protocol to be applied to parameters prior to
+            estimation task evaluation.
+
+    Returns:
+        Cost function.
+
+    Example use case:
+        target_operator = ...
+        ansatz = ...
+
+        estimation_factory = substitution_based_estimation_tasks_factory(
+            target_operator, ansatz
+        )
+
+        cost_function = create_cost_function(
+            backend,
+            estimation_factory,
+        )
+
+        optimizer = ...
+        initial_params = ...
+
+        opt_results = optimizer.minimize(cost_function, initial_params)
+
+
+    Add noise to parameters:
+        target_operator = ...
+        ansatz = ...
+
+        estimation_factory = substitution_based_estimation_tasks_factory(
+            target_operator, ansatz
+        )
+        noise_preprocessor = add_noise(1e-5, seed=1234)
+
+        cost_function = create_cost_function(
+            backend,
+            estimation_factory,
+            parameter_preprocessors=[noise_preprocessor]
+        )
+
+    """
+    if parameter_preprocessors is None:
+        parameter_preprocessors = []
+
+    def _cost_function(parameters: np.ndarray) -> Union[float, ValueEstimate]:
+        for preprocessor in parameter_preprocessors:
+            parameters = preprocessor(parameters)
+
+        estimation_tasks = estimation_tasks_factory(parameters)
+        expectation_values_list = estimation_method(backend, estimation_tasks)
+
+        combined_expectation_values = expectation_values_to_real(
+            concatenate_expectation_values(expectation_values_list)
+        )
+
+        return sum_expectation_values(combined_expectation_values)
+
+    return _cost_function
+
+
+def substitution_based_estimation_tasks_factory(
+    target_operator: SymbolicOperator,
+    ansatz: Ansatz,
+    estimation_preprocessors: List[EstimationPreprocessor] = [],
+) -> EstimationTasksFactory:
+    """Creates estimation task factories that create estimation tasks that evaluate
+    a parametric circuit of an ansatz, using parameter-symbol subsitution.
+    Wow, a factory for factories! What a concept.
+
+    See `create_cost_function` docstring for an example use case.
+
+    Args:
+        target_operator: operator to be evaluated
+        ansatz: ansatz used to evaluate cost function
+        estimation_preprocessors: A list of callable functions that adhere to the
+            EstimationPreprocessor protocol and are used to create the estimation tasks.
+
+    Returns:
+        Estimation task factory
+
+    """
+    estimation_tasks = [
+        EstimationTask(
+            operator=target_operator,
+            circuit=ansatz.parametrized_circuit,
+            number_of_shots=None,
+        )
+    ]
+
+    for preprocessor in estimation_preprocessors:
+        estimation_tasks = preprocessor(estimation_tasks)
+
+    circuit_symbols = _get_sorted_set_of_circuit_symbols(estimation_tasks)
+
+    def _tasks_factory(parameters: np.ndarray) -> List[EstimationTask]:
+        symbols_map = create_symbols_map(circuit_symbols, parameters)
+        return evaluate_estimation_circuits(
+            estimation_tasks, [symbols_map for _ in estimation_tasks]
+        )
+
+    return _tasks_factory

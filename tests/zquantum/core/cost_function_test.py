@@ -7,8 +7,10 @@ from openfermion import QubitOperator
 from sympy import Symbol
 from zquantum.core.cost_function import (
     AnsatzBasedCostFunction,
+    add_noise,
+    fix_parameters,
     get_ground_state_cost_function,
-    sum_expectation_values, fix_parameters, add_noise,
+    sum_expectation_values,
 )
 from zquantum.core.estimation import (
     allocate_shots_proportionally,
@@ -243,7 +245,6 @@ def test_ansatz_based_cost_function_adds_noise_to_parameters(
 
 
 class TestFixParametersPreprocessor:
-
     def test_concatenates_params(self):
         preprocessor = fix_parameters(np.array([1.0, 2.0, 3.0]))
         params = np.array([0.5, 0.0, -1.0, np.pi])
@@ -251,7 +252,7 @@ class TestFixParametersPreprocessor:
         new_params = preprocessor(params)
 
         np.testing.assert_array_equal(
-            new_params, [0.5, 0.0, -1.0, np.pi, 1.0,  2.0, 3.0]
+            new_params, [0.5, 0.0, -1.0, np.pi, 1.0, 2.0, 3.0]
         )
 
     def test_does_not_mutate_parameters(self):
@@ -264,16 +265,13 @@ class TestFixParametersPreprocessor:
 
 
 class TestAddNoisePreprocessor:
-
     def test_correctly_seeds_rng(self):
         preprocessor_1 = add_noise(1e-5, RNGSEED)
         preprocessor_2 = add_noise(1e-5, RNGSEED)
 
         params = np.linspace(0, np.pi, 10)
 
-        np.testing.assert_array_equal(
-            preprocessor_1(params), preprocessor_2(params)
-        )
+        np.testing.assert_array_equal(preprocessor_1(params), preprocessor_2(params))
 
     def test_seeds_rng_during_initialization(self):
         preprocessor = add_noise(1e-4, RNGSEED)

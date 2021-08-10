@@ -291,6 +291,7 @@ class EstimationTasksFactory(Protocol):
     For instance, this can be used with ansatzes where produced estimation tasks
     are evaluating circuit.
     """
+
     def __call__(self, parameters: np.ndarray) -> List[EstimationTask]:
         pass
 
@@ -302,6 +303,7 @@ class ParameterPreprocessor(Protocol):
     modifying passed parameters in place, which can have unpredictable
     side effects.
     """
+
     def __call__(self, parameters: np.ndarray) -> np.ndarray:
         pass
 
@@ -314,6 +316,7 @@ def fix_parameters(fixed_parameters: np.ndarray) -> ParameterPreprocessor:
     Returns:
         preprocessor
     """
+
     def _preprocess(parameters: np.ndarray) -> np.ndarray:
         return combine_ansatz_params(parameters, fixed_parameters)
 

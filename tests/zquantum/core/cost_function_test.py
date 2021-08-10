@@ -156,6 +156,22 @@ TARGET_OPERATOR = QubitOperator("Z0")
 ANSATZ = MockAnsatz(number_of_layers=1, problem_size=1)
 
 
+class TestSubstitutionBasedEstimationTasksFactory:
+    def creates_correct_estimation_tasks(self):
+        estimation_preprocessors = [
+            partial(allocate_shots_uniformly, number_of_shots=42)
+        ]
+        estimation_factory = substitution_based_estimation_tasks_factory(
+            TARGET_OPERATOR, ANSATZ, estimation_preprocessors
+        )
+        initial_params = np.array([0.42])
+        [estimation_task] = estimation_factory(initial_params)
+
+        assert estimation_task.operator == TARGET_OPERATOR
+        assert estimation_task.circuit == ANSATZ._generate_circuit(initial_params)
+        assert estimation_task.number_of_shots == 42
+
+
 class TestAnsatzBasedCostFunction:
     @pytest.fixture()
     def old_ansatz_based_cost_function(self):

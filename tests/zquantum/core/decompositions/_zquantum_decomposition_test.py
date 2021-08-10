@@ -17,7 +17,7 @@ U3_GATES = [
         (4.1 * np.pi / 2, 2.5 * np.pi, 3 * np.pi),
     ]
 ]
-CU3_GATES = [gate.controlled(n) for gate in U3_GATES for n in [1, 3]]
+CU3_GATES = [gate.controlled(1) for gate in U3_GATES]
 
 
 def _is_scaled_identity(matrix: np.ndarray, rtol=1e-5, atol=1e-8) -> bool:

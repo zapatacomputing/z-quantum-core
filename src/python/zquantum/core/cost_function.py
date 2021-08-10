@@ -288,7 +288,7 @@ class CostFunction(Protocol):
 
 
 class EstimationTasksFactory(Protocol):
-    """Factory from producing estimation tasks from R^n vectors.
+    """Factory for producing estimation tasks from R^n vectors.
 
     For instance, this can be used with ansatzes where produced estimation tasks
     are evaluating circuit.
@@ -354,41 +354,23 @@ def create_cost_function(
     estimation_method: EstimateExpectationValues = _by_averaging,
     parameter_preprocessors: Iterable[ParameterPreprocessor] = None,
 ) -> CostFunction:
-    """This cost function factory is part of a larger suite of tools that can be used
-    to generate cost functions for parametric circuits, with any predifined backend,
-    ansatz, and target operator.
+    """This function can be used to generate callable cost functions for parametric
+    circuits. This function is the main entry to use other functions in this module.
 
     Args:
-        backend: backend used for evaluation.
-        estimation_tasks_factory: factory for producing estimation tasks from params.
-        estimation_method: used to compute expectation value of target operator.
-        parameter_preprocessors: a list of callable functions that adhere to the
-            ParameterPreprocessor protocol to be applied to parameters prior to
-            estimation task evaluation.
+        backend: quantum backend used for evaluation.
+        estimation_tasks_factory: function that produces estimation tasks from
+            parameters. See example use case below for clarification.
+        estimation_method: the estimator used to compute expectation value of target
+            operator.
+        parameter_preprocessors: a list of callable functions that are applied to
+            parameters prior to estimation task evaluation. These functions have to
+            adhere to the ParameterPreprocessor protocol.
 
     Returns:
-        Cost function.
+        A callable CostFunction object.
 
     Example use case:
-        target_operator = ...
-        ansatz = ...
-
-        estimation_factory = substitution_based_estimation_tasks_factory(
-            target_operator, ansatz
-        )
-
-        cost_function = create_cost_function(
-            backend,
-            estimation_factory,
-        )
-
-        optimizer = ...
-        initial_params = ...
-
-        opt_results = optimizer.minimize(cost_function, initial_params)
-
-
-    Add noise to parameters:
         target_operator = ...
         ansatz = ...
 
@@ -402,6 +384,11 @@ def create_cost_function(
             estimation_factory,
             parameter_preprocessors=[noise_preprocessor]
         )
+
+        optimizer = ...
+        initial_params = ...
+
+        opt_results = optimizer.minimize(cost_function, initial_params)
 
     """
     if parameter_preprocessors is None:
@@ -426,24 +413,30 @@ def create_cost_function(
 def substitution_based_estimation_tasks_factory(
     target_operator: SymbolicOperator,
     ansatz: Ansatz,
-    estimation_preprocessors: List[EstimationPreprocessor] = [],
+    estimation_preprocessors: List[EstimationPreprocessor] = None,
 ) -> EstimationTasksFactory:
-    """Creates estimation task factories that create estimation tasks that evaluate
-    a parametric circuit of an ansatz, using parameter-symbol subsitution.
-    Wow, a factory for factories! What a concept.
+    """Creates a EstimationTasksFactory object that can be used to create
+    estimation tasks dynamically with parameters provided on the fly. These
+    tasks will evaluate the parametric circuit of an ansatz, using a symbol-
+    parameter map. Wow, a factory for factories! This is so meta.
 
-    See `create_cost_function` docstring for an example use case.
+    To be used with `create_cost_function`. See `create_cost_function` docstring
+    for an example use case.
 
     Args:
         target_operator: operator to be evaluated
         ansatz: ansatz used to evaluate cost function
-        estimation_preprocessors: A list of callable functions that adhere to the
-            EstimationPreprocessor protocol and are used to create the estimation tasks.
+        estimation_preprocessors: A list of callable functions used to create the
+            estimation tasks. Each function must adhere to the EstimationPreprocessor
+            protocol.
 
     Returns:
-        Estimation task factory
+        An EstimationTasksFactory object.
 
     """
+    if estimation_preprocessors is None:
+        estimation_preprocessors = []
+
     estimation_tasks = [
         EstimationTask(
             operator=target_operator,

@@ -284,7 +284,7 @@ class CostFunction(Protocol):
 
     @abc.abstractmethod
     def __call__(self, params: np.ndarray) -> Union[float, ValueEstimate]:
-        raise NotImplementedError
+        raise NotImplementedError()
 
 
 class EstimationTasksFactory(Protocol):
@@ -296,7 +296,7 @@ class EstimationTasksFactory(Protocol):
 
     @abc.abstractmethod
     def __call__(self, parameters: np.ndarray) -> List[EstimationTask]:
-        raise NotImplementedError
+        raise NotImplementedError()
 
 
 class ParameterPreprocessor(Protocol):
@@ -309,7 +309,7 @@ class ParameterPreprocessor(Protocol):
 
     @abc.abstractmethod
     def __call__(self, parameters: np.ndarray) -> np.ndarray:
-        raise NotImplementedError
+        raise NotImplementedError()
 
 
 def fix_parameters(fixed_parameters: np.ndarray) -> ParameterPreprocessor:

@@ -4,19 +4,20 @@ from zquantum.core.circuits import CNOT, RY, U3, Circuit, GateOperation, X, Y, Z
 from zquantum.core.decompositions import U3GateToRotation, decompose_zquantum_circuit
 
 DECOMPOSITION_RULES = [U3GateToRotation()]
-U3_GATE_PARAMETERS = [
-    (0, 0, 0),
-    (0, np.pi, 0),
-    (np.pi, 0, 0),
-    (0, 0, np.pi),
-    (np.pi / 2, np.pi / 2, np.pi / 2),
-    (0.1 * np.pi, 0.5 * np.pi, 0.3 * np.pi),
-    (4.1 * np.pi / 2, 2.5 * np.pi, 3 * np.pi),
+
+U3_GATES = [
+    U3(theta, phi, lambda_)
+    for theta, phi, lambda_ in [
+        (0, 0, 0),
+        (0, np.pi, 0),
+        (np.pi, 0, 0),
+        (0, 0, np.pi),
+        (np.pi / 2, np.pi / 2, np.pi / 2),
+        (0.1 * np.pi, 0.5 * np.pi, 0.3 * np.pi),
+        (4.1 * np.pi / 2, 2.5 * np.pi, 3 * np.pi),
+    ]
 ]
-U3_GATES = [U3(theta, phi, lambda_) for theta, phi, lambda_ in U3_GATE_PARAMETERS]
-CU3_GATES = [
-    U3(theta, phi, lambda_).controlled(1) for theta, phi, lambda_ in U3_GATE_PARAMETERS
-]
+CU3_GATES = [gate.controlled(1) for gate in U3_GATES]
 
 
 def _is_scaled_identity(matrix: np.ndarray, rtol=1e-5, atol=1e-8) -> bool:
@@ -52,9 +53,7 @@ class TestDecompositionOfU3Gates:
 
         assert _is_scaled_identity(
             circuit.to_unitary() @ np.linalg.inv(decomposed_circuit.to_unitary()),
-            atol=0.2,
         )
-        # TODO: 0.2 tolerance is too big?
 
     @pytest.mark.parametrize(
         "operations",

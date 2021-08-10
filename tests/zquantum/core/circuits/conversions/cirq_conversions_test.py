@@ -67,26 +67,6 @@ EQUIVALENT_U3_GATES = [
     ]
 ]
 
-EQUIVALENT_CU3_GATES = [
-    (
-        _builtin_gates.U3(theta, phi, lambda_).controlled(1),
-        cirq.circuits.qasm_output.QasmUGate(
-            theta / np.pi, phi / np.pi, lambda_ / np.pi
-        ).controlled(1),
-    )
-    for theta, phi, lambda_ in [
-        (0, 0, 0),
-        (0, np.pi, 0),
-        (np.pi, 0, 0),
-        (0, 0, np.pi),
-        (np.pi / 2, np.pi / 2, np.pi / 2),
-        (0.1 * np.pi, 0.5 * np.pi, 0.3 * np.pi),
-        # Below example does not work. Although matrices are the same, the params stored
-        # in U3 are different.
-        # (4.1 * np.pi / 2, 2.5 * np.pi, 3 * np.pi)
-    ]
-]
-
 
 def _is_scaled_identity(matrix: np.ndarray):
     assert matrix.shape == (
@@ -107,7 +87,6 @@ def _is_scaled_identity(matrix: np.ndarray):
         *EQUIVALENT_NON_PARAMETRIC_GATES,
         *EQUIVALENT_PARAMETRIC_GATES,
         *EQUIVALENT_U3_GATES,
-        *EQUIVALENT_CU3_GATES,
     ],
 )
 class TestGateConversion:

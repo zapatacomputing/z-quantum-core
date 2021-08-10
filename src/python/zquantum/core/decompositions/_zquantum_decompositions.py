@@ -24,26 +24,19 @@ class U3GateToRotation(DecompositionRule[GateOperation]):
         )
 
     def production(self, operation: GateOperation) -> Iterable[GateOperation]:
-
-        # How to determine if controlled?
-        # Two ways: check for presence of "wrapped gate" attribute
-        # using the length of qubit_indices (would be 2 for control)
-
-        # Problem: no efficient way for unpacking the tuple (?)
-
         theta, phi, lambda_ = operation.params
 
         decomposition = [RZ(phi), RY(theta), RZ(lambda_)]
 
-        if hasattr(operation.gate, "wrapped_gate"):
-            # operation.gate is controlled U3
-            num_controlled_qubits = operation.gate.num_control_qubits
-            decomposition = [
-                gate.controlled(num_controlled_qubits)(*operation.qubit_indices)
-                for gate in decomposition
-            ]
-        else:
-            decomposition = [gate(*operation.qubit_indices) for gate in decomposition]
+        preprocessing = (
+            lambda x: x.controlled(operation.gate.num_control_qubits)
+            if hasattr(operation.gate, "wrapped_gate")
+            else x
+        )
+
+        decomposition = [
+            preprocessing(gate)(*operation.qubit_indices) for gate in decomposition
+        ]
 
         return decomposition
 

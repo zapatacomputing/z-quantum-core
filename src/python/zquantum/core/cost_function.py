@@ -279,24 +279,41 @@ class AnsatzBasedCostFunction:
 
 
 class CostFunction(Protocol):
+    """Cost function transforming vectors from R^n to numbers or their estimates."""
 
     def __call__(self, params: np.ndarray) -> Union[float, ValueEstimate]:
         pass
 
 
 class EstimationTasksFactory(Protocol):
+    """Factory from producing estimation tasks from R^n vectors.
 
+    For instance, this can be used with ansatzes where produced estimation tasks
+    are evaluating circuit.
+    """
     def __call__(self, parameters: np.ndarray) -> List[EstimationTask]:
         pass
 
 
 class ParameterPreprocessor(Protocol):
+    """Parameter preprocessor.
 
+    Implementer of this protocol should create new array instead of
+    modifying passed parameters in place, which can have unpredictable
+    side effects.
+    """
     def __call__(self, parameters: np.ndarray) -> np.ndarray:
         pass
 
 
 def fix_parameters(fixed_parameters: np.ndarray) -> ParameterPreprocessor:
+    """Preprocessor appending fixed parameters.
+
+    Args:
+        fixed_parameters: parameters to be appended to the ones being preprocessed.
+    Returns:
+        preprocessor
+    """
     def _preprocess(parameters: np.ndarray) -> np.ndarray:
         return combine_ansatz_params(parameters, fixed_parameters)
 
@@ -304,6 +321,17 @@ def fix_parameters(fixed_parameters: np.ndarray) -> ParameterPreprocessor:
 
 
 def add_noise(parameter_precision, parameter_precision_seed) -> ParameterPreprocessor:
+    """Preprocessor adding noise to the parameters.
+
+    The added noise is iid normal with mean=0.0 and stdev=`parameter_precision`.
+
+    Args:
+        parameter_precision: stddev of the noise distribution
+        parameter_precision_seed: seed for random number generator. The generator
+          is seeded during preprocessor creation (not during each preprocessor call).
+    Returns:
+        preprocessor
+    """
     rng = np.random.default_rng(parameter_precision_seed)
 
     def _preprocess(parameters: np.ndarray) -> np.ndarray:

@@ -7,9 +7,6 @@ from openfermion import QubitOperator
 from sympy import Symbol
 from zquantum.core.cost_function import (
     AnsatzBasedCostFunction,
-    CostFunction,
-    EstimationTasksFactory,
-    ParameterPreprocessor,
     add_noise,
     create_cost_function,
     fix_parameters,
@@ -311,14 +308,3 @@ class TestAddNoisePreprocessor:
         preprocessor(params)
 
         np.testing.assert_array_equal(params, np.ones(3))
-
-
-class TestAbstractMethodsCannotBeCalled:
-    # @pytest.mark.parametrize(
-    #     "abstract_object",
-    #     [CostFunction(), EstimationTasksFactory(), ParameterPreprocessor()],
-    # )
-    def test_call_abstract_method_raises_errors(self):
-
-        with pytest.raises(TypeError):
-            CostFunction()

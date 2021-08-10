@@ -1,3 +1,4 @@
+import abc
 from typing import Any, Callable, List, Optional, Union
 
 import numpy as np
@@ -281,6 +282,7 @@ class AnsatzBasedCostFunction:
 class CostFunction(Protocol):
     """Cost function transforming vectors from R^n to numbers or their estimates."""
 
+    @abc.abstractmethod
     def __call__(self, params: np.ndarray) -> Union[float, ValueEstimate]:
         pass
 
@@ -292,6 +294,7 @@ class EstimationTasksFactory(Protocol):
     are evaluating circuit.
     """
 
+    @abc.abstractmethod
     def __call__(self, parameters: np.ndarray) -> List[EstimationTask]:
         pass
 
@@ -304,6 +307,7 @@ class ParameterPreprocessor(Protocol):
     side effects.
     """
 
+    @abc.abstractmethod
     def __call__(self, parameters: np.ndarray) -> np.ndarray:
         pass
 

@@ -140,11 +140,13 @@ def _export_zquantum_gate_definition(gate_def: _gates.CustomGateDefinition):
     return pyquil.quilbase.DefGate(
         gate_def.gate_name,
         _export_matrix(gate_def.matrix),
-        list(map(_export_expression, gate_def.params_ordering))
+        list(map(_export_expression, gate_def.params_ordering)),
     )
 
 
-def _create_pyquil_custom_gate_definitions(custom_gate_defs: Iterable[_gates.CustomGateDefinition]):
+def _create_pyquil_custom_gate_definitions(
+    custom_gate_defs: Iterable[_gates.CustomGateDefinition],
+):
     return {
         gate_def.gate_name: _export_zquantum_gate_definition(gate_def)
         for gate_def in custom_gate_defs
@@ -201,13 +203,17 @@ def export_to_pyquil(circuit: _circuit.Circuit) -> pyquil.Program:
         *circuit.collect_custom_gate_definitions(),
         *_collect_unsupported_builtin_gate_defs([op.gate for op in circuit.operations]),
     ]
-    pyquil_gate_definitions = _create_pyquil_custom_gate_definitions(custom_gate_definitions)
+    pyquil_gate_definitions = _create_pyquil_custom_gate_definitions(
+        custom_gate_definitions
+    )
 
     gate_instructions = [
         _export_gate(op.gate, op.qubit_indices, pyquil_gate_definitions)
         for op in circuit.operations
     ]
-    program = pyquil.Program(*[*var_declarations, *pyquil_gate_definitions.values(), *gate_instructions])
+    program = pyquil.Program(
+        *[*var_declarations, *pyquil_gate_definitions.values(), *gate_instructions]
+    )
     return program
 
 

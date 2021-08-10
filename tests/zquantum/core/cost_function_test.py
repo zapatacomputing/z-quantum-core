@@ -145,7 +145,7 @@ def test_noisy_ground_state_cost_function_adds_noise_to_parameters():
         parametrized_circuit.bind.call_args[0][0], expected_symbols_map
     )
 
-    # Note, normally, we weould just do it in a single assert:
+    # Note, normally, we would just do it in a single assert:
     # noisy_ansatz.ansatz.get_executable_circuit.assert_called_once_with(params_noise)
     # However, this does not work with numpy arrays, as it uses == operator
     # to compare arguments, which does not produce boolean value for numpy arrays

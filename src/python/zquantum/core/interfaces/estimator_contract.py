@@ -5,9 +5,9 @@ Note that this file won't be executed on its own by pytest.
 You need to define your own test cases that import the ones defined here.
 Here is an example of how you would do that:
 
-    from zquantum.core.interfaces.estimator_contract import ESTIMATOR_CONTRACT
+    from zquantum.core.interfaces.estimator_contract import ESTIMATOR_CONTRACTS
 
-    @pytest.mark.parametrize("contract", ESTIMATOR_CONTRACT)
+    @pytest.mark.parametrize("contract", ESTIMATOR_CONTRACTS)
     def test_estimator_contract(contract):
         estimator = CvarEstimator(alpha=0.2)
         assert contract(estimator)

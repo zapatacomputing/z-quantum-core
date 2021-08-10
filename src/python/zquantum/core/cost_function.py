@@ -3,6 +3,7 @@ from typing import Any, Callable, List, Optional, Union
 import numpy as np
 import sympy
 from openfermion import SymbolicOperator
+from typing_extensions import Protocol
 
 from .circuits import Circuit
 from .estimation import (
@@ -275,3 +276,21 @@ class AnsatzBasedCostFunction:
         )
 
         return sum_expectation_values(combined_expectation_values)
+
+
+class CostFunction(Protocol):
+
+    def __call__(self, params: np.ndarray) -> Union[float, ValueEstimate]:
+        pass
+
+
+class EstimationTasksFactory(Protocol):
+
+    def __call__(self, parameters: np.ndarray) -> List[EstimationTask]:
+        pass
+
+
+class ParameterPreprocessor(Protocol):
+
+    def __call__(self, parameters: np.ndarray) -> np.ndarray:
+        pass

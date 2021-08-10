@@ -294,3 +294,10 @@ class ParameterPreprocessor(Protocol):
 
     def __call__(self, parameters: np.ndarray) -> np.ndarray:
         pass
+
+
+def fix_parameters(fixed_parameters: np.ndarray) -> ParameterPreprocessor:
+    def _preprocess(parameters: np.ndarray) -> np.ndarray:
+        return combine_ansatz_params(parameters, fixed_parameters)
+
+    return _preprocess

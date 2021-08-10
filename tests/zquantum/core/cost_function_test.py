@@ -8,7 +8,7 @@ from sympy import Symbol
 from zquantum.core.cost_function import (
     AnsatzBasedCostFunction,
     get_ground_state_cost_function,
-    sum_expectation_values,
+    sum_expectation_values, fix_parameters,
 )
 from zquantum.core.estimation import (
     allocate_shots_proportionally,
@@ -240,3 +240,24 @@ def test_ansatz_based_cost_function_adds_noise_to_parameters(
         noisy_ansatz_cost_function.estimation_method.call_args[0][1][0].circuit
         == expected_noisy_circuit
     )
+
+
+class TestParameterPreprocessors:
+
+    def test_fix_parameters_preprocessors_concatenates_params(self):
+        preprocessor = fix_parameters(np.array([1.0, 2.0, 3.0]))
+        params = np.array([0.5, 0.0, -1.0, np.pi])
+
+        new_params = preprocessor(params)
+
+        np.testing.assert_array_equal(
+            new_params, [0.5, 0.0, -1.0, np.pi, 1.0,  2.0, 3.0]
+        )
+
+    def test_fix_parameters_does_not_modify_arguments_in_place(self):
+        preprocessor = fix_parameters(np.array([-1.5, 2.0]))
+        params = np.array([0.1, 0.2])
+
+        preprocessor(params)
+
+        np.testing.assert_array_equal(params, [0.1, 0.2])

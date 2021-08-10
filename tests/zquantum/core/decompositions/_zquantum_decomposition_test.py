@@ -17,13 +17,13 @@ U3_GATES = [
         (4.1 * np.pi / 2, 2.5 * np.pi, 3 * np.pi),
     ]
 ]
-CU3_GATES = [gate.controlled(1) for gate in U3_GATES]
+CU3_GATES = [gate.controlled(n) for gate in U3_GATES for n in [1, 3]]
 
 
 def _is_scaled_identity(matrix: np.ndarray, rtol=1e-5, atol=1e-8) -> bool:
     """Returns whether 2 unitaries are equivalent up to a global phase.
 
-    Usuage:
+    Usage:
     _is_scaled_identity(unitary_1 @ np.linalg.inv(unitary_2))
     """
     assert matrix.shape == (
@@ -45,7 +45,7 @@ class TestDecompositionOfU3Gates:
             *[(gate, qubits) for gate in CU3_GATES for qubits in [(0, 1), (3, 11)]],
         ],
     )
-    def _test_gives_the_same_unitary_as_original_gate(
+    def test_gives_the_same_unitary_as_original_gate(
         self, gate_to_be_decomposed, target_qubits
     ):
         circuit = Circuit([gate_to_be_decomposed(*target_qubits)])

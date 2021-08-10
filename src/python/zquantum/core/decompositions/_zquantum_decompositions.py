@@ -19,7 +19,7 @@ class U3GateToRotation(DecompositionRule[GateOperation]):
         # Only decompose U3 and its controlled version
         return (
             operation.gate.name == "U3"
-            or hasattr(operation.gate, "wrapped_gate")
+            or operation.gate.name == "Control"
             and operation.gate.wrapped_gate.name == "U3"
         )
 

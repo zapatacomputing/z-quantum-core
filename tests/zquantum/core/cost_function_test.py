@@ -7,7 +7,7 @@ from openfermion import QubitOperator
 from sympy import Symbol
 from zquantum.core.cost_function import (
     AnsatzBasedCostFunction,
-    add_noise,
+    add_normal_noise,
     create_cost_function,
     fix_parameters,
     get_ground_state_cost_function,
@@ -261,7 +261,7 @@ class TestFixParametersPreprocessor:
         new_params = preprocessor(params)
 
         np.testing.assert_array_equal(
-            new_params, [0.5, 0.0, -1.0, np.pi, 1.0, 2.0, 3.0]
+            new_params, [1.0, 2.0, 3.0, 0.5, 0.0, -1.0, np.pi]
         )
 
     def test_does_not_mutate_parameters(self):
@@ -273,17 +273,17 @@ class TestFixParametersPreprocessor:
         np.testing.assert_array_equal(params, [0.1, 0.2])
 
 
-class TestAddNoisePreprocessor:
+class TestAddNormalNoisePreprocessor:
     def test_correctly_seeds_rng(self):
-        preprocessor_1 = add_noise(1e-5, RNGSEED)
-        preprocessor_2 = add_noise(1e-5, RNGSEED)
+        preprocessor_1 = add_normal_noise(1e-5, RNGSEED)
+        preprocessor_2 = add_normal_noise(1e-5, RNGSEED)
 
         params = np.linspace(0, np.pi, 10)
 
         np.testing.assert_array_equal(preprocessor_1(params), preprocessor_2(params))
 
     def test_seeds_rng_during_initialization(self):
-        preprocessor = add_noise(1e-4, RNGSEED)
+        preprocessor = add_normal_noise(1e-4, RNGSEED)
         params = np.array([0.1, 0.2, -0.5])
 
         # The second call to preprocessor should advance generator if it was
@@ -292,7 +292,7 @@ class TestAddNoisePreprocessor:
         assert not np.array_equal(preprocessor(params), preprocessor(params))
 
     def test_mean_of_added_noise_is_correct(self):
-        preprocessor = add_noise(0.001, RNGSEED)
+        preprocessor = add_normal_noise(0.001, RNGSEED)
         num_params = 100
         num_repetitions = 10
         params = np.ones(num_params)
@@ -304,7 +304,7 @@ class TestAddNoisePreprocessor:
         np.testing.assert_allclose(average_diff, 0.0, atol=1e-03)
 
     def test_std_of_added_noise_is_correct(self):
-        preprocessor = add_noise(0.001, RNGSEED)
+        preprocessor = add_normal_noise(0.001, RNGSEED)
         num_params = 100
         num_repetitions = 100
         params = np.ones(num_params)
@@ -318,7 +318,8 @@ class TestAddNoisePreprocessor:
         np.testing.assert_allclose(np.std(sample), 0.001, atol=1e-03)
 
     def test_does_not_mutate_parameters(self):
-        preprocessor = add_noise(0.1, RNGSEED)
+        preprocessor = add_normal_noise(0.1, RNGSEED)
+
         params = np.ones(3)
 
         preprocessor(params)

@@ -1,10 +1,9 @@
 """Interfaces related to cost functions."""
 import abc
-from typing import Union, List
+from typing import List, Union
 
 import numpy as np
 from typing_extensions import Protocol
-
 from zquantum.core.interfaces.estimation import EstimationTask
 from zquantum.core.utils import ValueEstimate
 

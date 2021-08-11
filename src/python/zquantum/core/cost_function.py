@@ -1,10 +1,8 @@
-import abc
 from typing import Any, Callable, Iterable, List, Optional, Union
 
 import numpy as np
 import sympy
 from openfermion import SymbolicOperator
-from typing_extensions import Protocol
 
 from .circuits import Circuit
 from .estimation import (
@@ -15,7 +13,11 @@ from .gradients import finite_differences_gradient
 from .interfaces.ansatz import Ansatz
 from .interfaces.ansatz_utils import combine_ansatz_params
 from .interfaces.backend import QuantumBackend
-from .interfaces.cost_function import ParameterPreprocessor
+from .interfaces.cost_function import (
+    CostFunction,
+    EstimationTasksFactory,
+    ParameterPreprocessor,
+)
 from .interfaces.estimation import (
     EstimateExpectationValues,
     EstimationPreprocessor,
@@ -361,11 +363,11 @@ def create_cost_function(
         opt_results = optimizer.minimize(cost_function, initial_params)
 
     """
-    if parameter_preprocessors is None:
-        parameter_preprocessors = []
 
     def _cost_function(parameters: np.ndarray) -> Union[float, ValueEstimate]:
-        for preprocessor in parameter_preprocessors:
+        for preprocessor in (
+            [] if parameter_preprocessors is None else parameter_preprocessors
+        ):
             parameters = preprocessor(parameters)
 
         estimation_tasks = estimation_tasks_factory(parameters)

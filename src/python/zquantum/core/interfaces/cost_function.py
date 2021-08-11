@@ -12,7 +12,7 @@ class CostFunction(Protocol):
     """Cost function transforming vectors from R^n to numbers or their estimates."""
 
     @abc.abstractmethod
-    def __call__(self, params: np.ndarray) -> Union[float, ValueEstimate]:
+    def __call__(self, parameters: np.ndarray) -> Union[float, ValueEstimate]:
         """Compute  value of the cost function for given parameters."""
 
 

@@ -322,7 +322,7 @@ def fix_parameters(fixed_parameters: np.ndarray) -> ParameterPreprocessor:
     """
 
     def _preprocess(parameters: np.ndarray) -> np.ndarray:
-        return combine_ansatz_params(parameters, fixed_parameters)
+        return combine_ansatz_params(fixed_parameters, parameters)
 
     return _preprocess
 

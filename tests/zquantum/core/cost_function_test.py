@@ -252,7 +252,7 @@ class TestFixParametersPreprocessor:
         new_params = preprocessor(params)
 
         np.testing.assert_array_equal(
-            new_params, [0.5, 0.0, -1.0, np.pi, 1.0, 2.0, 3.0]
+            new_params, [1.0, 2.0, 3.0, 0.5, 0.0, -1.0, np.pi]
         )
 
     def test_does_not_mutate_parameters(self):

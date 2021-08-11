@@ -293,7 +293,9 @@ def fix_parameters(fixed_parameters: np.ndarray) -> ParameterPreprocessor:
     return _preprocess
 
 
-def add_normal_noise(parameter_precision, parameter_precision_seed) -> ParameterPreprocessor:
+def add_normal_noise(
+    parameter_precision, parameter_precision_seed
+) -> ParameterPreprocessor:
     """Preprocessor adding noise to the parameters.
 
     The added noise is iid normal with mean=0.0 and stdev=`parameter_precision`.

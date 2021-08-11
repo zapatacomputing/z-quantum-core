@@ -161,7 +161,7 @@ class TestSubstitutionBasedEstimationTasksFactory:
         "estimation_preprocessors, n_shots",
         [(None, None), ([partial(allocate_shots_uniformly, number_of_shots=42)], 42)],
     )
-    def creates_correct_estimation_tasks(self, estimation_preprocessors, n_shots):
+    def test_creates_correct_estimation_tasks(self, estimation_preprocessors, n_shots):
         estimation_factory = substitution_based_estimation_tasks_factory(
             TARGET_OPERATOR, ANSATZ, estimation_preprocessors
         )

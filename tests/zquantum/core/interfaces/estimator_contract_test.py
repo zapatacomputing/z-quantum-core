@@ -3,7 +3,7 @@ from typing import List
 from zquantum.core.estimation import calculate_exact_expectation_values
 from zquantum.core.interfaces.backend import QuantumSimulator
 from zquantum.core.interfaces.estimation import EstimationTask
-from zquantum.core.interfaces.estimator_contract import ESTIMATOR_CONTRACT
+from zquantum.core.interfaces.estimator_contract import ESTIMATOR_CONTRACTS
 from zquantum.core.measurement import ExpectationValues
 
 # This function will be used as a mock estimator
@@ -22,8 +22,8 @@ def test_each_task_returns_one_expecation_value_test():
 
     bad_estimator = malicious_calculate_expectation_values
 
-    assert ESTIMATOR_CONTRACT[0](_good_estimator)
-    assert not ESTIMATOR_CONTRACT[0](bad_estimator)
+    assert ESTIMATOR_CONTRACTS[0](_good_estimator)
+    assert not ESTIMATOR_CONTRACTS[0](bad_estimator)
 
 
 def test_order_of_outputs_matches_order_of_inputs_test():
@@ -40,8 +40,8 @@ def test_order_of_outputs_matches_order_of_inputs_test():
 
     bad_estimator = malicious_calculate_expectation_values
 
-    assert ESTIMATOR_CONTRACT[1](_good_estimator)
-    assert not ESTIMATOR_CONTRACT[1](bad_estimator)
+    assert ESTIMATOR_CONTRACTS[1](_good_estimator)
+    assert not ESTIMATOR_CONTRACTS[1](bad_estimator)
 
 
 def test_expectation_value_includes_coefficients_test():
@@ -58,8 +58,8 @@ def test_expectation_value_includes_coefficients_test():
 
     bad_estimator = malicious_calculate_expectation_values
 
-    assert ESTIMATOR_CONTRACT[2](_good_estimator)
-    assert not ESTIMATOR_CONTRACT[2](bad_estimator)
+    assert ESTIMATOR_CONTRACTS[2](_good_estimator)
+    assert not ESTIMATOR_CONTRACTS[2](bad_estimator)
 
 
 def test_constant_terms_are_included_in_output_test():
@@ -76,5 +76,5 @@ def test_constant_terms_are_included_in_output_test():
 
     bad_estimator = malicious_calculate_expectation_values
 
-    assert ESTIMATOR_CONTRACT[3](_good_estimator)
-    assert not ESTIMATOR_CONTRACT[3](bad_estimator)
+    assert ESTIMATOR_CONTRACTS[3](_good_estimator)
+    assert not ESTIMATOR_CONTRACTS[3](bad_estimator)

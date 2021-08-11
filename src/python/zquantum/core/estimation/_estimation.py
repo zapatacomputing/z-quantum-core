@@ -266,7 +266,7 @@ def evaluate_non_measured_estimation_tasks(
     expectation_values = []
     for task in estimation_tasks:
         if len(task.operator.terms) > 1 or () not in task.operator.terms.keys():
-            if task.number_of_shots > 0:
+            if task.number_of_shots is not None and task.number_of_shots > 0:
                 raise RuntimeError(
                     "An EstimationTask required shots but was classified as\
                          a non-measured task"

@@ -1,10 +1,8 @@
-import abc
 from typing import Any, Callable, List, Optional, Union
 
 import numpy as np
 import sympy
 from openfermion import SymbolicOperator
-from typing_extensions import Protocol
 
 from .circuits import Circuit
 from .estimation import (
@@ -15,6 +13,7 @@ from .gradients import finite_differences_gradient
 from .interfaces.ansatz import Ansatz
 from .interfaces.ansatz_utils import combine_ansatz_params
 from .interfaces.backend import QuantumBackend
+from .interfaces.cost_function import ParameterPreprocessor
 from .interfaces.estimation import (
     EstimateExpectationValues,
     EstimationPreprocessor,
@@ -277,39 +276,6 @@ class AnsatzBasedCostFunction:
         )
 
         return sum_expectation_values(combined_expectation_values)
-
-
-class CostFunction(Protocol):
-    """Cost function transforming vectors from R^n to numbers or their estimates."""
-
-    @abc.abstractmethod
-    def __call__(self, params: np.ndarray) -> Union[float, ValueEstimate]:
-        """Compute  value of the cost function for given parameters."""
-
-
-class EstimationTasksFactory(Protocol):
-    """Factory from producing estimation tasks from R^n vectors.
-
-    For instance, this can be used with ansatzes where produced estimation tasks
-    are evaluating circuit.
-    """
-
-    @abc.abstractmethod
-    def __call__(self, parameters: np.ndarray) -> List[EstimationTask]:
-        """Produce estimation tasks for given parameters."""
-
-
-class ParameterPreprocessor(Protocol):
-    """Parameter preprocessor.
-
-    Implementer of this protocol should create new array instead of
-    modifying passed parameters in place, which can have unpredictable
-    side effects.
-    """
-
-    @abc.abstractmethod
-    def __call__(self, parameters: np.ndarray) -> np.ndarray:
-        """Preprocess parameters."""
 
 
 def fix_parameters(fixed_parameters: np.ndarray) -> ParameterPreprocessor:

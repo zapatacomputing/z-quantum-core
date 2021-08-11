@@ -25,6 +25,7 @@ from openfermion.transforms import freeze_orbitals, get_fermion_operator
 from ..circuits import Circuit, X, Y, Z
 from ..measurement import ExpectationValues, expectation_values_to_real
 from ..utils import ValueEstimate, bin2dec, dec2bin
+from ..typing import SpinfulFermionOperator
 
 
 def get_qubitop_from_matrix(operator: List[List]) -> QubitOperator:
@@ -684,3 +685,35 @@ def remove_inactive_orbitals(
     frozen_interaction_op = get_interaction_operator(frozen_fermion_op)
 
     return frozen_interaction_op
+
+
+def spinful_to_spinless(number_of_sites: int, spinful_operator: SpinfulFermionOperator) -> FermionOperator:
+    """Transforms a spinful FermionOperator into a spinless FermionOperator.
+
+    Args:
+        number_of_sites (int): the maximum expected number of sites in the operator chain.
+        spinful_operator (SpinfulFermionOperator): a single creation or annihilation operator that will be transformed form spinful to spinless.
+    
+    Returns:
+        (FermionOperator): the spinless representation of a spinful creation or annihilation operator.
+    """
+    op, spinup = spinful_operator
+
+    # We only accept operators with one term at a time
+    if len(op.terms) != 1:
+        raise ValueError(f"The spinful operator '{spinful_operator}' must contain a sinle term specifying either a creation or annihilation operator.")
+
+    # We make sure that the site in the spinful operator is less than the number of sites
+    term, coeff = next(iter(op.terms.items()))
+    if len(term) != 1:
+        raise ValueError(f"Expected a single operator in the term '{term}' in the spinful operator '{spinful_operator}'")
+
+    site, ladder =  term[0] # ladder is whether this is a creation or annihilation operator, poor naming but the spirit is there
+    if site >= number_of_sites:
+        raise ValueError(f"The spinful operator '{spinful_operator}' contains more sites than possible: {number_of_sites}")
+        
+    # If the spin is up, we return a spinless operator with the same site number
+    if spinup is True:
+        return op
+    else:
+        return FermionOperator((site + number_of_sites, ladder), coeff)

@@ -8,6 +8,7 @@ import pkg_resources
 import pytest
 import sympy
 from scipy.stats import unitary_group
+from openfermion import FermionOperator, jordan_wigner
 from zquantum.core.openfermion import load_interaction_operator
 from zquantum.core.utils import (
     RNDSEED,
@@ -38,6 +39,7 @@ from zquantum.core.utils import (
     save_timing,
     save_value_estimate,
     scale_and_discretize,
+    spinful_to_spinless,
 )
 
 
@@ -482,3 +484,42 @@ def test_ordered_bitstring(num_qubits):
     )
     assert np.all(expected_bitstrings == bitstrings)
     assert np.all([len(bitstring) == num_qubits for bitstring in bitstrings])
+
+
+@pytest.mark.parametrize("num_sites", [2])
+def test_spinful_to_spinless(num_sites):
+    """
+    We verify the validity of the transformation by checking
+    if we obtain the right qubit operators after performing the Jordan-Wigner transformation
+    """
+    # Annihilation operator with Spin up on site 1
+    spinful_up_1 = (FermionOperator((0, 0), 1), True)
+    spinless_1 = spinful_to_spinless(num_sites, spinful_up_1)
+    assert str(jordan_wigner(spinless_1)).strip() == """
+0.5 [X0] +
+0.5j [Y0]
+""".strip()
+
+    # Creation operator with spin up on site 1
+    spinful_up_1 = (FermionOperator((0, 1), 1), True)
+    spinless_1 = spinful_to_spinless(num_sites, spinful_up_1)
+    assert str(jordan_wigner(spinless_1)).strip() == """
+0.5 [X0] +
+0.5j [Y0]
+""".strip()
+
+    # Annihilation operator with Spin down on site 1
+    spinful_down_1 = (FermionOperator((0, 0), 1), False)
+    spinless_1 = spinful_to_spinless(num_sites, spinful_down_1)
+    assert str(jordan_wigner(spinless_1)).strip() == """
+0.5 [Z0 Z1 X2] +
+0.5j [Z0 Z1 Y2]
+""".strip()
+
+    # Creation operator with spin down on site 1
+    spinful_down_1 = (FermionOperator((0, 1), 1), False)
+    spinless_1 = spinful_to_spinless(num_sites, spinful_down_1)
+    assert str(jordan_wigner(spinless_1)).strip() == """
+0.5 [Z0 Z1 X2] +
+-0.5j [Z0 Z1 Y2]
+""".strip()

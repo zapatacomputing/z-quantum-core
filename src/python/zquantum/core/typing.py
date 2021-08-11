@@ -1,6 +1,8 @@
 """Types commonly encountered in zquantum repositories."""
 from os import PathLike
-from typing import Callable, Dict, Union
+from typing import Callable, Dict, Union, Tuple
+
+from openfermion import FermionOperator
 
 from typing_extensions import Protocol
 
@@ -33,3 +35,5 @@ Specs = Union[str, Dict]
 
 AnyRecorder = Union[SimpleRecorder, ArtifactRecorder]
 RecorderFactory = Callable[[Callable], AnyRecorder]
+
+SpinfulFermionOperator = Tuple[FermionOperator, bool]

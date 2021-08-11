@@ -38,7 +38,7 @@ class U3GateToRotation(DecompositionRule[GateOperation]):
             preprocessing(gate)(*operation.qubit_indices) for gate in decomposition
         ]
 
-        return decomposition
+        return reversed(decomposition)
 
 
 def decompose_zquantum_circuit(

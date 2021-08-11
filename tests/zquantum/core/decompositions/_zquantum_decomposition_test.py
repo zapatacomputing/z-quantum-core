@@ -1,3 +1,6 @@
+import operator
+from functools import reduce
+
 import numpy as np
 import pytest
 from zquantum.core.circuits import CNOT, RY, U3, Circuit, GateOperation, X, Y, Z
@@ -42,10 +45,9 @@ class TestDecompositionOfU3Gates:
         "gate_to_be_decomposed, target_qubits",
         [
             *[(gate, qubits) for gate in U3_GATES for qubits in [(0,), (2,)]],
-            *[(gate, qubits) for gate in CU3_GATES for qubits in [(0, 1), (3, 11)]],
         ],
     )
-    def test_gives_the_same_unitary_as_original_gate(
+    def test_gives_the_same_unitary_as_original_gate_up_to_global_phase(
         self, gate_to_be_decomposed, target_qubits
     ):
         circuit = Circuit([gate_to_be_decomposed(*target_qubits)])
@@ -76,6 +78,39 @@ class TestDecompositionOfU3Gates:
         assert all(
             isinstance(op, GateOperation) and op.gate.name in ("RZ", "RY")
             for op in decomposed_circuit.operations
+        )
+
+
+class TestDecompositionOfCU3Gates:
+    @pytest.mark.parametrize(
+        "gate_to_be_decomposed, target_qubits",
+        [
+            *[(gate, qubits) for gate in CU3_GATES for qubits in [(0, 1)]],
+        ],
+    )
+    def test_gives_the_same_unitary_as_original_gate_up_to_global_phase(
+        self, gate_to_be_decomposed, target_qubits
+    ):
+        circuit = Circuit([gate_to_be_decomposed(*target_qubits)])
+        decomposed_circuit = decompose_zquantum_circuit(circuit, DECOMPOSITION_RULES)
+
+        def numpy_caster(x):
+            return np.array(x).astype(np.complex128)
+
+        original_matrix = numpy_caster(circuit.operations[0].gate.wrapped_gate.matrix)
+
+        decomposed_matrix = reduce(
+            operator.matmul,
+            [
+                op.gate.wrapped_gate.matrix
+                for op in reversed(decomposed_circuit.operations)
+            ],
+        )
+
+        decomposed_matrix = numpy_caster(decomposed_matrix)
+
+        assert _is_scaled_identity(
+            original_matrix @ np.linalg.inv(decomposed_matrix),
         )
 
     @pytest.mark.parametrize("target_qubits", [(0, 1), (3, 11)])

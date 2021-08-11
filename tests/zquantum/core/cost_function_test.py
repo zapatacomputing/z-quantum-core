@@ -157,10 +157,11 @@ ANSATZ = MockAnsatz(number_of_layers=1, problem_size=1)
 
 
 class TestSubstitutionBasedEstimationTasksFactory:
-    def creates_correct_estimation_tasks(self):
-        estimation_preprocessors = [
-            partial(allocate_shots_uniformly, number_of_shots=42)
-        ]
+    @pytest.mark.parametrize(
+        "estimation_preprocessors, n_shots",
+        [(None, None), ([partial(allocate_shots_uniformly, number_of_shots=42)], 42)],
+    )
+    def creates_correct_estimation_tasks(self, estimation_preprocessors, n_shots):
         estimation_factory = substitution_based_estimation_tasks_factory(
             TARGET_OPERATOR, ANSATZ, estimation_preprocessors
         )
@@ -169,7 +170,7 @@ class TestSubstitutionBasedEstimationTasksFactory:
 
         assert estimation_task.operator == TARGET_OPERATOR
         assert estimation_task.circuit == ANSATZ._generate_circuit(initial_params)
-        assert estimation_task.number_of_shots == 42
+        assert estimation_task.number_of_shots == n_shots
 
 
 class TestAnsatzBasedCostFunction:
@@ -183,8 +184,18 @@ class TestAnsatzBasedCostFunction:
             ESTIMATION_PREPROCESSORS,
         )
 
-    @pytest.fixture()
-    def ansatz_based_cost_function(self):
+    @pytest.fixture(
+        params=[
+            None,
+            [
+                add_normal_noise(
+                    parameter_precision=1e-4,
+                    parameter_precision_seed=RNGSEED,
+                )
+            ],
+        ]
+    )
+    def ansatz_based_cost_function(self, request):
         estimation_factory = substitution_based_estimation_tasks_factory(
             TARGET_OPERATOR, ANSATZ, ESTIMATION_PREPROCESSORS
         )
@@ -193,6 +204,7 @@ class TestAnsatzBasedCostFunction:
             BACKEND,
             estimation_factory,
             ESTIMATION_METHOD,
+            parameter_preprocessors=request.param,
         )
 
     def test_ansatz_based_cost_function_returns_value_between_plus_and_minus_one(
@@ -222,7 +234,7 @@ class TestAnsatzBasedCostFunction:
             ansatz,
         )
 
-    def test_ansatz_based_cost_function_adds_noise_to_parameters(
+    def test_old_ansatz_based_cost_function_adds_noise_to_parameters(
         self, noisy_ansatz_cost_function_with_ansatz
     ):
         noisy_ansatz_cost_function = noisy_ansatz_cost_function_with_ansatz[0]

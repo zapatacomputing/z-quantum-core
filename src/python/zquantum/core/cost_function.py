@@ -1,10 +1,8 @@
-import abc
 from typing import Any, Callable, Iterable, List, Optional, Union
 
 import numpy as np
 import sympy
 from openfermion import SymbolicOperator
-from typing_extensions import Protocol
 
 from .circuits import Circuit
 from .estimation import (
@@ -15,6 +13,11 @@ from .gradients import finite_differences_gradient
 from .interfaces.ansatz import Ansatz
 from .interfaces.ansatz_utils import combine_ansatz_params
 from .interfaces.backend import QuantumBackend
+from .interfaces.cost_function import (
+    CostFunction,
+    EstimationTasksFactory,
+    ParameterPreprocessor,
+)
 from .interfaces.estimation import (
     EstimateExpectationValues,
     EstimationPreprocessor,
@@ -279,39 +282,6 @@ class AnsatzBasedCostFunction:
         return sum_expectation_values(combined_expectation_values)
 
 
-class CostFunction(Protocol):
-    """Cost function transforming vectors from R^n to numbers or their estimates."""
-
-    @abc.abstractmethod
-    def __call__(self, params: np.ndarray) -> Union[float, ValueEstimate]:
-        raise NotImplementedError
-
-
-class EstimationTasksFactory(Protocol):
-    """Factory for producing estimation tasks from R^n vectors.
-
-    For instance, this can be used with ansatzes where produced estimation tasks
-    are evaluating circuit.
-    """
-
-    @abc.abstractmethod
-    def __call__(self, parameters: np.ndarray) -> List[EstimationTask]:
-        raise NotImplementedError
-
-
-class ParameterPreprocessor(Protocol):
-    """Parameter preprocessor.
-
-    Implementer of this protocol should create new array instead of
-    modifying passed parameters in place, which can have unpredictable
-    side effects.
-    """
-
-    @abc.abstractmethod
-    def __call__(self, parameters: np.ndarray) -> np.ndarray:
-        raise NotImplementedError
-
-
 def fix_parameters(fixed_parameters: np.ndarray) -> ParameterPreprocessor:
     """Preprocessor appending fixed parameters.
 
@@ -322,12 +292,14 @@ def fix_parameters(fixed_parameters: np.ndarray) -> ParameterPreprocessor:
     """
 
     def _preprocess(parameters: np.ndarray) -> np.ndarray:
-        return combine_ansatz_params(parameters, fixed_parameters)
+        return combine_ansatz_params(fixed_parameters, parameters)
 
     return _preprocess
 
 
-def add_noise(parameter_precision, parameter_precision_seed) -> ParameterPreprocessor:
+def add_normal_noise(
+    parameter_precision, parameter_precision_seed
+) -> ParameterPreprocessor:
     """Preprocessor adding noise to the parameters.
 
     The added noise is iid normal with mean=0.0 and stdev=`parameter_precision`.
@@ -391,11 +363,11 @@ def create_cost_function(
         opt_results = optimizer.minimize(cost_function, initial_params)
 
     """
-    if parameter_preprocessors is None:
-        parameter_preprocessors = []
 
     def _cost_function(parameters: np.ndarray) -> Union[float, ValueEstimate]:
-        for preprocessor in parameter_preprocessors:
+        for preprocessor in (
+            [] if parameter_preprocessors is None else parameter_preprocessors
+        ):
             parameters = preprocessor(parameters)
 
         estimation_tasks = estimation_tasks_factory(parameters)

@@ -7,7 +7,7 @@ from openfermion import QubitOperator
 from sympy import Symbol
 from zquantum.core.cost_function import (
     AnsatzBasedCostFunction,
-    add_noise,
+    add_normal_noise,
     create_cost_function,
     fix_parameters,
     get_ground_state_cost_function,
@@ -157,10 +157,11 @@ ANSATZ = MockAnsatz(number_of_layers=1, problem_size=1)
 
 
 class TestSubstitutionBasedEstimationTasksFactory:
-    def creates_correct_estimation_tasks(self):
-        estimation_preprocessors = [
-            partial(allocate_shots_uniformly, number_of_shots=42)
-        ]
+    @pytest.mark.parametrize(
+        "estimation_preprocessors, n_shots",
+        [(None, None), ([partial(allocate_shots_uniformly, number_of_shots=42)], 42)],
+    )
+    def test_creates_correct_estimation_tasks(self, estimation_preprocessors, n_shots):
         estimation_factory = substitution_based_estimation_tasks_factory(
             TARGET_OPERATOR, ANSATZ, estimation_preprocessors
         )
@@ -169,7 +170,7 @@ class TestSubstitutionBasedEstimationTasksFactory:
 
         assert estimation_task.operator == TARGET_OPERATOR
         assert estimation_task.circuit == ANSATZ._generate_circuit(initial_params)
-        assert estimation_task.number_of_shots == 42
+        assert estimation_task.number_of_shots == n_shots
 
 
 class TestAnsatzBasedCostFunction:
@@ -183,8 +184,18 @@ class TestAnsatzBasedCostFunction:
             ESTIMATION_PREPROCESSORS,
         )
 
-    @pytest.fixture()
-    def ansatz_based_cost_function(self):
+    @pytest.fixture(
+        params=[
+            None,
+            [
+                add_normal_noise(
+                    parameter_precision=1e-4,
+                    parameter_precision_seed=RNGSEED,
+                )
+            ],
+        ]
+    )
+    def ansatz_based_cost_function(self, request):
         estimation_factory = substitution_based_estimation_tasks_factory(
             TARGET_OPERATOR, ANSATZ, ESTIMATION_PREPROCESSORS
         )
@@ -193,6 +204,7 @@ class TestAnsatzBasedCostFunction:
             BACKEND,
             estimation_factory,
             ESTIMATION_METHOD,
+            parameter_preprocessors=request.param,
         )
 
     def test_ansatz_based_cost_function_returns_value_between_plus_and_minus_one(
@@ -222,7 +234,7 @@ class TestAnsatzBasedCostFunction:
             ansatz,
         )
 
-    def test_ansatz_based_cost_function_adds_noise_to_parameters(
+    def test_old_ansatz_based_cost_function_adds_noise_to_parameters(
         self, noisy_ansatz_cost_function_with_ansatz
     ):
         noisy_ansatz_cost_function = noisy_ansatz_cost_function_with_ansatz[0]
@@ -261,7 +273,7 @@ class TestFixParametersPreprocessor:
         new_params = preprocessor(params)
 
         np.testing.assert_array_equal(
-            new_params, [0.5, 0.0, -1.0, np.pi, 1.0, 2.0, 3.0]
+            new_params, [1.0, 2.0, 3.0, 0.5, 0.0, -1.0, np.pi]
         )
 
     def test_does_not_mutate_parameters(self):
@@ -273,17 +285,17 @@ class TestFixParametersPreprocessor:
         np.testing.assert_array_equal(params, [0.1, 0.2])
 
 
-class TestAddNoisePreprocessor:
+class TestAddNormalNoisePreprocessor:
     def test_correctly_seeds_rng(self):
-        preprocessor_1 = add_noise(1e-5, RNGSEED)
-        preprocessor_2 = add_noise(1e-5, RNGSEED)
+        preprocessor_1 = add_normal_noise(1e-5, RNGSEED)
+        preprocessor_2 = add_normal_noise(1e-5, RNGSEED)
 
         params = np.linspace(0, np.pi, 10)
 
         np.testing.assert_array_equal(preprocessor_1(params), preprocessor_2(params))
 
     def test_seeds_rng_during_initialization(self):
-        preprocessor = add_noise(1e-4, RNGSEED)
+        preprocessor = add_normal_noise(1e-4, RNGSEED)
         params = np.array([0.1, 0.2, -0.5])
 
         # The second call to preprocessor should advance generator if it was
@@ -292,7 +304,7 @@ class TestAddNoisePreprocessor:
         assert not np.array_equal(preprocessor(params), preprocessor(params))
 
     def test_mean_of_added_noise_is_correct(self):
-        preprocessor = add_noise(0.001, RNGSEED)
+        preprocessor = add_normal_noise(0.001, RNGSEED)
         num_params = 100
         num_repetitions = 10
         params = np.ones(num_params)
@@ -304,7 +316,7 @@ class TestAddNoisePreprocessor:
         np.testing.assert_allclose(average_diff, 0.0, atol=1e-03)
 
     def test_std_of_added_noise_is_correct(self):
-        preprocessor = add_noise(0.001, RNGSEED)
+        preprocessor = add_normal_noise(0.001, RNGSEED)
         num_params = 100
         num_repetitions = 100
         params = np.ones(num_params)
@@ -318,7 +330,8 @@ class TestAddNoisePreprocessor:
         np.testing.assert_allclose(np.std(sample), 0.001, atol=1e-03)
 
     def test_does_not_mutate_parameters(self):
-        preprocessor = add_noise(0.1, RNGSEED)
+        preprocessor = add_normal_noise(0.1, RNGSEED)
+
         params = np.ones(3)
 
         preprocessor(params)

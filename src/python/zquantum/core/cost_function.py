@@ -457,9 +457,10 @@ def dynamic_circuit_estimation_tasks_factory(
 
     def _tasks_factory(parameters: np.ndarray) -> List[EstimationTask]:
 
-        # NOTE: `ansatz._generate_circuit(parameters)` currently does not produce an
-        # executable circuit, but rather a parametrized circuit with sympy symbols in
-        # some ansatz implementations. (Ex. see ansatzes in z-quantum-qaoa)
+        # TODO: In some ansatzes, `ansatz._generate_circuit(parameters)` does not
+        # produce an executable circuit, but rather, they ignore the parameters and
+        # returns a parametrized circuit with sympy symbols.
+        # (Ex. see ansatzes in z-quantum-qaoa)
         #
         # Combined with how this is a private method, we will probably have to somewhat
         # refactor the ansatz class.

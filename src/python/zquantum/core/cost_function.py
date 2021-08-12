@@ -455,9 +455,6 @@ def dynamic_circuit_estimation_tasks_factory(
         An EstimationTasksFactory object.
     """
 
-    if estimation_preprocessors is None:
-        estimation_preprocessors = []
-
     def _tasks_factory(parameters: np.ndarray) -> List[EstimationTask]:
 
         # NOTE: `ansatz._generate_circuit(parameters)` currently does not produce an
@@ -468,7 +465,6 @@ def dynamic_circuit_estimation_tasks_factory(
         # refactor the ansatz class.
 
         circuit = ansatz._generate_circuit(parameters)
-        # with proposed ansatz refactor: use ansatz.get_executable_circuit(parameters)
 
         estimation_tasks = [
             EstimationTask(
@@ -476,7 +472,9 @@ def dynamic_circuit_estimation_tasks_factory(
             )
         ]
 
-        for preprocessor in estimation_preprocessors:
+        for preprocessor in (
+            [] if estimation_preprocessors is None else estimation_preprocessors
+        ):
             estimation_tasks = preprocessor(estimation_tasks)
 
         return estimation_tasks

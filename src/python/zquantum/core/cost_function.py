@@ -349,7 +349,7 @@ def create_cost_function(
         estimation_factory = substitution_based_estimation_tasks_factory(
             target_operator, ansatz
         )
-        noise_preprocessor = add_noise(1e-5, seed=1234)
+        noise_preprocessor = add_normal_noise(1e-5, seed=1234)
 
         cost_function = create_cost_function(
             backend,

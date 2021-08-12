@@ -78,11 +78,11 @@ class TestGroundStateCostFunction:
             estimation_preprocessors=ESTIMATION_PREPROCESSORS
         )
 
+    @pytest.mark.parametrize("param", [0.0, 0.42, 1.0, np.pi])
     def test_returns_value_between_plus_and_minus_one(
-        self,
-        ground_state_cost_function,
+        self, ground_state_cost_function, param
     ):
-        params = np.array([1.0], dtype=float)
+        params = np.array([param], dtype=float)
         value = ground_state_cost_function(params)
         assert -1 <= value <= 1
 
@@ -207,10 +207,11 @@ class TestAnsatzBasedCostFunction:
             parameter_preprocessors=request.param,
         )
 
+    @pytest.mark.parametrize("param", [0.0, 0.42, 1.0, np.pi])
     def test_ansatz_based_cost_function_returns_value_between_plus_and_minus_one(
-        self, ansatz_based_cost_function, old_ansatz_based_cost_function
+        self, param, ansatz_based_cost_function, old_ansatz_based_cost_function
     ):
-        params = np.array([1])
+        params = np.array([param])
 
         value = ansatz_based_cost_function(params)
         assert -1 <= value <= 1

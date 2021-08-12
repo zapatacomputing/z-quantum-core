@@ -79,11 +79,11 @@ class TestGroundStateCostFunction:
             estimation_preprocessors=ESTIMATION_PREPROCESSORS
         )
 
+    @pytest.mark.parametrize("param", [0.0, 0.42, 1.0, np.pi])
     def test_returns_value_between_plus_and_minus_one(
-        self,
-        ground_state_cost_function,
+        self, ground_state_cost_function, param
     ):
-        params = np.array([1.0], dtype=float)
+        params = np.array([param], dtype=float)
         value = ground_state_cost_function(params)
         assert -1 <= value <= 1
 
@@ -182,8 +182,9 @@ class TestEstimationTasksFactory:
         assert estimation_task.circuit == ANSATZ._generate_circuit(initial_params)
         assert estimation_task.number_of_shots == n_shots
 
-    def test_evaluates_to_same_cost_function(self):
-        params = np.array([0.68])
+    @pytest.mark.parametrize("param", [0.0, 0.42, 1.0, np.pi])
+    def test_evaluates_to_same_cost_function(self, param):
+        params = np.array([param])
         dynamic_estimation_factory = dynamic_circuit_estimation_tasks_factory(
             TARGET_OPERATOR, ANSATZ
         )
@@ -234,10 +235,11 @@ class TestAnsatzBasedCostFunction:
             parameter_preprocessors=request.param,
         )
 
+    @pytest.mark.parametrize("param", [0.0, 0.42, 1.0, np.pi])
     def test_ansatz_based_cost_function_returns_value_between_plus_and_minus_one(
-        self, ansatz_based_cost_function, old_ansatz_based_cost_function
+        self, param, ansatz_based_cost_function, old_ansatz_based_cost_function
     ):
-        params = np.array([1])
+        params = np.array([param])
 
         value = ansatz_based_cost_function(params)
         assert -1 <= value <= 1

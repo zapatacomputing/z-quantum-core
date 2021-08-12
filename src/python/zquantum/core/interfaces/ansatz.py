@@ -73,7 +73,13 @@ class Ansatz(ABC, EnforceOverrides):
         """
         if params is None:
             raise Exception("Parameters can't be None for executable circuit.")
-        return self._generate_circuit(params)
+        if self.supports_parametrized_circuits:
+            symbols = self.parametrized_circuit.free_symbols
+            symbols_map = create_symbols_map(symbols, params)
+            executable_circuit = self.parametrized_circuit.bind(symbols_map)
+            return executable_circuit
+        else:
+            return self._generate_circuit(params)
 
     def _generate_circuit(self, params: Optional[np.ndarray] = None) -> Circuit:
         """Returns a circuit represention of the ansatz.

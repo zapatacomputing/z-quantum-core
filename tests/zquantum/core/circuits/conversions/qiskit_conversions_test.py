@@ -99,18 +99,6 @@ class TestU3GateConversion:
         np.testing.assert_allclose(zquantum_matrix, qiskit_matrix, atol=1e-7)
 
 
-def _reorder_gate(G, perm):
-    perm = list(perm)
-
-    # number of qubits
-    n = len(perm)
-
-    # reorder both input and output dimensions
-    perm2 = perm + [n + i for i in perm]
-
-    return np.reshape(np.transpose(np.reshape(G, 2 * n * [2]), perm2), (2 ** n, 2 ** n))
-
-
 class TestCU3GateConversion:
     @pytest.mark.parametrize(
         "theta, phi, lambda_",
@@ -131,7 +119,7 @@ class TestCU3GateConversion:
         )
 
         # Rearrange the qiskit matrix, such that it matches the endianness of z-quantum
-        qiskit_matrix_reversed_control = _reorder_gate(qiskit_matrix, [1, 0])
+        qiskit_matrix_reversed_control = _fix_qubit_ordering(qiskit_matrix)
 
         np.testing.assert_allclose(
             zquantum_matrix, qiskit_matrix_reversed_control, atol=1e-7

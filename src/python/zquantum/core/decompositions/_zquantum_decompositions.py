@@ -28,14 +28,15 @@ class U3GateToRotation(DecompositionRule[GateOperation]):
 
         decomposition = [RZ(phi), RY(theta), RZ(lambda_)]
 
-        preprocessing = (
-            lambda x: x.controlled(operation.gate.num_control_qubits)
-            if operation.gate.name == "Control"
-            else x
-        )
+        def preprocess_gate(gate):
+            return (
+                gate.controlled(operation.gate.num_control_qubits)
+                if operation.gate.name == "Control"
+                else gate
+            )
 
         decomposition = [
-            preprocessing(gate)(*operation.qubit_indices) for gate in decomposition
+            preprocess_gate(gate)(*operation.qubit_indices) for gate in decomposition
         ]
 
         return reversed(decomposition)

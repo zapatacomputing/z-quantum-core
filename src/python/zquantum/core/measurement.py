@@ -74,11 +74,13 @@ def save_list_of_expectation_values(
         expectation_values_list (List[ExpectationValues]): the list expectation values to save
         file (str or file-like object): the name of the file, or a file-like object
     """
-    dictionaries = [expectation_values.to_dict() for expectation_values in expectation_values_list]
-    dictionaries["schema"] = SCHEMA_VERSION + "-expectation_values_list"
+    dictionary = {}
+    data = [expectation_values.to_dict() for expectation_values in expectation_values_list]
+    dictionary["schema"] = SCHEMA_VERSION + "-expectation_values_list"
+    dictionary["list"] = data
 
     with open(filename, "w") as f:
-        f.write(json.dumps(dictionaries, indent=2))
+        f.write(json.dumps(dictionary, indent=2))
 
 
 def load_list_of_expectation_values(file: LoadSource) -> List[ExpectationValues]:
@@ -97,7 +99,7 @@ def load_list_of_expectation_values(file: LoadSource) -> List[ExpectationValues]
     else:
         data = json.load(file)
 
-    return [ExpectationValues.from_dict(datum) for datum in data]
+    return [ExpectationValues.from_dict(datum) for datum in data["list"]]
 
 
 def load_wavefunction(file: LoadSource) -> Wavefunction:

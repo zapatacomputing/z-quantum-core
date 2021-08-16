@@ -11,6 +11,8 @@ from zquantum.core.circuits.conversions.cirq_conversions import (
 
 # --------- gates ---------
 
+lq = cirq.LineQubit
+
 EQUIVALENT_IDENTITY_GATES = [
     (_builtin_gates.I, cirq.I),
 ]
@@ -66,6 +68,18 @@ EQUIVALENT_U3_GATES = [
 ]
 
 
+def _is_scaled_identity(matrix: np.ndarray):
+    assert matrix.shape == (
+        matrix.shape[0],
+        matrix.shape[0],
+    ), "This test is meaningful only for square matrices"
+
+    target_matrix = np.diag(matrix).mean() * np.eye(
+        matrix.shape[0], dtype=np.complex128
+    )
+    return np.allclose(matrix, target_matrix)
+
+
 @pytest.mark.parametrize(
     "zquantum_gate,cirq_gate",
     [
@@ -80,7 +94,10 @@ class TestGateConversion:
         self, zquantum_gate, cirq_gate
     ):
         zquantum_matrix = np.array(zquantum_gate.matrix).astype(np.complex128)
-        np.testing.assert_allclose(zquantum_matrix, cirq.unitary(cirq_gate), atol=1e-7)
+
+        assert _is_scaled_identity(
+            zquantum_matrix @ np.linalg.inv(cirq.unitary(cirq_gate))
+        )
 
     def test_exporting_gate_to_cirq_gives_expected_gate(self, zquantum_gate, cirq_gate):
         assert export_to_cirq(zquantum_gate) == cirq_gate
@@ -119,7 +136,6 @@ EXAMPLE_PARAM_VALUES = {
     GAMMA: -5,
 }
 
-lq = cirq.LineQubit
 
 EQUIVALENT_CIRCUITS = [
     (

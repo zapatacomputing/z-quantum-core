@@ -117,12 +117,13 @@ def phase_matrix(angle):
 
 def u3_matrix(theta, phi, lambda_):
     """Based on
-    https://github.com/quantumlib/Cirq/blob/292080453e22e91dc5658a0cfa5043539944a950/cirq/circuits/qasm_output.py#L70
+    https://qiskit.org/documentation/stubs/qiskit.circuit.library.U3Gate.html
+    Please note that this formulation introduces a global phase, thus the division
+    after the sequence of gates.
     """
-    return (
-        rz_matrix(phi % (2 * sympy.pi))
-        * ry_matrix(theta % (2 * sympy.pi))
-        * rz_matrix(lambda_ % (2 * sympy.pi))
+    return sympy.simplify(
+        (rz_matrix(phi) * ry_matrix(theta) * rz_matrix(lambda_))
+        / sympy.exp(-0.5j * (phi + lambda_))
     )
 
 

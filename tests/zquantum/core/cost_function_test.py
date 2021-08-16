@@ -7,6 +7,8 @@ from openfermion import QubitOperator
 from sympy import Symbol
 from zquantum.core.cost_function import (
     AnsatzBasedCostFunction,
+    add_normal_noise,
+    fix_parameters,
     get_ground_state_cost_function,
     sum_expectation_values,
 )
@@ -145,7 +147,7 @@ def test_noisy_ground_state_cost_function_adds_noise_to_parameters():
         parametrized_circuit.bind.call_args[0][0], expected_symbols_map
     )
 
-    # Note, normally, we weould just do it in a single assert:
+    # Note, normally, we would just do it in a single assert:
     # noisy_ansatz.ansatz.get_executable_circuit.assert_called_once_with(params_noise)
     # However, this does not work with numpy arrays, as it uses == operator
     # to compare arguments, which does not produce boolean value for numpy arrays
@@ -240,3 +242,76 @@ def test_ansatz_based_cost_function_adds_noise_to_parameters(
         noisy_ansatz_cost_function.estimation_method.call_args[0][1][0].circuit
         == expected_noisy_circuit
     )
+
+
+class TestFixParametersPreprocessor:
+    def test_concatenates_params(self):
+        preprocessor = fix_parameters(np.array([1.0, 2.0, 3.0]))
+        params = np.array([0.5, 0.0, -1.0, np.pi])
+
+        new_params = preprocessor(params)
+
+        np.testing.assert_array_equal(
+            new_params, [1.0, 2.0, 3.0, 0.5, 0.0, -1.0, np.pi]
+        )
+
+    def test_does_not_mutate_parameters(self):
+        preprocessor = fix_parameters(np.array([-1.5, 2.0]))
+        params = np.array([0.1, 0.2])
+
+        preprocessor(params)
+
+        np.testing.assert_array_equal(params, [0.1, 0.2])
+
+
+class TestAddNoisePreprocessor:
+    def test_correctly_seeds_rng(self):
+        preprocessor_1 = add_normal_noise(1e-5, RNGSEED)
+        preprocessor_2 = add_normal_noise(1e-5, RNGSEED)
+
+        params = np.linspace(0, np.pi, 10)
+
+        np.testing.assert_array_equal(preprocessor_1(params), preprocessor_2(params))
+
+    def test_seeds_rng_during_initialization(self):
+        preprocessor = add_normal_noise(1e-4, RNGSEED)
+        params = np.array([0.1, 0.2, -0.5])
+
+        # The second call to preprocessor should advance generator if it was
+        # seeded only during initialization, hence the second call should produce
+        # different result.
+        assert not np.array_equal(preprocessor(params), preprocessor(params))
+
+    def test_mean_of_added_noise_is_correct(self):
+        preprocessor = add_normal_noise(0.001, RNGSEED)
+        num_params = 100
+        num_repetitions = 10
+        params = np.ones(num_params)
+
+        average_diff = sum(
+            (params - preprocessor(params)).sum() for _ in range(num_repetitions)
+        ) / (num_repetitions * num_params)
+
+        np.testing.assert_allclose(average_diff, 0.0, atol=1e-03)
+
+    def test_std_of_added_noise_is_correct(self):
+        preprocessor = add_normal_noise(0.001, RNGSEED)
+        num_params = 100
+        num_repetitions = 100
+        params = np.ones(num_params)
+
+        sample = [
+            diff
+            for diff in (params - preprocessor(params))
+            for _ in range(num_repetitions)
+        ]
+
+        np.testing.assert_allclose(np.std(sample), 0.001, atol=1e-03)
+
+    def test_does_not_mutate_parameters(self):
+        preprocessor = add_normal_noise(0.1, RNGSEED)
+        params = np.ones(3)
+
+        preprocessor(params)
+
+        np.testing.assert_array_equal(params, np.ones(3))

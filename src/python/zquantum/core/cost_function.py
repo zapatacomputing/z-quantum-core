@@ -13,6 +13,7 @@ from .gradients import finite_differences_gradient
 from .interfaces.ansatz import Ansatz
 from .interfaces.ansatz_utils import combine_ansatz_params
 from .interfaces.backend import QuantumBackend
+from .interfaces.cost_function import ParameterPreprocessor
 from .interfaces.estimation import (
     EstimateExpectationValues,
     EstimationPreprocessor,
@@ -275,3 +276,41 @@ class AnsatzBasedCostFunction:
         )
 
         return sum_expectation_values(combined_expectation_values)
+
+
+def fix_parameters(fixed_parameters: np.ndarray) -> ParameterPreprocessor:
+    """Preprocessor appending fixed parameters.
+
+    Args:
+        fixed_parameters: parameters to be appended to the ones being preprocessed.
+    Returns:
+        preprocessor
+    """
+
+    def _preprocess(parameters: np.ndarray) -> np.ndarray:
+        return combine_ansatz_params(fixed_parameters, parameters)
+
+    return _preprocess
+
+
+def add_normal_noise(
+    parameter_precision, parameter_precision_seed
+) -> ParameterPreprocessor:
+    """Preprocessor adding noise to the parameters.
+
+    The added noise is iid normal with mean=0.0 and stdev=`parameter_precision`.
+
+    Args:
+        parameter_precision: stddev of the noise distribution
+        parameter_precision_seed: seed for random number generator. The generator
+          is seeded during preprocessor creation (not during each preprocessor call).
+    Returns:
+        preprocessor
+    """
+    rng = np.random.default_rng(parameter_precision_seed)
+
+    def _preprocess(parameters: np.ndarray) -> np.ndarray:
+        noise = rng.normal(0.0, parameter_precision, len(parameters))
+        return parameters + noise
+
+    return _preprocess

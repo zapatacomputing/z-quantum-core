@@ -65,6 +65,40 @@ def load_expectation_values(file: LoadSource) -> ExpectationValues:
 
     return ExpectationValues.from_dict(data)
 
+def save_list_of_expectation_values(
+    expectation_values_list: List[ExpectationValues], filename: AnyPath
+) -> None:
+    """Save a list of expectation values to a file.
+
+    Args:
+        expectation_values_list (List[ExpectationValues]): the list expectation values to save
+        file (str or file-like object): the name of the file, or a file-like object
+    """
+    dictionaries = [expectation_values.to_dict() for expectation_values in expectation_values_list]
+    dictionaries["schema"] = SCHEMA_VERSION + "-expectation_values_list"
+
+    with open(filename, "w") as f:
+        f.write(json.dumps(dictionaries, indent=2))
+
+
+def load_list_of_expectation_values(file: LoadSource) -> List[ExpectationValues]:
+    """Load an array of expectation values from a file.
+
+    Args:
+        file (str or file-like object): the name of the file, or a file-like object.
+
+    Returns:
+        (List[ExpectationValues): the list of expectation values
+    """
+
+    if isinstance(file, str):
+        with open(file, "r") as f:
+            data = json.load(f)
+    else:
+        data = json.load(file)
+
+    return [ExpectationValues.from_dict(datum) for datum in data]
+
 
 def load_wavefunction(file: LoadSource) -> Wavefunction:
     """Load a qubit wavefunction from a file.

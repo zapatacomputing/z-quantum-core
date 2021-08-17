@@ -9,6 +9,7 @@ from zquantum.core.cost_function import (
     AnsatzBasedCostFunction,
     add_normal_noise,
     create_cost_function,
+    dynamic_circuit_estimation_tasks_factory,
     fix_parameters,
     get_ground_state_cost_function,
     substitution_based_estimation_tasks_factory,
@@ -156,13 +157,22 @@ TARGET_OPERATOR = QubitOperator("Z0")
 ANSATZ = MockAnsatz(number_of_layers=1, problem_size=1)
 
 
-class TestSubstitutionBasedEstimationTasksFactory:
+class TestEstimationTasksFactory:
+    @pytest.mark.parametrize(
+        "estimation_factory_generator",
+        [
+            substitution_based_estimation_tasks_factory,
+            dynamic_circuit_estimation_tasks_factory,
+        ],
+    )
     @pytest.mark.parametrize(
         "estimation_preprocessors, n_shots",
         [(None, None), ([partial(allocate_shots_uniformly, number_of_shots=42)], 42)],
     )
-    def test_creates_correct_estimation_tasks(self, estimation_preprocessors, n_shots):
-        estimation_factory = substitution_based_estimation_tasks_factory(
+    def test_creates_correct_estimation_tasks(
+        self, estimation_preprocessors, n_shots, estimation_factory_generator
+    ):
+        estimation_factory = estimation_factory_generator(
             TARGET_OPERATOR, ANSATZ, estimation_preprocessors
         )
         initial_params = np.array([0.42])
@@ -171,6 +181,24 @@ class TestSubstitutionBasedEstimationTasksFactory:
         assert estimation_task.operator == TARGET_OPERATOR
         assert estimation_task.circuit == ANSATZ._generate_circuit(initial_params)
         assert estimation_task.number_of_shots == n_shots
+
+    @pytest.mark.parametrize("param", [0.0, 0.42, 1.0, np.pi])
+    def test_evaluates_to_same_cost_function(self, param):
+        params = np.array([param])
+        dynamic_estimation_factory = dynamic_circuit_estimation_tasks_factory(
+            TARGET_OPERATOR, ANSATZ
+        )
+        substitution_estimation_factory = substitution_based_estimation_tasks_factory(
+            TARGET_OPERATOR, ANSATZ
+        )
+        dynamic_cost_function = create_cost_function(
+            BACKEND, dynamic_estimation_factory, calculate_exact_expectation_values
+        )
+        substituion_cost_function = create_cost_function(
+            BACKEND, substitution_estimation_factory, calculate_exact_expectation_values
+        )
+
+        assert dynamic_cost_function(params) == substituion_cost_function(params)
 
 
 class TestAnsatzBasedCostFunction:

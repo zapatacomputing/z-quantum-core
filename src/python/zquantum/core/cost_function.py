@@ -429,3 +429,55 @@ def substitution_based_estimation_tasks_factory(
         )
 
     return _tasks_factory
+
+
+def dynamic_circuit_estimation_tasks_factory(
+    target_operator: SymbolicOperator,
+    ansatz: Ansatz,
+    estimation_preprocessors: List[EstimationPreprocessor] = None,
+) -> EstimationTasksFactory:
+    """Creates a EstimationTasksFactory object that can be used to create
+    estimation tasks dynamically with parameters provided on the fly. These
+    tasks will evaluate the parametric circuit of an ansatz, without using
+    a symbol-parameter map. Wow, a factory for factories!
+
+    To be used with `create_cost_function`. See `create_cost_function` docstring
+    for an example use case.
+
+    Args:
+        target_operator: operator to be evaluated
+        ansatz: ansatz used to evaluate cost function
+        estimation_preprocessors: A list of callable functions used to create the
+            estimation tasks. Each function must adhere to the EstimationPreprocessor
+            protocol.
+
+    Returns:
+        An EstimationTasksFactory object.
+    """
+
+    def _tasks_factory(parameters: np.ndarray) -> List[EstimationTask]:
+
+        # TODO: In some ansatzes, `ansatz._generate_circuit(parameters)` does not
+        # produce an executable circuit, but rather, they ignore the parameters and
+        # returns a parametrized circuit with sympy symbols.
+        # (Ex. see ansatzes in z-quantum-qaoa)
+        #
+        # Combined with how this is a private method, we will probably have to somewhat
+        # refactor the ansatz class.
+
+        circuit = ansatz._generate_circuit(parameters)
+
+        estimation_tasks = [
+            EstimationTask(
+                operator=target_operator, circuit=circuit, number_of_shots=None
+            )
+        ]
+
+        for preprocessor in (
+            [] if estimation_preprocessors is None else estimation_preprocessors
+        ):
+            estimation_tasks = preprocessor(estimation_tasks)
+
+        return estimation_tasks
+
+    return _tasks_factory

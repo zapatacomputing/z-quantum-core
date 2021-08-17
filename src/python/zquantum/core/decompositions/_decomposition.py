@@ -22,7 +22,7 @@ class DecompositionRule(Protocol[OperationType]):
 
 
 def decompose_operation(
-    operation: Iterable[OperationType],
+    operation: OperationType,
     decomposition_rules: Sequence[DecompositionRule[OperationType]],
 ):
     if not decomposition_rules:

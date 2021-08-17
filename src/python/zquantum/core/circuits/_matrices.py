@@ -118,9 +118,13 @@ def phase_matrix(angle):
 def u3_matrix(theta, phi, lambda_):
     """Based on
     https://qiskit.org/documentation/stubs/qiskit.circuit.library.U3Gate.html
-    Please note that this formulation introduces a global phase
+    Please note that this formulation introduces a global phase, thus the division
+    after the sequence of gates.
     """
-    return rz_matrix(phi) * ry_matrix(theta) * rz_matrix(lambda_)
+    return sympy.simplify(
+        (rz_matrix(phi) * ry_matrix(theta) * rz_matrix(lambda_))
+        / sympy.exp(-0.5j * (phi + lambda_))
+    )
 
 
 # --- non-parametric two qubit gates ---

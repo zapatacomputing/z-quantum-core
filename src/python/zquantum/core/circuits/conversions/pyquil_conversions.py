@@ -136,15 +136,21 @@ def _import_pyquil_qubits(qubits):
     return tuple(qubit.index for qubit in qubits)
 
 
-def _assign_custom_defs(
-    program: pyquil.Program, custom_gate_defs: Iterable[_gates.CustomGateDefinition]
+def _export_zquantum_gate_definition(gate_def: _gates.CustomGateDefinition):
+    return pyquil.quilbase.DefGate(
+        gate_def.gate_name,
+        _export_matrix(gate_def.matrix),
+        list(map(_export_expression, gate_def.params_ordering)),
+    )
+
+
+def _create_pyquil_custom_gate_definitions(
+    custom_gate_defs: Iterable[_gates.CustomGateDefinition],
 ):
-    """Mutates `program` to assign ZQuantum custom gate definitions"""
-    for gate_def in custom_gate_defs:
-        pyquil_params = list(map(_export_expression, gate_def.params_ordering))
-        program.defgate(
-            gate_def.gate_name, _export_matrix(gate_def.matrix), pyquil_params
-        )
+    return {
+        gate_def.gate_name: _export_zquantum_gate_definition(gate_def)
+        for gate_def in custom_gate_defs
+    }
 
 
 @singledispatch
@@ -197,13 +203,17 @@ def export_to_pyquil(circuit: _circuit.Circuit) -> pyquil.Program:
         *circuit.collect_custom_gate_definitions(),
         *_collect_unsupported_builtin_gate_defs([op.gate for op in circuit.operations]),
     ]
-    custom_gate_names = {gate_def.gate_name for gate_def in custom_gate_definitions}
+    pyquil_gate_definitions = _create_pyquil_custom_gate_definitions(
+        custom_gate_definitions
+    )
+
     gate_instructions = [
-        _export_gate(op.gate, op.qubit_indices, custom_gate_names)
+        _export_gate(op.gate, op.qubit_indices, pyquil_gate_definitions)
         for op in circuit.operations
     ]
-    program = pyquil.Program(*[*var_declarations, *gate_instructions])
-    _assign_custom_defs(program, custom_gate_definitions)
+    program = pyquil.Program(
+        *[*var_declarations, *pyquil_gate_definitions.values(), *gate_instructions]
+    )
     return program
 
 
@@ -212,22 +222,27 @@ def _param_declaration(param_name: str):
 
 
 @singledispatch
-def _export_gate(gate: _gates.Gate, qubit_indices, custom_gate_names):
+def _export_gate(gate: _gates.Gate, qubit_indices, pyquil_gate_definitions):
     try:
-        return _export_gate_via_name(gate, qubit_indices, custom_gate_names)
+        return _export_gate_via_name(gate, qubit_indices)
     except ValueError:
         pass
 
-    return _export_custom_gate(gate, qubit_indices, custom_gate_names)
+    return _export_custom_gate(gate, qubit_indices, pyquil_gate_definitions)
 
 
-def _export_custom_gate(gate: _gates.Gate, qubit_indices, custom_gate_names):
-    if gate.name not in custom_gate_names:
+def _export_custom_gate(gate: _gates.Gate, qubit_indices, pyquil_gate_definitions):
+    if gate.name not in pyquil_gate_definitions:
         raise ValueError(
             f"Can't export {gate} as custom gate, custom gate definition is missing"
         )
+    constructor = pyquil_gate_definitions[gate.name].get_constructor()
     pyquil_params = list(map(_export_expression, gate.params))
-    return (gate.name, pyquil_params) + qubit_indices
+
+    if pyquil_params:
+        constructor = constructor(*pyquil_params)
+
+    return constructor(*qubit_indices)
 
 
 @_export_gate.register
@@ -251,7 +266,7 @@ def _pyquil_gate_by_name(name):
     return getattr(pyquil.gates, name)
 
 
-def _export_gate_via_name(gate: _gates.Gate, qubit_indices, custom_gate_names):
+def _export_gate_via_name(gate: _gates.Gate, qubit_indices):
     try:
         pyquil_fn = _pyquil_gate_by_name(gate.name)
     except AttributeError:

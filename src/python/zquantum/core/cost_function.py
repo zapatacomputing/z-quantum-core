@@ -430,7 +430,7 @@ def substitution_based_estimation_tasks_factory(
 
     return _tasks_factory
 
-  
+
 def dynamic_circuit_estimation_tasks_factory(
     target_operator: SymbolicOperator,
     ansatz: Ansatz,

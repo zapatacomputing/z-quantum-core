@@ -79,18 +79,6 @@ class TestGateConversion:
         np.testing.assert_allclose(zquantum_matrix, qiskit_matrix)
 
 
-def _is_scaled_identity(matrix: np.ndarray):
-    assert matrix.shape == (
-        matrix.shape[0],
-        matrix.shape[0],
-    ), "This test is meaningful only for square matrices"
-
-    target_matrix = np.diag(matrix).mean() * np.eye(
-        matrix.shape[0], dtype=np.complex128
-    )
-    return np.allclose(matrix, target_matrix)
-
-
 class TestU3GateConversion:
     @pytest.mark.parametrize(
         "theta, phi, lambda_",
@@ -108,7 +96,34 @@ class TestU3GateConversion:
         ).astype(np.complex128)
         qiskit_matrix = qiskit.extensions.U3Gate(theta, phi, lambda_).to_matrix()
 
-        assert _is_scaled_identity(zquantum_matrix @ np.linalg.inv(qiskit_matrix))
+        np.testing.assert_allclose(zquantum_matrix, qiskit_matrix, atol=1e-7)
+
+
+class TestCU3GateConversion:
+    @pytest.mark.parametrize(
+        "theta, phi, lambda_",
+        [
+            (0, 0, 0),
+            (0, np.pi / 5, 0),
+            (np.pi / 3, 0, 0),
+            (0, 0, np.pi / 7),
+            (42, -20, 30),
+        ],
+    )
+    def test_matrices_are_equal_up_to_phase_factor(self, theta, phi, lambda_):
+        zquantum_matrix = np.array(
+            _builtin_gates.U3(theta, phi, lambda_).controlled(1)(0, 1).lifted_matrix(2)
+        ).astype(np.complex128)
+        qiskit_matrix = (
+            qiskit.extensions.U3Gate(theta, phi, lambda_).control(1).to_matrix()
+        )
+
+        # Rearrange the qiskit matrix, such that it matches the endianness of z-quantum
+        qiskit_matrix_reversed_control = _fix_qubit_ordering(qiskit_matrix)
+
+        np.testing.assert_allclose(
+            zquantum_matrix, qiskit_matrix_reversed_control, atol=1e-7
+        )
 
 
 # --------- circuits ---------
@@ -226,6 +241,25 @@ EQUIVALENT_NON_PARAMETRIZED_CIRCUITS = [
             ],
         ),
     ),
+    (
+        _circuit.Circuit(
+            [_builtin_gates.U3(np.pi / 5, np.pi / 2, np.pi / 4).controlled(1)(1, 2)]
+        ),
+        _make_qiskit_circuit(
+            3,
+            [
+                (
+                    "append",
+                    (
+                        qiskit.extensions.U3Gate(
+                            np.pi / 5, np.pi / 2, np.pi / 4
+                        ).control(1),
+                        [1, 2],
+                    ),
+                )
+            ],
+        ),
+    ),
 ]
 
 
@@ -272,6 +306,29 @@ EQUIVALENT_PARAMETRIZED_CIRCUITS = [
                             QISKIT_THETA, QISKIT_GAMMA, QISKIT_LAMBDA
                         ),
                         [3],
+                    ),
+                )
+            ],
+        ),
+    ),
+    (
+        _circuit.Circuit(
+            [
+                _builtin_gates.U3(SYMPY_THETA, SYMPY_GAMMA, SYMPY_LAMBDA).controlled(1)(
+                    2, 3
+                )
+            ]
+        ),
+        _make_qiskit_circuit(
+            4,
+            [
+                (
+                    "append",
+                    (
+                        qiskit.extensions.U3Gate(
+                            QISKIT_THETA, QISKIT_GAMMA, QISKIT_LAMBDA
+                        ).control(1),
+                        [2, 3],
                     ),
                 )
             ],

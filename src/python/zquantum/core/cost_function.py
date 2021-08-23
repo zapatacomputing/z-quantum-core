@@ -31,11 +31,26 @@ from .measurement import (
 )
 from .utils import ValueEstimate, create_symbols_map
 
+import re
+
+
+def check_for_digit_in_string(text):
+    return int(text) if text.isdigit() else text
+
+
+def natural_keys(
+    symbol: sympy.Symbol,
+):  # copy pasted from https://stackoverflow.com/questions/5967500/how-to-correctly-sort-a-string-with-a-number-inside and adapted to Sympy symbols
+    """
+    alist.sort(key=natural_keys) sorts in human order
+    http://nedbatchelder.com/blog/200712/human_sorting.html
+    """
+    return [check_for_digit_in_string(c) for c in re.split(r"(\d+)", symbol.name)]
+
 
 def _get_sorted_set_of_circuit_symbols(
     estimation_tasks: List[EstimationTask],
 ) -> List[sympy.Symbol]:
-
     return sorted(
         list(
             set(
@@ -46,7 +61,7 @@ def _get_sorted_set_of_circuit_symbols(
                 ]
             )
         ),
-        key=str,
+        key=natural_keys,
     )
 
 

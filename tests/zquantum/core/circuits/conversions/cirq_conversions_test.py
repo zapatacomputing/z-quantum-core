@@ -258,6 +258,16 @@ class TestExportingToCirq:
             bound_converted, ref_bound
         ), f"Converted circuit:\n{bound_converted}\n isn't equal to\n{ref_bound}"
 
+    @pytest.mark.parametrize(
+        "zquantum_circuit, cirq_circuit", EQUIVALENT_PARAMETRIZED_CIRCUITS
+    )
+    def test_importing_supported_gates_keeps_free_symbols(
+        self, zquantum_circuit, cirq_circuit
+    ):
+        circuit = import_from_cirq(cirq_circuit)
+
+        assert circuit.free_symbols == zquantum_circuit.free_symbols
+
     def test_daggers_are_converted_to_inverses(self):
         # NOTE: We don't add this test case to EQUIVALENT_CIRCUITS, because
         # only Zquantum -> cirq conversion is supported.
@@ -298,6 +308,12 @@ class TestImportingFromCirq:
     def test_with_cirq_only_gates_yields_correct_unitary(self, cirq_circuit):
         circuit = import_from_cirq(cirq_circuit)
         assert np.allclose(circuit.to_unitary(), cirq.unitary(cirq_circuit))
+
+    @pytest.mark.parametrize("cirq_circuit", CIRQ_ONLY_CIRCUITS_WITH_FREE_SYMBOLS)
+    def test_with_cirq_only_gates_with_free_symbols_check(self, cirq_circuit):
+        circuit = import_from_cirq(cirq_circuit)
+
+        assert len(circuit.free_symbols) != 0
 
     @pytest.mark.parametrize("cirq_circuit", UNSUPPORTED_CIRQ_CIRCUITS)
     def test_with_unsupported_gates_raises_not_implemented_error(self, cirq_circuit):

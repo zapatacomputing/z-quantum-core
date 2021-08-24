@@ -355,7 +355,7 @@ def _convert_gate_operation_to_zquantum(operation) -> _gates.GateOperation:
             matrix=sympy.Matrix(imported_gate.matrix),
             params_ordering=(),
         )
-        return custom_gate()(*qubit_indices)
+        return custom_gate(*custom_gate.matrix.free_symbols)(*qubit_indices)
     else:
         return imported_gate(*qubit_indices)
 

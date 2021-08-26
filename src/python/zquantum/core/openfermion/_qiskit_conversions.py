@@ -16,21 +16,21 @@
 ############################################################################
 
 """
-Translates OpenFermion Objects to qiskit WeightedPauliOperator objects
+Translates OpenFermion Objects to qiskit SummedOp objects
 """
 from openfermion import QubitOperator, count_qubits
-from qiskit.aqua.operators import WeightedPauliOperator
+from qiskit.opflow import PauliOp, SummedOp
 from qiskit.quantum_info import Pauli
 
 
-def qubitop_to_qiskitpauli(qubit_operator: QubitOperator) -> WeightedPauliOperator:
-    """Convert a OpenFermion QubitOperator to a WeightedPauliOperator.
+def qubitop_to_qiskitpauli(qubit_operator: QubitOperator) -> SummedOp:
+    """Convert a OpenFermion QubitOperator to a SummedOp.
 
     Args:
         qubit_operator: OpenFermion QubitOperator to convert
 
     Returns:
-        WeightedPauliOperator representing the qubit operator
+        SummedOp representing the qubit operator
     """
     if not isinstance(qubit_operator, QubitOperator):
         raise TypeError("qubit_operator must be an OpenFermion QubitOperator object")
@@ -42,27 +42,29 @@ def qubitop_to_qiskitpauli(qubit_operator: QubitOperator) -> WeightedPauliOperat
             string_term = (
                 string_term[:term_qubit] + term_pauli + string_term[term_qubit + 1 :]
             )
-        terms.append([coefficient, Pauli.from_label(string_term)])
+        terms.append(PauliOp(Pauli.from_label(string_term), coeff=coefficient))
 
-    return WeightedPauliOperator(terms)
+    return SummedOp(terms)
 
 
-def qiskitpauli_to_qubitop(qiskit_pauli: WeightedPauliOperator) -> QubitOperator:
-    """Convert a qiskit's WeightedPauliOperator to an OpenFermion QubitOperator.
+def qiskitpauli_to_qubitop(qiskit_pauli: SummedOp) -> QubitOperator:
+    """Convert a qiskit's SummedOp to an OpenFermion QubitOperator.
 
     Args:
         qiskit_pauli: operator to convert
 
     Returns:
-        QubitOperator representing the WeightedPauliOperator
+        QubitOperator representing the SummedOp
     """
 
-    if not isinstance(qiskit_pauli, WeightedPauliOperator):
-        raise TypeError("qiskit_pauli must be a qiskit WeightedPauliOperator")
+    if not isinstance(qiskit_pauli, SummedOp):
+        raise TypeError("qiskit_pauli must be a qiskit SummedOp")
 
     transformed_term = QubitOperator()
 
-    for weight, qiskit_term in qiskit_pauli.paulis:
+    for pauli_op in qiskit_pauli._oplist:
+        qiskit_term, weight = pauli_op.primitive, pauli_op.coeff
+
         openfermion_term = QubitOperator()
         for (term_qubit, term_pauli) in enumerate(str(qiskit_term)):
             if term_pauli != "I":

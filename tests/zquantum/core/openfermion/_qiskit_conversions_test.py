@@ -25,7 +25,7 @@ from openfermion.ops import (
 )
 from openfermion.transforms import jordan_wigner
 from openfermion.utils import hermitian_conjugated
-from qiskit.aqua.operators import WeightedPauliOperator
+from qiskit.opflow import PauliOp, SummedOp
 from qiskit.quantum_info import Pauli
 from zquantum.core.openfermion._qiskit_conversions import (
     qiskitpauli_to_qubitop,
@@ -62,9 +62,9 @@ def test_qubitop_to_qiskitpauli():
 
     qiskit_op = qubitop_to_qiskitpauli(pauli_term)
 
-    ground_truth = WeightedPauliOperator(
-        [[0.5, Pauli.from_label("XZX")], [0.5, Pauli.from_label("YZY")]]
-    )
+    ground_truth = (
+        PauliOp(Pauli.from_label("XZX"), 0.5) + PauliOp(Pauli.from_label("YZY"), 0.5)
+    ).to_pauli_op()
 
     assert ground_truth == qiskit_op
 
@@ -72,17 +72,13 @@ def test_qubitop_to_qiskitpauli():
 def test_qubitop_to_qiskitpauli_zero():
     zero_term = QubitOperator()
     qiskit_term = qubitop_to_qiskitpauli(zero_term)
-    ground_truth = WeightedPauliOperator([])
+    ground_truth = SummedOp([])
 
     assert ground_truth == qiskit_term
 
 
 def test_qiskitpauli_to_qubitop():
-    qiskit_term = WeightedPauliOperator(
-        [
-            [1, Pauli.from_label("XIIIIY")],
-        ]
-    )
+    qiskit_term = SummedOp([PauliOp(Pauli.from_label("XIIIIY"), coeff=1)])
 
     op_fermion_term = QubitOperator(((0, "X"), (5, "Y")))
     test_op_fermion_term = qiskitpauli_to_qubitop(qiskit_term)

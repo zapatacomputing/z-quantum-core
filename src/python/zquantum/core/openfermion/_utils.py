@@ -1,8 +1,7 @@
 import itertools
 import random
-from typing import Iterable, List, Optional, Union
+from typing import Iterable, List, Optional
 
-import cirq
 import numpy as np
 from openfermion import (
     FermionOperator,
@@ -23,7 +22,7 @@ from openfermion.linalg import jw_get_ground_state_at_particle_number
 from openfermion.transforms import freeze_orbitals, get_fermion_operator
 
 from ..circuits import Circuit, X, Y, Z
-from ..measurement import ExpectationValues, expectation_values_to_real
+from ..measurement import ExpectationValues
 from ..utils import ValueEstimate, bin2dec, dec2bin
 
 
@@ -521,40 +520,6 @@ def get_polynomial_tensor(fermion_operator, n_qubits=None):
             tensor_dict[key][indices] = coefficient
 
     return PolynomialTensor(tensor_dict)
-
-
-def qubitop_to_paulisum(
-    qubit_operator: QubitOperator,
-    qubits: Union[List[cirq.GridQubit], List[cirq.LineQubit]] = None,
-) -> cirq.PauliSum:
-    """Convert and openfermion QubitOperator to a cirq PauliSum
-
-    Args:
-        qubit_operator (openfermion.QubitOperator): The openfermion operator to convert
-        qubits()
-
-    Returns:
-        cirq.PauliSum
-    """
-    operator_map = {"X": cirq.X, "Y": cirq.Y, "Z": cirq.Z}
-
-    if qubits is None:
-        qubits = [cirq.GridQubit(i, 0) for i in range(count_qubits(qubit_operator))]
-
-    converted_sum = cirq.PauliSum()
-    for term, coefficient in qubit_operator.terms.items():
-
-        # Identity term
-        if len(term) == 0:
-            converted_sum += coefficient
-            continue
-
-        cirq_term: cirq.PauliString = cirq.PauliString()
-        for qubit_index, operator in term:
-            cirq_term *= operator_map[operator](qubits[qubit_index])
-        converted_sum += cirq_term * coefficient
-
-    return converted_sum
 
 
 def create_circuits_from_qubit_operator(qubit_operator: QubitOperator) -> List[Circuit]:

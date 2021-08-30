@@ -1,7 +1,6 @@
-import cirq
 import numpy as np
 import pytest
-from zquantum.core.circuits import RY, Circuit, X, create_layer_of_gates, export_to_cirq
+from zquantum.core.circuits import RY, Circuit, X, create_layer_of_gates
 from zquantum.core.utils import compare_unitary
 
 
@@ -28,15 +27,15 @@ def test_create_layer_of_gates_parametrized():
     for n_qubits in n_qubits_list:
         # Given
         params = [x for x in range(n_qubits)]
-        target_circuit = cirq.Circuit()
-        qubits = [cirq.LineQubit(x) for x in range(n_qubits)]
-        for i in range(0, n_qubits):
-            target_circuit.append(cirq.ry(params[i]).on(qubits[i]))
-        u_cirq = target_circuit._unitary_()
+        target_circuit = Circuit()
+        for i in range(n_qubits):
+            target_circuit += RY(params[i])(i)
+
+        u_cirq = target_circuit.to_unitary()
 
         # When
         circuit = create_layer_of_gates(n_qubits, gate, params)
-        unitary = export_to_cirq(circuit)._unitary_()
+        unitary = circuit.to_unitary()
 
         # Then
         assert compare_unitary(unitary, u_cirq, tol=1e-10)

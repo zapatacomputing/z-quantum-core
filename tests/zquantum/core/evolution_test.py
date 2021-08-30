@@ -98,11 +98,11 @@ class TestTimeEvolutionOfPauliSum:
     def test_evolution_with_numerical_time_produces_correct_result(
         self, hamiltonian, time, order
     ):
-        expected_cirq_circuit = _zquantum_exponentiate_hamiltonian(
+        expected_zquantum_circuit = _zquantum_exponentiate_hamiltonian(
             hamiltonian, time, order
         )
 
-        reference_unitary = expected_cirq_circuit.to_unitary()
+        reference_unitary = expected_zquantum_circuit.to_unitary()
         unitary = time_evolution(hamiltonian, time, trotter_order=order).to_unitary()
 
         assert compare_unitary(unitary, reference_unitary, tol=1e-10)
@@ -115,11 +115,11 @@ class TestTimeEvolutionOfPauliSum:
         time_symbol = sympy.Symbol("t")
         symbols_map = {time_symbol: time_value}
 
-        expected_cirq_circuit = _zquantum_exponentiate_hamiltonian(
+        expected_zquantum_circuit = _zquantum_exponentiate_hamiltonian(
             hamiltonian, time_value, order
         )
 
-        reference_unitary = expected_cirq_circuit.to_unitary()
+        reference_unitary = expected_zquantum_circuit.to_unitary()
 
         unitary = (
             time_evolution(hamiltonian, time_symbol, trotter_order=order)

@@ -50,7 +50,6 @@ setuptools.setup(
         "scipy>=1.4.1",
         "sympy>=1.5",
         "openfermion>=1.0.0",
-        "openfermioncirq==0.4.0",
         "lea>=3.2.0",
         "pyquil~=2.25",
         "cirq>=0.9.1,<=0.10",

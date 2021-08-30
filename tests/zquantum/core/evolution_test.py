@@ -101,22 +101,21 @@ class TestTimeEvolutionOfConstantTerm:
         assert evolution_circuit == circuits.Circuit()
 
 
-class TestTimeEvolutionOfPauliSum:
-    @pytest.fixture(
-        params=[
-            PauliSum(
-                [
-                    PauliTerm("X", 0) * PauliTerm("X", 1),
-                    PauliTerm("Y", 0, 0.5) * PauliTerm("Y", 1),
-                    PauliTerm("Z", 0, 0.3) * PauliTerm("Z", 1),
-                ]
-            ),
-            QubitOperator("[X0 X1] + 0.5[Y0 Y1] + 0.3[Z0 Z1]"),
+@pytest.fixture(params=["PauliSum", "QubitOperator"])
+def hamiltonian(request):
+    if request.param == "PauliSum":
+        terms = [
+            PauliTerm("X", 0) * PauliTerm("X", 1),
+            PauliTerm("Y", 0, 0.5) * PauliTerm("Y", 1),
+            PauliTerm("Z", 0, 0.3) * PauliTerm("Z", 1),
         ]
-    )
-    def hamiltonian(self, request):
-        return request.param
+        assert all([isinstance(term, PauliTerm) for term in terms])
+        return PauliSum(terms)
+    elif request.param == "QubitOperator":
+        return QubitOperator("[X0 X1] + 0.5[Y0 Y1] + 0.3[Z0 Z1]")
 
+
+class TestTimeEvolutionOfPauliSum:
     @pytest.mark.parametrize("time", [0.1, 0.4, 1.0])
     @pytest.mark.parametrize("order", [1, 2, 3])
     def test_evolution_with_numerical_time_produces_correct_result(
@@ -221,21 +220,6 @@ class TestGeneratingCircuitSequence:
 
 
 class TestTimeEvolutionDerivatives:
-    @pytest.fixture(
-        params=[
-            PauliSum(
-                [
-                    PauliTerm("X", 0) * PauliTerm("X", 1),
-                    PauliTerm("Y", 0, 0.5) * PauliTerm("Y", 1),
-                    PauliTerm("Z", 0, 0.3) * PauliTerm("Z", 1),
-                ]
-            ),
-            QubitOperator("[X0 X1] + 0.5[Y0 Y1] + 0.3[Z0 Z1]"),
-        ]
-    )
-    def hamiltonian(self, request):
-        return request.param
-
     @pytest.mark.parametrize("time", [0.4, sympy.Symbol("t")])
     def test_gives_correct_number_of_derivatives_and_factors(self, time, hamiltonian):
 

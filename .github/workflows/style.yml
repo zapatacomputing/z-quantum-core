@@ -1,11 +1,11 @@
 name: style
 
-# Controls when the action will run. 
+# Controls when the action will run.
 on:
   push:
-    branches: [ main, master, dev ]
+    branches: [main, master, dev]
   pull_request:
-    branches: [ main, master, dev ]
+    branches: [main, master, dev]
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -23,7 +23,7 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
-      
+
       - name: Install dependencies
         run: |
           python3 -m pip install --upgrade pip
@@ -32,7 +32,7 @@ jobs:
       - name: Python Code Quality and Lint
         # You may pin to the exact commit or the version.
         # uses: ricardochaves/python-lint@32032eca67291cd71f88d79e61bc4b904ee03265
-        uses: ricardochaves/python-lint@v1.3.0
+        uses: ricardochaves/python-lint@v1.4.0
         with:
           # A list of all paths to test
           python-root-list: "src/python/zquantum/core steps tests/zquantum/core tests/acceptance_tests"
@@ -40,17 +40,15 @@ jobs:
           use-pylint: false
           use-pycodestyle: false
           use-flake8: true
-          # We're not ready yet to validate mypy, black & isort on every PR. In the 
-          # mean time, please rely on local pre-commit hook checks.
-          use-mypy: false
-          use-black: false
+          use-mypy: true
+          use-black: true
           use-isort: true
 
           # Extra options: pylint $(extra-pylint-options) $(python-root-list)
-          # extra-pylint-options: # optional, default is 
+          # extra-pylint-options: # optional, default is
 
           # Extra options: pycodestyle $(extra-pycodestyle-options) $(python-root-list)
-          # extra-pycodestyle-options: # optional, default is 
+          # extra-pycodestyle-options: # optional, default is
 
           # Extra options: flake8 $(extra-flake8-options) $(python-root-list)
           # Black's output doesn't pass all flake8 checks. We need to disable some of them.
@@ -62,5 +60,5 @@ jobs:
           # Extra options: mypy $(extra-mypy-options) $(python-root-list)
           extra-mypy-options: --ignore-missing-imports --namespace-packages
 
-          # Extra options: isort -rc $(extra-isort-options) $(python-root-list) -c --diff 
+          # Extra options: isort -rc $(extra-isort-options) $(python-root-list) -c --diff
           extra-isort-options: --check-only --profile black

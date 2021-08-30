@@ -1,4 +1,4 @@
-from typing import Any, Callable, List, Optional, Union
+from typing import Any, Callable, Iterable, List, Optional, Union
 
 import numpy as np
 import sympy
@@ -13,7 +13,11 @@ from .gradients import finite_differences_gradient
 from .interfaces.ansatz import Ansatz
 from .interfaces.ansatz_utils import combine_ansatz_params
 from .interfaces.backend import QuantumBackend
-from .interfaces.cost_function import ParameterPreprocessor
+from .interfaces.cost_function import (
+    CostFunction,
+    EstimationTasksFactory,
+    ParameterPreprocessor,
+)
 from .interfaces.estimation import (
     EstimateExpectationValues,
     EstimationPreprocessor,
@@ -314,3 +318,166 @@ def add_normal_noise(
         return parameters + noise
 
     return _preprocess
+
+
+def create_cost_function(
+    backend: QuantumBackend,
+    estimation_tasks_factory: EstimationTasksFactory,
+    estimation_method: EstimateExpectationValues = _by_averaging,
+    parameter_preprocessors: Iterable[ParameterPreprocessor] = None,
+) -> CostFunction:
+    """This function can be used to generate callable cost functions for parametric
+    circuits. This function is the main entry to use other functions in this module.
+
+    Args:
+        backend: quantum backend used for evaluation.
+        estimation_tasks_factory: function that produces estimation tasks from
+            parameters. See example use case below for clarification.
+        estimation_method: the estimator used to compute expectation value of target
+            operator.
+        parameter_preprocessors: a list of callable functions that are applied to
+            parameters prior to estimation task evaluation. These functions have to
+            adhere to the ParameterPreprocessor protocol.
+
+    Returns:
+        A callable CostFunction object.
+
+    Example use case:
+        target_operator = ...
+        ansatz = ...
+
+        estimation_factory = substitution_based_estimation_tasks_factory(
+            target_operator, ansatz
+        )
+        noise_preprocessor = add_normal_noise(1e-5, seed=1234)
+
+        cost_function = create_cost_function(
+            backend,
+            estimation_factory,
+            parameter_preprocessors=[noise_preprocessor]
+        )
+
+        optimizer = ...
+        initial_params = ...
+
+        opt_results = optimizer.minimize(cost_function, initial_params)
+
+    """
+
+    def _cost_function(parameters: np.ndarray) -> Union[float, ValueEstimate]:
+        for preprocessor in (
+            [] if parameter_preprocessors is None else parameter_preprocessors
+        ):
+            parameters = preprocessor(parameters)
+
+        estimation_tasks = estimation_tasks_factory(parameters)
+        expectation_values_list = estimation_method(backend, estimation_tasks)
+
+        combined_expectation_values = expectation_values_to_real(
+            concatenate_expectation_values(expectation_values_list)
+        )
+
+        return sum_expectation_values(combined_expectation_values)
+
+    return _cost_function
+
+
+def substitution_based_estimation_tasks_factory(
+    target_operator: SymbolicOperator,
+    ansatz: Ansatz,
+    estimation_preprocessors: List[EstimationPreprocessor] = None,
+) -> EstimationTasksFactory:
+    """Creates a EstimationTasksFactory object that can be used to create
+    estimation tasks dynamically with parameters provided on the fly. These
+    tasks will evaluate the parametric circuit of an ansatz, using a symbol-
+    parameter map. Wow, a factory for factories! This is so meta.
+
+    To be used with `create_cost_function`. See `create_cost_function` docstring
+    for an example use case.
+
+    Args:
+        target_operator: operator to be evaluated
+        ansatz: ansatz used to evaluate cost function
+        estimation_preprocessors: A list of callable functions used to create the
+            estimation tasks. Each function must adhere to the EstimationPreprocessor
+            protocol.
+
+    Returns:
+        An EstimationTasksFactory object.
+
+    """
+    if estimation_preprocessors is None:
+        estimation_preprocessors = []
+
+    estimation_tasks = [
+        EstimationTask(
+            operator=target_operator,
+            circuit=ansatz.parametrized_circuit,
+            number_of_shots=None,
+        )
+    ]
+
+    for preprocessor in estimation_preprocessors:
+        estimation_tasks = preprocessor(estimation_tasks)
+
+    circuit_symbols = _get_sorted_set_of_circuit_symbols(estimation_tasks)
+
+    def _tasks_factory(parameters: np.ndarray) -> List[EstimationTask]:
+        symbols_map = create_symbols_map(circuit_symbols, parameters)
+        return evaluate_estimation_circuits(
+            estimation_tasks, [symbols_map for _ in estimation_tasks]
+        )
+
+    return _tasks_factory
+
+
+def dynamic_circuit_estimation_tasks_factory(
+    target_operator: SymbolicOperator,
+    ansatz: Ansatz,
+    estimation_preprocessors: List[EstimationPreprocessor] = None,
+) -> EstimationTasksFactory:
+    """Creates a EstimationTasksFactory object that can be used to create
+    estimation tasks dynamically with parameters provided on the fly. These
+    tasks will evaluate the parametric circuit of an ansatz, without using
+    a symbol-parameter map. Wow, a factory for factories!
+
+    To be used with `create_cost_function`. See `create_cost_function` docstring
+    for an example use case.
+
+    Args:
+        target_operator: operator to be evaluated
+        ansatz: ansatz used to evaluate cost function
+        estimation_preprocessors: A list of callable functions used to create the
+            estimation tasks. Each function must adhere to the EstimationPreprocessor
+            protocol.
+
+    Returns:
+        An EstimationTasksFactory object.
+    """
+
+    def _tasks_factory(parameters: np.ndarray) -> List[EstimationTask]:
+
+        # TODO: In some ansatzes, `ansatz._generate_circuit(parameters)` does not
+        # produce an executable circuit, but rather, they ignore the parameters and
+        # returns a parametrized circuit with sympy symbols.
+        # (Ex. see ansatzes in z-quantum-qaoa)
+        #
+        # Combined with how this is a private method, we will probably have to somewhat
+        # refactor the ansatz class.
+
+        circuit = ansatz._generate_circuit(parameters)
+
+        estimation_tasks = [
+            EstimationTask(
+                operator=target_operator, circuit=circuit, number_of_shots=None
+            )
+        ]
+
+        for preprocessor in (
+            [] if estimation_preprocessors is None else estimation_preprocessors
+        ):
+            estimation_tasks = preprocessor(estimation_tasks)
+
+        return estimation_tasks
+
+    return _tasks_factory

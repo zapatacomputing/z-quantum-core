@@ -3,7 +3,7 @@ import operator
 import warnings
 from functools import reduce, singledispatch
 from itertools import chain
-from typing import List, Tuple, Union
+from typing import Iterable, List, Tuple, Union
 
 import numpy as np
 import pyquil.paulis
@@ -33,6 +33,7 @@ def time_evolution(
     """
     if method != "Trotter":
         raise ValueError(f"Currently the method {method} is not supported.")
+    terms: Iterable
     if isinstance(hamiltonian, QubitOperator):
         terms = list(hamiltonian.get_operators())
     elif isinstance(hamiltonian, pyquil.paulis.PauliSum):
@@ -103,6 +104,7 @@ def _time_evolution_for_term_pyquil(
         )
     else:
         exponent = term * time
+        assert isinstance(exponent, pyquil.paulis.PauliTerm)
         new_circuit = circuits.import_from_pyquil(pyquil.paulis.exponentiate(exponent))
 
     return new_circuit
@@ -192,6 +194,7 @@ def time_evolution_derivatives(
     single_trotter_derivatives = []
     factors = [1.0, -1.0]
     output_factors = []
+    terms: Iterable
     if isinstance(hamiltonian, QubitOperator):
         terms = list(hamiltonian.get_operators())
     elif isinstance(hamiltonian, pyquil.paulis.PauliSum):

@@ -87,6 +87,9 @@ class Ansatz(ABC, EnforceOverrides):
         Will return parametrized circuits if no parameters are passed and the ansatz
         supports parametrized circuits.
 
+        Ansatzes that implement this method must not ignore parameters if parameters
+        are provided.
+
         Args:
             params: circuit params
         """

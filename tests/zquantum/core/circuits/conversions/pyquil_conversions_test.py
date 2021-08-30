@@ -49,36 +49,38 @@ CUSTOM_PARAMETRIC_DEF = _gates.CustomGateDefinition(
     (SYMPY_GAMMA,),
 )
 
-PYQUIL_XX = pyquil.quil.DefGate(
-    name="XX",
-    matrix=[
-        [
-            pyquil.quilatom.quil_cos(0.5 * QUIL_THETA_0),
-            0,
-            0,
-            -1j * pyquil.quilatom.quil_sin(0.5 * QUIL_THETA_0),
+
+def pyquil_xx_definition():
+    return pyquil.quil.DefGate(
+        name="XX",
+        matrix=[
+            [
+                pyquil.quilatom.quil_cos(0.5 * QUIL_THETA_0),
+                0,
+                0,
+                -1j * pyquil.quilatom.quil_sin(0.5 * QUIL_THETA_0),
+            ],
+            [
+                0,
+                pyquil.quilatom.quil_cos(0.5 * QUIL_THETA_0),
+                -1j * pyquil.quilatom.quil_sin(0.5 * QUIL_THETA_0),
+                0,
+            ],
+            [
+                0,
+                -1j * pyquil.quilatom.quil_sin(0.5 * QUIL_THETA_0),
+                pyquil.quilatom.quil_cos(0.5 * QUIL_THETA_0),
+                0,
+            ],
+            [
+                -1j * pyquil.quilatom.quil_sin(0.5 * QUIL_THETA_0),
+                0,
+                0,
+                pyquil.quilatom.quil_cos(0.5 * QUIL_THETA_0),
+            ],
         ],
-        [
-            0,
-            pyquil.quilatom.quil_cos(0.5 * QUIL_THETA_0),
-            -1j * pyquil.quilatom.quil_sin(0.5 * QUIL_THETA_0),
-            0,
-        ],
-        [
-            0,
-            -1j * pyquil.quilatom.quil_sin(0.5 * QUIL_THETA_0),
-            pyquil.quilatom.quil_cos(0.5 * QUIL_THETA_0),
-            0,
-        ],
-        [
-            -1j * pyquil.quilatom.quil_sin(0.5 * QUIL_THETA_0),
-            0,
-            0,
-            pyquil.quilatom.quil_cos(0.5 * QUIL_THETA_0),
-        ],
-    ],
-    parameters=[QUIL_THETA_0],
-)
+        parameters=[QUIL_THETA_0],
+    )
 
 
 def pyquil_rh_definition():
@@ -129,6 +131,7 @@ def pyquil_u3_definition():
     )
 
 
+PYQUIL_XX = pyquil_xx_definition()
 PYQUIL_RH = pyquil_rh_definition()
 PYQUIL_U3 = pyquil_u3_definition()
 

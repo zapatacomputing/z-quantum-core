@@ -1,9 +1,7 @@
-import math
 import random
 
 import numpy as np
 from openfermion.ops import IsingOperator, QubitOperator
-from pyquil import Program
 from pyquil.wavefunction import Wavefunction
 
 

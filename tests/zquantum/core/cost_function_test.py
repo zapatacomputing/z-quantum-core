@@ -12,6 +12,7 @@ from zquantum.core.cost_function import (
     dynamic_circuit_estimation_tasks_factory,
     fix_parameters,
     get_ground_state_cost_function,
+    ground_state_estimation_tasks_factory,
     substitution_based_estimation_tasks_factory,
     sum_expectation_values,
 )
@@ -33,6 +34,10 @@ ESTIMATION_PREPROCESSORS = [partial(allocate_shots_uniformly, number_of_shots=1)
 
 
 class TestGroundStateCostFunction:
+    @pytest.fixture(params=["old", "new"])
+    def factory(self, request):
+        return request.param
+
     @pytest.fixture(
         params=[
             {
@@ -71,13 +76,40 @@ class TestGroundStateCostFunction:
             },
         ]
     )
-    def ground_state_cost_function(self, request):
-        return get_ground_state_cost_function(
-            **request.param,
-            backend=BACKEND,
-            estimation_method=ESTIMATION_METHOD,
-            estimation_preprocessors=ESTIMATION_PREPROCESSORS
-        )
+    def ground_state_cost_function(self, request, factory):
+        if factory == "old":
+            return get_ground_state_cost_function(
+                **request.param,
+                backend=BACKEND,
+                estimation_method=ESTIMATION_METHOD,
+                estimation_preprocessors=ESTIMATION_PREPROCESSORS
+            )
+        elif factory == "new":
+            estimation_tasks_factory = ground_state_estimation_tasks_factory(
+                request.param["target_operator"],
+                request.param["parametrized_circuit"],
+                ESTIMATION_PREPROCESSORS,
+            )
+
+            parameter_preprocessors = []
+            if "fixed_parameters" in request.param:
+                fix_params_preprocessor = fix_parameters(
+                    request.param["fixed_parameters"]
+                )
+                parameter_preprocessors.append(fix_params_preprocessor)
+            if "parameter_precision" in request.param:
+                noise_preprocessor = add_normal_noise(
+                    request.param["parameter_precision"],
+                    request.param["parameter_precision_seed"],
+                )
+                parameter_preprocessors.append(noise_preprocessor)
+
+            return create_cost_function(
+                BACKEND,
+                estimation_tasks_factory,
+                ESTIMATION_METHOD,
+                parameter_preprocessors,
+            )
 
     @pytest.mark.parametrize("param", [0.0, 0.42, 1.0, np.pi])
     def test_returns_value_between_plus_and_minus_one(

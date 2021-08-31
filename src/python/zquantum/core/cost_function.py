@@ -191,7 +191,7 @@ def sum_expectation_values(expectation_values: ExpectationValues) -> ValueEstima
     return ValueEstimate(value, precision)
 
 
-class AnsatzBasedCostFunction(CostFunction):
+class AnsatzBasedCostFunction:
     """Cost function used for evaluating given operator using given ansatz.
 
     Args:
@@ -333,6 +333,7 @@ def create_cost_function(
     estimation_tasks_factory: EstimationTasksFactory,
     estimation_method: EstimateExpectationValues = _by_averaging,
     parameter_preprocessors: Iterable[ParameterPreprocessor] = None,
+    gradient_function: Callable = finite_differences_gradient,
 ) -> CostFunction:
     """This function can be used to generate callable cost functions for parametric
     circuits. This function is the main entry to use other functions in this module.
@@ -346,6 +347,9 @@ def create_cost_function(
         parameter_preprocessors: a list of callable functions that are applied to
             parameters prior to estimation task evaluation. These functions have to
             adhere to the ParameterPreprocessor protocol.
+        gradient_function: a function which returns a function used to compute the
+            gradient of the cost function (see
+            zquantum.core.gradients.finite_differences_gradient for reference)
 
     Returns:
         A callable CostFunction object.
@@ -387,7 +391,7 @@ def create_cost_function(
 
         return sum_expectation_values(combined_expectation_values)
 
-    return _cost_function
+    return function_with_gradient(_cost_function, gradient_function(_cost_function))
 
 
 def expectation_value_estimation_tasks_factory(

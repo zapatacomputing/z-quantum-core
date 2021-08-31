@@ -21,6 +21,7 @@ from zquantum.core.estimation import (
     calculate_exact_expectation_values,
     estimate_expectation_values_by_averaging,
 )
+from zquantum.core.gradients import finite_differences_gradient
 from zquantum.core.interfaces.mock_objects import MockAnsatz
 from zquantum.core.measurement import ExpectationValues
 from zquantum.core.symbolic_simulator import SymbolicSimulator
@@ -82,7 +83,7 @@ class TestGroundStateCostFunction:
                 **request.param,
                 backend=BACKEND,
                 estimation_method=ESTIMATION_METHOD,
-                estimation_preprocessors=ESTIMATION_PREPROCESSORS
+                estimation_preprocessors=ESTIMATION_PREPROCESSORS,
             )
         elif factory == "new":
             estimation_tasks_factory = expectation_value_estimation_tasks_factory(
@@ -246,13 +247,16 @@ class TestAnsatzBasedCostFunction:
 
     @pytest.fixture(
         params=[
-            None,
-            [
-                add_normal_noise(
-                    parameter_precision=1e-4,
-                    parameter_precision_seed=RNGSEED,
-                )
-            ],
+            {},
+            {
+                "parameter_preprocessors": [
+                    add_normal_noise(
+                        parameter_precision=1e-4,
+                        parameter_precision_seed=RNGSEED,
+                    )
+                ]
+            },
+            {"gradient_function": finite_differences_gradient},
         ]
     )
     def ansatz_based_cost_function(self, request):
@@ -264,7 +268,7 @@ class TestAnsatzBasedCostFunction:
             BACKEND,
             estimation_factory,
             ESTIMATION_METHOD,
-            parameter_preprocessors=request.param,
+            **request.param,
         )
 
     @pytest.mark.parametrize("param", [0.0, 0.42, 1.0, np.pi])

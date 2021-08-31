@@ -96,7 +96,7 @@ def get_ground_state_cost_function(
     """
     DeprecationWarning(
         """get_ground_state_cost_function is deprecated. Use create_cost_function with
-        ground_state_estimation_tasks_factory instead.
+        expectation_value_estimation_tasks_factory instead.
         """
     )
     estimation_tasks = [

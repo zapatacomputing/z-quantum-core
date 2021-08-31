@@ -10,9 +10,9 @@ from zquantum.core.cost_function import (
     add_normal_noise,
     create_cost_function,
     dynamic_circuit_estimation_tasks_factory,
+    expectation_value_estimation_tasks_factory,
     fix_parameters,
     get_ground_state_cost_function,
-    ground_state_estimation_tasks_factory,
     substitution_based_estimation_tasks_factory,
     sum_expectation_values,
 )
@@ -85,7 +85,7 @@ class TestGroundStateCostFunction:
                 estimation_preprocessors=ESTIMATION_PREPROCESSORS
             )
         elif factory == "new":
-            estimation_tasks_factory = ground_state_estimation_tasks_factory(
+            estimation_tasks_factory = expectation_value_estimation_tasks_factory(
                 request.param["target_operator"],
                 request.param["parametrized_circuit"],
                 ESTIMATION_PREPROCESSORS,

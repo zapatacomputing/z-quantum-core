@@ -390,7 +390,7 @@ def create_cost_function(
     return _cost_function
 
 
-def ground_state_estimation_tasks_factory(
+def expectation_value_estimation_tasks_factory(
     target_operator: SymbolicOperator,
     parametrized_circuit: Circuit,
     estimation_preprocessors: List[EstimationPreprocessor] = None,
@@ -463,29 +463,9 @@ def substitution_based_estimation_tasks_factory(
         An EstimationTasksFactory object.
 
     """
-    if estimation_preprocessors is None:
-        estimation_preprocessors = []
-
-    estimation_tasks = [
-        EstimationTask(
-            operator=target_operator,
-            circuit=ansatz.parametrized_circuit,
-            number_of_shots=None,
-        )
-    ]
-
-    for preprocessor in estimation_preprocessors:
-        estimation_tasks = preprocessor(estimation_tasks)
-
-    circuit_symbols = _get_sorted_set_of_circuit_symbols(estimation_tasks)
-
-    def _tasks_factory(parameters: np.ndarray) -> List[EstimationTask]:
-        symbols_map = create_symbols_map(circuit_symbols, parameters)
-        return evaluate_estimation_circuits(
-            estimation_tasks, [symbols_map for _ in estimation_tasks]
-        )
-
-    return _tasks_factory
+    return expectation_value_estimation_tasks_factory(
+        target_operator, ansatz.parametrized_circuit, estimation_preprocessors
+    )
 
 
 def dynamic_circuit_estimation_tasks_factory(

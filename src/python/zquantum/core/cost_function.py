@@ -94,6 +94,11 @@ def get_ground_state_cost_function(
     Returns:
         Callable
     """
+    DeprecationWarning(
+        """get_ground_state_cost_function is deprecated. Use create_cost_function with
+        ground_state_estimation_tasks_factory instead.
+        """
+    )
     estimation_tasks = [
         EstimationTask(
             operator=target_operator,
@@ -186,7 +191,7 @@ def sum_expectation_values(expectation_values: ExpectationValues) -> ValueEstima
     return ValueEstimate(value, precision)
 
 
-class AnsatzBasedCostFunction:
+class AnsatzBasedCostFunction(CostFunction):
     """Cost function used for evaluating given operator using given ansatz.
 
     Args:
@@ -225,6 +230,9 @@ class AnsatzBasedCostFunction:
         parameter_precision: Optional[float] = None,
         parameter_precision_seed: Optional[int] = None,
     ):
+        DeprecationWarning(
+            "AnsatzBasedCostFunction is deprecated. Use create_cost_function instead."
+        )
         self.backend = backend
         self.fixed_parameters = fixed_parameters
         self.parameter_precision = parameter_precision
@@ -380,6 +388,55 @@ def create_cost_function(
         return sum_expectation_values(combined_expectation_values)
 
     return _cost_function
+
+
+def ground_state_estimation_tasks_factory(
+    target_operator: SymbolicOperator,
+    parametrized_circuit: Circuit,
+    estimation_preprocessors: List[EstimationPreprocessor] = None,
+) -> EstimationTasksFactory:
+    """Creates a EstimationTasksFactory object that can be used to create
+    estimation tasks that return the estimated expectation value of the input
+    target operator with respect to the state prepared by the parameterized
+    quantum circuit when evaluated to the input parameters.
+
+    To be used with `create_cost_function` to create ground state cost functions.
+    See `create_cost_function` docstring for an example use case.
+
+    Args:
+        target_operator: operator to be evaluated
+        parametrized_circuit: parameterized circuit to prepare quantum states
+        estimation_preprocessors: A list of callable functions used to create the
+            estimation tasks. Each function must adhere to the EstimationPreprocessor
+            protocol.
+
+    Returns:
+        An EstimationTasksFactory object.
+
+    """
+    if estimation_preprocessors is None:
+        estimation_preprocessors = []
+
+    estimation_tasks = [
+        EstimationTask(
+            operator=target_operator,
+            circuit=parametrized_circuit,
+            number_of_shots=None,
+        )
+    ]
+
+    for preprocessor in estimation_preprocessors:
+        estimation_tasks = preprocessor(estimation_tasks)
+
+    circuit_symbols = _get_sorted_set_of_circuit_symbols(estimation_tasks)
+
+    def _tasks_factory(parameters: np.ndarray) -> List[EstimationTask]:
+        symbols_map = create_symbols_map(circuit_symbols, parameters)
+        return evaluate_estimation_circuits(
+            estimation_tasks, [symbols_map for _ in estimation_tasks]
+        )
+
+    return _tasks_factory
 
 
 def substitution_based_estimation_tasks_factory(

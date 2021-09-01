@@ -1,11 +1,11 @@
 from typing import Any, Optional
 
 import numpy as np
-from pyquil.wavefunction import Wavefunction
 from zquantum.core.circuits import Circuit
 from zquantum.core.circuits.layouts import CircuitConnectivity
 from zquantum.core.interfaces.backend import QuantumSimulator, flip_wavefunction
 from zquantum.core.measurement import Measurements, sample_from_wavefunction
+from zquantum.core.wavefunction import Wavefunction
 
 
 class SymbolicSimulator(QuantumSimulator):

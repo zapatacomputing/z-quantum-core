@@ -18,8 +18,8 @@ from typing import (
 
 import numpy as np
 from openfermion.ops import IsingOperator
-from pyquil.wavefunction import Wavefunction
 from zquantum.core.typing import AnyPath, LoadSource
+from zquantum.core.wavefunction import Wavefunction
 
 from .bitstring_distribution import BitstringDistribution
 from .utils import (

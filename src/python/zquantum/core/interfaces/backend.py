@@ -3,7 +3,7 @@ from typing import Any, List, Optional, Sequence
 
 import numpy as np
 from openfermion import IsingOperator, QubitOperator, SymbolicOperator
-from pyquil.wavefunction import Wavefunction
+from zquantum.core.wavefunction import Wavefunction
 
 from ..bitstring_distribution import (
     BitstringDistribution,

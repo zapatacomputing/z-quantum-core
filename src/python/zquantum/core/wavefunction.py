@@ -1,11 +1,12 @@
-from typing import Any, Dict, List, Optional, Union
+from math import log2
+from typing import Any, Dict, List, Union
 
 import numpy as np
 from sympy import Abs, Matrix, Symbol
 
 
 def _calculate_probability_of_ground_entries(arr: Matrix) -> np.float64:
-    numbers = np.array([elem for elem in arr if elem.is_Number], dtype=np.complex128)
+    numbers = np.array([elem for elem in arr if elem.is_number], dtype=np.complex128)
     return np.sum(np.abs(numbers) ** 2)
 
 
@@ -35,6 +36,10 @@ class Wavefunction:
         self._check_sanity(amplitude_vector)
 
         self._wavefunction = amplitude_vector
+
+    @property
+    def amplitudes(self):
+        return np.array(self._wavefunction, dtype=np.complex128).flatten()
 
     @staticmethod
     def _check_sanity(arr: Matrix):
@@ -86,7 +91,7 @@ class Wavefunction:
 
     @staticmethod
     def init_system(n_qubits: int) -> "Wavefunction":
-        np_arr = np.zeros((2 ** n_qubits, 1), dtype=np.complex128)
+        np_arr = np.zeros(2 ** n_qubits, dtype=np.complex128)
         np_arr[0] = 1.0
         return Wavefunction(np_arr)
 
@@ -107,3 +112,12 @@ class Wavefunction:
         absoluted_wf = Abs(self._wavefunction)
         squared_wf = absoluted_wf.multiply_elementwise(absoluted_wf)
         return squared_wf
+
+    def get_outcome_probs(self) -> Dict[str, float]:
+        values = [
+            format(i, "0" + str(int(log2(len(self)))) + "b") for i in range(len(self))
+        ]
+
+        probs = self.probabilities()
+
+        return dict(zip(values, probs))

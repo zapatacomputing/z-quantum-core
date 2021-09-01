@@ -152,3 +152,4 @@ class MetaOptimizer(ABC):
             keep_history: flag indicating whether history of cost function
                 evaluations should be recorded.
         """
+        raise NotImplementedError

@@ -52,7 +52,6 @@ setuptools.setup(
         "openfermion>=1.0.0",
         "lea>=3.2.0",
         "pyquil~=2.25",
-        "cirq>=0.9.1,<=0.10",
         "overrides~=3.1",
     ],
     extras_require=extras_require,

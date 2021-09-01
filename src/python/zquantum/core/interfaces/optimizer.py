@@ -1,11 +1,12 @@
-import warnings
 from abc import ABC, abstractmethod
-from typing import Callable, Union
+from typing import Any, Callable, Union
 
 import numpy as np
 import scipy
 from scipy.optimize import OptimizeResult
 from zquantum.core.history.recorder import recorder as _recorder
+from zquantum.core.interfaces.ansatz import Ansatz
+from zquantum.core.interfaces.cost_function import CostFunction, EstimationTasksFactory
 from zquantum.core.interfaces.functions import CallableWithGradient
 
 from ..typing import RecorderFactory
@@ -105,3 +106,49 @@ def construct_history_info(cost_function, keep_history):
     if keep_history and hasattr(cost_function, "gradient"):
         histories["gradient_history"] = cost_function.gradient.history
     return histories
+
+
+class MetaOptimizer(ABC):
+    def __init__(
+        self,
+        ansatz: Ansatz,
+        inner_optimizer: Optimizer,
+        estimation_tasks_factory: Callable[[Any], EstimationTasksFactory],
+        cost_function_factory: Callable[[EstimationTasksFactory], CostFunction],
+        recorder: RecorderFactory = _recorder,
+    ) -> None:
+        """
+        Optimizers that modify cost function throughout optimization.
+        See RQAOA (in zquantum.qaoa) or LayerwiseAnsatzOptimizer (in
+            zquantum.optimizers) for an example.
+
+        Args:
+            ansatz: an Ansatz object with all params (ex. `n_layers`) initialized
+            inner_optimizer: Optimizer object used for optimization
+            estimation_tasks_factory_generator: function that generates
+                EstimationTasksFactory objects.
+            cost_function_factory: function that generates CostFunction objects given
+                EstimationTasksFactory objects.
+        Returns:
+            An instance of OptimizeResult containing opt_value, opt_params and other
+            passed arguments.
+        """
+        self._ansatz = ansatz
+        self._inner_optimizer = inner_optimizer
+        self._estimation_tasks_factory = estimation_tasks_factory
+        self._cost_function_factory = cost_function_factory
+        self._recorder = recorder
+
+    @abstractmethod
+    def minimize(
+        self,
+        initial_params: np.ndarray,
+        keep_history: bool = False,
+    ) -> OptimizeResult:
+        """Finds optimal parameters to minimize the cost function.
+
+        Args:
+            initial_params: initial parameters used for optimization
+            keep_history: flag indicating whether history of cost function
+                evaluations should be recorded.
+        """

@@ -72,9 +72,25 @@ class _AttributePropagatingWrapper:
         )
 
     def __call__(self, *args, **kwargs):
+        """Propagate call to the wrapped function.
+
+        This is needed for this object to be callable.
+        """
         return self._function(*args, **kwargs)
 
     def __getattr__(self, attr_name):
+        """Get attribute dynamically.
+
+        This dunder method is called only if attr_name attribute is not
+        present on the object itself. This implementation tries to find
+        such an attribute in the following sources (in that order):
+        - attribute overrides
+        - wrapped function
+        - additional attribute sources
+
+        Overriding __getattr__ is crucial for propagating attribute queries to the
+        wrapped objects.
+        """
         try:
             return self._attribute_overrides[attr_name]
         except KeyError:
@@ -84,6 +100,16 @@ class _AttributePropagatingWrapper:
                 return getattr(self._additional_attribute_source, attr_name)
 
     def __setattr__(self, attr_name, value):
+        """Set attribute not defined in this object's attribute dictionary.
+
+        This dunder method is called only if attr_name is not present on the
+        object itself. This implementation sets value of this attribute on the
+        wrapped function if it is already present here, and in the additional
+        attribute source otherwise.
+
+        Overriding __setattr__ is crucial for propagating attribute settings to the
+        wrapped objects.
+        """
         setattr(
             self._function
             if hasattr(self._function, attr_name)

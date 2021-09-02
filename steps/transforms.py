@@ -27,15 +27,15 @@ def transform_interaction_operator(
         input_operator = load_interaction_operator(input_operator)
 
     if transformation == "Jordan-Wigner":
-        transformation = jordan_wigner
+        transformation_function = jordan_wigner
     elif transformation == "Bravyi-Kitaev":
         input_operator = get_fermion_operator(input_operator)
-        transformation = bravyi_kitaev
+        transformation_function = bravyi_kitaev
     else:
         raise RuntimeError("Unrecognized transformation ", transformation)
 
     start_time = time.time()
-    transformed_operator = transformation(input_operator)
+    transformed_operator = transformation_function(input_operator)
     walltime = time.time() - start_time
 
     save_qubit_operator(transformed_operator, "transformed-operator.json")

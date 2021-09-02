@@ -1,3 +1,36 @@
+"""Implementation of cost function augmentations.
+
+The "augmentation" is a function returning function. Augmentations can add side effects
+to the function invocation (like logging or recording history), or even modify the
+return value.
+
+Cost functions are augmented via `augment_cost_function`. Basic usage looks as follows
+
+augmented_func = augment_cost_function(func, [function_logger(level=level)])
+
+If the function to be augmented has gradient, separate augmentations can be applied
+to the function and the gradient, e.g.:
+
+augmented_func = augment_cost_function(
+    func,
+    cost_function_augmentations=[function_logger(level=logging.INFO)],
+    gradient_augmentations=[function_logger(level=logging.DEBUG)]
+)
+
+
+In principle, any function mapping cost function to cost function can be used as
+augmentation. The common pattern however is an augmentation that triggers a side
+effect, possibly when some conditions are met, and otherwise leaves the augmented
+function unchanged. The `function_logger` augmentations is an example of such
+augmentation.
+
+There is a shortcut for implementing augmentations like function_logger. The required
+steps are:
+- Create class inheriting ConditionalSideEffect.
+- Implement _act method, that defines what the side effect is.
+- Create a thin wrapper function that constructs actual augmentation.
+Refer to `function_logger` below for an example of this process.
+"""
 import abc
 import logging
 from typing import Callable, Iterable, Optional
@@ -9,6 +42,20 @@ FunctionAugmentation = Callable[[Callable], Callable]
 
 
 class _AttributePropagatingWrapper:
+    """A wrapper for handling attribute propagation.
+
+    This is intended to for handling attribute propagation between an object
+    implementing augmentation and the function being augmented.
+
+    This wrapper propagates all attribute accesses and calls to the wrapped `function`.
+    If the attribute is not present on the `function`, `additional_source_of_attributes`
+    is tried. If that fails, usual AttributeError is raised.
+
+    Attributes can be overrides via attribute_overrides. This is to ensure that some
+    attributes of wrapper objects are accessible even if they are also defined in the
+    wrapped objects.
+    """
+
     def __init__(self, function, additional_attribute_source, attribute_overrides):
         object.__setattr__(self, "_function", function)
         object.__setattr__(
@@ -43,6 +90,7 @@ class _AttributePropagatingWrapper:
 
 
 def _augment_function(function, augmentations, attribute_overrides):
+    """Augment a function, possibly overriding some attributes."""
     if not augmentations:
         return function
     augmented_function = function
@@ -59,6 +107,20 @@ def augment_cost_function(
     cost_function_augmentations: Optional[Iterable[FunctionAugmentation]] = None,
     gradient_augmentations: Optional[Iterable[FunctionAugmentation]] = None,
 ):
+    """Augment a function and its gradient.
+
+    Args:
+        cost_function: a function to be augmented.
+        cost_function_augmentations: augmentations to be applied to cost_function
+            itself, in left-to-right order.
+        gradient_augmentations: augmentations to be applied to a gradient. If the
+            cost_function has no `gradient` attribute, this argument is ignored.
+    Returns:
+        A function with all application applied to it. The returned object
+        has all attributes present in cost_function. The same is true about
+        gradient. The exact behaviour of the returned object depends on the
+        augmentations used, and the order in which they were applied.
+    """
     attribute_overrides = (
         {
             "gradient": _augment_function(
@@ -77,6 +139,31 @@ def augment_cost_function(
 
 
 class ConditionalSideEffect(abc.ABC):
+    """Base class for implementing augmentations that trigger some side effect.
+
+    ConditionalSideEffect implementations don't modify the return value of
+    the wrapped function, but trigger some additional action, possibly
+    only when some conditions are met.
+
+    Args:
+        function: a single argument function to be wrapped
+        predicate: a function with signature (result, params, call_number) where
+          function(params) = result and call_number indicates how many times this
+          object has been called so far. The side effect is triggerred if and only
+          if predicate(result, params, call_number) is True. By default, side
+          effect is triggerred always.
+
+    Attributes:
+        function: function passed to the initializer
+        predicate: predicate passed to the initializer
+        call_number: number indicating how many calls have been made to this
+          function so far.
+
+    Notes:
+        Since no synchronization is implemented, ConditionalSideEffects are inherently
+        unsuitable for multi-threaded use.
+    """
+
     def __init__(self, function: Callable, predicate: SaveCondition = always):
         self.function = function
         self.predicate = predicate
@@ -92,10 +179,29 @@ class ConditionalSideEffect(abc.ABC):
 
     @abc.abstractmethod
     def _act(self, result, params):
+        """Perform side effect defined by this object.
+
+        Args:
+            result: value of wrapped function.
+            params; corresponding parameters (i.e. self.function(params) = result.
+        """
         pass
 
 
 class FunctionLogger(ConditionalSideEffect):
+    """Side effect causing function call to be logged.
+
+    Args:
+        function: function to be wrapped.
+        predicate: boolean function defining when the logging should happen. See
+          ConditionalSideEffect for more detailed description.
+        logger: logger to be used. If not provided, logger with __name__ name will
+          be used.
+        level: log level to be used for logging messages. The default is INFO.
+        message: %-style template string for message to be printed. Message will be
+          constructed by passing format arguments (call number, function value).
+    """
+
     def __init__(
         self,
         function: Callable,
@@ -119,6 +225,11 @@ def function_logger(
     level=logging.INFO,
     message="Function called. Call number: %d, function value: %s",
 ):
+    """Cost function augmentation adding logging.
+
+    For description of parameters see FunctionLogger class above.
+    """
+
     def _augment(function):
         return FunctionLogger(function, predicate, logger, level, message)
 

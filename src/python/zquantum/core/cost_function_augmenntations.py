@@ -57,6 +57,10 @@ class _AttributePropagatingWrapper:
     """
 
     def __init__(self, function, additional_attribute_source, attribute_overrides):
+        # We use object.__setattr__ here to not trigger propagation mechanism
+        # implemented below. In  particular, usual self._function = function would fail
+        # because it would already try to find the attribute on self._function, which
+        # is undefined.
         object.__setattr__(self, "_function", function)
         object.__setattr__(
             self, "_additional_attribute_source", additional_attribute_source

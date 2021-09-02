@@ -192,6 +192,8 @@ class ConditionalSideEffect(abc.ABC):
     Notes:
         Since no synchronization is implemented, ConditionalSideEffects are inherently
         unsuitable for multi-threaded use.
+
+        Concrete subclasses of ConditionalSideEffect need to implement _act method.
     """
 
     def __init__(self, function: Callable, predicate: SaveCondition = always):

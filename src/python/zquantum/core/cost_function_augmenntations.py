@@ -189,7 +189,6 @@ class ConditionalSideEffect(abc.ABC):
             result: value of wrapped function.
             params; corresponding parameters (i.e. self.function(params) = result.
         """
-        pass
 
 
 class FunctionLogger(ConditionalSideEffect):

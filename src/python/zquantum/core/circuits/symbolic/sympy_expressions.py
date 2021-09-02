@@ -18,7 +18,7 @@ except ImportError:
     sympy_numbers = sympy.numbers
 
 
-from .expressions import ExpressionDialect, FunctionCall, Symbol
+from .expressions import ExpressionDialect, FunctionCall, Symbol, reduction
 
 
 def is_multiplication_by_reciprocal(sympy_mul: sympy.Mul) -> bool:
@@ -131,8 +131,8 @@ SYMPY_DIALECT = ExpressionDialect(
     symbol_factory=lambda symbol: sympy.Symbol(symbol.name),
     number_factory=lambda number: number,
     known_functions={
-        "add": operator.add,
-        "mul": operator.mul,
+        "add": reduction(operator.add),
+        "mul": reduction(operator.mul),
         "div": operator.truediv,
         "sub": operator.sub,
         "pow": operator.pow,

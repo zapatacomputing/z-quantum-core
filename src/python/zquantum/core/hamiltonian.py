@@ -38,7 +38,7 @@ def group_comeasureable_terms_greedy(
     qubit_operator: QubitOperator, sort_terms: bool = False
 ) -> List[QubitOperator]:
     """Group co-measurable terms in a qubit operator using a greedy algorithm. Adapted
-    from pyquil. Constant term is included as a separate group.
+    from PyQuil. Constant term is included as a separate group.
 
     Args:
         qubit_operator: the operator whose terms are to be grouped

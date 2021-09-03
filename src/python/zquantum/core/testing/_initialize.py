@@ -2,7 +2,7 @@ import random
 
 import numpy as np
 from openfermion.ops import IsingOperator, QubitOperator
-from pyquil.wavefunction import Wavefunction
+from zquantum.core.wavefunction import Wavefunction
 
 
 def create_random_qubitop(nqubits, nterms, seed=None):

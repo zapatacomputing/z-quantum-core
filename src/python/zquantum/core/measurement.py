@@ -73,7 +73,7 @@ def load_wavefunction(file: LoadSource) -> Wavefunction:
         file (str or file-like object): the name of the file, or a file-like object.
 
     Returns:
-        wavefunction (pyquil.wavefunction.Wavefunction): the wavefunction object
+        wavefunction (zquantum.core.Wavefunction): the wavefunction object
     """
 
     if isinstance(file, str):
@@ -90,7 +90,7 @@ def save_wavefunction(wavefunction: Wavefunction, filename: AnyPath) -> None:
     """Save a wavefunction object to a file.
 
     Args:
-        wavefunction (pyquil.wavefunction.Wavefunction): the wavefunction object
+        wavefunction (zquantum.core.Wavefunction): the wavefunction object
         filename (str): the name of the file
     """
 

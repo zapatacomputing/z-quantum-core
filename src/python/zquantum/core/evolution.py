@@ -45,15 +45,7 @@ def time_evolution(
 
 
 def _adjust_gate_angle(operation: circuits.GateOperation, time):
-    """Adjust angle in gate operation to account for evolution in time.
-
-    Since this handles outputs from `pyquil.paulis.exponentiate`, the only
-    time-dependent gates are RZ and PHASE (other rotations have fixed
-    angles as they correspond to change of basis).
-
-    Therefore, we multiply angles in RZ and PHASE by `time`, and leave other
-    gates unchanged.
-    """
+    """Adjust angle in gate operation to account for evolution in time."""
     # The below should not happen, however, we leave it to reproduce logic from
     # the original code.
     if len(operation.params) > 1:
@@ -84,7 +76,7 @@ def _time_evolution_for_term_qubit_operator(
         term: Pauli term to be evolved
         time: time of evolution
     Returns:
-        Circuit: Circuit representing evolved pyquil term.
+        Circuit: Circuit representing evolved term.
     """
 
     if len(term.terms) != 1:

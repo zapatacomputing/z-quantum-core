@@ -5,6 +5,15 @@ import numpy as np
 from sympy import Abs, Matrix, Symbol
 
 
+def _cast_sympy_matrix_to_numpy(sympy_matrix, complex=False):
+    new_type = np.complex128 if complex else np.float64
+
+    try:
+        return np.array(sympy_matrix, dtype=new_type).flatten()
+    except TypeError:
+        return np.array(sympy_matrix, dtype=object).flatten()
+
+
 class Wavefunction:
     """
     A simple wavefunction data structure that can
@@ -34,10 +43,11 @@ class Wavefunction:
 
     @property
     def amplitudes(self):
-        try:
-            return np.array(self._wavefunction, dtype=np.complex128).flatten()
-        except TypeError:
-            return np.array(self._wavefunction, dtype=object).flatten()
+        return _cast_sympy_matrix_to_numpy(self._wavefunction, complex=True)
+
+    @property
+    def n_qubits(self):
+        return int(log2(len(self)))
 
     @staticmethod
     def _check_sanity(arr: Matrix):
@@ -103,12 +113,11 @@ class Wavefunction:
     def probabilities(self) -> Matrix:
         absoluted_wf = Abs(self._wavefunction)
         squared_wf = absoluted_wf.multiply_elementwise(absoluted_wf)
-        return squared_wf
+
+        return _cast_sympy_matrix_to_numpy(squared_wf, complex=False)
 
     def get_outcome_probs(self) -> Dict[str, float]:
-        values = [
-            format(i, "0" + str(int(log2(len(self)))) + "b") for i in range(len(self))
-        ]
+        values = [format(i, "0" + str(self.n_qubits) + "b") for i in range(len(self))]
 
         probs = self.probabilities()
 

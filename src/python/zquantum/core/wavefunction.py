@@ -1,5 +1,6 @@
 from math import log2
 from typing import Any, Dict, List, Union
+from warnings import warn
 
 import numpy as np
 from sympy import Abs, Matrix, Symbol
@@ -49,6 +50,10 @@ class Wavefunction:
     def n_qubits(self):
         return int(log2(len(self)))
 
+    @property
+    def free_symbols(self):
+        return self._wavefunction.free_symbols
+
     @staticmethod
     def _check_sanity(arr: Matrix):
         """
@@ -96,8 +101,21 @@ class Wavefunction:
     def __str__(self) -> str:
         return self._wavefunction.__str__()
 
+    def __eq__(self, other) -> bool:
+        return self._wavefunction == other._wavefunction
+
     @staticmethod
     def init_system(n_qubits: int) -> "Wavefunction":
+        if not isinstance(n_qubits, int):
+            warn(
+                "Non-integer value {n_qubits} passed as number of qubits!'\
+                'Will be cast to integer."
+            )
+            n_qubits = int(n_qubits)
+
+        if n_qubits <= 0:
+            raise ValueError("Invalid number of qubits in system. Got {n_qubits}.")
+
         np_arr = np.zeros(2 ** n_qubits, dtype=np.complex128)
         np_arr[0] = 1.0
         return Wavefunction(np_arr)
@@ -110,7 +128,7 @@ class Wavefunction:
         except ValueError:
             raise ValueError("Passed map results in a violation of probability unity.")
 
-    def probabilities(self) -> Matrix:
+    def probabilities(self) -> np.ndarray:
         absoluted_wf = Abs(self._wavefunction)
         squared_wf = absoluted_wf.multiply_elementwise(absoluted_wf)
 

@@ -2,7 +2,7 @@ import logging
 
 import numpy as np
 import pytest
-from zquantum.core.cost_function_augmenntations import (
+from zquantum.core.cost_function_augmentations import (
     ConditionalSideEffect,
     augment_cost_function,
     function_logger,

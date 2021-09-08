@@ -36,7 +36,7 @@ ESTIMATION_PREPROCESSORS = [partial(allocate_shots_uniformly, number_of_shots=1)
 
 class TestGroundStateCostFunction:
     @pytest.fixture(params=["old", "new"])
-    def factory(self, request):
+    def factory_type(self, request):
         return request.param
 
     @pytest.fixture(
@@ -77,15 +77,15 @@ class TestGroundStateCostFunction:
             },
         ]
     )
-    def ground_state_cost_function(self, request, factory):
-        if factory == "old":
+    def ground_state_cost_function(self, request, factory_type):
+        if factory_type == "old":
             return get_ground_state_cost_function(
                 **request.param,
                 backend=BACKEND,
                 estimation_method=ESTIMATION_METHOD,
                 estimation_preprocessors=ESTIMATION_PREPROCESSORS,
             )
-        elif factory == "new":
+        elif factory_type == "new":
             estimation_tasks_factory = expectation_value_estimation_tasks_factory(
                 request.param["target_operator"],
                 request.param["parametrized_circuit"],

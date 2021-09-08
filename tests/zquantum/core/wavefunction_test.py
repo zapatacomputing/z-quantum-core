@@ -20,7 +20,7 @@ class TestInitializations:
     @pytest.mark.parametrize(
         "input_list", [[], np.zeros(17), create_random_wavefunction(3)[:-1]]
     )
-    def test_init_fails_when_passed_list_is_not_power_of_two(self, input_list):
+    def test_init_fails_when_len_of_passed_list_is_not_power_of_two(self, input_list):
         with pytest.raises(ValueError):
             Wavefunction(input_list)
 

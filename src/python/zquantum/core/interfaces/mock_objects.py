@@ -12,7 +12,7 @@ from ..utils import create_symbols_map
 from .ansatz import Ansatz
 from .ansatz_utils import ansatz_property
 from .backend import QuantumBackend
-from .optimizer import Optimizer, optimization_result
+from .optimizer import MetaOptimizer, Optimizer, optimization_result
 
 
 class MockQuantumBackend(QuantumBackend):
@@ -48,6 +48,18 @@ class MockOptimizer(Optimizer):
 
 def mock_cost_function(parameters: np.ndarray):
     return np.sum(parameters ** 2)
+
+
+class MockMetaOptimizer(MetaOptimizer):
+    def minimize(self, parameters):
+        cost_function = self.cost_function_factory()
+        return optimization_result(
+            opt_value=cost_function(parameters), opt_params=parameters
+        )
+
+
+def mock_cost_function_factory():
+    return mock_cost_function
 
 
 class MockAnsatz(Ansatz):

@@ -2,6 +2,7 @@ from typing import Any, Callable, Iterable, List, Optional, Union
 
 import numpy as np
 import sympy
+
 from openfermion import SymbolicOperator
 
 from .circuits import Circuit
@@ -24,6 +25,7 @@ from .interfaces.estimation import (
     EstimationTask,
 )
 from .interfaces.functions import (
+    CallableWithGradient,
     FunctionWithGradient,
     FunctionWithGradientStoringArtifacts,
     StoreArtifact,
@@ -333,8 +335,8 @@ def create_cost_function(
     estimation_tasks_factory: EstimationTasksFactory,
     estimation_method: EstimateExpectationValues = _by_averaging,
     parameter_preprocessors: Iterable[ParameterPreprocessor] = None,
-    gradient_function: Callable = finite_differences_gradient,
-) -> CostFunction:
+    gradient_function: Callable[[CostFunction], Callable] = finite_differences_gradient,
+) -> CallableWithGradient:
     """This function can be used to generate callable cost functions for parametric
     circuits. This function is the main entry to use other functions in this module.
 

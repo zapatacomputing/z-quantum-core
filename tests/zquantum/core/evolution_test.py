@@ -3,7 +3,6 @@ import numpy as np
 import pytest
 import sympy
 from openfermion import QubitOperator
-from pyquil.paulis import PauliSum, PauliTerm
 from zquantum.core import circuits
 from zquantum.core.evolution import (
     _generate_circuit_sequence,
@@ -21,12 +20,6 @@ OPENFERMION_TERM_TO_CIRQ_GATE = {
 }
 
 
-def _cirq_exponentiate_pauli_term(term, qubits, time, trotter_order):
-    base_exponent = 2 * time / trotter_order / np.pi
-    base_gate = PAULI_STRING_TO_CIRQ_GATE[term.pauli_string()](*qubits)
-    return base_gate ** (term.coefficient * base_exponent)
-
-
 def _cirq_exponentiate_qubit_hamiltonian_term(term, qubits, time, trotter_order):
     base_exponent = 2 * time / trotter_order / np.pi
     base_gate = OPENFERMION_TERM_TO_CIRQ_GATE[list(term.terms.keys())[0]](*qubits)
@@ -35,37 +28,18 @@ def _cirq_exponentiate_qubit_hamiltonian_term(term, qubits, time, trotter_order)
 
 
 def _cirq_exponentiate_hamiltonian(hamiltonian, qubits, time, trotter_order):
-    if isinstance(hamiltonian, QubitOperator):
-        return cirq.Circuit(
-            [
-                _cirq_exponentiate_qubit_hamiltonian_term(
-                    term, qubits, time, trotter_order
-                )
-                for term in hamiltonian.get_operators()
-            ]
-            * trotter_order
-        )
-    elif isinstance(hamiltonian, PauliSum):
-        return cirq.Circuit(
-            [
-                _cirq_exponentiate_pauli_term(term, qubits, time, trotter_order)
-                for term in hamiltonian.terms
-            ]
-            * trotter_order
-        )
+    return cirq.Circuit(
+        [
+            _cirq_exponentiate_qubit_hamiltonian_term(term, qubits, time, trotter_order)
+            for term in hamiltonian.get_operators()
+        ]
+        * trotter_order
+    )
 
 
 @pytest.mark.parametrize(
     "term, time, expected_unitary",
     [
-        (PauliTerm("X", 0) * PauliTerm("X", 1), np.pi, -np.eye(4)),
-        (
-            PauliTerm("Y", 0, 0.5) * PauliTerm("Y", 1),
-            np.pi,
-            np.diag([1j, -1j, -1j, 1j])[::-1],
-        ),
-        (PauliTerm("Z", 0) * PauliTerm("Z", 1), np.pi, -np.eye(4)),
-        (PauliTerm("I", 0) * PauliTerm("I", 1), np.pi, -np.eye(2)),
         (QubitOperator("[X0 X1]"), np.pi, -np.eye(4)),
         (
             QubitOperator("0.5 [Y0 Y1]"),
@@ -101,18 +75,9 @@ class TestTimeEvolutionOfConstantTerm:
         assert evolution_circuit == circuits.Circuit()
 
 
-@pytest.fixture(params=["PauliSum", "QubitOperator"])
-def hamiltonian(request):
-    if request.param == "PauliSum":
-        terms = [
-            PauliTerm("X", 0) * PauliTerm("X", 1),
-            PauliTerm("Y", 0, 0.5) * PauliTerm("Y", 1),
-            PauliTerm("Z", 0, 0.3) * PauliTerm("Z", 1),
-        ]
-        assert all([isinstance(term, PauliTerm) for term in terms])
-        return PauliSum(terms)
-    elif request.param == "QubitOperator":
-        return QubitOperator("[X0 X1] + 0.5[Y0 Y1] + 0.3[Z0 Z1]")
+@pytest.fixture
+def hamiltonian():
+    return QubitOperator("[X0 X1] + 0.5[Y0 Y1] + 0.3[Z0 Z1]")
 
 
 class TestTimeEvolutionOfPauliSum:

@@ -1,9 +1,10 @@
 import random
-from typing import Optional
+from typing import Callable, Optional
 
 import numpy as np
 import sympy
 from overrides import overrides
+from zquantum.core.interfaces.cost_function import CostFunction
 
 from ..circuits import RX, Circuit
 from ..measurement import Measurements
@@ -51,10 +52,29 @@ def mock_cost_function(parameters: np.ndarray):
 
 
 class MockMetaOptimizer(MetaOptimizer):
-    def minimize(self, parameters):
-        cost_function = self.cost_function_factory()
+    def __init__(
+        self,
+        inner_optimizer: Optimizer,
+        cost_function_factory: Callable[[int], CostFunction],
+        n_iters: int,
+    ):
+        super().__init__(inner_optimizer, cost_function_factory)
+        self.n_iters = n_iters
+
+    def minimize(
+        self,
+        initial_params: np.ndarray,
+        keep_history: bool = False,
+    ):
+        for i in range(self.n_iters):
+            if i != 0:
+                initial_params = opt_params
+            cost_function = self.cost_function_factory(i)
+            opt_result = self.inner_optimizer.minimize(cost_function, initial_params)
+            opt_params: np.ndarray = opt_result.opt_params
+
         return optimization_result(
-            opt_value=cost_function(parameters), opt_params=parameters
+            opt_value=opt_result.opt_value, opt_params=opt_params
         )
 
 

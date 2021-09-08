@@ -117,8 +117,7 @@ class MetaOptimizer(ABC):
     ) -> None:
         """
         Optimizers that modify cost function throughout optimization.
-        See RQAOA (in zquantum.qaoa) or LayerwiseAnsatzOptimizer (in
-            zquantum.optimizers) for an example.
+        See MockMetaOptimizer in zquantum.core.interfaces.mock_objects for an example.
 
         Args:
             inner_optimizer: Optimizer object used for optimization.

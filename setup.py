@@ -54,6 +54,7 @@ setuptools.setup(
         "lea>=3.2.0",
         "cirq>=0.9.1,<=0.10",
         "overrides~=3.1",
+        "python-rapidjson",
     ],
     extras_require=extras_require,
     setup_requires=["setuptools_scm~=6.0"],

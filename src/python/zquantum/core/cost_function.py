@@ -1,3 +1,4 @@
+import warnings
 from typing import Any, Callable, Iterable, List, Optional, Union
 
 import numpy as np
@@ -96,10 +97,12 @@ def get_ground_state_cost_function(
     Returns:
         Callable
     """
-    DeprecationWarning(
-        """get_ground_state_cost_function is deprecated. Use create_cost_function with
-        expectation_value_estimation_tasks_factory instead.
-        """
+    warnings.warn(
+        DeprecationWarning(
+            """get_ground_state_cost_function is deprecated. Use create_cost_function with
+            expectation_value_estimation_tasks_factory instead.
+            """
+        )
     )
     estimation_tasks = [
         EstimationTask(
@@ -232,8 +235,11 @@ class AnsatzBasedCostFunction:
         parameter_precision: Optional[float] = None,
         parameter_precision_seed: Optional[int] = None,
     ):
-        DeprecationWarning(
-            "AnsatzBasedCostFunction is deprecated. Use create_cost_function instead."
+        warnings.warn(
+            DeprecationWarning(
+                """AnsatzBasedCostFunction is deprecated. Use create_cost_function
+                instead."""
+            )
         )
         self.backend = backend
         self.fixed_parameters = fixed_parameters

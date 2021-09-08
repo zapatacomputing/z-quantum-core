@@ -400,7 +400,7 @@ def expectation_value_estimation_tasks_factory(
     estimation_preprocessors: List[EstimationPreprocessor] = None,
 ) -> EstimationTasksFactory:
     """Creates a EstimationTasksFactory object that can be used to create
-    estimation tasks that return the estimated expectation value of the input
+    estimation tasks that returns the estimated expectation value of the input
     target operator with respect to the state prepared by the parameterized
     quantum circuit when evaluated to the input parameters.
 

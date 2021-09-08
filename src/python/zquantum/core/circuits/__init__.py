@@ -4,7 +4,7 @@ Allows:
 
 - defining quantum circuits with gates applied to qubits
 - set of built-in gates (see imports in this `__init__`)
-- import/export from/to Cirq and PyQuil circuits
+- import/export from/to Cirq circuits
 - circuit (de)serialization to/from JSON-compatible dicts
 
 Examples:
@@ -50,9 +50,6 @@ Examples:
     Conversion to other frameworks::
         export_to_cirq(circuit)
         circuit2 = import_from_cirq(cirq_circuit)
-
-        export_to_pyquil(circuit)
-        circuit3 = import_from_pyquil(pyquil_program)
 
 
     (De)serialization::
@@ -104,7 +101,6 @@ Extending built-in gates requires:
 
 - Adding tests for conversion to other frameworks in:
     - `zquantum.core.conversions.cirq_conversions_test`
-    - `zquantum.core.conversions.pyquil_conversions_test`
 
 - Implement conversions. Some might work out of the box, e.g. if there's a gate with the
     same name defined in PyQuil our converters will use it by default without need for
@@ -160,4 +156,3 @@ from ._serde import (
 from ._testing import create_random_circuit
 from ._wavefunction_operations import MultiPhaseOperation
 from .conversions.cirq_conversions import export_to_cirq, import_from_cirq
-from .conversions.pyquil_conversions import export_to_pyquil, import_from_pyquil

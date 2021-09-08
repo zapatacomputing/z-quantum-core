@@ -111,10 +111,8 @@ def construct_history_info(cost_function, keep_history):
 class MetaOptimizer(ABC):
     def __init__(
         self,
-        ansatz: Ansatz,
         inner_optimizer: Optimizer,
-        estimation_tasks_factory: Callable[[Any], EstimationTasksFactory],
-        cost_function_factory: Callable[[EstimationTasksFactory], CostFunction],
+        cost_function_factory: Callable[..., CostFunction],
         recorder: RecorderFactory = _recorder,
     ) -> None:
         """
@@ -123,21 +121,15 @@ class MetaOptimizer(ABC):
             zquantum.optimizers) for an example.
 
         Args:
-            ansatz: an Ansatz object with all params (ex. `n_layers`) initialized
-            inner_optimizer: Optimizer object used for optimization
-            estimation_tasks_factory_generator: function that generates
-                EstimationTasksFactory objects.
-            cost_function_factory: function that generates CostFunction objects given
-                EstimationTasksFactory objects.
+            inner_optimizer: Optimizer object used for optimization.
+            cost_function_factory: function that generates CostFunction objects.
         Returns:
             An instance of OptimizeResult containing opt_value, opt_params and other
             passed arguments.
         """
-        self._ansatz = ansatz
-        self._inner_optimizer = inner_optimizer
-        self._estimation_tasks_factory = estimation_tasks_factory
-        self._cost_function_factory = cost_function_factory
-        self._recorder = recorder
+        self.inner_optimizer = inner_optimizer
+        self.cost_function_factory = cost_function_factory
+        self.recorder = recorder
 
     @abstractmethod
     def minimize(

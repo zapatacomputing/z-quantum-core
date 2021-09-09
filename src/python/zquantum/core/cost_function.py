@@ -3,7 +3,6 @@ from typing import Any, Callable, Iterable, List, Optional, Union
 
 import numpy as np
 import sympy
-
 from openfermion import SymbolicOperator
 
 from .circuits import Circuit
@@ -47,13 +46,7 @@ def _get_sorted_set_of_circuit_symbols(
 
     return sorted(
         list(
-            set(
-                [
-                    param
-                    for task in estimation_tasks
-                    for param in task.circuit.free_symbols
-                ]
-            )
+            {param for task in estimation_tasks for param in task.circuit.free_symbols}
         ),
         key=str,
     )

@@ -141,6 +141,24 @@ class TestFunctions:
 
 
 class TestRepresentations:
+    def test_string_output_of_symbolic_wavefunction(self):
+        wf = Wavefunction([Symbol("alpha"), 0])
+
+        wf_str = wf.__str__()
+
+        assert "alpha" in wf_str
+        assert wf_str.endswith("])")
+        assert wf_str.startswith("Wavefunction([")
+
+    def test_string_output_of_numeric_wavefunction(self):
+        wf = Wavefunction([1j, 0])
+
+        wf_str = wf.__str__()
+
+        assert "j" in wf_str
+        assert wf_str.endswith("])")
+        assert wf_str.startswith("Wavefunction([")
+
     @pytest.mark.parametrize(
         "wf", [Wavefunction.init_system(2), Wavefunction([Symbol("alpha"), 0.0])]
     )

@@ -1,5 +1,5 @@
 from math import log2
-from typing import Any, Dict, List, Union
+from typing import Any, Dict, List, Set, Union
 from warnings import warn
 
 import numpy as np
@@ -12,10 +12,6 @@ def _is_number(possible_number):
         return True
     except Exception:
         return False
-
-
-def _free_symbols(array_or_matrix):
-    return getattr(array_or_matrix, "free_symbols", set())
 
 
 def _cast_sympy_matrix_to_numpy(sympy_matrix, complex=False):
@@ -53,8 +49,8 @@ class Wavefunction:
         self._check_sanity(self._amplitude_vector)
 
     @property
-    def amplitudes(self):
-        if _free_symbols(self._amplitude_vector):
+    def amplitudes(self) -> Union[np.ndarray, Matrix]:
+        if self.free_symbols:
             return _cast_sympy_matrix_to_numpy(self._amplitude_vector, complex=True)
 
         return self._amplitude_vector
@@ -64,17 +60,11 @@ class Wavefunction:
         return int(log2(len(self)))
 
     @property
-    def free_symbols(self):
-        return _free_symbols(self._amplitude_vector)
+    def free_symbols(self) -> Set[Symbol]:
+        return getattr(self._amplitude_vector, "free_symbols", set())
 
     @staticmethod
-    def _check_sanity(arr: Matrix):
-        """
-        Cases to watch out for:
-        #1 no free symbols --> must ensure unit probability
-        #2 free symbols --> must ensure numbers do not exceed unit probability already
-        """
-
+    def _check_sanity(arr: Union[Matrix, np.ndarray]):
         def _calculate_probability_of_ground_entries(arr: Matrix) -> np.float64:
             numbers = np.array(
                 [elem for elem in arr if _is_number(elem)], dtype=np.complex128
@@ -82,7 +72,12 @@ class Wavefunction:
             return np.sum(np.abs(numbers) ** 2)
 
         probs_of_ground_entries = _calculate_probability_of_ground_entries(arr)
-        if not _free_symbols(arr):
+
+        if (
+            isinstance(arr, Matrix)
+            and not arr.free_symbols
+            or isinstance(arr, np.ndarray)
+        ):
             if not np.isclose(probs_of_ground_entries, 1.0):
                 raise ValueError("Vector does not result in a unit probability.")
         else:
@@ -112,7 +107,8 @@ class Wavefunction:
             raise ValueError("This assignment violates probability unity.")
 
     def __str__(self) -> str:
-        return self._amplitude_vector.__str__()
+        cast_wf = _cast_sympy_matrix_to_numpy(self._amplitude_vector, complex=True)
+        return f"Wavefunction({cast_wf})"
 
     def __eq__(self, other) -> bool:
         if not isinstance(other, Wavefunction):
@@ -137,7 +133,7 @@ class Wavefunction:
         return Wavefunction(np_arr)
 
     def bind(self, symbol_map: Dict[Symbol, Any]) -> "Wavefunction":
-        if not _free_symbols(self._amplitude_vector):
+        if not self.free_symbols:
             return self
 
         result = self._amplitude_vector.subs(symbol_map)

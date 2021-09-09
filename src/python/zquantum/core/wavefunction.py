@@ -46,15 +46,18 @@ class Wavefunction:
             )
 
         try:
-            self._wavefunction = np.asarray(amplitude_vector, dtype=complex)
+            self._amplitude_vector = np.asarray(amplitude_vector, dtype=complex)
         except TypeError:
-            self._wavefunction = Matrix(amplitude_vector)
+            self._amplitude_vector = Matrix(amplitude_vector)
 
-        self._check_sanity(self._wavefunction)
+        self._check_sanity(self._amplitude_vector)
 
     @property
     def amplitudes(self):
-        return _cast_sympy_matrix_to_numpy(self._wavefunction, complex=True)
+        if _free_symbols(self._amplitude_vector):
+            return _cast_sympy_matrix_to_numpy(self._amplitude_vector, complex=True)
+
+        return self._amplitude_vector
 
     @property
     def n_qubits(self):
@@ -62,7 +65,7 @@ class Wavefunction:
 
     @property
     def free_symbols(self):
-        return _free_symbols(self._wavefunction)
+        return _free_symbols(self._amplitude_vector)
 
     @staticmethod
     def _check_sanity(arr: Matrix):
@@ -89,30 +92,33 @@ class Wavefunction:
                 )
 
     def __len__(self) -> int:
-        return len(self._wavefunction)
+        return len(self._amplitude_vector)
 
     def __iter__(self):
-        return iter(self._wavefunction)
+        return iter(self._amplitude_vector)
 
     def __getitem__(self, idx):
-        return self._wavefunction[idx]
+        return self._amplitude_vector[idx]
 
     def __setitem__(self, idx, val):
-        old_val = self._wavefunction[idx]
-        self._wavefunction[idx] = val
+        old_val = self._amplitude_vector[idx]
+        self._amplitude_vector[idx] = val
 
         try:
-            self._check_sanity(self._wavefunction)
+            self._check_sanity(self._amplitude_vector)
         except ValueError:
-            self._wavefunction[idx] = old_val
+            self._amplitude_vector[idx] = old_val
 
             raise ValueError("This assignment violates probability unity.")
 
     def __str__(self) -> str:
-        return self._wavefunction.__str__()
+        return self._amplitude_vector.__str__()
 
     def __eq__(self, other) -> bool:
-        return self._wavefunction == other._wavefunction
+        if not isinstance(other, Wavefunction):
+            return False
+
+        return self._amplitude_vector == other._amplitude_vector
 
     @staticmethod
     def init_system(n_qubits: int) -> "Wavefunction":
@@ -131,7 +137,10 @@ class Wavefunction:
         return Wavefunction(np_arr)
 
     def bind(self, symbol_map: Dict[Symbol, Any]) -> "Wavefunction":
-        result = self._wavefunction.subs(symbol_map)
+        if not _free_symbols(self._amplitude_vector):
+            return self
+
+        result = self._amplitude_vector.subs(symbol_map)
 
         try:
             return type(self)(result)
@@ -139,7 +148,7 @@ class Wavefunction:
             raise ValueError("Passed map results in a violation of probability unity.")
 
     def probabilities(self) -> np.ndarray:
-        return np.array([abs(elem) ** 2 for elem in self._wavefunction])
+        return np.array([abs(elem) ** 2 for elem in self._amplitude_vector])
 
     def get_outcome_probs(self) -> Dict[str, float]:
         values = [format(i, "0" + str(self.n_qubits) + "b") for i in range(len(self))]

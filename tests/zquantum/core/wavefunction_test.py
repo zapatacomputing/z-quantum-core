@@ -11,6 +11,18 @@ from zquantum.core.wavefunction import Wavefunction
 
 
 class TestInitializations:
+    def test_init_system_returns_numpy_array(self):
+        wf = Wavefunction.init_system(2)
+        assert isinstance(wf._amplitude_vector, np.ndarray)
+
+    def test_constructor_returns_numpy_array_for_no_symbols(self):
+        wf = Wavefunction([1.0, 0, 0, 0])
+        assert isinstance(wf._amplitude_vector, np.ndarray)
+
+    def test_constructor_returns_sympy_matrix_for_free_symbols(self):
+        wf = Wavefunction([0.25, 0, Symbol("alpha"), 0])
+        assert isinstance(wf._amplitude_vector, Matrix)
+
     @pytest.mark.parametrize(
         "input_list", [[], np.zeros(17), create_random_wavefunction(3)[:-1]]
     )
@@ -71,33 +83,61 @@ class TestInitializations:
 
 class TestFunctions:
     @pytest.fixture
-    def wf(self) -> Wavefunction:
+    def symbolic_wf(self) -> Wavefunction:
         return Wavefunction([Symbol("alpha"), 0.5, Symbol("beta"), 0.5])
 
+    @pytest.fixture
+    def numeric_wf(self) -> Wavefunction:
+        return Wavefunction([0.5, 0.5, 0.5, 0.5])
+
     @pytest.mark.parametrize("new_val", [1.0, -1.0])
-    def test_set_item_raises_error_for_invalid_sets(self, wf, new_val):
+    def test_set_item_raises_error_for_invalid_sets(self, symbolic_wf, new_val):
         with pytest.raises(ValueError):
-            wf[0] = new_val
+            symbolic_wf[0] = new_val
 
     @pytest.mark.parametrize("new_value", [0.5, Symbol("gamma")])
-    def test_set_item_passes_if_still_below_unity(self, wf, new_value):
-        wf[0] = new_value
+    def test_set_item_passes_if_still_below_unity(self, symbolic_wf, new_value):
+        symbolic_wf[0] = new_value
 
-        assert wf[0] == new_value
+        assert symbolic_wf[0] == new_value
 
-    def test_iterator(self, wf):
-        for i, elem in enumerate(wf):
-            assert elem == wf[i]
+    def test_iterator(self, symbolic_wf):
+        for i, elem in enumerate(symbolic_wf):
+            assert elem == symbolic_wf[i]
 
     @pytest.mark.parametrize(
         "symbol_map", [{"alpha": 1.0}, {"alpha": 0.5, "beta": 0.6}]
     )
-    def test_bindings_fail_like_setitem(self, wf, symbol_map):
+    def test_bindings_fail_like_setitem(self, symbolic_wf, symbol_map):
         with pytest.raises(ValueError):
-            wf.bind(symbol_map)
+            symbolic_wf.bind(symbol_map)
 
-    def test_bind_returns_new_object(self, wf):
-        assert wf is not wf.bind({})
+    def test_bind_returns_new_object_for_symbolic_wf(self, symbolic_wf):
+        assert symbolic_wf is not symbolic_wf.bind({})
+
+    def test_bind_does_not_return_new_object_for_numeric_wf(self, numeric_wf):
+        assert numeric_wf is numeric_wf.bind({})
+
+    def test_binding_all_symbols_returns_numpy_array(self, symbolic_wf: Wavefunction):
+        assert isinstance(
+            symbolic_wf.bind({"alpha": 0.5, "beta": 0.5})._amplitude_vector, np.ndarray
+        )
+
+    @pytest.mark.parametrize("other_obj", [[], np.zeros(8)])
+    def test_eq_returns_false_for_non_wavefunction_objects(
+        self, symbolic_wf, numeric_wf, other_obj
+    ):
+        assert not (symbolic_wf == other_obj)
+        assert not (numeric_wf == other_obj)
+
+    def test_eq_returns_true_for_objects_with_equal_wavefunctions(
+        self, symbolic_wf: Wavefunction, numeric_wf: Wavefunction
+    ):
+        test_wf = Wavefunction(symbolic_wf._amplitude_vector)
+        assert symbolic_wf == test_wf
+
+        test_wf = Wavefunction(numeric_wf._amplitude_vector)
+        np.testing.assert_array_equal(numeric_wf, test_wf)
 
 
 class TestRepresentations:
@@ -182,6 +222,4 @@ class TestGates:
     ):
         returned_wavefunction = simulator.get_wavefunction(circuit)
 
-        assert (
-            returned_wavefunction._wavefunction == expected_wavefunction._wavefunction
-        )
+        assert returned_wavefunction == expected_wavefunction

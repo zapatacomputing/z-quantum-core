@@ -3,7 +3,19 @@ from typing import Any, Dict, List, Union
 from warnings import warn
 
 import numpy as np
-from sympy import Abs, Matrix, Symbol
+from sympy import Matrix, Symbol
+
+
+def _is_number(possible_number):
+    try:
+        complex(possible_number)
+        return True
+    except Exception:
+        return False
+
+
+def _free_symbols(array_or_matrix):
+    return getattr(array_or_matrix, "free_symbols", set())
 
 
 def _cast_sympy_matrix_to_numpy(sympy_matrix, complex=False):
@@ -33,14 +45,12 @@ class Wavefunction:
                 "Provided wavefunction does not have a size of a power of 2."
             )
 
-        if isinstance(amplitude_vector, np.ndarray) or isinstance(
-            amplitude_vector, list
-        ):
-            amplitude_vector = Matrix(amplitude_vector)
+        try:
+            self._wavefunction = np.asarray(amplitude_vector, dtype=complex)
+        except TypeError:
+            self._wavefunction = Matrix(amplitude_vector)
 
-        self._check_sanity(amplitude_vector)
-
-        self._wavefunction = amplitude_vector
+        self._check_sanity(self._wavefunction)
 
     @property
     def amplitudes(self):
@@ -52,7 +62,7 @@ class Wavefunction:
 
     @property
     def free_symbols(self):
-        return self._wavefunction.free_symbols
+        return _free_symbols(self._wavefunction)
 
     @staticmethod
     def _check_sanity(arr: Matrix):
@@ -64,12 +74,12 @@ class Wavefunction:
 
         def _calculate_probability_of_ground_entries(arr: Matrix) -> np.float64:
             numbers = np.array(
-                [elem for elem in arr if elem.is_number], dtype=np.complex128
+                [elem for elem in arr if _is_number(elem)], dtype=np.complex128
             )
             return np.sum(np.abs(numbers) ** 2)
 
         probs_of_ground_entries = _calculate_probability_of_ground_entries(arr)
-        if len(arr.free_symbols) == 0:
+        if not _free_symbols(arr):
             if not np.isclose(probs_of_ground_entries, 1.0):
                 raise ValueError("Vector does not result in a unit probability.")
         else:
@@ -108,13 +118,13 @@ class Wavefunction:
     def init_system(n_qubits: int) -> "Wavefunction":
         if not isinstance(n_qubits, int):
             warn(
-                "Non-integer value {n_qubits} passed as number of qubits!'\
-                'Will be cast to integer."
+                f"Non-integer value {n_qubits} passed as number of qubits! "
+                "Will be cast to integer."
             )
             n_qubits = int(n_qubits)
 
         if n_qubits <= 0:
-            raise ValueError("Invalid number of qubits in system. Got {n_qubits}.")
+            raise ValueError(f"Invalid number of qubits in system. Got {n_qubits}.")
 
         np_arr = np.zeros(2 ** n_qubits, dtype=np.complex128)
         np_arr[0] = 1.0
@@ -129,10 +139,7 @@ class Wavefunction:
             raise ValueError("Passed map results in a violation of probability unity.")
 
     def probabilities(self) -> np.ndarray:
-        absoluted_wf = Abs(self._wavefunction)
-        squared_wf = absoluted_wf.multiply_elementwise(absoluted_wf)
-
-        return _cast_sympy_matrix_to_numpy(squared_wf, complex=False)
+        return np.array([abs(elem) ** 2 for elem in self._wavefunction])
 
     def get_outcome_probs(self) -> Dict[str, float]:
         values = [format(i, "0" + str(self.n_qubits) + "b") for i in range(len(self))]

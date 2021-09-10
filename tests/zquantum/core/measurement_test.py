@@ -6,7 +6,6 @@ from collections import Counter
 import numpy as np
 import pytest
 from openfermion.ops import IsingOperator
-from pyquil.wavefunction import Wavefunction
 from zquantum.core.bitstring_distribution import BitstringDistribution
 from zquantum.core.measurement import (
     ExpectationValues,
@@ -30,6 +29,7 @@ from zquantum.core.measurement import (
 )
 from zquantum.core.testing import create_random_wavefunction
 from zquantum.core.utils import RNDSEED, SCHEMA_VERSION, convert_bitstrings_to_tuples
+from zquantum.core.wavefunction import Wavefunction
 
 
 def remove_file_if_exists(filename):
@@ -105,9 +105,9 @@ def test_sample_from_wavefunction():
     sampled_dict = Counter(samples)
 
     sampled_probabilities = []
-    for num in range(len(wavefunction) ** 2):
+    for num in range(len(wavefunction)):
         bitstring = format(num, "b")
-        while len(bitstring) < len(wavefunction):
+        while len(bitstring) < wavefunction.n_qubits:
             bitstring = "0" + bitstring
         # NOTE: our indexing places the state of qubit i at the ith index of the tuple.
         # Hence |01> will result in the tuple (1, 0)

@@ -4,7 +4,6 @@ import unittest
 import cirq
 import numpy as np
 import pkg_resources
-import pyquil
 from cirq import GridQubit, LineQubit, PauliString, PauliSum
 from openfermion import (
     FermionOperator,
@@ -19,7 +18,6 @@ from openfermion import (
 from openfermion.hamiltonians import fermi_hubbard
 from openfermion.linalg import jw_get_ground_state_at_particle_number
 from zquantum.core.circuits import Circuit, X, Y, Z
-from zquantum.core.interfaces.mock_objects import MockAnsatz
 from zquantum.core.measurement import ExpectationValues
 from zquantum.core.openfermion._io import load_interaction_operator
 from zquantum.core.openfermion._utils import (
@@ -40,6 +38,7 @@ from zquantum.core.openfermion._utils import (
     reverse_qubit_order,
 )
 from zquantum.core.utils import RNDSEED, create_object, hf_rdm
+from zquantum.core.wavefunction import Wavefunction
 
 
 class TestQubitOperator(unittest.TestCase):
@@ -144,7 +143,7 @@ class TestQubitOperator(unittest.TestCase):
     def test_get_expectation_value(self):
         """Check <Z0> and <Z1> for the state |100>"""
         # Given
-        wf = pyquil.wavefunction.Wavefunction([0, 1, 0, 0, 0, 0, 0, 0])
+        wf = Wavefunction([0, 1, 0, 0, 0, 0, 0, 0])
         op1 = QubitOperator("Z0")
         op2 = QubitOperator("Z1")
         # When

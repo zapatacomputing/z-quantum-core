@@ -1,3 +1,4 @@
+"""Definitions of keys for various symbol orderings."""
 import re
 
 
@@ -19,6 +20,9 @@ def natural_key(symbol):
     ordering treats variable indices as integers. Thus, in this ordering,
     symbols beta_10, theta_2, beta_2, theta_1 would be ordered as follows:
     beta_2 < beta_10 < theta_1 < theta_2.
+
+    The original idea behind this implementation was found byMSRudolph here:
+    http://nedbatchelder.com/blog/200712/human_sorting.html
     """
     return [
         _convert_string_to_int_if_possible(group)

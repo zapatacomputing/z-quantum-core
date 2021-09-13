@@ -26,5 +26,15 @@ def natural_key(symbol):
     ]
 
 
-def natural_key_number_first(symbol):
-    pass
+def natural_key_revlex(symbol):
+    """Convert symbol to lexically reversed natural-ordering key.
+
+    This returns key produced by `natural_key`. They main usage is for list
+    of symbols with names of the form <symbol_name>_<number> where <symbol_name>
+    can take one of several predefined values, and orders should consider <number>
+    before <symbol_name>.
+
+    For instance, given symbols beta_1, beta_2, theta_1, theta_2, sorting them
+    using natural_key_revlex will give beta_1 < theta_1 < beta_2 < theta_2.
+    """
+    return list(reversed(natural_key(symbol)))

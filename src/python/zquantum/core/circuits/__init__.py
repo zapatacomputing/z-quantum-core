@@ -156,3 +156,4 @@ from ._serde import (
 from ._testing import create_random_circuit
 from ._wavefunction_operations import MultiPhaseOperation
 from .conversions.cirq_conversions import export_to_cirq, import_from_cirq
+from .symbolic import natural_key, natural_key_revlex

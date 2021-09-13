@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
-from pyquil.wavefunction import Wavefunction
 from zquantum.core.interfaces.backend import flip_wavefunction
+from zquantum.core.wavefunction import Wavefunction
 
 
 @pytest.mark.parametrize(

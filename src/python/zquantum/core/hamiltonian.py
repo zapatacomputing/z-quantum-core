@@ -10,10 +10,13 @@ from .measurement import ExpectationValues, expectation_values_to_real
 def is_comeasureable(
     term_1: Tuple[Tuple[int, str], ...], term_2: Tuple[Tuple[int, str], ...]
 ) -> bool:
-    """Determine if two Pauli terms are co-measureable. Co-measureable means that
-       for each qubit: if one term contains a Pauli operator acting on a qubit,
-       then the other term cannot have a different Pauli operator acting on that
-       qubit.
+    """Determine if two Pauli terms are co-measureable.
+
+    Co-measureable means that
+    for each qubit: if one term contains a Pauli operator acting on a qubit,
+    then the other term cannot have a different Pauli operator acting on that
+    qubit.
+
     Args:
         term1: a product of Pauli operators represented in openfermion style
         term2: a product of Pauli operators represented in openfermion style
@@ -37,8 +40,9 @@ def is_comeasureable(
 def group_comeasureable_terms_greedy(
     qubit_operator: QubitOperator, sort_terms: bool = False
 ) -> List[QubitOperator]:
-    """Group co-measurable terms in a qubit operator using a greedy algorithm. Adapted
-    from pyquil. Constant term is included as a separate group.
+    """Group co-measurable terms in a qubit operator using a greedy algorithm.
+
+    Adapted from PyQuil. Constant term is included as a separate group.
 
     Args:
         qubit_operator: the operator whose terms are to be grouped

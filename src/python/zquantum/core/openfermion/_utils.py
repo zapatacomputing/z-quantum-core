@@ -299,20 +299,20 @@ def get_expectation_value(qubit_op, wavefunction, reverse_operator=True):
     """Get the expectation value of a qubit operator with respect to a wavefunction.
     Args:
         qubit_op (openfermion.ops.QubitOperator): the operator
-        wavefunction (pyquil.wavefunction.Wavefunction): the wavefunction
+        wavefunction (zquantum.core.Wavefunction): the wavefunction
         reverse_operator (boolean): whether to reverse order of qubit operator
             before computing expectation value. This should be True if the convention
             of the basis states used for the wavefunction is the opposite of the one in
             the qubit operator. This is the case, e.g. when the wavefunction comes from
-            Pyquil.
+            our Wavefunction class.
     Returns:
         complex: the expectation value
     """
     n_qubits = wavefunction.amplitudes.shape[0].bit_length() - 1
 
     # Convert the qubit operator to a sparse matrix. Note that the qubit indices
-    # must be reversed because OpenFermion and pyquil use different conventions
-    # for how to order the computational basis states!
+    # must be reversed because OpenFermion and our Wavefunction use
+    # different conventions for how to order the computational basis states!
     if reverse_operator:
         qubit_op = reverse_qubit_order(qubit_op, n_qubits=n_qubits)
     sparse_op = get_sparse_operator(qubit_op, n_qubits=n_qubits)

@@ -3,7 +3,6 @@ import unittest
 
 import numpy as np
 import pkg_resources
-import pyquil
 from openfermion import (
     FermionOperator,
     IsingOperator,
@@ -36,6 +35,7 @@ from zquantum.core.openfermion._utils import (
     reverse_qubit_order,
 )
 from zquantum.core.utils import RNDSEED, hf_rdm
+from zquantum.core.wavefunction import Wavefunction
 
 
 class TestQubitOperator(unittest.TestCase):
@@ -140,7 +140,7 @@ class TestQubitOperator(unittest.TestCase):
     def test_get_expectation_value(self):
         """Check <Z0> and <Z1> for the state |100>"""
         # Given
-        wf = pyquil.wavefunction.Wavefunction([0, 1, 0, 0, 0, 0, 0, 0])
+        wf = Wavefunction([0, 1, 0, 0, 0, 0, 0, 0])
         op1 = QubitOperator("Z0")
         op2 = QubitOperator("Z1")
         # When

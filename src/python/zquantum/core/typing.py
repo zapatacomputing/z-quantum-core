@@ -38,4 +38,4 @@ RecorderFactory = Callable[[Callable], AnyRecorder]
 
 class SupportsLessThan(Protocol):
     def __lt__(self, other: Any) -> bool:
-        ...
+        """Return result of comparison self < other."""

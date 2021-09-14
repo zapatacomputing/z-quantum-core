@@ -89,7 +89,10 @@ def get_ground_state_cost_function(
         gradient_function: a function which returns a function used to compute the
             gradient of the cost function (see
             zquantum.core.gradients.finite_differences_gradient for reference)
-
+        symbols_sort_key: key defining ordering on parametrized_circuits free symbols.
+            If s1,...,sN are all free symbols in parametrized_circuit, and cost function
+            is called with `parameters` then the following binding occurs:
+            parameters[i] -> sorted([s1,...,sN], key=symbols_sort_key)[i]
     Returns:
         Callable
     """
@@ -222,8 +225,6 @@ class AnsatzBasedCostFunction:
         circuit_symbols: A list of all symbolic parameters used in any estimation task
     """
 
-    symbols_sort_key = str
-
     def __init__(
         self,
         target_operator: SymbolicOperator,
@@ -266,7 +267,7 @@ class AnsatzBasedCostFunction:
             self.estimation_tasks = estimation_preprocessor(self.estimation_tasks)
 
         self.circuit_symbols = _get_sorted_set_of_circuit_symbols(
-            self.estimation_tasks, self.symbols_sort_key
+            self.estimation_tasks, ansatz.symbols_sort_key
         )
 
     def __call__(self, parameters: np.ndarray) -> ValueEstimate:
@@ -408,7 +409,7 @@ def expectation_value_estimation_tasks_factory(
     target_operator: SymbolicOperator,
     parametrized_circuit: Circuit,
     estimation_preprocessors: List[EstimationPreprocessor] = None,
-    symbols_sort_key: Callable[[sympy.Symbol], Any] = str,
+    symbols_sort_key: SymbolsSortKey = str,
 ) -> EstimationTasksFactory:
     """Creates a EstimationTasksFactory object that can be used to create
     estimation tasks that returns the estimated expectation value of the input
@@ -424,7 +425,10 @@ def expectation_value_estimation_tasks_factory(
         estimation_preprocessors: A list of callable functions used to create the
             estimation tasks. Each function must adhere to the EstimationPreprocessor
             protocol.
-
+        symbols_sort_key: key defining ordering on parametrized_circuits free symbols.
+            If s1,...,sN are all free symbols in parametrized_circuit, and cost function
+            is called with `parameters` then the following binding occurs:
+            parameters[i] -> sorted([s1,...,sN], key=symbols_sort_key)[i]
     Returns:
         An EstimationTasksFactory object.
 
@@ -481,7 +485,10 @@ def substitution_based_estimation_tasks_factory(
 
     """
     return expectation_value_estimation_tasks_factory(
-        target_operator, ansatz.parametrized_circuit, estimation_preprocessors
+        target_operator,
+        ansatz.parametrized_circuit,
+        estimation_preprocessors,
+        ansatz.symbols_sort_key,
     )
 
 

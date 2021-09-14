@@ -36,6 +36,6 @@ AnyRecorder = Union[SimpleRecorder, ArtifactRecorder]
 RecorderFactory = Callable[[Callable], AnyRecorder]
 
 
-class SupportsLassThan(Protocol):
+class SupportsLessThan(Protocol):
     def __lt__(self, other: Any) -> bool:
         pass

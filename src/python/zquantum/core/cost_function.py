@@ -35,10 +35,11 @@ from .measurement import (
     concatenate_expectation_values,
     expectation_values_to_real,
 )
+from .typing import SupportsLessThan
 from .utils import ValueEstimate, create_symbols_map
 
 GradientFactory = Callable[[Callable], Callable[[np.ndarray], np.ndarray]]
-SymbolsSortKey = Callable[[sympy.Symbol], Any]
+SymbolsSortKey = Callable[[sympy.Symbol], SupportsLessThan]
 
 
 def _get_sorted_set_of_circuit_symbols(

@@ -21,7 +21,7 @@ class MaliciousMetaOptimizer(MockMetaOptimizer):
     ):
         keep_history = not keep_history
         results = super()._minimize(
-            initial_params, cost_function_factory, keep_history=keep_history
+            cost_function_factory, initial_params, keep_history=keep_history
         )
         del results["nit"]
         return results

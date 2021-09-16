@@ -15,8 +15,8 @@ from zquantum.core.interfaces.optimizer_test import META_OPTIMIZER_CONTRACTS
 class MaliciousMetaOptimizer(MockMetaOptimizer):
     def _minimize(
         self,
-        initial_params: np.ndarray,
         cost_function_factory: Callable[[int], CostFunction],
+        initial_params: np.ndarray,
         keep_history: bool = False,
     ):
         keep_history = not keep_history

@@ -17,7 +17,7 @@ from .ansatz import Ansatz
 from .ansatz_utils import ansatz_property
 from .backend import QuantumBackend
 from .optimizer import (
-    MetaOptimizer,
+    NestedOptimizer,
     Optimizer,
     construct_history_info,
     extend_histories,
@@ -61,10 +61,10 @@ def mock_cost_function(parameters: np.ndarray):
     return np.sum(parameters ** 2)
 
 
-class MockMetaOptimizer(MetaOptimizer):
+class MockNestedOptimizer(NestedOptimizer):
     """
     As most mock objects this implementation does not make much sense in itself,
-    however it's an example of how a MetaOptimizer could be implemented.
+    however it's an example of how a NestedOptimizer could be implemented.
 
     """
 
@@ -102,7 +102,7 @@ class MockMetaOptimizer(MetaOptimizer):
                 # and repeats optimization with the longer params vector.
                 current_params = np.append(current_params, 1)
 
-            # Cost function changes with every iteration of MetaOptimizer
+            # Cost function changes with every iteration of NestedOptimizer
             # because it's dependent on iteration number
             cost_function = cost_function_factory(i)
             if keep_history:

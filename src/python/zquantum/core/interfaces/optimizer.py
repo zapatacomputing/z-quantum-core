@@ -121,14 +121,14 @@ def extend_histories(
     return updated_histories
 
 
-class MetaOptimizer(ABC):
+class NestedOptimizer(ABC):
     """
     Optimizers that modify cost function throughout optimization.
     An example of such optimizer could be on that freezes certain
     parameters during every iteration or adds new layers of
     the underlying circuit (so called layer-by-layer optimization).
 
-    See MockMetaOptimizer in zquantum.core.interfaces.mock_objects for an example.
+    See MockNestedOptimizer in zquantum.core.interfaces.mock_objects for an example.
 
     Args:
         inner_optimizer: Optimizer object used in the inner optimization loop.

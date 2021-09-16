@@ -11,7 +11,7 @@ import numpy as np
 import pytest
 from zquantum.core.interfaces.cost_function import CostFunction
 from zquantum.core.interfaces.functions import FunctionWithGradient
-from zquantum.core.interfaces.optimizer import MetaOptimizer, Optimizer
+from zquantum.core.interfaces.optimizer import NestedOptimizer, Optimizer
 
 from ..gradients import finite_differences_gradient
 from ..history.recorder import recorder
@@ -177,22 +177,22 @@ class OptimizerTests(object):
         assert result.history == []
 
 
-"""Contracts for instances of the MetaOptimizer base class that can be used in
+"""Contracts for instances of the NestedOptimizer base class that can be used in
 other projects.
 
 Usage:
 
-    from zquantum.core.interfaces.optimizer_test import META_OPTIMIZER_CONTRACTS
+    from zquantum.core.interfaces.optimizer_test import NESTED_OPTIMIZER_CONTRACTS
 
-    @pytest.mark.parametrize("contract", META_OPTIMIZER_CONTRACTS)
-    def test_metaoptimizer_contract(contract):
-        optimizer = MockMetaOptimizer(inner_optimizer=MockOptimizer(), n_iters=5)
+    @pytest.mark.parametrize("contract", NESTED_OPTIMIZER_CONTRACTS)
+    def test_nestedoptimizer_contract(contract):
+        optimizer = MockNestedOptimizer(inner_optimizer=MockOptimizer(), n_iters=5)
         assert contract(optimizer)
 """
 
 
-def _validate_meta_optimizer_records_history_if_keep_history_is_true(
-    optimizer: Union[Optimizer, MetaOptimizer],
+def _validate_nested_optimizer_records_history_if_keep_history_is_true(
+    optimizer: Union[Optimizer, NestedOptimizer],
     cost_function_factory: Union[CostFunction, Callable[..., CostFunction]],
     initial_params: np.ndarray,
 ):
@@ -202,8 +202,8 @@ def _validate_meta_optimizer_records_history_if_keep_history_is_true(
     return len(result.history) != 0
 
 
-def _validate_meta_optimizer_records_gradient_history_if_keep_history_is_true(
-    optimizer: Union[Optimizer, MetaOptimizer],
+def _validate_nested_optimizer_records_gradient_history_if_keep_history_is_true(
+    optimizer: Union[Optimizer, NestedOptimizer],
     cost_function_factory_with_gradients: Union[
         CostFunction, Callable[..., CostFunction]
     ],
@@ -215,8 +215,8 @@ def _validate_meta_optimizer_records_gradient_history_if_keep_history_is_true(
     return hasattr(result, "gradient_history")
 
 
-def _validate_meta_optimizer_does_not_record_history_if_keep_history_is_false(
-    optimizer: Union[Optimizer, MetaOptimizer],
+def _validate_nested_optimizer_does_not_record_history_if_keep_history_is_false(
+    optimizer: Union[Optimizer, NestedOptimizer],
     cost_function_factory: Union[CostFunction, Callable[..., CostFunction]],
     initial_params: np.ndarray,
 ):
@@ -226,8 +226,8 @@ def _validate_meta_optimizer_does_not_record_history_if_keep_history_is_false(
     return len(result.history) == 0
 
 
-def _validate_meta_optimizer_does_not_record_history_by_default(
-    optimizer: Union[Optimizer, MetaOptimizer],
+def _validate_nested_optimizer_does_not_record_history_by_default(
+    optimizer: Union[Optimizer, NestedOptimizer],
     cost_function_factory_with_gradients: Union[
         CostFunction, Callable[..., CostFunction]
     ],
@@ -237,8 +237,8 @@ def _validate_meta_optimizer_does_not_record_history_by_default(
     return result.history == []
 
 
-def _validate_meta_optimizer_returns_all_the_mandatory_fields_in_results(
-    optimizer: Union[Optimizer, MetaOptimizer],
+def _validate_nested_optimizer_returns_all_the_mandatory_fields_in_results(
+    optimizer: Union[Optimizer, NestedOptimizer],
     cost_function_factory: Union[CostFunction, Callable[..., CostFunction]],
     initial_params: np.ndarray,
 ):
@@ -246,10 +246,10 @@ def _validate_meta_optimizer_returns_all_the_mandatory_fields_in_results(
     return all(field in result for field in MANDATORY_OPTIMIZATION_RESULT_FIELDS)
 
 
-META_OPTIMIZER_CONTRACTS = [
-    _validate_meta_optimizer_records_history_if_keep_history_is_true,
-    _validate_meta_optimizer_records_gradient_history_if_keep_history_is_true,
-    _validate_meta_optimizer_does_not_record_history_if_keep_history_is_false,
-    _validate_meta_optimizer_does_not_record_history_by_default,
-    _validate_meta_optimizer_returns_all_the_mandatory_fields_in_results,
+NESTED_OPTIMIZER_CONTRACTS = [
+    _validate_nested_optimizer_records_history_if_keep_history_is_true,
+    _validate_nested_optimizer_records_gradient_history_if_keep_history_is_true,
+    _validate_nested_optimizer_does_not_record_history_if_keep_history_is_false,
+    _validate_nested_optimizer_does_not_record_history_by_default,
+    _validate_nested_optimizer_returns_all_the_mandatory_fields_in_results,
 ]

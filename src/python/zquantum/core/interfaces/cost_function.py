@@ -19,24 +19,13 @@ class _CostFunction(Protocol):
         """Compute  value of the cost function for given parameters."""
         ...
 
+
 CostFunction = Union[
     _CostFunction,
     CallableWithGradient,
     CallableStoringArtifacts,
     CallableWithGradientStoringArtifacts,
 ]
-
-
-class EstimationTasksFactory(Protocol):
-    """Factory from producing estimation tasks from R^n vectors.
-
-    For instance, this can be used with ansatzes where produced estimation tasks
-    are evaluating circuit.
-    """
-
-    @abc.abstractmethod
-    def __call__(self, parameters: np.ndarray) -> List[EstimationTask]:
-        """Produce estimation tasks for given parameters."""
 
 
 class ParameterPreprocessor(Protocol):

@@ -150,11 +150,12 @@ class MetaOptimizer(ABC):
     @property
     @abstractmethod
     def inner_optimizer(self) -> Optimizer:
-        pass
+        """Inner optimizer used by this optimizer."""
 
     @property
     @abstractmethod
     def recorder(self) -> RecorderFactory:
+        """Factory for creating recorders of functions being minimized."""
         return _recorder
 
     def minimize(
@@ -186,4 +187,3 @@ class MetaOptimizer(ABC):
         Args:
             Same as for minimize.
         """
-        raise NotImplementedError

@@ -6,7 +6,6 @@ from openfermion.linalg import (
     jw_get_ground_state_at_particle_number as _jw_get_ground_state_at_particle_number,
 )
 from openfermion.linalg import qubit_operator_sparse
-from pyquil.wavefunction import Wavefunction
 from zquantum.core.circuits import Circuit, circuit_from_dict, load_circuit
 from zquantum.core.estimation import estimate_expectation_values_by_averaging
 from zquantum.core.interfaces.backend import QuantumBackend
@@ -31,6 +30,7 @@ from zquantum.core.openfermion import (
 )
 from zquantum.core.typing import Specs
 from zquantum.core.utils import ValueEstimate, create_object, save_value_estimate
+from zquantum.core.wavefunction import Wavefunction
 
 
 def get_expectation_values_for_qubit_operator(

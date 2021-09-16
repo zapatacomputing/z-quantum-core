@@ -1,6 +1,7 @@
 """Types commonly encountered in zquantum repositories."""
+from abc import abstractmethod
 from os import PathLike
-from typing import Callable, Dict, Union
+from typing import Any, Callable, Dict, Union
 
 from typing_extensions import Protocol
 
@@ -33,3 +34,8 @@ Specs = Union[str, Dict]
 
 AnyRecorder = Union[SimpleRecorder, ArtifactRecorder]
 RecorderFactory = Callable[[Callable], AnyRecorder]
+
+
+class SupportsLessThan(Protocol):
+    def __lt__(self, other: Any) -> bool:
+        """Return result of comparison self < other."""

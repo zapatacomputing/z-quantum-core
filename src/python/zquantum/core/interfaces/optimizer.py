@@ -109,7 +109,9 @@ def construct_history_info(
     return histories
 
 
-def extend_histories(cost_function: CostFunction, histories: bool) -> Dict[str, List]:
+def extend_histories(
+    cost_function: CostFunction, histories: Dict[str, List]
+) -> Dict[str, List]:
     new_histories = construct_history_info(cost_function, True)
     updated_histories = {"history": histories["history"] + new_histories["history"]}
     if hasattr(cost_function, "gradient"):
@@ -148,7 +150,7 @@ class MetaOptimizer(ABC):
     @property
     @abstractmethod
     def inner_optimizer(self) -> Optimizer:
-        return self._inner_optimizer
+        pass
 
     @property
     @abstractmethod

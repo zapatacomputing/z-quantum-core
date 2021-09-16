@@ -52,7 +52,7 @@ class EstimateExpectationValues(Protocol):
     def __call__(
         self, backend: QuantumBackend, estimation_tasks: List[EstimationTask]
     ) -> List[ExpectationValues]:
-        ...
+        """Estimate expectation values using given backend."""
 
 
 class EstimationTasksFactory(Protocol):
@@ -64,4 +64,3 @@ class EstimationTasksFactory(Protocol):
 
     def __call__(self, parameters: np.ndarray) -> List[EstimationTask]:
         """Produce estimation tasks for given parameters."""
-        ...

@@ -197,7 +197,7 @@ def _validate_meta_optimizer_records_history_if_keep_history_is_true(
     initial_params: np.ndarray,
 ):
     result = optimizer.minimize(
-        initial_params, cost_function_factory, keep_history=True
+        cost_function_factory, initial_params, keep_history=True
     )
     return len(result.history) != 0
 
@@ -210,7 +210,7 @@ def _validate_meta_optimizer_records_gradient_history_if_keep_history_is_true(
     initial_params: np.ndarray,
 ):
     result = optimizer.minimize(
-        initial_params, cost_function_factory_with_gradients, keep_history=True
+        cost_function_factory_with_gradients, initial_params, keep_history=True
     )
     return hasattr(result, "gradient_history")
 
@@ -221,7 +221,7 @@ def _validate_meta_optimizer_does_not_record_history_if_keep_history_is_false(
     initial_params: np.ndarray,
 ):
     result = optimizer.minimize(
-        initial_params, cost_function_factory, keep_history=False
+        cost_function_factory, initial_params, keep_history=False
     )
     return len(result.history) == 0
 
@@ -233,7 +233,7 @@ def _validate_meta_optimizer_does_not_record_history_by_default(
     ],
     initial_params: np.ndarray,
 ):
-    result = optimizer.minimize(initial_params, cost_function_factory_with_gradients)
+    result = optimizer.minimize(cost_function_factory_with_gradients, initial_params)
     return result.history == []
 
 
@@ -242,7 +242,7 @@ def _validate_meta_optimizer_returns_all_the_mandatory_fields_in_results(
     cost_function_factory: Union[CostFunction, Callable[..., CostFunction]],
     initial_params: np.ndarray,
 ):
-    result = optimizer.minimize(initial_params, cost_function_factory)
+    result = optimizer.minimize(cost_function_factory, initial_params)
     return all(field in result for field in MANDATORY_OPTIMIZATION_RESULT_FIELDS)
 
 

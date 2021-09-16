@@ -225,6 +225,7 @@ class AnsatzBasedCostFunction:
         parameter_precision: Optional[float] = None,
         parameter_precision_seed: Optional[int] = None,
     ):
+        self.ansatz = ansatz
         self.backend = backend
         self.fixed_parameters = fixed_parameters
         self.parameter_precision = parameter_precision
@@ -242,14 +243,16 @@ class AnsatzBasedCostFunction:
         self.estimation_tasks = [
             EstimationTask(
                 operator=target_operator,
-                circuit=ansatz.parametrized_circuit,
+                # circuit=ansatz.parametrized_circuit,
+                circuit=None,                
                 number_of_shots=None,
             )
         ]
-        for estimation_preprocessor in estimation_preprocessors:
-            self.estimation_tasks = estimation_preprocessor(self.estimation_tasks)
+        
+        # for estimation_preprocessor in estimation_preprocessors:
+        #     self.estimation_tasks = estimation_preprocessor(self.estimation_tasks)
 
-        self.circuit_symbols = _get_sorted_set_of_circuit_symbols(self.estimation_tasks)
+        # self.circuit_symbols = _get_sorted_set_of_circuit_symbols(self.estimation_tasks)
 
     def __call__(self, parameters: np.ndarray) -> ValueEstimate:
         """Evaluates the value of the cost function for given parameters.
@@ -270,16 +273,29 @@ class AnsatzBasedCostFunction:
             )
             full_parameters += noise_array
 
-        symbols_map = create_symbols_map(self.circuit_symbols, full_parameters)
-        estimation_tasks = evaluate_estimation_circuits(
-            self.estimation_tasks, [symbols_map for _ in self.estimation_tasks]
-        )
+        # symbols_map = create_symbols_map(self.circuit_symbols, full_parameters)
+        # estimation_tasks = evaluate_estimation_circuits(
+        #     self.estimation_tasks, [symbols_map for _ in self.estimation_tasks]
+        # )
+        
+        estimation_tasks = [
+            EstimationTask(
+                operator=estimation_task.operator,
+                circuit=self.ansatz._generate_circuit(full_parameters),
+                number_of_shots=estimation_task.number_of_shots,
+            )
+            for estimation_task in self.estimation_tasks
+        ]
+
         expectation_values_list = self.estimation_method(self.backend, estimation_tasks)
         combined_expectation_values = expectation_values_to_real(
             concatenate_expectation_values(expectation_values_list)
         )
 
-        return sum_expectation_values(combined_expectation_values)
+        res = sum_expectation_values(combined_expectation_values)
+
+        print(full_parameters, res)
+        return res
 
 
 def fix_parameters(fixed_parameters: np.ndarray) -> ParameterPreprocessor:

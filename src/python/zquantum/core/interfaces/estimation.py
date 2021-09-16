@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from typing import List, Optional
 
+import numpy as np
 from openfermion import SymbolicOperator
 from typing_extensions import Protocol
 
@@ -32,7 +33,7 @@ class EstimationPreprocessor(Protocol):
     """
 
     def __call__(self, estimation_tasks: List[EstimationTask]) -> List[EstimationTask]:
-        pass
+        ...
 
 
 class EstimateExpectationValues(Protocol):
@@ -51,4 +52,16 @@ class EstimateExpectationValues(Protocol):
     def __call__(
         self, backend: QuantumBackend, estimation_tasks: List[EstimationTask]
     ) -> List[ExpectationValues]:
-        pass
+        ...
+
+
+class EstimationTasksFactory(Protocol):
+    """Factory from producing estimation tasks from R^n vectors.
+
+    For instance, this can be used with ansatzes where produced estimation tasks
+    are evaluating circuit.
+    """
+
+    def __call__(self, parameters: np.ndarray) -> List[EstimationTask]:
+        """Produce estimation tasks for given parameters."""
+        ...

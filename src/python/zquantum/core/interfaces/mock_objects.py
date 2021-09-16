@@ -1,19 +1,28 @@
 import random
+from collections import defaultdict
 from typing import Callable, Optional
 
 import numpy as np
 import sympy
 from overrides import overrides
+from zquantum.core.history.recorder import recorder as _recorder
 from zquantum.core.interfaces.cost_function import CostFunction
 
 from ..circuits import RX, Circuit
 from ..measurement import Measurements
 from ..symbolic_simulator import SymbolicSimulator
+from ..typing import RecorderFactory
 from ..utils import create_symbols_map
 from .ansatz import Ansatz
 from .ansatz_utils import ansatz_property
 from .backend import QuantumBackend
-from .optimizer import MetaOptimizer, Optimizer, optimization_result
+from .optimizer import (
+    MetaOptimizer,
+    Optimizer,
+    construct_history_info,
+    extend_histories,
+    optimization_result,
+)
 
 
 class MockQuantumBackend(QuantumBackend):
@@ -43,7 +52,8 @@ class MockOptimizer(Optimizer):
         return optimization_result(
             opt_value=cost_function(new_parameters),
             opt_params=new_parameters,
-            history=[],
+            nfev=1,
+            **construct_history_info(cost_function, keep_history),
         )
 
 
@@ -52,38 +62,66 @@ def mock_cost_function(parameters: np.ndarray):
 
 
 class MockMetaOptimizer(MetaOptimizer):
+    """
+    As most mock objects this implementation does not make much sense in itself,
+    however it's an example of how a MetaOptimizer could be implemented.
+
+    """
+
+    @property
+    def inner_optimizer(self) -> Optimizer:
+        return self._inner_optimizer
+
+    @property
+    def recorder(self) -> RecorderFactory:
+        return self._recorder
+
     def __init__(
         self,
         inner_optimizer: Optimizer,
-        cost_function_factory: Callable[[int], CostFunction],
         n_iters: int,
+        recorder: RecorderFactory = _recorder,
     ):
-        super().__init__(inner_optimizer, cost_function_factory)
+        self._inner_optimizer = inner_optimizer
         self.n_iters = n_iters
+        self._recorder = recorder
 
-    def minimize(
+    def _minimize(
         self,
         initial_params: np.ndarray,
+        cost_function_factory: Callable[[int], CostFunction],
         keep_history: bool = False,
     ):
+        histories = defaultdict(list)
+        histories["history"] = []
+        nfev = 0
+        current_params = initial_params
         for i in range(self.n_iters):
             if i != 0:
-                initial_params = opt_params
-            cost_function = self.cost_function_factory(i)
-            opt_result = self.inner_optimizer.minimize(cost_function, initial_params)
-            opt_params: np.ndarray = opt_result.opt_params
+                # Increase the length of params every iteration
+                # and repeats optimization with the longer params vector.
+                current_params = np.append(current_params, 1)
 
+            # Cost function changes with every iteration of MetaOptimizer
+            # because it's dependent on iteration number
+            cost_function = cost_function_factory(i)
+            if keep_history:
+                cost_function = self.recorder(cost_function)
+            opt_result = self.inner_optimizer.minimize(cost_function, initial_params)
+            nfev += opt_result.nfev
+            current_params = opt_result.opt_params
+            if keep_history:
+                histories = extend_histories(cost_function, histories)
         return optimization_result(
-            opt_value=opt_result.opt_value, opt_params=opt_params
+            opt_value=opt_result.opt_value,
+            opt_params=current_params,
+            nit=self.n_iters,
+            nfev=nfev,
+            **histories,
         )
 
 
-def mock_cost_function_factory():
-    return mock_cost_function
-
-
 class MockAnsatz(Ansatz):
-
     supports_parametrized_circuits = True
     problem_size = ansatz_property("problem_size")
 

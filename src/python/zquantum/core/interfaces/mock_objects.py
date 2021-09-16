@@ -1,6 +1,6 @@
 import random
 from collections import defaultdict
-from typing import Callable, Optional
+from typing import Callable, Dict, List, Optional
 
 import numpy as np
 import sympy
@@ -88,11 +88,11 @@ class MockMetaOptimizer(MetaOptimizer):
 
     def _minimize(
         self,
-        initial_params: np.ndarray,
         cost_function_factory: Callable[[int], CostFunction],
+        initial_params: np.ndarray,
         keep_history: bool = False,
     ):
-        histories = defaultdict(list)
+        histories: Dict[str, List] = defaultdict(list)
         histories["history"] = []
         nfev = 0
         current_params = initial_params

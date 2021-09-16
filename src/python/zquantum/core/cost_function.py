@@ -14,15 +14,12 @@ from .gradients import finite_differences_gradient
 from .interfaces.ansatz import Ansatz
 from .interfaces.ansatz_utils import combine_ansatz_params
 from .interfaces.backend import QuantumBackend
-from .interfaces.cost_function import (
-    CostFunction,
-    EstimationTasksFactory,
-    ParameterPreprocessor,
-)
+from .interfaces.cost_function import CostFunction, ParameterPreprocessor
 from .interfaces.estimation import (
     EstimateExpectationValues,
     EstimationPreprocessor,
     EstimationTask,
+    EstimationTasksFactory,
 )
 from .interfaces.functions import (
     FunctionWithGradient,

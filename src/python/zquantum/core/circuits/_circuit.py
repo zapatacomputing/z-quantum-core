@@ -1,7 +1,6 @@
 import operator
 from functools import reduce, singledispatch
 from typing import Any, Dict, Iterable, List, Optional, Union
-from warnings import warn
 
 import numpy as np
 import sympy

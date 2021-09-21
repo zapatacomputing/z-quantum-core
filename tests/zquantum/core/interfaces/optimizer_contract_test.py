@@ -1,6 +1,7 @@
 from typing import Callable
 
 import numpy as np
+import pytest
 
 from zquantum.core.interfaces.cost_function import CostFunction
 from zquantum.core.interfaces.mock_objects import (
@@ -39,15 +40,15 @@ def mock_cost_function_factory(iteration_id: int):
     return modified_cost_function
 
 
-def test_validate_contracts():
-    for contract in NESTED_OPTIMIZER_CONTRACTS:
-        assert contract(
-            _good_nested_optimizer,
-            mock_cost_function_factory,
-            np.array([2]),
-        )
-        assert not contract(
-            _malicious_nested_optimizer,
-            mock_cost_function_factory,
-            np.array([2]),
-        )
+@pytest.mark.parametrize("contract", NESTED_OPTIMIZER_CONTRACTS)
+def test_validate_contracts(contract):
+    assert contract(
+        _good_nested_optimizer,
+        mock_cost_function_factory,
+        np.array([2]),
+    )
+    assert not contract(
+        _malicious_nested_optimizer,
+        mock_cost_function_factory,
+        np.array([2]),
+    )

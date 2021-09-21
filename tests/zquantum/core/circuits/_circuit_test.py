@@ -55,6 +55,11 @@ def test_creating_circuit_has_correct_operations():
     assert circuit.operations == list(EXAMPLE_OPERATIONS)
 
 
+def test_creating_circuit_with_float_n_qubits_fails():
+    with pytest.raises(ValueError):
+        Circuit(n_qubits=1.483)
+
+
 @pytest.mark.parametrize(
     "circuit",
     [

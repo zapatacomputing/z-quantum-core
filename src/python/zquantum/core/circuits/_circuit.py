@@ -39,6 +39,10 @@ class Circuit:
         n_qubits: Optional[int] = None,
     ):
         self._operations = list(operations) if operations is not None else []
+
+        if n_qubits and not isinstance(n_qubits, int):
+            raise ValueError("n_qubits must be an integer.")
+
         self._n_qubits = (
             n_qubits
             if n_qubits is not None

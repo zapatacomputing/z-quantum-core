@@ -1,6 +1,7 @@
 import operator
 from functools import reduce, singledispatch
 from typing import Any, Dict, Iterable, List, Optional, Union
+from warnings import warn
 
 import numpy as np
 import sympy
@@ -40,14 +41,16 @@ class Circuit:
     ):
         self._operations = list(operations) if operations is not None else []
 
-        if n_qubits and not isinstance(n_qubits, int):
-            raise ValueError("n_qubits must be an integer.")
+        if n_qubits:
+            if n_qubits < 0.0:
+                raise ValueError(f"n_qubits must be positive. Got {n_qubits}.")
+            if not isinstance(n_qubits, int):
+                warn(f"Non-integer value {n_qubits} passed. Will be cast to integer")
+                n_qubits = int(n_qubits)
 
-        self._n_qubits = (
-            n_qubits
-            if n_qubits is not None
-            else _circuit_size_by_operations(self._operations)
-        )
+            self._n_qubits = n_qubits
+        else:
+            self._n_qubits = _circuit_size_by_operations(self._operations)
 
     @property
     def operations(self):

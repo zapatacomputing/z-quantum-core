@@ -50,14 +50,22 @@ EXAMPLE_OPERATIONS = tuple(
 )
 
 
-def test_creating_circuit_has_correct_operations():
-    circuit = Circuit(operations=EXAMPLE_OPERATIONS)
-    assert circuit.operations == list(EXAMPLE_OPERATIONS)
+class TestInitialization:
+    def test_creating_circuit_has_correct_operations(self):
+        circuit = Circuit(operations=EXAMPLE_OPERATIONS)
+        assert circuit.operations == list(EXAMPLE_OPERATIONS)
 
+    @pytest.mark.parametrize("n_qubits", [-1.3523, -2])
+    def test_creating_circuit_with_negative_n_qubits_fails(self, n_qubits):
+        with pytest.raises(ValueError):
+            Circuit(n_qubits=n_qubits)
 
-def test_creating_circuit_with_float_n_qubits_fails():
-    with pytest.raises(ValueError):
-        Circuit(n_qubits=1.483)
+    @pytest.mark.parametrize("n_qubits", [1.3523, 2.292])
+    def test_creating_circuit_with_float_n_qubits_warns(self, n_qubits):
+        with pytest.warns(UserWarning):
+            circuit = Circuit(n_qubits=n_qubits)
+
+            assert circuit.n_qubits == int(n_qubits)
 
 
 @pytest.mark.parametrize(

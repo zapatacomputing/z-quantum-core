@@ -204,13 +204,17 @@ def _validate_nested_optimizer_records_history_if_keep_history_is_true(
 
 def _validate_nested_optimizer_records_gradient_history_if_keep_history_is_true(
     optimizer: Union[Optimizer, NestedOptimizer],
-    cost_function_factory_with_gradients: Union[
-        CostFunction, Callable[..., CostFunction]
-    ],
+    cost_function_factory: Union[CostFunction, Callable[..., CostFunction]],
     initial_params: np.ndarray,
 ):
+    def cost_function_with_gradients_factory(*args, **kwargs):
+        cost_function = cost_function_factory(*args, **kwargs)
+        return FunctionWithGradient(
+            cost_function, finite_differences_gradient(cost_function)
+        )
+
     result = optimizer.minimize(
-        cost_function_factory_with_gradients, initial_params, keep_history=True
+        cost_function_with_gradients_factory, initial_params, keep_history=True
     )
     return hasattr(result, "gradient_history")
 
@@ -228,12 +232,11 @@ def _validate_nested_optimizer_does_not_record_history_if_keep_history_is_false(
 
 def _validate_nested_optimizer_does_not_record_history_by_default(
     optimizer: Union[Optimizer, NestedOptimizer],
-    cost_function_factory_with_gradients: Union[
-        CostFunction, Callable[..., CostFunction]
-    ],
+    cost_function_factory: Union[CostFunction, Callable[..., CostFunction]],
     initial_params: np.ndarray,
 ):
-    result = optimizer.minimize(cost_function_factory_with_gradients, initial_params)
+
+    result = optimizer.minimize(cost_function_factory, initial_params)
     return result.history == []
 
 

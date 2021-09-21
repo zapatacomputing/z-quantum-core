@@ -1,9 +1,8 @@
-from typing import Callable, List
+from typing import Callable
 
 import numpy as np
-from zquantum.core.gradients import finite_differences_gradient
+import pytest
 from zquantum.core.interfaces.cost_function import CostFunction
-from zquantum.core.interfaces.functions import FunctionWithGradient
 from zquantum.core.interfaces.mock_objects import (
     MockNestedOptimizer,
     MockOptimizer,
@@ -40,73 +39,14 @@ def mock_cost_function_factory(iteration_id: int):
     return modified_cost_function
 
 
-def mock_cost_function_factory_with_gradient(iteration_id: int):
-    cost_function = mock_cost_function_factory(iteration_id)
-
-    return FunctionWithGradient(
-        cost_function, finite_differences_gradient(cost_function)
-    )
-
-
-def test_validate_nested_optimizer_records_history_if_keep_history_is_true():
-    assert NESTED_OPTIMIZER_CONTRACTS[0](
+@pytest.mark.parametrize("contract", NESTED_OPTIMIZER_CONTRACTS)
+def test_validate_contracts(contract):
+    assert contract(
         _good_nested_optimizer,
         mock_cost_function_factory,
         np.array([2]),
     )
-    assert not NESTED_OPTIMIZER_CONTRACTS[0](
-        _malicious_nested_optimizer,
-        mock_cost_function_factory,
-        np.array([2]),
-    )
-
-
-def test_validate_nested_optimizer_records_gradient_history_if_keep_history_is_true():
-    assert NESTED_OPTIMIZER_CONTRACTS[1](
-        _good_nested_optimizer,
-        mock_cost_function_factory_with_gradient,
-        np.array([2]),
-    )
-    assert not NESTED_OPTIMIZER_CONTRACTS[1](
-        _malicious_nested_optimizer,
-        mock_cost_function_factory,
-        np.array([2]),
-    )
-
-
-def test_validate_nested_optimizer_does_not_record_history_if_keep_history_is_false():
-    assert NESTED_OPTIMIZER_CONTRACTS[2](
-        _good_nested_optimizer,
-        mock_cost_function_factory,
-        np.array([2]),
-    )
-    assert not NESTED_OPTIMIZER_CONTRACTS[2](
-        _malicious_nested_optimizer,
-        mock_cost_function_factory,
-        np.array([2]),
-    )
-
-
-def test_validate_nested_optimizer_does_not_record_history_by_default():
-    assert NESTED_OPTIMIZER_CONTRACTS[3](
-        _good_nested_optimizer,
-        mock_cost_function_factory,
-        np.array([2]),
-    )
-    assert not NESTED_OPTIMIZER_CONTRACTS[3](
-        _malicious_nested_optimizer,
-        mock_cost_function_factory,
-        np.array([2]),
-    )
-
-
-def test_validate_nested_optimizer_returns_all_the_mandatory_fields_in_results():
-    assert NESTED_OPTIMIZER_CONTRACTS[4](
-        _good_nested_optimizer,
-        mock_cost_function_factory,
-        np.array([2]),
-    )
-    assert not NESTED_OPTIMIZER_CONTRACTS[4](
+    assert not contract(
         _malicious_nested_optimizer,
         mock_cost_function_factory,
         np.array([2]),

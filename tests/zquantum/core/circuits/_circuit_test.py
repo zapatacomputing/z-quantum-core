@@ -61,11 +61,14 @@ class TestInitialization:
             Circuit(n_qubits=n_qubits)
 
     @pytest.mark.parametrize("n_qubits", [1.3523, 2.292])
-    def test_creating_circuit_with_float_n_qubits_warns(self, n_qubits):
-        with pytest.warns(UserWarning):
+    def test_creating_circuit_with_float_n_qubits_fails(self, n_qubits):
+        with pytest.raises(ValueError):
             circuit = Circuit(n_qubits=n_qubits)
 
             assert circuit.n_qubits == int(n_qubits)
+
+    def test_creating_circuit_with_float_integer_passes(self):
+        Circuit(n_qubits=5.0)
 
 
 @pytest.mark.parametrize(

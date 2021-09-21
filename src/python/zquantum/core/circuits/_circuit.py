@@ -42,11 +42,13 @@ class Circuit:
         self._operations = list(operations) if operations is not None else []
 
         if n_qubits:
-            if n_qubits < 0.0:
-                raise ValueError(f"n_qubits must be positive. Got {n_qubits}.")
-            if not isinstance(n_qubits, int):
-                warn(f"Non-integer value {n_qubits} passed. Will be cast to integer")
-                n_qubits = int(n_qubits)
+            cast_n_qubits = int(n_qubits)
+
+            if n_qubits != cast_n_qubits:
+                raise ValueError("Non-integer value passed.")
+
+            if cast_n_qubits <= 0:
+                raise ValueError("Non-positive value passed.")
 
             self._n_qubits = n_qubits
         else:

@@ -39,11 +39,19 @@ class Circuit:
         n_qubits: Optional[int] = None,
     ):
         self._operations = list(operations) if operations is not None else []
-        self._n_qubits = (
-            n_qubits
-            if n_qubits is not None
-            else _circuit_size_by_operations(self._operations)
-        )
+
+        if n_qubits:
+            cast_n_qubits = int(n_qubits)
+
+            if n_qubits != cast_n_qubits:
+                raise ValueError("Non-integer value passed.")
+
+            if cast_n_qubits <= 0:
+                raise ValueError("Non-positive value passed.")
+
+            self._n_qubits = n_qubits
+        else:
+            self._n_qubits = _circuit_size_by_operations(self._operations)
 
     @property
     def operations(self):

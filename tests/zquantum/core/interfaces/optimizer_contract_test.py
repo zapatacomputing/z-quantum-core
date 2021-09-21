@@ -2,7 +2,6 @@ from typing import Callable
 
 import numpy as np
 import pytest
-
 from zquantum.core.interfaces.cost_function import CostFunction
 from zquantum.core.interfaces.mock_objects import (
     MockNestedOptimizer,

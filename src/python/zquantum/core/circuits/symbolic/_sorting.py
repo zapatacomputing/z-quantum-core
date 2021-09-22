@@ -42,3 +42,13 @@ def natural_key_revlex(symbol):
     using natural_key_revlex will give beta_1 < theta_1 < beta_2 < theta_2.
     """
     return list(reversed(natural_key(symbol)))
+
+
+def natural_key_fixed_names_order(names_order):
+    symbol_weights = {name: i for i, name in enumerate(names_order)}
+
+    def _key(symbol):
+        name, index = symbol.name.split("_")
+        return int(index), symbol_weights[name]
+
+    return _key

@@ -45,6 +45,17 @@ def natural_key_revlex(symbol):
 
 
 def natural_key_fixed_names_order(names_order):
+    """Convert symbol to natural key but with custom ordering of names.
+
+    Consider a QAOA ansatz in which parameters are naturally ordered as:
+    gamma_0 < beta_0 < gamma_1 < beta_1 < ...
+
+    The above is an example of natural_key_fixed_names_order in which name 'gamma'
+    precedes name 'beta'.
+
+    Note that unlike natural_key and natural_key_revlex, this function returns
+    a key, i.e. it is a key factory.
+    """
     symbol_weights = {name: i for i, name in enumerate(names_order)}
 
     def _key(symbol):

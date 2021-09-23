@@ -6,7 +6,7 @@ import numpy as np
 import sympy
 from overrides import EnforceOverrides
 
-from ..circuits import Circuit
+from ..circuits import Circuit, natural_key_revlex
 from ..typing import SupportsLessThan
 from ..utils import create_symbols_map
 from .ansatz_utils import ansatz_property
@@ -93,7 +93,7 @@ class Ansatz(ABC, EnforceOverrides):
 
     @property
     def symbols_sort_key(self) -> SymbolsSortKey:
-        return str
+        return natural_key_revlex
 
     def _generate_circuit(self, params: Optional[np.ndarray] = None) -> Circuit:
         """Returns a circuit represention of the ansatz.

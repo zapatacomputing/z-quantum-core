@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
-from typing import Any, List, Optional, Sequence
+from itertools import groupby
+from typing import Any, Callable, Iterable, List, Optional, Sequence, Tuple
 
 import numpy as np
 from openfermion import IsingOperator, QubitOperator, SymbolicOperator
@@ -9,7 +10,7 @@ from ..bitstring_distribution import (
     BitstringDistribution,
     create_bitstring_distribution_from_probability_distribution,
 )
-from ..circuits import Circuit
+from ..circuits import Circuit, Operation
 from ..circuits.layouts import CircuitConnectivity
 from ..measurement import ExpectationValues, Measurements, expectation_values_to_real
 from ..openfermion import change_operator_type, get_expectation_value
@@ -106,6 +107,28 @@ class QuantumBackend(ABC):
         # Get the expectation values
         measurements = self.run_circuit_and_measure(circuit, n_samples)
         return measurements.get_distribution()
+
+
+def split_circuit(
+    circuit: Circuit, predicate: Callable[[Operation], bool]
+) -> Iterable[Tuple[bool, Circuit]]:
+    """Split circuit into subcircuits for which predicate on all operation is constant.
+
+    Args:
+        circuit: a circuit to be split
+        predicate: function assigning boolean value to each operation, its values
+          are used for grouping operations belonging to the same subcircuits.
+    Returns:
+        An iterable of tuples of the form (x, subcircuit) s.t.:
+        - predicate(operation) == x for every operation in subcircuit.operations
+        - for two consecutive tuples (x1, subcircuit1), (x2, subcircuit2)
+          x1 != x2 (i.e. consecutive chunks differ in the predicate value),
+        - operations in subcircuits follow the same order as in original circuit
+        - all subcircuits have the same number of qubits equal to `circuit.n_qubits`.
+    """
+    n_qubits = circuit.n_qubits
+    for predicate_value, operations in groupby(circuit.operations, predicate):
+        yield predicate_value, Circuit(operations, n_qubits=n_qubits)
 
 
 class QuantumSimulator(QuantumBackend):

@@ -97,7 +97,7 @@ def are_keys_binary_strings(input_dict: Dict) -> bool:
     Returns:
         bool: boolean variable indicating whether dict keys are binary strings or not.
     """
-    return all(not any(char not in "10" for char in key) for key in input_dict.keys())
+    return all(not any(char not in "".join((str(_) for _ in range(10))) for char in key) for key in input_dict.keys())
 
 
 def is_bitstring_distribution(input_dict: Dict) -> bool:

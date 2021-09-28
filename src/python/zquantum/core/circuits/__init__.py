@@ -151,3 +151,4 @@ from ._serde import (
 )
 from ._testing import create_random_circuit
 from ._wavefunction_operations import MultiPhaseOperation
+from .symbolic import natural_key, natural_key_revlex

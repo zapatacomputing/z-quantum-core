@@ -1,14 +1,17 @@
 import warnings
 from abc import ABC
-from typing import List, Optional, Sequence, Tuple
+from typing import Any, Callable, List, Optional, Sequence, Tuple
 
 import numpy as np
 import sympy
 from overrides import EnforceOverrides
 
-from ..circuits import Circuit
+from ..circuits import Circuit, natural_key_revlex
+from ..typing import SupportsLessThan
 from ..utils import create_symbols_map
 from .ansatz_utils import ansatz_property
+
+SymbolsSortKey = Callable[[sympy.Symbol], SupportsLessThan]
 
 
 class Ansatz(ABC, EnforceOverrides):
@@ -29,7 +32,12 @@ class Ansatz(ABC, EnforceOverrides):
                 representation of the ansatz. Might not be supported for given ansatz,
                 see supports_parametrized_circuits.
             supports_parametrized_circuits: a flag.
-
+            symbols_sort_key: a key used for defining natural ordering of free symbols
+                for this ansatz. This is used by `get_executable` circuit to map
+                position in parameter vector onto ansatz free symbols.
+                If s1, s2, ..., sN are free symbols in this ansatz and `parameters`
+                is N-dimensional vector passed to get_executable, then
+                parameters[i] -> sorted([s1,...,sN], key=symbols_sort_key)[i]
         """
         if number_of_layers < 0:
             raise ValueError("number_of_layers must be non-negative.")
@@ -74,12 +82,18 @@ class Ansatz(ABC, EnforceOverrides):
         if params is None:
             raise Exception("Parameters can't be None for executable circuit.")
         if self.supports_parametrized_circuits:
-            symbols = self.parametrized_circuit.free_symbols
+            symbols = sorted(
+                self.parametrized_circuit.free_symbols, key=self.symbols_sort_key
+            )
             symbols_map = create_symbols_map(symbols, params)
             executable_circuit = self.parametrized_circuit.bind(symbols_map)
             return executable_circuit
         else:
             return self._generate_circuit(params)
+
+    @property
+    def symbols_sort_key(self) -> SymbolsSortKey:
+        return natural_key_revlex
 
     def _generate_circuit(self, params: Optional[np.ndarray] = None) -> Circuit:
         """Returns a circuit represention of the ansatz.

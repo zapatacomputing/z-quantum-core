@@ -11,7 +11,6 @@ from scipy.optimize import OptimizeResult
 
 from .bitstring_distribution import BitstringDistribution, is_bitstring_distribution
 from .history.recorder import HistoryEntry, HistoryEntryWithArtifacts
-from .interfaces.optimizer import optimization_result
 from .typing import AnyPath, DumpTarget, LoadSource
 from .utils import (
     SCHEMA_VERSION,
@@ -70,7 +69,7 @@ class OrquestraDecoder(json.JSONDecoder):
 
     SCHEMA_MAP = {
         "zapata-v1-value_estimate": ValueEstimate.from_dict,
-        "zapata-v1-optimization_result": lambda obj: optimization_result(**obj),
+        "zapata-v1-optimization_result": lambda obj: OptimizeResult(**obj),
     }
 
     def __init__(self, *args, **kwargs):

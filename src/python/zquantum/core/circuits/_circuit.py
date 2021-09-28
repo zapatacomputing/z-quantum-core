@@ -5,7 +5,7 @@ from typing import Any, Dict, Iterable, List, Optional, Union
 import numpy as np
 import sympy
 
-from . import _gates
+from . import _gates, _operations
 
 
 def _circuit_size_by_operations(operations):
@@ -35,7 +35,7 @@ class Circuit:
 
     def __init__(
         self,
-        operations: Optional[Iterable[_gates.GateOperation]] = None,
+        operations: Optional[Iterable[_operations.Operation]] = None,
         n_qubits: Optional[int] = None,
     ):
         self._operations = list(operations) if operations is not None else []

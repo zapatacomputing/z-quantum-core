@@ -21,11 +21,11 @@ class TestCreatingUnitaryFromCircuit:
         [
             # Identity gates in some test cases below are used so that comparable
             # Cirq circuits have the same number of qubits as Zquantum ones.
-            (Circuit([RX(np.pi / 5)(0)]), 2),
-            (Circuit([RY(np.pi / 2)(0), RX(np.pi / 5)(0)]), 0),
+            (Circuit([RX(np.pi / 5)(0)]), 0),
+            (Circuit([RY(np.pi / 2)(0), RX(np.pi / 5)(0)]), 1),
             (
                 Circuit([I(1), I(2), I(3), I(4), RX(np.pi / 5)(0), XX(0.1)(5, 0)]),
-                3,
+                2,
             ),
             (
                 Circuit(
@@ -34,7 +34,7 @@ class TestCreatingUnitaryFromCircuit:
                         RZ(0.1 * np.pi).controlled(2)(0, 2, 1),
                     ]
                 ),
-                1,
+                3,
             ),
             (
                 Circuit([H(1), YY(0.1).controlled(1)(0, 1, 2), X(2), Y(3), Z(4)]),

@@ -10,7 +10,7 @@ from ..bitstring_distribution import (
     BitstringDistribution,
     create_bitstring_distribution_from_probability_distribution,
 )
-from ..circuits import Circuit, Operation
+from ..circuits import Circuit, GateOperation, Operation
 from ..circuits.layouts import CircuitConnectivity
 from ..measurement import ExpectationValues, Measurements, expectation_values_to_real
 from ..openfermion import change_operator_type, get_expectation_value
@@ -143,14 +143,51 @@ class QuantumSimulator(QuantumBackend):
         self.device_connectivity = device_connectivity
 
     @abstractmethod
+    def _get_wavefunction_from_native_circuit(
+        self, circuit: Circuit, initial_state=None
+    ) -> Wavefunction:
+        """Get wavefunction from circuit comprising only natively-supported operations.
+
+        Args:
+            circuit: circuit to simulate. Implementers of this function might assume
+              that this circuit comprises only natively-supported operations as decided
+              by self._is_supported predicate.
+            initial_state: amplitudes of the initial state. If `None`, implementers
+              should assume that the initial state is |0...0>, which typically does not
+              require any initialization.
+        Returns:
+            Wavefunction object encoding amplitudes of final state.
+        """
+
+    def is_natively_supported(self, operation: Operation) -> bool:
+        """Determine if given operation is natively supported by this Simulator.
+
+        This method will be used as a predicate in split_circuit function.
+        """
+        return isinstance(operation, GateOperation)
+
     def get_wavefunction(self, circuit: Circuit) -> Wavefunction:
         """Returns a wavefunction representing quantum state produced by a circuit
 
         Args:
             circuit: quantum circuit to be executed.
         """
-        self.number_of_circuits_run += 1
-        self.number_of_jobs_run += 1
+        state = np.zeros(2 ** circuit.n_qubits)
+        state[0] = 1
+        for is_supported, subcircuit in split_circuit(
+            circuit, self.is_natively_supported
+        ):
+            # Native subcircuits are passed through to the underlying simulator.
+            # They also count towards number of circuits and number of jobs run.
+            if is_supported:
+                self.number_of_circuits_run += 1
+                self.number_of_jobs_run += 1
+                state = self._get_wavefunction_from_native_circuit(subcircuit, state)
+            else:
+                for operation in subcircuit.operations:
+                    state = operation.apply(state)
+
+        return Wavefunction(state)
 
     def get_exact_expectation_values(
         self, circuit: Circuit, operator: SymbolicOperator

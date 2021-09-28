@@ -2,7 +2,7 @@ from typing import Any, Dict, Optional
 
 import numpy as np
 from sympy import Symbol
-from zquantum.core.circuits import Circuit
+from zquantum.core.circuits import Circuit, Operation
 from zquantum.core.circuits.layouts import CircuitConnectivity
 from zquantum.core.interfaces.backend import QuantumSimulator, flip_wavefunction
 from zquantum.core.measurement import Measurements, sample_from_wavefunction
@@ -45,12 +45,19 @@ class SymbolicSimulator(QuantumSimulator):
         bitstrings = sample_from_wavefunction(wavefunction, n_samples, self._seed)
         return Measurements(bitstrings)
 
-    def get_wavefunction(self, circuit: Circuit) -> Wavefunction:
-        super().get_wavefunction(circuit)
-        state = np.zeros(2 ** circuit.n_qubits)
-        state[0] = 1
+    def _get_wavefunction_from_native_circuit(
+        self, circuit: Circuit, initial_state=None
+    ) -> Wavefunction:
+        if initial_state is None:
+            state = np.zeros(2 ** circuit.n_qubits)
+            state[0] = 1
+        else:
+            state = initial_state
 
         for operation in circuit.operations:
             state = operation.apply(state)
 
         return flip_wavefunction(Wavefunction(state))
+
+    def is_natively_supported(self, operation: Operation) -> bool:
+        return True

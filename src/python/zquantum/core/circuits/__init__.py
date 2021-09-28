@@ -144,6 +144,7 @@ from ._gates import (
     MatrixFactoryGate,
 )
 from ._generators import add_ancilla_register, create_layer_of_gates
+from ._operations import Operation
 from ._serde import (
     circuit_from_dict,
     circuitset_from_dict,

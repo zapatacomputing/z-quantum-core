@@ -5,16 +5,27 @@ from zquantum.core.circuits import RX, RY, RZ, XX, XY, YY, Circuit, H, I, X, Y, 
 
 
 class TestCreatingUnitaryFromCircuit:
+    @pytest.fixture
+    def cirq_unitaries(self):
+        """
+        Note: We decided to go with file-based approach after extracting cirq
+        from z-quantum-core and not being able to use `export_to_cirq` anymore.
+        """
+        path_to_array = (
+            "/".join(__file__.split("/")[:-1]) + "/hardcoded_cirq_unitaries.npy"
+        )
+        return np.load(path_to_array, allow_pickle=True)
+
     @pytest.mark.parametrize(
-        "circuit, expected_unitary_filename",
+        "circuit, unitary_index",
         [
             # Identity gates in some test cases below are used so that comparable
             # Cirq circuits have the same number of qubits as Zquantum ones.
-            (Circuit([RX(np.pi / 5)(0)]), "rx_gate.txt"),
-            (Circuit([RY(np.pi / 2)(0), RX(np.pi / 5)(0)]), "ry_rx_gate.txt"),
+            (Circuit([RX(np.pi / 5)(0)]), 2),
+            (Circuit([RY(np.pi / 2)(0), RX(np.pi / 5)(0)]), 0),
             (
                 Circuit([I(1), I(2), I(3), I(4), RX(np.pi / 5)(0), XX(0.1)(5, 0)]),
-                "rx_xx_gate.txt",
+                3,
             ),
             (
                 Circuit(
@@ -23,35 +34,26 @@ class TestCreatingUnitaryFromCircuit:
                         RZ(0.1 * np.pi).controlled(2)(0, 2, 1),
                     ]
                 ),
-                "xy_rz_gate.txt",
+                1,
             ),
             (
                 Circuit([H(1), YY(0.1).controlled(1)(0, 1, 2), X(2), Y(3), Z(4)]),
-                "h_yy_x_y_z_gate.txt",
+                4,
             ),
         ],
     )
     def test_without_free_params_gives_the_same_result_as_cirq(
-        self, circuit, expected_unitary_filename
+        self, circuit, unitary_index, cirq_unitaries
     ):
         zquantum_unitary = circuit.to_unitary()
-
-        """
-        Note: We decided to go with file-based approach after extracting cirq
-        from z-quantum-core and not being able to use `export_to_cirq` anymore.
-        """
-        path_to_array = (
-            "/".join(__file__.split("/")[:-1])
-            + "/cirq_unitaries/"
-            + expected_unitary_filename
-        )
-        cirq_unitary = np.loadtxt(path_to_array, dtype=np.complex128)
 
         assert isinstance(
             zquantum_unitary, np.ndarray
         ), "Unitary constructed from non-parameterized circuit is not a numpy array."
 
-        np.testing.assert_array_almost_equal(zquantum_unitary, cirq_unitary)
+        np.testing.assert_array_almost_equal(
+            zquantum_unitary, cirq_unitaries[unitary_index]
+        )
 
     def test_commutes_with_parameter_substitution(self):
         theta, gamma = sympy.symbols("theta, gamma")

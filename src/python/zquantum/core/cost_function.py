@@ -1,3 +1,4 @@
+import warnings
 from typing import Any, Callable, Iterable, List, Optional, Union
 
 import numpy as np
@@ -13,15 +14,12 @@ from .gradients import finite_differences_gradient
 from .interfaces.ansatz import Ansatz
 from .interfaces.ansatz_utils import combine_ansatz_params
 from .interfaces.backend import QuantumBackend
-from .interfaces.cost_function import (
-    CostFunction,
-    EstimationTasksFactory,
-    ParameterPreprocessor,
-)
+from .interfaces.cost_function import CostFunction, ParameterPreprocessor
 from .interfaces.estimation import (
     EstimateExpectationValues,
     EstimationPreprocessor,
     EstimationTask,
+    EstimationTasksFactory,
 )
 from .interfaces.functions import (
     FunctionWithGradient,
@@ -34,24 +32,22 @@ from .measurement import (
     concatenate_expectation_values,
     expectation_values_to_real,
 )
+from .typing import SupportsLessThan
 from .utils import ValueEstimate, create_symbols_map
+
+GradientFactory = Callable[[Callable], Callable[[np.ndarray], np.ndarray]]
+SymbolsSortKey = Callable[[sympy.Symbol], SupportsLessThan]
 
 
 def _get_sorted_set_of_circuit_symbols(
-    estimation_tasks: List[EstimationTask],
+    estimation_tasks: List[EstimationTask], key: SymbolsSortKey = str
 ) -> List[sympy.Symbol]:
 
     return sorted(
         list(
-            set(
-                [
-                    param
-                    for task in estimation_tasks
-                    for param in task.circuit.free_symbols
-                ]
-            )
+            {param for task in estimation_tasks for param in task.circuit.free_symbols}
         ),
-        key=str,
+        key=key,
     )
 
 
@@ -68,6 +64,7 @@ def get_ground_state_cost_function(
     parameter_precision: Optional[float] = None,
     parameter_precision_seed: Optional[int] = None,
     gradient_function: Callable = finite_differences_gradient,
+    symbols_sort_key: SymbolsSortKey = str,
 ) -> Union[FunctionWithGradient, FunctionWithGradientStoringArtifacts]:
     """Returns a function that returns the estimated expectation value of the input
     target operator with respect to the state prepared by the parameterized quantum
@@ -90,10 +87,20 @@ def get_ground_state_cost_function(
         gradient_function: a function which returns a function used to compute the
             gradient of the cost function (see
             zquantum.core.gradients.finite_differences_gradient for reference)
-
+        symbols_sort_key: key defining ordering on parametrized_circuits free symbols.
+            If s1,...,sN are all free symbols in parametrized_circuit, and cost function
+            is called with `parameters` then the following binding occurs:
+            parameters[i] -> sorted([s1,...,sN], key=symbols_sort_key)[i]
     Returns:
         Callable
     """
+    warnings.warn(
+        DeprecationWarning(
+            """get_ground_state_cost_function is deprecated. Use create_cost_function with
+            expectation_value_estimation_tasks_factory instead.
+            """
+        )
+    )
     estimation_tasks = [
         EstimationTask(
             operator=target_operator,
@@ -108,7 +115,9 @@ def get_ground_state_cost_function(
     for estimation_preprocessor in estimation_preprocessors:
         estimation_tasks = estimation_preprocessor(estimation_tasks)
 
-    circuit_symbols = _get_sorted_set_of_circuit_symbols(estimation_tasks)
+    circuit_symbols = _get_sorted_set_of_circuit_symbols(
+        estimation_tasks, symbols_sort_key
+    )
 
     def ground_state_cost_function(
         parameters: np.ndarray, store_artifact: StoreArtifact = None
@@ -225,6 +234,12 @@ class AnsatzBasedCostFunction:
         parameter_precision: Optional[float] = None,
         parameter_precision_seed: Optional[int] = None,
     ):
+        warnings.warn(
+            DeprecationWarning(
+                """AnsatzBasedCostFunction is deprecated. Use create_cost_function
+                instead."""
+            )
+        )
         self.backend = backend
         self.fixed_parameters = fixed_parameters
         self.parameter_precision = parameter_precision
@@ -249,7 +264,9 @@ class AnsatzBasedCostFunction:
         for estimation_preprocessor in estimation_preprocessors:
             self.estimation_tasks = estimation_preprocessor(self.estimation_tasks)
 
-        self.circuit_symbols = _get_sorted_set_of_circuit_symbols(self.estimation_tasks)
+        self.circuit_symbols = _get_sorted_set_of_circuit_symbols(
+            self.estimation_tasks, ansatz.symbols_sort_key
+        )
 
     def __call__(self, parameters: np.ndarray) -> ValueEstimate:
         """Evaluates the value of the cost function for given parameters.
@@ -325,6 +342,7 @@ def create_cost_function(
     estimation_tasks_factory: EstimationTasksFactory,
     estimation_method: EstimateExpectationValues = _by_averaging,
     parameter_preprocessors: Iterable[ParameterPreprocessor] = None,
+    gradient_function: GradientFactory = finite_differences_gradient,
 ) -> CostFunction:
     """This function can be used to generate callable cost functions for parametric
     circuits. This function is the main entry to use other functions in this module.
@@ -338,6 +356,9 @@ def create_cost_function(
         parameter_preprocessors: a list of callable functions that are applied to
             parameters prior to estimation task evaluation. These functions have to
             adhere to the ParameterPreprocessor protocol.
+        gradient_function: a function which returns a function used to compute the
+            gradient of the cost function (see
+            zquantum.core.gradients.finite_differences_gradient for reference)
 
     Returns:
         A callable CostFunction object.
@@ -379,7 +400,62 @@ def create_cost_function(
 
         return sum_expectation_values(combined_expectation_values)
 
-    return _cost_function
+    return function_with_gradient(_cost_function, gradient_function(_cost_function))
+
+
+def expectation_value_estimation_tasks_factory(
+    target_operator: SymbolicOperator,
+    parametrized_circuit: Circuit,
+    estimation_preprocessors: List[EstimationPreprocessor] = None,
+    symbols_sort_key: SymbolsSortKey = str,
+) -> EstimationTasksFactory:
+    """Creates a EstimationTasksFactory object that can be used to create
+    estimation tasks that returns the estimated expectation value of the input
+    target operator with respect to the state prepared by the parameterized
+    quantum circuit when evaluated to the input parameters.
+
+    To be used with `create_cost_function` to create ground state cost functions.
+    See `create_cost_function` docstring for an example use case.
+
+    Args:
+        target_operator: operator to be evaluated
+        parametrized_circuit: parameterized circuit to prepare quantum states
+        estimation_preprocessors: A list of callable functions used to create the
+            estimation tasks. Each function must adhere to the EstimationPreprocessor
+            protocol.
+        symbols_sort_key: key defining ordering on parametrized_circuits free symbols.
+            If s1,...,sN are all free symbols in parametrized_circuit, and cost function
+            is called with `parameters` then the following binding occurs:
+            parameters[i] -> sorted([s1,...,sN], key=symbols_sort_key)[i]
+    Returns:
+        An EstimationTasksFactory object.
+
+    """
+    if estimation_preprocessors is None:
+        estimation_preprocessors = []
+
+    estimation_tasks = [
+        EstimationTask(
+            operator=target_operator,
+            circuit=parametrized_circuit,
+            number_of_shots=None,
+        )
+    ]
+
+    for preprocessor in estimation_preprocessors:
+        estimation_tasks = preprocessor(estimation_tasks)
+
+    circuit_symbols = _get_sorted_set_of_circuit_symbols(
+        estimation_tasks, symbols_sort_key
+    )
+
+    def _tasks_factory(parameters: np.ndarray) -> List[EstimationTask]:
+        symbols_map = create_symbols_map(circuit_symbols, parameters)
+        return evaluate_estimation_circuits(
+            estimation_tasks, [symbols_map for _ in estimation_tasks]
+        )
+
+    return _tasks_factory
 
 
 def substitution_based_estimation_tasks_factory(
@@ -406,29 +482,12 @@ def substitution_based_estimation_tasks_factory(
         An EstimationTasksFactory object.
 
     """
-    if estimation_preprocessors is None:
-        estimation_preprocessors = []
-
-    estimation_tasks = [
-        EstimationTask(
-            operator=target_operator,
-            circuit=ansatz.parametrized_circuit,
-            number_of_shots=None,
-        )
-    ]
-
-    for preprocessor in estimation_preprocessors:
-        estimation_tasks = preprocessor(estimation_tasks)
-
-    circuit_symbols = _get_sorted_set_of_circuit_symbols(estimation_tasks)
-
-    def _tasks_factory(parameters: np.ndarray) -> List[EstimationTask]:
-        symbols_map = create_symbols_map(circuit_symbols, parameters)
-        return evaluate_estimation_circuits(
-            estimation_tasks, [symbols_map for _ in estimation_tasks]
-        )
-
-    return _tasks_factory
+    return expectation_value_estimation_tasks_factory(
+        target_operator,
+        ansatz.parametrized_circuit,
+        estimation_preprocessors,
+        ansatz.symbols_sort_key,
+    )
 
 
 def dynamic_circuit_estimation_tasks_factory(

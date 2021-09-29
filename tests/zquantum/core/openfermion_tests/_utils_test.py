@@ -1,11 +1,8 @@
 import random
 import unittest
 
-import cirq
 import numpy as np
 import pkg_resources
-import pyquil
-from cirq import GridQubit, LineQubit, PauliString, PauliSum
 from openfermion import (
     FermionOperator,
     IsingOperator,
@@ -19,7 +16,6 @@ from openfermion import (
 from openfermion.hamiltonians import fermi_hubbard
 from openfermion.linalg import jw_get_ground_state_at_particle_number
 from zquantum.core.circuits import Circuit, X, Y, Z
-from zquantum.core.interfaces.mock_objects import MockAnsatz
 from zquantum.core.measurement import ExpectationValues
 from zquantum.core.openfermion._io import load_interaction_operator
 from zquantum.core.openfermion._utils import (
@@ -35,11 +31,11 @@ from zquantum.core.openfermion._utils import (
     get_polynomial_tensor,
     get_qubitop_from_coeffs_and_labels,
     get_qubitop_from_matrix,
-    qubitop_to_paulisum,
     remove_inactive_orbitals,
     reverse_qubit_order,
 )
-from zquantum.core.utils import RNDSEED, create_object, hf_rdm
+from zquantum.core.utils import RNDSEED, hf_rdm
+from zquantum.core.wavefunction import Wavefunction
 
 
 class TestQubitOperator(unittest.TestCase):
@@ -144,7 +140,7 @@ class TestQubitOperator(unittest.TestCase):
     def test_get_expectation_value(self):
         """Check <Z0> and <Z1> for the state |100>"""
         # Given
-        wf = pyquil.wavefunction.Wavefunction([0, 1, 0, 0, 0, 0, 0, 0])
+        wf = Wavefunction([0, 1, 0, 0, 0, 0, 0, 0])
         op1 = QubitOperator("Z0")
         op2 = QubitOperator("Z1")
         # When
@@ -277,80 +273,6 @@ class TestOtherUtils(unittest.TestCase):
                     is_diagonal = False
                     break
         self.assertFalse(is_diagonal)
-
-    def test_qubitop_to_paulisum_identity_operator(self):
-        # Given
-        qubit_operator = QubitOperator("", 4)
-
-        # When
-        paulisum = qubitop_to_paulisum(qubit_operator)
-
-        # Then
-        self.assertEqual(paulisum.qubits, ())
-        self.assertEqual(paulisum, PauliSum() + 4)
-
-    def test_qubitop_to_paulisum_z0z1_operator(self):
-        # Given
-        qubit_operator = QubitOperator("Z0 Z1", -1.5)
-        expected_qubits = (GridQubit(0, 0), GridQubit(1, 0))
-        expected_paulisum = (
-            PauliSum()
-            + PauliString(cirq.Z.on(expected_qubits[0]))
-            * PauliString(cirq.Z.on(expected_qubits[1]))
-            * -1.5
-        )
-
-        # When
-        paulisum = qubitop_to_paulisum(qubit_operator)
-
-        # Then
-        self.assertEqual(paulisum.qubits, expected_qubits)
-        self.assertEqual(paulisum, expected_paulisum)
-
-    def test_qubitop_to_paulisum_setting_qubits(self):
-        # Given
-        qubit_operator = QubitOperator("Z0 Z1", -1.5)
-        expected_qubits = (LineQubit(0), LineQubit(5))
-        expected_paulisum = (
-            PauliSum()
-            + PauliString(cirq.Z.on(expected_qubits[0]))
-            * PauliString(cirq.Z.on(expected_qubits[1]))
-            * -1.5
-        )
-
-        # When
-        paulisum = qubitop_to_paulisum(qubit_operator, qubits=expected_qubits)
-
-        # Then
-        self.assertEqual(paulisum.qubits, expected_qubits)
-        self.assertEqual(paulisum, expected_paulisum)
-
-    def test_qubitop_to_paulisum_more_terms(self):
-        # Given
-        qubit_operator = (
-            QubitOperator("Z0 Z1 Z2", -1.5)
-            + QubitOperator("X0", 2.5)
-            + QubitOperator("Y1", 3.5)
-        )
-        expected_qubits = (LineQubit(0), LineQubit(5), LineQubit(8))
-        expected_paulisum = (
-            PauliSum()
-            + (
-                PauliString(cirq.Z.on(expected_qubits[0]))
-                * PauliString(cirq.Z.on(expected_qubits[1]))
-                * PauliString(cirq.Z.on(expected_qubits[2]))
-                * -1.5
-            )
-            + (PauliString(cirq.X.on(expected_qubits[0]) * 2.5))
-            + (PauliString(cirq.Y.on(expected_qubits[1]) * 3.5))
-        )
-
-        # When
-        paulisum = qubitop_to_paulisum(qubit_operator, qubits=expected_qubits)
-
-        # Then
-        self.assertEqual(paulisum.qubits, expected_qubits)
-        self.assertEqual(paulisum, expected_paulisum)
 
     def test_get_ground_state_rdm_from_qubit_op(self):
         # Given

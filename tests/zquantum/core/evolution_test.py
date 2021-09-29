@@ -1,10 +1,10 @@
-import cirq
 import numpy as np
 import pytest
 import sympy
 from openfermion import QubitOperator
-from pyquil.paulis import PauliSum, PauliTerm
+from scipy.linalg import fractional_matrix_power
 from zquantum.core import circuits
+from zquantum.core.circuits import XX, YY, ZZ, Circuit
 from zquantum.core.evolution import (
     _generate_circuit_sequence,
     time_evolution,
@@ -13,59 +13,46 @@ from zquantum.core.evolution import (
 )
 from zquantum.core.utils import compare_unitary
 
-PAULI_STRING_TO_CIRQ_GATE = {"XX": cirq.XX, "YY": cirq.YY, "ZZ": cirq.ZZ}
-OPENFERMION_TERM_TO_CIRQ_GATE = {
-    ((0, "X"), (1, "X")): cirq.XX,
-    ((0, "Y"), (1, "Y")): cirq.YY,
-    ((0, "Z"), (1, "Z")): cirq.ZZ,
+OPENFERMION_TERM_TO_ZQUANTUM_GATE = {
+    ((0, "X"), (1, "X")): XX,
+    ((0, "Y"), (1, "Y")): YY,
+    ((0, "Z"), (1, "Z")): ZZ,
 }
 
 
-def _cirq_exponentiate_pauli_term(term, qubits, time, trotter_order):
+def _zquantum_exponentiate_qubit_hamiltonian_term(term, time, trotter_order):
     base_exponent = 2 * time / trotter_order / np.pi
-    base_gate = PAULI_STRING_TO_CIRQ_GATE[term.pauli_string()](*qubits)
-    return base_gate ** (term.coefficient * base_exponent)
-
-
-def _cirq_exponentiate_qubit_hamiltonian_term(term, qubits, time, trotter_order):
-    base_exponent = 2 * time / trotter_order / np.pi
-    base_gate = OPENFERMION_TERM_TO_CIRQ_GATE[list(term.terms.keys())[0]](*qubits)
     coefficient = list(term.terms.values())[0]
-    return base_gate ** (coefficient * base_exponent)
+
+    base_gate = OPENFERMION_TERM_TO_ZQUANTUM_GATE[list(term.terms.keys())[0]]
+    # This introduces a phase to the gate, but that's fine
+    # since `compare_unitary` accounts for that
+    mat = base_gate(np.pi)(0, 1).lifted_matrix(2)
+    zquant_mat = fractional_matrix_power(mat, coefficient * base_exponent)
+
+    return zquant_mat
 
 
-def _cirq_exponentiate_hamiltonian(hamiltonian, qubits, time, trotter_order):
-    if isinstance(hamiltonian, QubitOperator):
-        return cirq.Circuit(
-            [
-                _cirq_exponentiate_qubit_hamiltonian_term(
-                    term, qubits, time, trotter_order
-                )
-                for term in hamiltonian.get_operators()
-            ]
-            * trotter_order
+def _zquantum_exponentiate_hamiltonian(hamiltonian, time, trotter_order):
+    ops = []
+    for term in hamiltonian.get_operators():
+        mat = _zquantum_exponentiate_qubit_hamiltonian_term(term, time, trotter_order)
+        ops.append(
+            circuits.CustomGateDefinition(
+                gate_name="custom_a",
+                matrix=sympy.Matrix(mat),
+                params_ordering=(),
+            )()(0, 1)
         )
-    elif isinstance(hamiltonian, PauliSum):
-        return cirq.Circuit(
-            [
-                _cirq_exponentiate_pauli_term(term, qubits, time, trotter_order)
-                for term in hamiltonian.terms
-            ]
-            * trotter_order
-        )
+
+    circuit = Circuit(operations=ops * trotter_order)
+
+    return circuit
 
 
 @pytest.mark.parametrize(
     "term, time, expected_unitary",
     [
-        (PauliTerm("X", 0) * PauliTerm("X", 1), np.pi, -np.eye(4)),
-        (
-            PauliTerm("Y", 0, 0.5) * PauliTerm("Y", 1),
-            np.pi,
-            np.diag([1j, -1j, -1j, 1j])[::-1],
-        ),
-        (PauliTerm("Z", 0) * PauliTerm("Z", 1), np.pi, -np.eye(4)),
-        (PauliTerm("I", 0) * PauliTerm("I", 1), np.pi, -np.eye(2)),
         (QubitOperator("[X0 X1]"), np.pi, -np.eye(4)),
         (
             QubitOperator("0.5 [Y0 Y1]"),
@@ -101,32 +88,21 @@ class TestTimeEvolutionOfConstantTerm:
         assert evolution_circuit == circuits.Circuit()
 
 
-@pytest.fixture(params=["PauliSum", "QubitOperator"])
-def hamiltonian(request):
-    if request.param == "PauliSum":
-        terms = [
-            PauliTerm("X", 0) * PauliTerm("X", 1),
-            PauliTerm("Y", 0, 0.5) * PauliTerm("Y", 1),
-            PauliTerm("Z", 0, 0.3) * PauliTerm("Z", 1),
-        ]
-        assert all([isinstance(term, PauliTerm) for term in terms])
-        return PauliSum(terms)
-    elif request.param == "QubitOperator":
+class TestTimeEvolutionOfPauliSum:
+    @pytest.fixture
+    def hamiltonian(self):
         return QubitOperator("[X0 X1] + 0.5[Y0 Y1] + 0.3[Z0 Z1]")
 
-
-class TestTimeEvolutionOfPauliSum:
     @pytest.mark.parametrize("time", [0.1, 0.4, 1.0])
     @pytest.mark.parametrize("order", [1, 2, 3])
     def test_evolution_with_numerical_time_produces_correct_result(
         self, hamiltonian, time, order
     ):
-        cirq_qubits = cirq.LineQubit(0), cirq.LineQubit(1)
-        expected_cirq_circuit = _cirq_exponentiate_hamiltonian(
-            hamiltonian, cirq_qubits, time, order
+        expected_zquantum_circuit = _zquantum_exponentiate_hamiltonian(
+            hamiltonian, time, order
         )
 
-        reference_unitary = cirq.unitary(expected_cirq_circuit)
+        reference_unitary = expected_zquantum_circuit.to_unitary()
         unitary = time_evolution(hamiltonian, time, trotter_order=order).to_unitary()
 
         assert compare_unitary(unitary, reference_unitary, tol=1e-10)
@@ -139,13 +115,11 @@ class TestTimeEvolutionOfPauliSum:
         time_symbol = sympy.Symbol("t")
         symbols_map = {time_symbol: time_value}
 
-        cirq_qubits = cirq.LineQubit(0), cirq.LineQubit(1)
-
-        expected_cirq_circuit = _cirq_exponentiate_hamiltonian(
-            hamiltonian, cirq_qubits, time_value, order
+        expected_zquantum_circuit = _zquantum_exponentiate_hamiltonian(
+            hamiltonian, time_value, order
         )
 
-        reference_unitary = cirq.unitary(expected_cirq_circuit)
+        reference_unitary = expected_zquantum_circuit.to_unitary()
 
         unitary = (
             time_evolution(hamiltonian, time_symbol, trotter_order=order)
@@ -220,6 +194,10 @@ class TestGeneratingCircuitSequence:
 
 
 class TestTimeEvolutionDerivatives:
+    @pytest.fixture
+    def hamiltonian(self):
+        return QubitOperator("[X0 X1] + 0.5[Y0 Y1] + 0.3[Z0 Z1]")
+
     @pytest.mark.parametrize("time", [0.4, sympy.Symbol("t")])
     def test_gives_correct_number_of_derivatives_and_factors(self, time, hamiltonian):
 

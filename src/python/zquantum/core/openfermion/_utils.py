@@ -1,8 +1,7 @@
 import itertools
 import random
-from typing import Iterable, List, Optional, Union
+from typing import Iterable, List, Optional
 
-import cirq
 import numpy as np
 from openfermion import (
     FermionOperator,
@@ -23,7 +22,7 @@ from openfermion.linalg import jw_get_ground_state_at_particle_number
 from openfermion.transforms import freeze_orbitals, get_fermion_operator
 
 from ..circuits import Circuit, X, Y, Z
-from ..measurement import ExpectationValues, expectation_values_to_real
+from ..measurement import ExpectationValues
 from ..utils import ValueEstimate, bin2dec, dec2bin
 
 
@@ -300,20 +299,20 @@ def get_expectation_value(qubit_op, wavefunction, reverse_operator=True):
     """Get the expectation value of a qubit operator with respect to a wavefunction.
     Args:
         qubit_op (openfermion.ops.QubitOperator): the operator
-        wavefunction (pyquil.wavefunction.Wavefunction): the wavefunction
+        wavefunction (zquantum.core.Wavefunction): the wavefunction
         reverse_operator (boolean): whether to reverse order of qubit operator
             before computing expectation value. This should be True if the convention
             of the basis states used for the wavefunction is the opposite of the one in
             the qubit operator. This is the case, e.g. when the wavefunction comes from
-            Pyquil.
+            our Wavefunction class.
     Returns:
         complex: the expectation value
     """
     n_qubits = wavefunction.amplitudes.shape[0].bit_length() - 1
 
     # Convert the qubit operator to a sparse matrix. Note that the qubit indices
-    # must be reversed because OpenFermion and pyquil use different conventions
-    # for how to order the computational basis states!
+    # must be reversed because OpenFermion and our Wavefunction use
+    # different conventions for how to order the computational basis states!
     if reverse_operator:
         qubit_op = reverse_qubit_order(qubit_op, n_qubits=n_qubits)
     sparse_op = get_sparse_operator(qubit_op, n_qubits=n_qubits)
@@ -521,40 +520,6 @@ def get_polynomial_tensor(fermion_operator, n_qubits=None):
             tensor_dict[key][indices] = coefficient
 
     return PolynomialTensor(tensor_dict)
-
-
-def qubitop_to_paulisum(
-    qubit_operator: QubitOperator,
-    qubits: Union[List[cirq.GridQubit], List[cirq.LineQubit]] = None,
-) -> cirq.PauliSum:
-    """Convert and openfermion QubitOperator to a cirq PauliSum
-
-    Args:
-        qubit_operator (openfermion.QubitOperator): The openfermion operator to convert
-        qubits()
-
-    Returns:
-        cirq.PauliSum
-    """
-    operator_map = {"X": cirq.X, "Y": cirq.Y, "Z": cirq.Z}
-
-    if qubits is None:
-        qubits = [cirq.GridQubit(i, 0) for i in range(count_qubits(qubit_operator))]
-
-    converted_sum = cirq.PauliSum()
-    for term, coefficient in qubit_operator.terms.items():
-
-        # Identity term
-        if len(term) == 0:
-            converted_sum += coefficient
-            continue
-
-        cirq_term: cirq.PauliString = cirq.PauliString()
-        for qubit_index, operator in term:
-            cirq_term *= operator_map[operator](qubits[qubit_index])
-        converted_sum += cirq_term * coefficient
-
-    return converted_sum
 
 
 def create_circuits_from_qubit_operator(qubit_operator: QubitOperator) -> List[Circuit]:

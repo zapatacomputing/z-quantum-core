@@ -12,7 +12,7 @@ class Symbol(NamedTuple):
 
 
 class FunctionCall(NamedTuple):
-    """Represents abstract function call.     """
+    """Represents abstract function call."""
 
     name: str
     args: Iterable["Expression"]
@@ -29,7 +29,7 @@ class ExpressionDialect(NamedTuple):
 
     This is to group information on how to transform expression given in
     our native representation into some representation in external
-    library (e.g. PyQuil or Sympy).
+    library (e.g. Sympy).
     """
 
     symbol_factory: Callable[[Symbol], Any]

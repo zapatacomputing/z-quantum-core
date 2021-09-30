@@ -1,0 +1,33 @@
+name: style
+
+# Trigger on push
+on:
+  push:
+    branches:
+      - dev
+      - main
+  pull_request:
+    branches:
+      - dev
+      - main
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      # ------------------------------------------------------------------------
+      # Only use ssh when a second private repo needs to be installed....
+      # The current repo MUST have a secrets.SSH_PRIVATE_KEY defined in github.
+      # ------------------------------------------------------------------------
+      # - uses: ./subtrees/z_quantum_actions/actions/ssh_setup
+      #   with:
+      #     ssh_key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      # Pull in the style includes
+      - uses: ./subtrees/z_quantum_actions/actions/style

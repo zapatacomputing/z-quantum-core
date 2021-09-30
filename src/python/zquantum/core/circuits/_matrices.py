@@ -38,6 +38,13 @@ def s_matrix():
         ]
     )
 
+def sdg_matrix():
+    return sympy.Matrix(
+        [
+            [1, 0],
+            [0, -1j],
+        ]
+    )
 
 def t_matrix():
     return sympy.Matrix(

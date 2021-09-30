@@ -36,8 +36,9 @@ H = _gates.MatrixFactoryGate("H", _matrices.h_matrix, (), 1, is_hermitian=True)
 I = _gates.MatrixFactoryGate(  # noqa: E741
     "I", _matrices.i_matrix, (), 1, is_hermitian=True
 )
-S = _gates.MatrixFactoryGate("S", _matrices.s_matrix, (), 1)
-T = _gates.MatrixFactoryGate("T", _matrices.t_matrix, (), 1)
+S   = _gates.MatrixFactoryGate("S",   _matrices.s_matrix,   (), 1)
+Sdg = _gates.MatrixFactoryGate("Sdg", _matrices.sdg_matrix, (), 1)
+T   = _gates.MatrixFactoryGate("T",   _matrices.t_matrix,   (), 1)
 
 
 # --- parametric, single qubit gates ---

@@ -162,7 +162,7 @@ class QuantumSimulator(QuantumBackend):
     def is_natively_supported(self, operation: Operation) -> bool:
         """Determine if given operation is natively supported by this Simulator.
 
-        This method will be used as a predicate in split_circuit function.
+        This method can be as a predicate in split_circuit function.
         """
         return isinstance(operation, GateOperation)
 

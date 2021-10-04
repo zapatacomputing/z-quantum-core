@@ -178,11 +178,12 @@ class QuantumSimulator(QuantumBackend):
                 self.number_of_circuits_run += 1
                 self.number_of_jobs_run += 1
                 state = self._get_wavefunction_from_native_circuit(subcircuit, state)
+                state = flip_wavefunction(Wavefunction(state)).amplitudes
             else:
                 for operation in subcircuit.operations:
                     state = operation.apply(state)
 
-        return Wavefunction(state)
+        return flip_wavefunction(Wavefunction(state))
 
     def get_exact_expectation_values(
         self, circuit: Circuit, operator: SymbolicOperator

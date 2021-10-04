@@ -208,7 +208,7 @@ def _builtin_gate_from_dict(dict_) -> _builtin_gates.GateRef:
         return gate_ref(
             *[
                 deserialize_expr(param, dict_.get("free_symbols", []))
-                for param in dict_["params"]
+                for param in dict_.get("params", [])
             ]
         )
     else:
@@ -253,7 +253,7 @@ def _custom_gate_instance_from_dict(dict_, custom_gate_defs) -> _gates.Gate:
 
     symbol_names = map(serialize_expr, gate_def.params_ordering)
     return gate_def(
-        *[deserialize_expr(param, symbol_names) for param in dict_["params"]]
+        *[deserialize_expr(param, symbol_names) for param in dict_.get("params", [])]
     )
 
 

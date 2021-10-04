@@ -46,13 +46,9 @@ class SymbolicSimulator(QuantumSimulator):
         return Measurements(bitstrings)
 
     def _get_wavefunction_from_native_circuit(
-        self, circuit: Circuit, initial_state=None
+        self, circuit: Circuit, initial_state
     ) -> Wavefunction:
-        if initial_state is None:
-            state = np.zeros(2 ** circuit.n_qubits)
-            state[0] = 1
-        else:
-            state = initial_state
+        state = initial_state
 
         for operation in circuit.operations:
             state = operation.apply(state)

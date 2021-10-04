@@ -1,6 +1,7 @@
 import operator
 from functools import reduce, singledispatch
-from typing import Any, Dict, Iterable, List, Optional, Union
+from itertools import groupby
+from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple, Union
 
 import numpy as np
 import sympy
@@ -164,3 +165,25 @@ def _append_circuit(other: Circuit, circuit: Circuit):
         operations=[*circuit.operations, *other.operations],
         n_qubits=max(circuit.n_qubits, other.n_qubits),
     )
+
+
+def split_circuit(
+    circuit: Circuit, predicate: Callable[[_operations.Operation], bool]
+) -> Iterable[Tuple[bool, Circuit]]:
+    """Split circuit into subcircuits for which predicate on all operation is constant.
+
+    Args:
+        circuit: a circuit to be split
+        predicate: function assigning boolean value to each operation, its values
+          are used for grouping operations belonging to the same subcircuits.
+    Returns:
+        An iterable of tuples of the form (x, subcircuit) s.t.:
+        - predicate(operation) == x for every operation in subcircuit.operations
+        - for two consecutive tuples (x1, subcircuit1), (x2, subcircuit2)
+          x1 != x2 (i.e. consecutive chunks differ in the predicate value),
+        - operations in subcircuits follow the same order as in original circuit
+        - all subcircuits have the same number of qubits equal to `circuit.n_qubits`.
+    """
+    n_qubits = circuit.n_qubits
+    for predicate_value, operations in groupby(circuit.operations, predicate):
+        yield predicate_value, Circuit(operations, n_qubits=n_qubits)

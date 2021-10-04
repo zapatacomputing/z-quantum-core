@@ -144,7 +144,7 @@ class QuantumSimulator(QuantumBackend):
 
     @abstractmethod
     def _get_wavefunction_from_native_circuit(
-        self, circuit: Circuit, initial_state=None
+        self, circuit: Circuit, initial_state
     ) -> Wavefunction:
         """Get wavefunction from circuit comprising only natively-supported operations.
 
@@ -152,9 +152,7 @@ class QuantumSimulator(QuantumBackend):
             circuit: circuit to simulate. Implementers of this function might assume
               that this circuit comprises only natively-supported operations as decided
               by self._is_supported predicate.
-            initial_state: amplitudes of the initial state. If `None`, implementers
-              should assume that the initial state is |0...0>, which typically does not
-              require any initialization.
+            initial_state: amplitudes of the initial state.
         Returns:
             Wavefunction object encoding amplitudes of final state.
         """
@@ -166,14 +164,20 @@ class QuantumSimulator(QuantumBackend):
         """
         return isinstance(operation, GateOperation)
 
-    def get_wavefunction(self, circuit: Circuit) -> Wavefunction:
+    def get_wavefunction(self, circuit: Circuit, initial_state=None) -> Wavefunction:
         """Returns a wavefunction representing quantum state produced by a circuit
 
         Args:
             circuit: quantum circuit to be executed.
+            initial_state: a state from which the simulation starts.
+              If not provided, the default |0...0> is used.
         """
-        state = np.zeros(2 ** circuit.n_qubits)
-        state[0] = 1
+        if initial_state is None:
+            state = np.zeros(2 ** circuit.n_qubits)
+            state[0] = 1
+        else:
+            state = initial_state
+
         for is_supported, subcircuit in split_circuit(
             circuit, self.is_natively_supported
         ):

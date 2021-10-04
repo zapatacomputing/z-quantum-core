@@ -132,6 +132,19 @@ def split_circuit(
 
 
 class QuantumSimulator(QuantumBackend):
+    """Simulator capable of computing exact wavefunction.
+
+    Note that in contrast to non-simulator QuantumBackends, simulators
+    are capable of simulating operations that are not natively supported
+    by libraries/services they wrap. Therefore, simulation of a circuit may
+    get broken into several smaller circuits. Each native circuit run
+    using the wrapped library or service counts towards number_of_circuits
+    run and number_of_jobs_run. However, if simulated circuit comprises only
+    natively supported operation AND concrete implementation does not change
+    counting methodology, each simulated circuit corresponds to an increase
+    of both those numbers by one.
+    """
+
     @abstractmethod
     def __init__(
         self,

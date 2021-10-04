@@ -3,13 +3,21 @@ resources:
   type: git
   source:
     uri: git@github.com:zapatacomputing/z-quantum-core.git
-    branch: master
+    branch: ((github_branch))
     private_key: ((zapatabot-ssh))
+
+# - name: z-quantum-default-image-latest
+#   type: registry-image
+#   source:
+#     tag: latest
+#     repository: zapatacomputing/z-quantum-default
+#     username: ((zapatabot-dockerhub-username))
+#     password: ((zapatabot-dockerhub-password))
 
 - name: z-quantum-julia-image-latest
   type: registry-image
   source:
-    tag: latest
+    tag: ((docker_tag))
     repository: zapatacomputing/z-quantum-julia
     username: ((zapatabot-dockerhub-username))
     password: ((zapatabot-dockerhub-password))
@@ -24,6 +32,8 @@ jobs:
       trigger: true
       params:
         unpack: true
+    # - get: z-quantum-default-image-latest
+    #   params: { save: true }
   - task: docker-build-image
     privileged: true
     config:

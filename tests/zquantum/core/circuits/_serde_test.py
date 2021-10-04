@@ -34,6 +34,19 @@ CUSTOM_U_GATE = _gates.CustomGateDefinition(
 )
 
 
+# Based on ZQS-811 bug report
+CUSTOM_SGD_GATE = _gates.CustomGateDefinition(
+    gate_name="SGD",
+    matrix=sympy.Matrix(
+        [
+            [1.0, 0],
+            [0, -1.0j],
+        ]
+    ),
+    params_ordering=tuple(),
+)
+
+
 EXAMPLE_CIRCUITS = [
     _circuit.Circuit(),
     _circuit.Circuit([_builtin_gates.X(0)]),
@@ -56,6 +69,11 @@ EXAMPLE_CIRCUITS = [
             _builtin_gates.T(0),
             CUSTOM_U_GATE(1, -1)(3),
             CUSTOM_U_GATE(ALPHA, -1)(2),
+        ],
+    ),
+    _circuit.Circuit(
+        operations=[
+            CUSTOM_SGD_GATE()(3),
         ],
     ),
     _circuit.Circuit(

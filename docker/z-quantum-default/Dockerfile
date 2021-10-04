@@ -61,8 +61,11 @@ RUN python3 -m pip install --no-cache git+git://github.com/zapatacomputing/z-qua
     python3 -m pip uninstall -y z-quantum-core
 
 # Misc libraries that we'd like to have already preinstalled.
+# codecarbon is used for tracking CO2 generation and is used inside the python3 runtime
+# cvxpy is used in `z-quantum-qubo` and takes long time to install, so in order to reduce
+# overhead, we decided to have it installed straight in the docker.
 RUN python3 -m pip install \
-        codecarbon==1.2.0 \
+        codecarbon==1.2.0 \ 
         cvxpy
 
                     

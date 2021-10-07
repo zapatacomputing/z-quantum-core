@@ -24,6 +24,7 @@ from openfermion.transforms import freeze_orbitals, get_fermion_operator
 from ..circuits import Circuit, X, Y, Z
 from ..measurement import ExpectationValues
 from ..utils import ValueEstimate, bin2dec, dec2bin
+from ..wavefunction import Wavefunction
 
 
 def get_qubitop_from_matrix(operator: List[List]) -> QubitOperator:
@@ -295,16 +296,18 @@ def reverse_qubit_order(qubit_operator: QubitOperator, n_qubits: Optional[int] =
     return reversed_op
 
 
-def get_expectation_value(qubit_op, wavefunction, reverse_operator=True):
+def get_expectation_value(
+    qubit_op: QubitOperator, wavefunction: Wavefunction, reverse_operator: bool = False
+) -> complex:
     """Get the expectation value of a qubit operator with respect to a wavefunction.
     Args:
-        qubit_op (openfermion.ops.QubitOperator): the operator
+        qubit_op (): the operator
         wavefunction (zquantum.core.Wavefunction): the wavefunction
         reverse_operator (boolean): whether to reverse order of qubit operator
             before computing expectation value. This should be True if the convention
             of the basis states used for the wavefunction is the opposite of the one in
-            the qubit operator. This is the case, e.g. when the wavefunction comes from
-            our Wavefunction class.
+            the qubit operator. This is the case when the wavefunction uses
+            Rigetti convention (https://arxiv.org/abs/1711.02086) of ordering qubits.
     Returns:
         complex: the expectation value
     """

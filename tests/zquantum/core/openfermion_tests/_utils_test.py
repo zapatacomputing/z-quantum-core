@@ -144,8 +144,8 @@ class TestQubitOperator(unittest.TestCase):
         op1 = QubitOperator("Z0")
         op2 = QubitOperator("Z1")
         # When
-        exp_op1 = get_expectation_value(op1, wf)
-        exp_op2 = get_expectation_value(op2, wf)
+        exp_op1 = get_expectation_value(op1, wf, True)
+        exp_op2 = get_expectation_value(op2, wf, True)
 
         # Then
         self.assertAlmostEqual(-1, exp_op1)

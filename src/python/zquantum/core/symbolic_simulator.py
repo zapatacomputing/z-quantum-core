@@ -53,4 +53,4 @@ class SymbolicSimulator(QuantumSimulator):
         for operation in circuit.operations:
             state = operation.apply(state)
 
-        return flip_wavefunction(Wavefunction(state))
+        return Wavefunction(state)

@@ -147,7 +147,9 @@ class Wavefunction:
         return np.array([abs(elem) ** 2 for elem in self._amplitude_vector])
 
     def get_outcome_probs(self) -> Dict[str, float]:
-        values = [format(i, "0" + str(self.n_qubits) + "b") for i in range(len(self))]
+        values = [
+            format(i, "0" + str(self.n_qubits) + "b")[::-1] for i in range(len(self))
+        ]
 
         probs = self.probabilities()
 

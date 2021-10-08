@@ -1,14 +1,14 @@
-# This workflow is meant to be triggered by push to master when running the release
+# This workflow is to be triggered by push to main when running the release
 # process.
 #
 # Don't extend this workflow. If any more steps are needed please extend the
-# "publish-release" action in "z-quantum-actions". This allows reusing it between repos.
+# "publish-release" action in "z_quantum_actions". Allows reusing between repos.
 name: publish-release
 
 on:
   push:
     branches:
-      - master
+      - main
 
 jobs:
   run-action:
@@ -19,9 +19,9 @@ jobs:
       - name: Check out the released repo
         uses: actions/checkout@v2
         with:
-          # Fetch whole repo to get access to tags. We need tags to read current package
+          # Fetch whole repo to get access to tags to read current package
           # version.
           fetch-depth: 0
-      
+
       - name: Run publish release action
-        uses: ./vendor/z-quantum-actions/publish-release
+        uses: ./subtrees/z_quantum_actions/actions/publish-release

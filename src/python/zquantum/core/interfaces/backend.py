@@ -184,4 +184,4 @@ def flip_amplitudes(amplitudes: np.ndarray) -> np.ndarray:
 
 
 def flip_wavefunction(wavefunction: Wavefunction):
-    return Wavefunction(flip_amplitudes(wavefunction))
+    return Wavefunction(flip_amplitudes(wavefunction.amplitudes))

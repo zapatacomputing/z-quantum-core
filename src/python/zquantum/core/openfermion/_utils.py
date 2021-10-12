@@ -301,15 +301,15 @@ def get_expectation_value(
 ) -> complex:
     """Get the expectation value of a qubit operator with respect to a wavefunction.
     Args:
-        qubit_op (): the operator
-        wavefunction (zquantum.core.Wavefunction): the wavefunction
-        reverse_operator (boolean): whether to reverse order of qubit operator
+        qubit_op: the operator
+        wavefunction: the wavefunction
+        reverse_operator: whether to reverse order of qubit operator
             before computing expectation value. This should be True if the convention
             of the basis states used for the wavefunction is the opposite of the one in
             the qubit operator. This is the case when the wavefunction uses
             Rigetti convention (https://arxiv.org/abs/1711.02086) of ordering qubits.
     Returns:
-        complex: the expectation value
+        the expectation value
     """
     n_qubits = wavefunction.amplitudes.shape[0].bit_length() - 1
 

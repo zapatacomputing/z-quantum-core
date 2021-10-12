@@ -168,20 +168,3 @@ class QuantumSimulator(QuantumBackend):
             # Get the expectation values
             measurements = self.run_circuit_and_measure(circuit, n_samples)
             return measurements.get_distribution()
-
-
-def _flip_bits(n, num_bits):
-    return int(bin(n)[2:].zfill(num_bits)[::-1], 2)
-
-
-def flip_amplitudes(amplitudes: np.ndarray) -> np.ndarray:
-    number_of_states = len(amplitudes)
-    ordering = [
-        _flip_bits(n, number_of_states.bit_length() - 1)
-        for n in range(number_of_states)
-    ]
-    return np.array([amplitudes[i] for i in ordering])
-
-
-def flip_wavefunction(wavefunction: Wavefunction):
-    return Wavefunction(flip_amplitudes(wavefunction.amplitudes))

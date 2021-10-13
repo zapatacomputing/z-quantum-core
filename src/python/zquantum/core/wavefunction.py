@@ -147,8 +147,27 @@ class Wavefunction:
         return np.array([abs(elem) ** 2 for elem in self._amplitude_vector])
 
     def get_outcome_probs(self) -> Dict[str, float]:
-        values = [format(i, "0" + str(self.n_qubits) + "b") for i in range(len(self))]
+        values = [
+            format(i, "0" + str(self.n_qubits) + "b")[::-1] for i in range(len(self))
+        ]
 
         probs = self.probabilities()
 
         return dict(zip(values, probs))
+
+
+def flip_wavefunction(wavefunction: Wavefunction):
+    return Wavefunction(flip_amplitudes(wavefunction.amplitudes))
+
+
+def flip_amplitudes(amplitudes: np.ndarray) -> np.ndarray:
+    number_of_states = len(amplitudes)
+    ordering = [
+        _flip_bits(n, number_of_states.bit_length() - 1)
+        for n in range(number_of_states)
+    ]
+    return np.array([amplitudes[i] for i in ordering])
+
+
+def _flip_bits(n, num_bits):
+    return int(bin(n)[2:].zfill(num_bits)[::-1], 2)

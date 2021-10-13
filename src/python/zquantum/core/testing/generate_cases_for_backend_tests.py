@@ -28,15 +28,15 @@ SWAP = sympy.Matrix([[1, 0, 0, 0], [0, 0, 1, 0], [0, 1, 0, 0], [0, 0, 0, 1]])
 ISWAP = sympy.Matrix([[1, 0, 0, 0], [0, 0, 1j, 0], [0, 1j, 0, 0], [0, 0, 0, 1]])
 
 II = TensorProduct(I, I)
-IH = TensorProduct(H, I)
-HI = TensorProduct(I, H)
+IH = TensorProduct(I, H)
+HI = TensorProduct(H, I)
 
 HH = TensorProduct(H, H)
 XX = TensorProduct(X, X)
 YY = TensorProduct(Y, Y)
 ZZ = TensorProduct(Z, Z)
-IX = TensorProduct(X, I)
-ZI = TensorProduct(I, Z)
+IX = TensorProduct(I, X)
+ZI = TensorProduct(Z, I)
 
 single_qubit_initial_states = [(I, "I"), (H, "H")]
 single_qubit_operators = [I, X, Y, Z]

@@ -1,10 +1,9 @@
 from typing import Any, Dict, Optional
 
-import numpy as np
 from sympy import Symbol
 from zquantum.core.circuits import Circuit, Operation
 from zquantum.core.circuits.layouts import CircuitConnectivity
-from zquantum.core.interfaces.backend import QuantumSimulator, flip_wavefunction
+from zquantum.core.interfaces.backend import QuantumSimulator
 from zquantum.core.measurement import Measurements, sample_from_wavefunction
 from zquantum.core.wavefunction import Wavefunction
 
@@ -53,7 +52,7 @@ class SymbolicSimulator(QuantumSimulator):
         for operation in circuit.operations:
             state = operation.apply(state)
 
-        return flip_wavefunction(Wavefunction(state))
+        return Wavefunction(state)
 
     def is_natively_supported(self, operation: Operation) -> bool:
         return True

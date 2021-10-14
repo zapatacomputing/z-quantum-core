@@ -318,10 +318,13 @@ def get_expectation_value(
     # different conventions for how to order the computational basis states!
     if reverse_operator:
         qubit_op = reverse_qubit_order(qubit_op, n_qubits=n_qubits)
-    sparse_op = get_sparse_operator(qubit_op, n_qubits=n_qubits)
 
-    # Computer the expectation value
-    exp_val = openfermion_expectation(sparse_op, wavefunction.amplitudes)
+    if len(wavefunction.free_symbols) > 0:
+        pass
+    else:
+        sparse_op = get_sparse_operator(qubit_op, n_qubits=n_qubits)
+        # Computer the expectation value
+        exp_val = openfermion_expectation(sparse_op, wavefunction.amplitudes)
     return exp_val
 
 

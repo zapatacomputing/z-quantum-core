@@ -13,18 +13,15 @@ from zquantum.core.symbolic_simulator import SymbolicSimulator
 from zquantum.core.wavefunction import Wavefunction
 
 
-def exp_of_rx_gate(rotation):
-    theta = 2 * Symbol("theta")
+def exp_of_rx_gate_numeric(rotation):
     test_circuit = Circuit()
-    gate = RX(theta)(0)
+    gate = RX(rotation)(0)
 
     test_circuit += gate
 
-    test_circuit = test_circuit.bind({theta: rotation})
-
     est_task = EstimationTask(IsingOperator("Z0"), test_circuit, 10000)
 
-    return calculate_exact_expectation_values(sim, [est_task])[0].values
+    return calculate_exact_expectation_values(sim, [est_task])[0].values[0]
 
 
 op = np.array([[1.0, 0.0], [0.0, -1.0]])

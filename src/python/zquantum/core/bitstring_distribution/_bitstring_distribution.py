@@ -2,8 +2,8 @@ import json
 import math
 import sys
 import warnings
-from collections import Counter
-from typing import Any, Callable, Dict, List
+from itertools import product, repeat
+from typing import Any, Callable, Dict, List, Tuple
 
 import numpy as np
 
@@ -17,17 +17,19 @@ class BitstringDistribution:
 
     Args:
         input_dict:  dictionary representing the probability distribution where
-            the keys are bitstrings represented as strings and the values are
+            the keys are bitstrings represented as tuples and the values are
             non-negative floats.
         normalize: boolean variable specifying whether the input_dict gets
             normalized or not.
     Attributes:
         bitstring_distribution: dictionary representing the probability
-            distribution where the keys are bitstrings represented as strings and the
+            distribution where the keys are bitstrings represented as tuples and the
             values are non-negative floats.
     """
 
-    def __init__(self, input_dict: Dict, normalize: bool = True):
+    def __init__(
+        self, input_dict: Dict[Tuple[int, ...], float], normalize: bool = True
+    ):
         if is_bitstring_distribution(
             input_dict
         ):  # accept the input dict only if it is a prob distribution
@@ -63,7 +65,7 @@ class BitstringDistribution:
         )  # already checked in __init__ that all keys have the same length
 
 
-def is_non_negative(input_dict: Dict) -> bool:
+def is_non_negative(input_dict: Dict[Tuple[int, ...], float]) -> bool:
     """Check if the input dictionary values are non negative.
 
     Args:
@@ -75,7 +77,7 @@ def is_non_negative(input_dict: Dict) -> bool:
     return all(value >= 0 for value in input_dict.values())
 
 
-def is_key_length_fixed(input_dict: Dict) -> bool:
+def is_key_length_fixed(input_dict: Dict[Tuple[int, ...], float]) -> bool:
     """Check if the input dictionary keys are same-length.
 
     Args:
@@ -88,8 +90,8 @@ def is_key_length_fixed(input_dict: Dict) -> bool:
     return all(len(key) == key_length for key in input_dict.keys())
 
 
-def are_keys_binary_strings(input_dict: Dict) -> bool:
-    """Check if the input dictionary keys are binary strings.
+def are_keys_binary_strings(input_dict: Dict[Tuple[int, ...], float]) -> bool:
+    """Check if the input dictionary keys are tuples containing non-negative integers.
 
     Args:
         input_dict (dict): dictionary.
@@ -97,17 +99,20 @@ def are_keys_binary_strings(input_dict: Dict) -> bool:
     Returns:
         bool: boolean variable indicating whether dict keys are binary strings or not.
     """
-    return all(not any(char not in "10" for char in key) for key in input_dict.keys())
+    return all(
+        all(isinstance(sub, int) and sub >= 0 for sub in key)
+        for key in input_dict.keys()
+    )
 
 
-def is_bitstring_distribution(input_dict: Dict) -> bool:
+def is_bitstring_distribution(input_dict: Dict[Tuple[int, ...], float]) -> bool:
     """Check if the input dictionary is a bitstring distribution, i.e.:
-            - keys are same-lenght binary strings,
+            - keys are same-length tuples of non-negative integers,
             - values are non negative.
 
     Args:
         input_dict: dictionary representing the probability distribution where the keys
-            are bitstrings represented as strings and the values are floats.
+            are bitstrings represented as tuples and the values are floats.
 
     Returns:
         Boolean variable indicating whether the bitstring distribution is well
@@ -121,7 +126,7 @@ def is_bitstring_distribution(input_dict: Dict) -> bool:
     )
 
 
-def is_normalized(input_dict: Dict) -> bool:
+def is_normalized(input_dict: Dict[Tuple[int, ...], float]) -> bool:
     """Check if a bitstring distribution is normalized.
 
     Args:
@@ -136,7 +141,9 @@ def is_normalized(input_dict: Dict) -> bool:
     return math.isclose(norm, 1)
 
 
-def normalize_bitstring_distribution(bitstring_distribution: Dict) -> Dict:
+def normalize_bitstring_distribution(
+    bitstring_distribution: Dict[Tuple[int, ...], float]
+) -> Dict:
     """Normalize a bitstring distribution.
 
     Args:
@@ -166,6 +173,10 @@ def normalize_bitstring_distribution(bitstring_distribution: Dict) -> Dict:
         return bitstring_distribution
 
 
+def _change_dict_keys_to_tuple_repr(dict):
+    return {key.__repr__(): value for key, value in dict.items()}
+
+
 def save_bitstring_distribution(
     distribution: BitstringDistribution, filename: AnyPath
 ) -> None:
@@ -176,9 +187,14 @@ def save_bitstring_distribution(
         file (str or file-like object): the name of the file, or a file-like object
     """
     dictionary: Dict[str, Any] = {}
-    dictionary["bitstring_distribution"] = distribution.distribution_dict
-    dictionary["schema"] = SCHEMA_VERSION + "-bitstring-probability-distribution"
 
+    # Need to convert tuples to strings for JSON encoding
+    preprocessed_distribution_dict = _change_dict_keys_to_tuple_repr(
+        distribution.distribution_dict
+    )
+
+    dictionary["bitstring_distribution"] = preprocessed_distribution_dict
+    dictionary["schema"] = SCHEMA_VERSION + "-bitstring-probability-distribution"
     with open(filename, "w") as f:
         f.write(json.dumps(dictionary, indent=2))
 
@@ -197,10 +213,16 @@ def save_bitstring_distributions(
     dictionary["bitstring_distribution"] = []
 
     for distribution in bitstring_distributions:
-        dictionary["bitstring_distribution"].append(distribution.distribution_dict)
+        dictionary["bitstring_distribution"].append(
+            _change_dict_keys_to_tuple_repr(distribution.distribution_dict)
+        )
 
     with open(filename, "w") as f:
         f.write(json.dumps(dictionary, indent=2))
+
+
+def _change_dict_keys_to_tuple(dict):
+    return {eval(key): value for key, value in dict.items()}
 
 
 def load_bitstring_distribution(file: str) -> BitstringDistribution:
@@ -218,7 +240,9 @@ def load_bitstring_distribution(file: str) -> BitstringDistribution:
     else:
         data = json.load(file)
 
-    bitstring_distribution = BitstringDistribution(data["bitstring_distribution"])
+    bitstring_distribution = BitstringDistribution(
+        _change_dict_keys_to_tuple(data["bitstring_distribution"])
+    )
     return bitstring_distribution
 
 
@@ -240,7 +264,9 @@ def load_bitstring_distributions(file: str) -> List[BitstringDistribution]:
     bitstring_distribution_list = []
     for i in range(len(data["bitstring_distribution"])):
         bitstring_distribution_list.append(
-            BitstringDistribution(data["bitstring_distribution"][i])
+            BitstringDistribution(
+                _change_dict_keys_to_tuple(data["bitstring_distribution"][i])
+            )
         )
 
     return bitstring_distribution_list
@@ -259,19 +285,9 @@ def create_bitstring_distribution_from_probability_distribution(
     Returns:
         The BitstringDistribution object corresponding to the input measurements.
     """
-
     # Create dictionary of bitstring tuples as keys with probability as value
-    prob_dict = {}
-    for state in range(len(prob_distribution)):
-        # Convert state to bitstring
-        bitstring = format(state, "b")
-        while len(bitstring) < np.log2(len(prob_distribution)):
-            bitstring = "0" + bitstring
-        # Reverse bitstring
-        bitstring = bitstring[::-1]
-
-        # Add to dict
-        prob_dict[bitstring] = prob_distribution[state]
+    keys = product([0, 1], repeat=int(np.log2(len(prob_distribution))))
+    prob_dict = {key: value for key, value in zip(keys, prob_distribution)}
 
     return BitstringDistribution(prob_dict)
 

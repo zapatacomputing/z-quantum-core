@@ -10,7 +10,7 @@ from zquantum.core.testing import create_random_wavefunction
 from zquantum.core.wavefunction import Wavefunction
 
 
-class TestInitializations:
+class TestInitSystem:
     def test_init_system_returns_numpy_array(self):
         wf = Wavefunction.init_system(2)
         assert isinstance(wf._amplitude_vector, np.ndarray)
@@ -79,6 +79,43 @@ class TestInitializations:
     def test_init_system_fails_on_invalid_params(self, n_qubits):
         with pytest.raises(ValueError):
             Wavefunction.init_system(n_qubits=n_qubits)
+
+
+class TestInitSystemInDickeState:
+    def test_function_fails_for_invalid_number_of_qubits(self):
+        with pytest.raises(ValueError):
+            Wavefunction.init_system_in_dicke_state(-1, 2)
+
+        with pytest.raises(ValueError):
+            Wavefunction.init_system_in_dicke_state(0, 2)
+
+    @pytest.mark.parametrize("hamming_weight", [-1, 3])
+    def test_function_fails_for_invalid_hamming_weight(self, hamming_weight):
+        with pytest.raises(ValueError):
+            Wavefunction.init_system_in_dicke_state(2, hamming_weight)
+
+    @pytest.mark.parametrize(
+        "expected_set_states,expected_amplitude,hamming_weight",
+        [
+            ([0], 1.0, 0),
+            ([1, 2, 4, 8], 1 / np.sqrt(4), 1),
+            ([3, 5, 6, 9, 10, 12], 1 / np.sqrt(6), 2),
+            ([7, 11, 13, 14], 1 / np.sqrt(4), 3),
+            ([int("1111", base=2)], 1.0, 4),
+        ],
+    )
+    def test_function_returns_expected_wf_for_given_hamming_weight(
+        self, expected_set_states, expected_amplitude, hamming_weight
+    ):
+        wf = Wavefunction.init_system_in_dicke_state(4, hamming_weight=hamming_weight)
+
+        unique = np.unique(wf)
+        unique = np.delete(unique, np.where(unique == 0.0))
+        assert len(unique) == 1
+        assert unique.item() == expected_amplitude
+
+        indices = np.where(wf.amplitudes == unique.item())[0]
+        np.testing.assert_array_equal(np.array(expected_set_states), indices)
 
 
 class TestFunctions:

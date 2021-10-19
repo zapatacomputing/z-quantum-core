@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from numbers import Real
 from typing import Any, List, Optional, Sequence
 
 import numpy as np
@@ -14,6 +15,8 @@ from ..circuits._circuit import split_circuit
 from ..circuits.layouts import CircuitConnectivity
 from ..measurement import ExpectationValues, Measurements, expectation_values_to_real
 from ..openfermion import change_operator_type, get_expectation_value
+
+StateVector = Sequence[Real]
 
 
 class QuantumBackend(ABC):
@@ -135,8 +138,8 @@ class QuantumSimulator(QuantumBackend):
 
     @abstractmethod
     def _get_wavefunction_from_native_circuit(
-        self, circuit: Circuit, initial_state
-    ) -> Wavefunction:
+        self, circuit: Circuit, initial_state: StateVector
+    ) -> StateVector:
         """Get wavefunction from circuit comprising only natively-supported operations.
 
         Args:
@@ -145,7 +148,7 @@ class QuantumSimulator(QuantumBackend):
               by self._is_supported predicate.
             initial_state: amplitudes of the initial state.
         Returns:
-            Wavefunction object encoding amplitudes of final state.
+            StateVector representing amplitudes of final circuit state.
         """
 
     def is_natively_supported(self, operation: Operation) -> bool:
@@ -155,7 +158,9 @@ class QuantumSimulator(QuantumBackend):
         """
         return isinstance(operation, GateOperation)
 
-    def get_wavefunction(self, circuit: Circuit, initial_state=None) -> Wavefunction:
+    def get_wavefunction(
+        self, circuit: Circuit, initial_state: Optional[StateVector] = None
+    ) -> Wavefunction:
         """Returns a wavefunction representing quantum state produced by a circuit
 
         Args:

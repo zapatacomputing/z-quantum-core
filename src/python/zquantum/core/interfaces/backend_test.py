@@ -426,6 +426,18 @@ class QuantumSimulatorTests(QuantumBackendTests):
         assert wf_simulator.number_of_circuits_run == 1
         assert wf_simulator.number_of_jobs_run == 1
 
+    def test_get_wavefunction_uses_provided_initial_state(self, wf_simulator):
+        circuit = Circuit([H(0), H(1)])
+        initial_state = np.array([0, 1, 0, 0])
+
+        np.testing.assert_allclose(
+            wf_simulator.get_wavefunction(circuit, initial_state=initial_state),
+            np.array([0.5, -0.5, 0.5, -0.5]),
+        )
+        np.testing.assert_allclose(
+            wf_simulator.get_wavefunction(circuit), 0.5 * np.ones(4)
+        )
+
 
 class QuantumSimulatorGatesTest:
     gates_to_exclude: List[str] = []

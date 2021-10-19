@@ -23,6 +23,14 @@ def _cast_sympy_matrix_to_numpy(sympy_matrix, complex=False):
         return np.array(sympy_matrix, dtype=object).flatten()
 
 
+def _get_next_number_with_same_hamming_weight(val):
+    # Copied from:
+    # https://math.stackexchange.com/questions/2254151/is-there-a-general-formula-to-generate-all-numbers-with-a-given-binary-hamming
+    c = val & -val
+    r = val + c
+    return (((r ^ val) >> 2) // c) | r
+
+
 class Wavefunction:
     """
     A simple wavefunction data structure that can
@@ -117,7 +125,7 @@ class Wavefunction:
         return self._amplitude_vector == other._amplitude_vector
 
     @staticmethod
-    def init_system(n_qubits: int) -> "Wavefunction":
+    def zero_state(n_qubits: int) -> "Wavefunction":
         if not isinstance(n_qubits, int):
             warn(
                 f"Non-integer value {n_qubits} passed as number of qubits! "
@@ -133,12 +141,10 @@ class Wavefunction:
         return Wavefunction(np_arr)
 
     @staticmethod
-    def init_system_in_dicke_state(
-        n_qubits: int, hamming_weight: int
-    ) -> "Wavefunction":
-        initial_wf = Wavefunction.init_system(n_qubits)
+    def dicke_state(n_qubits: int, hamming_weight: int) -> "Wavefunction":
+        initial_wf = Wavefunction.zero_state(n_qubits)
 
-        if hamming_weight < 0:
+        if hamming_weight < 0 or not isinstance(hamming_weight, int):
             raise ValueError(f"Invalid hamming weight value. Got {hamming_weight}.")
 
         if hamming_weight > n_qubits:
@@ -152,13 +158,6 @@ class Wavefunction:
         else:
             del initial_wf
 
-            def get_next_number_with_same_hamming_weight(val):
-                # Copied from:
-                # https://math.stackexchange.com/questions/2254151/is-there-a-general-formula-to-generate-all-numbers-with-a-given-binary-hamming
-                c = val & -val
-                r = val + c
-                return (((r ^ val) >> 2) // c) | r
-
             def most_significant_set_bit(val):
                 bin_string = bin(val)
                 return len(bin_string) - 2
@@ -169,7 +168,7 @@ class Wavefunction:
             counter: int = 1
             indices: List[int] = [current_value]
             while True:
-                current_value = get_next_number_with_same_hamming_weight(current_value)
+                current_value = _get_next_number_with_same_hamming_weight(current_value)
                 if not most_significant_set_bit(current_value) <= n_qubits:
                     break
                 indices.append(current_value)

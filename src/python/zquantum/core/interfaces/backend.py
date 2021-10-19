@@ -16,6 +16,8 @@ from ..circuits.layouts import CircuitConnectivity
 from ..measurement import ExpectationValues, Measurements, expectation_values_to_real
 from ..openfermion import change_operator_type, get_expectation_value
 
+# Note that in particular Wavefunction is a StateVector. However, for performance
+# reasons QuantumSimulator uses numpy arrays internally.
 StateVector = Sequence[Complex]
 
 

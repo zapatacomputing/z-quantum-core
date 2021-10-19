@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from numbers import Real
+from numbers import Complex
 from typing import Any, List, Optional, Sequence
 
 import numpy as np
@@ -16,7 +16,7 @@ from ..circuits.layouts import CircuitConnectivity
 from ..measurement import ExpectationValues, Measurements, expectation_values_to_real
 from ..openfermion import change_operator_type, get_expectation_value
 
-StateVector = Sequence[Real]
+StateVector = Sequence[Complex]
 
 
 class QuantumBackend(ABC):

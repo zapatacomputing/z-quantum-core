@@ -163,7 +163,6 @@ one_qubit_parametric_gates_exp_vals_test_set = [
     ["H", "RH", [np.pi], [1.00000000000000, 0, 0, 1.00000000000000]],
 ]
 
-
 two_qubit_non_parametric_gates_exp_vals_test_set = [
     [
         ["I", "I"],
@@ -2017,20 +2016,20 @@ one_qubit_parametric_gates_amplitudes_test_set = [
 
 two_qubit_non_parametric_gates_amplitudes_test_set = [
     [["I", "I"], "CNOT", [1.0, 0.0, 0.0, 0.0]],
-    [["I", "X"], "CNOT", [0.0, 0.0, 1.0, 0.0]],
+    [["I", "X"], "CNOT", [0.0, 1.0, 0.0, 0.0]],
     [["X", "I"], "CNOT", [0.0, 0.0, 0.0, 1.0]],
-    [["X", "X"], "CNOT", [0.0, 1.0, 0.0, 0.0]],
+    [["X", "X"], "CNOT", [0.0, 0.0, 1.0, 0.0]],
     [["I", "I"], "SWAP", [1.0, 0.0, 0.0, 0.0]],
-    [["I", "X"], "SWAP", [0.0, 1.0, 0.0, 0.0]],
-    [["X", "I"], "SWAP", [0.0, 0.0, 1.0, 0.0]],
+    [["I", "X"], "SWAP", [0.0, 0.0, 1.0, 0.0]],
+    [["X", "I"], "SWAP", [0.0, 1.0, 0.0, 0.0]],
     [["X", "X"], "SWAP", [0.0, 0.0, 0.0, 1.0]],
     [["I", "I"], "ISWAP", [1.0, 0.0, 0.0, 0.0]],
-    [["I", "X"], "ISWAP", [0.0, 1.0j, 0.0, 0.0]],
-    [["X", "I"], "ISWAP", [0.0, 0.0, 1.0j, 0.0]],
+    [["I", "X"], "ISWAP", [0.0, 0.0, 1.0j, 0.0]],
+    [["X", "I"], "ISWAP", [0.0, 1.0j, 0.0, 0.0]],
     [["X", "X"], "ISWAP", [0.0, 0.0, 0.0, 1.0]],
     [["I", "I"], "CZ", [1.0, 0.0, 0.0, 0.0]],
-    [["I", "X"], "CZ", [0.0, 0.0, 1.0, 0.0]],
-    [["X", "I"], "CZ", [0.0, 1.0, 0.0, 0.0]],
+    [["I", "X"], "CZ", [0.0, 1.0, 0.0, 0.0]],
+    [["X", "I"], "CZ", [0.0, 0.0, 1.0, 0.0]],
     [["X", "X"], "CZ", [0.0, 0.0, 0.0, -1.0]],
 ]
 
@@ -2040,16 +2039,16 @@ two_qubit_parametric_gates_amplitudes_test_set = [
     [["I", "I"], "CPHASE", [np.pi / 5], [1, 0, 0, 0]],
     [["I", "I"], "CPHASE", [np.pi / 2], [1, 0, 0, 0]],
     [["I", "I"], "CPHASE", [np.pi], [1, 0, 0, 0]],
-    [["I", "H"], "CPHASE", [-np.pi / 2], [np.sqrt(2) / 2, 0, np.sqrt(2) / 2, 0]],
-    [["I", "H"], "CPHASE", [0], [np.sqrt(2) / 2, 0, np.sqrt(2) / 2, 0]],
-    [["I", "H"], "CPHASE", [np.pi / 5], [np.sqrt(2) / 2, 0, np.sqrt(2) / 2, 0]],
-    [["I", "H"], "CPHASE", [np.pi / 2], [np.sqrt(2) / 2, 0, np.sqrt(2) / 2, 0]],
-    [["I", "H"], "CPHASE", [np.pi], [np.sqrt(2) / 2, 0, np.sqrt(2) / 2, 0]],
-    [["H", "I"], "CPHASE", [-np.pi / 2], [np.sqrt(2) / 2, np.sqrt(2) / 2, 0, 0]],
-    [["H", "I"], "CPHASE", [0], [np.sqrt(2) / 2, np.sqrt(2) / 2, 0, 0]],
-    [["H", "I"], "CPHASE", [np.pi / 5], [np.sqrt(2) / 2, np.sqrt(2) / 2, 0, 0]],
-    [["H", "I"], "CPHASE", [np.pi / 2], [np.sqrt(2) / 2, np.sqrt(2) / 2, 0, 0]],
-    [["H", "I"], "CPHASE", [np.pi], [np.sqrt(2) / 2, np.sqrt(2) / 2, 0, 0]],
+    [["I", "H"], "CPHASE", [-np.pi / 2], [np.sqrt(2) / 2, np.sqrt(2) / 2, 0, 0]],
+    [["I", "H"], "CPHASE", [0], [np.sqrt(2) / 2, np.sqrt(2) / 2, 0, 0]],
+    [["I", "H"], "CPHASE", [np.pi / 5], [np.sqrt(2) / 2, np.sqrt(2) / 2, 0, 0]],
+    [["I", "H"], "CPHASE", [np.pi / 2], [np.sqrt(2) / 2, np.sqrt(2) / 2, 0, 0]],
+    [["I", "H"], "CPHASE", [np.pi], [np.sqrt(2) / 2, np.sqrt(2) / 2, 0, 0]],
+    [["H", "I"], "CPHASE", [-np.pi / 2], [np.sqrt(2) / 2, 0, np.sqrt(2) / 2, 0]],
+    [["H", "I"], "CPHASE", [0], [np.sqrt(2) / 2, 0, np.sqrt(2) / 2, 0]],
+    [["H", "I"], "CPHASE", [np.pi / 5], [np.sqrt(2) / 2, 0, np.sqrt(2) / 2, 0]],
+    [["H", "I"], "CPHASE", [np.pi / 2], [np.sqrt(2) / 2, 0, np.sqrt(2) / 2, 0]],
+    [["H", "I"], "CPHASE", [np.pi], [np.sqrt(2) / 2, 0, np.sqrt(2) / 2, 0]],
     [["H", "H"], "CPHASE", [-np.pi / 2], [1 / 2, 1 / 2, 1 / 2, -0.5 * 1.0j]],
     [["H", "H"], "CPHASE", [0], [1 / 2, 1 / 2, 1 / 2, 1 / 2]],
     [
@@ -2075,30 +2074,10 @@ two_qubit_parametric_gates_amplitudes_test_set = [
     ],
     [["I", "I"], "XX", [np.pi / 2], [np.sqrt(2) / 2, 0, 0, -0.5 * np.sqrt(2) * 1.0j]],
     [["I", "I"], "XX", [np.pi], [0, 0, 0, -1.0j]],
-    [["I", "H"], "XX", [-np.pi / 2], [1 / 2, 0.5 * 1.0j, 1 / 2, 0.5 * 1.0j]],
-    [["I", "H"], "XX", [0], [np.sqrt(2) / 2, 0, np.sqrt(2) / 2, 0]],
+    [["I", "H"], "XX", [-np.pi / 2], [1 / 2, 1 / 2, 0.5 * 1.0j, 0.5 * 1.0j]],
+    [["I", "H"], "XX", [0], [np.sqrt(2) / 2, np.sqrt(2) / 2, 0, 0]],
     [
         ["I", "H"],
-        "XX",
-        [np.pi / 5],
-        [
-            np.sqrt(2) * np.sqrt(np.sqrt(5) / 8 + 5 / 8) / 2,
-            -0.5 * np.sqrt(2) * 1.0j * (-1 / 4 + np.sqrt(5) / 4),
-            np.sqrt(2) * np.sqrt(np.sqrt(5) / 8 + 5 / 8) / 2,
-            -0.5 * np.sqrt(2) * 1.0j * (-1 / 4 + np.sqrt(5) / 4),
-        ],
-    ],
-    [["I", "H"], "XX", [np.pi / 2], [1 / 2, -0.5 * 1.0j, 1 / 2, -0.5 * 1.0j]],
-    [
-        ["I", "H"],
-        "XX",
-        [np.pi],
-        [0, -0.5 * np.sqrt(2) * 1.0j, 0, -0.5 * np.sqrt(2) * 1.0j],
-    ],
-    [["H", "I"], "XX", [-np.pi / 2], [1 / 2, 1 / 2, 0.5 * 1.0j, 0.5 * 1.0j]],
-    [["H", "I"], "XX", [0], [np.sqrt(2) / 2, np.sqrt(2) / 2, 0, 0]],
-    [
-        ["H", "I"],
         "XX",
         [np.pi / 5],
         [
@@ -2108,12 +2087,32 @@ two_qubit_parametric_gates_amplitudes_test_set = [
             -0.5 * np.sqrt(2) * 1.0j * (-1 / 4 + np.sqrt(5) / 4),
         ],
     ],
-    [["H", "I"], "XX", [np.pi / 2], [1 / 2, 1 / 2, -0.5 * 1.0j, -0.5 * 1.0j]],
+    [["I", "H"], "XX", [np.pi / 2], [1 / 2, 1 / 2, -0.5 * 1.0j, -0.5 * 1.0j]],
     [
-        ["H", "I"],
+        ["I", "H"],
         "XX",
         [np.pi],
         [0, 0, -0.5 * np.sqrt(2) * 1.0j, -0.5 * np.sqrt(2) * 1.0j],
+    ],
+    [["H", "I"], "XX", [-np.pi / 2], [1 / 2, 0.5 * 1.0j, 1 / 2, 0.5 * 1.0j]],
+    [["H", "I"], "XX", [0], [np.sqrt(2) / 2, 0, np.sqrt(2) / 2, 0]],
+    [
+        ["H", "I"],
+        "XX",
+        [np.pi / 5],
+        [
+            np.sqrt(2) * np.sqrt(np.sqrt(5) / 8 + 5 / 8) / 2,
+            -0.5 * np.sqrt(2) * 1.0j * (-1 / 4 + np.sqrt(5) / 4),
+            np.sqrt(2) * np.sqrt(np.sqrt(5) / 8 + 5 / 8) / 2,
+            -0.5 * np.sqrt(2) * 1.0j * (-1 / 4 + np.sqrt(5) / 4),
+        ],
+    ],
+    [["H", "I"], "XX", [np.pi / 2], [1 / 2, -0.5 * 1.0j, 1 / 2, -0.5 * 1.0j]],
+    [
+        ["H", "I"],
+        "XX",
+        [np.pi],
+        [0, -0.5 * np.sqrt(2) * 1.0j, 0, -0.5 * np.sqrt(2) * 1.0j],
     ],
     [
         ["H", "H"],
@@ -2164,30 +2163,10 @@ two_qubit_parametric_gates_amplitudes_test_set = [
     ],
     [["I", "I"], "YY", [np.pi / 2], [np.sqrt(2) / 2, 0, 0, 0.5 * np.sqrt(2) * 1.0j]],
     [["I", "I"], "YY", [np.pi], [0, 0, 0, 1.0j]],
-    [["I", "H"], "YY", [-np.pi / 2], [1 / 2, 0.5 * 1.0j, 1 / 2, -0.5 * 1.0j]],
-    [["I", "H"], "YY", [0], [np.sqrt(2) / 2, 0, np.sqrt(2) / 2, 0]],
+    [["I", "H"], "YY", [-np.pi / 2], [1 / 2, 1 / 2, 0.5 * 1.0j, -0.5 * 1.0j]],
+    [["I", "H"], "YY", [0], [np.sqrt(2) / 2, np.sqrt(2) / 2, 0, 0]],
     [
         ["I", "H"],
-        "YY",
-        [np.pi / 5],
-        [
-            np.sqrt(2) * np.sqrt(np.sqrt(5) / 8 + 5 / 8) / 2,
-            -0.5 * np.sqrt(2) * 1.0j * (-1 / 4 + np.sqrt(5) / 4),
-            np.sqrt(2) * np.sqrt(np.sqrt(5) / 8 + 5 / 8) / 2,
-            0.5 * np.sqrt(2) * 1.0j * (-1 / 4 + np.sqrt(5) / 4),
-        ],
-    ],
-    [["I", "H"], "YY", [np.pi / 2], [1 / 2, -0.5 * 1.0j, 1 / 2, 0.5 * 1.0j]],
-    [
-        ["I", "H"],
-        "YY",
-        [np.pi],
-        [0, -0.5 * np.sqrt(2) * 1.0j, 0, 0.5 * np.sqrt(2) * 1.0j],
-    ],
-    [["H", "I"], "YY", [-np.pi / 2], [1 / 2, 1 / 2, 0.5 * 1.0j, -0.5 * 1.0j]],
-    [["H", "I"], "YY", [0], [np.sqrt(2) / 2, np.sqrt(2) / 2, 0, 0]],
-    [
-        ["H", "I"],
         "YY",
         [np.pi / 5],
         [
@@ -2197,12 +2176,32 @@ two_qubit_parametric_gates_amplitudes_test_set = [
             0.5 * np.sqrt(2) * 1.0j * (-1 / 4 + np.sqrt(5) / 4),
         ],
     ],
-    [["H", "I"], "YY", [np.pi / 2], [1 / 2, 1 / 2, -0.5 * 1.0j, 0.5 * 1.0j]],
+    [["I", "H"], "YY", [np.pi / 2], [1 / 2, 1 / 2, -0.5 * 1.0j, 0.5 * 1.0j]],
     [
-        ["H", "I"],
+        ["I", "H"],
         "YY",
         [np.pi],
         [0, 0, -0.5 * np.sqrt(2) * 1.0j, 0.5 * np.sqrt(2) * 1.0j],
+    ],
+    [["H", "I"], "YY", [-np.pi / 2], [1 / 2, 0.5 * 1.0j, 1 / 2, -0.5 * 1.0j]],
+    [["H", "I"], "YY", [0], [np.sqrt(2) / 2, 0, np.sqrt(2) / 2, 0]],
+    [
+        ["H", "I"],
+        "YY",
+        [np.pi / 5],
+        [
+            np.sqrt(2) * np.sqrt(np.sqrt(5) / 8 + 5 / 8) / 2,
+            -0.5 * np.sqrt(2) * 1.0j * (-1 / 4 + np.sqrt(5) / 4),
+            np.sqrt(2) * np.sqrt(np.sqrt(5) / 8 + 5 / 8) / 2,
+            0.5 * np.sqrt(2) * 1.0j * (-1 / 4 + np.sqrt(5) / 4),
+        ],
+    ],
+    [["H", "I"], "YY", [np.pi / 2], [1 / 2, -0.5 * 1.0j, 1 / 2, 0.5 * 1.0j]],
+    [
+        ["H", "I"],
+        "YY",
+        [np.pi],
+        [0, -0.5 * np.sqrt(2) * 1.0j, 0, 0.5 * np.sqrt(2) * 1.0j],
     ],
     [
         ["H", "H"],
@@ -2269,12 +2268,12 @@ two_qubit_parametric_gates_amplitudes_test_set = [
         [-np.pi / 2],
         [
             np.sqrt(2) * (np.sqrt(2) / 2 + 0.5 * np.sqrt(2) * 1.0j) / 2,
-            0,
             np.sqrt(2) * (np.sqrt(2) / 2 - 0.5 * np.sqrt(2) * 1.0j) / 2,
+            0,
             0,
         ],
     ],
-    [["I", "H"], "ZZ", [0], [np.sqrt(2) / 2, 0, np.sqrt(2) / 2, 0]],
+    [["I", "H"], "ZZ", [0], [np.sqrt(2) / 2, np.sqrt(2) / 2, 0, 0]],
     [
         ["I", "H"],
         "ZZ",
@@ -2283,10 +2282,10 @@ two_qubit_parametric_gates_amplitudes_test_set = [
             np.sqrt(2)
             * (np.sqrt(np.sqrt(5) / 8 + 5 / 8) - 1.0j * (-1 / 4 + np.sqrt(5) / 4))
             / 2,
-            0,
             np.sqrt(2)
             * (np.sqrt(np.sqrt(5) / 8 + 5 / 8) + 1.0j * (-1 / 4 + np.sqrt(5) / 4))
             / 2,
+            0,
             0,
         ],
     ],
@@ -2296,8 +2295,8 @@ two_qubit_parametric_gates_amplitudes_test_set = [
         [np.pi / 2],
         [
             np.sqrt(2) * (np.sqrt(2) / 2 - 0.5 * np.sqrt(2) * 1.0j) / 2,
-            0,
             np.sqrt(2) * (np.sqrt(2) / 2 + 0.5 * np.sqrt(2) * 1.0j) / 2,
+            0,
             0,
         ],
     ],
@@ -2305,7 +2304,7 @@ two_qubit_parametric_gates_amplitudes_test_set = [
         ["I", "H"],
         "ZZ",
         [np.pi],
-        [-0.5 * np.sqrt(2) * 1.0j, 0, 0.5 * np.sqrt(2) * 1.0j, 0],
+        [-0.5 * np.sqrt(2) * 1.0j, 0.5 * np.sqrt(2) * 1.0j, 0, 0],
     ],
     [
         ["H", "I"],
@@ -2313,12 +2312,12 @@ two_qubit_parametric_gates_amplitudes_test_set = [
         [-np.pi / 2],
         [
             np.sqrt(2) * (np.sqrt(2) / 2 + 0.5 * np.sqrt(2) * 1.0j) / 2,
-            np.sqrt(2) * (np.sqrt(2) / 2 - 0.5 * np.sqrt(2) * 1.0j) / 2,
             0,
+            np.sqrt(2) * (np.sqrt(2) / 2 - 0.5 * np.sqrt(2) * 1.0j) / 2,
             0,
         ],
     ],
-    [["H", "I"], "ZZ", [0], [np.sqrt(2) / 2, np.sqrt(2) / 2, 0, 0]],
+    [["H", "I"], "ZZ", [0], [np.sqrt(2) / 2, 0, np.sqrt(2) / 2, 0]],
     [
         ["H", "I"],
         "ZZ",
@@ -2327,10 +2326,10 @@ two_qubit_parametric_gates_amplitudes_test_set = [
             np.sqrt(2)
             * (np.sqrt(np.sqrt(5) / 8 + 5 / 8) - 1.0j * (-1 / 4 + np.sqrt(5) / 4))
             / 2,
+            0,
             np.sqrt(2)
             * (np.sqrt(np.sqrt(5) / 8 + 5 / 8) + 1.0j * (-1 / 4 + np.sqrt(5) / 4))
             / 2,
-            0,
             0,
         ],
     ],
@@ -2340,8 +2339,8 @@ two_qubit_parametric_gates_amplitudes_test_set = [
         [np.pi / 2],
         [
             np.sqrt(2) * (np.sqrt(2) / 2 - 0.5 * np.sqrt(2) * 1.0j) / 2,
-            np.sqrt(2) * (np.sqrt(2) / 2 + 0.5 * np.sqrt(2) * 1.0j) / 2,
             0,
+            np.sqrt(2) * (np.sqrt(2) / 2 + 0.5 * np.sqrt(2) * 1.0j) / 2,
             0,
         ],
     ],
@@ -2349,7 +2348,7 @@ two_qubit_parametric_gates_amplitudes_test_set = [
         ["H", "I"],
         "ZZ",
         [np.pi],
-        [-0.5 * np.sqrt(2) * 1.0j, 0.5 * np.sqrt(2) * 1.0j, 0, 0],
+        [-0.5 * np.sqrt(2) * 1.0j, 0, 0.5 * np.sqrt(2) * 1.0j, 0],
     ],
     [
         ["H", "H"],
@@ -2395,36 +2394,36 @@ two_qubit_parametric_gates_amplitudes_test_set = [
     [["I", "I"], "XY", [np.pi / 5], [1, 0, 0, 0]],
     [["I", "I"], "XY", [np.pi / 2], [1, 0, 0, 0]],
     [["I", "I"], "XY", [np.pi], [1, 0, 0, 0]],
-    [["I", "H"], "XY", [-np.pi / 2], [np.sqrt(2) / 2, -0.5 * 1.0j, 1 / 2, 0]],
-    [["I", "H"], "XY", [0], [np.sqrt(2) / 2, 0, np.sqrt(2) / 2, 0]],
+    [["I", "H"], "XY", [-np.pi / 2], [np.sqrt(2) / 2, 1 / 2, -0.5 * 1.0j, 0]],
+    [["I", "H"], "XY", [0], [np.sqrt(2) / 2, np.sqrt(2) / 2, 0, 0]],
     [
         ["I", "H"],
         "XY",
         [np.pi / 5],
         [
             np.sqrt(2) / 2,
-            0.5 * np.sqrt(2) * 1.0j * (-1 / 4 + np.sqrt(5) / 4),
             np.sqrt(2) * np.sqrt(np.sqrt(5) / 8 + 5 / 8) / 2,
+            0.5 * np.sqrt(2) * 1.0j * (-1 / 4 + np.sqrt(5) / 4),
             0,
         ],
     ],
-    [["I", "H"], "XY", [np.pi / 2], [np.sqrt(2) / 2, 0.5 * 1.0j, 1 / 2, 0]],
-    [["I", "H"], "XY", [np.pi], [np.sqrt(2) / 2, 0.5 * np.sqrt(2) * 1.0j, 0, 0]],
-    [["H", "I"], "XY", [-np.pi / 2], [np.sqrt(2) / 2, 1 / 2, -0.5 * 1.0j, 0]],
-    [["H", "I"], "XY", [0], [np.sqrt(2) / 2, np.sqrt(2) / 2, 0, 0]],
+    [["I", "H"], "XY", [np.pi / 2], [np.sqrt(2) / 2, 1 / 2, 0.5 * 1.0j, 0]],
+    [["I", "H"], "XY", [np.pi], [np.sqrt(2) / 2, 0, 0.5 * np.sqrt(2) * 1.0j, 0]],
+    [["H", "I"], "XY", [-np.pi / 2], [np.sqrt(2) / 2, -0.5 * 1.0j, 1 / 2, 0]],
+    [["H", "I"], "XY", [0], [np.sqrt(2) / 2, 0, np.sqrt(2) / 2, 0]],
     [
         ["H", "I"],
         "XY",
         [np.pi / 5],
         [
             np.sqrt(2) / 2,
-            np.sqrt(2) * np.sqrt(np.sqrt(5) / 8 + 5 / 8) / 2,
             0.5 * np.sqrt(2) * 1.0j * (-1 / 4 + np.sqrt(5) / 4),
+            np.sqrt(2) * np.sqrt(np.sqrt(5) / 8 + 5 / 8) / 2,
             0,
         ],
     ],
-    [["H", "I"], "XY", [np.pi / 2], [np.sqrt(2) / 2, 1 / 2, 0.5 * 1.0j, 0]],
-    [["H", "I"], "XY", [np.pi], [np.sqrt(2) / 2, 0, 0.5 * np.sqrt(2) * 1.0j, 0]],
+    [["H", "I"], "XY", [np.pi / 2], [np.sqrt(2) / 2, 0.5 * 1.0j, 1 / 2, 0]],
+    [["H", "I"], "XY", [np.pi], [np.sqrt(2) / 2, 0.5 * np.sqrt(2) * 1.0j, 0, 0]],
     [
         ["H", "H"],
         "XY",

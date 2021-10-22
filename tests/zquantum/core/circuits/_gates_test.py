@@ -4,7 +4,7 @@ from unittest.mock import Mock
 import numpy as np
 import pytest
 import sympy
-from zquantum.core.circuits import _builtin_gates
+from zquantum.core.circuits import ControlledGate, _builtin_gates
 from zquantum.core.circuits._gates import GateOperation, MatrixFactoryGate
 
 GATES_REPRESENTATIVES = [
@@ -203,6 +203,10 @@ class TestControlledGate:
         assert controlled_gate.replace_params(new_params) == gate.replace_params(
             new_params
         ).controlled(2)
+
+    def test_constructing_controlled_gate_with_zero_control_raises_error(self, gate):
+        with pytest.raises(ValueError):
+            gate.controlled(0)
 
 
 @pytest.mark.parametrize("gate", GATES_REPRESENTATIVES)

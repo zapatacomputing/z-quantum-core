@@ -23,12 +23,12 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from typing import TYPE_CHECKING, Dict, List, Sequence, Union
+from typing import TYPE_CHECKING, Dict, Sequence
 
 import numpy as np
 
 if TYPE_CHECKING:
-    from zquantum.core.bitstring_distribution import BitstringDistribution
+    from zquantum.core.distribution import DitSequenceDistribution
 
 
 def compute_rbf_kernel(x_i: np.ndarray, y_j: np.ndarray, sigma: float) -> np.ndarray:
@@ -83,8 +83,8 @@ def compute_multi_rbf_kernel(
 
 
 def compute_mmd(
-    target_distribution: "BitstringDistribution",
-    measured_distribution: "BitstringDistribution",
+    target_distribution: "DitSequenceDistribution",
+    measured_distribution: "DitSequenceDistribution",
     distance_measure_parameters: Dict,
 ) -> float:
     """Compute the squared Maximum Mean Discrepancy (MMD) distance measure between
@@ -117,7 +117,9 @@ def compute_mmd(
             measured_distribution.distribution_dict.get(bitstring, 0)
         )
 
-    basis = np.asarray([int(item, 2) for item in all_keys])  # bitstring to int
+    basis = np.asarray(
+        [int("".join(map(str, item)), 2) for item in all_keys]
+    )  # Digit Tuple to int
     if not hasattr(sigma, "__len__"):
         kernel_matrix = compute_rbf_kernel(basis, basis, sigma)
     else:

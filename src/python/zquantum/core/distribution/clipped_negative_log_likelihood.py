@@ -2,12 +2,12 @@ import math
 from typing import TYPE_CHECKING, Dict
 
 if TYPE_CHECKING:
-    from zquantum.core.bitstring_distribution import BitstringDistribution
+    from zquantum.core.distribution import DitSequenceDistribution
 
 
 def compute_clipped_negative_log_likelihood(
-    target_distribution: "BitstringDistribution",
-    measured_distribution: "BitstringDistribution",
+    target_distribution: "DitSequenceDistribution",
+    measured_distribution: "DitSequenceDistribution",
     distance_measure_parameters: Dict,
 ) -> float:
     """Compute the value of the clipped negative log likelihood between a target

@@ -1,0 +1,379 @@
+import json
+import math
+from io import StringIO
+from itertools import product
+from unittest import mock
+
+import numpy as np
+import pytest
+from zquantum.core.distribution._ditsequence_distribution import (
+    DitSequenceDistribution,
+    are_keys_non_negative_integer_tuples,
+    are_non_tuple_keys_valid_binary_strings,
+    change_tuple_dict_keys_to_comma_separated_digitstrings,
+    create_bitstring_distribution_from_probability_distribution,
+    evaluate_distribution_distance,
+    is_ditsequence_distribution,
+    is_key_length_fixed,
+    is_non_negative,
+    is_normalized,
+    load_ditsequence_distribution,
+    load_ditsequence_distributions,
+    normalize_ditstring_distribution,
+    preprocess_distibution_dict,
+    save_ditsequence_distribution,
+    save_ditsequence_distributions,
+)
+from zquantum.core.utils import SCHEMA_VERSION
+
+
+class TestVerifiersAndValidators:
+    @pytest.mark.parametrize(
+        "validator,positive_case",
+        [
+            (
+                are_non_tuple_keys_valid_binary_strings,
+                {(1, 0, 0, 0, 0, 1): 3, "01100": 8, "000": 9},
+            ),
+            (is_non_negative, {i: i + 1 for i in range(10)}),
+            (
+                is_key_length_fixed,
+                {("a", "b", "c"): 3, (1, 0, 0): 2, ("w", "w", "w"): 1},
+            ),
+            (
+                are_keys_non_negative_integer_tuples,
+                {(1, 0, 0, 0, 0, 1): 3, (1, 99): 2, (0, 45, 36, 1): 1},
+            ),
+            (is_ditsequence_distribution, {(1, 0, 0): 3, (1, 1, 0): 2, (0, 1, 0): 1}),
+            (
+                is_ditsequence_distribution,
+                preprocess_distibution_dict(
+                    {
+                        "110": 0.5,
+                        (1, 0, 0): 0.5,
+                    }
+                ),
+            ),
+            (
+                is_ditsequence_distribution,
+                preprocess_distibution_dict(
+                    {
+                        "1,1,0": 0.5,
+                        (1, 0, 0): 0.5,
+                    }
+                ),
+            ),
+        ],
+    )
+    def test_validator_returns_true_for_positive_case(self, validator, positive_case):
+        assert validator(positive_case)
+
+    @pytest.mark.parametrize(
+        "validator,negative_case",
+        [
+            (are_non_tuple_keys_valid_binary_strings, {"abc": 3, (1, 0, 0): 2}),
+            (are_non_tuple_keys_valid_binary_strings, {3.125: 3, (1, 0, 0): 2}),
+            (is_non_negative, {i: -i for i in range(10)}),
+            (is_non_negative, {0: -1, 1: 2, 3: 0}),
+            (is_key_length_fixed, {("a"): 3, (1, 0): 2, ("w", "w", "w"): 1}),
+            (
+                are_keys_non_negative_integer_tuples,
+                {("a", "b", "c"): 3, (1, 0, 0): 2, ("w", "w", "w"): 1},
+            ),
+            (
+                is_ditsequence_distribution,
+                {(1, 0, 0, 0, 0, 1): 3, (1, 0): 2, (0, 1, 0, 1): 1},
+            ),
+            (
+                is_ditsequence_distribution,
+                {("a", "b", "c"): 3, (1, 0, 0): 2, ("w", "w", "w"): 1},
+            ),
+            (
+                is_ditsequence_distribution,
+                {
+                    "abc": 0.5,
+                    (1, 0, 0): 0.5,
+                },
+            ),
+            (
+                is_ditsequence_distribution,
+                {
+                    "a,b,c": 0.5,
+                    (1, 0, 0): 0.5,
+                },
+            ),
+        ],
+    )
+    def test_validator_returns_false_for_negative_case(self, validator, negative_case):
+        assert not validator(negative_case)
+
+    @pytest.mark.parametrize(
+        "distribution",
+        [
+            {(0, 0, 0): 0.1, (1, 1, 1): 0.9},
+            {(0, 1, 0): 0.3, (0, 0, 0): 0.2, (1, 1, 1): 0.5},
+            {
+                (0, 1, 0): 0.3,
+                (0, 0, 0): 0.2,
+                (1, 1, 1): 0.1,
+                (1, 0, 0): 0.4,
+            },
+        ],
+    )
+    def test_distributions_with_probabilities_summing_to_one_are_normalized(
+        self,
+        distribution,
+    ):
+        assert is_normalized(distribution)
+
+    @pytest.mark.parametrize(
+        "distribution",
+        [
+            {(0, 0, 0): 0.1, (1, 1, 1): 9},
+            {(0, 0, 0): 2, (1, 1, 1): 0.9},
+            {(0, 0, 0): 1e-3, (1, 1, 1): 0, (1, 0, 0): 100},
+        ],
+    )
+    def test_distributions_with_probabilities_not_summing_to_one_are_not_normalized(
+        self,
+        distribution,
+    ):
+        assert not is_normalized(distribution)
+
+
+@pytest.mark.parametrize(
+    "distribution",
+    [
+        {(0, 0, 0): 0.1, (1, 1, 1): 9},
+        {(0, 0, 0): 2, (1, 1, 1): 0.9},
+        {(0, 0, 0): 1e-3, (1, 1, 1): 0, (1, 0, 0): 100},
+    ],
+)
+def test_normalizing_distribution_gives_normalized_distribution(distribution):
+    assert not is_normalized(distribution)
+    normalize_ditstring_distribution(distribution)
+    assert is_normalized(distribution)
+
+
+class TestInitializations:
+    @pytest.mark.parametrize(
+        "prob_dist,expected_dist",
+        [
+            (
+                np.asarray([0.25, 0, 0.5, 0.25]),
+                DitSequenceDistribution(
+                    {(0, 0): 0.25, (1, 0): 0.5, (0, 1): 0.0, (1, 1): 0.25}
+                ),
+            ),
+            (
+                np.ones(2 ** 5) / 2 ** 5,
+                DitSequenceDistribution(
+                    {tup: 1 / 2 ** 5 for tup in product([0, 1], repeat=5)}
+                ),
+            ),
+        ],
+    )
+    def test_constructs_correct_bitstring_distribution_from_probability_distribution(
+        self, prob_dist, expected_bitstring_dist
+    ):
+        """Probability distributions is converted to matching bitstring distributions.
+
+        Bitstring distributions constructed from probability distribution should have:
+        - keys equal to binary representation of consecutive natural numbers,
+        - values corresponding to original probabilities.
+        """
+        bitstring_dist = create_bitstring_distribution_from_probability_distribution(
+            prob_dist
+        )
+        assert (
+            bitstring_dist.distribution_dict
+            == expected_bitstring_dist.distribution_dict
+        )
+        assert (
+            bitstring_dist.get_qubits_number()
+            == expected_bitstring_dist.get_qubits_number()
+        )
+
+    @pytest.mark.parametrize(
+        "distribution",
+        [
+            {(0, 0, 0): 0.1, (1, 1, 1): 0.9},
+            {(0, 1, 0): 0.3, (1, 1, 1): 0.9},
+            {(0, 0, 0): 2, (1, 1, 1): 0.9},
+            {(0, 0, 0): 2, (1, 1, 1): 4.9},
+            {(0, 0, 0): 0.2, (1, 1, 1): 9},
+            {(0, 0, 0): 1e-3, (1, 1, 1): 0},
+        ],
+    )
+    def test_distribution_gets_normalized_by_default(self, distribution):
+        distribution = DitSequenceDistribution(distribution)
+        assert is_normalized(distribution.distribution_dict)
+
+    def test_original_dict_is_kept_if_normalization_isnt_requested_and_warns(
+        self,
+    ):
+        distribution_dict = {(0, 0, 0): 0.1, (1, 1, 1): 9}
+        with pytest.warns(UserWarning):
+            distribution = DitSequenceDistribution(
+                {(0, 0, 0): 0.1, (1, 1, 1): 9}, normalize=False
+            )
+        assert distribution.distribution_dict == distribution_dict
+
+    @pytest.mark.parametrize(
+        "distribution,num_qubits",
+        [
+            (DitSequenceDistribution({(0, 0): 0.1, (1, 1): 0.9}), 2),
+            (DitSequenceDistribution({(0, 0, 0): 0.2, (1, 1, 1): 0.8}), 3),
+            (DitSequenceDistribution({(0, 0, 0, 0): 1e-3, (1, 1, 1, 1): 0}), 4),
+        ],
+    )
+    def test_number_of_qubits_in_distribution_equals_length_of_keys(
+        self, distribution, num_qubits
+    ):
+        assert distribution.get_qubits_number() == num_qubits
+
+
+def test_passed_measure_is_used_for_evaluating_distribution_distance():
+    """Evaluating distance distribution uses distance measure passed as an argument."""
+    target_distribution = DitSequenceDistribution({(0,): 10, (1,): 5})
+    measured_distribution = DitSequenceDistribution({(0,): 10, (1,): 5})
+    distance_function = mock.Mock()
+
+    distance = evaluate_distribution_distance(
+        target_distribution, measured_distribution, distance_function
+    )
+
+    distance_function.assert_called_once_with(
+        target_distribution, measured_distribution
+    )
+    assert distance == distance_function.return_value
+
+
+class TestSavingDistributions:
+    @pytest.fixture
+    def mock_open(self):
+        mock_open = mock.mock_open()
+        with mock.patch(
+            "zquantum.core.distribution._ditsequence_distribution.open",
+            mock_open,
+        ):
+            yield mock_open
+
+    def test_saving_distribution_opens_file_for_writing_using_context_manager(
+        self,
+        mock_open,
+    ):
+        distribution = DitSequenceDistribution({(0, 0, 0): 0.1, (1, 1, 1): 0.9})
+        save_ditsequence_distribution(distribution, "/some/path/to/distribution.json")
+
+        mock_open.assert_called_once_with("/some/path/to/distribution.json", "w")
+        mock_open().__enter__.assert_called_once()
+        mock_open().__exit__.assert_called_once()
+
+    def test_saving_distributions_opens_file_for_writing_using_context_manager(
+        self,
+        mock_open,
+    ):
+        distributions = [
+            DitSequenceDistribution({(0, 0, 0): 0.1, (1, 1, 1): 0.9}),
+            DitSequenceDistribution({(0, 1, 0, 0, 0): 0.5, (1, 0, 1, 1, 0): 0.5}),
+        ]
+        save_ditsequence_distributions(
+            distributions, "/some/path/to/distribution/set.json"
+        )
+
+        mock_open.assert_called_once_with("/some/path/to/distribution/set.json", "w")
+        mock_open().__enter__.assert_called_once()
+        mock_open().__exit__.assert_called_once()
+
+    def test_saving_distribution_writes_correct_json_data_to_file(self, mock_open):
+        """Saving distribution writes correct json dictionary to file."""
+        distribution = DitSequenceDistribution({(0, 0, 0): 0.1, (1, 1, 1): 0.9})
+
+        preprocessed_dict = change_tuple_dict_keys_to_comma_separated_digitstrings(
+            distribution.distribution_dict
+        )
+
+        expected_dict = {
+            "ditsequence_distribution": preprocessed_dict,
+            "schema": SCHEMA_VERSION + "-ditsequence-probability-distribution",
+        }
+
+        save_ditsequence_distribution(distribution, "/some/path/to/distribution.json")
+
+        written_data = mock_open().__enter__().write.call_args[0][0]
+        assert json.loads(written_data) == expected_dict
+
+    def test_saving_distributions_writes_correct_json_data_to_file(self, mock_open):
+        distributions = [
+            DitSequenceDistribution({(0, 0, 0): 0.1, (1, 1, 1): 0.9}),
+            DitSequenceDistribution({(0, 1, 0, 0, 0): 0.5, (1, 0, 1, 1, 0): 0.5}),
+        ]
+
+        expected_dict = {
+            "ditsequence_distribution": [
+                change_tuple_dict_keys_to_comma_separated_digitstrings(
+                    distribution.distribution_dict
+                )
+                for distribution in distributions
+            ],
+            "schema": SCHEMA_VERSION + "-ditsequence-probability-distribution-set",
+        }
+
+        save_ditsequence_distributions(
+            distributions, "/some/path/to/distribution/set.json"
+        )
+
+        written_data = mock_open().__enter__().write.call_args[0][0]
+        assert json.loads(written_data) == expected_dict
+
+    def test_saved_distribution_can_be_loaded_back(self, mock_open):
+        fake_file = StringIO()
+        mock_open().__enter__.return_value = fake_file
+        dist = DitSequenceDistribution({(0, 0, 0): 0.1, (1, 1, 1): 0.9})
+
+        save_ditsequence_distribution(dist, "distribution.json")
+        fake_file.seek(0)
+
+        loaded_dist = load_ditsequence_distribution(fake_file)
+        assert all(
+            math.isclose(
+                dist.distribution_dict[key], loaded_dist.distribution_dict[key]
+            )
+            for key in dist.distribution_dict.keys()
+        )
+
+        assert dist.distribution_dict.keys() == loaded_dist.distribution_dict.keys()
+
+    def test_saved_distributions_can_be_loaded(self, mock_open):
+        fake_file = StringIO()
+        mock_open().__enter__.return_value = fake_file
+        distributions = [
+            DitSequenceDistribution({(0, 0, 0): 0.1, (1, 1, 1): 0.9}),
+            DitSequenceDistribution({(0, 1, 0, 0, 0): 0.5, (1, 0, 1, 1, 0): 0.5}),
+        ]
+
+        save_ditsequence_distributions(distributions, "distributions.json")
+        fake_file.seek(0)
+
+        loaded_distributions = load_ditsequence_distributions(fake_file)
+        assert all(
+            (
+                math.isclose(
+                    distribution.distribution_dict[key],
+                    loaded_distribution.distribution_dict[key],
+                )
+                for key in distribution.distribution_dict.keys()
+            )
+            for distribution, loaded_distribution in zip(
+                distributions, loaded_distributions
+            )
+        )
+
+        assert all(
+            distribution.distribution_dict.keys()
+            == loaded_distribution.distribution_dict.keys()
+            for distribution, loaded_distribution in zip(
+                distributions, loaded_distributions
+            )
+        )

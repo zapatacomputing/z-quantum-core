@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 import sympy
-from zquantum.core.circuits import MultiPhaseOperation
+from zquantum.core.circuits import GateOperation, MultiPhaseOperation, split_circuit
 from zquantum.core.circuits._builtin_gates import (
     CNOT,
     CPHASE,
@@ -200,3 +200,25 @@ class TestBindingParams:
             MultiPhaseOperation((0.3, 0.5)),
             RX(0.3)(1),
         ]
+
+
+def test_splitting_circuits_partitions_it_into_expected_chunks():
+    def _predicate(operation):
+        return isinstance(operation, GateOperation) and operation.gate.name in (
+            "RX",
+            "RY",
+            "RZ",
+        )
+
+    circuit = Circuit(
+        [RX(np.pi)(0), RZ(np.pi / 2)(1), CNOT(2, 3), RY(np.pi / 4)(2), X(0), Y(1)]
+    )
+
+    expected_partition = [
+        (True, Circuit([RX(np.pi)(0), RZ(np.pi / 2)(1)], n_qubits=4)),
+        (False, Circuit([CNOT(2, 3)], n_qubits=4)),
+        (True, Circuit([RY(np.pi / 4)(2)], n_qubits=4)),
+        (False, Circuit([X(0), Y(1)], n_qubits=4)),
+    ]
+
+    assert list(split_circuit(circuit, _predicate)) == expected_partition

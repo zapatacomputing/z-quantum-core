@@ -25,10 +25,14 @@ def _cast_sympy_matrix_to_numpy(sympy_matrix, complex=False):
 
 def _get_next_number_with_same_hamming_weight(val):
     # Copied from:
-    # https://math.stackexchange.com/questions/2254151/is-there-a-general-formula-to-generate-all-numbers-with-a-given-binary-hamming
-    c = val & -val
-    r = val + c
-    return (((r ^ val) >> 2) // c) | r
+    # http://graphics.stanford.edu/~seander/bithacks.html#NextBitPermutation
+    t = (val | (val - 1)) + 1
+    return t | ((((t & -t) // (val & -val)) >> 1) - 1)
+
+
+def _most_significant_set_bit(val):
+    bin_string = bin(val)
+    return len(bin_string) - 2
 
 
 class Wavefunction:
@@ -158,10 +162,6 @@ class Wavefunction:
         else:
             del initial_wf
 
-            def most_significant_set_bit(val):
-                bin_string = bin(val)
-                return len(bin_string) - 2
-
             # Get first value with hamming weight
             current_value = int("1" * hamming_weight, base=2)
 
@@ -169,7 +169,7 @@ class Wavefunction:
             indices: List[int] = [current_value]
             while True:
                 current_value = _get_next_number_with_same_hamming_weight(current_value)
-                if not most_significant_set_bit(current_value) <= n_qubits:
+                if not _most_significant_set_bit(current_value) <= n_qubits:
                     break
                 indices.append(current_value)
                 counter += 1

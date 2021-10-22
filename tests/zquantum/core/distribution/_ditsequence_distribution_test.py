@@ -174,7 +174,7 @@ class TestInitializations:
         ],
     )
     def test_constructs_correct_bitstring_distribution_from_probability_distribution(
-        self, prob_dist, expected_bitstring_dist
+        self, prob_dist, expected_dist
     ):
         """Probability distributions is converted to matching bitstring distributions.
 
@@ -185,14 +185,8 @@ class TestInitializations:
         bitstring_dist = create_bitstring_distribution_from_probability_distribution(
             prob_dist
         )
-        assert (
-            bitstring_dist.distribution_dict
-            == expected_bitstring_dist.distribution_dict
-        )
-        assert (
-            bitstring_dist.get_qubits_number()
-            == expected_bitstring_dist.get_qubits_number()
-        )
+        assert bitstring_dist.distribution_dict == expected_dist.distribution_dict
+        assert bitstring_dist.get_qubits_number() == expected_dist.get_qubits_number()
 
     @pytest.mark.parametrize(
         "distribution",

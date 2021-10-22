@@ -88,12 +88,12 @@ def compute_mmd(
     distance_measure_parameters: Dict,
 ) -> float:
     """Compute the squared Maximum Mean Discrepancy (MMD) distance measure between
-    between a target bitstring distribution and a measured bitstring distribution.
+    between a target distribution and a measured distribution.
     Reference: arXiv.1804.04168.
 
         Args:
-            target_distribution: The target bitstring probability distribution.
-            measured_distribution: The measured bitstring probability distribution.
+            target_distribution: The target probability distribution.
+            measured_distribution: The measured probability distribution.
 
             distance_measure_parameters:
                 sigma (float/np.array): the bandwidth parameter used to compute the

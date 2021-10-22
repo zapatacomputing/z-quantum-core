@@ -6,7 +6,7 @@ from collections import Counter
 import numpy as np
 import pytest
 from openfermion.ops import IsingOperator
-from zquantum.core.bitstring_distribution import BitstringDistribution
+from zquantum.core.distribution import DitSequenceDistribution
 from zquantum.core.measurement import (
     ExpectationValues,
     Measurements,
@@ -28,7 +28,13 @@ from zquantum.core.measurement import (
     save_wavefunction,
 )
 from zquantum.core.testing import create_random_wavefunction
-from zquantum.core.utils import RNDSEED, SCHEMA_VERSION, convert_bitstrings_to_tuples
+from zquantum.core.utils import (
+    RNDSEED,
+    SCHEMA_VERSION,
+    convert_bitstrings_to_tuples,
+    convert_tuples_to_bitstrings,
+    get_ordered_list_of_bitstrings,
+)
 from zquantum.core.wavefunction import Wavefunction
 
 
@@ -297,32 +303,39 @@ def test_concatenate_expectation_values_with_cov_and_corr():
 
 
 class TestMeasurements:
-    def test_io(self):
-        # Given
-        measurements_data = {
-            "schema": SCHEMA_VERSION + "-measurements",
-            "counts": {
-                "000": 1,
-                "001": 2,
-                "010": 1,
-                "011": 1,
-                "100": 1,
-                "101": 1,
-                "110": 1,
-                "111": 1,
-            },
-            "bitstrings": [
-                [0, 0, 0],
-                [0, 0, 1],
-                [0, 1, 0],
-                [0, 1, 1],
-                [1, 0, 0],
-                [1, 1, 0],
-                [1, 1, 1],
-                [1, 0, 1],
-                [0, 0, 1],
-            ],
+    @pytest.fixture
+    def bitstrings(self):
+        return [
+            [0, 0, 0],
+            [0, 0, 1],
+            [0, 1, 0],
+            [0, 1, 1],
+            [1, 0, 0],
+            [1, 1, 0],
+            [1, 1, 1],
+            [1, 0, 1],
+            [0, 0, 1],
+        ]
+
+    @pytest.fixture
+    def counts(self):
+        return {
+            key: value
+            for key, value in zip(
+                get_ordered_list_of_bitstrings(3), [1, 2, 1, 1, 1, 1, 1, 1]
+            )
         }
+
+    @pytest.fixture
+    def measurements_data(self, counts, bitstrings):
+        return {
+            "schema": SCHEMA_VERSION + "-measurements",
+            "counts": counts,
+            "bitstrings": bitstrings,
+        }
+
+    def test_io(self, measurements_data):
+        # Given
         input_filename = "measurements_input_test.json"
         output_filename = "measurements_output_test.json"
 
@@ -388,19 +401,7 @@ class TestMeasurements:
             (1, 1, 1),
         ]
 
-    def test_intialize_with_counts(self):
-        # Given
-        counts = {
-            "000": 1,
-            "001": 2,
-            "010": 1,
-            "011": 1,
-            "100": 1,
-            "101": 1,
-            "110": 1,
-            "111": 1,
-        }
-
+    def test_intialize_with_counts(self, counts):
         # When
         measurements = Measurements.from_counts(counts)
 
@@ -417,32 +418,7 @@ class TestMeasurements:
             (1, 1, 1),
         ]
 
-    def test_bitstrings(self):
-        # Given
-        measurements_data = {
-            "schema": SCHEMA_VERSION + "-measurements",
-            "counts": {
-                "000": 1,
-                "001": 2,
-                "010": 1,
-                "011": 1,
-                "100": 1,
-                "101": 1,
-                "110": 1,
-                "111": 1,
-            },
-            "bitstrings": [
-                [0, 0, 0],
-                [0, 0, 1],
-                [0, 1, 0],
-                [0, 1, 1],
-                [1, 0, 0],
-                [1, 1, 0],
-                [1, 1, 1],
-                [1, 0, 1],
-                [0, 0, 1],
-            ],
-        }
+    def test_bitstrings(self, measurements_data):
         input_filename = "measurements_input_test.json"
 
         with open(input_filename, "w") as f:
@@ -464,32 +440,8 @@ class TestMeasurements:
 
         remove_file_if_exists(input_filename)
 
-    def test_get_counts(self):
+    def test_get_counts(self, measurements_data):
         # Given
-        measurements_data = {
-            "schema": SCHEMA_VERSION + "-measurements",
-            "counts": {
-                "000": 1,
-                "001": 2,
-                "010": 1,
-                "011": 1,
-                "100": 1,
-                "101": 1,
-                "110": 1,
-                "111": 1,
-            },
-            "bitstrings": [
-                [0, 0, 0],
-                [0, 0, 1],
-                [0, 1, 0],
-                [0, 1, 1],
-                [1, 0, 0],
-                [1, 1, 0],
-                [1, 1, 1],
-                [1, 0, 1],
-                [0, 0, 1],
-            ],
-        }
         input_filename = "measurements_input_test.json"
 
         with open(input_filename, "w") as f:
@@ -504,32 +456,8 @@ class TestMeasurements:
 
         remove_file_if_exists(input_filename)
 
-    def test_get_distribution(self):
+    def test_get_distribution(self, measurements_data):
         # Given
-        measurements_data = {
-            "schema": SCHEMA_VERSION + "-measurements",
-            "counts": {
-                "000": 1,
-                "001": 2,
-                "010": 1,
-                "011": 1,
-                "100": 1,
-                "101": 1,
-                "110": 1,
-                "111": 1,
-            },
-            "bitstrings": [
-                [0, 0, 0],
-                [0, 0, 1],
-                [0, 1, 0],
-                [0, 1, 1],
-                [1, 0, 0],
-                [1, 1, 0],
-                [1, 1, 1],
-                [1, 0, 1],
-                [0, 0, 1],
-            ],
-        }
         input_filename = "measurements_input_test.json"
 
         with open(input_filename, "w") as f:
@@ -541,31 +469,22 @@ class TestMeasurements:
 
         # Then
         assert distribution.distribution_dict == {
-            "000": 1 / 9,
-            "001": 2 / 9,
-            "010": 1 / 9,
-            "011": 1 / 9,
-            "100": 1 / 9,
-            "101": 1 / 9,
-            "110": 1 / 9,
-            "111": 1 / 9,
+            (0, 0, 0): 1 / 9,
+            (0, 0, 1): 2 / 9,
+            (0, 1, 0): 1 / 9,
+            (0, 1, 1): 1 / 9,
+            (1, 0, 0): 1 / 9,
+            (1, 0, 1): 1 / 9,
+            (1, 1, 0): 1 / 9,
+            (1, 1, 1): 1 / 9,
         }
 
         remove_file_if_exists(input_filename)
 
-    def test_add_counts(self):
+    def test_add_counts(self, counts):
         # Given
         measurements = Measurements()
-        measurements_counts = {
-            "000": 1,
-            "001": 2,
-            "010": 1,
-            "011": 1,
-            "100": 1,
-            "101": 1,
-            "110": 1,
-            "111": 1,
-        }
+        measurements_counts = counts
 
         # When
         measurements.add_counts(measurements_counts)
@@ -582,16 +501,7 @@ class TestMeasurements:
             (1, 1, 0),
             (1, 1, 1),
         ]
-        assert measurements.get_counts() == {
-            "000": 1,
-            "001": 2,
-            "010": 1,
-            "011": 1,
-            "100": 1,
-            "101": 1,
-            "110": 1,
-            "111": 1,
-        }
+        assert measurements.get_counts() == counts
 
     def test_add_measurements(self):
         # Given
@@ -734,20 +644,20 @@ class TestMeasurements:
     @pytest.mark.parametrize(
         "bitstring_distribution, number_of_samples",
         [
-            (BitstringDistribution({"00": 0.5, "11": 0.5}), 1),
-            (BitstringDistribution({"00": 0.5, "11": 0.5}), 10),
-            (BitstringDistribution({"00": 0.5, "11": 0.5}), 51),
-            (BitstringDistribution({"00": 0.5, "11": 0.5}), 137),
-            (BitstringDistribution({"00": 0.5, "11": 0.5}), 5000),
-            (BitstringDistribution({"0000": 0.137, "0001": 0.863}), 100),
+            (DitSequenceDistribution({"00": 0.5, "11": 0.5}), 1),
+            (DitSequenceDistribution({"00": 0.5, "11": 0.5}), 10),
+            (DitSequenceDistribution({"00": 0.5, "11": 0.5}), 51),
+            (DitSequenceDistribution({"00": 0.5, "11": 0.5}), 137),
+            (DitSequenceDistribution({"00": 0.5, "11": 0.5}), 5000),
+            (DitSequenceDistribution({"0000": 0.137, "0001": 0.863}), 100),
             (
-                BitstringDistribution(
+                DitSequenceDistribution(
                     {"00": 0.1234, "01": 0.5467, "10": 0.0023, "11": 0.3276}
                 ),
                 100,
             ),
             (
-                BitstringDistribution(
+                DitSequenceDistribution(
                     {
                         "0000": 0.06835580857498666,
                         "1000": 0.060975627112613416,
@@ -783,12 +693,12 @@ class TestMeasurements:
         "bitstring_distribution, number_of_samples, expected_counts",
         [
             (
-                BitstringDistribution({"01": 0.3333333, "11": (1 - 0.3333333)}),
+                DitSequenceDistribution({"01": 0.3333333, "11": (1 - 0.3333333)}),
                 3,
                 {"01": 1, "11": 2},
             ),
             (
-                BitstringDistribution({"01": 0.9999999, "11": (1 - 0.9999999)}),
+                DitSequenceDistribution({"01": 0.9999999, "11": (1 - 0.9999999)}),
                 1,
                 {"01": 1},
             ),
@@ -807,7 +717,7 @@ class TestMeasurements:
         self,
     ):
         random.seed(RNDSEED)
-        bitstring_distribution = BitstringDistribution({"00": 0.5, "11": 0.5})
+        bitstring_distribution = DitSequenceDistribution({"00": 0.5, "11": 0.5})
         number_of_samples = 51
         max_number_of_trials = 10
         got_different_measurements = False
@@ -840,10 +750,10 @@ class TestMeasurements:
     @pytest.mark.parametrize(
         "bitstring_distribution",
         [
-            BitstringDistribution({"00": 0.5, "11": 0.5}),
-            BitstringDistribution({"000": 0.5, "101": 0.5}),
-            BitstringDistribution({"0000": 0.137, "0001": 0.863}),
-            BitstringDistribution(
+            DitSequenceDistribution({"00": 0.5, "11": 0.5}),
+            DitSequenceDistribution({"000": 0.5, "101": 0.5}),
+            DitSequenceDistribution({"0000": 0.137, "0001": 0.863}),
+            DitSequenceDistribution(
                 {"00": 0.1234, "01": 0.5467, "10": 0.0023, "11": 0.3276}
             ),
         ],
@@ -858,12 +768,15 @@ class TestMeasurements:
 
         counts = measurements.get_counts()
         for bitstring, probability in bitstring_distribution.distribution_dict.items():
-            assert probability * number_of_samples == counts[bitstring]
+            assert (
+                probability * number_of_samples
+                == counts[convert_tuples_to_bitstrings([bitstring])[0]]
+            )
 
     @pytest.mark.parametrize(
         "bitstring_distribution",
         [
-            BitstringDistribution(
+            DitSequenceDistribution(
                 {
                     "0011": 0.0049,
                     "1100": 0.0049,
@@ -906,7 +819,7 @@ class TestMeasurements:
                     (1, 1, 0, 0),
                     (0, 0, 1, 1),
                 ],
-                BitstringDistribution({"0011": 0.3, "1100": 0.3, "0101": 0.3}),
+                DitSequenceDistribution({"0011": 0.3, "1100": 0.3, "0101": 0.3}),
             ),
             (
                 Counter({"0011": 3, "1100": 1, "0101": 2, "0001": 1}),
@@ -919,7 +832,7 @@ class TestMeasurements:
                     (1, 1, 0, 0),
                     (0, 0, 1, 1),
                 ],
-                BitstringDistribution(
+                DitSequenceDistribution(
                     {"0011": 0.3, "1100": 0.001, "0101": 0.001, "0001": 0.698}
                 ),
             ),

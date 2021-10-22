@@ -29,7 +29,11 @@ class DitSequenceDistribution:
 
     def __init__(
         self,
-        input_dict: Dict[Union[str, Tuple[int, ...]], float],
+        input_dict: Union[
+            Dict[Tuple[int, ...], float],
+            Dict[str, float],
+            Dict[Union[str, Tuple[int, ...]], float],
+        ],
         normalize: bool = True,
     ):
         # First check if we are initializing from binary strings
@@ -71,7 +75,11 @@ class DitSequenceDistribution:
 
 
 def preprocess_distibution_dict(
-    input_dict: Dict[Union[str, Tuple[int, ...]], float]
+    input_dict: Union[
+        Dict[Tuple[int, ...], float],
+        Dict[str, float],
+        Dict[Union[str, Tuple[int, ...]], float],
+    ]
 ) -> Dict[Tuple[int, ...], float]:
     res_dict = {}
     for key, value in input_dict.items():
@@ -276,7 +284,7 @@ def save_ditsequence_distributions(
 
 
 def load_ditsequence_distribution(file: str) -> DitSequenceDistribution:
-    """Load an bitstring_distribution from a json file using a schema.
+    """Load a dit sequence from a json file using a schema.
 
     Arguments:
         file (str): the name of the file
@@ -291,12 +299,10 @@ def load_ditsequence_distribution(file: str) -> DitSequenceDistribution:
         data = json.load(file)
 
     try:
-        bitstring_distribution = DitSequenceDistribution(data["bitstring_distribution"])
+        distribution = DitSequenceDistribution(data["bitstring_distribution"])
     except KeyError:
-        bitstring_distribution = DitSequenceDistribution(
-            data["ditsequence_distribution"]
-        )
-    return bitstring_distribution
+        distribution = DitSequenceDistribution(data["ditsequence_distribution"])
+    return distribution
 
 
 def load_ditsequence_distributions(file: str) -> List[DitSequenceDistribution]:
@@ -314,18 +320,18 @@ def load_ditsequence_distributions(file: str) -> List[DitSequenceDistribution]:
     else:
         data = json.load(file)
 
-    bitstring_distribution_list = []
+    distribution_list = []
     for i in range(len(data["ditsequence_distribution"])):
         try:
-            bitstring_distribution_list.append(
+            distribution_list.append(
                 DitSequenceDistribution(data["bitstring_distribution"][i])
             )
         except KeyError:
-            bitstring_distribution_list.append(
+            distribution_list.append(
                 DitSequenceDistribution(data["ditsequence_distribution"][i])
             )
 
-    return bitstring_distribution_list
+    return distribution_list
 
 
 def create_bitstring_distribution_from_probability_distribution(

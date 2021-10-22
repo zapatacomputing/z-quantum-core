@@ -5,12 +5,12 @@ import numpy as np
 from openfermion import IsingOperator, QubitOperator, SymbolicOperator
 from zquantum.core.wavefunction import Wavefunction
 
-from ..bitstring_distribution import (
-    BitstringDistribution,
-    create_bitstring_distribution_from_probability_distribution,
-)
 from ..circuits import Circuit
 from ..circuits.layouts import CircuitConnectivity
+from ..distribution import (
+    DitSequenceDistribution,
+    create_bitstring_distribution_from_probability_distribution,
+)
 from ..measurement import ExpectationValues, Measurements, expectation_values_to_real
 from ..openfermion import change_operator_type, get_expectation_value
 
@@ -91,10 +91,10 @@ class QuantumBackend(ABC):
             measurement_set = []
             return measurement_set
 
-    def get_bitstring_distribution(
+    def get_ditsequence_distribution(
         self, circuit: Circuit, n_samples: int
-    ) -> BitstringDistribution:
-        """Calculates a bitstring distribution.
+    ) -> DitSequenceDistribution:
+        """Calculates a ditsequence distribution.
 
         Args:
             circuit: quantum circuit to be executed.
@@ -150,7 +150,7 @@ class QuantumSimulator(QuantumBackend):
 
     def get_bitstring_distribution(
         self, circuit: Circuit, n_samples: Optional[int] = None
-    ) -> BitstringDistribution:
+    ) -> DitSequenceDistribution:
         """Calculates a bitstring distribution.
 
         Args:

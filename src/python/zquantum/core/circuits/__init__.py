@@ -129,7 +129,7 @@ from ._builtin_gates import (
     Z,
     builtin_gate_by_name,
 )
-from ._circuit import Circuit
+from ._circuit import Circuit, split_circuit
 from ._compatibility import new_circuit_from_old_circuit
 from ._gates import (
     ControlledGate,
@@ -140,6 +140,7 @@ from ._gates import (
     MatrixFactoryGate,
 )
 from ._generators import add_ancilla_register, create_layer_of_gates
+from ._operations import Operation
 from ._serde import (
     circuit_from_dict,
     circuitset_from_dict,

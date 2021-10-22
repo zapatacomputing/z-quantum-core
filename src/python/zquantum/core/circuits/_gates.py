@@ -246,6 +246,12 @@ class ControlledGate(Gate):
     wrapped_gate: Gate
     num_control_qubits: int
 
+    def __post_init__(self):
+        if self.num_control_qubits < 1:
+            raise ValueError(
+                f"Invalid number of control qubits. Got {self.num_control_qubits}"
+            )
+
     @property
     def name(self):
         return CONTROLLED_GATE_NAME

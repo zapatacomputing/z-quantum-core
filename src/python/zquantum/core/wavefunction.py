@@ -23,6 +23,18 @@ def _cast_sympy_matrix_to_numpy(sympy_matrix, complex=False):
         return np.array(sympy_matrix, dtype=object).flatten()
 
 
+def _get_next_number_with_same_hamming_weight(val):
+    # Copied from:
+    # http://graphics.stanford.edu/~seander/bithacks.html#NextBitPermutation
+    t = (val | (val - 1)) + 1
+    return t | ((((t & -t) // (val & -val)) >> 1) - 1)
+
+
+def _most_significant_set_bit(val):
+    bin_string = bin(val)
+    return len(bin_string) - 2
+
+
 class Wavefunction:
     """
     A simple wavefunction data structure that can
@@ -117,7 +129,7 @@ class Wavefunction:
         return self._amplitude_vector == other._amplitude_vector
 
     @staticmethod
-    def init_system(n_qubits: int) -> "Wavefunction":
+    def zero_state(n_qubits: int) -> "Wavefunction":
         if not isinstance(n_qubits, int):
             warn(
                 f"Non-integer value {n_qubits} passed as number of qubits! "
@@ -131,6 +143,42 @@ class Wavefunction:
         np_arr = np.zeros(2 ** n_qubits, dtype=np.complex128)
         np_arr[0] = 1.0
         return Wavefunction(np_arr)
+
+    @staticmethod
+    def dicke_state(n_qubits: int, hamming_weight: int) -> "Wavefunction":
+        initial_wf = Wavefunction.zero_state(n_qubits)
+
+        if hamming_weight < 0 or not isinstance(hamming_weight, int):
+            raise ValueError(f"Invalid hamming weight value. Got {hamming_weight}.")
+
+        if hamming_weight > n_qubits:
+            raise ValueError(
+                f"Hamming weight larger than number of qubits. \
+                    Got {hamming_weight}. Max can be {n_qubits}."
+            )
+
+        if hamming_weight == 0:
+            return initial_wf
+        else:
+            del initial_wf
+
+            # Get first value with hamming weight
+            current_value = int("1" * hamming_weight, base=2)
+
+            counter: int = 1
+            indices: List[int] = [current_value]
+            while True:
+                current_value = _get_next_number_with_same_hamming_weight(current_value)
+                if not _most_significant_set_bit(current_value) <= n_qubits:
+                    break
+                indices.append(current_value)
+                counter += 1
+
+            amplitude = 1 / np.sqrt(counter)
+            wf = np.zeros(2 ** n_qubits, dtype=np.complex128)
+            wf[indices] = amplitude
+
+            return Wavefunction(wf)
 
     def bind(self, symbol_map: Dict[Symbol, Any]) -> "Wavefunction":
         if not self.free_symbols:

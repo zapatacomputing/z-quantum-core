@@ -22,8 +22,8 @@ class DitSequenceDistribution:
         normalize: boolean variable specifying whether the input_dict gets
             normalized or not.
     Attributes:
-        ditstring_distribution: dictionary representing the probability
-            distribution where the keys are ditstrings represented as tuples and the
+        distribution_dict: dictionary representing the probability
+            distribution where the keys are dit sequences represented as tuples and the
             values are non-negative floats.
     """
 
@@ -46,7 +46,7 @@ class DitSequenceDistribution:
                 self.distribution_dict = preprocessed_input_dict
             else:
                 if normalize:
-                    self.distribution_dict = normalize_ditstring_distribution(
+                    self.distribution_dict = normalize_ditsequence_distribution(
                         preprocessed_input_dict
                     )
                 else:
@@ -196,7 +196,7 @@ def is_normalized(input_dict: Dict[Tuple[int, ...], float]) -> bool:
     return math.isclose(norm, 1)
 
 
-def normalize_ditstring_distribution(
+def normalize_ditsequence_distribution(
     ditsequence_distribution: Dict[Tuple[int, ...], float]
 ) -> Dict:
     """Normalize a dit sequence distribution.

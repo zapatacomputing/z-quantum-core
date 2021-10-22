@@ -23,7 +23,7 @@ from .distribution import (
     is_normalized,
     load_ditsequence_distribution,
     load_ditsequence_distributions,
-    normalize_ditstring_distribution,
+    normalize_ditsequence_distribution,
     preprocess_distibution_dict,
     save_ditsequence_distribution,
     save_ditsequence_distributions,

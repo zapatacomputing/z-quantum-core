@@ -2,6 +2,7 @@ import json
 import math
 from io import StringIO
 from itertools import product
+from sys import float_info
 from unittest import mock
 
 import numpy as np
@@ -19,7 +20,7 @@ from zquantum.core.distribution._ditsequence_distribution import (
     is_normalized,
     load_ditsequence_distribution,
     load_ditsequence_distributions,
-    normalize_ditstring_distribution,
+    normalize_ditsequence_distribution,
     preprocess_distibution_dict,
     save_ditsequence_distribution,
     save_ditsequence_distributions,
@@ -140,19 +141,9 @@ class TestVerifiersAndValidators:
     ):
         assert not is_normalized(distribution)
 
-
-@pytest.mark.parametrize(
-    "distribution",
-    [
-        {(0, 0, 0): 0.1, (1, 1, 1): 9},
-        {(0, 0, 0): 2, (1, 1, 1): 0.9},
-        {(0, 0, 0): 1e-3, (1, 1, 1): 0, (1, 0, 0): 100},
-    ],
-)
-def test_normalizing_distribution_gives_normalized_distribution(distribution):
-    assert not is_normalized(distribution)
-    normalize_ditstring_distribution(distribution)
-    assert is_normalized(distribution)
+    def test_preprocessor_raises_error_for_invalid_input(self):
+        with pytest.raises(RuntimeError):
+            preprocess_distibution_dict({1.35: 1.0})
 
 
 class TestInitializations:
@@ -225,6 +216,50 @@ class TestInitializations:
         self, distribution, num_qubits
     ):
         assert distribution.get_qubits_number() == num_qubits
+
+    def test_constructor_invalid_distribution_throws_error(self):
+        with pytest.raises(RuntimeError):
+            DitSequenceDistribution({(0, 1, 0): 0.1, (1,): 0.9})
+
+
+def test_repr_function_returns_expected_string():
+    dictionary = {(0,): 0.1, (1,): 0.9}
+    dist = DitSequenceDistribution(dictionary)
+
+    assert dist.__repr__() == f"DitSequenceDistribution(input={dictionary})"
+
+
+class TestNormalization:
+    def test_normalizing_normalized_dict_does_nothing(self):
+        assert normalize_ditsequence_distribution({(0,): 1.0}) == {(0,): 1.0}
+
+    @pytest.mark.parametrize(
+        "dist",
+        [
+            {(0, 0, 0): 0.1, (1, 1, 1): 9},
+            {(0, 0, 0): 2, (1, 1, 1): 0.9},
+            {(0, 0, 0): 1e-3, (1, 1, 1): 0, (1, 0, 0): 100},
+        ],
+    )
+    def test_normalizing_distribution_gives_normalized_distribution(self, dist):
+        assert not is_normalized(dist)
+        normalize_ditsequence_distribution(dist)
+        assert is_normalized(dist)
+
+    @pytest.mark.parametrize(
+        "dist,expected_error_content",
+        [
+            ({(0, 0, 0): 0.0, (1, 1, 1): 0.0}, "all zero values"),
+            ({(0, 0, 0): float_info.min / 2}, "too small values"),
+        ],
+    )
+    def test_normalizing_distribution_raises_error_for_values_with_invalid_norm(
+        self, dist, expected_error_content
+    ):
+        with pytest.raises(ValueError) as error:
+            normalize_ditsequence_distribution(dist)
+
+        assert expected_error_content in error.value.args[0]
 
 
 def test_passed_measure_is_used_for_evaluating_distribution_distance():

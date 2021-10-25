@@ -52,20 +52,19 @@ flake8-default: clean
 
 mypy-default: clean
 	@echo scanning files with mypy: Please be patient....
-	@mypy src
+	@mypy --ignore-missing-imports --namespace-packages src
 
 black-default: clean
 	@black --check src tests
 
 isort-default: clean
-	@isort --check src tests
+	@isort --check --profile black src tests
 
 test-default:
-	@pytest -m unit tests
+	@pytest tests
 
 coverage-default:
-	pytest -m unit \
-	   --cov=src \
+	pytest --cov=src \
 	   --cov-fail-under=$(MIN_COVERAGE) tests \
 	   --no-cov-on-fail \
 	   --cov-report term-missing \

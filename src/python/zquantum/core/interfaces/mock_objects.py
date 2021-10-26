@@ -1,125 +1,50 @@
 import random
-from typing import Optional
+from collections import defaultdict
+from typing import Callable, Dict, List, Optional
 
 import numpy as np
 import sympy
-from openfermion import SymbolicOperator
 from overrides import overrides
-from pyquil import Program
-from pyquil.gates import RX, X
+from zquantum.core.history.recorder import recorder as _recorder
+from zquantum.core.interfaces.cost_function import CostFunction
 
-from ..circuit import Circuit
-from ..measurement import ExpectationValues, Measurements
+from ..circuits import RX, Circuit
+from ..measurement import Measurements
+from ..symbolic_simulator import SymbolicSimulator
+from ..typing import RecorderFactory
 from ..utils import create_symbols_map
-from ..wip.circuits import Circuit as NewCircuit
-from ..wip.circuits import new_circuit_from_old_circuit
-from ..wip.compatibility_tools import compatible_with_old_type
 from .ansatz import Ansatz
 from .ansatz_utils import ansatz_property
-from .backend import QuantumBackend, QuantumSimulator
-from .optimizer import Optimizer, optimization_result
+from .backend import QuantumBackend
+from .optimizer import (
+    NestedOptimizer,
+    Optimizer,
+    construct_history_info,
+    extend_histories,
+    optimization_result,
+)
 
 
 class MockQuantumBackend(QuantumBackend):
 
     supports_batching = False
 
-    def __init__(self, n_samples: Optional[int] = None):
-        super().__init__(n_samples)
+    def __init__(self):
+        super().__init__()
+        self._simulator = SymbolicSimulator()
 
-    @compatible_with_old_type(Circuit, new_circuit_from_old_circuit)
     def run_circuit_and_measure(
-        self, circuit: NewCircuit, n_samples: Optional[int] = None, **kwargs
+        self, circuit: Circuit, n_samples: int, **kwargs
     ) -> Measurements:
-        super(MockQuantumBackend, self).run_circuit_and_measure(circuit)
-        measurements = Measurements()
+        super(MockQuantumBackend, self).run_circuit_and_measure(circuit, n_samples)
 
-        n_samples_to_measure: int
-        if isinstance(n_samples, int):
-            n_samples_to_measure = n_samples
-        elif isinstance(self.n_samples, int):
-            n_samples_to_measure = self.n_samples
-        else:
-            raise ValueError(
-                "At least one of n_samples and self.n_samples must be an integer."
-            )
-
-        for _ in range(n_samples_to_measure):
-            measurements.bitstrings += [
-                tuple(random.randint(0, 1) for j in range(circuit.n_qubits))
-            ]
-
-        return measurements
-
-    def get_wavefunction(self, circuit: NewCircuit):
-        raise NotImplementedError
-
-    def get_density_matrix(self, circuit: NewCircuit):
-        raise NotImplementedError
-
-
-class MockQuantumSimulator(QuantumSimulator):
-
-    supports_batching = False
-
-    def __init__(self, n_samples: Optional[int] = None):
-        super().__init__(n_samples)
-
-    @compatible_with_old_type(Circuit, new_circuit_from_old_circuit)
-    def run_circuit_and_measure(
-        self, circuit: NewCircuit, n_samples=None, **kwargs
-    ) -> Measurements:
-        super(MockQuantumSimulator, self).run_circuit_and_measure(circuit)
-        measurements = Measurements()
-        if n_samples is None:
-            n_samples = self.n_samples
-        for _ in range(n_samples):
-            measurements.bitstrings += [
-                tuple(random.randint(0, 1) for j in range(circuit.n_qubits))
-            ]
-
-        return measurements
-
-    @compatible_with_old_type(Circuit, new_circuit_from_old_circuit)
-    def get_expectation_values(
-        self, circuit: NewCircuit, operator: SymbolicOperator, **kwargs
-    ) -> ExpectationValues:
-        if self.n_samples is None:
-            self.number_of_circuits_run += 1
-            self.number_of_jobs_run += 1
-            constant_position = None
-            n_operator: Optional[int]
-            if hasattr(operator, "terms"):
-                n_operator = len(operator.terms.keys())
-                for index, term in enumerate(operator.terms):
-                    if term == ():
-                        constant_position = index
-            else:
-                n_operator = None
-                print("WARNING: operator does not have attribute terms")
-            length = n_operator if n_operator is not None else circuit.n_qubits
-            values = np.asarray([2.0 * random.random() - 1.0 for i in range(length)])
-            if n_operator is not None and constant_position is not None:
-                values[constant_position] = operator.terms[()]
-            return ExpectationValues(values)
-        else:
-            return super(MockQuantumSimulator, self).get_expectation_values(
-                circuit, operator
-            )
-
-    @compatible_with_old_type(Circuit, new_circuit_from_old_circuit)
-    def get_exact_expectation_values(
-        self, circuit: NewCircuit, operator: SymbolicOperator, **kwargs
-    ) -> ExpectationValues:
-        return self.get_expectation_values(circuit, operator)
-
-    @compatible_with_old_type(Circuit, new_circuit_from_old_circuit)
-    def get_wavefunction(self, circuit: NewCircuit):
-        raise NotImplementedError
+        return self._simulator.run_circuit_and_measure(circuit, n_samples)
 
 
 class MockOptimizer(Optimizer):
-    def minimize(self, cost_function, initial_params: np.ndarray, **kwargs):
+    def _minimize(
+        self, cost_function, initial_params: np.ndarray, keep_history: bool = False
+    ):
         new_parameters = initial_params
         for i in range(len(initial_params)):
             new_parameters[i] += random.random()
@@ -127,7 +52,8 @@ class MockOptimizer(Optimizer):
         return optimization_result(
             opt_value=cost_function(new_parameters),
             opt_params=new_parameters,
-            history=[],
+            nfev=1,
+            **construct_history_info(cost_function, keep_history),
         )
 
 
@@ -135,8 +61,67 @@ def mock_cost_function(parameters: np.ndarray):
     return np.sum(parameters ** 2)
 
 
-class MockAnsatz(Ansatz):
+class MockNestedOptimizer(NestedOptimizer):
+    """
+    As most mock objects this implementation does not make much sense in itself,
+    however it's an example of how a NestedOptimizer could be implemented.
 
+    """
+
+    @property
+    def inner_optimizer(self) -> Optimizer:
+        return self._inner_optimizer
+
+    @property
+    def recorder(self) -> RecorderFactory:
+        return self._recorder
+
+    def __init__(
+        self,
+        inner_optimizer: Optimizer,
+        n_iters: int,
+        recorder: RecorderFactory = _recorder,
+    ):
+        self._inner_optimizer = inner_optimizer
+        self.n_iters = n_iters
+        self._recorder = recorder
+
+    def _minimize(
+        self,
+        cost_function_factory: Callable[[int], CostFunction],
+        initial_params: np.ndarray,
+        keep_history: bool = False,
+    ):
+        histories: Dict[str, List] = defaultdict(list)
+        histories["history"] = []
+        nfev = 0
+        current_params = initial_params
+        for i in range(self.n_iters):
+            if i != 0:
+                # Increase the length of params every iteration
+                # and repeats optimization with the longer params vector.
+                current_params = np.append(current_params, 1)
+
+            # Cost function changes with every iteration of NestedOptimizer
+            # because it's dependent on iteration number
+            cost_function = cost_function_factory(i)
+            if keep_history:
+                cost_function = self.recorder(cost_function)
+            opt_result = self.inner_optimizer.minimize(cost_function, initial_params)
+            nfev += opt_result.nfev
+            current_params = opt_result.opt_params
+            if keep_history:
+                histories = extend_histories(cost_function, histories)
+        return optimization_result(
+            opt_value=opt_result.opt_value,
+            opt_params=current_params,
+            nit=self.n_iters,
+            nfev=nfev,
+            **histories,
+        )
+
+
+class MockAnsatz(Ansatz):
     supports_parametrized_circuits = True
     problem_size = ansatz_property("problem_size")
 
@@ -158,8 +143,8 @@ class MockAnsatz(Ansatz):
         ]
         for theta in symbols:
             for qubit_index in range(self.number_of_qubits):
-                circuit += Circuit(Program(RX(theta, qubit_index)))
+                circuit += RX(theta)(qubit_index)
         if parameters is not None:
             symbols_map = create_symbols_map(symbols, parameters)
-            circuit = circuit.evaluate(symbols_map)
+            circuit = circuit.bind(symbols_map)
         return circuit

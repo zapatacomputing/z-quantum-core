@@ -28,15 +28,15 @@ SWAP = sympy.Matrix([[1, 0, 0, 0], [0, 0, 1, 0], [0, 1, 0, 0], [0, 0, 0, 1]])
 ISWAP = sympy.Matrix([[1, 0, 0, 0], [0, 0, 1j, 0], [0, 1j, 0, 0], [0, 0, 0, 1]])
 
 II = TensorProduct(I, I)
-IH = TensorProduct(H, I)
-HI = TensorProduct(I, H)
+IH = TensorProduct(I, H)
+HI = TensorProduct(H, I)
 
 HH = TensorProduct(H, H)
 XX = TensorProduct(X, X)
 YY = TensorProduct(Y, Y)
 ZZ = TensorProduct(Z, Z)
-IX = TensorProduct(X, I)
-ZI = TensorProduct(I, Z)
+IX = TensorProduct(I, X)
+ZI = TensorProduct(Z, I)
 
 single_qubit_initial_states = [(I, "I"), (H, "H")]
 single_qubit_operators = [I, X, Y, Z]
@@ -257,30 +257,37 @@ def main():
     )
     XX = sympy.Matrix(
         [
-            [sympy.cos(theta), 0, 0, -1j * sympy.sin(theta)],
-            [0, sympy.cos(theta), -1j * sympy.sin(theta), 0],
-            [0, -1j * sympy.sin(theta), sympy.cos(theta), 0],
-            [-1j * sympy.sin(theta), 0, 0, sympy.cos(theta)],
+            [sympy.cos(theta / 2), 0, 0, -1j * sympy.sin(theta / 2)],
+            [0, sympy.cos(theta / 2), -1j * sympy.sin(theta / 2), 0],
+            [0, -1j * sympy.sin(theta / 2), sympy.cos(theta / 2), 0],
+            [-1j * sympy.sin(theta / 2), 0, 0, sympy.cos(theta / 2)],
         ]
     )
     YY = sympy.Matrix(
         [
-            [sympy.cos(theta), 0, 0, 1j * sympy.sin(theta)],
-            [0, sympy.cos(theta), -1j * sympy.sin(theta), 0],
-            [0, -1j * sympy.sin(theta), sympy.cos(theta), 0],
-            [1j * sympy.sin(theta), 0, 0, sympy.cos(theta)],
+            [sympy.cos(theta / 2), 0, 0, 1j * sympy.sin(theta / 2)],
+            [0, sympy.cos(theta / 2), -1j * sympy.sin(theta / 2), 0],
+            [0, -1j * sympy.sin(theta / 2), sympy.cos(theta / 2), 0],
+            [1j * sympy.sin(theta / 2), 0, 0, sympy.cos(theta / 2)],
         ]
     )
     ZZ = sympy.Matrix(
         [
-            [sympy.cos(theta) - 1j * sympy.sin(theta), 0, 0, 0],
-            [0, sympy.cos(theta) + 1j * sympy.sin(theta), 0, 0],
-            [0, 0, sympy.cos(theta) + 1j * sympy.sin(theta), 0],
-            [0, 0, 0, sympy.cos(theta) - 1j * sympy.sin(theta)],
+            [sympy.cos(theta / 2) - 1j * sympy.sin(theta / 2), 0, 0, 0],
+            [0, sympy.cos(theta / 2) + 1j * sympy.sin(theta / 2), 0, 0],
+            [0, 0, sympy.cos(theta / 2) + 1j * sympy.sin(theta / 2), 0],
+            [0, 0, 0, sympy.cos(theta / 2) - 1j * sympy.sin(theta / 2)],
         ]
     )
 
-    XY = XX * YY
+    XY = sympy.Matrix(
+        [
+            [1, 0, 0, 0],
+            [0, sympy.cos(theta / 2), 1j * sympy.sin(theta / 2), 0],
+            [0, 1j * sympy.sin(theta / 2), sympy.cos(theta / 2), 0],
+            [0, 0, 0, 1],
+        ]
+    )
     XY.simplify()
     angles = [-sympy.pi / 2, 0, sympy.pi / 5, sympy.pi / 2, sympy.pi]
     print("**" * 10)
@@ -288,9 +295,9 @@ def main():
     print("-" * 10)
     print("1 qubit gates")
     print("-" * 10)
-    generate_cases_1_qubit_wavefunction(Rx, "Rx", angles)
-    generate_cases_1_qubit_wavefunction(Ry, "Ry", angles)
-    generate_cases_1_qubit_wavefunction(Rz, "Rz", angles)
+    generate_cases_1_qubit_wavefunction(Rx, "RX", angles)
+    generate_cases_1_qubit_wavefunction(Ry, "RY", angles)
+    generate_cases_1_qubit_wavefunction(Rz, "RZ", angles)
     generate_cases_1_qubit_wavefunction(PHASE, "PHASE", angles)
     generate_cases_1_qubit_wavefunction(RH, "RH", angles)
     print("-" * 10)
@@ -326,9 +333,9 @@ def main():
     print("-" * 10)
     print("1 qubit gates")
     print("-" * 10)
-    generate_cases_1_qubit_exp_vals_with_angles(Rx, "Rx", angles)
-    generate_cases_1_qubit_exp_vals_with_angles(Ry, "Ry", angles)
-    generate_cases_1_qubit_exp_vals_with_angles(Rz, "Rz", angles)
+    generate_cases_1_qubit_exp_vals_with_angles(Rx, "RX", angles)
+    generate_cases_1_qubit_exp_vals_with_angles(Ry, "RY", angles)
+    generate_cases_1_qubit_exp_vals_with_angles(Rz, "RZ", angles)
     generate_cases_1_qubit_exp_vals_with_angles(PHASE, "PHASE", angles)
     generate_cases_1_qubit_exp_vals_with_angles(RH, "RH", angles)
     print("-" * 10)

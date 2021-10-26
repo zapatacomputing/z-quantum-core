@@ -4,26 +4,15 @@ import os
 
 import numpy as np
 import pytest
-from zquantum.core.circuit import Circuit
-from zquantum.core.circuit import (
-    add_ancilla_register_to_circuit as _add_ancilla_register_to_circuit,
-)
-from zquantum.core.circuit import (
+import zquantum.core.circuits as new_circuits
+from zquantum.core.circuits.layouts import (
     build_circuit_layers_and_connectivity as _build_circuit_layers_and_connectivity,
 )
-from zquantum.core.circuit import build_uniform_param_grid as _build_uniform_param_grid
-from zquantum.core.circuit import (
-    load_circuit,
+from zquantum.core.circuits.layouts import (
     load_circuit_connectivity,
     load_circuit_layers,
-    load_circuit_set,
-    load_circuit_template_params,
-    load_parameter_grid,
-    save_circuit,
-    save_circuit_set,
-    save_circuit_template_params,
 )
-from zquantum.core.testing import create_random_circuit as _create_random_circuit
+from zquantum.core.serialization import load_array, save_array
 from zquantum.core.utils import RNDSEED, create_object
 
 from steps.circuit import (
@@ -31,7 +20,6 @@ from steps.circuit import (
     batch_circuits,
     build_ansatz_circuit,
     build_circuit_layers_and_connectivity,
-    build_uniform_param_grid,
     combine_ansatz_params,
     concatenate_circuits,
     create_random_circuit,
@@ -51,9 +39,7 @@ class TestGenerateRandomAnsatzParams:
         "number_of_layers",
         [0, 1, 4, 7],
     )
-    def test_using_mock_ansatz_specs(
-        self, number_of_layers
-    ):
+    def test_using_mock_ansatz_specs(self, number_of_layers):
         # Given
         ansatz_specs = {
             "module_name": "zquantum.core.interfaces.mock_objects",
@@ -71,7 +57,7 @@ class TestGenerateRandomAnsatzParams:
 
         # Then
         try:
-            parameters = load_circuit_template_params(filename)
+            parameters = load_array(filename)
             assert len(parameters) == number_of_layers
         finally:
             remove_file_if_exists(filename)
@@ -95,7 +81,7 @@ class TestGenerateRandomAnsatzParams:
 
         # Then
         try:
-            parameters = load_circuit_template_params(filename)
+            parameters = load_array(filename)
             assert len(parameters) == number_of_layers
         finally:
             remove_file_if_exists(filename)
@@ -121,7 +107,7 @@ class TestGenerateRandomAnsatzParams:
 
         # Then
         try:
-            parameters = load_circuit_template_params(filename)
+            parameters = load_array(filename)
             assert len(parameters) == number_of_parameters
         finally:
             remove_file_if_exists(filename)
@@ -176,10 +162,10 @@ class TestCombineAnsatzParams:
     )
     def params_filenames(self, request):
         params1_filename = "params1.json"
-        save_circuit_template_params(np.array(request.param[0]), params1_filename)
+        save_array(np.array(request.param[0]), params1_filename)
 
         params2_filename = "params2.json"
-        save_circuit_template_params(np.array(request.param[1]), params2_filename)
+        save_array(np.array(request.param[1]), params2_filename)
 
         yield (params1_filename, params2_filename)
 
@@ -196,9 +182,9 @@ class TestCombineAnsatzParams:
         # Then
         try:
             combined_parameters_filename = "combined-params.json"
-            parameters = load_circuit_template_params(combined_parameters_filename)
-            params1 = load_circuit_template_params(params1_filename)
-            params2 = load_circuit_template_params(params2_filename)
+            parameters = load_array(combined_parameters_filename)
+            params1 = load_array(params1_filename)
+            params2 = load_array(params2_filename)
             assert all(parameters == np.concatenate([params1, params2]))
         finally:
             remove_file_if_exists(combined_parameters_filename)
@@ -213,7 +199,7 @@ class TestBuildAnsatzCircuit:
     def params_filename_and_number_of_layers(self, number_of_layers):
         params = np.random.uniform(low=0, high=np.pi, size=number_of_layers)
         params_filename = "params.json"
-        save_circuit_template_params(np.array(params), params_filename)
+        save_array(np.array(params), params_filename)
 
         yield params_filename, number_of_layers
 
@@ -232,7 +218,7 @@ class TestBuildAnsatzCircuit:
             "problem_size": 2,
         }
 
-        parameters = load_circuit_template_params(params_filename)
+        parameters = load_array(params_filename)
         ansatz = create_object(copy.deepcopy(ansatz_specs))
         expected_circuit = ansatz.get_executable_circuit(parameters)
 
@@ -242,8 +228,8 @@ class TestBuildAnsatzCircuit:
         # Then
         try:
             circuit_filename = "circuit.json"
-            circuit = load_circuit(circuit_filename)
-            assert isinstance(circuit, Circuit)
+            with open(circuit_filename) as f:
+                circuit = new_circuits.circuit_from_dict(json.load(f))
             assert circuit == expected_circuit
         finally:
             remove_file_if_exists(circuit_filename)
@@ -266,8 +252,8 @@ class TestBuildAnsatzCircuit:
         # Then
         try:
             circuit_filename = "circuit.json"
-            circuit = load_circuit(circuit_filename)
-            assert isinstance(circuit, Circuit)
+            with open(circuit_filename) as f:
+                circuit = new_circuits.circuit_from_dict(json.load(f))
             assert circuit == expected_circuit
         finally:
             remove_file_if_exists(circuit_filename)
@@ -291,15 +277,15 @@ class TestBuildAnsatzCircuit:
         # Then
         try:
             circuit_filename = "circuit.json"
-            circuit = load_circuit(circuit_filename)
-            assert isinstance(circuit, Circuit)
+            with open(circuit_filename) as f:
+                circuit = new_circuits.circuit_from_dict(json.load(f))
             assert circuit == expected_circuit
         finally:
             remove_file_if_exists(circuit_filename)
 
     def test_build_ansatz_circuit_raises_exception_on_invalid_inputs(self):
         params_filename = "params.json"
-        save_circuit_template_params(np.array([1.0]), params_filename)
+        save_array(np.array([1.0]), params_filename)
 
         ansatz_specs = {
             "module_name": "zquantum.core.interfaces.mock_objects",
@@ -315,198 +301,6 @@ class TestBuildAnsatzCircuit:
         finally:
             remove_file_if_exists(params_filename)
             remove_file_if_exists(circuit_filename)
-
-
-class TestBuildUniformParameterGrid:
-    @pytest.mark.parametrize(
-        "number_of_ansatz_layers, problem_size, number_of_layers, min_value, "
-        "max_value, step",
-        [
-            (0, 2, 2, 0, 1, 0.5),
-            (1, 2, 2, 0, 1, 0.5),
-            (1, 0, 2, 0, 1, 0.5),
-            (6, 2, 2, 0, 1, 0.5),
-            (1, 2, 6, 0, 1, 0.5),
-            (1, 2, 6, -np.pi, 1, 0.5),
-            (1, 2, 6, -np.pi, np.pi, 0.5),
-            (1, 2, 6, 0, 1, 0.01),
-        ],
-    )
-    def test_ansatz_specs(
-        self,
-        number_of_ansatz_layers,
-        problem_size,
-        number_of_layers,
-        min_value,
-        max_value,
-        step,
-    ):
-        # Given
-        expected_parameter_grid_filename = "parameter-grid.json"
-        ansatz_specs = {
-            "module_name": "zquantum.core.interfaces.mock_objects",
-            "function_name": "MockAnsatz",
-            "number_of_layers": number_of_ansatz_layers,
-            "problem_size": problem_size,
-        }
-        ansatz = create_object(copy.deepcopy(ansatz_specs))
-        expected_parameter_grid = _build_uniform_param_grid(
-            ansatz.number_of_params,
-            number_of_layers,
-            min_value=min_value,
-            max_value=max_value,
-            step=step,
-        )
-
-        # When
-        build_uniform_param_grid(
-            ansatz_specs=ansatz_specs,
-            number_of_layers=number_of_layers,
-            min_value=min_value,
-            max_value=max_value,
-            step=step,
-        )
-
-        # Then
-        try:
-            parameter_grid = load_parameter_grid(expected_parameter_grid_filename)
-            assert [
-                tuple(param) for param in parameter_grid.param_ranges
-            ] == expected_parameter_grid.param_ranges
-        finally:
-            remove_file_if_exists(expected_parameter_grid_filename)
-
-    @pytest.mark.parametrize(
-        "number_of_ansatz_layers, problem_size, number_of_layers, min_value, "
-        "max_value, step",
-        [
-            (0, 2, 2, 0, 1, 0.5),
-            (1, 2, 2, 0, 1, 0.5),
-            (1, 0, 2, 0, 1, 0.5),
-            (6, 2, 2, 0, 1, 0.5),
-            (1, 2, 6, 0, 1, 0.5),
-            (1, 2, 6, -np.pi, 1, 0.5),
-            (1, 2, 6, -np.pi, np.pi, 0.5),
-            (1, 2, 6, 0, 1, 0.01),
-        ],
-    )
-    def test_ansatz_specs_as_string(
-        self,
-        number_of_ansatz_layers,
-        problem_size,
-        number_of_layers,
-        min_value,
-        max_value,
-        step,
-    ):
-        # Given
-        expected_parameter_grid_filename = "parameter-grid.json"
-        ansatz_specs = {
-            "module_name": "zquantum.core.interfaces.mock_objects",
-            "function_name": "MockAnsatz",
-            "number_of_layers": number_of_ansatz_layers,
-            "problem_size": problem_size,
-        }
-        ansatz = create_object(copy.deepcopy(ansatz_specs))
-        expected_parameter_grid = _build_uniform_param_grid(
-            ansatz.number_of_params,
-            number_of_layers,
-            min_value=min_value,
-            max_value=max_value,
-            step=step,
-        )
-
-        # When
-        build_uniform_param_grid(
-            ansatz_specs=json.dumps(ansatz_specs),
-            number_of_layers=number_of_layers,
-            min_value=min_value,
-            max_value=max_value,
-            step=step,
-        )
-
-        # Then
-        try:
-            parameter_grid = load_parameter_grid(expected_parameter_grid_filename)
-            assert [
-                tuple(param) for param in parameter_grid.param_ranges
-            ] == expected_parameter_grid.param_ranges
-        finally:
-            remove_file_if_exists(expected_parameter_grid_filename)
-
-    @pytest.mark.parametrize(
-        "number_of_params_per_layer, number_of_layers, min_value, max_value, step",
-        [
-            (0, 2, 0, 1, 0.5),
-            (1, 2, 0, 1, 0.5),
-            (6, 2, 0, 1, 0.5),
-            (1, 6, 0, 1, 0.5),
-            (1, 6, -np.pi, 1, 0.5),
-            (1, 6, -np.pi, np.pi, 0.5),
-            (1, 6, 0, 1, 0.01),
-        ],
-    )
-    def test_number_of_params_per_layer(
-        self, number_of_params_per_layer, number_of_layers, min_value, max_value, step
-    ):
-        # Given
-        expected_parameter_grid_filename = "parameter-grid.json"
-        expected_parameter_grid = _build_uniform_param_grid(
-            number_of_params_per_layer,
-            number_of_layers,
-            min_value=min_value,
-            max_value=max_value,
-            step=step,
-        )
-
-        # When
-        build_uniform_param_grid(
-            number_of_params_per_layer=number_of_params_per_layer,
-            number_of_layers=number_of_layers,
-            min_value=min_value,
-            max_value=max_value,
-            step=step,
-        )
-
-        # Then
-        try:
-            parameter_grid = load_parameter_grid(expected_parameter_grid_filename)
-            assert [
-                tuple(param) for param in parameter_grid.param_ranges
-            ] == expected_parameter_grid.param_ranges
-        finally:
-            remove_file_if_exists(expected_parameter_grid_filename)
-
-    def test_fails_with_both_ansatz_specs_and_number_of_params_per_layer(
-        self,
-    ):
-        expected_parameter_grid_filename = "parameter-grid.json"
-        number_of_params_per_layer = 2
-        ansatz_specs = {
-            "module_name": "zquantum.core.interfaces.mock_objects",
-            "function_name": "MockAnsatz",
-            "number_of_layers": 2,
-            "problem_size": 1,
-        }
-
-        try:
-            with pytest.raises(AssertionError):
-                build_uniform_param_grid(
-                    ansatz_specs=ansatz_specs,
-                    number_of_params_per_layer=number_of_params_per_layer,
-                )
-        finally:
-            remove_file_if_exists(expected_parameter_grid_filename)
-
-    def test_fails_with_neither_ansatz_specs_nor_number_of_params_per_layer(
-        self,
-    ):
-        expected_parameter_grid_filename = "parameter-grid.json"
-        try:
-            with pytest.raises(AssertionError):
-                build_uniform_param_grid()
-        finally:
-            remove_file_if_exists(expected_parameter_grid_filename)
 
 
 class TestBuildCircuitLayersAndConnectivity:
@@ -594,10 +388,10 @@ class TestCreateRandomCircuit:
     def test_create_random_circuit(self, number_of_qubits, number_of_gates, seed):
         # Given
         expected_filename = "circuit.json"
-        expected_circuit = _create_random_circuit(
+        expected_circuit = new_circuits.create_random_circuit(
             number_of_qubits,
             number_of_gates,
-            seed=seed,
+            rng=np.random.default_rng(seed),
         )
 
         # When
@@ -609,11 +403,12 @@ class TestCreateRandomCircuit:
 
         # Then
         try:
-            circuit = load_circuit(expected_filename)
+            with open(expected_filename) as f:
+                circuit = new_circuits.circuit_from_dict(json.load(f))
             if seed is not None:
-                assert circuit.gates == expected_circuit.gates
+                assert circuit.operations == expected_circuit.operations
             else:
-                assert circuit.gates != expected_circuit.gates
+                assert circuit.operations != expected_circuit.operations
         finally:
             remove_file_if_exists(expected_filename)
 
@@ -627,11 +422,14 @@ class TestAddAncillaRegisterToCircuitPythonObject:
     def circuit_filename_and_number_of_ancilla_qubits(self, number_of_ancilla_qubits):
         number_of_qubits = 4
         number_of_gates = 10
-        circuit = _create_random_circuit(
-            number_of_qubits, number_of_gates, seed=RNDSEED
+        circuit = new_circuits.create_random_circuit(
+            number_of_qubits,
+            number_of_gates,
+            rng=np.random.default_rng(RNDSEED),
         )
         circuit_filename = "circuit.json"
-        save_circuit(circuit, circuit_filename)
+        with open(circuit_filename, "w") as f:
+            json.dump(new_circuits.to_dict(circuit), f)
 
         yield circuit_filename, number_of_ancilla_qubits
 
@@ -643,25 +441,27 @@ class TestAddAncillaRegisterToCircuitPythonObject:
         # Given
         number_of_qubits = 4
         number_of_gates = 10
-        circuit = _create_random_circuit(
-            number_of_qubits, number_of_gates, seed=RNDSEED
+        circuit = new_circuits.create_random_circuit(
+            number_of_qubits,
+            number_of_gates,
+            rng=np.random.default_rng(RNDSEED),
         )
-        expected_extended_cirucit = _add_ancilla_register_to_circuit(
+        expected_extended_cirucit = new_circuits.add_ancilla_register(
             copy.deepcopy(circuit), number_of_ancilla_qubits
         )
         expected_extended_circuit_filename = "extended-circuit.json"
 
         # When
-        add_ancilla_register_to_circuit(number_of_ancilla_qubits, circuit)
+        circuit = add_ancilla_register_to_circuit(number_of_ancilla_qubits, circuit)
 
         # Then
         try:
-            extended_circuit = load_circuit(expected_extended_circuit_filename)
+            with open(expected_extended_circuit_filename) as f:
+                extended_circuit = new_circuits.circuit_from_dict(json.load(f))
             assert (
-                len(extended_circuit.qubits)
-                == number_of_qubits + number_of_ancilla_qubits
+                extended_circuit.n_qubits == number_of_qubits + number_of_ancilla_qubits
             )
-            assert extended_circuit.gates == expected_extended_cirucit.gates
+            assert extended_circuit == expected_extended_cirucit
         finally:
             remove_file_if_exists(expected_extended_circuit_filename)
 
@@ -675,8 +475,9 @@ class TestAddAncillaRegisterToCircuitPythonObject:
         ) = circuit_filename_and_number_of_ancilla_qubits
         expected_extended_circuit_filename = "extended-circuit.json"
 
-        circuit = load_circuit(circuit_filename)
-        expected_extended_circuit = _add_ancilla_register_to_circuit(
+        with open(circuit_filename) as f:
+            circuit = new_circuits.circuit_from_dict(json.load(f))
+        expected_extended_circuit = new_circuits.add_ancilla_register(
             circuit, number_of_ancilla_qubits
         )
 
@@ -685,12 +486,12 @@ class TestAddAncillaRegisterToCircuitPythonObject:
 
         # Then
         try:
-            extended_circuit = load_circuit(expected_extended_circuit_filename)
+            with open(expected_extended_circuit_filename) as f:
+                extended_circuit = new_circuits.circuit_from_dict(json.load(f))
             assert (
-                len(extended_circuit.qubits)
-                == len(circuit.qubits) + number_of_ancilla_qubits
+                extended_circuit.n_qubits == circuit.n_qubits + number_of_ancilla_qubits
             )
-            assert extended_circuit.gates == expected_extended_circuit.gates
+            assert extended_circuit == expected_extended_circuit
         finally:
             remove_file_if_exists(expected_extended_circuit_filename)
 
@@ -705,7 +506,9 @@ class TestConcatenateCircuits:
         number_of_qubits = 4
         number_of_gates = 10
         circuit_set = [
-            _create_random_circuit(number_of_qubits, number_of_gates, seed=RNDSEED)
+            new_circuits.create_random_circuit(
+                number_of_qubits, number_of_gates, rng=np.random.default_rng(RNDSEED)
+            )
             for _ in range(number_of_circuits)
         ]
         return circuit_set
@@ -713,7 +516,8 @@ class TestConcatenateCircuits:
     @pytest.fixture()
     def circuit_set_filename(self, circuit_set):
         circuit_set_filename = "circuit-set.json"
-        save_circuit_set(circuit_set, circuit_set_filename)
+        with open(circuit_set_filename, "w") as f:
+            json.dump(new_circuits.to_dict(circuit_set), f)
 
         yield circuit_set_filename
 
@@ -722,17 +526,18 @@ class TestConcatenateCircuits:
     def test_concatenate_circuits_python_objects(self, circuit_set):
         # Given
         expected_concatenated_circuit_filename = "result-circuit.json"
-        expected_concatenated_circuit = Circuit()
-        for circuit in copy.deepcopy(circuit_set):
-            expected_concatenated_circuit += circuit
+        expected_concatenated_circuit = sum(
+            [circuit for circuit in circuit_set], new_circuits.Circuit()
+        )
 
         # When
         concatenate_circuits(circuit_set)
 
         # Then
         try:
-            concatenated_circuit = load_circuit(expected_concatenated_circuit_filename)
-            assert concatenated_circuit.gates == expected_concatenated_circuit.gates
+            with open(expected_concatenated_circuit_filename) as f:
+                concatenated_circuit = new_circuits.circuit_from_dict(json.load(f))
+            assert concatenated_circuit == expected_concatenated_circuit
         finally:
             remove_file_if_exists(expected_concatenated_circuit_filename)
 
@@ -740,18 +545,19 @@ class TestConcatenateCircuits:
         # Given
         expected_concatenated_circuit_filename = "result-circuit.json"
 
-        circuit_set = load_circuit_set(circuit_set_filename)
-        expected_concatenated_circuit = Circuit()
-        for circuit in copy.deepcopy(circuit_set):
-            expected_concatenated_circuit += circuit
-
+        with open(circuit_set_filename) as f:
+            circuit_set = new_circuits.circuitset_from_dict(json.load(f))
+        expected_concatenated_circuit = sum(
+            [circuit for circuit in circuit_set], new_circuits.Circuit()
+        )
         # When
         concatenate_circuits(circuit_set_filename)
 
         # Then
         try:
-            concatenated_circuit = load_circuit(expected_concatenated_circuit_filename)
-            assert concatenated_circuit.gates == expected_concatenated_circuit.gates
+            with open(expected_concatenated_circuit_filename) as f:
+                concatenated_circuit = new_circuits.circuit_from_dict(json.load(f))
+            assert concatenated_circuit == expected_concatenated_circuit
         finally:
             remove_file_if_exists(expected_concatenated_circuit_filename)
 
@@ -761,17 +567,20 @@ class TestBatchCircuits:
     def input_circuits(self, request):
         number_of_qubits = 4
         number_of_gates = 10
+        rng = np.random.default_rng(RNDSEED)
         return [
-            _create_random_circuit(number_of_qubits, number_of_gates, seed=RNDSEED + i)
-            for i in range(request.param)
+            new_circuits.create_random_circuit(
+                number_of_qubits, number_of_gates, rng=rng
+            )
+            for _ in range(request.param)
         ]
 
     @pytest.fixture()
     def input_circuits_filenames(self, input_circuits):
-        circuit_filenames = []
-        for i, circuit in enumerate(input_circuits):
-            circuit_filenames.append("circuit-{}.json".format(i))
-            save_circuit(circuit, circuit_filenames[i])
+        circuit_filenames = [f"circuit-{i}.json" for i in range(len(input_circuits))]
+        for circuit, filename in zip(input_circuits, circuit_filenames):
+            with open(filename, "w") as f:
+                json.dump(new_circuits.to_dict(circuit), f)
 
         yield circuit_filenames
 
@@ -782,57 +591,65 @@ class TestBatchCircuits:
     def input_circuit_set(self, request):
         number_of_qubits = 4
         number_of_gates = 10
+        rng = np.random.default_rng(RNDSEED + 100)
         return [
-            _create_random_circuit(
-                number_of_qubits, number_of_gates, seed=RNDSEED + 100 + i
+            new_circuits.create_random_circuit(
+                number_of_qubits, number_of_gates, rng=rng
             )
-            for i in range(request.param)
+            for _ in range(request.param)
         ]
 
     @pytest.fixture()
     def input_circuit_set_filename(self, input_circuit_set):
-        circuit_set_filename = "input-circuit-set.json"
-        save_circuit_set(input_circuit_set, circuit_set_filename)
+        filename = "input-circuit-set.json"
+        with open(filename, "w") as f:
+            json.dump(new_circuits.to_dict(input_circuit_set), f)
 
-        yield circuit_set_filename
+        yield filename
 
-        remove_file_if_exists(circuit_set_filename)
+        remove_file_if_exists(filename)
 
     def test_batch_circuits_all_artifacts_no_circuit_set(
         self, input_circuits_filenames
     ):
         # Given
-        expected_circuit_set_filename = "circuit-set.json"
-        expected_circuit_set = []
+        expected_circuitset_filename = "circuit-set.json"
+        expected_circuitset = []
         for circuit_filename in input_circuits_filenames:
-            expected_circuit_set.append(load_circuit(circuit_filename))
+            with open(circuit_filename) as f:
+                circuit = new_circuits.circuit_from_dict(json.load(f))
+            expected_circuitset.append(circuit)
 
         # When
         batch_circuits(input_circuits_filenames)
 
         # Then
         try:
-            circuit_set = load_circuit_set(expected_circuit_set_filename)
-            assert circuit_set == expected_circuit_set
+            with open(expected_circuitset_filename) as f:
+                circuitset = new_circuits.circuitset_from_dict(json.load(f))
+            assert circuitset == expected_circuitset
         finally:
-            remove_file_if_exists(expected_circuit_set_filename)
+            remove_file_if_exists(expected_circuitset_filename)
 
     def test_batch_circuits_all_artifacts_circuit_set_is_artifact(
         self, input_circuits_filenames, input_circuit_set_filename
     ):
         # Given
         expected_circuit_set_filename = "circuit-set.json"
-        expected_circuit_set = load_circuit_set(input_circuit_set_filename)
+        with open(input_circuit_set_filename) as f:
+            expected_circuitset = new_circuits.circuitset_from_dict(json.load(f))
         for circuit_filename in input_circuits_filenames:
-            expected_circuit_set.append(load_circuit(circuit_filename))
+            with open(circuit_filename) as f:
+                expected_circuitset.append(new_circuits.circuit_from_dict(json.load(f)))
 
         # When
         batch_circuits(input_circuits_filenames, circuit_set=input_circuit_set_filename)
 
         # Then
         try:
-            circuit_set = load_circuit_set(expected_circuit_set_filename)
-            assert circuit_set == expected_circuit_set
+            with open(expected_circuit_set_filename) as f:
+                circuitset = new_circuits.circuitset_from_dict(json.load(f))
+            assert circuitset == expected_circuitset
         finally:
             remove_file_if_exists(expected_circuit_set_filename)
 
@@ -841,9 +658,11 @@ class TestBatchCircuits:
     ):
         # Given
         expected_circuit_set_filename = "circuit-set.json"
-        expected_circuit_set = copy.deepcopy(input_circuit_set)
+        expected_circuitset = copy.deepcopy(input_circuit_set)
         for circuit_filename in input_circuits_filenames:
-            expected_circuit_set.append(load_circuit(circuit_filename))
+            with open(circuit_filename) as f:
+                circuit = new_circuits.circuit_from_dict(json.load(f))
+            expected_circuitset.append(circuit)
 
         # When
         batch_circuits(
@@ -852,23 +671,25 @@ class TestBatchCircuits:
 
         # Then
         try:
-            circuit_set = load_circuit_set(expected_circuit_set_filename)
-            assert circuit_set == expected_circuit_set
+            with open(expected_circuit_set_filename) as f:
+                circuitset = new_circuits.circuitset_from_dict(json.load(f))
+            assert circuitset == expected_circuitset
         finally:
             remove_file_if_exists(expected_circuit_set_filename)
 
     def test_batch_circuits_all_objects_no_circuit_set(self, input_circuits):
         # Given
         expected_circuit_set_filename = "circuit-set.json"
-        expected_circuit_set = copy.deepcopy(input_circuits)
+        expected_circuitset = copy.deepcopy(input_circuits)
 
         # When
         batch_circuits(input_circuits)
 
         # Then
         try:
-            circuit_set = load_circuit_set(expected_circuit_set_filename)
-            assert circuit_set == expected_circuit_set
+            with open(expected_circuit_set_filename) as f:
+                circuitset = new_circuits.circuitset_from_dict(json.load(f))
+            assert circuitset == expected_circuitset
         finally:
             remove_file_if_exists(expected_circuit_set_filename)
 
@@ -877,17 +698,19 @@ class TestBatchCircuits:
     ):
         # Given
         expected_circuit_set_filename = "circuit-set.json"
-        expected_circuit_set = load_circuit_set(input_circuit_set_filename)
+        with open(input_circuit_set_filename) as f:
+            expected_circuitset = new_circuits.circuitset_from_dict(json.load(f))
         for circuit in input_circuits:
-            expected_circuit_set.append(copy.deepcopy(circuit))
+            expected_circuitset.append(copy.deepcopy(circuit))
 
         # When
         batch_circuits(input_circuits, circuit_set=input_circuit_set_filename)
 
         # Then
         try:
-            circuit_set = load_circuit_set(expected_circuit_set_filename)
-            assert circuit_set == expected_circuit_set
+            with open(expected_circuit_set_filename) as f:
+                circuitset = new_circuits.circuitset_from_dict(json.load(f))
+            assert circuitset == expected_circuitset
         finally:
             remove_file_if_exists(expected_circuit_set_filename)
 
@@ -896,16 +719,17 @@ class TestBatchCircuits:
     ):
         # Given
         expected_circuit_set_filename = "circuit-set.json"
-        expected_circuit_set = copy.deepcopy(input_circuit_set)
+        expected_circuitset = copy.deepcopy(input_circuit_set)
         for circuit in input_circuits:
-            expected_circuit_set.append(copy.deepcopy(circuit))
+            expected_circuitset.append(copy.deepcopy(circuit))
 
         # When
         batch_circuits(input_circuits, circuit_set=copy.deepcopy(input_circuit_set))
 
         # Then
         try:
-            circuit_set = load_circuit_set(expected_circuit_set_filename)
-            assert circuit_set == expected_circuit_set
+            with open(expected_circuit_set_filename) as f:
+                circuitset = new_circuits.circuitset_from_dict(json.load(f))
+            assert circuitset == expected_circuitset
         finally:
             remove_file_if_exists(expected_circuit_set_filename)

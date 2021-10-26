@@ -1,0 +1,53 @@
+resources:
+- name: z-quantum-core-repo
+  type: git
+  source:
+    uri: git@github.com:zapatacomputing/z-quantum-core.git
+    branch: ((github_branch))
+    private_key: ((zapatabot-ssh))
+
+- name: z-quantum-default-image-latest
+  type: registry-image
+  source:
+    tag: ((docker_tag))
+    repository: zapatacomputing/z-quantum-default
+    username: ((zapatabot-dockerhub-username))
+    password: ((zapatabot-dockerhub-password))
+
+jobs:
+
+- name: publish-docker-image-latest
+  serial: true
+  plan:
+  - in_parallel:   
+    - get: z-quantum-core-repo
+      trigger: true
+      params:
+        unpack: true
+  - task: docker-build-image
+    privileged: true
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: concourse/oci-build-task
+      params:
+        CONTEXT: z-quantum-core-repo/docker/z-quantum-default/.
+        DOCKERFILE: z-quantum-core-repo/docker/z-quantum-default/Dockerfile
+      inputs:
+        - name: z-quantum-core-repo
+          path: z-quantum-core-repo
+      outputs:
+        - name: image
+      run:
+        user: root
+        path: build
+  - put: z-quantum-default-image-latest
+    params:
+      image: image/image.tar
+
+groups:
+- name: build
+  jobs:
+  - publish-docker-image-latest

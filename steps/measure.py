@@ -1,33 +1,29 @@
 import json
-from typing import Dict, Optional, Union, List
-import openfermion
+from typing import Dict, List, Optional, Union
 
+import openfermion
+from zquantum.core import circuits
 from zquantum.core.bitstring_distribution import save_bitstring_distribution
+from zquantum.core.circuits import layouts
 from zquantum.core.cost_function import sum_expectation_values
-from zquantum.core.circuit import (
-    Circuit,
-    load_circuit,
-    load_circuit_connectivity,
-    load_circuit_set,
-    load_circuit_template_params,
-)
+from zquantum.core.estimation import estimate_expectation_values_by_averaging
 from zquantum.core.hamiltonian import (
     estimate_nmeas_for_frames,
     get_expectation_values_from_rdms,
     get_expectation_values_from_rdms_for_qubitoperator_list,
 )
 from zquantum.core.measurement import (
+    Measurements,
     load_expectation_values,
     save_expectation_values,
-    Measurements,
 )
-from zquantum.core.estimation import estimate_expectation_values_by_averaging
 from zquantum.core.openfermion import (
+    change_operator_type,
     load_interaction_rdm,
     load_qubit_operator,
     load_qubit_operator_set,
-    change_operator_type,
 )
+from zquantum.core.serialization import load_array
 from zquantum.core.typing import Specs
 from zquantum.core.utils import (
     create_object,
@@ -51,15 +47,15 @@ def run_circuit_and_measure(
     if noise_model is not None:
         backend_specs["noise_model"] = load_noise_model(noise_model)
     if device_connectivity is not None:
-        backend_specs["device_connectivity"] = load_circuit_connectivity(
+        backend_specs["device_connectivity"] = layouts.load_circuit_connectivity(
             device_connectivity
         )
 
     backend = create_object(backend_specs)
     if isinstance(circuit, str):
-        circuit = load_circuit(circuit)
+        circuit = circuits.load_circuit(circuit)
     else:
-        circuit = Circuit.from_dict(circuit)
+        circuit = circuits.circuit_from_dict(circuit)
 
     measurements = backend.run_circuit_and_measure(circuit, n_samples=n_samples)
     measurements.save("measurements.json")
@@ -78,15 +74,16 @@ def run_circuitset_and_measure(
     if noise_model is not None:
         backend_specs["noise_model"] = load_noise_model(noise_model)
     if device_connectivity is not None:
-        backend_specs["device_connectivity"] = load_circuit_connectivity(
+        backend_specs["device_connectivity"] = layouts.load_circuit_connectivity(
             device_connectivity
         )
 
-    circuit_set = load_circuit_set(circuitset)
+    circuit_set = circuits.load_circuitset(circuitset)
     backend = create_object(backend_specs)
 
+    n_samples_list = [n_samples for _ in circuit_set]
     measurements_set = backend.run_circuitset_and_measure(
-        circuit_set, n_samples=n_samples
+        circuit_set, n_samples=n_samples_list
     )
     list_of_measurements = [measurement.bitstrings for measurement in measurements_set]
     save_list(list_of_measurements, "measurements-set.json")
@@ -103,12 +100,12 @@ def get_bitstring_distribution(
     if noise_model is not None:
         backend_specs["noise_model"] = load_noise_model(noise_model)
     if device_connectivity is not None:
-        backend_specs["device_connectivity"] = load_circuit_connectivity(
+        backend_specs["device_connectivity"] = layouts.load_circuit_connectivity(
             device_connectivity
         )
 
     backend = create_object(backend_specs)
-    circuit = load_circuit(circuit)
+    circuit = circuits.load_circuit(circuit)
 
     bitstring_distribution = backend.get_bitstring_distribution(circuit)
     save_bitstring_distribution(bitstring_distribution, "bitstring-distribution.json")
@@ -125,9 +122,16 @@ def evaluate_ansatz_based_cost_function(
     noise_model: Optional[str] = None,
     device_connectivity: Optional[str] = None,
     prior_expectation_values: Optional[str] = None,
+<<<<<<< HEAD
     **kwargs
+=======
+    estimation_tasks_transformations_kwargs: Optional[Dict] = None,
+>>>>>>> origin/dev
 ):
-    ansatz_parameters = load_circuit_template_params(ansatz_parameters)
+    # Empty dict as default is bad
+    if estimation_tasks_transformations_kwargs is None:
+        estimation_tasks_transformations_kwargs = {}
+    ansatz_parameters = load_array(ansatz_parameters)
     # Load qubit op
     if isinstance(target_operator, str):
         operator = load_qubit_operator(target_operator)
@@ -145,7 +149,7 @@ def evaluate_ansatz_based_cost_function(
     if noise_model is not None:
         backend_specs["noise_model"] = load_noise_model(noise_model)
     if device_connectivity is not None:
-        backend_specs["device_connectivity"] = load_circuit_connectivity(
+        backend_specs["device_connectivity"] = layouts.load_circuit_connectivity(
             device_connectivity
         )
 
@@ -212,7 +216,14 @@ def evaluate_ansatz_based_cost_function(
                     "prior_expectation_values"
                 ] = prior_expectation_values
             cost_function_specs["estimation_preprocessors"].append(
+<<<<<<< HEAD
                 create_object(estimation_tasks_transformation_specs, **kwargs)
+=======
+                create_object(
+                    estimation_tasks_transformation_specs,
+                    **estimation_tasks_transformations_kwargs
+                )
+>>>>>>> origin/dev
             )
 
     # cost_function.estimator.prior_expectation_values
@@ -322,9 +333,12 @@ def get_summed_expectation_values(
     if isinstance(operator, str):
         operator = load_qubit_operator(operator)
         operator = change_operator_type(operator, openfermion.IsingOperator)
+    loaded_measurements: Measurements
     if isinstance(measurements, str):
-        measurements = Measurements.load_from_file(measurements)
-    expectation_values = measurements.get_expectation_values(
+        loaded_measurements = Measurements.load_from_file(measurements)
+    else:
+        loaded_measurements = measurements
+    expectation_values = loaded_measurements.get_expectation_values(
         operator, use_bessel_correction=use_bessel_correction
     )
     value_estimate = sum_expectation_values(expectation_values)

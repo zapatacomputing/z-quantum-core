@@ -1,8 +1,7 @@
 import itertools
 import random
-from typing import List, Optional, Union, Iterable
+from typing import Iterable, List, Optional
 
-import cirq
 import numpy as np
 from openfermion import (
     FermionOperator,
@@ -22,9 +21,10 @@ from openfermion import (
 from openfermion.linalg import jw_get_ground_state_at_particle_number
 from openfermion.transforms import freeze_orbitals, get_fermion_operator
 
-from ..circuit import Circuit, Gate, Qubit
-from ..measurement import ExpectationValues, expectation_values_to_real
+from ..circuits import Circuit, X, Y, Z
+from ..measurement import ExpectationValues
 from ..utils import ValueEstimate, bin2dec, dec2bin
+from ..wavefunction import Wavefunction
 
 
 def get_qubitop_from_matrix(operator: List[List]) -> QubitOperator:
@@ -266,69 +266,6 @@ def evaluate_qubit_operator_list(
     return value_estimate
 
 
-def evaluate_operator_for_parameter_grid(
-    ansatz, grid, backend, operator, previous_layer_params=[]
-):
-    """Evaluate the expectation value of an operator for every set of circuit
-    parameters in the parameter grid.
-
-    Args:
-        ansatz (dict): the ansatz
-        grid (zquantum.core.circuit.ParameterGrid): The parameter grid containing
-            the parameters for the last layer of the ansatz
-        backend (zquantum.core.interfaces.backend.QuantumSimulator): the backend
-            to run the circuits on
-        operator (openfermion.ops.QubitOperator): the operator
-        previous_layer_params (array): A list of the parameters for previous layers
-            of the ansatz
-
-    Returns:
-        value_estimate (zquantum.core.utils.ValueEstimate): stores the value of the
-            expectation and its precision
-        optimal_parameters (numpy array): the ansatz parameters representing the ansatz
-            parameters resulting in the best minimum evaluation. If multiple sets of
-            parameters evaluate to the same value, the first set of parameters is chosen
-            as the optimal.
-    """
-    parameter_grid_evaluation = []
-    circuitset = []
-    params_set = []
-    for last_layer_params in grid.params_list:
-        # Build the ansatz circuit
-        params = np.concatenate(
-            (np.asarray(previous_layer_params), np.asarray(last_layer_params))
-        )
-
-        # Build the ansatz circuit
-        circuitset.append(ansatz.get_executable_circuit(params))
-        params_set.append(params)
-
-    expectation_values_set = backend.get_expectation_values_for_circuitset(
-        circuitset, operator
-    )
-
-    min_value_estimate = None
-    for params, expectation_values in zip(params_set, expectation_values_set):
-        expectation_values = expectation_values_to_real(expectation_values)
-        value_estimate = ValueEstimate(sum(expectation_values.values))
-        parameter_grid_evaluation.append(
-            {
-                "value": value_estimate,
-                "parameter1": params[-2],
-                "parameter2": params[-1],
-            }
-        )
-
-        if min_value_estimate is None:
-            min_value_estimate = value_estimate
-            optimal_parameters = params
-        elif value_estimate.value < min_value_estimate.value:
-            min_value_estimate = value_estimate
-            optimal_parameters = params
-
-    return parameter_grid_evaluation, optimal_parameters
-
-
 def reverse_qubit_order(qubit_operator: QubitOperator, n_qubits: Optional[int] = None):
     """Reverse the order of qubit indices in a qubit operator.
 
@@ -359,24 +296,26 @@ def reverse_qubit_order(qubit_operator: QubitOperator, n_qubits: Optional[int] =
     return reversed_op
 
 
-def get_expectation_value(qubit_op, wavefunction, reverse_operator=True):
+def get_expectation_value(
+    qubit_op: QubitOperator, wavefunction: Wavefunction, reverse_operator: bool = False
+) -> complex:
     """Get the expectation value of a qubit operator with respect to a wavefunction.
     Args:
-        qubit_op (openfermion.ops.QubitOperator): the operator
-        wavefunction (pyquil.wavefunction.Wavefunction): the wavefunction
-        reverse_operator (boolean): whether to reverse order of qubit operator
+        qubit_op: the operator
+        wavefunction: the wavefunction
+        reverse_operator: whether to reverse order of qubit operator
             before computing expectation value. This should be True if the convention
             of the basis states used for the wavefunction is the opposite of the one in
-            the qubit operator. This is the case, e.g. when the wavefunction comes from
-            Pyquil.
+            the qubit operator. This is the case when the wavefunction uses
+            Rigetti convention (https://arxiv.org/abs/1711.02086) of ordering qubits.
     Returns:
-        complex: the expectation value
+        the expectation value
     """
     n_qubits = wavefunction.amplitudes.shape[0].bit_length() - 1
 
     # Convert the qubit operator to a sparse matrix. Note that the qubit indices
-    # must be reversed because OpenFermion and pyquil use different conventions
-    # for how to order the computational basis states!
+    # must be reversed because OpenFermion and our Wavefunction use
+    # different conventions for how to order the computational basis states!
     if reverse_operator:
         qubit_op = reverse_qubit_order(qubit_op, n_qubits=n_qubits)
     sparse_op = get_sparse_operator(qubit_op, n_qubits=n_qubits)
@@ -586,40 +525,6 @@ def get_polynomial_tensor(fermion_operator, n_qubits=None):
     return PolynomialTensor(tensor_dict)
 
 
-def qubitop_to_paulisum(
-    qubit_operator: QubitOperator,
-    qubits: Union[List[cirq.GridQubit], List[cirq.LineQubit]] = None,
-) -> cirq.PauliSum:
-    """Convert and openfermion QubitOperator to a cirq PauliSum
-
-    Args:
-        qubit_operator (openfermion.QubitOperator): The openfermion operator to convert
-        qubits()
-
-    Returns:
-        cirq.PauliSum
-    """
-    operator_map = {"X": cirq.X, "Y": cirq.Y, "Z": cirq.Z}
-
-    if qubits is None:
-        qubits = [cirq.GridQubit(i, 0) for i in range(count_qubits(qubit_operator))]
-
-    converted_sum = cirq.PauliSum()
-    for term, coefficient in qubit_operator.terms.items():
-
-        # Identity term
-        if len(term) == 0:
-            converted_sum += coefficient
-            continue
-
-        cirq_term: cirq.PauliString = cirq.PauliString()
-        for qubit_index, operator in term:
-            cirq_term *= operator_map[operator](qubits[qubit_index])
-        converted_sum += cirq_term * coefficient
-
-    return converted_sum
-
-
 def create_circuits_from_qubit_operator(qubit_operator: QubitOperator) -> List[Circuit]:
     """Creates a list of circuit objects from the Pauli terms of a QubitOperator
     Args:
@@ -631,25 +536,19 @@ def create_circuits_from_qubit_operator(qubit_operator: QubitOperator) -> List[C
 
     # Get the Pauli terms, ignoring coefficients
     pauli_terms = list(qubit_operator.terms.keys())
-
+    term_gate_map = {"X": X, "Y": Y, "Z": Z}
     circuit_set = []
 
     # Loop over Pauli terms and populate circuit set list
     for term in pauli_terms:
 
         circuit = Circuit()
-        pauli_gates = []
-        qubits = []
 
         # Loop over Pauli factors in Pauli term and construct Pauli term circuit
         for pauli in term:  # loop over pauli operators in an n qubit pauli term
             pauli_index = pauli[0]
             pauli_factor = pauli[1]
-            pauli_gates.append(Gate(pauli_factor, qubits=[Qubit(pauli_index)]))
-            qubits.append(Qubit(pauli[0]))
-
-        circuit.gates = pauli_gates
-        circuit.qubits += qubits
+            circuit += term_gate_map[pauli_factor](pauli_index)
 
         circuit_set += [circuit]
 

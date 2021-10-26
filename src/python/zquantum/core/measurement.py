@@ -4,22 +4,22 @@ import copy
 import json
 from collections import Counter
 from typing import (
-    Optional,
-    List,
-    Tuple,
-    TextIO,
-    Iterable,
-    Sequence,
-    Dict,
-    Union,
     Any,
+    Dict,
+    Iterable,
+    List,
+    Optional,
+    Sequence,
+    TextIO,
+    Tuple,
+    Union,
     cast,
 )
 
 import numpy as np
 from openfermion.ops import IsingOperator
-from pyquil.wavefunction import Wavefunction
 from zquantum.core.typing import AnyPath, LoadSource
+from zquantum.core.wavefunction import Wavefunction
 
 from .bitstring_distribution import BitstringDistribution
 from .utils import (
@@ -73,7 +73,7 @@ def load_wavefunction(file: LoadSource) -> Wavefunction:
         file (str or file-like object): the name of the file, or a file-like object.
 
     Returns:
-        wavefunction (pyquil.wavefunction.Wavefunction): the wavefunction object
+        wavefunction (zquantum.core.Wavefunction): the wavefunction object
     """
 
     if isinstance(file, str):
@@ -90,7 +90,7 @@ def save_wavefunction(wavefunction: Wavefunction, filename: AnyPath) -> None:
     """Save a wavefunction object to a file.
 
     Args:
-        wavefunction (pyquil.wavefunction.Wavefunction): the wavefunction object
+        wavefunction (zquantum.core.Wavefunction): the wavefunction object
         filename (str): the name of the file
     """
 
@@ -102,6 +102,8 @@ def save_wavefunction(wavefunction: Wavefunction, filename: AnyPath) -> None:
 
 class ExpectationValues:
     """A class representing expectation values of operators.
+    For more context on how it is being used, please see the docstring of
+    EstimateExpectationValues Protocol in interfaces/estimation.py.
 
     Args:
         values: The expectation values of a set of operators.
@@ -178,18 +180,22 @@ class ExpectationValues:
 
 
 def sample_from_wavefunction(
-    wavefunction: Wavefunction, n_samples: int
+    wavefunction: Wavefunction,
+    n_samples: int,
+    seed: Optional[int] = None,
 ) -> List[Tuple[int, ...]]:
     """Sample bitstrings from a wavefunction.
 
     Args:
-        wavefunction (Wavefunction): the wavefunction to sample from.
-        n_samples (int): the number of samples taken.
+        wavefunction: the wavefunction to sample from.
+        n_samples: the number of samples taken. Needs to be greater than 0.
+        seed: the seed of the sampler
 
     Returns:
         List[Tuple[int]]: A list of tuples where the each tuple is a sampled bitstring.
     """
-    rng = np.random.default_rng()
+    assert isinstance(n_samples, int) and n_samples > 0
+    rng = np.random.default_rng(seed)
     outcomes_str, probabilities_np = zip(*wavefunction.get_outcome_probs().items())
     probabilities = [
         x[0] if isinstance(x, (list, np.ndarray)) else x for x in list(probabilities_np)
@@ -452,14 +458,15 @@ def get_expectation_value_from_frequencies(
 
 
 def _check_sample_elimination(
-    samples: collections.Counter,
+    samples: Counter,
     bitstring_samples: List[Tuple[int, ...]],
     leftover_distribution: BitstringDistribution,
-) -> collections.Counter:
-    """This is a recursive function, that checks that all elements in samples
+) -> Counter:
+    """This is a function that checks that all elements in samples
     are present in bitstring_samples. If they are not, we eliminate the
-    elements not in bitstring samples, set their probability to 0 in leftover_distribution
-    and resample the appropriate number of times. Then, we re-check the new samples.
+    elements not in bitstring samples, set their probability to 0 in
+    leftover_distribution and resample the appropriate number of times.
+    Then, we re-check the new samples.
     Args:
         samples: The bitstrings to eliminate and how many times to eliminate them
         bitstring_samples: the bitstring distribution from where the bitstrings
@@ -471,28 +478,32 @@ def _check_sample_elimination(
                      be removed from bitstring_samples
     """
     bitstring_counts = Counter(bitstring_samples)
-    new_samples = None
-    correct_samples = samples
-    for sample in samples:
-        bitstring = tuple([int(measurement_value) for measurement_value in sample])
-        if samples[sample] > bitstring_counts[bitstring]:
-            nresamples = samples[sample] - bitstring_counts[bitstring]
-            samples[sample] = bitstring_counts[bitstring]
-            distribution_dict = leftover_distribution.distribution_dict
-            distribution_dict[sample] = 0
-            leftover_distribution = BitstringDistribution(distribution_dict, True)
-            new_samples = sample_from_probability_distribution(
-                leftover_distribution.distribution_dict, nresamples
-            )
-            correct_samples = samples + new_samples
-            break
 
-    if new_samples is None:
-        return correct_samples
-    else:
-        return _check_sample_elimination(
-            correct_samples, bitstring_samples, leftover_distribution
-        )
+    nresamples = 1  # Initializing so that the loop starts
+    corrected_leftover_distribution = BitstringDistribution(
+        dict(leftover_distribution.distribution_dict)
+    )
+    correct_samples = samples.copy()
+    while nresamples != 0:
+        new_samples = None
+        nresamples = 0
+        for sample in correct_samples:
+            bitstring = tuple([int(measurement_value) for measurement_value in sample])
+            if correct_samples[sample] > bitstring_counts[bitstring]:
+                nresamples = correct_samples[sample] - bitstring_counts[bitstring]
+                correct_samples[sample] = bitstring_counts[bitstring]
+                distribution_dict = corrected_leftover_distribution.distribution_dict
+                distribution_dict[sample] = 0
+                corrected_leftover_distribution = BitstringDistribution(
+                    distribution_dict, True
+                )
+                new_samples = sample_from_probability_distribution(
+                    corrected_leftover_distribution.distribution_dict, nresamples
+                )
+                correct_samples = correct_samples + new_samples
+                break
+
+    return correct_samples
 
 
 class Measurements:
@@ -657,7 +668,7 @@ class Measurements:
         return BitstringDistribution(distribution)
 
     def get_expectation_values(
-        self, ising_operator: IsingOperator, use_bessel_correction: bool = True
+        self, ising_operator: IsingOperator, use_bessel_correction: bool = False
     ) -> ExpectationValues:
         """Get the expectation values of an operator from the measurements.
 
@@ -714,9 +725,6 @@ class Measurements:
         denominator = (
             num_measurements - 1 if use_bessel_correction else num_measurements
         )
-        # Try to avoid the divergence of the Bessel correction
-        if denominator == 0:
-            denominator = 1
 
         estimator_covariances = (
             correlations

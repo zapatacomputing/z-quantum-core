@@ -43,7 +43,7 @@ class AnsatzTests:
         circuit = ansatz.get_executable_circuit(params)
 
         # Then
-        assert len(circuit.gates) > 0
+        assert len(circuit.operations) > 0
 
     def test_get_executable_circuit_does_not_contain_symbols(self, ansatz):
         # Given
@@ -53,5 +53,5 @@ class AnsatzTests:
         circuit = ansatz.get_executable_circuit(params=params)
 
         # Then
-        for gate in circuit.gates:
-            assert len(gate.symbolic_params) == 0
+        for operation in circuit.operations:
+            assert len(operation.free_symbols) == 0

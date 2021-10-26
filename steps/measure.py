@@ -122,11 +122,7 @@ def evaluate_ansatz_based_cost_function(
     noise_model: Optional[str] = None,
     device_connectivity: Optional[str] = None,
     prior_expectation_values: Optional[str] = None,
-<<<<<<< HEAD
-    **kwargs
-=======
     estimation_tasks_transformations_kwargs: Optional[Dict] = None,
->>>>>>> origin/dev
 ):
     # Empty dict as default is bad
     if estimation_tasks_transformations_kwargs is None:
@@ -162,12 +158,17 @@ def evaluate_ansatz_based_cost_function(
     def wrapped_run_circuitset_and_measure(circuit_set, n_samples, **kwargs):
         measurements_set = unwrapped(circuit_set, n_samples, **kwargs)
         for circuit, measurements in zip(circuit_set, measurements_set):
+            n_gates = len(circuit.operations)
+            n_single_qubit_gates = sum(
+                [1 for gate in circuit.operations if gate.num_qubits == 1]
+            )
+            n_multiqubit_gates = n_gates - n_multiqubit_gates
             backend_usage_data.append(
                 {
                     "measurements": measurements.get_counts(),
-                    "circuit": circuit.to_dict(serialize_gate_params=True),
-                    "number_of_multiqubit_gates": circuit.n_multiqubit_gates,
-                    "number_of_gates": len(circuit.gates),
+                    "circuit": circuits.to_dict(circuit),
+                    "number_of_multiqubit_gates": n_multiqubit_gates,
+                    "number_of_gates": n_single_qubit_gates,
                 }
             )
         return measurements_set
@@ -216,14 +217,10 @@ def evaluate_ansatz_based_cost_function(
                     "prior_expectation_values"
                 ] = prior_expectation_values
             cost_function_specs["estimation_preprocessors"].append(
-<<<<<<< HEAD
-                create_object(estimation_tasks_transformation_specs, **kwargs)
-=======
                 create_object(
                     estimation_tasks_transformation_specs,
                     **estimation_tasks_transformations_kwargs
                 )
->>>>>>> origin/dev
             )
 
     # cost_function.estimator.prior_expectation_values

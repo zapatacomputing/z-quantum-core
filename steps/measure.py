@@ -160,7 +160,7 @@ def evaluate_ansatz_based_cost_function(
         for circuit, measurements in zip(circuit_set, measurements_set):
             n_gates = len(circuit.operations)
             n_single_qubit_gates = sum(
-                [1 for gate in circuit.operations if gate.num_qubits == 1]
+                [1 for gate_op in circuit.operations if gate_op.gate.num_qubits == 1]
             )
             n_multiqubit_gates = n_gates - n_multiqubit_gates
             backend_usage_data.append(

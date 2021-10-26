@@ -33,8 +33,7 @@ RUN update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.7 1 
 
 ENV PYTHONPATH="/usr/local/lib/python3.7/dist-packages:${PYTHONPATH}"
 
-# Downgrade pip to 20.2.4 until the issues with dependency resolving in pip is solved.
-RUN python3 -m pip install pip==20.2.4
+RUN python3 -m pip install --upgrade pip
 # Make sure to upgrade setuptools else z-quantum-core won't be installed because it uses find_namespace_packages
 RUN python3 -m pip install --upgrade setuptools
 
@@ -62,8 +61,11 @@ RUN python3 -m pip install --no-cache git+git://github.com/zapatacomputing/z-qua
     python3 -m pip uninstall -y z-quantum-core
 
 # Misc libraries that we'd like to have already preinstalled.
+# codecarbon is used for tracking CO2 generation and is used inside the python3 runtime
+# cvxpy is used in `z-quantum-qubo` and takes long time to install, so in order to reduce
+# overhead, we decided to have it installed straight in the docker.
 RUN python3 -m pip install \
-        codecarbon \
+        codecarbon==1.2.0 \ 
         cvxpy
 
                     

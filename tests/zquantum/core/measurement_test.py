@@ -6,7 +6,6 @@ from collections import Counter
 import numpy as np
 import pytest
 from openfermion.ops import IsingOperator
-from pyquil.wavefunction import Wavefunction
 from zquantum.core.bitstring_distribution import BitstringDistribution
 from zquantum.core.measurement import (
     ExpectationValues,
@@ -30,6 +29,7 @@ from zquantum.core.measurement import (
 )
 from zquantum.core.testing import create_random_wavefunction
 from zquantum.core.utils import RNDSEED, SCHEMA_VERSION, convert_bitstrings_to_tuples
+from zquantum.core.wavefunction import Wavefunction
 
 
 def remove_file_if_exists(filename):
@@ -105,13 +105,10 @@ def test_sample_from_wavefunction():
     sampled_dict = Counter(samples)
 
     sampled_probabilities = []
-    for num in range(len(wavefunction) ** 2):
+    for num in range(len(wavefunction)):
         bitstring = format(num, "b")
-        while len(bitstring) < len(wavefunction):
+        while len(bitstring) < wavefunction.n_qubits:
             bitstring = "0" + bitstring
-        # NOTE: our indexing places the state of qubit i at the ith index of the tuple.
-        # Hence |01> will result in the tuple (1, 0)
-        bitstring = bitstring[::-1]
         measurement = convert_bitstrings_to_tuples([bitstring])[0]
         sampled_probabilities.append(sampled_dict[measurement] / 10000)
 
@@ -122,9 +119,7 @@ def test_sample_from_wavefunction():
 
 def test_sample_from_wavefunction_column_vector():
     n_qubits = 4
-    # NOTE: our indexing places the state of qubit i at the ith index of the tuple.
-    # Hence |01> will result in the tuple (1, 0)
-    expected_bitstring = (1, 0, 0, 0)
+    expected_bitstring = (0, 0, 0, 1)
     amplitudes = np.array([0] * (2 ** n_qubits)).reshape(2 ** n_qubits, 1)
     amplitudes[1] = 1  # |0001> will be measured in all cases.
     wavefunction = Wavefunction(amplitudes)
@@ -135,9 +130,7 @@ def test_sample_from_wavefunction_column_vector():
 
 def test_sample_from_wavefunction_row_vector():
     n_qubits = 4
-    # NOTE: our indexing places the state of qubit i at the ith index of the tuple.
-    # Hence |01> will result in the tuple (1, 0)
-    expected_bitstring = (1, 0, 0, 0)
+    expected_bitstring = (0, 0, 0, 1)
     amplitudes = np.array([0] * (2 ** n_qubits))
     amplitudes[1] = 1  # |0001> will be measured in all cases.
     wavefunction = Wavefunction(amplitudes)
@@ -148,9 +141,7 @@ def test_sample_from_wavefunction_row_vector():
 
 def test_sample_from_wavefunction_list():
     n_qubits = 4
-    # NOTE: our indexing places the state of qubit i at the ith index of the tuple.
-    # Hence |01> will result in the tuple (1, 0)
-    expected_bitstring = (1, 0, 0, 0)
+    expected_bitstring = (0, 0, 0, 1)
     amplitudes = [0] * (2 ** n_qubits)
     amplitudes[1] = 1  # |0001> will be measured in all cases.
     wavefunction = Wavefunction(amplitudes)
@@ -163,7 +154,7 @@ def test_sample_from_wavefunction_list():
 def test_sample_from_wavefunction_fails_for_invalid_n_samples(n_samples):
     n_qubits = 4
     amplitudes = [0] * (2 ** n_qubits)
-    amplitudes[1] = 1  # |0001> will be measured in all cases.
+    amplitudes[1] = 1
     wavefunction = Wavefunction(amplitudes)
     with pytest.raises(AssertionError):
         sample_from_wavefunction(wavefunction, n_samples)

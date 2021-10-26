@@ -1,11 +1,11 @@
-import warnings
 from abc import ABC, abstractmethod
-from typing import Callable, Union
+from typing import Any, Callable, Dict, List, Union
 
 import numpy as np
 import scipy
 from scipy.optimize import OptimizeResult
 from zquantum.core.history.recorder import recorder as _recorder
+from zquantum.core.interfaces.cost_function import CostFunction
 from zquantum.core.interfaces.functions import CallableWithGradient
 
 from ..typing import RecorderFactory
@@ -97,7 +97,9 @@ def optimization_result(
     )
 
 
-def construct_history_info(cost_function, keep_history):
+def construct_history_info(
+    cost_function: CostFunction, keep_history: bool
+) -> Dict[str, List]:
     histories = {
         "history": cost_function.history if keep_history else [],
     }
@@ -105,3 +107,83 @@ def construct_history_info(cost_function, keep_history):
     if keep_history and hasattr(cost_function, "gradient"):
         histories["gradient_history"] = cost_function.gradient.history
     return histories
+
+
+def extend_histories(
+    cost_function: CostFunction, histories: Dict[str, List]
+) -> Dict[str, List]:
+    new_histories = construct_history_info(cost_function, True)
+    updated_histories = {"history": histories["history"] + new_histories["history"]}
+    if hasattr(cost_function, "gradient"):
+        updated_histories["gradient_history"] = (
+            histories["gradient_history"] + new_histories["gradient_history"]
+        )
+    return updated_histories
+
+
+class NestedOptimizer(ABC):
+    """
+    Optimizers that modify cost function throughout optimization.
+    An example of such optimizer could be on that freezes certain
+    parameters during every iteration or adds new layers of
+    the underlying circuit (so called layer-by-layer optimization).
+
+    See MockNestedOptimizer in zquantum.core.interfaces.mock_objects for an example.
+
+    Args:
+        inner_optimizer: Optimizer object used in the inner optimization loop.
+        recorder: recorder object which defines how to store the optimization history.
+
+    Returns:
+        An instance of OptimizeResult containing:
+            opt_value,
+            opt_params,
+            nit: total number of iterations of inner_optimizer,
+            nfev: total number of calls to cost function,
+            history: a list of HistoryEntrys.
+                If keep_history is False this should be an empty list.
+            gradient_history: if the cost function is a FunctionWithGradient,
+                this should be a list of HistoryEntrys representing
+                previous calls to the gradient.
+    """
+
+    @property
+    @abstractmethod
+    def inner_optimizer(self) -> Optimizer:
+        """Inner optimizer used by this optimizer."""
+
+    @property
+    @abstractmethod
+    def recorder(self) -> RecorderFactory:
+        """Factory for creating recorders of functions being minimized."""
+        return _recorder
+
+    def minimize(
+        self,
+        cost_function_factory: Callable[..., CostFunction],
+        initial_params: np.ndarray,
+        keep_history: bool = False,
+    ) -> OptimizeResult:
+        """Finds optimal parameters to minimize the cost function factory.
+
+        Args:
+            cost_function_factory: function that generates CostFunction objects.
+            initial_params: initial parameters used for optimization
+            keep_history: flag indicating whether history of cost function
+                evaluations should be recorded.
+        """
+        return self._minimize(cost_function_factory, initial_params, keep_history)
+
+    @abstractmethod
+    def _minimize(
+        self,
+        cost_function_factory: Callable[..., CostFunction],
+        initial_params: np.ndarray,
+        keep_history: bool = False,
+    ) -> OptimizeResult:
+        """Finds the parameters which minimize given cost function factory.
+        This private method should contain the integration with specific optimizer.
+
+        Args:
+            Same as for minimize.
+        """

@@ -4,7 +4,6 @@ Allows:
 
 - defining quantum circuits with gates applied to qubits
 - set of built-in gates (see imports in this `__init__`)
-- import/export from/to Cirq and PyQuil circuits
 - circuit (de)serialization to/from JSON-compatible dicts
 
 Examples:
@@ -46,14 +45,6 @@ Examples:
             ],
             n_qubits=circuit.n_qubits
         )
-
-    Conversion to other frameworks::
-        export_to_cirq(circuit)
-        circuit2 = import_from_cirq(cirq_circuit)
-
-        export_to_pyquil(circuit)
-        circuit3 = import_from_pyquil(pyquil_program)
-
 
     (De)serialization::
         to_dict(circuit)
@@ -103,8 +94,9 @@ Extending built-in gates requires:
 - Adding its matrix to `zquantum.core.circuits._matrices`.
 
 - Adding tests for conversion to other frameworks in:
-    - `zquantum.core.conversions.cirq_conversions_test`
-    - `zquantum.core.conversions.pyquil_conversions_test`
+    - `qeqiskit.conversions.circuit_conversions_test`
+    - `qecirq.conversions.circuit_conversions_test`
+    - `qeforest.conversions.circuit_conversions_test`
 
 - Implement conversions. Some might work out of the box, e.g. if there's a gate with the
     same name defined in PyQuil our converters will use it by default without need for
@@ -137,7 +129,7 @@ from ._builtin_gates import (
     Z,
     builtin_gate_by_name,
 )
-from ._circuit import Circuit
+from ._circuit import Circuit, split_circuit
 from ._compatibility import new_circuit_from_old_circuit
 from ._gates import (
     ControlledGate,
@@ -148,6 +140,7 @@ from ._gates import (
     MatrixFactoryGate,
 )
 from ._generators import add_ancilla_register, create_layer_of_gates
+from ._operations import Operation
 from ._serde import (
     circuit_from_dict,
     circuitset_from_dict,
@@ -159,5 +152,4 @@ from ._serde import (
 )
 from ._testing import create_random_circuit
 from ._wavefunction_operations import MultiPhaseOperation
-from .conversions.cirq_conversions import export_to_cirq, import_from_cirq
-from .conversions.pyquil_conversions import export_to_pyquil, import_from_pyquil
+from .symbolic import natural_key, natural_key_revlex

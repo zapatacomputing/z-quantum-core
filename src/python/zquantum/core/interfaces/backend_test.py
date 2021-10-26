@@ -38,9 +38,9 @@ from typing import List
 import numpy as np
 import pytest
 from openfermion import QubitOperator
-from pyquil.wavefunction import Wavefunction
 from zquantum.core.interfaces.backend import QuantumSimulator
 from zquantum.core.interfaces.estimation import EstimationTask
+from zquantum.core.wavefunction import Wavefunction
 
 from ..bitstring_distribution import BitstringDistribution
 from ..circuits import CNOT, Circuit, H, X, builtin_gate_by_name
@@ -425,6 +425,18 @@ class QuantumSimulatorTests(QuantumBackendTests):
         assert np.allclose(expectation_values.values, target_expectation_values.values)
         assert wf_simulator.number_of_circuits_run == 1
         assert wf_simulator.number_of_jobs_run == 1
+
+    def test_get_wavefunction_uses_provided_initial_state(self, wf_simulator):
+        circuit = Circuit([H(0), H(1)])
+        initial_state = np.array([0, 1, 0, 0])
+
+        np.testing.assert_allclose(
+            wf_simulator.get_wavefunction(circuit, initial_state=initial_state),
+            np.array([0.5, -0.5, 0.5, -0.5]),
+        )
+        np.testing.assert_allclose(
+            wf_simulator.get_wavefunction(circuit), 0.5 * np.ones(4)
+        )
 
 
 class QuantumSimulatorGatesTest:

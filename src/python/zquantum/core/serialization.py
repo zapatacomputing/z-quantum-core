@@ -138,14 +138,14 @@ def save_array(array: np.ndarray, path_like: DumpTarget) -> None:
         f.write(json.dumps(dictionary))
 
 
-def load_array(file: LoadSource):
+def load_array(file: LoadSource) -> np.ndarray:
     """Loads array from a file.
 
     Args:
         file: the name of the file, or a file-like object.
 
     Returns:
-        dict: the circuit template
+        the numpy array obtained from file
     """
 
     with ensure_open(file, "r") as f:

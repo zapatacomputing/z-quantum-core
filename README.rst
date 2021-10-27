@@ -173,28 +173,24 @@ we use that for now. You can soft-link it similarly to before::
 
 Marking Tests
 --------------
-We have included two Pytest marks in ``pytest.ini``:
+We have included one Pytest mark in ``pytest.ini``:
 
-* unit
 * integration
 
-In order to ensure that only non-integration tests pass in the Github Actions, 
-we need to mark all independent unit tests as such. You can apply the decorator
-at either the class, method, or function level::
+You can apply the decorator at either the class, method, or function level::
 
-    @pytest.mark.unit
+    @pytest.mark.integration
 
 To make life as easy as possible you can also mark an entire Pytest module file
 like this::
 
     import pytest
-    pytestmark = pytest.mark.unit
+    pytestmark = pytest.mark.integration
 
 or for multiple markers::
 
-    pytestmark = [pytest.mark.unit, pytest.mark.ufo]
+    pytestmark = [pytest.mark.integration, pytest.mark.ufo]
 
-.. Note:: You can override any of these targets in your top-level Makefile as
-   outlined above. For example, if all your tests are unit, you can just define
-   a new *test* target as *pytest tests* (removing the *-m unit*) and forget
-   about all the marking.
+By default integration tests are disabled. In order to enable them you can just define
+   a new *test* target as *pytest tests* (removing the *-m integration*) and forget
+   about all the markings.

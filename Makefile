@@ -61,14 +61,15 @@ isort-default: clean
 	@isort --check --profile black src tests
 
 test-default:
-	@pytest tests
+	@pytest -m "not integration" tests
 
 coverage-default:
-	pytest --cov=src \
-	   --cov-fail-under=$(MIN_COVERAGE) tests \
-	   --no-cov-on-fail \
-	   --cov-report term-missing \
-	   && echo Code coverage Passed the $(MIN_COVERAGE)% mark!
+	pytest -m "not integration" \
+		--cov=src \
+		--cov-fail-under=$(MIN_COVERAGE) tests \
+		--no-cov-on-fail \
+		--cov-report term-missing \
+		&& echo Code coverage Passed the $(MIN_COVERAGE)% mark!
 
 
 style-default: flake8 mypy black isort

@@ -1,0 +1,34 @@
+[build-system]
+requires = ["setuptools", "wheel",  "setuptools_scm>=6.0", "pygit2"]
+
+# Including this section is same as 'use_scm_version=True' in setup.py
+# See https://github.com/pypa/setuptools_scm for guidance
+[tool.setuptools_scm]
+
+[tool.isort]
+profile = "black"
+
+[tool.mypy]
+ignore_missing_imports = true
+namespace_packages = true
+
+[tool.coverage.run]
+# main.py should be checked separately in an integration test.
+omit = ["*/main.py", "*/__init__.py"]
+
+[tool.coverage.report]
+exclude_lines = [
+  "pragma: no cover",
+  "def __repr__",
+  "def __str__",
+  "raise AssertionError",
+  "raise NotImplementedError",
+  "if __name__ == .__main__.:",
+]
+
+[tool.pytest.ini_options]
+log_level="INFO"
+markers = [
+   "unit: Unit Tests",
+   "integration: Integration Tests",
+]

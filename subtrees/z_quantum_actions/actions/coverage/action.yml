@@ -1,0 +1,25 @@
+inputs:
+  codecov_secret:
+    description: |
+      Should be copy of secrets.CODECOV_TOKEN from calling environment.
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+
+    # Runs a set of commands using the runners shell
+    - name: Run test coverage
+      shell: bash
+      run: |
+        make github_actions
+        make coverage
+      env:
+        SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v1
+      env:
+        CODECOV_TOKEN: ${{ inputs.codecov_secret }}
+      with:
+        fail_ci_if_error: trueyml

@@ -1,21 +1,27 @@
 import jax
 import jax.numpy as jnp
 import numpy as np
+import sympy
 from jax import random
-from jax.experimental.optimizers import sgd
 from openfermion.ops.operators.ising_operator import IsingOperator
 from sympy import Symbol, adjoint
 from sympy2jax import sympy2jax
-from zquantum.core.circuits import RX, Circuit
+from zquantum.core.circuits import RX, RY, RZ, Circuit
 from zquantum.core.estimation import calculate_exact_expectation_values
-from zquantum.core.interfaces.estimation import EstimationTask
+from zquantum.core.interfaces.estimation import EstimationTask, EstimationTasksFactory
+from zquantum.core.interfaces.functions import function_with_gradient
 from zquantum.core.symbolic_simulator import SymbolicSimulator
 from zquantum.core.wavefunction import Wavefunction
+from zquantum.optimizers.simple_gradient_descent import SimpleGradientDescent
+
+# type out the matrices intead of using our gate classes
+
+# 2-10 qubits
 
 
-def exp_of_rx_gate_numeric(rotation):
+def exp_of_rx_gate_symbolic_openfermion():
     test_circuit = Circuit()
-    gate = RX(rotation)(0)
+    gate = RX(2 * Symbol("theta"))(0)
 
     test_circuit += gate
 
@@ -24,30 +30,27 @@ def exp_of_rx_gate_numeric(rotation):
     return calculate_exact_expectation_values(sim, [est_task])[0].values[0]
 
 
-op = np.array([[1.0, 0.0], [0.0, -1.0]])
-
 sim = SymbolicSimulator()
 
-
-# wf = sim.get_wavefunction(test_circuit)._amplitude_vector
-
-# expectation_expression = (adjoint(wf) @ op @ wf)[0]
-
-# f, params = sympy2jax(expectation_expression,
-# list(expectation_expression.free_symbols))
-
-# key = random.PRNGKey(0)
-# X = random.normal(key, (10, 1))
-
-# grads = f(X, params)
+symbolic_exp = exp_of_rx_gate_symbolic_openfermion()
 
 
-######### RANDOM JAX SNIPPET ################
-# f, params = sympy2jax(theta, [theta])
-# key = random.PRNGKey(0)
-# X = random.normal(key, (10, 1))
+f, params = sympy2jax(symbolic_exp, list(symbolic_exp.free_symbols))
 
-# grads = f(X, params)
-#############################################
+
+def cost_function(curr_params):
+    return f(curr_params, params)[0]
+
+
+breakpoint()
+
+fun = function_with_gradient(cost_function, jax.grad(cost_function))
+
+grad_desc = SimpleGradientDescent(0.1, 100)
+
+key = random.PRNGKey(0)
+X = random.normal(key, (1, 1))
+
+res = grad_desc.minimize(fun, X, keep_history=False)
 
 breakpoint()

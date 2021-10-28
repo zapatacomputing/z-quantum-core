@@ -20,6 +20,7 @@ from openfermion import (
 )
 from openfermion.linalg import jw_get_ground_state_at_particle_number
 from openfermion.transforms import freeze_orbitals, get_fermion_operator
+from sympy import Matrix, SparseMatrix, adjoint
 
 from ..circuits import Circuit, X, Y, Z
 from ..measurement import ExpectationValues
@@ -319,10 +320,16 @@ def get_expectation_value(
     if reverse_operator:
         qubit_op = reverse_qubit_order(qubit_op, n_qubits=n_qubits)
 
-    if len(wavefunction.free_symbols) > 0:
-        pass
+    sparse_op = get_sparse_operator(qubit_op, n_qubits=n_qubits)
+
+    if any(
+        hasattr(elem, "free_symbols") and elem.free_symbols != {}
+        for elem in wavefunction.amplitudes
+    ):
+        spm = SparseMatrix(*sparse_op.shape, dict(sparse_op.todok()))
+        state = Matrix(wavefunction.amplitudes)
+        exp_val = (adjoint(state) @ spm @ state)[0]
     else:
-        sparse_op = get_sparse_operator(qubit_op, n_qubits=n_qubits)
         # Computer the expectation value
         exp_val = openfermion_expectation(sparse_op, wavefunction.amplitudes)
     return exp_val

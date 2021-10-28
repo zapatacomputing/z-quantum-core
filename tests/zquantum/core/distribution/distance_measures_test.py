@@ -3,7 +3,7 @@ from unittest import mock
 
 import pytest
 from zquantum.core.distribution import (
-    DitSequenceDistribution,
+    MeasurementOutcomeDistribution,
     compute_clipped_negative_log_likelihood,
     compute_jensen_shannon_divergence,
     compute_mmd,
@@ -12,8 +12,8 @@ from zquantum.core.distribution import (
 
 
 def test_clipped_negative_log_likelihood_is_computed_correctly():
-    target_distr = DitSequenceDistribution({"000": 0.5, "111": 0.5})
-    measured_dist = DitSequenceDistribution({"000": 0.1, "111": 0.9})
+    target_distr = MeasurementOutcomeDistribution({"000": 0.5, "111": 0.5})
+    measured_dist = MeasurementOutcomeDistribution({"000": 0.1, "111": 0.9})
     distance_measure_params = {"epsilon": 0.1}
     clipped_log_likelihood = compute_clipped_negative_log_likelihood(
         target_distr, measured_dist, distance_measure_params
@@ -25,8 +25,12 @@ def test_clipped_negative_log_likelihood_is_computed_correctly():
 def test_uses_epsilon_instead_of_zero_in_target_distribution():
     log_spy = mock.Mock(wraps=math.log)
     with mock.patch("zquantum.core.distribution.math.log", log_spy):
-        target_distr = DitSequenceDistribution({"000": 0.5, "111": 0.4, "010": 0.0})
-        measured_dist = DitSequenceDistribution({"000": 0.1, "111": 0.9, "010": 0.0})
+        target_distr = MeasurementOutcomeDistribution(
+            {"000": 0.5, "111": 0.4, "010": 0.0}
+        )
+        measured_dist = MeasurementOutcomeDistribution(
+            {"000": 0.1, "111": 0.9, "010": 0.0}
+        )
         distance_measure_params = {"epsilon": 0.01}
         compute_clipped_negative_log_likelihood(
             target_distr, measured_dist, distance_measure_params
@@ -41,17 +45,17 @@ def test_uses_epsilon_instead_of_zero_in_target_distribution():
     "measured_dist,distance_measure_params,expected_mmd",
     [
         (
-            DitSequenceDistribution({"000": 0.1, "111": 0.9}),
+            MeasurementOutcomeDistribution({"000": 0.1, "111": 0.9}),
             {"sigma": 0.5},
             0.32000000000000006,
         ),
         (
-            DitSequenceDistribution({"000": 0.5, "111": 0.5}),
+            MeasurementOutcomeDistribution({"000": 0.5, "111": 0.5}),
             {"sigma": 1},
             0.00,
         ),
         (
-            DitSequenceDistribution({"000": 0.5, "111": 0.5}),
+            MeasurementOutcomeDistribution({"000": 0.5, "111": 0.5}),
             {"sigma": [1, 0.5, 2]},
             0.00,
         ),
@@ -62,7 +66,7 @@ def test_gaussian_mmd_is_computed_correctly(
 ):
     """Maximum mean discrepancy (MMD) with gaussian kernel between distributions is
     computed correctly."""
-    target_distr = DitSequenceDistribution({"000": 0.5, "111": 0.5})
+    target_distr = MeasurementOutcomeDistribution({"000": 0.5, "111": 0.5})
     mmd = compute_mmd(target_distr, measured_dist, distance_measure_params)
 
     assert mmd == expected_mmd
@@ -82,8 +86,8 @@ def test_gaussian_mmd_is_computed_correctly(
 def test_distance_measure_default_parameters_are_set_correctly(
     distance_measure_function, expected_default_values
 ):
-    target_distr = DitSequenceDistribution({"000": 0.5, "111": 0.5})
-    measured_distr = DitSequenceDistribution({"000": 0.1, "111": 0.9})
+    target_distr = MeasurementOutcomeDistribution({"000": 0.5, "111": 0.5})
+    measured_distr = MeasurementOutcomeDistribution({"000": 0.1, "111": 0.9})
     distance = distance_measure_function(target_distr, measured_distr, {})
     expected_distance = distance_measure_function(
         target_distr, measured_distr, expected_default_values
@@ -95,14 +99,14 @@ def test_distance_measure_default_parameters_are_set_correctly(
 @pytest.mark.parametrize(
     "target_cls,measured_cls,distance_measure",
     [
-        (DitSequenceDistribution, dict, compute_clipped_negative_log_likelihood),
-        (dict, DitSequenceDistribution, compute_clipped_negative_log_likelihood),
+        (MeasurementOutcomeDistribution, dict, compute_clipped_negative_log_likelihood),
+        (dict, MeasurementOutcomeDistribution, compute_clipped_negative_log_likelihood),
         (dict, dict, compute_clipped_negative_log_likelihood),
-        (DitSequenceDistribution, dict, compute_mmd),
-        (dict, DitSequenceDistribution, compute_mmd),
+        (MeasurementOutcomeDistribution, dict, compute_mmd),
+        (dict, MeasurementOutcomeDistribution, compute_mmd),
         (dict, dict, compute_mmd),
-        (DitSequenceDistribution, dict, compute_jensen_shannon_divergence),
-        (dict, DitSequenceDistribution, compute_jensen_shannon_divergence),
+        (MeasurementOutcomeDistribution, dict, compute_jensen_shannon_divergence),
+        (dict, MeasurementOutcomeDistribution, compute_jensen_shannon_divergence),
         (dict, dict, compute_jensen_shannon_divergence),
     ],
 )
@@ -127,8 +131,8 @@ def test_distribution_distance_can_be_evaluated_only_for_bitstring_distributions
 def test_distribution_distance_cannot_be_evaluated_if_supports_are_incompatible(
     distance_measure,
 ):
-    target = DitSequenceDistribution({"0": 10, "1": 5})
-    measured = DitSequenceDistribution({"00": 10, "10": 5})
+    target = MeasurementOutcomeDistribution({"0": 10, "1": 5})
+    measured = MeasurementOutcomeDistribution({"00": 10, "10": 5})
 
     with pytest.raises(RuntimeError):
         evaluate_distribution_distance(target, measured, distance_measure)
@@ -148,8 +152,8 @@ def test_distribution_distance_cannot_be_evaluated_if_supports_are_incompatible(
 def test_distribution_distance_cant_be_computed_if_only_one_distribution_is_normalized(
     normalize_target, normalize_measured, distance_measure
 ):
-    target = DitSequenceDistribution({"0": 10, "1": 5}, normalize_target)
-    measured = DitSequenceDistribution({"0": 10, "1": 5}, normalize_measured)
+    target = MeasurementOutcomeDistribution({"0": 10, "1": 5}, normalize_target)
+    measured = MeasurementOutcomeDistribution({"0": 10, "1": 5}, normalize_measured)
 
     with pytest.raises(RuntimeError):
         evaluate_distribution_distance(target, measured, distance_measure)
@@ -157,8 +161,8 @@ def test_distribution_distance_cant_be_computed_if_only_one_distribution_is_norm
 
 def test_jensen_shannon_divergence_is_computed_correctly():
     """jensen shannon divergence between distributions is computed correctly."""
-    target_distr = DitSequenceDistribution({"000": 0.5, "111": 0.5})
-    measured_dist = DitSequenceDistribution({"000": 0.1, "111": 0.9})
+    target_distr = MeasurementOutcomeDistribution({"000": 0.5, "111": 0.5})
+    measured_dist = MeasurementOutcomeDistribution({"000": 0.1, "111": 0.9})
     distance_measure_params = {"epsilon": 0.1}
     jensen_shannon_divergence = compute_jensen_shannon_divergence(
         target_distr, measured_dist, distance_measure_params

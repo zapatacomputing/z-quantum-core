@@ -7,23 +7,23 @@ from unittest import mock
 
 import numpy as np
 import pytest
-from zquantum.core.distribution._ditsequence_distribution import (
-    DitSequenceDistribution,
+from zquantum.core.distribution._measurement_outcome_distribution import (
+    MeasurementOutcomeDistribution,
     are_keys_non_negative_integer_tuples,
     are_non_tuple_keys_valid_binary_strings,
-    change_tuple_dict_keys_to_comma_separated_digitstrings,
+    change_tuple_dict_keys_to_comma_separated_integers,
     create_bitstring_distribution_from_probability_distribution,
     evaluate_distribution_distance,
-    is_ditsequence_distribution,
+    is_measurement_outcome_distribution,
     is_key_length_fixed,
     is_non_negative,
     is_normalized,
-    load_ditsequence_distribution,
-    load_ditsequence_distributions,
-    normalize_ditsequence_distribution,
+    load_measurement_outcome_distribution,
+    load_measurement_outcome_distributions,
+    normalize_measurement_outcome_distribution,
     preprocess_distibution_dict,
-    save_ditsequence_distribution,
-    save_ditsequence_distributions,
+    save_measurement_outcome_distribution,
+    save_measurement_outcome_distributions,
 )
 from zquantum.core.utils import SCHEMA_VERSION
 
@@ -45,9 +45,12 @@ class TestVerifiersAndValidators:
                 are_keys_non_negative_integer_tuples,
                 {(1, 0, 0, 0, 0, 1): 3, (1, 99): 2, (0, 45, 36, 1): 1},
             ),
-            (is_ditsequence_distribution, {(1, 0, 0): 3, (1, 1, 0): 2, (0, 1, 0): 1}),
             (
-                is_ditsequence_distribution,
+                is_measurement_outcome_distribution,
+                {(1, 0, 0): 3, (1, 1, 0): 2, (0, 1, 0): 1},
+            ),
+            (
+                is_measurement_outcome_distribution,
                 preprocess_distibution_dict(
                     {
                         "110": 0.5,
@@ -56,7 +59,7 @@ class TestVerifiersAndValidators:
                 ),
             ),
             (
-                is_ditsequence_distribution,
+                is_measurement_outcome_distribution,
                 preprocess_distibution_dict(
                     {
                         "1,1,0": 0.5,
@@ -82,22 +85,22 @@ class TestVerifiersAndValidators:
                 {("a", "b", "c"): 3, (1, 0, 0): 2, ("w", "w", "w"): 1},
             ),
             (
-                is_ditsequence_distribution,
+                is_measurement_outcome_distribution,
                 {(1, 0, 0, 0, 0, 1): 3, (1, 0): 2, (0, 1, 0, 1): 1},
             ),
             (
-                is_ditsequence_distribution,
+                is_measurement_outcome_distribution,
                 {("a", "b", "c"): 3, (1, 0, 0): 2, ("w", "w", "w"): 1},
             ),
             (
-                is_ditsequence_distribution,
+                is_measurement_outcome_distribution,
                 {
                     "abc": 0.5,
                     (1, 0, 0): 0.5,
                 },
             ),
             (
-                is_ditsequence_distribution,
+                is_measurement_outcome_distribution,
                 {
                     "a,b,c": 0.5,
                     (1, 0, 0): 0.5,
@@ -152,13 +155,13 @@ class TestInitializations:
         [
             (
                 np.asarray([0.25, 0, 0.5, 0.25]),
-                DitSequenceDistribution(
+                MeasurementOutcomeDistribution(
                     {(0, 0): 0.25, (1, 0): 0.5, (0, 1): 0.0, (1, 1): 0.25}
                 ),
             ),
             (
                 np.ones(2 ** 5) / 2 ** 5,
-                DitSequenceDistribution(
+                MeasurementOutcomeDistribution(
                     {tup: 1 / 2 ** 5 for tup in product([0, 1], repeat=5)}
                 ),
             ),
@@ -191,7 +194,7 @@ class TestInitializations:
         ],
     )
     def test_distribution_gets_normalized_by_default(self, distribution):
-        distribution = DitSequenceDistribution(distribution)
+        distribution = MeasurementOutcomeDistribution(distribution)
         assert is_normalized(distribution.distribution_dict)
 
     def test_original_dict_is_kept_if_normalization_isnt_requested_and_warns(
@@ -199,7 +202,7 @@ class TestInitializations:
     ):
         distribution_dict = {(0, 0, 0): 0.1, (1, 1, 1): 9}
         with pytest.warns(UserWarning):
-            distribution = DitSequenceDistribution(
+            distribution = MeasurementOutcomeDistribution(
                 {(0, 0, 0): 0.1, (1, 1, 1): 9}, normalize=False
             )
         assert distribution.distribution_dict == distribution_dict
@@ -207,9 +210,9 @@ class TestInitializations:
     @pytest.mark.parametrize(
         "distribution,num_qubits",
         [
-            (DitSequenceDistribution({(0, 0): 0.1, (1, 1): 0.9}), 2),
-            (DitSequenceDistribution({(0, 0, 0): 0.2, (1, 1, 1): 0.8}), 3),
-            (DitSequenceDistribution({(0, 0, 0, 0): 1e-3, (1, 1, 1, 1): 0}), 4),
+            (MeasurementOutcomeDistribution({(0, 0): 0.1, (1, 1): 0.9}), 2),
+            (MeasurementOutcomeDistribution({(0, 0, 0): 0.2, (1, 1, 1): 0.8}), 3),
+            (MeasurementOutcomeDistribution({(0, 0, 0, 0): 1e-3, (1, 1, 1, 1): 0}), 4),
         ],
     )
     def test_number_of_qubits_in_distribution_equals_length_of_keys(
@@ -219,19 +222,19 @@ class TestInitializations:
 
     def test_constructor_invalid_distribution_throws_error(self):
         with pytest.raises(RuntimeError):
-            DitSequenceDistribution({(0, 1, 0): 0.1, (1,): 0.9})
+            MeasurementOutcomeDistribution({(0, 1, 0): 0.1, (1,): 0.9})
 
 
 def test_repr_function_returns_expected_string():
     dictionary = {(0,): 0.1, (1,): 0.9}
-    dist = DitSequenceDistribution(dictionary)
+    dist = MeasurementOutcomeDistribution(dictionary)
 
-    assert dist.__repr__() == f"DitSequenceDistribution(input={dictionary})"
+    assert dist.__repr__() == f"MeasurementOutcomeDistribution(input={dictionary})"
 
 
 class TestNormalization:
     def test_normalizing_normalized_dict_does_nothing(self):
-        assert normalize_ditsequence_distribution({(0,): 1.0}) == {(0,): 1.0}
+        assert normalize_measurement_outcome_distribution({(0,): 1.0}) == {(0,): 1.0}
 
     @pytest.mark.parametrize(
         "dist",
@@ -243,7 +246,7 @@ class TestNormalization:
     )
     def test_normalizing_distribution_gives_normalized_distribution(self, dist):
         assert not is_normalized(dist)
-        normalize_ditsequence_distribution(dist)
+        normalize_measurement_outcome_distribution(dist)
         assert is_normalized(dist)
 
     @pytest.mark.parametrize(
@@ -257,15 +260,15 @@ class TestNormalization:
         self, dist, expected_error_content
     ):
         with pytest.raises(ValueError) as error:
-            normalize_ditsequence_distribution(dist)
+            normalize_measurement_outcome_distribution(dist)
 
         assert expected_error_content in error.value.args[0]
 
 
 def test_passed_measure_is_used_for_evaluating_distribution_distance():
     """Evaluating distance distribution uses distance measure passed as an argument."""
-    target_distribution = DitSequenceDistribution({(0,): 10, (1,): 5})
-    measured_distribution = DitSequenceDistribution({(0,): 10, (1,): 5})
+    target_distribution = MeasurementOutcomeDistribution({(0,): 10, (1,): 5})
+    measured_distribution = MeasurementOutcomeDistribution({(0,): 10, (1,): 5})
     distance_function = mock.Mock()
 
     distance = evaluate_distribution_distance(
@@ -283,7 +286,7 @@ class TestSavingDistributions:
     def mock_open(self):
         mock_open = mock.mock_open()
         with mock.patch(
-            "zquantum.core.distribution._ditsequence_distribution.open",
+            "zquantum.core.distribution._measurement_outcome_distribution.open",
             mock_open,
         ):
             yield mock_open
@@ -292,8 +295,10 @@ class TestSavingDistributions:
         self,
         mock_open,
     ):
-        distribution = DitSequenceDistribution({(0, 0, 0): 0.1, (1, 1, 1): 0.9})
-        save_ditsequence_distribution(distribution, "/some/path/to/distribution.json")
+        distribution = MeasurementOutcomeDistribution({(0, 0, 0): 0.1, (1, 1, 1): 0.9})
+        save_measurement_outcome_distribution(
+            distribution, "/some/path/to/distribution.json"
+        )
 
         mock_open.assert_called_once_with("/some/path/to/distribution.json", "w")
         mock_open().__enter__.assert_called_once()
@@ -304,10 +309,12 @@ class TestSavingDistributions:
         mock_open,
     ):
         distributions = [
-            DitSequenceDistribution({(0, 0, 0): 0.1, (1, 1, 1): 0.9}),
-            DitSequenceDistribution({(0, 1, 0, 0, 0): 0.5, (1, 0, 1, 1, 0): 0.5}),
+            MeasurementOutcomeDistribution({(0, 0, 0): 0.1, (1, 1, 1): 0.9}),
+            MeasurementOutcomeDistribution(
+                {(0, 1, 0, 0, 0): 0.5, (1, 0, 1, 1, 0): 0.5}
+            ),
         ]
-        save_ditsequence_distributions(
+        save_measurement_outcome_distributions(
             distributions, "/some/path/to/distribution/set.json"
         )
 
@@ -317,39 +324,44 @@ class TestSavingDistributions:
 
     def test_saving_distribution_writes_correct_json_data_to_file(self, mock_open):
         """Saving distribution writes correct json dictionary to file."""
-        distribution = DitSequenceDistribution({(0, 0, 0): 0.1, (1, 1, 1): 0.9})
+        distribution = MeasurementOutcomeDistribution({(0, 0, 0): 0.1, (1, 1, 1): 0.9})
 
-        preprocessed_dict = change_tuple_dict_keys_to_comma_separated_digitstrings(
+        preprocessed_dict = change_tuple_dict_keys_to_comma_separated_integers(
             distribution.distribution_dict
         )
 
         expected_dict = {
-            "ditsequence_distribution": preprocessed_dict,
-            "schema": SCHEMA_VERSION + "-ditsequence-probability-distribution",
+            "measurement_outcome_distribution": preprocessed_dict,
+            "schema": SCHEMA_VERSION + "-measurement-outcome-probability-distribution",
         }
 
-        save_ditsequence_distribution(distribution, "/some/path/to/distribution.json")
+        save_measurement_outcome_distribution(
+            distribution, "/some/path/to/distribution.json"
+        )
 
         written_data = mock_open().__enter__().write.call_args[0][0]
         assert json.loads(written_data) == expected_dict
 
     def test_saving_distributions_writes_correct_json_data_to_file(self, mock_open):
         distributions = [
-            DitSequenceDistribution({(0, 0, 0): 0.1, (1, 1, 1): 0.9}),
-            DitSequenceDistribution({(0, 1, 0, 0, 0): 0.5, (1, 0, 1, 1, 0): 0.5}),
+            MeasurementOutcomeDistribution({(0, 0, 0): 0.1, (1, 1, 1): 0.9}),
+            MeasurementOutcomeDistribution(
+                {(0, 1, 0, 0, 0): 0.5, (1, 0, 1, 1, 0): 0.5}
+            ),
         ]
 
         expected_dict = {
-            "ditsequence_distribution": [
-                change_tuple_dict_keys_to_comma_separated_digitstrings(
+            "measurement_outcome_distribution": [
+                change_tuple_dict_keys_to_comma_separated_integers(
                     distribution.distribution_dict
                 )
                 for distribution in distributions
             ],
-            "schema": SCHEMA_VERSION + "-ditsequence-probability-distribution-set",
+            "schema": SCHEMA_VERSION
+            + "-measurement-outcome-probability-distribution-set",
         }
 
-        save_ditsequence_distributions(
+        save_measurement_outcome_distributions(
             distributions, "/some/path/to/distribution/set.json"
         )
 
@@ -359,12 +371,12 @@ class TestSavingDistributions:
     def test_saved_distribution_can_be_loaded_back(self, mock_open):
         fake_file = StringIO()
         mock_open().__enter__.return_value = fake_file
-        dist = DitSequenceDistribution({(0, 0, 0): 0.1, (1, 1, 1): 0.9})
+        dist = MeasurementOutcomeDistribution({(0, 0, 0): 0.1, (1, 1, 1): 0.9})
 
-        save_ditsequence_distribution(dist, "distribution.json")
+        save_measurement_outcome_distribution(dist, "distribution.json")
         fake_file.seek(0)
 
-        loaded_dist = load_ditsequence_distribution(fake_file)
+        loaded_dist = load_measurement_outcome_distribution(fake_file)
         assert all(
             math.isclose(
                 dist.distribution_dict[key], loaded_dist.distribution_dict[key]
@@ -378,14 +390,16 @@ class TestSavingDistributions:
         fake_file = StringIO()
         mock_open().__enter__.return_value = fake_file
         distributions = [
-            DitSequenceDistribution({(0, 0, 0): 0.1, (1, 1, 1): 0.9}),
-            DitSequenceDistribution({(0, 1, 0, 0, 0): 0.5, (1, 0, 1, 1, 0): 0.5}),
+            MeasurementOutcomeDistribution({(0, 0, 0): 0.1, (1, 1, 1): 0.9}),
+            MeasurementOutcomeDistribution(
+                {(0, 1, 0, 0, 0): 0.5, (1, 0, 1, 1, 0): 0.5}
+            ),
         ]
 
-        save_ditsequence_distributions(distributions, "distributions.json")
+        save_measurement_outcome_distributions(distributions, "distributions.json")
         fake_file.seek(0)
 
-        loaded_distributions = load_ditsequence_distributions(fake_file)
+        loaded_distributions = load_measurement_outcome_distributions(fake_file)
         assert all(
             (
                 math.isclose(

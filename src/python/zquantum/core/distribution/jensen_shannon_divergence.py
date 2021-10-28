@@ -3,12 +3,12 @@ from typing import TYPE_CHECKING, Dict
 from .clipped_negative_log_likelihood import compute_clipped_negative_log_likelihood
 
 if TYPE_CHECKING:
-    from zquantum.core.distribution import DitSequenceDistribution
+    from zquantum.core.distribution import MeasurementOutcomeDistribution
 
 
 def compute_jensen_shannon_divergence(
-    target_distribution: "DitSequenceDistribution",
-    measured_distribution: "DitSequenceDistribution",
+    target_distribution: "MeasurementOutcomeDistribution",
+    measured_distribution: "MeasurementOutcomeDistribution",
     distance_measure_parameters: Dict,
 ) -> float:
     """Computes the symmetrized version of the clipped negative log likelihood between a

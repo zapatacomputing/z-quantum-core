@@ -11,7 +11,7 @@ from ..typing import AnyPath
 from ..utils import SCHEMA_VERSION
 
 
-class DitSequenceDistribution:
+class MeasurementOutcomeDistribution:
     """A probability distribution defined on discrete dit sequences. Normalization is
     performed by default, unless otherwise specified.
 
@@ -39,28 +39,30 @@ class DitSequenceDistribution:
         # First check if we are initializing from binary strings
         preprocessed_input_dict = preprocess_distibution_dict(input_dict)
 
-        if is_ditsequence_distribution(
+        if is_measurement_outcome_distribution(
             preprocessed_input_dict
         ):  # accept the input dict only if it is a prob distribution
             if is_normalized(preprocessed_input_dict):
                 self.distribution_dict = preprocessed_input_dict
             else:
                 if normalize:
-                    self.distribution_dict = normalize_ditsequence_distribution(
+                    self.distribution_dict = normalize_measurement_outcome_distribution(
                         preprocessed_input_dict
                     )
                 else:
-                    warnings.warn("DitSequenceDistribution object is not normalized.")
+                    warnings.warn(
+                        "MeasurementOutcomeDistribution object is not normalized."
+                    )
                     self.distribution_dict = preprocessed_input_dict
         else:
             raise RuntimeError(
-                "Initialization of DitSequenceDistribution object FAILED: the input"
+                "Initialization of MeasurementOutcomeDistribution object FAILED: the input"
                 " dictionary is not a dit sequence probability distribution. Check keys"
                 " (same-length dit tuples) and values (non-negative floats)."
             )
 
     def __repr__(self) -> str:
-        output = f"DitSequenceDistribution(input={self.distribution_dict})"
+        output = f"MeasurementOutcomeDistribution(input={self.distribution_dict})"
         return output
 
     def get_qubits_number(self) -> float:
@@ -89,7 +91,7 @@ def preprocess_distibution_dict(
             res_dict[key] = value
         else:
             raise RuntimeError(
-                "Initialization of DitSequenceDistribution object FAILED:"
+                "Initialization of MeasurementOutcomeDistribution object FAILED:"
                 "The non-tuple dictionary keys are not consistent. "
                 "Check that the keys are either same-length tuples, binary strings "
                 "or comma-separated non-negative integer strings."
@@ -160,7 +162,9 @@ def are_keys_non_negative_integer_tuples(
     )
 
 
-def is_ditsequence_distribution(input_dict: Dict[Tuple[int, ...], float]) -> bool:
+def is_measurement_outcome_distribution(
+    input_dict: Dict[Tuple[int, ...], float]
+) -> bool:
     """Check if the input dictionary is a dit sequence distribution, i.e.:
             - keys are same-length tuples of non-negative integers,
             - values are non negative.
@@ -196,13 +200,13 @@ def is_normalized(input_dict: Dict[Tuple[int, ...], float]) -> bool:
     return math.isclose(norm, 1)
 
 
-def normalize_ditsequence_distribution(
-    ditsequence_distribution: Dict[Tuple[int, ...], float]
+def normalize_measurement_outcome_distribution(
+    measurement_outcome_distribution: Dict[Tuple[int, ...], float]
 ) -> Dict:
     """Normalize a dit sequence distribution.
 
     Args:
-        ditsequence_distribution: dictionary representing the probability
+        measurement_outcome_distribution: dictionary representing the probability
             distribution where the keys are dit sequences represented as strings and the
             values are floats.
 
@@ -210,71 +214,74 @@ def normalize_ditsequence_distribution(
         Dictionary representing the normalized probability distribution where the keys
             are dit sequences represented as strings and the values are floats.
     """
-    norm = sum(ditsequence_distribution.values())
+    norm = sum(measurement_outcome_distribution.values())
     if norm == 0:
         raise ValueError(
-            "Normalization of DitSequenceDistribution FAILED:"
+            "Normalization of MeasurementOutcomeDistribution FAILED:"
             " input dict is empty (all zero values)."
         )
     elif 0 < norm < sys.float_info.min:
         raise ValueError(
-            "Normalization of DitSequenceDistribution FAILED: too small values."
+            "Normalization of MeasurementOutcomeDistribution FAILED: too small values."
         )
     elif norm == 1:
-        return ditsequence_distribution
+        return measurement_outcome_distribution
     else:
-        for key in ditsequence_distribution:
-            ditsequence_distribution[key] *= 1.0 / norm
-        return ditsequence_distribution
+        for key in measurement_outcome_distribution:
+            measurement_outcome_distribution[key] *= 1.0 / norm
+        return measurement_outcome_distribution
 
 
-def change_tuple_dict_keys_to_comma_separated_digitstrings(dict):
+def change_tuple_dict_keys_to_comma_separated_integers(dict):
     return {
         ",".join(map(str, key)) if isinstance(key, tuple) else key: value
         for key, value in dict.items()
     }
 
 
-def save_ditsequence_distribution(
-    distribution: DitSequenceDistribution, filename: AnyPath
+def save_measurement_outcome_distribution(
+    distribution: MeasurementOutcomeDistribution, filename: AnyPath
 ) -> None:
     """Save a bistring distribution to a file.
 
     Args:
-        distribution (DitSequenceDistribution): the bistring distribution
+        distribution (MeasurementOutcomeDistribution): the bistring distribution
         file (str or file-like object): the name of the file, or a file-like object
     """
     dictionary: Dict[str, Any] = {}
 
     # Need to convert tuples to strings for JSON encoding
-    preprocessed_distribution_dict = (
-        change_tuple_dict_keys_to_comma_separated_digitstrings(
-            distribution.distribution_dict
-        )
+    preprocessed_distribution_dict = change_tuple_dict_keys_to_comma_separated_integers(
+        distribution.distribution_dict
     )
 
-    dictionary["ditsequence_distribution"] = preprocessed_distribution_dict
-    dictionary["schema"] = SCHEMA_VERSION + "-ditsequence-probability-distribution"
+    dictionary["measurement_outcome_distribution"] = preprocessed_distribution_dict
+    dictionary["schema"] = (
+        SCHEMA_VERSION + "-measurement-outcome-probability-distribution"
+    )
     with open(filename, "w") as f:
         f.write(json.dumps(dictionary, indent=2))
 
 
-def save_ditsequence_distributions(
-    ditsequence_distributions: List[DitSequenceDistribution], filename: str
+def save_measurement_outcome_distributions(
+    measurement_outcome_distribution: List[MeasurementOutcomeDistribution],
+    filename: str,
 ) -> None:
     """Save a set of dit sequence distributions to a file.
 
     Args:
-       ditsequence_distributions (list): a list of distributions to be saved
+       measurement_outcome_distribution (list): a list of distributions to be saved
        file (str): the name of the file
     """
     dictionary: Dict[str, Any] = {}
-    dictionary["schema"] = SCHEMA_VERSION + "-ditsequence-probability-distribution-set"
-    dictionary["ditsequence_distribution"] = []
+    dictionary["schema"] = (
+        SCHEMA_VERSION + "-measurement-outcome-probability-distribution-set"
+    )
+    dictionary["measurement_outcome_distribution"] = []
 
-    for distribution in ditsequence_distributions:
-        dictionary["ditsequence_distribution"].append(
-            change_tuple_dict_keys_to_comma_separated_digitstrings(
+    for distribution in measurement_outcome_distribution:
+        dictionary["measurement_outcome_distribution"].append(
+            change_tuple_dict_keys_to_comma_separated_integers(
                 distribution.distribution_dict
             )
         )
@@ -283,14 +290,14 @@ def save_ditsequence_distributions(
         f.write(json.dumps(dictionary, indent=2))
 
 
-def load_ditsequence_distribution(file: str) -> DitSequenceDistribution:
+def load_measurement_outcome_distribution(file: str) -> MeasurementOutcomeDistribution:
     """Load a dit sequence from a json file using a schema.
 
     Arguments:
         file (str): the name of the file
 
     Returns:
-        object: a python object loaded from the ditsequence_distribution
+        object: a python object loaded from the measurement_outcome_distribution
     """
     if isinstance(file, str):
         with open(file, "r") as f:
@@ -299,20 +306,24 @@ def load_ditsequence_distribution(file: str) -> DitSequenceDistribution:
         data = json.load(file)
 
     try:
-        distribution = DitSequenceDistribution(data["bitstring_distribution"])
+        distribution = MeasurementOutcomeDistribution(data["bitstring_distribution"])
     except KeyError:
-        distribution = DitSequenceDistribution(data["ditsequence_distribution"])
+        distribution = MeasurementOutcomeDistribution(
+            data["measurement_outcome_distribution"]
+        )
     return distribution
 
 
-def load_ditsequence_distributions(file: str) -> List[DitSequenceDistribution]:
-    """Load a list of ditsequence_distributions from a json file using a schema.
+def load_measurement_outcome_distributions(
+    file: str,
+) -> List[MeasurementOutcomeDistribution]:
+    """Load a list of measurement_outcome_distribution from a json file using a schema.
 
     Arguments:
         file: the name of the file.
 
     Returns:
-        A list of dit sequence distributions loaded from the ditsequence_distribution
+        A list of dit sequence distributions loaded from the measurement_outcome_distribution
     """
     if isinstance(file, str):
         with open(file, "r") as f:
@@ -321,14 +332,16 @@ def load_ditsequence_distributions(file: str) -> List[DitSequenceDistribution]:
         data = json.load(file)
 
     distribution_list = []
-    for i in range(len(data["ditsequence_distribution"])):
+    for i in range(len(data["measurement_outcome_distribution"])):
         try:
             distribution_list.append(
-                DitSequenceDistribution(data["bitstring_distribution"][i])
+                MeasurementOutcomeDistribution(data["bitstring_distribution"][i])
             )
         except KeyError:
             distribution_list.append(
-                DitSequenceDistribution(data["ditsequence_distribution"][i])
+                MeasurementOutcomeDistribution(
+                    data["measurement_outcome_distribution"][i]
+                )
             )
 
     return distribution_list
@@ -336,7 +349,7 @@ def load_ditsequence_distributions(file: str) -> List[DitSequenceDistribution]:
 
 def create_bitstring_distribution_from_probability_distribution(
     prob_distribution: np.ndarray,
-) -> DitSequenceDistribution:
+) -> MeasurementOutcomeDistribution:
     """Create a well defined bitstring distribution starting from a probability
     distribution.
 
@@ -345,7 +358,7 @@ def create_bitstring_distribution_from_probability_distribution(
             wavefunction.
 
     Returns:
-        The DitSequenceDistribution object corresponding to the input measurements.
+        The MeasurementOutcomeDistribution object corresponding to the input measurements.
     """
     # Create dictionary of bitstring tuples as keys with probability as value
     keys = product([0, 1], repeat=int(np.log2(len(prob_distribution))))
@@ -353,12 +366,12 @@ def create_bitstring_distribution_from_probability_distribution(
         key: float(value) for key, value in zip(keys, prob_distribution)
     }
 
-    return DitSequenceDistribution(prob_dict)
+    return MeasurementOutcomeDistribution(prob_dict)
 
 
 def evaluate_distribution_distance(
-    target_distribution: DitSequenceDistribution,
-    measured_distribution: DitSequenceDistribution,
+    target_distribution: MeasurementOutcomeDistribution,
+    measured_distribution: MeasurementOutcomeDistribution,
     distance_measure_function: Callable,
     **kwargs,
 ) -> float:
@@ -378,13 +391,13 @@ def evaluate_distribution_distance(
     Returns:
          The value of the distance measure.
     """
-    # Check inputs are DitSequenceDistribution objects
-    if not isinstance(target_distribution, DitSequenceDistribution) or not isinstance(
-        measured_distribution, DitSequenceDistribution
-    ):
+    # Check inputs are MeasurementOutcomeDistribution objects
+    if not isinstance(
+        target_distribution, MeasurementOutcomeDistribution
+    ) or not isinstance(measured_distribution, MeasurementOutcomeDistribution):
         raise TypeError(
             "Arguments of evaluate_cost_function must"
-            " be of type DitSequenceDistribution."
+            " be of type MeasurementOutcomeDistribution."
         )
 
     # Check inputs are defined on consistent dit sequence domains

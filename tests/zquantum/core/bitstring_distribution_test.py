@@ -12,6 +12,6 @@ def test_both_modules_provide_same_api():
         "__path__",
         "clipped_negative_log_likelihood",
         "math",
-        "_ditsequence_distribution",
+        "_measurement_outcome_distribution",
         "jensen_shannon_divergence",
     }

@@ -6,10 +6,10 @@ by allowing for abitrary-level systems.
 """
 # Distance Measures
 from .distribution import (
-    DitSequenceDistribution,
+    MeasurementOutcomeDistribution,
     are_keys_non_negative_integer_tuples,
     are_non_tuple_keys_valid_binary_strings,
-    change_tuple_dict_keys_to_comma_separated_digitstrings,
+    change_tuple_dict_keys_to_comma_separated_integers,
     compute_clipped_negative_log_likelihood,
     compute_jensen_shannon_divergence,
     compute_mmd,
@@ -17,14 +17,14 @@ from .distribution import (
     compute_rbf_kernel,
     create_bitstring_distribution_from_probability_distribution,
     evaluate_distribution_distance,
-    is_ditsequence_distribution,
+    is_measurement_outcome_distribution,
     is_key_length_fixed,
     is_non_negative,
     is_normalized,
-    load_ditsequence_distribution,
-    load_ditsequence_distributions,
-    normalize_ditsequence_distribution,
+    load_measurement_outcome_distribution,
+    load_measurement_outcome_distributions,
+    normalize_measurement_outcome_distribution,
     preprocess_distibution_dict,
-    save_ditsequence_distribution,
-    save_ditsequence_distributions,
+    save_measurement_outcome_distribution,
+    save_measurement_outcome_distributions,
 )

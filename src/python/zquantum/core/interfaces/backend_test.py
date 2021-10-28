@@ -43,7 +43,7 @@ from zquantum.core.interfaces.estimation import EstimationTask
 from zquantum.core.wavefunction import Wavefunction
 
 from ..circuits import CNOT, Circuit, H, X, builtin_gate_by_name
-from ..distribution import DitSequenceDistribution
+from ..distribution import MeasurementOutcomeDistribution
 from ..estimation import estimate_expectation_values_by_averaging
 from ..measurement import ExpectationValues, Measurements
 from ..testing.test_cases_for_backend_tests import (
@@ -211,12 +211,12 @@ class QuantumBackendTests:
         n_samples = 1000
 
         # When
-        distribution = backend.get_ditsequence_distribution(
+        distribution = backend.get_measurement_outcome_distribution(
             circuit, n_samples=n_samples
         )
 
         # Then
-        assert isinstance(distribution, DitSequenceDistribution)
+        assert isinstance(distribution, MeasurementOutcomeDistribution)
         assert distribution.get_qubits_number() == 3
         assert distribution.distribution_dict[(0, 0, 0)] > 1 / 3
         assert distribution.distribution_dict[(1, 1, 1)] > 1 / 3
@@ -398,7 +398,7 @@ class QuantumSimulatorTests(QuantumBackendTests):
         distribution = wf_simulator.get_bitstring_distribution(circuit)
 
         # Then
-        assert isinstance(distribution, DitSequenceDistribution)
+        assert isinstance(distribution, MeasurementOutcomeDistribution)
         assert distribution.get_qubits_number() == 3
         assert distribution.distribution_dict[(0, 0, 0)] == pytest.approx(0.5, abs=1e-7)
         assert distribution.distribution_dict[(1, 1, 1)] == pytest.approx(0.5, abs=1e-7)

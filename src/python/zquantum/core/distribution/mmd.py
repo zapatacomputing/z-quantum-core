@@ -28,7 +28,7 @@ from typing import TYPE_CHECKING, Dict, Sequence
 import numpy as np
 
 if TYPE_CHECKING:
-    from zquantum.core.distribution import DitSequenceDistribution
+    from zquantum.core.distribution import MeasurementOutcomeDistribution
 
 
 def compute_rbf_kernel(x_i: np.ndarray, y_j: np.ndarray, sigma: float) -> np.ndarray:
@@ -83,8 +83,8 @@ def compute_multi_rbf_kernel(
 
 
 def compute_mmd(
-    target_distribution: "DitSequenceDistribution",
-    measured_distribution: "DitSequenceDistribution",
+    target_distribution: "MeasurementOutcomeDistribution",
+    measured_distribution: "MeasurementOutcomeDistribution",
     distance_measure_parameters: Dict,
 ) -> float:
     """Compute the squared Maximum Mean Discrepancy (MMD) distance measure between

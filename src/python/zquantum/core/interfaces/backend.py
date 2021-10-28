@@ -10,7 +10,7 @@ from ..circuits import Circuit, GateOperation, Operation
 from ..circuits._circuit import split_circuit
 from ..circuits.layouts import CircuitConnectivity
 from ..distribution import (
-    DitSequenceDistribution,
+    MeasurementOutcomeDistribution,
     create_bitstring_distribution_from_probability_distribution,
 )
 from ..measurement import ExpectationValues, Measurements, expectation_values_to_real
@@ -97,10 +97,10 @@ class QuantumBackend(ABC):
             measurement_set = []
             return measurement_set
 
-    def get_ditsequence_distribution(
+    def get_measurement_outcome_distribution(
         self, circuit: Circuit, n_samples: int
-    ) -> DitSequenceDistribution:
-        """Calculates a ditsequence distribution.
+    ) -> MeasurementOutcomeDistribution:
+        """Calculates a measurement outcome distribution.
 
         Args:
             circuit: quantum circuit to be executed.
@@ -213,7 +213,7 @@ class QuantumSimulator(QuantumBackend):
 
     def get_bitstring_distribution(
         self, circuit: Circuit, n_samples: Optional[int] = None
-    ) -> DitSequenceDistribution:
+    ) -> MeasurementOutcomeDistribution:
         """Calculates a bitstring distribution.
 
         Args:

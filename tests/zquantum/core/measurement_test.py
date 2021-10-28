@@ -6,7 +6,7 @@ from collections import Counter
 import numpy as np
 import pytest
 from openfermion.ops import IsingOperator
-from zquantum.core.distribution import DitSequenceDistribution
+from zquantum.core.distribution import MeasurementOutcomeDistribution
 from zquantum.core.measurement import (
     ExpectationValues,
     Measurements,
@@ -644,20 +644,20 @@ class TestMeasurements:
     @pytest.mark.parametrize(
         "bitstring_distribution, number_of_samples",
         [
-            (DitSequenceDistribution({"00": 0.5, "11": 0.5}), 1),
-            (DitSequenceDistribution({"00": 0.5, "11": 0.5}), 10),
-            (DitSequenceDistribution({"00": 0.5, "11": 0.5}), 51),
-            (DitSequenceDistribution({"00": 0.5, "11": 0.5}), 137),
-            (DitSequenceDistribution({"00": 0.5, "11": 0.5}), 5000),
-            (DitSequenceDistribution({"0000": 0.137, "0001": 0.863}), 100),
+            (MeasurementOutcomeDistribution({"00": 0.5, "11": 0.5}), 1),
+            (MeasurementOutcomeDistribution({"00": 0.5, "11": 0.5}), 10),
+            (MeasurementOutcomeDistribution({"00": 0.5, "11": 0.5}), 51),
+            (MeasurementOutcomeDistribution({"00": 0.5, "11": 0.5}), 137),
+            (MeasurementOutcomeDistribution({"00": 0.5, "11": 0.5}), 5000),
+            (MeasurementOutcomeDistribution({"0000": 0.137, "0001": 0.863}), 100),
             (
-                DitSequenceDistribution(
+                MeasurementOutcomeDistribution(
                     {"00": 0.1234, "01": 0.5467, "10": 0.0023, "11": 0.3276}
                 ),
                 100,
             ),
             (
-                DitSequenceDistribution(
+                MeasurementOutcomeDistribution(
                     {
                         "0000": 0.06835580857498666,
                         "1000": 0.060975627112613416,
@@ -693,12 +693,16 @@ class TestMeasurements:
         "bitstring_distribution, number_of_samples, expected_counts",
         [
             (
-                DitSequenceDistribution({"01": 0.3333333, "11": (1 - 0.3333333)}),
+                MeasurementOutcomeDistribution(
+                    {"01": 0.3333333, "11": (1 - 0.3333333)}
+                ),
                 3,
                 {"01": 1, "11": 2},
             ),
             (
-                DitSequenceDistribution({"01": 0.9999999, "11": (1 - 0.9999999)}),
+                MeasurementOutcomeDistribution(
+                    {"01": 0.9999999, "11": (1 - 0.9999999)}
+                ),
                 1,
                 {"01": 1},
             ),
@@ -717,7 +721,7 @@ class TestMeasurements:
         self,
     ):
         random.seed(RNDSEED)
-        bitstring_distribution = DitSequenceDistribution({"00": 0.5, "11": 0.5})
+        bitstring_distribution = MeasurementOutcomeDistribution({"00": 0.5, "11": 0.5})
         number_of_samples = 51
         max_number_of_trials = 10
         got_different_measurements = False
@@ -750,10 +754,10 @@ class TestMeasurements:
     @pytest.mark.parametrize(
         "bitstring_distribution",
         [
-            DitSequenceDistribution({"00": 0.5, "11": 0.5}),
-            DitSequenceDistribution({"000": 0.5, "101": 0.5}),
-            DitSequenceDistribution({"0000": 0.137, "0001": 0.863}),
-            DitSequenceDistribution(
+            MeasurementOutcomeDistribution({"00": 0.5, "11": 0.5}),
+            MeasurementOutcomeDistribution({"000": 0.5, "101": 0.5}),
+            MeasurementOutcomeDistribution({"0000": 0.137, "0001": 0.863}),
+            MeasurementOutcomeDistribution(
                 {"00": 0.1234, "01": 0.5467, "10": 0.0023, "11": 0.3276}
             ),
         ],
@@ -776,7 +780,7 @@ class TestMeasurements:
     @pytest.mark.parametrize(
         "bitstring_distribution",
         [
-            DitSequenceDistribution(
+            MeasurementOutcomeDistribution(
                 {
                     "0011": 0.0049,
                     "1100": 0.0049,
@@ -819,7 +823,7 @@ class TestMeasurements:
                     (1, 1, 0, 0),
                     (0, 0, 1, 1),
                 ],
-                DitSequenceDistribution({"0011": 0.3, "1100": 0.3, "0101": 0.3}),
+                MeasurementOutcomeDistribution({"0011": 0.3, "1100": 0.3, "0101": 0.3}),
             ),
             (
                 Counter({"0011": 3, "1100": 1, "0101": 2, "0001": 1}),
@@ -832,7 +836,7 @@ class TestMeasurements:
                     (1, 1, 0, 0),
                     (0, 0, 1, 1),
                 ],
-                DitSequenceDistribution(
+                MeasurementOutcomeDistribution(
                     {"0011": 0.3, "1100": 0.001, "0101": 0.001, "0001": 0.698}
                 ),
             ),

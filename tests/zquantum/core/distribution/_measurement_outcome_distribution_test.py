@@ -10,13 +10,12 @@ import pytest
 from zquantum.core.distribution._measurement_outcome_distribution import (
     MeasurementOutcomeDistribution,
     _are_keys_non_negative_integer_tuples,
-    _are_non_tuple_keys_valid_binary_strings,
+    _is_key_length_fixed,
+    _is_non_negative,
     change_tuple_dict_keys_to_comma_separated_integers,
     create_bitstring_distribution_from_probability_distribution,
     evaluate_distribution_distance,
     is_measurement_outcome_distribution,
-    is_key_length_fixed,
-    is_non_negative,
     is_normalized,
     load_measurement_outcome_distribution,
     load_measurement_outcome_distributions,
@@ -32,13 +31,9 @@ class TestVerifiersAndValidators:
     @pytest.mark.parametrize(
         "validator,positive_case",
         [
+            (_is_non_negative, {i: i + 1 for i in range(10)}),
             (
-                _are_non_tuple_keys_valid_binary_strings,
-                {(1, 0, 0, 0, 0, 1): 3, "01100": 8, "000": 9},
-            ),
-            (is_non_negative, {i: i + 1 for i in range(10)}),
-            (
-                is_key_length_fixed,
+                _is_key_length_fixed,
                 {("a", "b", "c"): 3, (1, 0, 0): 2, ("w", "w", "w"): 1},
             ),
             (
@@ -75,11 +70,9 @@ class TestVerifiersAndValidators:
     @pytest.mark.parametrize(
         "validator,negative_case",
         [
-            (_are_non_tuple_keys_valid_binary_strings, {"abc": 3, (1, 0, 0): 2}),
-            (_are_non_tuple_keys_valid_binary_strings, {3.125: 3, (1, 0, 0): 2}),
-            (is_non_negative, {i: -i for i in range(10)}),
-            (is_non_negative, {0: -1, 1: 2, 3: 0}),
-            (is_key_length_fixed, {("a"): 3, (1, 0): 2, ("w", "w", "w"): 1}),
+            (_is_non_negative, {i: -i for i in range(10)}),
+            (_is_non_negative, {0: -1, 1: 2, 3: 0}),
+            (_is_key_length_fixed, {("a"): 3, (1, 0): 2, ("w", "w", "w"): 1}),
             (
                 _are_keys_non_negative_integer_tuples,
                 {("a", "b", "c"): 3, (1, 0, 0): 2, ("w", "w", "w"): 1},
@@ -180,7 +173,10 @@ class TestInitializations:
             prob_dist
         )
         assert bitstring_dist.distribution_dict == expected_dist.distribution_dict
-        assert bitstring_dist.get_qubits_number() == expected_dist.get_qubits_number()
+        assert (
+            bitstring_dist.get_number_of_subsystems()
+            == expected_dist.get_number_of_subsystems()
+        )
 
     @pytest.mark.parametrize(
         "distribution",
@@ -218,7 +214,7 @@ class TestInitializations:
     def test_number_of_qubits_in_distribution_equals_length_of_keys(
         self, distribution, num_qubits
     ):
-        assert distribution.get_qubits_number() == num_qubits
+        assert distribution.get_number_of_subsystems() == num_qubits
 
     def test_constructor_invalid_distribution_throws_error(self):
         with pytest.raises(RuntimeError):

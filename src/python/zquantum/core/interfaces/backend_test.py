@@ -217,7 +217,7 @@ class QuantumBackendTests:
 
         # Then
         assert isinstance(distribution, MeasurementOutcomeDistribution)
-        assert distribution.get_qubits_number() == 3
+        assert distribution.get_number_of_subsystems() == 3
         assert distribution.distribution_dict[(0, 0, 0)] > 1 / 3
         assert distribution.distribution_dict[(1, 1, 1)] > 1 / 3
         assert backend.number_of_circuits_run == 1
@@ -399,7 +399,7 @@ class QuantumSimulatorTests(QuantumBackendTests):
 
         # Then
         assert isinstance(distribution, MeasurementOutcomeDistribution)
-        assert distribution.get_qubits_number() == 3
+        assert distribution.get_number_of_subsystems() == 3
         assert distribution.distribution_dict[(0, 0, 0)] == pytest.approx(0.5, abs=1e-7)
         assert distribution.distribution_dict[(1, 1, 1)] == pytest.approx(0.5, abs=1e-7)
         assert wf_simulator.number_of_circuits_run == 1

@@ -12,19 +12,19 @@ from ..utils import SCHEMA_VERSION
 
 
 class MeasurementOutcomeDistribution:
-    """A probability distribution defined on discrete dit sequences. Normalization is
-    performed by default, unless otherwise specified.
+    """A probability distribution defined on discrete non-negative integer
+    sequences. Normalization is performed by default, unless otherwise specified.
 
     Args:
         input_dict:  dictionary representing the probability distribution where
-            the keys are dit sequences represented as tuples and the values are
-            non-negative floats.
+            the keys are non-negative integer sequences represented as tuples
+            and the values are non-negative floats.
         normalize: boolean variable specifying whether the input_dict gets
             normalized or not.
     Attributes:
         distribution_dict: dictionary representing the probability
-            distribution where the keys are dit sequences represented as tuples and the
-            values are non-negative floats.
+            distribution where the keys are non-negative integer sequences
+            represented as tuples and the values are non-negative floats.
     """
 
     def __init__(
@@ -56,20 +56,23 @@ class MeasurementOutcomeDistribution:
                     self.distribution_dict = preprocessed_input_dict
         else:
             raise RuntimeError(
-                "Initialization of MeasurementOutcomeDistribution object FAILED: the input"
-                " dictionary is not a dit sequence probability distribution. Check keys"
-                " (same-length dit tuples) and values (non-negative floats)."
+                "Initialization of MeasurementOutcomeDistribution object FAILED: "
+                "the input dictionary is not a non-negative integer sequence "
+                "probability distribution. Check keys (same-length non-negative integer"
+                " tuples) and values (non-negative floats)."
             )
 
     def __repr__(self) -> str:
         output = f"MeasurementOutcomeDistribution(input={self.distribution_dict})"
         return output
 
-    def get_qubits_number(self) -> float:
-        """Compute how many qubits a dit sequence is composed of.
+    def get_number_of_subsystems(self) -> float:
+        """Compute how many subsystems the measurement outcome is composed of.
+        This corresponds to the number of qubits in a digital quantum computer.
 
         Returns:
-            float: number of qubits in a dit sequence (i.e. dit sequence length).
+            float: number of subsystems in the measurement outcome
+                (i.e. non-negative integer sequence length).
         """
         return len(
             list(self.distribution_dict.keys())[0]
@@ -100,28 +103,8 @@ def preprocess_distibution_dict(
     return res_dict
 
 
-def _are_non_tuple_keys_valid_binary_strings(
-    input_dict: Dict[Union[str, Tuple[int, ...]], float]
-) -> bool:
-    """Check if any of the input dictionary keys are valid binary strings.
-
-    Args:
-        input_dict (dict): dictionary.
-
-    Returns:
-        bool: boolean variable indicating whether non-tuple dict keys are valid.
-    """
-    non_tuple_keys = {key for key in input_dict.keys() if not isinstance(key, tuple)}
-
-    # 1. Check that all non-tuples are strings
-    # 2. Check the strings are binary
-    return all(isinstance(key, str) for key in non_tuple_keys) and all(
-        not any(char not in "10" for char in key) for key in non_tuple_keys
-    )
-
-
-def is_non_negative(input_dict: Dict[Tuple[int, ...], float]) -> bool:
-    """Check if the input dictionary values are non negative.
+def _is_non_negative(input_dict: Dict[Tuple[int, ...], float]) -> bool:
+    """Check if the input dictionary values are non-negative.
 
     Args:
         input_dict (dict): dictionary.
@@ -132,7 +115,7 @@ def is_non_negative(input_dict: Dict[Tuple[int, ...], float]) -> bool:
     return all(value >= 0 for value in input_dict.values())
 
 
-def is_key_length_fixed(input_dict: Dict[Tuple[int, ...], float]) -> bool:
+def _is_key_length_fixed(input_dict: Dict[Tuple[int, ...], float]) -> bool:
     """Check if the input dictionary keys are same-length.
 
     Args:
@@ -165,36 +148,38 @@ def _are_keys_non_negative_integer_tuples(
 def is_measurement_outcome_distribution(
     input_dict: Dict[Tuple[int, ...], float]
 ) -> bool:
-    """Check if the input dictionary is a dit sequence distribution, i.e.:
+    """Check if the input dictionary is a non-negative integer sequence distribution, i.e.:
             - keys are same-length tuples of non-negative integers,
             - values are non negative.
 
     Args:
-        input_dict: dictionary representing the probability distribution where the keys
-            are dit sequences represented as tuples and the values are floats.
+        input_dict: dictionary representing the probability distribution where
+            the keys are non-negative integer sequences represented as tuples
+            and the values are floats.
 
     Returns:
-        Boolean variable indicating whether the dit sequence distribution is well
-            defined or not.
+        Boolean variable indicating whether the non-negative integer sequence
+            distribution is well defined or not.
     """
     return (
         (not input_dict == {})
-        and is_non_negative(input_dict)
-        and is_key_length_fixed(input_dict)
+        and _is_non_negative(input_dict)
+        and _is_key_length_fixed(input_dict)
         and _are_keys_non_negative_integer_tuples(input_dict)
     )
 
 
 def is_normalized(input_dict: Dict[Tuple[int, ...], float]) -> bool:
-    """Check if a dit sequence distribution is normalized.
+    """Check if a measurement outcome distribution is normalized.
 
     Args:
         input_dict: dictionary representing the probability distribution
-            where the keys are dit sequences represented as strings and the values are
-            floats.
+            where the keys are non-negative integer sequences represented
+            as tuples and the values are floats.
 
     Returns:
-        Boolean value indicating whether the dit sequence distribution is normalized.
+        Boolean value indicating whether the measurement outcome distribution
+            is normalized.
     """
     norm = sum(input_dict.values())
     return math.isclose(norm, 1)
@@ -203,16 +188,17 @@ def is_normalized(input_dict: Dict[Tuple[int, ...], float]) -> bool:
 def normalize_measurement_outcome_distribution(
     measurement_outcome_distribution: Dict[Tuple[int, ...], float]
 ) -> Dict:
-    """Normalize a dit sequence distribution.
+    """Normalize a measurement outcome distribution.
 
     Args:
         measurement_outcome_distribution: dictionary representing the probability
-            distribution where the keys are dit sequences represented as strings and the
-            values are floats.
+            distribution where the keys are non-negative integer sequences represented
+            as tuples and the values are floats.
 
     Returns:
         Dictionary representing the normalized probability distribution where the keys
-            are dit sequences represented as strings and the values are floats.
+            are non-negative integer sequences represented as tuples and the values
+            are floats.
     """
     norm = sum(measurement_outcome_distribution.values())
     if norm == 0:
@@ -242,11 +228,12 @@ def change_tuple_dict_keys_to_comma_separated_integers(dict):
 def save_measurement_outcome_distribution(
     distribution: MeasurementOutcomeDistribution, filename: AnyPath
 ) -> None:
-    """Save a bistring distribution to a file.
+    """Save a measurement outcome distribution to a file.
 
     Args:
-        distribution (MeasurementOutcomeDistribution): the bistring distribution
-        file (str or file-like object): the name of the file, or a file-like object
+        distribution (MeasurementOutcomeDistribution): the measurement outcome
+        distribution file (str or file-like object): the name of the file,
+            or a file-like object
     """
     dictionary: Dict[str, Any] = {}
 
@@ -267,7 +254,7 @@ def save_measurement_outcome_distributions(
     measurement_outcome_distribution: List[MeasurementOutcomeDistribution],
     filename: str,
 ) -> None:
-    """Save a set of dit sequence distributions to a file.
+    """Save a set of measurement outcome distributions to a file.
 
     Args:
        measurement_outcome_distribution (list): a list of distributions to be saved
@@ -291,7 +278,7 @@ def save_measurement_outcome_distributions(
 
 
 def load_measurement_outcome_distribution(file: str) -> MeasurementOutcomeDistribution:
-    """Load a dit sequence from a json file using a schema.
+    """Load a measurement outcome distribution from a json file using a schema.
 
     Arguments:
         file (str): the name of the file
@@ -323,7 +310,8 @@ def load_measurement_outcome_distributions(
         file: the name of the file.
 
     Returns:
-        A list of dit sequence distributions loaded from the measurement_outcome_distribution
+        A list of measurement outcome distributions loaded
+         from the measurement_outcome_distribution
     """
     if isinstance(file, str):
         with open(file, "r") as f:
@@ -358,7 +346,8 @@ def create_bitstring_distribution_from_probability_distribution(
             wavefunction.
 
     Returns:
-        The MeasurementOutcomeDistribution object corresponding to the input measurements.
+        The MeasurementOutcomeDistribution object corresponding to
+            the input measurements.
     """
     # Create dictionary of bitstring tuples as keys with probability as value
     keys = product([0, 1], repeat=int(np.log2(len(prob_distribution))))
@@ -375,13 +364,14 @@ def evaluate_distribution_distance(
     distance_measure_function: Callable,
     **kwargs,
 ) -> float:
-    """Evaluate the distance between two dit sequence distributions - the target
+    """Evaluate the distance between two measurement outcome distributions - the target
     distribution and the one predicted (measured) by your model - based on the given
     distance measure.
 
     Args:
-         target_distribution: The target dit sequence probability distribution
-         measured_distribution: The measured dit sequence probability distribution
+         target_distribution: The target measurement outcome probability distribution
+         measured_distribution: The measured measurement outcome probability
+          distribution
          distance_measure_function: function used to calculate the distance measure
              Currently implemented: clipped negative log-likelihood, maximum mean
             discrepancy (MMD).
@@ -400,15 +390,14 @@ def evaluate_distribution_distance(
             " be of type MeasurementOutcomeDistribution."
         )
 
-    # Check inputs are defined on consistent dit sequence domains
+    # Check inputs are defined on consistent measurement outcome domains
     if (
-        target_distribution.get_qubits_number()
-        != measured_distribution.get_qubits_number()
+        target_distribution.get_number_of_subsystems()
+        != measured_distribution.get_number_of_subsystems()
     ):
         raise RuntimeError(
-            "Dit Sequence Distribution Distance Evaluation FAILED: target "
-            "and measured distributions are defined on "
-            "dit sequences of different length."
+            "Measurement Outcome Distribution Distance Evaluation FAILED: target "
+            "and measured distributions are defined on tuples of different length."
         )
 
     # Check inputs are both normalized (or not normalized)
@@ -416,8 +405,8 @@ def evaluate_distribution_distance(
         measured_distribution.distribution_dict
     ):
         raise RuntimeError(
-            "Dit Sequence Distribution Distance Evaluation FAILED: one among target and"
-            " measured distribution is normalized, whereas the other is not."
+            "Measurement Outcome Distribution Distance Evaluation FAILED: one among "
+            "target and measured distribution is normalized, whereas the other is not."
         )
 
     return distance_measure_function(

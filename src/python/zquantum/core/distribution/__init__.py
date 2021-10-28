@@ -6,8 +6,6 @@ from ._measurement_outcome_distribution import (
     create_bitstring_distribution_from_probability_distribution,
     evaluate_distribution_distance,
     is_measurement_outcome_distribution,
-    is_key_length_fixed,
-    is_non_negative,
     is_normalized,
     load_measurement_outcome_distribution,
     load_measurement_outcome_distributions,

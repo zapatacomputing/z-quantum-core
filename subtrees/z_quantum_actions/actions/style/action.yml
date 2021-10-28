@@ -1,0 +1,13 @@
+runs:
+  using: "composite"
+  steps:
+
+    # Leverages Makefile to check all style linters
+    - name: Check Style
+      shell: bash
+      run: |
+        sudo apt install make
+        make github_actions
+        make style
+      env:
+        SSH_AUTH_SOCK: /tmp/ssh_agent.sock

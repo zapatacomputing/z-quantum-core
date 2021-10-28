@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from numbers import Complex
-from typing import Any, List, Optional, Sequence
+from typing import Any, List, Optional, Sequence, Union
 
 import numpy as np
 from openfermion import IsingOperator, QubitOperator, SymbolicOperator
@@ -18,7 +18,7 @@ from ..openfermion import change_operator_type, get_expectation_value
 
 # Note that in particular Wavefunction is a StateVector. However, for performance
 # reasons QuantumSimulator uses numpy arrays internally.
-StateVector = Sequence[Complex]
+StateVector = Union[Sequence[Complex], np.ndarray]
 
 
 class QuantumBackend(ABC):
@@ -170,6 +170,7 @@ class QuantumSimulator(QuantumBackend):
             initial_state: a state from which the simulation starts.
               If not provided, the default |0...0> is used.
         """
+        state: StateVector
         if initial_state is None:
             state = np.zeros(2 ** circuit.n_qubits)
             state[0] = 1

@@ -100,7 +100,7 @@ def preprocess_distibution_dict(
     return res_dict
 
 
-def are_non_tuple_keys_valid_binary_strings(
+def _are_non_tuple_keys_valid_binary_strings(
     input_dict: Dict[Union[str, Tuple[int, ...]], float]
 ) -> bool:
     """Check if any of the input dictionary keys are valid binary strings.
@@ -145,7 +145,7 @@ def is_key_length_fixed(input_dict: Dict[Tuple[int, ...], float]) -> bool:
     return all(len(key) == key_length for key in input_dict.keys())
 
 
-def are_keys_non_negative_integer_tuples(
+def _are_keys_non_negative_integer_tuples(
     input_dict: Dict[Tuple[int, ...], float]
 ) -> bool:
     """Check if the input dictionary keys are tuples containing non-negative integers.
@@ -181,7 +181,7 @@ def is_measurement_outcome_distribution(
         (not input_dict == {})
         and is_non_negative(input_dict)
         and is_key_length_fixed(input_dict)
-        and are_keys_non_negative_integer_tuples(input_dict)
+        and _are_keys_non_negative_integer_tuples(input_dict)
     )
 
 

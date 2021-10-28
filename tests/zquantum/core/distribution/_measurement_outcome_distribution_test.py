@@ -9,8 +9,8 @@ import numpy as np
 import pytest
 from zquantum.core.distribution._measurement_outcome_distribution import (
     MeasurementOutcomeDistribution,
-    are_keys_non_negative_integer_tuples,
-    are_non_tuple_keys_valid_binary_strings,
+    _are_keys_non_negative_integer_tuples,
+    _are_non_tuple_keys_valid_binary_strings,
     change_tuple_dict_keys_to_comma_separated_integers,
     create_bitstring_distribution_from_probability_distribution,
     evaluate_distribution_distance,
@@ -33,7 +33,7 @@ class TestVerifiersAndValidators:
         "validator,positive_case",
         [
             (
-                are_non_tuple_keys_valid_binary_strings,
+                _are_non_tuple_keys_valid_binary_strings,
                 {(1, 0, 0, 0, 0, 1): 3, "01100": 8, "000": 9},
             ),
             (is_non_negative, {i: i + 1 for i in range(10)}),
@@ -42,7 +42,7 @@ class TestVerifiersAndValidators:
                 {("a", "b", "c"): 3, (1, 0, 0): 2, ("w", "w", "w"): 1},
             ),
             (
-                are_keys_non_negative_integer_tuples,
+                _are_keys_non_negative_integer_tuples,
                 {(1, 0, 0, 0, 0, 1): 3, (1, 99): 2, (0, 45, 36, 1): 1},
             ),
             (
@@ -75,13 +75,13 @@ class TestVerifiersAndValidators:
     @pytest.mark.parametrize(
         "validator,negative_case",
         [
-            (are_non_tuple_keys_valid_binary_strings, {"abc": 3, (1, 0, 0): 2}),
-            (are_non_tuple_keys_valid_binary_strings, {3.125: 3, (1, 0, 0): 2}),
+            (_are_non_tuple_keys_valid_binary_strings, {"abc": 3, (1, 0, 0): 2}),
+            (_are_non_tuple_keys_valid_binary_strings, {3.125: 3, (1, 0, 0): 2}),
             (is_non_negative, {i: -i for i in range(10)}),
             (is_non_negative, {0: -1, 1: 2, 3: 0}),
             (is_key_length_fixed, {("a"): 3, (1, 0): 2, ("w", "w", "w"): 1}),
             (
-                are_keys_non_negative_integer_tuples,
+                _are_keys_non_negative_integer_tuples,
                 {("a", "b", "c"): 3, (1, 0, 0): 2, ("w", "w", "w"): 1},
             ),
             (

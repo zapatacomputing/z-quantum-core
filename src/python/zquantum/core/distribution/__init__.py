@@ -2,8 +2,6 @@ import math  # This is needed for tests to work because of monkey patching
 
 from ._measurement_outcome_distribution import (
     MeasurementOutcomeDistribution,
-    are_keys_non_negative_integer_tuples,
-    are_non_tuple_keys_valid_binary_strings,
     change_tuple_dict_keys_to_comma_separated_integers,
     create_bitstring_distribution_from_probability_distribution,
     evaluate_distribution_distance,

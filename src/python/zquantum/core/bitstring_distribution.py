@@ -7,8 +7,6 @@ by allowing for abitrary-level systems.
 # Distance Measures
 from .distribution import (
     MeasurementOutcomeDistribution,
-    are_keys_non_negative_integer_tuples,
-    are_non_tuple_keys_valid_binary_strings,
     change_tuple_dict_keys_to_comma_separated_integers,
     compute_clipped_negative_log_likelihood,
     compute_jensen_shannon_divergence,

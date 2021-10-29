@@ -24,3 +24,17 @@ from .distribution import (
     save_measurement_outcome_distribution,
     save_measurement_outcome_distributions,
 )
+
+
+class BitstringDistribution(MeasurementOutcomeDistribution):
+    """
+    This is just an alias that might be removed in future version.
+    It is preferred to use MeasurementOutcomeDistribution.
+    """
+
+    def get_qubits_number(self) -> int:
+        return self.get_number_of_subsystems()
+
+    def __repr__(self) -> str:
+        output = f"BitstringDistribution(input={self.distribution_dict})"
+        return output

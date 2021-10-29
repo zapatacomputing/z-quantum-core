@@ -66,12 +66,12 @@ class MeasurementOutcomeDistribution:
         output = f"MeasurementOutcomeDistribution(input={self.distribution_dict})"
         return output
 
-    def get_number_of_subsystems(self) -> float:
+    def get_number_of_subsystems(self) -> int:
         """Compute how many subsystems the measurement outcome is composed of.
         This corresponds to the number of qubits in a digital quantum computer.
 
         Returns:
-            float: number of subsystems in the measurement outcome
+            int: number of subsystems in the measurement outcome
                 (i.e. non-negative integer sequence length).
         """
         return len(

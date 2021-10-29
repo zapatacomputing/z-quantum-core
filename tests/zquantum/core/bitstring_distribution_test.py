@@ -6,6 +6,8 @@ def test_both_modules_provide_same_api():
     old = set(dir(old_distribution_module))
     new = set(dir(new_distribution_module))
 
+    assert "BitstringDistribution" in old
+    old.remove("BitstringDistribution")
     assert new.issuperset(old)
     assert new.difference(old) == {
         "mmd",

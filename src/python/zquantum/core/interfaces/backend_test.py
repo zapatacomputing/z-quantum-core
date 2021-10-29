@@ -211,9 +211,7 @@ class QuantumBackendTests:
         n_samples = 1000
 
         # When
-        distribution = backend.get_measurement_outcome_distribution(
-            circuit, n_samples=n_samples
-        )
+        distribution = backend.get_bitstring_distribution(circuit, n_samples=n_samples)
 
         # Then
         assert isinstance(distribution, MeasurementOutcomeDistribution)

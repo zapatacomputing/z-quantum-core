@@ -4,6 +4,7 @@ from typing import Any, List, Optional, Sequence, Union
 
 import numpy as np
 from openfermion import IsingOperator, QubitOperator, SymbolicOperator
+from zquantum.core.bitstring_distribution import BitstringDistribution
 from zquantum.core.wavefunction import Wavefunction
 
 from ..circuits import Circuit, GateOperation, Operation
@@ -112,6 +113,28 @@ class QuantumBackend(ABC):
         # Get the expectation values
         measurements = self.run_circuit_and_measure(circuit, n_samples)
         return measurements.get_distribution()
+
+    def get_bitstring_distribution(
+        self, circuit: Circuit, n_samples: int
+    ) -> BitstringDistribution:
+        """Calculates a bitstring distribution.
+
+        This function is a wrapper around `get_measurement_outcome_distribution`
+        needed for backward-compatibility.
+
+        Args:
+            circuit: quantum circuit to be executed.
+
+        Returns:
+            Probability distribution of getting specific bistrings.
+
+        """
+        # Get the expectation values
+        return BitstringDistribution(
+            self.get_measurement_outcome_distribution(
+                circuit, n_samples
+            ).distribution_dict
+        )
 
 
 class QuantumSimulator(QuantumBackend):

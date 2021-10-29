@@ -12,19 +12,12 @@ from zquantum.core.bitstring_distribution import (
     change_tuple_dict_keys_to_comma_separated_integers,
     create_bitstring_distribution_from_probability_distribution,
     evaluate_distribution_distance,
-    is_measurement_outcome_distribution,
     is_normalized,
     load_measurement_outcome_distribution,
     load_measurement_outcome_distributions,
     normalize_measurement_outcome_distribution,
-    preprocess_distibution_dict,
     save_measurement_outcome_distribution,
     save_measurement_outcome_distributions,
-)
-from zquantum.core.distribution._measurement_outcome_distribution import (
-    _are_keys_non_negative_integer_tuples,
-    _is_key_length_fixed,
-    _is_non_negative,
 )
 from zquantum.core.utils import SCHEMA_VERSION
 
@@ -60,7 +53,7 @@ class TestInitializations:
         assert bitstring_dist.distribution_dict == expected_dist.distribution_dict
         assert (
             bitstring_dist.get_number_of_subsystems()
-            == expected_dist.get_number_of_subsystems()
+            == expected_dist.get_qubits_number()
         )
 
     @pytest.mark.parametrize(
@@ -99,7 +92,7 @@ class TestInitializations:
     def test_number_of_qubits_in_distribution_equals_length_of_keys(
         self, distribution, num_qubits
     ):
-        assert distribution.get_number_of_subsystems() == num_qubits
+        assert distribution.get_qubits_number() == num_qubits
 
     def test_constructor_invalid_distribution_throws_error(self):
         with pytest.raises(RuntimeError):

@@ -1,6 +1,6 @@
 import networkx as nx
 import sympy
-from jax import grad, random
+from jax import grad, random, jit
 from numpy import argpartition
 from openfermion.ops.operators.ising_operator import IsingOperator
 from sympy2jax import sympy2jax
@@ -36,14 +36,6 @@ def exp_qaoa():
     return circuit, calculate_exact_expectation_values(sim, [est_task])[0].values[0]
 
 
-def _cost_function(param):
-    return symbolic_exp.subs(dict(zip(symbolic_exp.free_symbols, param[0])))
-
-
-def grad_fn(curr_params):
-    return f(curr_params, params)[0]
-
-
 # .re is needed here to avoid complex-typed values in the cost
 # and make it compatible with JAX
 circuit, symbolic_exp = exp_qaoa()
@@ -53,11 +45,16 @@ symbolic_exp = sympy.re(sympy.simplify(symbolic_exp))
 print("Simplified and Real-ized symbolic expectation expression...")
 
 f, params = sympy2jax(symbolic_exp, list(symbolic_exp.free_symbols))
+lamb_f = lambda x, y: f(x, y)[0]
+compiled_f = jit(lamb_f)
+compiled_f_grad = grad(compiled_f)
 print("Transformed to JAX function...")
 
-fun = function_with_gradient(_cost_function, grad(grad_fn))
+fun = function_with_gradient(compiled_f, compiled_f_grad)
 
-grad_desc = SimpleGradientDescent(0.1, 100)
+grad_desc = SimpleGradientDescent(
+    0.1, 1000, extra_params=params, orig_function=compiled_f
+)
 
 key = random.PRNGKey(0)
 X = random.normal(key, (1, len(symbolic_exp.free_symbols)))
@@ -67,8 +64,9 @@ res = grad_desc.minimize(fun, X, keep_history=False)
 print("Finished optimization...")
 
 wf = (
-    sim.get_wavefunction(circuit)
-    .bind(dict(zip(symbolic_exp.free_symbols, res.opt_params[0])))
+    sim.get_wavefunction(
+        circuit.bind(dict(zip(symbolic_exp.free_symbols, res.opt_params[0])))
+    )
     .probabilities()
     .flatten()
 )

@@ -1,6 +1,6 @@
 import networkx as nx
 import sympy
-from jax import grad, random, jit
+from jax import grad, jit, random
 from numpy import argpartition
 from openfermion.ops.operators.ising_operator import IsingOperator
 from sympy2jax import sympy2jax
@@ -13,8 +13,6 @@ from zquantum.optimizers.simple_gradient_descent import SimpleGradientDescent
 from zquantum.qaoa.ansatzes.farhi_ansatz import QAOAFarhiAnsatz
 from zquantum.qaoa.problems.maxcut import MaxCut
 
-# Obvious problems: sympy symbols can't be typed
-
 sim = SymbolicSimulator()
 
 
@@ -22,8 +20,8 @@ def exp_qaoa():
     G = nx.Graph()
     # Need to be very small graph for performance issues
     G.add_nodes_from([0, 1, 2])
-    G.add_edge(0, 1, weight=5)
-    G.add_edge(0, 2, weight=5)
+    G.add_edge(0, 1, weight=10)
+    G.add_edge(0, 2, weight=10)
     G.add_edge(1, 2, weight=1)
     H = MaxCut().get_hamiltonian(G)
     H = change_operator_type(H, IsingOperator)
@@ -45,15 +43,19 @@ symbolic_exp = sympy.re(sympy.simplify(symbolic_exp))
 print("Simplified and Real-ized symbolic expectation expression...")
 
 f, params = sympy2jax(symbolic_exp, list(symbolic_exp.free_symbols))
-lamb_f = lambda x, y: f(x, y)[0]
-compiled_f = jit(lamb_f)
-compiled_f_grad = grad(compiled_f)
+
+
+def cost_function(curr_params):
+    return f(curr_params, params)[0]
+
+
 print("Transformed to JAX function...")
 
-fun = function_with_gradient(compiled_f, compiled_f_grad)
+fun = function_with_gradient(cost_function, grad(cost_function))
 
 grad_desc = SimpleGradientDescent(
-    0.1, 1000, extra_params=params, orig_function=compiled_f
+    0.1,
+    100,
 )
 
 key = random.PRNGKey(0)

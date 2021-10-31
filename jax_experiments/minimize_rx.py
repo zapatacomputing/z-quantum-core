@@ -14,10 +14,6 @@ from zquantum.core.symbolic_simulator import SymbolicSimulator
 from zquantum.core.wavefunction import Wavefunction
 from zquantum.optimizers.simple_gradient_descent import SimpleGradientDescent
 
-# type out the matrices intead of using our gate classes
-
-# 2-10 qubits
-
 
 def exp_of_rx_gate_symbolic_openfermion():
     test_circuit = Circuit()
@@ -42,8 +38,6 @@ def cost_function(curr_params):
     return f(curr_params, params)[0]
 
 
-breakpoint()
-
 fun = function_with_gradient(cost_function, jax.grad(cost_function))
 
 grad_desc = SimpleGradientDescent(0.1, 100)
@@ -53,4 +47,4 @@ X = random.normal(key, (1, 1))
 
 res = grad_desc.minimize(fun, X, keep_history=False)
 
-breakpoint()
+print(res)

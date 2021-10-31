@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from functools import singledispatch
 from numbers import Complex
-from typing import Iterable, Sequence, Tuple
+from typing import Iterable, List, Tuple, Union
 
 import numpy as np
 import sympy
@@ -51,7 +51,9 @@ class MultiPhaseOperation:
     ) -> "MultiPhaseOperation":
         return MultiPhaseOperation(new_params)
 
-    def apply(self, wavefunction: Sequence[Parameter]) -> Sequence[Parameter]:
+    def apply(
+        self, wavefunction: Union[np.ndarray, sympy.Matrix, List[complex]]
+    ) -> Union[np.ndarray, sympy.Matrix, List[complex]]:
         if len(wavefunction) != len(self.params):
             raise ValueError(
                 f"MultiPhaseOperation with {len(self.params)} params cannot be "

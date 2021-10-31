@@ -36,12 +36,12 @@ class SymbolicSimulator(QuantumSimulator):
             circuit: the circuit to prepare the state
             n_samples: the number of bitstrings to sample
         """
-        circuit = circuit.bind(symbol_map)
-
-        wavefunction = self.get_wavefunction(circuit)
+        wavefunction = self.get_wavefunction(circuit.bind(symbol_map))
 
         if wavefunction.free_symbols:
-            raise ValueError("Cannot sample from circuit with symbolic parameters.")
+            raise ValueError(
+                "Cannot sample from wavefunction with symbolic parameters."
+            )
 
         bitstrings = sample_from_wavefunction(wavefunction, n_samples, self._seed)
         return Measurements(bitstrings)

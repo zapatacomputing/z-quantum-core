@@ -40,6 +40,7 @@ def record_backend_usage_info(func):
 
     @functools.wraps(func)
     def wrapper_run_circuitset_and_measure(circuit_set, n_samples, **kwargs):
+        print("n_samples :", n_samples)
         measurements_set = func(circuit_set, n_samples, **kwargs)
         for circuit, measurements in zip(circuit_set, measurements_set):
             n_gates = len(circuit.operations)
@@ -59,7 +60,7 @@ def record_backend_usage_info(func):
 
     wrapper_run_circuitset_and_measure.backend_usage_data = []
 
-    return wrapper_count_calls
+    return wrapper_run_circuitset_and_measure
 
 def run_circuit_and_measure(
     backend_specs: Specs,

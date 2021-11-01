@@ -51,16 +51,18 @@ def create_random_circuit(
     """
     # Initialize all gates in set, not including RH or ZXZ
 
-    all_gates_lists = [
-        ONE_QUBIT_NO_PARAMS_GATES,
-        TWO_QUBITS_NO_PARAMS_GATES,
-        ONE_QUBIT_ONE_PARAM_GATES,
-        TWO_QUBITS_ONE_PARAM_GATES,
-    ]
+    all_gates_lists = np.array(
+        [
+            ONE_QUBIT_NO_PARAMS_GATES,
+            TWO_QUBITS_NO_PARAMS_GATES,
+            ONE_QUBIT_ONE_PARAM_GATES,
+            TWO_QUBITS_ONE_PARAM_GATES,
+        ],
+    )
 
     # Loop to add gates to circuit
     circuit = Circuit()
-    for gate_i in range(n_gates):
+    for _ in range(n_gates):
         # Pick gate type
         gates_list = rng.choice(all_gates_lists)
         gate = rng.choice(gates_list)

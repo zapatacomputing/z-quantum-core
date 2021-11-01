@@ -183,7 +183,7 @@ class Wavefunction:
     def bind(self, symbol_map: Dict[Symbol, Any]) -> "Wavefunction":
         if not self.free_symbols:
             return self
-
+        assert isinstance(self._amplitude_vector, Matrix)
         result = self._amplitude_vector.subs(symbol_map)
 
         try:

@@ -34,6 +34,32 @@ from zquantum.core.utils import (
     SCHEMA_VERSION,
 )
 
+import functools 
+
+def record_backend_usage_info(func):
+
+    @functools.wraps(func)
+    def wrapper_run_circuitset_and_measure(circuit_set, n_samples, **kwargs):
+        measurements_set = func(circuit_set, n_samples, **kwargs)
+        for circuit, measurements in zip(circuit_set, measurements_set):
+            n_gates = len(circuit.operations)
+            n_single_qubit_gates = sum(
+                [1 for gate_op in circuit.operations if gate_op.gate.num_qubits == 1]
+            )
+            n_multiqubit_gates = n_gates - n_single_qubit_gates
+            backend_usage_data.append(
+                {
+                    "measurements": measurements.get_counts(),
+                    "circuit": circuits.to_dict(circuit),
+                    "number_of_multiqubit_gates": n_multiqubit_gates,
+                    "number_of_gates": n_single_qubit_gates,
+                }
+            )
+        return measurements_set
+
+    wrapper_run_circuitset_and_measure.backend_usage_data = []
+
+    return wrapper_count_calls
 
 def run_circuit_and_measure(
     backend_specs: Specs,
@@ -80,6 +106,7 @@ def run_circuitset_and_measure(
 
     circuit_set = circuits.load_circuitset(circuitset)
     backend = create_object(backend_specs)
+    backend.run_circuitset_and_measure = record_backend_usage_info(backend.run_circuitset_and_measure)
 
     n_samples_list = [n_samples for _ in circuit_set]
     measurements_set = backend.run_circuitset_and_measure(
@@ -87,6 +114,12 @@ def run_circuitset_and_measure(
     )
     list_of_measurements = [measurement.bitstrings for measurement in measurements_set]
     save_list(list_of_measurements, "measurements-set.json")
+    with open("backend-usage-data.json", "w") as f:
+        data = {
+            "schema": SCHEMA_VERSION + "-backend-usage-data",
+            "backend-usage-data": backend.run_circuit_and_measure.backend_usage_data,
+        }
+        f.write(json.dumps(data))
 
 
 def get_bitstring_distribution(
@@ -152,28 +185,7 @@ def evaluate_ansatz_based_cost_function(
     backend = create_object(backend_specs)
 
     ### Patching the backend to record measurements somewhere
-    unwrapped = backend.run_circuitset_and_measure
-    backend_usage_data = []
-
-    def wrapped_run_circuitset_and_measure(circuit_set, n_samples, **kwargs):
-        measurements_set = unwrapped(circuit_set, n_samples, **kwargs)
-        for circuit, measurements in zip(circuit_set, measurements_set):
-            n_gates = len(circuit.operations)
-            n_single_qubit_gates = sum(
-                [1 for gate_op in circuit.operations if gate_op.gate.num_qubits == 1]
-            )
-            n_multiqubit_gates = n_gates - n_single_qubit_gates
-            backend_usage_data.append(
-                {
-                    "measurements": measurements.get_counts(),
-                    "circuit": circuits.to_dict(circuit),
-                    "number_of_multiqubit_gates": n_multiqubit_gates,
-                    "number_of_gates": n_single_qubit_gates,
-                }
-            )
-        return measurements_set
-
-    backend.run_circuitset_and_measure = wrapped_run_circuitset_and_measure
+    backend.run_circuitset_and_measure = record_backend_usage_info(backend.run_circuit_and_measure)
 
     if isinstance(cost_function_specs, str):
         cost_function_specs = json.loads(cost_function_specs)
@@ -236,7 +248,7 @@ def evaluate_ansatz_based_cost_function(
     with open("backend-usage-data.json", "w") as f:
         data = {
             "schema": SCHEMA_VERSION + "-backend-usage-data",
-            "backend-usage-data": backend_usage_data,
+            "backend-usage-data": backend.run_circuit_and_measure.backend_usage_data,
         }
         f.write(json.dumps(data))
 

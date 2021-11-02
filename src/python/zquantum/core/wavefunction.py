@@ -53,12 +53,17 @@ class Wavefunction:
                 "Provided wavefunction does not have a size of a power of 2."
             )
 
-        try:
-            self._amplitude_vector = np.asarray(amplitude_vector, dtype=complex)
-        except TypeError:
+        if any(
+            hasattr(amplitude, "free_symbols") and amplitude.free_symbols
+            for amplitude in amplitude_vector
+        ):
             self._amplitude_vector = Matrix(amplitude_vector)
+        else:
+            self._amplitude_vector = np.asarray(amplitude_vector, dtype=complex)
 
-        self._check_sanity(self._amplitude_vector)
+        # print("sanity")
+        # self._check_sanity(self._amplitude_vector)
+        print("yeet")
 
     @property
     def amplitudes(self) -> Union[np.ndarray, Matrix]:

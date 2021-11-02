@@ -213,7 +213,7 @@ class QuantumSimulator(QuantumBackend):
                 for operation in subcircuit.operations:
                     state = operation.apply(state)
 
-        return Wavefunction(state)
+            return Wavefunction(state) if not isinstance(state, Wavefunction) else state
 
     def get_exact_expectation_values(
         self, circuit: Circuit, operator: SymbolicOperator

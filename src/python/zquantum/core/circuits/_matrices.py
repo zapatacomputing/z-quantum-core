@@ -18,11 +18,13 @@ def z_matrix():
 
 
 def h_matrix():
-    return sympy.Matrix(
-        [
-            [(1 / np.sqrt(2)), (1 / np.sqrt(2))],
-            [(1 / np.sqrt(2)), (-1 / np.sqrt(2))],
-        ]
+    return sympy.SparseMatrix(
+        sympy.Matrix(
+            [
+                [(1 / np.sqrt(2)), (1 / np.sqrt(2))],
+                [(1 / np.sqrt(2)), (-1 / np.sqrt(2))],
+            ]
+        )
     )
 
 
@@ -76,17 +78,19 @@ def ry_matrix(angle):
 
 
 def rz_matrix(angle):
-    return sympy.Matrix(
-        [
+    return sympy.SparseMatrix(
+        sympy.Matrix(
             [
-                sympy.exp(-1 * sympy.I * angle / 2),
-                0,
-            ],
-            [
-                0,
-                sympy.exp(sympy.I * angle / 2),
-            ],
-        ]
+                [
+                    sympy.exp(-1 * sympy.I * angle / 2),
+                    0,
+                ],
+                [
+                    0,
+                    sympy.exp(sympy.I * angle / 2),
+                ],
+            ]
+        )
     )
 
 
@@ -131,13 +135,15 @@ def u3_matrix(theta, phi, lambda_):
 
 
 def cnot_matrix():
-    return sympy.Matrix(
-        [
-            [1, 0, 0, 0],
-            [0, 1, 0, 0],
-            [0, 0, 0, 1],
-            [0, 0, 1, 0],
-        ]
+    return sympy.SparseMatrix(
+        sympy.Matrix(
+            [
+                [1, 0, 0, 0],
+                [0, 1, 0, 0],
+                [0, 0, 0, 1],
+                [0, 0, 1, 0],
+            ]
+        )
     )
 
 

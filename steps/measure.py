@@ -39,16 +39,16 @@ import functools
 def record_backend_usage_info(func):
 
     @functools.wraps(func)
-    def wrapper_run_circuitset_and_measure(circuit_set, n_samples, **kwargs):
-        print("n_samples :", n_samples)
-        measurements_set = func(circuit_set, n_samples, **kwargs)
+    def wrapper_run_circuitset_and_measure(circuit_set, n_samples):
+        assert len(circuit_set) == len(n_samples)
+        measurements_set = func(circuits=circuit_set, n_samples=n_samples)
         for circuit, measurements in zip(circuit_set, measurements_set):
             n_gates = len(circuit.operations)
             n_single_qubit_gates = sum(
                 [1 for gate_op in circuit.operations if gate_op.gate.num_qubits == 1]
             )
             n_multiqubit_gates = n_gates - n_single_qubit_gates
-            backend_usage_data.append(
+            wrapper_run_circuitset_and_measure.backend_usage_data.append(
                 {
                     "measurements": measurements.get_counts(),
                     "circuit": circuits.to_dict(circuit),
@@ -118,7 +118,7 @@ def run_circuitset_and_measure(
     with open("backend-usage-data.json", "w") as f:
         data = {
             "schema": SCHEMA_VERSION + "-backend-usage-data",
-            "backend-usage-data": backend.run_circuit_and_measure.backend_usage_data,
+            "backend-usage-data": backend.run_circuitset_and_measure.backend_usage_data,
         }
         f.write(json.dumps(data))
 
@@ -188,7 +188,7 @@ def evaluate_ansatz_based_cost_function(
     backend = create_object(backend_specs)
 
     ### Patching the backend to record measurements somewhere
-    backend.run_circuitset_and_measure = record_backend_usage_info(backend.run_circuit_and_measure)
+    backend.run_circuitset_and_measure = record_backend_usage_info(backend.run_circuitset_and_measure)
 
     if isinstance(cost_function_specs, str):
         cost_function_specs = json.loads(cost_function_specs)
@@ -251,7 +251,7 @@ def evaluate_ansatz_based_cost_function(
     with open("backend-usage-data.json", "w") as f:
         data = {
             "schema": SCHEMA_VERSION + "-backend-usage-data",
-            "backend-usage-data": backend.run_circuit_and_measure.backend_usage_data,
+            "backend-usage-data": backend.run_circuitset_and_measure.backend_usage_data,
         }
         f.write(json.dumps(data))
 

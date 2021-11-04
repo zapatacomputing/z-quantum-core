@@ -68,7 +68,6 @@ class Ansatz(ABC, EnforceOverrides):
     @property
     def number_of_params(self) -> int:
         """Returns number of parameters in the ansatz."""
-
         if self.supports_parametrized_circuits:
             return len(self.parametrized_circuit.free_symbols)
         else:

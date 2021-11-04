@@ -21,7 +21,7 @@ from openfermion.ops import IsingOperator
 from zquantum.core.typing import AnyPath, LoadSource
 from zquantum.core.wavefunction import Wavefunction
 
-from .bitstring_distribution import BitstringDistribution
+from .distribution import MeasurementOutcomeDistribution
 from .utils import (
     SCHEMA_VERSION,
     convert_array_to_dict,
@@ -460,7 +460,7 @@ def get_expectation_value_from_frequencies(
 def _check_sample_elimination(
     samples: Counter,
     bitstring_samples: List[Tuple[int, ...]],
-    leftover_distribution: BitstringDistribution,
+    leftover_distribution: MeasurementOutcomeDistribution,
 ) -> Counter:
     """This is a function that checks that all elements in samples
     are present in bitstring_samples. If they are not, we eliminate the
@@ -480,8 +480,8 @@ def _check_sample_elimination(
     bitstring_counts = Counter(bitstring_samples)
 
     nresamples = 1  # Initializing so that the loop starts
-    corrected_leftover_distribution = BitstringDistribution(
-        dict(leftover_distribution.distribution_dict)
+    corrected_leftover_distribution = MeasurementOutcomeDistribution(
+        leftover_distribution.distribution_dict
     )
     correct_samples = samples.copy()
     while nresamples != 0:
@@ -494,7 +494,7 @@ def _check_sample_elimination(
                 correct_samples[sample] = bitstring_counts[bitstring]
                 distribution_dict = corrected_leftover_distribution.distribution_dict
                 distribution_dict[sample] = 0
-                corrected_leftover_distribution = BitstringDistribution(
+                corrected_leftover_distribution = MeasurementOutcomeDistribution(
                     distribution_dict, True
                 )
                 new_samples = sample_from_probability_distribution(
@@ -532,16 +532,18 @@ class Measurements:
 
     @classmethod
     def get_measurements_representing_distribution(
-        cls, bitstring_distribution: BitstringDistribution, number_of_samples: int
+        cls,
+        measurement_outcome_distribution: MeasurementOutcomeDistribution,
+        number_of_samples: int,
     ):
         """Create an instance of the Measurements class that exactly (or as closely as
         possible) resembles the input bitstring distribution.
 
         Args:
-            bitstring_distribution: the bitstring distribution to be sampled
+            measurement_outcome_distribution: the bitstring distribution to be sampled
             number_of_samples: the number of measurements
         """
-        distribution = copy.deepcopy(bitstring_distribution.distribution_dict)
+        distribution = copy.deepcopy(measurement_outcome_distribution.distribution_dict)
 
         bitstring_samples = []
         # Rounding gives the closest integer to the observed frequency
@@ -556,11 +558,11 @@ class Measurements:
         # add or delete samples. The bitstrings to correct are chosen at random,
         # giving more weight to those with non-integer part closest to 0.5
         if len(bitstring_samples) != number_of_samples:
-            leftover_distribution = BitstringDistribution(
+            leftover_distribution = MeasurementOutcomeDistribution(
                 {
                     states: 0.5
                     - abs(0.5 - (distribution[states] * number_of_samples) % 1)
-                    for states in distribution
+                    for states in distribution.keys()
                 },
                 True,
             )
@@ -652,7 +654,7 @@ class Measurements:
 
             self.bitstrings += [tuple(measurement)] * counts[bitstring]
 
-    def get_distribution(self) -> BitstringDistribution:
+    def get_distribution(self) -> MeasurementOutcomeDistribution:
         """Get the normalized probability distribution representing the measurements
 
         Returns:
@@ -665,7 +667,7 @@ class Measurements:
         for bitstring in counts.keys():
             distribution[bitstring] = counts[bitstring] / num_measurements
 
-        return BitstringDistribution(distribution)
+        return MeasurementOutcomeDistribution(distribution)
 
     def get_expectation_values(
         self, ising_operator: IsingOperator, use_bessel_correction: bool = False

@@ -9,7 +9,12 @@ from typing import Any, Callable, Dict, Iterator, Union
 import numpy as np
 from scipy.optimize import OptimizeResult
 
-from .bitstring_distribution import BitstringDistribution, is_bitstring_distribution
+from .distribution import (
+    MeasurementOutcomeDistribution,
+    change_tuple_dict_keys_to_comma_separated_integers,
+    is_measurement_outcome_distribution,
+    preprocess_distibution_dict,
+)
 from .history.recorder import HistoryEntry, HistoryEntryWithArtifacts
 from .typing import AnyPath, DumpTarget, LoadSource
 from .utils import (
@@ -20,7 +25,7 @@ from .utils import (
 )
 
 
-def has_numerical_keys(dictionary):
+def has_numerical_values(dictionary):
     return all(isinstance(value, Number) for value in dictionary.values())
 
 
@@ -42,6 +47,10 @@ def preprocess(tree):
         return tree.to_dict()
     elif isinstance(tree, (list, tuple)):
         return list(map(preprocess, tree))
+    elif isinstance(tree, MeasurementOutcomeDistribution):
+        return change_tuple_dict_keys_to_comma_separated_integers(
+            tree.distribution_dict
+        )
     return tree
 
 
@@ -49,7 +58,7 @@ class OrquestraEncoder(json.JSONEncoder):
     ENCODERS_TABLE: Dict[Any, Callable[[Any], Any]] = {
         np.ndarray: convert_array_to_dict,
         ValueEstimate: ValueEstimate.to_dict,
-        BitstringDistribution: attrgetter("distribution_dict"),
+        MeasurementOutcomeDistribution: attrgetter("distribution_dict"),
     }
 
     def default(self, o: Any):
@@ -89,8 +98,10 @@ class OrquestraDecoder(json.JSONDecoder):
         elif "call_number" in obj and "value" in obj:
             cls = HistoryEntry if "artifacts" not in obj else HistoryEntryWithArtifacts
             return cls(**obj)
-        elif has_numerical_keys(obj) and is_bitstring_distribution(obj):
-            return BitstringDistribution(obj, normalize=False)
+        elif has_numerical_values(obj) and is_measurement_outcome_distribution(
+            preprocess_distibution_dict(obj)
+        ):
+            return MeasurementOutcomeDistribution(obj, normalize=False)
         elif "schema" in obj and obj["schema"] in self.SCHEMA_MAP:
             return self.SCHEMA_MAP[obj.pop("schema")](obj)
         else:
@@ -138,14 +149,14 @@ def save_array(array: np.ndarray, path_like: DumpTarget) -> None:
         f.write(json.dumps(dictionary))
 
 
-def load_array(file: LoadSource):
+def load_array(file: LoadSource) -> np.ndarray:
     """Loads array from a file.
 
     Args:
         file: the name of the file, or a file-like object.
 
     Returns:
-        dict: the circuit template
+        the numpy array obtained from file
     """
 
     with ensure_open(file, "r") as f:

@@ -8,7 +8,7 @@ import tempfile
 import numpy as np
 import pytest
 from scipy.optimize import OptimizeResult
-from zquantum.core.bitstring_distribution import BitstringDistribution
+from zquantum.core.distribution import MeasurementOutcomeDistribution
 from zquantum.core.history.recorder import HistoryEntry, HistoryEntryWithArtifacts
 from zquantum.core.interfaces.optimizer import optimization_result
 from zquantum.core.serialization import (
@@ -41,7 +41,7 @@ EXAMPLE_OPTIMIZATION_RESULT = optimization_result(
             value=-20.0,
             artifacts={
                 "bitstring": "0111",
-                "bitstring_distribution": BitstringDistribution(
+                "bitstring_distribution": MeasurementOutcomeDistribution(
                     {"111": 0.25, "010": 0.75}
                 ),
             },
@@ -72,7 +72,7 @@ EXPECTED_DESERIALIZED_RESULT = {
             "value": -20.0,
             "artifacts": {
                 "bitstring": "0111",
-                "bitstring_distribution": {"111": 0.25, "010": 0.75},
+                "bitstring_distribution": {"1,1,1": 0.25, "0,1,0": 0.75},
             },
         },
     ],
@@ -95,8 +95,8 @@ def history_entries_equal(entry_1, entry_2):
         if len(artifacts_1) != len(artifacts_2):
             return False
         for entry_1, entry_2 in zip(artifacts_1, artifacts_2):
-            if isinstance(entry_1, BitstringDistribution) and isinstance(
-                entry_2, BitstringDistribution
+            if isinstance(entry_1, MeasurementOutcomeDistribution) and isinstance(
+                entry_2, MeasurementOutcomeDistribution
             ):
                 if entry_1.distribution_dict != entry_2.distribution_dict:
                     return False
@@ -237,7 +237,6 @@ def test_orquestra_decoder_successfully_loads_optimization_result():
 
     serialized_result = json.dumps(result_to_serialize, cls=OrquestraEncoder)
     deserialized_result = json.loads(serialized_result, cls=OrquestraDecoder)
-
     assert isinstance(deserialized_result, OptimizeResult)
     assert optimization_results_equal(result_to_serialize, deserialized_result)
 

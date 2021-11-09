@@ -124,11 +124,8 @@ def evaluate_ansatz_based_cost_function(
     noise_model: Optional[str] = None,
     device_connectivity: Optional[str] = None,
     prior_expectation_values: Optional[str] = None,
-    estimation_tasks_transformations_kwargs: Optional[Dict] = None,
+    **kwargs
 ):
-    # Empty dict as default is bad
-    if estimation_tasks_transformations_kwargs is None:
-        estimation_tasks_transformations_kwargs = {}
     ansatz_parameters = load_array(ansatz_parameters)
     # Load qubit op
     if isinstance(target_operator, str):
@@ -219,10 +216,7 @@ def evaluate_ansatz_based_cost_function(
                     "prior_expectation_values"
                 ] = prior_expectation_values
             cost_function_specs["estimation_preprocessors"].append(
-                create_object(
-                    estimation_tasks_transformation_specs,
-                    **(estimation_tasks_transformations_kwargs[0])
-                )
+                create_object(estimation_tasks_transformation_specs, **kwargs)
             )
 
     # cost_function.estimator.prior_expectation_values

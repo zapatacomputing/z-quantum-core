@@ -221,7 +221,7 @@ def evaluate_ansatz_based_cost_function(
             cost_function_specs["estimation_preprocessors"].append(
                 create_object(
                     estimation_tasks_transformation_specs,
-                    **estimation_tasks_transformations_kwargs
+                    **(estimation_tasks_transformations_kwargs[0])
                 )
             )
 

@@ -42,8 +42,8 @@ from zquantum.core.interfaces.backend import QuantumSimulator
 from zquantum.core.interfaces.estimation import EstimationTask
 from zquantum.core.wavefunction import Wavefunction
 
-from ..bitstring_distribution import BitstringDistribution
 from ..circuits import CNOT, Circuit, H, X, builtin_gate_by_name
+from ..distribution import MeasurementOutcomeDistribution
 from ..estimation import estimate_expectation_values_by_averaging
 from ..measurement import ExpectationValues, Measurements
 from ..testing.test_cases_for_backend_tests import (
@@ -211,15 +211,13 @@ class QuantumBackendTests:
         n_samples = 1000
 
         # When
-        bitstring_distribution = backend.get_bitstring_distribution(
-            circuit, n_samples=n_samples
-        )
+        distribution = backend.get_bitstring_distribution(circuit, n_samples=n_samples)
 
         # Then
-        assert isinstance(bitstring_distribution, BitstringDistribution)
-        assert bitstring_distribution.get_qubits_number() == 3
-        assert bitstring_distribution.distribution_dict["000"] > 1 / 3
-        assert bitstring_distribution.distribution_dict["111"] > 1 / 3
+        assert isinstance(distribution, MeasurementOutcomeDistribution)
+        assert distribution.get_number_of_subsystems() == 3
+        assert distribution.distribution_dict[(0, 0, 0)] > 1 / 3
+        assert distribution.distribution_dict[(1, 1, 1)] > 1 / 3
         assert backend.number_of_circuits_run == 1
         assert backend.number_of_jobs_run == 1
 
@@ -388,24 +386,20 @@ class QuantumSimulatorTests(QuantumBackendTests):
         assert wf_simulator.number_of_circuits_run == 1
         assert wf_simulator.number_of_jobs_run == 1
 
-    def test_get_bitstring_distribution_wf_simulators(self, wf_simulator):
+    def test_get_distribution_wf_simulators(self, wf_simulator):
         # Given
         wf_simulator.number_of_circuits_run = 0
         wf_simulator.number_of_jobs_run = 0
         circuit = Circuit([H(0), CNOT(0, 1), CNOT(1, 2)])
 
         # When
-        bitstring_distribution = wf_simulator.get_bitstring_distribution(circuit)
+        distribution = wf_simulator.get_bitstring_distribution(circuit)
 
         # Then
-        assert isinstance(bitstring_distribution, BitstringDistribution)
-        assert bitstring_distribution.get_qubits_number() == 3
-        assert bitstring_distribution.distribution_dict["000"] == pytest.approx(
-            0.5, abs=1e-7
-        )
-        assert bitstring_distribution.distribution_dict["111"] == pytest.approx(
-            0.5, abs=1e-7
-        )
+        assert isinstance(distribution, MeasurementOutcomeDistribution)
+        assert distribution.get_number_of_subsystems() == 3
+        assert distribution.distribution_dict[(0, 0, 0)] == pytest.approx(0.5, abs=1e-7)
+        assert distribution.distribution_dict[(1, 1, 1)] == pytest.approx(0.5, abs=1e-7)
         assert wf_simulator.number_of_circuits_run == 1
         assert wf_simulator.number_of_jobs_run == 1
 

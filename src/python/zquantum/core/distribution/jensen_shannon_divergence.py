@@ -3,21 +3,21 @@ from typing import TYPE_CHECKING, Dict
 from .clipped_negative_log_likelihood import compute_clipped_negative_log_likelihood
 
 if TYPE_CHECKING:
-    from zquantum.core.bitstring_distribution import BitstringDistribution
+    from zquantum.core.distribution import MeasurementOutcomeDistribution
 
 
 def compute_jensen_shannon_divergence(
-    target_distribution: "BitstringDistribution",
-    measured_distribution: "BitstringDistribution",
+    target_distribution: "MeasurementOutcomeDistribution",
+    measured_distribution: "MeasurementOutcomeDistribution",
     distance_measure_parameters: Dict,
 ) -> float:
     """Computes the symmetrized version of the clipped negative log likelihood between a
-     target bitstring distribution and a measured bitstring distribution.
+     target distribution and a measured distribution.
     See Equation (4) in https://advances.sciencemag.org/content/5/10/eaaw9918?rss=1
 
     Args:
-        target_distribution: The target bitstring probability distribution.
-        measured_distribution: The measured bitstring probability distribution.
+        target_distribution: The target probability distribution.
+        measured_distribution: The measured probability distribution.
 
         distance_measure_parameters:
             epsilon (float): The small parameter needed to regularize log computation

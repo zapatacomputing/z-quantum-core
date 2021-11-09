@@ -9,10 +9,12 @@ dev_requires = [
     "flake8>=3.7.9",
     "black>=19.3b0",
     "pre_commit>=2.10.1",
+    "mypy==0.812",
+    "isort>=5.8",
 ]
 
 extras_require = {
-    "dev": dev_requires,
+    "develop": dev_requires,
 }
 
 

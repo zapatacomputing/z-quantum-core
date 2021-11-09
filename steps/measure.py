@@ -3,9 +3,9 @@ from typing import Dict, List, Optional, Union
 
 import openfermion
 from zquantum.core import circuits
-from zquantum.core.bitstring_distribution import save_bitstring_distribution
 from zquantum.core.circuits import layouts
 from zquantum.core.cost_function import sum_expectation_values
+from zquantum.core.distribution import save_measurement_outcome_distribution
 from zquantum.core.estimation import estimate_expectation_values_by_averaging
 from zquantum.core.hamiltonian import (
     estimate_nmeas_for_frames,
@@ -108,7 +108,9 @@ def get_bitstring_distribution(
     circuit = circuits.load_circuit(circuit)
 
     bitstring_distribution = backend.get_bitstring_distribution(circuit)
-    save_bitstring_distribution(bitstring_distribution, "bitstring-distribution.json")
+    save_measurement_outcome_distribution(
+        bitstring_distribution, "bitstring-distribution.json"
+    )
 
 
 def evaluate_ansatz_based_cost_function(

@@ -64,7 +64,7 @@ test-default:
 	@pytest -m unit tests
 
 coverage-default:
-	pytest -m "not integration" \
+	pytest -m unit \
 		--cov=src \
 		--cov-fail-under=$(MIN_COVERAGE) tests \
 		--no-cov-on-fail \

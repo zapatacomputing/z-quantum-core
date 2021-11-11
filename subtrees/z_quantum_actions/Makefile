@@ -61,7 +61,7 @@ isort-default: clean
 	@isort --check --profile black src tests
 
 test-default:
-	@pytest -m "not integration" tests
+	@pytest -m unit tests
 
 coverage-default:
 	pytest -m "not integration" \

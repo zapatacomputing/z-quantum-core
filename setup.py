@@ -51,7 +51,7 @@ setuptools.setup(
         "numpy>=1.20",
         "scipy>=1.4.1",
         "sympy>=1.5",
-        "openfermion>=1.0.0",
+        "openfermion @ git+https://github.com/quantumlib/OpenFermion",
         "lea>=3.2.0",
         "overrides~=3.1",
         "python-rapidjson",

@@ -56,9 +56,12 @@ def get_expectation_values_for_qubit_operator(
         qubit_operator = load_qubit_operator(qubit_operator)
     elif isinstance(qubit_operator, dict):
         qubit_operator = convert_dict_to_qubitop(qubit_operator)
+
     if isinstance(backend_specs, str):
         backend_specs = json.loads(backend_specs)
     backend = cast(QuantumBackend, create_object(backend_specs))
+    if "track_measurements" in backend_specs & backend_specs["track_measurements"]:
+        backend = backend._make_measurement_tracking_backend()
 
     estimation_tasks = [EstimationTask(qubit_operator, circuit, backend.n_samples)]
 

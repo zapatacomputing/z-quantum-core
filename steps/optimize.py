@@ -16,6 +16,7 @@ from zquantum.core.serialization import (
     save_array,
     save_optimization_results,
 )
+from zquantum.core.trackers import MeasurementTrackingBackend
 from zquantum.core.typing import Specs
 from zquantum.core.utils import create_object, load_list
 
@@ -74,8 +75,8 @@ def optimize_parametrized_circuit_for_ground_state_of_operator(
     if isinstance(backend_specs, str):
         backend_specs = json.loads(backend_specs)
     backend = create_object(backend_specs)
-    if "track_measurements" in backend_specs & backend_specs["track_measurements"]:
-        backend = backend._make_measurement_tracking_backend()
+    if backend_specs.get("track_measurements"):
+        backend = MeasurementTrackingBackend(backend)
 
     if estimation_method_specs is not None:
         if isinstance(estimation_method_specs, str):
@@ -184,8 +185,8 @@ def optimize_ansatz_based_cost_function(
     if isinstance(backend_specs, str):
         backend_specs = json.loads(backend_specs)
     backend = create_object(backend_specs)
-    if "track_measurements" in backend_specs & backend_specs["track_measurements"]:
-        backend = backend._make_measurement_tracking_backend()
+    if backend_specs.get("track_measurements"):
+        backend = MeasurementTrackingBackend(backend)
 
     if estimation_method_specs is not None:
         if isinstance(estimation_method_specs, str):

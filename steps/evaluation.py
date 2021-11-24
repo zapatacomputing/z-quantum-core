@@ -28,6 +28,7 @@ from zquantum.core.openfermion import (
     load_qubit_operator_set,
     save_interaction_rdm,
 )
+from zquantum.core.trackers import MeasurementTrackingBackend
 from zquantum.core.typing import Specs
 from zquantum.core.utils import ValueEstimate, create_object, save_value_estimate
 from zquantum.core.wavefunction import Wavefunction
@@ -60,8 +61,8 @@ def get_expectation_values_for_qubit_operator(
     if isinstance(backend_specs, str):
         backend_specs = json.loads(backend_specs)
     backend = cast(QuantumBackend, create_object(backend_specs))
-    if "track_measurements" in backend_specs & backend_specs["track_measurements"]:
-        backend = backend._make_measurement_tracking_backend()
+    if backend_specs.get("track_measurements"):
+        backend = MeasurementTrackingBackend(backend)
 
     estimation_tasks = [EstimationTask(qubit_operator, circuit, backend.n_samples)]
 

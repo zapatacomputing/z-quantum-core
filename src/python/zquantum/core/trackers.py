@@ -1,7 +1,7 @@
 from typing import List, Sequence, Dict
 import json
 
-from interfaces.backend import QuantumBackend
+from interfaces.backend import QuantumBackend, QuantumSimulator
 from circuits import Circuit
 from measurement import Measurements
 from utils import SCHEMA_VERSION
@@ -15,6 +15,8 @@ class MeasurementTrackingBackend(QuantumBackend):
     """
 
     def __init__(self, inner_backend: QuantumBackend):
+        if isinstance(inner_backend, QuantumSimulator):
+            raise TypeError("Backend tracking for simulators is not supported.")
         super().__init__()
         self.inner_backend: QuantumBackend = inner_backend
         self.raw_measurement_data: List[Dict] = []

@@ -1,4 +1,4 @@
-from typing import Optional, List, Sequence
+from typing import List, Sequence, Dict
 import json
 
 from interfaces.backend import QuantumBackend
@@ -8,14 +8,6 @@ from utils import SCHEMA_VERSION
 from bitstring_distribution import BitstringDistribution
 from distribution import MeasurementOutcomeDistribution
 
-from zquantum.core.typing import AnyPath
-
-""" I have assumed that get_bitstring_distribution and get_measurement_outcome_distribution
-call run_circuit_and_measure or run_circuitset and measure. This might not work for some
-implementations.
-"""
-OVERRIDDEN_METHOD_NAMES = ["run_circuit_and_measure", "run_circuitset_and_measure"]
-
 
 class MeasurementTrackingBackend(QuantumBackend):
     """A wrapper class for a backend that tracks all measurements. The measurements
@@ -24,9 +16,8 @@ class MeasurementTrackingBackend(QuantumBackend):
 
     def __init__(self, inner_backend: QuantumBackend):
         super().__init__()
-        self.inner_backend = inner_backend
-        self.raw_measurement_data = []
-        self.implemented_circuits = []
+        self.inner_backend: QuantumBackend = inner_backend
+        self.raw_measurement_data: List[Dict] = []
 
     def run_circuit_and_measure(self, circuit: Circuit, n_samples: int) -> Measurements:
         """Method for executing the circuit and measuring the outcome.
@@ -36,18 +27,8 @@ class MeasurementTrackingBackend(QuantumBackend):
             n_samples: The number of samples to collect.
         """
         measurement = self.inner_backend.run_circuit_and_measure(circuit, n_samples)
-        self.raw_measurement_data.append(
-            {
-                "circuit": circuit.to_dict(serialize_gate_params=True),
-                "counts": measurement.get_counts(),
-                "bitstrings": [
-                    list(map(int, list(bitstring)))
-                    for bitstring in measurement.bitstrings
-                ],
-                "number_of_multiqubit_gates": circuit.n_multiqubit_gates,
-                "number_of_gates": len(circuit.gates),
-            }
-        )
+        self.record_raw_measurement_data(circuit, measurement)
+        self.save_raw_measurement_data()
         return measurement
 
     def run_circuitset_and_measure(
@@ -63,18 +44,8 @@ class MeasurementTrackingBackend(QuantumBackend):
             circuits, n_samples
         )
         for circuit, measurement in zip(circuits, measurements):
-            self.raw_measurement_data.append(
-                {
-                    "circuit": circuit.to_dict(serialize_gate_params=True),
-                    "counts": measurements.get_counts(),
-                    "bitstrings": [
-                        list(map(int, list(bitstring)))
-                        for bitstring in measurement.bitstrings
-                    ],
-                    "number_of_multiqubit_gates": circuit.n_multiqubit_gates,
-                    "number_of_gates": len(circuit.gates),
-                }
-            )
+            self.record_raw_measurement_data(circuit, measurement)
+        self.save_raw_measurement_data()
         return measurements
 
     def get_bitstring_distribution(
@@ -109,10 +80,27 @@ class MeasurementTrackingBackend(QuantumBackend):
             circuit, n_samples
         )
 
-    def get_raw_circuit_data(self, circuit: Circuit):
-        [
-            measurement.to_dict()
-            for measurement in self.get_raw_circuit_data(
-                self._get_circuit_index(circuit)
-            )
-        ]
+    def record_raw_measurement_data(
+        self, circuit: Circuit, measurement: Measurements
+    ) -> None:
+        self.raw_measurement_data.append(
+            {
+                "device": self.inner_backend.__name__,
+                "circuit": circuit.to_dict(serialize_gate_params=True),
+                "counts": measurement.get_counts(),
+                "bitstrings": [
+                    list(map(int, list(bitstring)))
+                    for bitstring in measurement.bitstrings
+                ],
+                "number_of_multiqubit_gates": circuit.n_multiqubit_gates,
+                "number_of_gates": len(circuit.gates),
+            }
+        )
+
+    def save_raw_measurement_data(self) -> None:
+        with open("backend-usage-data.json", "w") as f:
+            data = {
+                "schema": SCHEMA_VERSION + "-raw-measurement-data",
+                "raw-measurement-data": self.raw_measurement_data,
+            }
+            f.write(json.dumps(data))

@@ -12,11 +12,11 @@ from distribution import MeasurementOutcomeDistribution
 class MeasurementTrackingBackend(QuantumBackend):
     """A wrapper class for a backend that tracks all measurements. The measurements
     are stored in the raw_circuit_data variable as a list of measurement objects.
+    To enable tracking, simply put the key-value pair "track_measurements" : True
+    in your backend_specs.
     """
 
     def __init__(self, inner_backend: QuantumBackend):
-        if isinstance(inner_backend, QuantumSimulator):
-            raise TypeError("Backend tracking for simulators is not supported.")
         super().__init__()
         self.inner_backend: QuantumBackend = inner_backend
         self.raw_measurement_data: List[Dict] = []

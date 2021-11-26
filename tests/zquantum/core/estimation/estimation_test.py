@@ -585,7 +585,10 @@ TEST_CASES_EIGENSTATES = [
                 number_of_shots=30,
             ),
         ],
-        [ExpectationValues(np.array([-1])), ExpectationValues(np.array([2]))],
+        [
+            ExpectationValues(np.array([-1]), [np.array([[1]])], [np.array([[0]])]),
+            ExpectationValues(np.array([2]), [np.array([[0]])], [np.array([[0]])]),
+        ],
     ),
 ]
 TEST_CASES_NONEIGENSTATES = [
@@ -603,8 +606,12 @@ TEST_CASES_NONEIGENSTATES = [
             ),
         ],
         [
-            ExpectationValues(np.array([0])),
-            ExpectationValues(np.array([-2 * (np.cos(np.pi / 8) ** 2 - 0.5) * 2])),
+            ExpectationValues(np.array([0]), [np.array([[1]])], [np.array([[0.001]])]),
+            ExpectationValues(
+                np.array([-2 * (np.cos(np.pi / 8) ** 2 - 0.5) * 2]),
+                [np.array([[4]])],
+                [np.array([[0.002]])],
+            ),
         ],
     ),
 ]
@@ -649,7 +656,6 @@ class TestBasicEstimationMethods:
             expectation_values_list, target_expectations, estimation_tasks
         ):
             assert len(expectation_values.values) == len(task.operator.terms)
-            # TODO: add tests for correlations and covariances
             np.testing.assert_array_equal(expectation_values.values, target.values)
 
     @pytest.mark.parametrize(
@@ -666,9 +672,8 @@ class TestBasicEstimationMethods:
             expectation_values_list, target_expectations, estimation_tasks
         ):
             assert len(expectation_values.values) == len(task.operator.terms)
-            # TODO: add tests for correlations and covariances
-            np.testing.assert_allclose(
-                expectation_values.values, target.values, atol=0.1
+            np.testing.assert_array_almost_equal(
+                expectation_values.values, target.values, decimal=1
             )
 
     @pytest.mark.parametrize(
@@ -685,10 +690,58 @@ class TestBasicEstimationMethods:
             expectation_values_list, target_expectations, estimation_tasks
         ):
             assert len(expectation_values.values) == len(task.operator.terms)
-            # TODO: add tests for correlations and covariances
             np.testing.assert_array_almost_equal(
-                expectation_values.values, target.values
+                expectation_values.values, target.values, decimal=4
             )
+
+    @pytest.mark.parametrize(
+        "estimation_tasks,target_expectations", TEST_CASES_EIGENSTATES
+    )
+    def test_covariance_and_correlations_when_averaging_for_eigenstates(
+        self, simulator, estimation_tasks, target_expectations
+    ):
+        expectation_values_list = estimate_expectation_values_by_averaging(
+            simulator, estimation_tasks
+        )
+        for expectation_values, target, task in zip(
+            expectation_values_list, target_expectations, estimation_tasks
+        ):
+            for cov, corr, target_corr, target_cov in zip(
+                expectation_values.estimator_covariances,
+                expectation_values.correlations,
+                target.correlations,
+                target.estimator_covariances,
+            ):
+                assert len(corr) == len(task.operator.terms)
+                assert len(corr) == len(task.operator.terms)
+
+                np.testing.assert_array_almost_equal(corr, target_corr, decimal=2)
+                np.testing.assert_array_almost_equal(cov, target_cov, decimal=2)
+
+    @pytest.mark.parametrize(
+        "estimation_tasks,target_expectations", TEST_CASES_NONEIGENSTATES
+    )
+    def test_covariance_and_correlation_when_averaging_for_non_eigenstates(
+        self, simulator, estimation_tasks, target_expectations
+    ):
+
+        expectation_values_list = estimate_expectation_values_by_averaging(
+            simulator, estimation_tasks
+        )
+        for expectation_values, target, task in zip(
+            expectation_values_list, target_expectations, estimation_tasks
+        ):
+            for cov, corr, target_corr, target_cov in zip(
+                expectation_values.estimator_covariances,
+                expectation_values.correlations,
+                target.correlations,
+                target.estimator_covariances,
+            ):
+                assert len(corr) == len(task.operator.terms)
+                assert len(cov) == len(task.operator.terms)
+
+                np.testing.assert_array_almost_equal(corr, target_corr, decimal=4)
+                np.testing.assert_array_almost_equal(cov, target_cov, decimal=4)
 
     def test_calculate_exact_expectation_values_fails_with_non_simulator(
         self, estimation_tasks

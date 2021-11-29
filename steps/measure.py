@@ -53,7 +53,9 @@ def run_circuit_and_measure(
 
     backend = create_object(backend_specs)
     if backend_specs.get("track_measurements"):
-        backend = MeasurementTrackingBackend(backend)
+        backend = MeasurementTrackingBackend(
+            backend, backend_specs.get("record_bitstrings")
+        )
 
     if isinstance(circuit, str):
         circuit = circuits.load_circuit(circuit)
@@ -62,6 +64,9 @@ def run_circuit_and_measure(
 
     measurements = backend.run_circuit_and_measure(circuit, n_samples=n_samples)
     measurements.save("measurements.json")
+
+    if backend_specs.get("track_measurements"):
+        backend.rename_raw_measurement_data_file()
 
 
 def run_circuitset_and_measure(
@@ -84,7 +89,9 @@ def run_circuitset_and_measure(
     circuit_set = circuits.load_circuitset(circuitset)
     backend = create_object(backend_specs)
     if backend_specs.get("track_measurements"):
-        backend = MeasurementTrackingBackend(backend)
+        backend = MeasurementTrackingBackend(
+            backend, backend_specs.get("record_bitstrings")
+        )
 
     n_samples_list = [n_samples for _ in circuit_set]
     measurements_set = backend.run_circuitset_and_measure(
@@ -92,6 +99,9 @@ def run_circuitset_and_measure(
     )
     list_of_measurements = [measurement.bitstrings for measurement in measurements_set]
     save_list(list_of_measurements, "measurements-set.json")
+
+    if backend_specs.get("track_measurements"):
+        backend.rename_raw_measurement_data_file()
 
 
 def get_bitstring_distribution(
@@ -110,7 +120,9 @@ def get_bitstring_distribution(
         )
     backend = create_object(backend_specs)
     if backend_specs.get("track_measurements"):
-        backend = MeasurementTrackingBackend(backend)
+        backend = MeasurementTrackingBackend(
+            backend, backend_specs.get("record_bitstrings")
+        )
 
     circuit = circuits.load_circuit(circuit)
 
@@ -118,6 +130,9 @@ def get_bitstring_distribution(
     save_measurement_outcome_distribution(
         bitstring_distribution, "bitstring-distribution.json"
     )
+
+    if backend_specs.get("track_measurements"):
+        backend.rename_raw_measurement_data_file()
 
 
 def evaluate_ansatz_based_cost_function(
@@ -160,7 +175,9 @@ def evaluate_ansatz_based_cost_function(
 
     backend = create_object(backend_specs)
     if backend_specs.get("track_measurements"):
-        backend = MeasurementTrackingBackend(backend)
+        backend = MeasurementTrackingBackend(
+            backend, backend_specs.get("record_bitstrings")
+        )
 
     if isinstance(cost_function_specs, str):
         cost_function_specs = json.loads(cost_function_specs)
@@ -219,6 +236,9 @@ def evaluate_ansatz_based_cost_function(
     value_estimate = cost_function(ansatz_parameters)
 
     save_value_estimate(value_estimate, "value_estimate.json")
+
+    if backend_specs.get("track_measurements"):
+        backend.rename_raw_measurement_data_file()
 
 
 def grouped_hamiltonian_analysis(

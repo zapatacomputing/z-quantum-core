@@ -62,7 +62,9 @@ def get_expectation_values_for_qubit_operator(
         backend_specs = json.loads(backend_specs)
     backend = cast(QuantumBackend, create_object(backend_specs))
     if backend_specs.get("track_measurements"):
-        backend = MeasurementTrackingBackend(backend)
+        backend = MeasurementTrackingBackend(
+            backend, backend_specs.get("record_bitstrings")
+        )
 
     estimation_tasks = [EstimationTask(qubit_operator, circuit, backend.n_samples)]
 
@@ -71,6 +73,9 @@ def get_expectation_values_for_qubit_operator(
     )
 
     save_expectation_values(expectation_values[0], "expectation-values.json")
+
+    if backend_specs.get("track_measurements"):
+        backend.rename_raw_measurement_data_file()
 
 
 def get_ground_state_rdm_from_qubit_operator(

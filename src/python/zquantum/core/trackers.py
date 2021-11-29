@@ -37,8 +37,8 @@ class MeasurementTrackingBackend(QuantumBackend):
 
         Args:
             inner_backend (QuantumBackend): Backend for which measurements are recorded
-            record_bitstrings (bool, optional): Record every measured bitstring. May lead
-                to large amounts of stored data. Defaults to False.
+            record_bitstrings (bool, optional): Record every measured bitstring. May
+                lead to large amounts of stored data. Defaults to False.
         """
         super().__init__()
         self.id: int = next(MeasurementTrackingBackend.id_iter)

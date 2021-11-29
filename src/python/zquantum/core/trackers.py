@@ -1,12 +1,15 @@
 from typing import List, Sequence, Dict
 import json
+from time import localtime, asctime
+from itertools import count
+import pdb
 
-from interfaces.backend import QuantumBackend, QuantumSimulator
-from circuits import Circuit
-from measurement import Measurements
-from utils import SCHEMA_VERSION
-from bitstring_distribution import BitstringDistribution
-from distribution import MeasurementOutcomeDistribution
+from .interfaces.backend import QuantumBackend, QuantumSimulator
+from .circuits import Circuit, to_dict
+from .measurement import Measurements
+from .utils import SCHEMA_VERSION
+from .bitstring_distribution import BitstringDistribution
+from .distribution import MeasurementOutcomeDistribution
 
 
 class MeasurementTrackingBackend(QuantumBackend):
@@ -16,10 +19,15 @@ class MeasurementTrackingBackend(QuantumBackend):
     in your backend_specs.
     """
 
+    id_iter = count()
+
     def __init__(self, inner_backend: QuantumBackend):
         super().__init__()
+        self.id: int = next(MeasurementTrackingBackend.id_iter)
         self.inner_backend: QuantumBackend = inner_backend
         self.raw_measurement_data: List[Dict] = []
+        self.type: str = inner_backend.__class__.__name__
+        self.timestamp: str = asctime(localtime()).replace(" ", "-")
 
     def run_circuit_and_measure(self, circuit: Circuit, n_samples: int) -> Measurements:
         """Method for executing the circuit and measuring the outcome.
@@ -85,24 +93,39 @@ class MeasurementTrackingBackend(QuantumBackend):
     def record_raw_measurement_data(
         self, circuit: Circuit, measurement: Measurements
     ) -> None:
+        try:
+            circ_dict = circuit.to_dict(serialize_gate_params=True)
+        except AttributeError:
+            circ_dict = to_dict(circuit)
+
         self.raw_measurement_data.append(
             {
-                "device": self.inner_backend.__name__,
-                "circuit": circuit.to_dict(serialize_gate_params=True),
+                "device": self.type,
+                "circuit": circ_dict,
                 "counts": measurement.get_counts(),
                 "bitstrings": [
                     list(map(int, list(bitstring)))
                     for bitstring in measurement.bitstrings
                 ],
-                "number_of_multiqubit_gates": circuit.n_multiqubit_gates,
-                "number_of_gates": len(circuit.gates),
+                # "number_of_multiqubit_gates": circuit.n_multiqubit_gates,
+                "number_of_gates": len(circuit.operations),
             }
         )
 
     def save_raw_measurement_data(self) -> None:
-        with open("backend-usage-data.json", "w") as f:
+        with open(
+            self.type + "-" + str(self.id) + "-usage-data-" + self.timestamp + ".json",
+            "w+",
+        ) as f:
             data = {
                 "schema": SCHEMA_VERSION + "-raw-measurement-data",
                 "raw-measurement-data": self.raw_measurement_data,
             }
             f.write(json.dumps(data))
+        self.raw_measurement_data = []
+
+
+# TODO:
+# tests:
+# - serialization of symbolic parameters
+# - perhaps add an option for using measurement distributions instead of raw measurements <- memory

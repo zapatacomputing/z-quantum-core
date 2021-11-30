@@ -37,6 +37,8 @@ class MeasurementTrackingBackend(QuantumBackend):
         self.raw_measurement_data: List[Dict] = []
         self.type: str = inner_backend.__class__.__name__
         self.timestamp: str = asctime(localtime()).replace(" ", "-")
+        """Colon is invalid in windows file names, so we replace it with underscore"""
+        self.timestamp = self.timestamp.replace(":", "_")
         self.file_name = (
             self.type + "-" + str(self.id) + "-usage-data-" + self.timestamp + ".json"
         )

@@ -1,3 +1,14 @@
+"""
+To enable tracking of measurement results, put the key-value pair
+"track_measurements" : True in `backend_specs`. The measurement data is
+serialized into a JSON under the file: "raw-measurement-data.json"
+
+One can also specify whether or not to keep all the bitstrings for the measurement
+outcomes by adding a key-value pair "record_bitstrings" : True to `backend-specs`.
+However keeping all the bitstrings from an experiment may create a very large
+amount of data so the default behavior is not to save the bitstrings.
+"""
+
 import json
 from typing import Dict, List, Optional, Union
 
@@ -8,31 +19,19 @@ from zquantum.core.cost_function import sum_expectation_values
 from zquantum.core.distribution import save_measurement_outcome_distribution
 from zquantum.core.estimation import estimate_expectation_values_by_averaging
 from zquantum.core.hamiltonian import (
-    estimate_nmeas_for_frames,
-    get_expectation_values_from_rdms,
-    get_expectation_values_from_rdms_for_qubitoperator_list,
-)
-from zquantum.core.measurement import (
-    Measurements,
-    load_expectation_values,
-    save_expectation_values,
-)
-from zquantum.core.openfermion import (
-    change_operator_type,
-    load_interaction_rdm,
-    load_qubit_operator,
-    load_qubit_operator_set,
-)
+    estimate_nmeas_for_frames, get_expectation_values_from_rdms,
+    get_expectation_values_from_rdms_for_qubitoperator_list)
+from zquantum.core.measurement import (Measurements, load_expectation_values,
+                                       save_expectation_values)
+from zquantum.core.openfermion import (change_operator_type,
+                                       load_interaction_rdm,
+                                       load_qubit_operator,
+                                       load_qubit_operator_set)
 from zquantum.core.serialization import load_array
 from zquantum.core.trackers import MeasurementTrackingBackend
 from zquantum.core.typing import Specs
-from zquantum.core.utils import (
-    create_object,
-    load_noise_model,
-    save_list,
-    save_nmeas_estimate,
-    save_value_estimate,
-)
+from zquantum.core.utils import (create_object, load_noise_model, save_list,
+                                 save_nmeas_estimate, save_value_estimate)
 
 
 def run_circuit_and_measure(

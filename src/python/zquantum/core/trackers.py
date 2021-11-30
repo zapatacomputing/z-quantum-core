@@ -7,7 +7,7 @@ from typing import Dict, List, Optional, Sequence
 from .bitstring_distribution import BitstringDistribution
 from .circuits import Circuit, to_dict
 from .distribution import MeasurementOutcomeDistribution
-from .interfaces.backend import QuantumBackend, QuantumSimulator
+from .interfaces.backend import QuantumBackend
 from .measurement import Measurements
 from .utils import SCHEMA_VERSION
 
@@ -15,15 +15,6 @@ from .utils import SCHEMA_VERSION
 class MeasurementTrackingBackend(QuantumBackend):
     """A wrapper class for a backend that tracks all measurements. The measurements
     are stored in the raw_circuit_data variable as a list of measurement objects.
-
-    To enable tracking, simply put the key-value pair "track_measurements" : True
-    in your backend_specs. You can also specify whether or not to keep all the
-    bitstrings measured by adding the key-value pair "record_bitstrings" : True.
-    However keeping all the bitstrings from an experiment may create a very large
-    amount of data.
-
-    In a workflow, to catch the data provided by MeasurementTrackingBackend you must
-    put a json file named "raw_measurement_data" to keep the data in.
     """
 
     id_iter = count()
@@ -117,8 +108,8 @@ class MeasurementTrackingBackend(QuantumBackend):
         """Append data from a measurement to self.raw_measurement_data.
 
         Args:
-            circuit (Circuit): Implemented circuit.
-            measurement (Measurements): Implemented measurement.
+            circuit: Implemented circuit.
+            measurement: Implemented measurement.
         """
         raw_data_dict = {
             "device": self.type,
@@ -143,4 +134,4 @@ class MeasurementTrackingBackend(QuantumBackend):
         self.raw_measurement_data = []
 
     def rename_raw_measurement_data_file(self) -> None:
-        rename(self.file_name, "raw_measurement_data.json")
+        rename(self.file_name, "raw-measurement-data.json")

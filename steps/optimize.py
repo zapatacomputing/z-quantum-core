@@ -5,17 +5,12 @@ import numpy as np
 import zquantum.core.circuits as new_circuits
 from openfermion import SymbolicOperator
 from zquantum.core.circuits import Circuit
-from zquantum.core.cost_function import (
-    AnsatzBasedCostFunction,
-    get_ground_state_cost_function,
-)
+from zquantum.core.cost_function import (AnsatzBasedCostFunction,
+                                         get_ground_state_cost_function)
 from zquantum.core.estimation import estimate_expectation_values_by_averaging
 from zquantum.core.openfermion import load_qubit_operator
-from zquantum.core.serialization import (
-    load_array,
-    save_array,
-    save_optimization_results,
-)
+from zquantum.core.serialization import (load_array, save_array,
+                                         save_optimization_results)
 from zquantum.core.trackers import MeasurementTrackingBackend
 from zquantum.core.typing import Specs
 from zquantum.core.utils import create_object, load_list
@@ -37,6 +32,15 @@ def optimize_parametrized_circuit_for_ground_state_of_operator(
 ):
     """Optimize the parameters of a parametrized quantum circuit to prepare the ground
     state of a target operator.
+
+    To enable tracking of measurement results, put the key-value pair
+    "track_measurements" : True in `backend_specs`. The measurement data is
+    serialized into a JSON under the file: "raw-measurement-data.json"
+
+    One can also specify whether or not to keep all the bitstrings for the measurement
+    outcomes by adding a key-value pair "record_bitstrings" : True to `backend-specs`.
+    However keeping all the bitstrings from an experiment may create a very large
+    amount of data so the default behavior is not to save the bitstrings.
 
     Args:
         optimizer_specs: The specs of the optimizer to use to refine the parameter
@@ -144,6 +148,15 @@ def optimize_ansatz_based_cost_function(
 ):
     """Optimize the parameters of an ansatz circuit to prepare the ground state of a
     target operator.
+
+    To enable tracking of measurement results, put the key-value pair
+    "track_measurements" : True in `backend_specs`. The measurement data is
+    serialized into a JSON under the file: "raw-measurement-data.json"
+
+    One can also specify whether or not to keep all the bitstrings for the measurement
+    outcomes by adding a key-value pair "record_bitstrings" : True to `backend-specs`.
+    However keeping all the bitstrings from an experiment may create a very large
+    amount of data so the default behavior is not to save the bitstrings.
 
     Args:
         optimizer_specs: The specs of the optimizer to use to refine the parameter

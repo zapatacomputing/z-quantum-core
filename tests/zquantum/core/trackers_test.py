@@ -6,8 +6,6 @@ import networkx as nx
 import numpy as np
 import pytest
 from qeqiskit.simulator import QiskitSimulator
-
-# from qequlacs.simulator import QulacsSimulator
 from zquantum.core.cost_function import AnsatzBasedCostFunction
 from zquantum.core.estimation import (
     allocate_shots_uniformly,

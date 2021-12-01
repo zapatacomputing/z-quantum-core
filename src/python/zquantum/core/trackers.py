@@ -4,6 +4,8 @@ from os import rename
 from time import asctime, localtime
 from typing import Dict, List, Optional, Sequence
 
+from zquantum.core import distribution
+
 from .bitstring_distribution import BitstringDistribution
 from .circuits import Circuit, to_dict
 from .distribution import MeasurementOutcomeDistribution
@@ -34,7 +36,7 @@ class MeasurementTrackingBackend(QuantumBackend):
         self.id: int = next(MeasurementTrackingBackend.id_iter)
         self.record_bitstrings: Optional[bool] = record_bitstrings
         self.inner_backend: QuantumBackend = inner_backend
-        self.raw_measurement_data: List[Dict] = []
+        self.raw_data: List[Dict] = []
         self.type: str = inner_backend.__class__.__name__
         self.timestamp: str = asctime(localtime()).replace(" ", "-")
         """Colon is invalid in windows file names, so we replace it with underscore"""
@@ -52,7 +54,7 @@ class MeasurementTrackingBackend(QuantumBackend):
         """
         measurement = self.inner_backend.run_circuit_and_measure(circuit, n_samples)
         self.record_raw_measurement_data(circuit, measurement)
-        self.save_raw_measurement_data()
+        self.save_raw_data()
         return measurement
 
     def run_circuitset_and_measure(
@@ -69,8 +71,31 @@ class MeasurementTrackingBackend(QuantumBackend):
         )
         for circuit, measurement in zip(circuits, measurements):
             self.record_raw_measurement_data(circuit, measurement)
-        self.save_raw_measurement_data()
+        self.save_raw_data()
         return measurements
+
+    def record_raw_measurement_data(
+        self, circuit: Circuit, measurement: Measurements
+    ) -> None:
+        """Append data from a measurement to self.raw_data.
+
+        Args:
+            circuit: Implemented circuit.
+            measurement: Implemented measurement.
+        """
+        raw_data_dict = {
+            "data_type": "measurement",
+            "device": self.type,
+            "circuit": to_dict(circuit),
+            "counts": measurement.get_counts(),
+            "number_of_gates": len(circuit.operations),
+            "number_of_shots": len(measurement.bitstrings),
+        }
+        if self.record_bitstrings:
+            raw_data_dict["bitstrings"] = [
+                list(map(int, list(bitstring))) for bitstring in measurement.bitstrings
+            ]
+        self.raw_data.append(raw_data_dict)
 
     def get_bitstring_distribution(
         self, circuit: Circuit, n_samples: int
@@ -86,7 +111,19 @@ class MeasurementTrackingBackend(QuantumBackend):
         Returns:
             Probability distribution of getting specific bistrings.
         """
-        return self.inner_backend.get_bitstring_distribution(circuit, n_samples)
+        distribution = self.inner_backend.get_bitstring_distribution(circuit, n_samples)
+        self.raw_data.append(
+            {
+                "data_type": "bitstring distribution",
+                "device": self.type,
+                "circuit": to_dict(circuit),
+                "distribution": repr(distribution),
+                "number_of_gates": len(circuit.operations),
+                "number_of_shots": n_samples,
+            }
+        )
+        self.save_raw_data()
+        return distribution
 
     def get_measurement_outcome_distribution(
         self, circuit: Circuit, n_samples: int
@@ -100,40 +137,30 @@ class MeasurementTrackingBackend(QuantumBackend):
             Probability distribution of getting specific bistrings.
 
         """
-        return self.inner_backend.get_measurement_outcome_distribution(
+        distribution = self.inner_backend.get_measurement_outcome_distribution(
             circuit, n_samples
         )
+        self.raw_data.append(
+            {
+                "data_type": "measurement outcome distribution",
+                "device": self.type,
+                "circuit": to_dict(circuit),
+                "distribution": repr(distribution),
+                "number_of_gates": len(circuit.operations),
+                "number_of_shots": n_samples,
+            }
+        )
+        self.save_raw_data()
+        return distribution
 
-    def record_raw_measurement_data(
-        self, circuit: Circuit, measurement: Measurements
-    ) -> None:
-        """Append data from a measurement to self.raw_measurement_data.
-
-        Args:
-            circuit: Implemented circuit.
-            measurement: Implemented measurement.
-        """
-        raw_data_dict = {
-            "device": self.type,
-            "circuit": to_dict(circuit),
-            "counts": measurement.get_counts(),
-            "number_of_gates": len(circuit.operations),
-            "number_of_shots": len(measurement.bitstrings),
-        }
-        if self.record_bitstrings:
-            raw_data_dict["bitstrings"] = [
-                list(map(int, list(bitstring))) for bitstring in measurement.bitstrings
-            ]
-        self.raw_measurement_data.append(raw_data_dict)
-
-    def save_raw_measurement_data(self) -> None:
+    def save_raw_data(self) -> None:
         with open(self.file_name, "w+") as f:
             data = {
-                "schema": SCHEMA_VERSION + "-raw-measurement-data",
-                "raw-measurement-data": self.raw_measurement_data,
+                "schema": SCHEMA_VERSION + "-raw-data",
+                "raw-data": self.raw_data,
             }
             f.write(json.dumps(data))
-        self.raw_measurement_data = []
+        self.raw_data = []
 
-    def rename_raw_measurement_data_file(self) -> None:
-        rename(self.file_name, "raw-measurement-data.json")
+    def rename_raw_data_file(self) -> None:
+        rename(self.file_name, "raw_data.json")

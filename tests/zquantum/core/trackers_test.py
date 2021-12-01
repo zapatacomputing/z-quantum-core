@@ -16,7 +16,7 @@ def backend():
 
 class TestMeasurementTrackingBackend:
     """First we repeat tests from the QuantumBackendTests class
-    modified to work with a measurement tracking backend.
+    modified to work with MeasurementTrackingBackend.
 
     Then we check to make sure that the json files produced are
     as expected.

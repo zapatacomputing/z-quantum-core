@@ -1,146 +1,189 @@
-import json
-from functools import partial
 from os import remove
 
-import networkx as nx
 import numpy as np
 import pytest
-from qeqiskit.simulator import QiskitSimulator
-from zquantum.core.cost_function import AnsatzBasedCostFunction
-from zquantum.core.estimation import (
-    allocate_shots_uniformly,
-    estimate_expectation_values_by_averaging,
-)
+from zquantum.core.circuits import CNOT, Circuit, H, X
+from zquantum.core.distribution import MeasurementOutcomeDistribution
+from zquantum.core.measurement import Measurements
+from zquantum.core.symbolic_simulator import SymbolicSimulator
 from zquantum.core.trackers import MeasurementTrackingBackend
-from zquantum.optimizers.scipy_optimizer import ScipyOptimizer
-from zquantum.qaoa.ansatzes.farhi_ansatz import QAOAFarhiAnsatz
-from zquantum.qaoa.problems.maxcut import MaxCut
 
 
 @pytest.fixture
-def H():
-    G = nx.Graph()
-    G.add_nodes_from([0, 1, 2, 3])
-    G.add_edge(0, 1, weight=10)
-    G.add_edge(0, 3, weight=10)
-    G.add_edge(1, 2, weight=1)
-    G.add_edge(2, 3, weight=1)
-    problem = MaxCut()
-    return problem.get_hamiltonian(G)
+def backend():
+    return MeasurementTrackingBackend(SymbolicSimulator())
 
 
 class TestMeasurementTrackingBackend:
-    def test_save_measurement_data_from_maxcut_qaoa(self, H):
-        # Given
-        ansatz = QAOAFarhiAnsatz(1, cost_hamiltonian=H)
-        backend = MeasurementTrackingBackend(
-            inner_backend=QiskitSimulator(device_name="aer_simulator")
-        )
+    """First we repeat tests from the QuantumBackendTests class
+    modified to work with a measurement tracking backend.
 
-        estimation_method = estimate_expectation_values_by_averaging
-        shot_allocation = partial(allocate_shots_uniformly, number_of_shots=100)
-        estimation_preprocessors = [shot_allocation]
-        optimizer = ScipyOptimizer(method="L-BFGS-B", options={"maxiter": 10})
-        cost_function = AnsatzBasedCostFunction(
-            H, ansatz, backend, estimation_method, estimation_preprocessors
-        )
-        initial_params = np.array([0, 0])
+    Then we check to make sure that the json files produced are
+    as expected.
+    """
+
+    def test_run_circuit_and_measure_correct_indexing(self, backend):
+        # Note: this test may fail with noisy devices
+        # Given
+        backend.inner_backend.number_of_circuits_run = 0
+        backend.inner_backend.number_of_jobs_run = 0
+        circuit = Circuit([X(0), X(0), X(1), X(1), X(2)])
+        n_samples = 100
         # When
-        opt_results = optimizer.minimize(cost_function, initial_params)
-        circuit = ansatz.get_executable_circuit(opt_results.opt_params)
-        backend.n_samples = 10000
-        backend.run_circuit_and_measure(circuit, n_samples=1000)
-        f = open(backend.file_name)
-        data = json.load(f)
-        # Then
-        assert data["raw-measurement-data"][0]["device"] == "QiskitSimulator"
-        assert data["raw-measurement-data"][0]["circuit"]["n_qubits"] == 4
-        assert data["raw-measurement-data"][0]["number_of_shots"] == 1000
-        """Assert solutions are in the recorded data"""
-        assert "1000" in data["raw-measurement-data"][0]["counts"]
-        assert "0101" in data["raw-measurement-data"][0]["counts"]
+        measurements = backend.run_circuit_and_measure(circuit, n_samples)
+
+        # Then (since SPAM error could result in unexpected bitstrings, we make sure the
+        # most common bitstring is the one we expect)
+        counts = measurements.get_counts()
+        assert max(counts, key=counts.get) == "001"
+        assert backend.inner_backend.number_of_circuits_run == 1
+        assert backend.inner_backend.number_of_jobs_run == 1
         # Cleanup
         remove(backend.file_name)
 
-    def test_save_measurement_data_while_inner_backend_used_elsewhere(self, H):
+    @pytest.mark.parametrize("n_samples", [-1, 0, 100.2, 1000.0])
+    def test_run_circuit_and_measure_fails_for_invalid_n_samples(
+        self, backend, n_samples
+    ):
         # Given
-        ansatz = QAOAFarhiAnsatz(1, cost_hamiltonian=H)
-        inner = QiskitSimulator(device_name="aer_simulator")
-        tracker_backend = MeasurementTrackingBackend(inner_backend=inner)
+        circuit = Circuit([X(0), X(0), X(1), X(1), X(2)])
 
-        estimation_method = estimate_expectation_values_by_averaging
-        shot_allocation = partial(allocate_shots_uniformly, number_of_shots=100)
-        estimation_preprocessors = [shot_allocation]
-        optimizer = ScipyOptimizer(method="L-BFGS-B", options={"maxiter": 10})
-        cost_function = AnsatzBasedCostFunction(
-            H, ansatz, tracker_backend, estimation_method, estimation_preprocessors
-        )
-        cost_function = AnsatzBasedCostFunction(
-            H, ansatz, inner, estimation_method, estimation_preprocessors
-        )
-        initial_params = np.array([0, 0])
         # When
-        opt_results = optimizer.minimize(cost_function, initial_params)
-        circuit = ansatz.get_executable_circuit(opt_results.opt_params)
-        tracker_backend.n_samples = 10000
-        inner.n_samples = 10000
-        tracker_backend.run_circuit_and_measure(circuit, n_samples=1000)
-        inner.run_circuit_and_measure(circuit, n_samples=1000)
-        f = open(tracker_backend.file_name)
-        data = json.load(f)
-        # Then
-        assert data["raw-measurement-data"][0]["device"] == "QiskitSimulator"
-        assert data["raw-measurement-data"][0]["circuit"]["n_qubits"] == 4
-        assert data["raw-measurement-data"][0]["number_of_shots"] == 1000
-        """Assert solutions are in the recorded data"""
-        assert "1000" in data["raw-measurement-data"][0]["counts"]
-        assert "0101" in data["raw-measurement-data"][0]["counts"]
-        # Cleanup
-        remove(tracker_backend.file_name)
+        with pytest.raises(AssertionError):
+            backend.run_circuit_and_measure(circuit, n_samples)
+            # Cleanup
+            remove(backend.file_name)
 
-    def test_save_measurement_data_when_inner_backend_is_reused(self, H):
+    @pytest.mark.parametrize("n_samples", [1, 2, 10, 100])
+    def test_run_circuit_and_measure_correct_num_measurements_attribute(
+        self, backend, n_samples
+    ):
         # Given
-        ansatz = QAOAFarhiAnsatz(1, cost_hamiltonian=H)
-        inner = QiskitSimulator(device_name="aer_simulator")
-        backend_1 = MeasurementTrackingBackend(inner_backend=inner)
-        backend_2 = MeasurementTrackingBackend(inner_backend=inner)
+        backend.inner_backend.number_of_circuits_run = 0
+        backend.inner_backend.number_of_jobs_run = 0
+        circuit = Circuit([X(0), X(0), X(1), X(1), X(2)])
 
-        estimation_method = estimate_expectation_values_by_averaging
-        shot_allocation = partial(allocate_shots_uniformly, number_of_shots=100)
-        estimation_preprocessors = [shot_allocation]
-        optimizer = ScipyOptimizer(method="L-BFGS-B", options={"maxiter": 10})
-        cost_function_1 = AnsatzBasedCostFunction(
-            H, ansatz, backend_1, estimation_method, estimation_preprocessors
-        )
-        cost_function_2 = AnsatzBasedCostFunction(
-            H, ansatz, backend_2, estimation_method, estimation_preprocessors
-        )
-        initial_params = np.array([0, 0])
         # When
-        opt_results_1 = optimizer.minimize(cost_function_1, initial_params)
-        opt_results_2 = optimizer.minimize(cost_function_2, initial_params)
-        circuit_1 = ansatz.get_executable_circuit(opt_results_1.opt_params)
-        circuit_2 = ansatz.get_executable_circuit(opt_results_2.opt_params)
-        backend_1.n_samples = 10000
-        backend_2.n_samples = 10000
-        backend_1.run_circuit_and_measure(circuit_1, n_samples=1000)
-        backend_2.run_circuit_and_measure(circuit_2, n_samples=1000)
-        f1 = open(backend_1.file_name)
-        f2 = open(backend_2.file_name)
-        data1 = json.load(f1)
-        data2 = json.load(f2)
+        measurements = backend.run_circuit_and_measure(circuit, n_samples)
+
         # Then
-        assert data1["raw-measurement-data"][0]["device"] == "QiskitSimulator"
-        assert data1["raw-measurement-data"][0]["circuit"]["n_qubits"] == 4
-        assert data1["raw-measurement-data"][0]["number_of_shots"] == 1000
-        assert data2["raw-measurement-data"][0]["device"] == "QiskitSimulator"
-        assert data2["raw-measurement-data"][0]["circuit"]["n_qubits"] == 4
-        assert data2["raw-measurement-data"][0]["number_of_shots"] == 1000
-        """Assert solutions are in the recorded data"""
-        assert "1000" in data1["raw-measurement-data"][0]["counts"]
-        assert "0101" in data1["raw-measurement-data"][0]["counts"]
-        assert "1000" in data2["raw-measurement-data"][0]["counts"]
-        assert "0101" in data2["raw-measurement-data"][0]["counts"]
+        assert isinstance(measurements, Measurements)
+        assert len(measurements.bitstrings) == n_samples
+        assert backend.inner_backend.number_of_circuits_run == 1
+        assert backend.inner_backend.number_of_jobs_run == 1
         # Cleanup
-        remove(backend_1.file_name)
-        remove(backend_2.file_name)
+        remove(backend.file_name)
+
+    @pytest.mark.parametrize("n_samples", [1, 2, 10, 100])
+    def test_run_circuit_and_measure_correct_num_measurements_argument(
+        self, backend, n_samples
+    ):
+        # Given
+        backend.inner_backend.number_of_circuits_run = 0
+        backend.inner_backend.number_of_jobs_run = 0
+        circuit = Circuit([X(0), X(0), X(1), X(1), X(2)])
+
+        # When
+        measurements = backend.run_circuit_and_measure(circuit, n_samples)
+
+        # Then
+        assert isinstance(measurements, Measurements)
+        assert len(measurements.bitstrings) == n_samples
+        assert backend.inner_backend.number_of_circuits_run == 1
+        assert backend.inner_backend.number_of_jobs_run == 1
+        # Cleanup
+        remove(backend.file_name)
+
+    def test_if_all_measurements_have_the_same_number_of_bits(self, backend):
+        # Given
+        backend.inner_backend.number_of_circuits_run = 0
+        backend.inner_backend.number_of_jobs_run = 0
+        circuit = Circuit([X(0), X(0), X(1), X(1), X(2)])
+
+        # When
+        measurements = backend.run_circuit_and_measure(circuit, n_samples=100)
+
+        # Then
+        assert all(len(bitstring) == 3 for bitstring in measurements.bitstrings)
+        assert backend.inner_backend.number_of_circuits_run == 1
+        assert backend.inner_backend.number_of_jobs_run == 1
+        # Cleanup
+        remove(backend.file_name)
+
+    def test_run_circuitset_and_measure(self, backend):
+        # Note: this test may fail with noisy devices
+        # Given
+        backend.inner_backend.number_of_circuits_run = 0
+        backend.inner_backend.number_of_jobs_run = 0
+        circuit = Circuit([X(0), X(0), X(1), X(1), X(2)])
+        n_samples = 100
+        number_of_circuits = 25
+        # When
+        n_samples_per_circuit = [n_samples] * number_of_circuits
+        measurements_set = backend.run_circuitset_and_measure(
+            [circuit] * number_of_circuits, n_samples_per_circuit
+        )
+
+        # Then (since SPAM error could result in unexpected bitstrings, we make sure the
+        # most common bitstring is the one we expect)
+        for measurements in measurements_set:
+            counts = measurements.get_counts()
+            assert max(counts, key=counts.get) == "001"
+        assert backend.inner_backend.number_of_circuits_run == number_of_circuits
+
+        if backend.inner_backend.supports_batching:
+            assert backend.inner_backend.number_of_jobs_run == int(
+                np.ceil(number_of_circuits / backend.inner_backend.batch_size)
+            )
+        else:
+            assert backend.inner_backend.number_of_jobs_run == number_of_circuits
+        # Cleanup
+        remove(backend.file_name)
+
+    def test_run_circuitset_and_measure_n_samples(self, backend):
+        # Note: this test may fail with noisy devices
+        # Given
+        backend.inner_backend.number_of_circuits_run = 0
+        backend.inner_backend.number_of_jobs_run = 0
+        first_circuit = Circuit([X(0), X(0), X(1), X(1), X(2)])
+        second_circuit = Circuit([X(0), X(1), X(2)])
+        n_samples_per_circuit = [100, 105]
+
+        # When
+        measurements_set = backend.run_circuitset_and_measure(
+            [first_circuit, second_circuit], n_samples_per_circuit
+        )
+
+        # Then (since SPAM error could result in unexpected bitstrings, we make sure the
+        # most common bitstring is the one we expect)
+        counts = measurements_set[0].get_counts()
+        assert max(counts, key=counts.get) == "001"
+        counts = measurements_set[1].get_counts()
+        assert max(counts, key=counts.get) == "111"
+
+        assert len(measurements_set[0].bitstrings) == n_samples_per_circuit[0]
+        assert len(measurements_set[1].bitstrings) == n_samples_per_circuit[1]
+
+        assert backend.inner_backend.number_of_circuits_run == 2
+        # Cleanup
+        remove(backend.file_name)
+
+    def test_get_bitstring_distribution(self, backend):
+        # Given
+        backend.inner_backend.number_of_circuits_run = 0
+        backend.inner_backend.number_of_jobs_run = 0
+        circuit = Circuit([H(0), CNOT(0, 1), CNOT(1, 2)])
+        n_samples = 1000
+
+        # When
+        distribution = backend.get_bitstring_distribution(circuit, n_samples=n_samples)
+
+        # Then
+        assert isinstance(distribution, MeasurementOutcomeDistribution)
+        assert distribution.get_number_of_subsystems() == 3
+        assert distribution.distribution_dict[(0, 0, 0)] > 1 / 3
+        assert distribution.distribution_dict[(1, 1, 1)] > 1 / 3
+        assert backend.inner_backend.number_of_circuits_run == 1
+        assert backend.inner_backend.number_of_jobs_run == 1
+        # Cleanup
+        remove(backend.file_name)

@@ -136,6 +136,28 @@ class TestMeasurementTrackingBackend:
             # Cleanup
             remove(backend.raw_data_file_name)
 
+    def test_get_measurement_outcome_distribution(self, backend):
+        # Given
+        circuit = Circuit([H(0), CNOT(0, 1), CNOT(1, 2)])
+        n_samples = 1000
+
+        try:
+            # When
+            distribution = backend.get_measurement_outcome_distribution(
+                circuit, n_samples=n_samples
+            )
+
+            # Then
+            assert isinstance(distribution, MeasurementOutcomeDistribution)
+            assert distribution.get_number_of_subsystems() == 3
+            assert distribution.distribution_dict[(0, 0, 0)] > 1 / 3
+            assert distribution.distribution_dict[(1, 1, 1)] > 1 / 3
+            assert backend.inner_backend.number_of_circuits_run == 1
+            assert backend.inner_backend.number_of_jobs_run == 1
+        finally:
+            # Cleanup
+            remove(backend.raw_data_file_name)
+
     def test_serialization_of_measurement_data_from_circuit(self, backend):
         try:
             # When

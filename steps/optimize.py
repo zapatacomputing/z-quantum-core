@@ -86,7 +86,9 @@ def optimize_parametrized_circuit_for_ground_state_of_operator(
     backend = create_object(backend_specs)
     if backend_specs.get("track_measurements"):
         backend = MeasurementTrackingBackend(
-            backend, backend_specs.get("record_bitstrings")
+            backend,
+            backend_specs["raw_data_file_name"],
+            record_bitstrings=backend_specs.get("record_bitstrings"),
         )
 
     if estimation_method_specs is not None:
@@ -132,9 +134,6 @@ def optimize_parametrized_circuit_for_ground_state_of_operator(
 
     save_optimization_results(optimization_results, "optimization-results.json")
     save_array(optimization_results.opt_params, "optimized-parameters.json")
-
-    if backend_specs.get("track_measurements"):
-        backend.rename_raw_measurement_data_file()
 
 
 def optimize_ansatz_based_cost_function(
@@ -210,7 +209,9 @@ def optimize_ansatz_based_cost_function(
     backend = create_object(backend_specs)
     if backend_specs.get("track_measurements"):
         backend = MeasurementTrackingBackend(
-            backend, backend_specs.get("record_bitstrings")
+            backend,
+            backend_specs["raw_data_file_name"],
+            record_bitstrings=backend_specs.get("record_bitstrings"),
         )
 
     if estimation_method_specs is not None:
@@ -256,6 +257,3 @@ def optimize_ansatz_based_cost_function(
 
     save_optimization_results(optimization_results, "optimization-results.json")
     save_array(optimization_results.opt_params, "optimized-parameters.json")
-
-    if backend_specs.get("track_measurements"):
-        backend.rename_raw_measurement_data_file()

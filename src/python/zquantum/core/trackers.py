@@ -1,10 +1,5 @@
 import json
-from itertools import count
-from os import rename
-from time import asctime, localtime
 from typing import Dict, List, Optional, Sequence
-
-from zquantum.core import distribution
 
 from .bitstring_distribution import BitstringDistribution
 from .circuits import Circuit, to_dict
@@ -19,10 +14,11 @@ class MeasurementTrackingBackend(QuantumBackend):
     are stored in the raw_circuit_data variable as a list of measurement objects.
     """
 
-    id_iter = count()
-
     def __init__(
-        self, inner_backend: QuantumBackend, record_bitstrings: Optional[bool] = False
+        self,
+        inner_backend: QuantumBackend,
+        raw_data_file_name: str,
+        record_bitstrings: Optional[bool] = False,
     ):
         """Create a wrapper backend around inner_backend that keeps track of all the
         measurement data collected during an experiment.
@@ -33,17 +29,11 @@ class MeasurementTrackingBackend(QuantumBackend):
                 lead to large amounts of stored data. Defaults to False.
         """
         super().__init__()
-        self.id: int = next(MeasurementTrackingBackend.id_iter)
         self.record_bitstrings: Optional[bool] = record_bitstrings
         self.inner_backend: QuantumBackend = inner_backend
         self.raw_data: List[Dict] = []
         self.type: str = inner_backend.__class__.__name__
-        self.timestamp: str = asctime(localtime()).replace(" ", "-")
-        """Colon is invalid in windows file names, so we replace it with underscore"""
-        self.timestamp = self.timestamp.replace(":", "_")
-        self.file_name = (
-            self.type + "-" + str(self.id) + "-usage-data-" + self.timestamp + ".json"
-        )
+        self.raw_data_file_name = raw_data_file_name
 
     def run_circuit_and_measure(self, circuit: Circuit, n_samples: int) -> Measurements:
         """Method for executing the circuit and measuring the outcome.
@@ -154,13 +144,10 @@ class MeasurementTrackingBackend(QuantumBackend):
         return distribution
 
     def save_raw_data(self) -> None:
-        with open(self.file_name, "w+") as f:
+        with open(self.raw_data_file_name, "w+") as f:
             data = {
                 "schema": SCHEMA_VERSION + "-raw-data",
                 "raw-data": self.raw_data,
             }
             f.write(json.dumps(data))
         self.raw_data = []
-
-    def rename_raw_data_file(self) -> None:
-        rename(self.file_name, "raw_data.json")

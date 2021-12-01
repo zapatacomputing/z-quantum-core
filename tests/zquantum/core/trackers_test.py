@@ -12,7 +12,7 @@ from zquantum.core.trackers import MeasurementTrackingBackend
 
 @pytest.fixture
 def backend():
-    backend = MeasurementTrackingBackend(SymbolicSimulator())
+    backend = MeasurementTrackingBackend(SymbolicSimulator(), "tracker_test")
     backend.inner_backend.number_of_circuits_run = 0
     backend.inner_backend.number_of_jobs_run = 0
     return backend
@@ -35,15 +35,15 @@ class TestMeasurementTrackingBackend:
             # When
             measurements = backend.run_circuit_and_measure(circuit, n_samples)
 
-            # Then (since SPAM error could result in unexpected bitstrings, we make sure the
-            # most common bitstring is the one we expect)
+            # Then (since SPAM error could result in unexpected bitstrings, we make
+            # sure the most common bitstring is the one we expect)
             counts = measurements.get_counts()
             assert max(counts, key=counts.get) == "001"
             assert backend.inner_backend.number_of_circuits_run == 1
             assert backend.inner_backend.number_of_jobs_run == 1
         finally:
             # Cleanup
-            remove(backend.file_name)
+            remove(backend.raw_data_file_name)
 
     @pytest.mark.parametrize("n_samples", [-1, 0, 100.2, 1000.0])
     def test_run_circuit_and_measure_fails_for_invalid_n_samples(
@@ -56,7 +56,7 @@ class TestMeasurementTrackingBackend:
         with pytest.raises(AssertionError):
             backend.run_circuit_and_measure(circuit, n_samples)
             # Cleanup
-            remove(backend.file_name)
+            remove(backend.raw_data_file_name)
 
     def test_run_circuitset_and_measure(self, backend):
         # Given
@@ -84,7 +84,7 @@ class TestMeasurementTrackingBackend:
                 assert backend.inner_backend.number_of_jobs_run == number_of_circuits
         finally:
             # Cleanup
-            remove(backend.file_name)
+            remove(backend.raw_data_file_name)
 
     def test_run_circuitset_and_measure_n_samples(self, backend):
         # Note: this test may fail with noisy devices
@@ -99,8 +99,8 @@ class TestMeasurementTrackingBackend:
                 [first_circuit, second_circuit], n_samples_per_circuit
             )
 
-            # Then (since SPAM error could result in unexpected bitstrings, we make sure the
-            # most common bitstring is the one we expect)
+            # Then (since SPAM error could result in unexpected bitstrings, we make
+            # sure the most common bitstring is the one we expect)
             counts = measurements_set[0].get_counts()
             assert max(counts, key=counts.get) == "001"
             counts = measurements_set[1].get_counts()
@@ -112,7 +112,7 @@ class TestMeasurementTrackingBackend:
             assert backend.inner_backend.number_of_circuits_run == 2
         finally:
             # Cleanup
-            remove(backend.file_name)
+            remove(backend.raw_data_file_name)
 
     def test_get_bitstring_distribution(self, backend):
         # Given
@@ -134,13 +134,13 @@ class TestMeasurementTrackingBackend:
             assert backend.inner_backend.number_of_jobs_run == 1
         finally:
             # Cleanup
-            remove(backend.file_name)
+            remove(backend.raw_data_file_name)
 
     def test_serialization_of_measurement_data_from_circuit(self, backend):
         try:
             # When
             backend.run_circuit_and_measure(Circuit([X(0), X(0)]), n_samples=10)
-            with open(backend.file_name) as f:
+            with open(backend.raw_data_file_name) as f:
                 data = load(f)
 
             # Then
@@ -151,7 +151,7 @@ class TestMeasurementTrackingBackend:
             assert {"0": 10} == data["raw-data"][0]["counts"]
         finally:
             # Cleanup
-            remove(backend.file_name)
+            remove(backend.raw_data_file_name)
 
     def test_serialization_of_measurement_data_from_circuitset(self, backend):
         # Given
@@ -161,7 +161,7 @@ class TestMeasurementTrackingBackend:
         try:
             # When
             backend.run_circuitset_and_measure(circuitset, n_samples=n_samples)
-            f = open(backend.file_name)
+            f = open(backend.raw_data_file_name)
             data = load(f)
 
             # Then
@@ -174,7 +174,7 @@ class TestMeasurementTrackingBackend:
             assert {"1": 10} == data["raw-data"][1]["counts"]
         finally:
             # Cleanup
-            remove(backend.file_name)
+            remove(backend.raw_data_file_name)
 
     def test_serialization_of_bitstrings(self, backend):
         # Given
@@ -183,7 +183,7 @@ class TestMeasurementTrackingBackend:
         try:
             # When
             backend.run_circuit_and_measure(Circuit([X(0), X(0)]), n_samples=10)
-            f = open(backend.file_name)
+            f = open(backend.raw_data_file_name)
             data = load(f)
 
             # Then
@@ -193,13 +193,13 @@ class TestMeasurementTrackingBackend:
             assert [[0] for _ in range(10)] == data["raw-data"][0]["bitstrings"]
         finally:
             # Cleanup
-            remove(backend.file_name)
+            remove(backend.raw_data_file_name)
 
     def test_serialization_of_bitstring_distributions(self, backend):
         try:
             # When
             backend.get_bitstring_distribution(Circuit([X(0), X(0)]), n_samples=10)
-            with open(backend.file_name) as f:
+            with open(backend.raw_data_file_name) as f:
                 data = load(f)
 
             # Then
@@ -212,13 +212,13 @@ class TestMeasurementTrackingBackend:
             )
         finally:
             # Cleanup
-            remove(backend.file_name)
+            remove(backend.raw_data_file_name)
 
     def test_serialization_of_measurement_outcome_distributions(self, backend):
         try:
             # When
             backend.get_bitstring_distribution(Circuit([X(0), X(0)]), n_samples=10)
-            with open(backend.file_name) as f:
+            with open(backend.raw_data_file_name) as f:
                 data = load(f)
 
             # Then
@@ -231,19 +231,19 @@ class TestMeasurementTrackingBackend:
             )
         finally:
             # Cleanup
-            remove(backend.file_name)
+            remove(backend.raw_data_file_name)
 
     def test_serialization_of_multiple_trackers_with_same_backend(self, backend):
         # Given
-        backend_2 = MeasurementTrackingBackend(backend.inner_backend)
+        backend_2 = MeasurementTrackingBackend(backend.inner_backend, "tracker_test_2")
 
         try:
             # When
             backend.run_circuit_and_measure(Circuit([X(0), X(0)]), n_samples=10)
             backend_2.run_circuit_and_measure(Circuit([X(0)]), n_samples=10)
-            with open(backend.file_name) as f:
+            with open(backend.raw_data_file_name) as f:
                 data = load(f)
-            with open(backend_2.file_name) as f_2:
+            with open(backend_2.raw_data_file_name) as f_2:
                 data_2 = load(f_2)
 
             # Then
@@ -258,8 +258,8 @@ class TestMeasurementTrackingBackend:
             assert backend.inner_backend.number_of_jobs_run == 2
         finally:
             # Cleanup
-            remove(backend.file_name)
-            remove(backend_2.file_name)
+            remove(backend.raw_data_file_name)
+            remove(backend_2.raw_data_file_name)
 
     def test_serialization_when_inner_backend_used_for_different_task(self, backend):
         # Given
@@ -271,7 +271,7 @@ class TestMeasurementTrackingBackend:
             measurement = backend_2.run_circuit_and_measure(
                 Circuit([X(0)]), n_samples=10
             )
-            with open(backend.file_name) as f:
+            with open(backend.raw_data_file_name) as f:
                 data = load(f)
 
             # Then
@@ -282,4 +282,4 @@ class TestMeasurementTrackingBackend:
             assert {"1": 10} == measurement.get_counts()
         finally:
             # Cleanup
-            remove(backend.file_name)
+            remove(backend.raw_data_file_name)

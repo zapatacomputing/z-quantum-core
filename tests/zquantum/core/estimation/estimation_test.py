@@ -675,6 +675,7 @@ TEST_CASES_NONEIGENSTATES_WITH_LOW_NUMBER_OF_SHOTS = [
 # needs it's own class otherwise issues arise with calling run_circuitset_and_measure.
 class MockBackendForTestingCovariancewhenNumberOfShotsIsLow:
 
+
     def run_circuitset_and_measure(self, circuit, shots_per_circuit):
         return [
             Measurements([(0, 1), (0, 0)]),

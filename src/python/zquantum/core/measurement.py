@@ -17,10 +17,9 @@ from typing import (
 )
 
 import numpy as np
+from openfermion.ops import IsingOperator
 from zquantum.core.typing import AnyPath, LoadSource
 from zquantum.core.wavefunction import Wavefunction
-
-from openfermion.ops import IsingOperator
 
 from .distribution import MeasurementOutcomeDistribution
 from .utils import (

@@ -6,16 +6,19 @@ import pytest
 import sympy
 from openfermion import IsingOperator, QubitOperator, qubit_operator_sparse
 from zquantum.core.circuits import RX, RY, RZ, Circuit, H, I, X
-from zquantum.core.estimation import (allocate_shots_proportionally,
-                                      allocate_shots_uniformly,
-                                      calculate_exact_expectation_values,
-                                      estimate_expectation_values_by_averaging,
-                                      evaluate_estimation_circuits,
-                                      evaluate_non_measured_estimation_tasks,
-                                      get_context_selection_circuit_for_group,
-                                      group_greedily, group_individually,
-                                      perform_context_selection,
-                                      split_estimation_tasks_to_measure)
+from zquantum.core.estimation import (
+    allocate_shots_proportionally,
+    allocate_shots_uniformly,
+    calculate_exact_expectation_values,
+    estimate_expectation_values_by_averaging,
+    evaluate_estimation_circuits,
+    evaluate_non_measured_estimation_tasks,
+    get_context_selection_circuit_for_group,
+    group_greedily,
+    group_individually,
+    perform_context_selection,
+    split_estimation_tasks_to_measure,
+)
 from zquantum.core.interfaces.estimation import EstimationTask
 from zquantum.core.interfaces.mock_objects import MockQuantumBackend
 from zquantum.core.measurement import ExpectationValues, Measurements
@@ -675,7 +678,6 @@ TEST_CASES_NONEIGENSTATES_WITH_LOW_NUMBER_OF_SHOTS = [
 
 # needs it's own class otherwise issues arise with calling run_circuitset_and_measure.
 class MockBackendForTestingCovariancewhenNumberOfShotsIsLow:
-
     def run_circuitset_and_measure(self, circuit, shots_per_circuit):
         return [
             Measurements([(0, 1), (0, 0)]),

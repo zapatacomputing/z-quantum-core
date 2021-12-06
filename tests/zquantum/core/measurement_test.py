@@ -162,7 +162,7 @@ def test_sample_from_wavefunction_fails_for_invalid_n_samples(n_samples):
     amplitudes = [0] * (2 ** n_qubits)
     amplitudes[1] = 1
     wavefunction = Wavefunction(amplitudes)
-    with pytest.raises(AssertionError):
+    with pytest.raises(ValueError):
         sample_from_wavefunction(wavefunction, n_samples)
 
 

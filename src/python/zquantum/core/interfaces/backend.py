@@ -54,7 +54,7 @@ class QuantumBackend(ABC):
             circuit: quantum circuit to be executed.
             n_samples: The number of samples to collect.
         """
-        assert isinstance(n_samples, int) and n_samples > 0
+        assert n_samples > 0
         self.number_of_circuits_run += 1
         self.number_of_jobs_run += 1
 

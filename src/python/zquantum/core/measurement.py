@@ -17,9 +17,10 @@ from typing import (
 )
 
 import numpy as np
-from openfermion.ops import IsingOperator
 from zquantum.core.typing import AnyPath, LoadSource
 from zquantum.core.wavefunction import Wavefunction
+
+from openfermion.ops import IsingOperator
 
 from .distribution import MeasurementOutcomeDistribution
 from .utils import (
@@ -194,7 +195,7 @@ def sample_from_wavefunction(
     Returns:
         List[Tuple[int]]: A list of tuples where the each tuple is a sampled bitstring.
     """
-    assert isinstance(n_samples, int) and n_samples > 0
+    assert n_samples > 0
     rng = np.random.default_rng(seed)
     outcomes_str, probabilities_np = zip(*wavefunction.get_outcome_probs().items())
     probabilities = [

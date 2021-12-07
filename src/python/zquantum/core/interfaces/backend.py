@@ -54,7 +54,7 @@ class QuantumBackend(ABC):
             circuit: quantum circuit to be executed.
             n_samples: The number of samples to collect.
         """
-        if not n_samples > 0:
+        if n_samples < 1:
             raise ValueError("Must sample given circuit at least once.")
         self.number_of_circuits_run += 1
         self.number_of_jobs_run += 1

@@ -45,7 +45,7 @@ class TestMeasurementTrackingBackend:
             # Cleanup
             remove(backend.raw_data_file_name)
 
-    @pytest.mark.parametrize("n_samples", [-1, 0, 100.2, 1000.0])
+    @pytest.mark.parametrize("n_samples", [-1, 0])
     def test_run_circuit_and_measure_fails_for_invalid_n_samples(
         self, backend, n_samples
     ):
@@ -53,7 +53,7 @@ class TestMeasurementTrackingBackend:
         circuit = Circuit([X(0), X(0), X(1), X(1), X(2)])
 
         # When
-        with pytest.raises(AssertionError):
+        with pytest.raises(ValueError):
             backend.run_circuit_and_measure(circuit, n_samples)
             # Cleanup
             remove(backend.raw_data_file_name)

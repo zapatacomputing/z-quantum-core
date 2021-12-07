@@ -48,7 +48,7 @@ class MeasurementTrackingBackend(QuantumBackend):
         return measurement
 
     def run_circuitset_and_measure(
-        self, circuits: Sequence[Circuit], n_samples: List[int]
+        self, circuits: Sequence[Circuit], n_samples: Sequence[int]
     ) -> List[Measurements]:
         """Run a set of circuits and measure a certain number of bitstrings.
 

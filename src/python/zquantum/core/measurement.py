@@ -194,7 +194,8 @@ def sample_from_wavefunction(
     Returns:
         List[Tuple[int]]: A list of tuples where the each tuple is a sampled bitstring.
     """
-    assert isinstance(n_samples, int) and n_samples > 0
+    if n_samples < 1:
+        raise ValueError("Must sample from wavefunction at least once.")
     rng = np.random.default_rng(seed)
     outcomes_str, probabilities_np = zip(*wavefunction.get_outcome_probs().items())
     probabilities = [

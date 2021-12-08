@@ -833,15 +833,16 @@ class TestBasicEstimationMethods:
         for expectation_values, target in zip(
             expectation_values_list, target_expectations
         ):
-            for cov, corr, target_corr, target_cov in zip(
-                expectation_values.estimator_covariances,
+            np.testing.assert_array_almost_equal(
                 expectation_values.correlations,
                 target.correlations,
+                decimal=2,
+            )
+            np.testing.assert_array_almost_equal(
+                expectation_values.estimator_covariances,
                 target.estimator_covariances,
-            ):
-
-                np.testing.assert_array_almost_equal(corr, target_corr, decimal=2)
-                np.testing.assert_array_almost_equal(cov, target_cov, decimal=2)
+                decimal=2,
+            )
 
     def test_calculate_exact_expectation_values_fails_with_non_simulator(
         self, estimation_tasks

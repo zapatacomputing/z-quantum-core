@@ -28,6 +28,7 @@ from zquantum.core.openfermion import (
     load_qubit_operator_set,
     save_interaction_rdm,
 )
+from zquantum.core.trackers import MeasurementTrackingBackend
 from zquantum.core.typing import Specs
 from zquantum.core.utils import ValueEstimate, create_object, save_value_estimate
 from zquantum.core.wavefunction import Wavefunction
@@ -43,6 +44,15 @@ def get_expectation_values_for_qubit_operator(
     `backend_specs`. The results are serialized into a JSON under the file:
     "expectation-values.json"
 
+    To enable tracking of measurement results, put the key-value pair
+    "track_measurements" : True in `backend_specs`. The measurement data is
+    serialized into a JSON under the file: "raw_data.json"
+
+    One can also specify whether or not to keep all the bitstrings for the measurement
+    outcomes by adding a key-value pair "record_bitstrings" : True to `backend-specs`.
+    However keeping all the bitstrings from an experiment may create a very large
+    amount of data so the default behavior is not to save the bitstrings.
+
     Args:
         backend_specs: The backend on which to run the quantum circuit
         circuit: The circuit that prepares the state to be measured
@@ -56,9 +66,17 @@ def get_expectation_values_for_qubit_operator(
         qubit_operator = load_qubit_operator(qubit_operator)
     elif isinstance(qubit_operator, dict):
         qubit_operator = convert_dict_to_qubitop(qubit_operator)
+
     if isinstance(backend_specs, str):
         backend_specs = json.loads(backend_specs)
     backend = cast(QuantumBackend, create_object(backend_specs))
+
+    if backend_specs.get("track_measurements"):
+        backend = MeasurementTrackingBackend(
+            backend,
+            backend_specs["raw_data_file_name"],
+            record_bitstrings=backend_specs.get("record_bitstrings"),
+        )
 
     estimation_tasks = [EstimationTask(qubit_operator, circuit, backend.n_samples)]
 

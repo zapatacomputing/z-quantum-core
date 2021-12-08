@@ -156,13 +156,13 @@ def test_sample_from_wavefunction_list():
     assert sample.pop() == expected_bitstring
 
 
-@pytest.mark.parametrize("n_samples", [-1, 0.0, 100.2, 1000.0])
+@pytest.mark.parametrize("n_samples", [-1, 0])
 def test_sample_from_wavefunction_fails_for_invalid_n_samples(n_samples):
     n_qubits = 4
     amplitudes = [0] * (2 ** n_qubits)
     amplitudes[1] = 1
     wavefunction = Wavefunction(amplitudes)
-    with pytest.raises(AssertionError):
+    with pytest.raises(ValueError):
         sample_from_wavefunction(wavefunction, n_samples)
 
 

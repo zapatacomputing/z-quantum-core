@@ -106,7 +106,7 @@ class ExpectationValues:
     EstimateExpectationValues Protocol in interfaces/estimation.py.
 
     Args:
-        values: The expectation values of a set of operators.
+        values: The expectation values of a set of terms in an IsingOperator.
         correlations: The expectation values of pairwise products of operators.
             Contains an NxN array for each frame, where N is the number of
             operators in that frame.

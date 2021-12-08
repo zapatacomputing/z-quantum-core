@@ -1,5 +1,4 @@
 from functools import partial
-from math import sqrt
 
 import numpy as np
 import pytest
@@ -594,7 +593,7 @@ TEST_CASES_EIGENSTATES = [
             # tests negative correlation
             EstimationTask(
                 IsingOperator("[Z0] + [Z1]"),
-                circuit=Circuit([I(0), X(1)]),
+                circuit=Circuit([ X(1)]),
                 number_of_shots=10,
             ),
         ],
@@ -638,8 +637,12 @@ TEST_CASES_NONEIGENSTATES = [
         ],
     ),
 ]
-# When number_of_shots is high, the covariance will tend to zero. So we need extra
-# test cases to ensure covariance is being caluclated correctly.
+""" When number_of_shots is high, the covariance will tend to zero. So we need extra
+test cases to ensure covariance is being caluclated correctly. 
+
+Since we generate the data with MockBackendForTestingCovariancewhenNumberOfShotsIsLow
+the estimation tasks can be arbitrary. They just need a valid circuit, number of shots
+and have 2 terms in the IsingOperator."""
 TEST_CASES_NONEIGENSTATES_WITH_LOW_NUMBER_OF_SHOTS = [
     (
         4
@@ -676,7 +679,7 @@ TEST_CASES_NONEIGENSTATES_WITH_LOW_NUMBER_OF_SHOTS = [
 ]
 
 
-# needs it's own class otherwise issues arise with calling run_circuitset_and_measure.
+# needs its own class otherwise issues arise with calling run_circuitset_and_measure.
 class MockBackendForTestingCovariancewhenNumberOfShotsIsLow:
     def run_circuitset_and_measure(self, circuit, shots_per_circuit):
         return [
@@ -783,7 +786,7 @@ class TestBasicEstimationMethods:
                 target.estimator_covariances,
             ):
                 assert len(corr) == len(task.operator.terms)
-                assert len(corr) == len(task.operator.terms)
+                assert len(cov) == len(task.operator.terms)
 
                 np.testing.assert_array_almost_equal(corr, target_corr, decimal=2)
                 np.testing.assert_array_almost_equal(cov, target_cov, decimal=2)
@@ -820,7 +823,7 @@ class TestBasicEstimationMethods:
         TEST_CASES_NONEIGENSTATES_WITH_LOW_NUMBER_OF_SHOTS,
     )
     def test_covariance_when_averaging_for_non_eigenstates_and_number_of_shots_is_low(
-        self, target_expectations, mock_estimation_tasks
+        self, mock_estimation_tasks, target_expectations
     ):
 
         expectation_values_list = estimate_expectation_values_by_averaging(
@@ -838,7 +841,6 @@ class TestBasicEstimationMethods:
             ):
 
                 np.testing.assert_array_almost_equal(corr, target_corr, decimal=2)
-                # All covariances should be close to 0 when number_of_shots is high.
                 np.testing.assert_array_almost_equal(cov, target_cov, decimal=2)
 
     def test_calculate_exact_expectation_values_fails_with_non_simulator(

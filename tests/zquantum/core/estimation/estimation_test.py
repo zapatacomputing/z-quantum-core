@@ -593,7 +593,7 @@ TEST_CASES_EIGENSTATES = [
             # tests negative correlation
             EstimationTask(
                 IsingOperator("[Z0] + [Z1]"),
-                circuit=Circuit([ X(1)]),
+                circuit=Circuit([X(1)]),
                 number_of_shots=10,
             ),
         ],
@@ -638,7 +638,7 @@ TEST_CASES_NONEIGENSTATES = [
     ),
 ]
 """ When number_of_shots is high, the covariance will tend to zero. So we need extra
-test cases to ensure covariance is being caluclated correctly. 
+test cases to ensure covariance is being caluclated correctly.
 
 Since we generate the data with MockBackendForTestingCovariancewhenNumberOfShotsIsLow
 the estimation tasks can be arbitrary. They just need a valid circuit, number of shots

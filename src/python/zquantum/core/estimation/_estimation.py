@@ -214,7 +214,7 @@ def split_estimation_tasks_to_measure(
     Returns:
         estimation_tasks_to_measure: A new list of estimation tasks that only
             contains the ones that should actually be submitted to the backend
-        estimation_tasks_not_measured: A new list of estimation tasks that
+        estimation_tasks_not_to_measure: A new list of estimation tasks that
             contains the EstimationTasks with only constant terms or with
             0 shot
         indices_to_measure: A list containing the indices of the EstimationTasks we will
@@ -225,7 +225,7 @@ def split_estimation_tasks_to_measure(
     """
 
     estimation_tasks_to_measure = []
-    estimation_tasks_not_measured = []
+    estimation_tasks_not_to_measure = []
     indices_to_measure = []
     indices_to_not_measure = []
     for i, task in enumerate(estimation_tasks):
@@ -233,14 +233,14 @@ def split_estimation_tasks_to_measure(
             len(task.operator.terms) == 1 and () in task.operator.terms.keys()
         ) or task.number_of_shots == 0:
             indices_to_not_measure.append(i)
-            estimation_tasks_not_measured.append(task)
+            estimation_tasks_not_to_measure.append(task)
         else:
             indices_to_measure.append(i)
             estimation_tasks_to_measure.append(task)
 
     return (
         estimation_tasks_to_measure,
-        estimation_tasks_not_measured,
+        estimation_tasks_not_to_measure,
         indices_to_measure,
         indices_to_not_measure,
     )
@@ -303,42 +303,46 @@ def estimate_expectation_values_by_averaging(
 
     (
         estimation_tasks_to_measure,
-        estimation_tasks_not_measured,
+        estimation_tasks_not_to_measure,
         indices_to_measure,
         indices_not_to_measure,
     ) = split_estimation_tasks_to_measure(estimation_tasks)
 
-    expectation_values_not_measured = evaluate_non_measured_estimation_tasks(
-        estimation_tasks_not_measured
+    non_measured_expectation_values_list = evaluate_non_measured_estimation_tasks(
+        estimation_tasks_not_to_measure
     )
 
-    circuits, operators, shots_per_circuit = zip(
-        *[
-            (e.circuit, e.operator, e.number_of_shots)
-            for e in estimation_tasks_to_measure
-        ]
-    )
-
-    measurements_list = backend.run_circuitset_and_measure(circuits, shots_per_circuit)
-
-    measured_expectation_values_list = [
-        expectation_values_to_real(
-            measurements.get_expectation_values(
-                change_operator_type(frame_operator, IsingOperator)
-            )
+    if estimation_tasks_to_measure == []:
+        measured_expectation_values_list = []
+    else:
+        circuits, operators, shots_per_circuit = zip(
+            *[
+                (e.circuit, e.operator, e.number_of_shots)
+                for e in estimation_tasks_to_measure
+            ]
         )
-        for frame_operator, measurements in zip(operators, measurements_list)
-    ]
+        measurements_list = backend.run_circuitset_and_measure(
+            circuits, shots_per_circuit
+        )
+
+        measured_expectation_values_list = [
+            expectation_values_to_real(
+                measurements.get_expectation_values(
+                    change_operator_type(frame_operator, IsingOperator)
+                )
+            )
+            for frame_operator, measurements in zip(operators, measurements_list)
+        ]
 
     full_expectation_values: List[Optional[ExpectationValues]] = [
         None
         for _ in range(
-            len(estimation_tasks_not_measured) + len(estimation_tasks_to_measure)
+            len(estimation_tasks_not_to_measure) + len(estimation_tasks_to_measure)
         )
     ]
 
     for ex_val, final_index in zip(
-        expectation_values_not_measured, indices_not_to_measure
+        non_measured_expectation_values_list, indices_not_to_measure
     ):
         full_expectation_values[final_index] = ex_val
     for ex_val, final_index in zip(

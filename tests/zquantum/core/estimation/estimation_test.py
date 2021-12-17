@@ -696,3 +696,19 @@ class TestBasicEstimationMethods:
         backend = MockQuantumBackend()
         with pytest.raises(AttributeError):
             _ = calculate_exact_expectation_values(backend, estimation_tasks)
+
+    def test_no_measured_estimation_tasks_provided(simulator):
+        estimation_tasks = [
+            EstimationTask(IsingOperator("Z0"), Circuit([H(0)]), 0),
+        ]
+
+        target = [
+            ExpectationValues(np.array([0.0]), [np.array([[0.0]])], [np.array([0.0])])
+        ]
+
+        expectation_values_list = estimate_expectation_values_by_averaging(
+            simulator, estimation_tasks
+        )
+
+        # test that all attributes are the same
+        assert expectation_values_list[0].__dict__ == target[0].__dict__

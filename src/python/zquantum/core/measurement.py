@@ -447,10 +447,16 @@ def check_parity_of_vector(
 
     # Convert bitstrings_list to np array
     if type(bitstrings_list[0]) is str:
-        n_qubits = len(bitstrings_list[0])
-        all_bits = "".join(bitstrings_list)
-        bitstring_1d_array = np.frombuffer(all_bits.encode("utf-8"), "u1") - ord("0")
-        bitstring_array = bitstring_1d_array.astype(int).reshape(-1, n_qubits)
+
+        def convert(bitstrings_list) -> np.ndarray:
+            n_qubits = len(bitstrings_list[0])
+            all_bits = "".join(bitstrings_list)
+            bitstring_1d_array = np.frombuffer(all_bits.encode("utf-8"), "u1") - ord(
+                "0"
+            )
+            return bitstring_1d_array.astype(int).reshape(-1, n_qubits)
+
+        bitstring_array = convert(bitstrings_list)
     else:
         bitstring_array = np.array(bitstrings_list)
 

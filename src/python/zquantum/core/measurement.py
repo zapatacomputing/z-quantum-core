@@ -432,28 +432,42 @@ def check_parity(
     return result
 
 
+def check_parity_of_vector(
+    bitstrings_list: List[Union[str, Sequence[int]]], marked_qubits: Iterable[int]
+) -> np.ndarray:
+    """Returns: 1d array of size = bitstrings_list of 1 if parity=true and -1 if parity=false"""
+    if len(marked_qubits) == 0:
+        return np.array([1])
+
+    # Convert bitstrings_list to np array
+    if type(bitstrings_list[0]) is str:
+        n_qubits = len(bitstrings_list[0])
+        long_bitstring = "".join(bitstrings_list)
+        bitstrings_1d_array = np.frombuffer(long_bitstring.encode("utf-8"), "u1") - ord(
+            "0"
+        )
+        bitstring_array = bitstrings_1d_array.reshape(-1, n_qubits)
+    else:
+        bitstring_array = np.array(bitstrings_list)
+
+    bitstring_subset = bitstring_array[:, np.fromiter(marked_qubits, dtype=int)]
+    return (bitstring_subset.sum(axis=1) % 2 - 0.5) * -2
+
+
 def get_expectation_value_from_frequencies(
     marked_qubits: Iterable[int], bitstring_frequencies: Dict[str, int]
 ) -> float:
-    """Get the expectation value the product of Z operators on selected qubits
-    from bitstring frequencies.
-
-    Args:
-        marked_qubits: The qubits that the Z operators act on.
-        bitstring_frequences: The frequencies of the bitstrings.
-
-    Returns:
-        The expectation value of the product of Z operators on selected qubits.
-    """
-
     expectation = 0.0
+
+    parity = check_parity_of_vector([*bitstring_frequencies.keys()], marked_qubits)
     num_measurements = sum(bitstring_frequencies.values())
-    for bitstring, count in bitstring_frequencies.items():
-        if check_parity(bitstring, marked_qubits):
-            value = float(count) / num_measurements
-        else:
-            value = -float(count) / num_measurements
-        expectation += value
+    expectation_values: np.ndarray = (
+        np.fromiter(bitstring_frequencies.values(), dtype=int)
+        * parity
+        / num_measurements
+    )
+
+    expectation += expectation_values.sum()
 
     return expectation
 

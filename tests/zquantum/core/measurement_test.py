@@ -218,6 +218,11 @@ def test_expectation_values_to_real():
     )
 
 
+def test_convert_bitstring_to_int():
+    bitstring = (0, 1, 0, 1, 0, 1)
+    assert convert_bitstring_to_int(bitstring) == 42
+
+
 def test_check_parity_of_strings():
     bitstrings = ["01101", "01001"]
     marked_qubits = (1, 2, 3)

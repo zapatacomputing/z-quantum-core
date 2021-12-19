@@ -347,17 +347,19 @@ def get_parities_from_measurements(
 
     # Count number of occurrences of bitstrings
     bitstring_frequencies = Counter(measurements)
+    bitstring_counts: np.ndarray = np.fromiter(
+        bitstring_frequencies.values(), dtype=int
+    )
 
     # Count parity occurrences
     values = []
     for _, term in enumerate(ising_operator.terms):
-        values.append([0, 0])
         marked_qubits = [op[0] for op in term]
-        for bitstring, count in bitstring_frequencies.items():
-            if check_parity(bitstring, marked_qubits):
-                values[-1][0] += count
-            else:
-                values[-1][1] += count
+        parity = check_parity_of_vector([*bitstring_frequencies.keys()], marked_qubits)
+
+        bitstrings_with_true_parity: int = (parity * bitstring_counts).sum()
+        bitstrings_with_false_parity: int = ((1 - parity) * bitstring_counts).sum()
+        values.append([bitstrings_with_true_parity, bitstrings_with_false_parity])
 
     # Count parity occurrences for pairwise products of operators
     correlations = [np.zeros((len(ising_operator.terms), len(ising_operator.terms), 2))]
@@ -365,13 +367,27 @@ def get_parities_from_measurements(
         for term2_index, term2 in enumerate(ising_operator.terms):
             marked_qubits_term1 = [op[0] for op in term1]
             marked_qubits_term2 = [op[0] for op in term2]
-            for bitstring, count in bitstring_frequencies.items():
-                parity1 = check_parity(bitstring, marked_qubits_term1)
-                parity2 = check_parity(bitstring, marked_qubits_term2)
-                if parity1 == parity2:
-                    correlations[0][term1_index, term2_index][0] += count
-                else:
-                    correlations[0][term1_index, term2_index][1] += count
+
+            parity1 = check_parity_of_vector(
+                [*bitstring_frequencies.keys()], marked_qubits_term1
+            )
+            parity2 = check_parity_of_vector(
+                [*bitstring_frequencies.keys()], marked_qubits_term2
+            )
+
+            equal_parities = np.abs(
+                parity1 - parity2
+            )  # 0 if parities are equal, 1 otherwise
+
+            # Counts of bitstrings where parity is equal
+            correlations[0][term1_index, term2_index][0] += (
+                (1 - equal_parities) * bitstring_counts
+            ).sum()
+
+            # Counts of bitstrings where parity is not equal
+            correlations[0][term1_index, term2_index][1] += (
+                (equal_parities) * bitstring_counts
+            ).sum()
 
     return Parities(np.array(values), correlations)
 
@@ -435,7 +451,7 @@ def check_parity(
 def check_parity_of_vector(
     bitstrings_list: List[Union[str, Sequence[int]]], marked_qubits: Iterable[int]
 ) -> np.ndarray:
-    """Returns: 1d array of size = bitstrings_list of 1 if parity=true and -1 if parity=false"""
+    """Returns: 1d array of size = bitstrings_list of 1 if parity=true and 0 if parity=false"""
     if len(marked_qubits) == 0:
         return np.array([1])
 
@@ -446,12 +462,12 @@ def check_parity_of_vector(
         bitstrings_1d_array = np.frombuffer(long_bitstring.encode("utf-8"), "u1") - ord(
             "0"
         )
-        bitstring_array = bitstrings_1d_array.reshape(-1, n_qubits)
+        bitstring_array = bitstrings_1d_array.astype(int).reshape(-1, n_qubits)
     else:
         bitstring_array = np.array(bitstrings_list)
 
     bitstring_subset = bitstring_array[:, np.fromiter(marked_qubits, dtype=int)]
-    return (bitstring_subset.sum(axis=1) % 2 - 0.5) * -2
+    return (bitstring_subset.sum(axis=1) + 1) % 2
 
 
 def get_expectation_value_from_frequencies(
@@ -459,7 +475,9 @@ def get_expectation_value_from_frequencies(
 ) -> float:
     expectation = 0.0
 
-    parity = check_parity_of_vector([*bitstring_frequencies.keys()], marked_qubits)
+    parity = (
+        check_parity_of_vector([*bitstring_frequencies.keys()], marked_qubits) * 2 - 1
+    )
     num_measurements = sum(bitstring_frequencies.values())
     expectation_values: np.ndarray = (
         np.fromiter(bitstring_frequencies.values(), dtype=int)

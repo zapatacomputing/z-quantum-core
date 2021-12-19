@@ -12,7 +12,7 @@ from zquantum.core.measurement import (
     Measurements,
     Parities,
     _check_sample_elimination,
-    check_parity,
+    check_parity_of_vector,
     concatenate_expectation_values,
     convert_bitstring_to_int,
     expectation_values_to_real,
@@ -218,33 +218,26 @@ def test_expectation_values_to_real():
     )
 
 
-def test_convert_bitstring_to_int():
-    bitstring = (0, 1, 0, 1, 0, 1)
-    assert convert_bitstring_to_int(bitstring) == 42
-
-
-def test_check_parity_odd_string():
-    bitstring = "01001"
+def test_check_parity_of_strings():
+    bitstrings = ["01101", "01001"]
     marked_qubits = (1, 2, 3)
-    assert not check_parity(bitstring, marked_qubits)
+    assert np.allclose(
+        check_parity_of_vector(bitstrings, marked_qubits), np.array([1, 0])
+    )
 
 
-def test_check_parity_even_string():
-    bitstring = "01101"
+def test_check_parity_of_tuples():
+    bitstrings = [(0, 1, 1, 0, 1), (0, 1, 0, 0, 1)]
     marked_qubits = (1, 2, 3)
-    assert check_parity(bitstring, marked_qubits)
+    assert np.allclose(
+        check_parity_of_vector(bitstrings, marked_qubits), np.array([1, 0])
+    )
 
 
-def test_check_parity_odd_tuple():
-    bitstring = (0, 1, 0, 0, 1)
-    marked_qubits = (1, 2, 3)
-    assert not check_parity(bitstring, marked_qubits)
-
-
-def test_check_parity_even_tuple():
-    bitstring = (0, 1, 1, 0, 1)
-    marked_qubits = (1, 2, 3)
-    assert check_parity(bitstring, marked_qubits)
+def test_check_parity_with_no_marked_qubits():
+    bitstring = ["10", "00"]
+    marked_qubits = []
+    assert all(check_parity_of_vector(bitstring, marked_qubits))
 
 
 def test_get_expectation_value_from_frequencies():

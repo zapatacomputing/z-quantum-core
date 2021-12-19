@@ -428,44 +428,33 @@ def convert_bitstring_to_int(bitstring: Sequence[int]) -> int:
     return int("".join(str(bit) for bit in bitstring[::-1]), 2)
 
 
-def check_parity(
-    bitstring: Union[str, Sequence[int]], marked_qubits: Iterable[int]
-) -> bool:
-    """Determine if the marked qubits have even parity for the given bitstring.
-
-    Args:
-        bitstring: The bitstring, either as a tuple or little endian string.
-        marked_qubits: The qubits whose parity is to be determined.
-
-    Returns:
-        True if an even number of the marked qubits are in the 1 state, False
-            otherwise.
-    """
-    result = True
-    for qubit_index in marked_qubits:
-        if bitstring[qubit_index] == "1" or bitstring[qubit_index] == 1:
-            result = not result
-    return result
-
-
 def check_parity_of_vector(
     bitstrings_list: List[Union[str, Sequence[int]]], marked_qubits: Iterable[int]
 ) -> np.ndarray:
-    """Returns: 1d array of size = bitstrings_list of 1 if parity=true and 0 if parity=false"""
-    if len(marked_qubits) == 0:
-        return np.array([1])
+    """Determine if the marked qubits have even parity for each bitstring in the given list.
+
+    Args:
+        bitstring: A list of bitstrings that are either tuples or little endian strings.
+        marked_qubits: The qubits whose parity is to be determined.
+
+    Returns:
+        A 1d array with size equal to size of given bitstrings_list. Each entry is 1 if
+        an even number of the marked qubits of the corresponding bitstring are in the 1
+        state and 0 if otherwise.
+    """
+    if not marked_qubits:
+        return np.ones(len(bitstrings_list))
 
     # Convert bitstrings_list to np array
     if type(bitstrings_list[0]) is str:
         n_qubits = len(bitstrings_list[0])
-        long_bitstring = "".join(bitstrings_list)
-        bitstrings_1d_array = np.frombuffer(long_bitstring.encode("utf-8"), "u1") - ord(
-            "0"
-        )
-        bitstring_array = bitstrings_1d_array.astype(int).reshape(-1, n_qubits)
+        all_bits = "".join(bitstrings_list)
+        bitstring_1d_array = np.frombuffer(all_bits.encode("utf-8"), "u1") - ord("0")
+        bitstring_array = bitstring_1d_array.astype(int).reshape(-1, n_qubits)
     else:
         bitstring_array = np.array(bitstrings_list)
 
+    # Check if an even number of the marked qubits of each bitstring are in the 1 state
     bitstring_subset = bitstring_array[:, np.fromiter(marked_qubits, dtype=int)]
     return (bitstring_subset.sum(axis=1) + 1) % 2
 
@@ -473,6 +462,16 @@ def check_parity_of_vector(
 def get_expectation_value_from_frequencies(
     marked_qubits: Iterable[int], bitstring_frequencies: Dict[str, int]
 ) -> float:
+    """Get the expectation values of a set of operators (with precisions) from a set of
+    samples (with even/odd parities) for them.
+
+    Args:
+        parities: Contains the number of samples with even and odd parities for each
+            operator.
+
+    Returns:
+        Expectation values of the operators and the associated precisions.
+    """
     expectation = 0.0
 
     parity = (

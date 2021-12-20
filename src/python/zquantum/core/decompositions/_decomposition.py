@@ -17,10 +17,8 @@ class DecompositionRule(Protocol[OperationType]):
         """
 
     @abstractmethod
-    def predicate(self, operation: OperationType, gateset: BasisGateset = None) -> bool:
+    def predicate(self, operation: OperationType) -> bool:
         """Determine if this rule should be applied to given operation."""
-        if gateset.can_decompose(operation) is False:
-            raise ValueError("Can't do no decomposition, have a nice day!")
 
 
 def decompose_operation(

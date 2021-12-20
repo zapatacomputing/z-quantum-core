@@ -1,10 +1,14 @@
 from abc import abstractmethod
 from typing import Protocol, Sequence
 
-
 from _circuit import Circuit
 from _gates import GateOperation
-from ..decompositions._decomposition import DecompositionRule, decompose_operation
+
+from ..decompositions._decomposition import (
+    DecompositionRule,
+    decompose_operation,
+    decompose_operations,
+)
 
 
 class BasisGateset(Protocol):
@@ -26,9 +30,7 @@ class BasisGateset(Protocol):
         pass
 
     @abstractmethod
-    def decompose(
-        self, gate_operation: GateOperation, rule: DecompositionRule
-    ) -> Circuit:
+    def decompose_operation(self, gate_operation: GateOperation) -> Circuit:
         """Given a GateOperation, return the the decdomposition of this gate
         into the basis gateset specified by this class.
 
@@ -38,8 +40,19 @@ class BasisGateset(Protocol):
         Returns:
             Circuit: Circuit of basis gates representing the decomposition.
         """
-        # if rule.predicate(self, gate_operation) is False:
-        #     raise ValueError("Sorry, can't decompose your bloody gate, go take a hike.")
+        pass
+
+    @abstractmethod
+    def decompose_circuit(self, circuit: Circuit) -> Circuit:
+        """Given a circuit return the decomposition for each gate into this
+        basis gateset.
+
+        Args:
+            circuit : Circuit to be decomposed into this basis gateset
+
+        Returns:
+            Circuit: Circuit equivalent to the input, but in the basis gateset.
+        """
         pass
 
 
@@ -49,9 +62,11 @@ class RzRxCx(BasisGateset):
 
     def is_overcomplete(self) -> bool:
         return False
-    
-    def decompose(self, gate_operation: GateOperation) -> Circuit:
+
+    def decompose_operation(self, gate_operation: GateOperation) -> Circuit:
         return Circuit(decompose_operation(gate_operation, self.decomposition_rules))
-    
+
     def decompose_circuit(self, circuit: Circuit) -> Circuit:
-        return Circuit(decompose_operations(circuit.operations, self.decomposition_rules))
+        return Circuit(
+            decompose_operations(circuit.operations, self.decomposition_rules)
+        )

@@ -2,8 +2,7 @@ from _basis_gateset import BasisGateset
 from _circuit import Circuit
 
 
-class Program():
-
+class Program:
     def __init__(self):
         self.instructions = []
 

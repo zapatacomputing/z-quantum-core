@@ -56,7 +56,7 @@ class BasisGateset(Protocol):
         pass
 
 
-class RzRxCx(BasisGateset):
+class RZRYCX(BasisGateset):
     def __init__(self, decomposition_rules: Sequence[DecompositionRule]) -> None:
         self.decomposition_rules = decomposition_rules
 

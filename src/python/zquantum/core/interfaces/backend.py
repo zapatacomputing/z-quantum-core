@@ -54,7 +54,8 @@ class QuantumBackend(ABC):
             circuit: quantum circuit to be executed.
             n_samples: The number of samples to collect.
         """
-        assert isinstance(n_samples, int) and n_samples > 0
+        if n_samples < 1:
+            raise ValueError("Must sample given circuit at least once.")
         self.number_of_circuits_run += 1
         self.number_of_jobs_run += 1
 
@@ -64,7 +65,7 @@ class QuantumBackend(ABC):
         return Measurements()
 
     def run_circuitset_and_measure(
-        self, circuits: Sequence[Circuit], n_samples: List[int]
+        self, circuits: Sequence[Circuit], n_samples: Sequence[int]
     ) -> List[Measurements]:
         """Run a set of circuits and measure a certain number of bitstrings.
 

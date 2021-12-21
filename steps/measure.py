@@ -1,3 +1,14 @@
+"""
+To enable tracking of measurement results, put the key-value pair
+"track_measurements" : True in `backend_specs`. The measurement data is
+serialized into a JSON under the file: "raw_data.json"
+
+One can also specify whether or not to keep all the bitstrings for the measurement
+outcomes by adding a key-value pair "record_bitstrings" : True to `backend-specs`.
+However keeping all the bitstrings from an experiment may create a very large
+amount of data so the default behavior is not to save the bitstrings.
+"""
+
 import json
 from typing import Dict, List, Optional, Union
 
@@ -24,6 +35,7 @@ from zquantum.core.openfermion import (
     load_qubit_operator_set,
 )
 from zquantum.core.serialization import load_array
+from zquantum.core.trackers import MeasurementTrackingBackend
 from zquantum.core.typing import Specs
 from zquantum.core.utils import (
     create_object,
@@ -51,6 +63,13 @@ def run_circuit_and_measure(
         )
 
     backend = create_object(backend_specs)
+    if backend_specs.get("track_measurements"):
+        backend = MeasurementTrackingBackend(
+            backend,
+            backend_specs["raw_data_file_name"],
+            record_bitstrings=backend_specs.get("record_bitstrings"),
+        )
+
     if isinstance(circuit, str):
         circuit = circuits.load_circuit(circuit)
     else:
@@ -79,6 +98,12 @@ def run_circuitset_and_measure(
 
     circuit_set = circuits.load_circuitset(circuitset)
     backend = create_object(backend_specs)
+    if backend_specs.get("track_measurements"):
+        backend = MeasurementTrackingBackend(
+            backend,
+            backend_specs["raw_data_file_name"],
+            record_bitstrings=backend_specs.get("record_bitstrings"),
+        )
 
     n_samples_list = [n_samples for _ in circuit_set]
     measurements_set = backend.run_circuitset_and_measure(
@@ -102,8 +127,14 @@ def get_bitstring_distribution(
         backend_specs["device_connectivity"] = layouts.load_circuit_connectivity(
             device_connectivity
         )
-
     backend = create_object(backend_specs)
+    if backend_specs.get("track_measurements"):
+        backend = MeasurementTrackingBackend(
+            backend,
+            backend_specs["raw_data_file_name"],
+            record_bitstrings=backend_specs.get("record_bitstrings"),
+        )
+
     circuit = circuits.load_circuit(circuit)
 
     bitstring_distribution = backend.get_bitstring_distribution(circuit)
@@ -151,6 +182,12 @@ def evaluate_ansatz_based_cost_function(
         )
 
     backend = create_object(backend_specs)
+    if backend_specs.get("track_measurements"):
+        backend = MeasurementTrackingBackend(
+            backend,
+            backend_specs["raw_data_file_name"],
+            record_bitstrings=backend_specs.get("record_bitstrings"),
+        )
 
     if isinstance(cost_function_specs, str):
         cost_function_specs = json.loads(cost_function_specs)

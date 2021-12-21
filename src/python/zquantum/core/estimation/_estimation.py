@@ -220,19 +220,19 @@ def split_estimation_tasks_to_measure(
         indices_to_measure: A list containing the indices of the EstimationTasks we will
             actually measure, i.e. the ith estimation_tasks_to_measure expectation
             value will go into the indices_to_measure[i] position.
-        indices_to_not_measure: A list containing the indices of the EstimationTasks for
+        indices_not_to_measure: A list containing the indices of the EstimationTasks for
             constant terms or with 0 shot.
     """
 
     estimation_tasks_to_measure = []
     estimation_tasks_not_to_measure = []
     indices_to_measure = []
-    indices_to_not_measure = []
+    indices_not_to_measure = []
     for i, task in enumerate(estimation_tasks):
         if (
             len(task.operator.terms) == 1 and () in task.operator.terms.keys()
         ) or task.number_of_shots == 0:
-            indices_to_not_measure.append(i)
+            indices_not_to_measure.append(i)
             estimation_tasks_not_to_measure.append(task)
         else:
             indices_to_measure.append(i)
@@ -242,7 +242,7 @@ def split_estimation_tasks_to_measure(
         estimation_tasks_to_measure,
         estimation_tasks_not_to_measure,
         indices_to_measure,
-        indices_to_not_measure,
+        indices_not_to_measure,
     )
 
 

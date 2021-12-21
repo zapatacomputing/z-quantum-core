@@ -710,5 +710,5 @@ class TestBasicEstimationMethods:
             simulator, estimation_tasks
         )
 
-        # test that all attributes are the same
-        assert expectation_values_list[0].__dict__ == target[0].__dict__
+        assert len(expectation_values_list) == 1
+        assert expectation_values_list[0] == target[0]

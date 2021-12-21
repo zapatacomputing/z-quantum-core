@@ -178,6 +178,9 @@ class ExpectationValues:
 
         return cls(expectation_values, correlations, estimator_covariances)
 
+    def __eq__(self, __o: object) -> bool:
+        return self.__dict__ == __o.__dict__
+
 
 def sample_from_wavefunction(
     wavefunction: Wavefunction,

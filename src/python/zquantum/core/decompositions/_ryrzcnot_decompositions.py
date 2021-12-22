@@ -21,7 +21,7 @@ class RXtoRZRY(DecompositionRule[GateOperation]):
         return operation.gate.name == "RX"
 
     def production(self, operation: GateOperation) -> Iterable[GateOperation]:
-        lambda_ = operation.params
+        lambda_ = operation.params[0]
         indices = operation.qubit_indices[0]
 
         return [RZ(np.pi / 2)(indices), RY(lambda_)(indices), RZ(-np.pi / 2)(indices)]

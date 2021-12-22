@@ -3,7 +3,7 @@ import unittest
 import numpy as np
 from zquantum.core.circuits import Circuit
 from zquantum.core.circuits._basis_gateset import RZRYCNOT
-from zquantum.core.circuits._builtin_gates import RH, RX
+from zquantum.core.circuits._builtin_gates import RH, RX, RY, RZ
 from zquantum.core.decompositions._ryrzcnot_decompositions import RXtoRZRY
 
 
@@ -15,9 +15,9 @@ class test_RZRYCNOT(unittest.TestCase):
         self.circuit = Circuit([self.gate_operation])
         self.invalid_circuit = Circuit([self.invalid_gate_operation])
         self.targets = [
-            ["RZ", (np.pi / 2,), (2,)],
-            ["RY", ((0.2,),), (2,)],
-            ["RZ", (-np.pi / 2,), (2,)],
+            RZ(np.pi / 2)(2),
+            RY(0.2)(2),
+            RZ(-np.pi / 2)(2),
         ]
 
     def test_decompose_operation(self):
@@ -26,9 +26,7 @@ class test_RZRYCNOT(unittest.TestCase):
         self.assertEqual(len(decomp_circuit.operations), 3)
 
         for operation, target in zip(decomp_circuit.operations, self.targets):
-            self.assertEqual(operation.gate.name, target[0])
-            self.assertEqual(operation.gate.params, target[1])
-            self.assertEqual(operation.qubit_indices, target[2])
+            self.assertEqual(operation, target)
 
         self.assertRaises(
             RuntimeError, self.basis.decompose_operation, self.invalid_gate_operation
@@ -40,9 +38,7 @@ class test_RZRYCNOT(unittest.TestCase):
         self.assertEqual(len(decomp_circuit.operations), 3)
 
         for operation, target in zip(decomp_circuit.operations, self.targets):
-            self.assertEqual(operation.gate.name, target[0])
-            self.assertEqual(operation.gate.params, target[1])
-            self.assertEqual(operation.qubit_indices, target[2])
+            self.assertEqual(operation, target)
 
         self.assertRaises(
             RuntimeError, self.basis.decompose_circuit, self.invalid_circuit

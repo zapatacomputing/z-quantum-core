@@ -74,7 +74,8 @@ class RZRYCNOT(BasisGateset):
         )
         if invalid_operation is not None:
             raise RuntimeError(
-                f"Failed to decompose the operation '{invalid_operation}' into the basis gateset '{self.basis_gates}'"
+                "Failed to decompose the operation"
+                f"'{invalid_operation}' into the basis gateset '{self.basis_gates}'"
             )
 
         return decomposed_circuit
@@ -88,7 +89,8 @@ class RZRYCNOT(BasisGateset):
         )
         if invalid_operation is not None:
             raise RuntimeError(
-                f"Failed to decompose the operation '{invalid_operation}' into the basis gateset '{self.basis_gates}'"
+                "Failed to decompose the operation"
+                f"'{invalid_operation}' into the basis gateset '{self.basis_gates}'"
             )
 
         return decomposed_circuit

@@ -1,5 +1,5 @@
-from _basis_gateset import BasisGateset
-from _circuit import Circuit
+from ._basis_gateset import BasisGateset
+from ._circuit import Circuit
 
 
 class Program:
@@ -13,4 +13,4 @@ class Program:
         for index, instruction in enumerate(self.instructions):
             circuit, gateset = instruction
             decomposed_circuit = gateset.decompose_circuit(circuit)
-            self.instructions[index] = decomposed_circuit
+            self.instructions[index] = (decomposed_circuit, gateset)

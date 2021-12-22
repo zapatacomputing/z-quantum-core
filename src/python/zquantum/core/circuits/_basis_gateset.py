@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from typing import Sequence
+from typing import Optional, Sequence, Tuple
 
 from typing_extensions import Protocol
 from zquantum.core.circuits._circuit import Circuit
@@ -96,7 +96,19 @@ class RZRYCNOT(BasisGateset):
         return decomposed_circuit
 
 
-def _is_valid_decomposition(circuit, basis_gates):
+def _is_valid_decomposition(
+    circuit: Circuit, basis_gates: Tuple[str, ...]
+) -> Optional[GateOperation]:
+    """Checks if circuit is composed entirely of the gates provided in basis_gates.
+
+    Args:
+        circuit : Circuit to be checked if if is composed of basis gates.
+        basis_gates : Names of the gates which we want to check circuit is composed of.
+
+    Returns:
+        If an operation in circuit is not in the basis_gates, return the operation,
+        otherwise return None.
+    """
     for operation in circuit.operations:
         if operation.gate.name not in basis_gates:
             return operation

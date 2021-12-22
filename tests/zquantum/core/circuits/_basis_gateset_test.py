@@ -2,14 +2,14 @@ import unittest
 
 import numpy as np
 from zquantum.core.circuits import Circuit
-from zquantum.core.circuits._basis_gateset import RZRYCX
+from zquantum.core.circuits._basis_gateset import RZRYCNOT
 from zquantum.core.circuits._builtin_gates import RH, RX
-from zquantum.core.decompositions._ryrzcx_decompositions import RXtoRZRY
+from zquantum.core.decompositions._ryrzcnot_decompositions import RXtoRZRY
 
 
-class test_RZRYCX(unittest.TestCase):
+class test_RZRYCNOT(unittest.TestCase):
     def setUp(self):
-        self.basis = RZRYCX([RXtoRZRY()])
+        self.basis = RZRYCNOT([RXtoRZRY()])
         self.gate_operation = RX(0.2)(2)
         self.invalid_gate_operation = RH(0.3)(0)
         self.circuit = Circuit([self.gate_operation])

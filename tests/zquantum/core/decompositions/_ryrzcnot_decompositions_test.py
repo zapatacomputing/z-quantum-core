@@ -2,10 +2,10 @@ import unittest
 
 import numpy as np
 from zquantum.core.circuits import RX
-from zquantum.core.decompositions._ryrzcx_decompositions import RXtoRZRY
+from zquantum.core.decompositions._ryrzcnot_decompositions import RXtoRZRY
 
 
-class TestDecompositionIntoRYrZcX(unittest.TestCase):
+class TestDecompositionIntoRYRZCNOT(unittest.TestCase):
     def setUp(self) -> None:
         self.decomp_rule = RXtoRZRY()
         self.operation_to_decompose = RX(0.2)(2)

@@ -11,7 +11,7 @@ from zquantum.core.decompositions._decomposition import (
 
 
 class RXtoRZRY(DecompositionRule[GateOperation]):
-    """Decomposition of ZQuantum's RX gate in the RZRYCX gateset.
+    """Decomposition of ZQuantum's RX gate in the RZRYCNOT gateset.
 
     Note that this gets rid of global phase.
     """

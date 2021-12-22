@@ -103,7 +103,7 @@ Extending built-in gates requires:
     explicit mappings.
 """
 
-from ._basis_gateset import RZRYCX, BasisGateset
+from ._basis_gateset import RZRYCNOT, BasisGateset
 from ._builtin_gates import (
     CNOT,
     CPHASE,

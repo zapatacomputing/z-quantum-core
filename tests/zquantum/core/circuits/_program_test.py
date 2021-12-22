@@ -1,14 +1,14 @@
 import unittest
 
 import numpy as np
-from zquantum.core.circuits import RX, RZRYCX, Circuit, Program
-from zquantum.core.decompositions._ryrzcx_decompositions import RXtoRZRY
+from zquantum.core.circuits import RX, RZRYCNOT, Circuit, Program
+from zquantum.core.decompositions._ryrzcnot_decompositions import RXtoRZRY
 
 
 class TestProgram(unittest.TestCase):
     def setUp(self) -> None:
         self.circuit = Circuit([RX(0.2)(1), RX(0.5)(1)])
-        self.basis = RZRYCX([RXtoRZRY()])
+        self.basis = RZRYCNOT([RXtoRZRY()])
         self.program = Program()
 
     def test_append(self):

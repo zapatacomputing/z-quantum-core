@@ -1,8 +1,9 @@
 from abc import abstractmethod
-from typing import Protocol, Sequence
+from typing import Sequence
 
-from _circuit import Circuit
-from _gates import GateOperation
+from typing_extensions import Protocol
+from zquantum.core.circuits._circuit import Circuit
+from zquantum.core.circuits._gates import GateOperation
 
 from ..decompositions._decomposition import (
     DecompositionRule,
@@ -58,15 +59,44 @@ class BasisGateset(Protocol):
 
 class RZRYCX(BasisGateset):
     def __init__(self, decomposition_rules: Sequence[DecompositionRule]) -> None:
+        self.basis_gates = ("RZ", "RY", "CNOT")
         self.decomposition_rules = decomposition_rules
 
     def is_overcomplete(self) -> bool:
         return False
 
     def decompose_operation(self, gate_operation: GateOperation) -> Circuit:
-        return Circuit(decompose_operation(gate_operation, self.decomposition_rules))
+        decomposed_circuit = Circuit(
+            decompose_operation(gate_operation, self.decomposition_rules)
+        )
+        invalid_operation = _is_valid_decomposition(
+            decomposed_circuit, self.basis_gates
+        )
+        if invalid_operation is not None:
+            raise RuntimeError(
+                f"Failed to decompose the operation '{invalid_operation}' into the basis gateset '{self.basis_gates}'"
+            )
+
+        return decomposed_circuit
 
     def decompose_circuit(self, circuit: Circuit) -> Circuit:
-        return Circuit(
+        decomposed_circuit = Circuit(
             decompose_operations(circuit.operations, self.decomposition_rules)
         )
+        invalid_operation = _is_valid_decomposition(
+            decomposed_circuit, self.basis_gates
+        )
+        if invalid_operation is not None:
+            raise RuntimeError(
+                f"Failed to decompose the operation '{invalid_operation}' into the basis gateset '{self.basis_gates}'"
+            )
+
+        return decomposed_circuit
+
+
+def _is_valid_decomposition(circuit, basis_gates):
+    for operation in circuit.operations:
+        if operation.gate.name not in basis_gates:
+            return operation
+
+    return None

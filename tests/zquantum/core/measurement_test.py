@@ -223,16 +223,8 @@ def test_convert_bitstring_to_int():
     assert convert_bitstring_to_int(bitstring) == 42
 
 
-def test_check_parity_of_strings():
-    bitstrings = ["01101", "01001"]
-    marked_qubits = (1, 2, 3)
-    assert np.allclose(
-        check_parity_of_vector(bitstrings, marked_qubits), np.array([1, 0])
-    )
-
-
-def test_check_parity_of_tuples():
-    bitstrings = [(0, 1, 1, 0, 1), (0, 1, 0, 0, 1)]
+def test_check_parity_of_vector():
+    bitstrings = np.array([[0, 1, 1, 0, 1], [0, 1, 0, 0, 1]])
     marked_qubits = (1, 2, 3)
     assert np.allclose(
         check_parity_of_vector(bitstrings, marked_qubits), np.array([1, 0])
@@ -240,7 +232,7 @@ def test_check_parity_of_tuples():
 
 
 def test_check_parity_with_no_marked_qubits():
-    bitstring = ["10", "00"]
+    bitstring = np.array([[1, 0], [0, 0]])
     marked_qubits = []
     assert all(check_parity_of_vector(bitstring, marked_qubits))
 

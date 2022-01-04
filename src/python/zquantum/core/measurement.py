@@ -425,6 +425,24 @@ def convert_bitstring_to_int(bitstring: Sequence[int]) -> int:
     return int("".join(str(bit) for bit in bitstring[::-1]), 2)
 
 
+def check_parity(
+    bitstring: Union[str, Sequence[int]], marked_qubits: Iterable[int]
+) -> bool:
+    """Determine if the marked qubits have even parity for the given bitstring.
+    Args:
+        bitstring: The bitstring, either as a tuple or little endian string.
+        marked_qubits: The qubits whose parity is to be determined.
+    Returns:
+        True if an even number of the marked qubits are in the 1 state, False
+            otherwise.
+    """
+    result = True
+    for qubit_index in marked_qubits:
+        if bitstring[qubit_index] == "1" or bitstring[qubit_index] == 1:
+            result = not result
+    return result
+
+
 def check_parity_of_vector(
     bitstrings_vector: np.ndarray, marked_qubits: Iterable[int]
 ) -> np.ndarray:

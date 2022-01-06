@@ -256,7 +256,7 @@ def test_check_parity_of_vector():
     )
 
 
-def test_check_parity_with_no_marked_qubits():
+def test_check_parity_of_vector_with_no_marked_qubits():
     bitstring = np.array([[1, 0], [0, 0]])
     marked_qubits = []
     assert all(check_parity_of_vector(bitstring, marked_qubits))

@@ -27,6 +27,7 @@ GATES_REPRESENTATIVES = [
     _builtin_gates.YY(sympy.pi),
     _builtin_gates.ZZ(sympy.Symbol("x") + sympy.Symbol("y")),
     _builtin_gates.CPHASE(1.5),
+    _builtin_gates.GPHASE(1.5),
 ]
 
 

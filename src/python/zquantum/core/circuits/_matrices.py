@@ -127,6 +127,15 @@ def u3_matrix(theta, phi, lambda_):
     )
 
 
+def gphase_matrix(angle):
+    return sympy.exp(1j * angle) * sympy.Matrix(
+        [
+            [1, 0],
+            [0, 1],
+        ]
+    )
+
+
 # --- non-parametric two qubit gates ---
 
 

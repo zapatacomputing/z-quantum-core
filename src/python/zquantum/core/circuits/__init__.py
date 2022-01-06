@@ -107,6 +107,7 @@ from ._builtin_gates import (
     CNOT,
     CPHASE,
     CZ,
+    GPHASE,
     ISWAP,
     PHASE,
     RH,

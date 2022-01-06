@@ -446,7 +446,8 @@ def check_parity(
 def check_parity_of_vector(
     bitstrings_vector: np.ndarray, marked_qubits: Iterable[int]
 ) -> np.ndarray:
-    """Determine if the marked qubits have even parity for each bitstring in the given list.
+    """Determine if the marked qubits have even parity for each bitstring in the given
+        vector.
 
     Args:
         bitstring: A 2d array of bitstrings whose size is number of bistrings * number

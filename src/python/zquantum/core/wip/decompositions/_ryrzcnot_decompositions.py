@@ -2,12 +2,8 @@ from typing import Iterable
 
 import numpy as np
 from zquantum.core.circuits._builtin_gates import RY, RZ
-from zquantum.core.circuits._circuit import Circuit
 from zquantum.core.circuits._gates import GateOperation
-from zquantum.core.decompositions._decomposition import (
-    DecompositionRule,
-    decompose_operations,
-)
+from zquantum.core.decompositions._decomposition import DecompositionRule
 
 
 class RXtoRZRY(DecompositionRule[GateOperation]):

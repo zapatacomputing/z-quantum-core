@@ -2,9 +2,9 @@ import unittest
 
 import numpy as np
 from zquantum.core.circuits import Circuit
-from zquantum.core.circuits._basis_gateset import RZRYCNOT
 from zquantum.core.circuits._builtin_gates import RH, RX, RY, RZ
-from zquantum.core.decompositions._ryrzcnot_decompositions import RXtoRZRY
+from zquantum.core.wip.circuits._basis_gateset import RZRYCNOT
+from zquantum.core.wip.decompositions._ryrzcnot_decompositions import RXtoRZRY
 
 
 class test_RZRYCNOT(unittest.TestCase):

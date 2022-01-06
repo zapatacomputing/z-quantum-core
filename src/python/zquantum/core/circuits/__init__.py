@@ -103,7 +103,6 @@ Extending built-in gates requires:
     explicit mappings.
 """
 
-from ._basis_gateset import RZRYCNOT, BasisGateset
 from ._builtin_gates import (
     CNOT,
     CPHASE,
@@ -142,7 +141,6 @@ from ._gates import (
 )
 from ._generators import add_ancilla_register, create_layer_of_gates
 from ._operations import Operation
-from ._program import Program
 from ._serde import (
     circuit_from_dict,
     circuitset_from_dict,

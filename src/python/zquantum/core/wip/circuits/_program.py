@@ -1,5 +1,6 @@
+from zquantum.core.circuits._circuit import Circuit
+
 from ._basis_gateset import BasisGateset
-from ._circuit import Circuit
 
 
 class Program:

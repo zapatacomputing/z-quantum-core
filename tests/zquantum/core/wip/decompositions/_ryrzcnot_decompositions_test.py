@@ -2,7 +2,7 @@ import unittest
 
 import numpy as np
 from zquantum.core.circuits import RX, RY, RZ
-from zquantum.core.decompositions._ryrzcnot_decompositions import RXtoRZRY
+from zquantum.core.wip.decompositions._ryrzcnot_decompositions import RXtoRZRY
 
 
 class TestDecompositionIntoRYRZCNOT(unittest.TestCase):

@@ -1,8 +1,9 @@
 import unittest
 
 import numpy as np
-from zquantum.core.circuits import RX, RY, RZ, RZRYCNOT, Circuit, Program
-from zquantum.core.decompositions._ryrzcnot_decompositions import RXtoRZRY
+from zquantum.core.circuits import RX, RY, RZ, Circuit
+from zquantum.core.wip.circuits import RZRYCNOT, Program
+from zquantum.core.wip.decompositions._ryrzcnot_decompositions import RXtoRZRY
 
 
 class TestProgram(unittest.TestCase):

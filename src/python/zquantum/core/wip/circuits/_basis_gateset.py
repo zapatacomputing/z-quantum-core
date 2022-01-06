@@ -4,8 +4,7 @@ from typing import Optional, Sequence, Tuple
 from typing_extensions import Protocol
 from zquantum.core.circuits._circuit import Circuit
 from zquantum.core.circuits._gates import GateOperation
-
-from ..decompositions._decomposition import (
+from zquantum.core.decompositions._decomposition import (
     DecompositionRule,
     decompose_operation,
     decompose_operations,

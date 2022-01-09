@@ -453,6 +453,9 @@ def check_parity_of_vector(
 ) -> np.ndarray:
     """Determine if the marked qubits have even parity for each bitstring in the given
         vector.
+        NOTE: This performs the same functionality as `check_parity` but is much
+        faster as it uses vectorization to find the parity of multiple bitstrings
+        at once.
 
     Args:
         bitstring: A 2d array of bitstrings whose size is number of bistrings * number

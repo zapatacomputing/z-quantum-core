@@ -432,9 +432,11 @@ def check_parity(
     bitstring: Union[str, Sequence[int]], marked_qubits: Iterable[int]
 ) -> bool:
     """Determine if the marked qubits have even parity for the given bitstring.
+
     Args:
         bitstring: The bitstring, either as a tuple or little endian string.
         marked_qubits: The qubits whose parity is to be determined.
+
     Returns:
         True if an even number of the marked qubits are in the 1 state, False
             otherwise.
@@ -481,17 +483,16 @@ def _convert_bitstrings_to_vector(bitstrings: Iterable[str]) -> np.ndarray:
 def get_expectation_value_from_frequencies(
     marked_qubits: Iterable[int], bitstring_frequencies: Dict[str, int]
 ) -> float:
-    """Get the expectation values of a set of operators (with precisions) from a set of
-    samples (with even/odd parities) for them.
+    """Get the expectation value the product of Z operators on selected qubits
+    from bitstring frequencies.
 
     Args:
-        parities: Contains the number of samples with even and odd parities for each
-            operator.
+        marked_qubits: The qubits that the Z operators act on.
+        bitstring_frequences: The frequencies of the bitstrings.
 
     Returns:
-        Expectation values of the operators and the associated precisions.
+        The expectation value of the product of Z operators on selected qubits.
     """
-    expectation = 0.0
 
     parity = (
         check_parity_of_vector(
@@ -508,9 +509,7 @@ def get_expectation_value_from_frequencies(
         / num_measurements
     )
 
-    expectation += expectation_values.sum()
-
-    return expectation
+    return expectation_values.sum()
 
 
 def _check_sample_elimination(

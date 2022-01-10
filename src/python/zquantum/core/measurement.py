@@ -350,17 +350,20 @@ def get_parities_from_measurements(
 
     # Count number of occurrences of bitstrings
     bitstring_frequencies = Counter(measurements)
+    bitstrings_vector = np.array([*bitstring_frequencies.keys()])
+    bitstring_counts: np.ndarray = np.fromiter(
+        bitstring_frequencies.values(), dtype=int
+    )
 
     # Count parity occurrences
     values = []
     for _, term in enumerate(ising_operator.terms):
-        values.append([0, 0])
         marked_qubits = [op[0] for op in term]
-        for bitstring, count in bitstring_frequencies.items():
-            if check_parity(bitstring, marked_qubits):
-                values[-1][0] += count
-            else:
-                values[-1][1] += count
+        parity = check_parity_of_vector(bitstrings_vector, marked_qubits)
+
+        true_parity_count: int = (parity * bitstring_counts).sum()
+        false_parity_count: int = ((1 - parity) * bitstring_counts).sum()
+        values.append([true_parity_count, false_parity_count])
 
     # Count parity occurrences for pairwise products of operators
     correlations = [np.zeros((len(ising_operator.terms), len(ising_operator.terms), 2))]
@@ -368,13 +371,23 @@ def get_parities_from_measurements(
         for term2_index, term2 in enumerate(ising_operator.terms):
             marked_qubits_term1 = [op[0] for op in term1]
             marked_qubits_term2 = [op[0] for op in term2]
-            for bitstring, count in bitstring_frequencies.items():
-                parity1 = check_parity(bitstring, marked_qubits_term1)
-                parity2 = check_parity(bitstring, marked_qubits_term2)
-                if parity1 == parity2:
-                    correlations[0][term1_index, term2_index][0] += count
-                else:
-                    correlations[0][term1_index, term2_index][1] += count
+
+            parity1 = check_parity_of_vector(bitstrings_vector, marked_qubits_term1)
+            parity2 = check_parity_of_vector(bitstrings_vector, marked_qubits_term2)
+
+            equal_parities = np.abs(
+                parity1 - parity2
+            )  # 0 if parities are equal, 1 otherwise
+
+            # Counts of bitstrings where parity is equal
+            correlations[0][term1_index, term2_index][0] += (
+                (1 - equal_parities) * bitstring_counts
+            ).sum()
+
+            # Counts of bitstrings where parity is not equal
+            correlations[0][term1_index, term2_index][1] += (
+                (equal_parities) * bitstring_counts
+            ).sum()
 
     return Parities(np.array(values), correlations)
 
@@ -435,6 +448,41 @@ def check_parity(
     return result
 
 
+def check_parity_of_vector(
+    bitstrings_vector: np.ndarray, marked_qubits: Iterable[int]
+) -> np.ndarray:
+    """Determine if the marked qubits have even parity for each bitstring in the given
+        vector.
+        NOTE: This performs the same functionality as `check_parity` but is much
+        faster as it uses vectorization to find the parity of multiple bitstrings
+        at once.
+
+    Args:
+        bitstring: A 2d array of bitstrings whose size is number of bistrings * number
+            of qubits
+        marked_qubits: The qubits whose parity is to be determined.
+
+    Returns:
+        A 1d array with size equal to number of bitstrings. Each entry is 1 if an even
+        number of the marked qubits of the corresponding bitstring are in the 1 state
+        and 0 if otherwise.
+    """
+    if not marked_qubits:
+        return np.ones(bitstrings_vector.shape[0])
+
+    # Check if an even number of the marked qubits of each bitstring are in the 1 state
+    bitstring_subset = bitstrings_vector[:, np.fromiter(marked_qubits, dtype=int)]
+    return (bitstring_subset.sum(axis=1) + 1) % 2
+
+
+def _convert_bitstrings_to_vector(bitstrings: Iterable[str]) -> np.ndarray:
+    """Converts bitstrings to vector so parity can be checked."""
+    n_qubits = len([*bitstrings][0])
+    all_bits = "".join(bitstrings)
+    bitstring_1d_array = np.frombuffer(all_bits.encode("utf-8"), "u1") - ord("0")
+    return bitstring_1d_array.astype(int).reshape(-1, n_qubits)
+
+
 def get_expectation_value_from_frequencies(
     marked_qubits: Iterable[int], bitstring_frequencies: Dict[str, int]
 ) -> float:
@@ -449,16 +497,22 @@ def get_expectation_value_from_frequencies(
         The expectation value of the product of Z operators on selected qubits.
     """
 
-    expectation = 0.0
+    parity = (
+        check_parity_of_vector(
+            _convert_bitstrings_to_vector(bitstring_frequencies.keys()),
+            marked_qubits,
+        )
+        * 2
+        - 1
+    )
     num_measurements = sum(bitstring_frequencies.values())
-    for bitstring, count in bitstring_frequencies.items():
-        if check_parity(bitstring, marked_qubits):
-            value = float(count) / num_measurements
-        else:
-            value = -float(count) / num_measurements
-        expectation += value
+    expectation_values: np.ndarray = (
+        np.fromiter(bitstring_frequencies.values(), dtype=int)
+        * parity
+        / num_measurements
+    )
 
-    return expectation
+    return expectation_values.sum()
 
 
 def _check_sample_elimination(

@@ -140,7 +140,7 @@ def _are_keys_non_negative_integer_tuples(
         bool: boolean variable indicating whether dict keys are binary strings or not.
     """
     return all(
-        all(isinstance(sub, np.integer) and sub >= 0 for sub in key)
+        all(isinstance(sub, (int, np.integer)) and sub >= 0 for sub in key)
         for key in input_dict.keys()
     )
 

@@ -21,7 +21,6 @@ class RXtoRZRY(DecompositionRule[GateOperation]):
             RZ(np.pi / 2)(indices),
             RY(lambda_)(indices),
             RZ(-np.pi / 2)(indices),
-            GPHASE(-np.pi / 2)(indices),
         ]
 
 
@@ -39,5 +38,4 @@ class XtoRZRY(DecompositionRule[GateOperation]):
             RZ(np.pi / 2)(indices),
             RY(np.pi / 2)(indices),
             RZ(-np.pi / 2)(indices),
-            GPHASE(-np.pi / 2)(indices),
         ]

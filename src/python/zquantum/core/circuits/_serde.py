@@ -1,7 +1,7 @@
 import json
-from functools import singledispatch
-from typing import Iterable, List, Mapping, Union, Dict
 import re
+from functools import singledispatch
+from typing import Dict, Iterable, List, Mapping, Union
 
 import sympy
 from zquantum.core.typing import DumpTarget, LoadSource

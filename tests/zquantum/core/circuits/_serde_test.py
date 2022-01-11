@@ -5,6 +5,7 @@ import pytest
 import sympy
 from zquantum.core.circuits import _builtin_gates, _circuit, _gates
 from zquantum.core.circuits._serde import (
+    _make_symbols_map,
     circuit_from_dict,
     circuitset_from_dict,
     custom_gate_def_from_dict,
@@ -15,7 +16,6 @@ from zquantum.core.circuits._serde import (
     save_circuitset,
     serialize_expr,
     to_dict,
-    _make_symbols_map,
 )
 
 ALPHA = sympy.Symbol("alpha")

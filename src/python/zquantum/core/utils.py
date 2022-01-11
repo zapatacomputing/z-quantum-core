@@ -467,7 +467,7 @@ def load_noise_model(file: LoadSource):
         specs = json.load(file)  # type: ignore
     # noise_model_data = specs.pop("data", None)
     func = create_object({k: v for k, v in specs.items() if k != "data"})
-    return func(specs)
+    return func({"data": specs["data"]})
 
 
 def save_noise_model(

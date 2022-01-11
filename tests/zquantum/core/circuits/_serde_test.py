@@ -15,11 +15,13 @@ from zquantum.core.circuits._serde import (
     save_circuitset,
     serialize_expr,
     to_dict,
+    _make_symbols_map,
 )
 
 ALPHA = sympy.Symbol("alpha")
 GAMMA = sympy.Symbol("gamma")
 THETA = sympy.Symbol("theta")
+PARAMETER_VECTOR = [sympy.Symbol("p[0]"), sympy.Symbol("p[1]")]
 
 
 CUSTOM_U_GATE = _gates.CustomGateDefinition(
@@ -118,6 +120,11 @@ EXAMPLE_CIRCUITS = [
             _builtin_gates.RX(GAMMA * ALPHA).dagger(1),
         ]
     ),
+    _circuit.Circuit(
+        [
+            _builtin_gates.RY(PARAMETER_VECTOR[0] * PARAMETER_VECTOR[1])(1),
+        ]
+    ),
 ]
 
 
@@ -212,3 +219,11 @@ class TestIOHelpers:
         save_circuitset(circuitset, buf)
         buf.seek(0)
         assert load_circuitset(buf) == circuitset
+
+
+def test_make_symbols_map():
+    symbols_map = _make_symbols_map(["x", "y[2]", "y[3]"])
+    assert symbols_map == {
+        "x": sympy.Symbol("x"),
+        "y": {2: sympy.Symbol("y[2]"), 3: sympy.Symbol("y[3]")},
+    }

@@ -1,6 +1,7 @@
 import json
 from functools import singledispatch
-from typing import Iterable, List, Mapping
+from typing import Iterable, List, Mapping, Union
+import re
 
 import sympy
 from zquantum.core.typing import DumpTarget, LoadSource
@@ -17,8 +18,21 @@ def serialize_expr(expr: sympy.Expr):
     return str(expr)
 
 
-def _make_symbols_map(symbol_names):
-    return {name: sympy.Symbol(name) for name in symbol_names}
+def _make_symbols_map(
+    symbol_names: Iterable[str],
+) -> Mapping[str, Union[sympy.Symbol, Mapping[int, sympy.Symbol]]]:
+    symbols_map: Mapping[str, Union[sympy.Symbol, Mapping[int, sympy.Symbol]]] = {}
+    for name in symbol_names:
+        # Check if the symbol name has brackets, such as "x[4]"
+        match = re.search(r"^(.*)\[([0-9]+)\]$", name)
+        if match:
+            if symbols_map.get(match.group(1)) is None:
+                symbols_map[match.group(1)] = {}
+            symbols_map[match.group(1)][int(match.group(2))] = sympy.Symbol(name)
+        else:
+            symbols_map[name] = sympy.Symbol(name)
+
+    return symbols_map
 
 
 def deserialize_expr(expr_str, symbol_names):

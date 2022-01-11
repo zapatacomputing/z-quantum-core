@@ -1,6 +1,6 @@
 import json
 from functools import singledispatch
-from typing import Iterable, List, Mapping, Union
+from typing import Iterable, List, Mapping, Union, Dict
 import re
 
 import sympy
@@ -20,8 +20,8 @@ def serialize_expr(expr: sympy.Expr):
 
 def _make_symbols_map(
     symbol_names: Iterable[str],
-) -> Mapping[str, Union[sympy.Symbol, Mapping[int, sympy.Symbol]]]:
-    symbols_map: Mapping[str, Union[sympy.Symbol, Mapping[int, sympy.Symbol]]] = {}
+) -> Dict[str, Union[sympy.Symbol, Dict[int, sympy.Symbol]]]:
+    symbols_map: Dict[str, Union[sympy.Symbol, Dict[int, sympy.Symbol]]] = {}
     for name in symbol_names:
         # Check if the symbol name has brackets, such as "x[4]"
         match = re.search(r"^(.*)\[([0-9]+)\]$", name)

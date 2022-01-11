@@ -4,7 +4,7 @@ from unittest.mock import Mock
 import numpy as np
 import pytest
 import sympy
-from zquantum.core.circuits import ControlledGate, _builtin_gates
+from zquantum.core.circuits import _builtin_gates
 from zquantum.core.circuits._gates import GateOperation, MatrixFactoryGate
 
 GATES_REPRESENTATIVES = [

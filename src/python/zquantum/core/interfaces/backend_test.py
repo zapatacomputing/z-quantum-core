@@ -88,7 +88,7 @@ class QuantumBackendTests:
         assert backend.number_of_circuits_run == 1
         assert backend.number_of_jobs_run == 1
 
-    @pytest.mark.parametrize("n_samples", [-1, 0, 100.2, 1000.0])
+    @pytest.mark.parametrize("n_samples", [-1, 0])
     def test_run_circuit_and_measure_fails_for_invalid_n_samples(
         self, backend, n_samples
     ):
@@ -96,7 +96,7 @@ class QuantumBackendTests:
         circuit = Circuit([X(0), X(0), X(1), X(1), X(2)])
 
         # When
-        with pytest.raises(AssertionError):
+        with pytest.raises(ValueError):
             backend.run_circuit_and_measure(circuit, n_samples)
 
     @pytest.mark.parametrize("n_samples", [1, 2, 10, 100])

@@ -18,9 +18,9 @@ class RXtoRZRY(DecompositionRule[GateOperation]):
         indices = operation.qubit_indices[0]
 
         return [
-            RZ(np.pi / 2)(indices),
+            RZ(-np.pi/2)(indices),
             RY(lambda_)(indices),
-            RZ(-np.pi / 2)(indices),
+            RZ(np.pi/2)(indices),
         ]
 
 
@@ -35,7 +35,8 @@ class XtoRZRY(DecompositionRule[GateOperation]):
         indices = operation.qubit_indices[0]
 
         return [
-            RZ(np.pi / 2)(indices),
-            RY(np.pi / 2)(indices),
-            RZ(-np.pi / 2)(indices),
+            GPHASE(np.pi/2)(indices),
+            RZ(-np.pi/2)(indices),
+            RY(np.pi)(indices),
+            RZ(np.pi/2)(indices),
         ]

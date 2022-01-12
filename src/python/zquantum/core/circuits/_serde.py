@@ -23,10 +23,14 @@ def _make_symbols_map(
 ) -> Dict[str, Union[sympy.Symbol, Dict[int, sympy.Symbol]]]:
     symbols_map: Dict[str, Union[sympy.Symbol, Dict[int, sympy.Symbol]]] = {}
     for name in symbol_names:
-        # Check if the symbol name has brackets, such as "x[4]"
+        # Check if the symbol name has brackets, such as "x[4]". Such symbol names will
+        # occur in circuits imported from Qiskit when the Qiskit circuit was
+        # parameterized using a Qiskit ParameterVector.
         match = re.search(r"^(.*)\[([0-9]+)\]$", name)
         if match:
-            symbols_map.setdefault(match.group(1), {})[int(match.group(2))] = sympy.Symbol(name)
+            symbols_map.setdefault(match.group(1), {})[
+                int(match.group(2))
+            ] = sympy.Symbol(name)
         else:
             symbols_map[name] = sympy.Symbol(name)
 

@@ -5,7 +5,6 @@ import pytest
 import sympy
 from zquantum.core.circuits import _builtin_gates, _circuit, _gates
 from zquantum.core.circuits._serde import (
-    _make_symbols_map,
     circuit_from_dict,
     circuitset_from_dict,
     custom_gate_def_from_dict,
@@ -219,11 +218,3 @@ class TestIOHelpers:
         save_circuitset(circuitset, buf)
         buf.seek(0)
         assert load_circuitset(buf) == circuitset
-
-
-def test_make_symbols_map():
-    symbols_map = _make_symbols_map(["x", "y[2]", "y[3]"])
-    assert symbols_map == {
-        "x": sympy.Symbol("x"),
-        "y": {2: sympy.Symbol("y[2]"), 3: sympy.Symbol("y[3]")},
-    }

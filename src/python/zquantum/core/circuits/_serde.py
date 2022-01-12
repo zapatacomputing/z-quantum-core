@@ -26,9 +26,7 @@ def _make_symbols_map(
         # Check if the symbol name has brackets, such as "x[4]"
         match = re.search(r"^(.*)\[([0-9]+)\]$", name)
         if match:
-            if symbols_map.get(match.group(1)) is None:
-                symbols_map[match.group(1)] = {}
-            symbols_map[match.group(1)][int(match.group(2))] = sympy.Symbol(name)
+            symbols_map.setdefault(match.group(1), {})[int(match.group(2))] = sympy.Symbol(name)
         else:
             symbols_map[name] = sympy.Symbol(name)
 

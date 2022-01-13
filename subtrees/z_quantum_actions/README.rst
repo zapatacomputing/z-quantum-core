@@ -18,6 +18,7 @@ Files for Python development:
    * Makefile: Makefile to build, test, lint, etc... To be included in top level
    * pyproject.toml: A sample pyproject.toml file. Can be symlinked in top level
    * pytest.ini: A sample pytest.ini, can be symlinked
+   * MANIFEST.in: Standard set of non-Python files that should be included in distributions. To be symlinked in top level
    * sample_setup.py: a sample setup.py file
    * setup_extras.py: extra imports for setup.py develop mode
    * variables.mk: Makefile global variables
@@ -136,21 +137,20 @@ Configuring setup.py
 Inside of setup.py we need to make sure the extras are in place::
 
     try:
-        from subtrees/z_quantum_actions.setup_extras import extras
+        from subtrees.z_quantum_actions.setup_extras import extras
     except ImportError:
-        print("Unable to import extras")
-        extras = {}
-    else:
-        print("Imported subtrees/z_quantum_actions.setup_extras.extras")
+        print("Unable to import extras", file=sys.stderr)
+        extras = {"develop": []}
 
-If you have other additions to extras_requirements, you need to add those in
-manually before you call *setup()* ::
+If you have other additions to extras you need to extend the standardized ones
+provided by this repo. Inside your *setup()* do ::
 
-    extras.get('develop').append('my_requirement>=1.2.0')
-
-Finally, inside of *setup()* set ::
-
-    extras_require=extras,
+    extras_require={
+        "develop": [
+            *extras["develop"],
+            "my_requirement~=1.2",
+        ],
+    }
 
 Configuring pyproject.toml
 ---------------------------
@@ -164,33 +164,9 @@ If you have other requirements, those must be included as needed.
 
 Pytest Configuraiton
 =========================
-The included Makefile allow us to simply do a *make test* and *make coverage*.
+The included Makefile allows us to simply do a *make test* and *make coverage*.
 Because ``pytest.ini`` is fully supported (as compared with ``pyproject.toml``)
 we use that for now. You can soft-link it similarly to before::
 
     cd ~/z-quantum-somerepo
     ln -s subtrees/z_quantum_actions/pytest.ini .
-
-Marking Tests
---------------
-We have included one Pytest mark in ``pytest.ini``:
-
-* integration
-
-You can apply the decorator at either the class, method, or function level::
-
-    @pytest.mark.integration
-
-To make life as easy as possible you can also mark an entire Pytest module file
-like this::
-
-    import pytest
-    pytestmark = pytest.mark.integration
-
-or for multiple markers::
-
-    pytestmark = [pytest.mark.integration, pytest.mark.ufo]
-
-By default integration tests are disabled. In order to enable them you can just define
-   a new *test* target as *pytest tests* (removing the *-m integration*) and forget
-   about all the markings.

@@ -20,6 +20,7 @@ from zquantum.core.circuits._serde import (
 ALPHA = sympy.Symbol("alpha")
 GAMMA = sympy.Symbol("gamma")
 THETA = sympy.Symbol("theta")
+PARAMETER_VECTOR = [sympy.Symbol("p[0]"), sympy.Symbol("p[1]")]
 
 
 CUSTOM_U_GATE = _gates.CustomGateDefinition(
@@ -116,6 +117,11 @@ EXAMPLE_CIRCUITS = [
     _circuit.Circuit(
         [
             _builtin_gates.RX(GAMMA * ALPHA).dagger(1),
+        ]
+    ),
+    _circuit.Circuit(
+        [
+            _builtin_gates.RY(PARAMETER_VECTOR[0] * PARAMETER_VECTOR[1])(1),
         ]
     ),
 ]

@@ -28,7 +28,8 @@ module = [
     'lea',
     'rapidjson',
     'pkg_resources',
-    'networkx'
+    'networkx',
+    'overrides'
 ]
 ignore_missing_imports = true
 

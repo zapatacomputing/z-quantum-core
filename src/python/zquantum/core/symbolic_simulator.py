@@ -28,7 +28,7 @@ class SymbolicSimulator(QuantumSimulator):
         self,
         circuit: Circuit,
         n_samples: int,
-        symbol_map: Optional[Dict[Symbol, Any]] = {},
+        symbol_map: Optional[Dict[Symbol, Any]] = None,
     ) -> Measurements:
         """Run a circuit and measure a certain number of bitstrings
 
@@ -36,7 +36,9 @@ class SymbolicSimulator(QuantumSimulator):
             circuit: the circuit to prepare the state
             n_samples: the number of bitstrings to sample
         """
-        wavefunction = self.get_wavefunction(circuit.bind(symbol_map))
+        wavefunction = self.get_wavefunction(
+            circuit if symbol_map is None else circuit.bind(symbol_map)
+        )
 
         if wavefunction.free_symbols:
             raise ValueError(

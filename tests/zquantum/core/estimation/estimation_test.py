@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 import sympy
 from openfermion import IsingOperator, QubitOperator, qubit_operator_sparse
-from zquantum.core.circuits import RX, RY, RZ, Circuit, H, X
+from zquantum.core.circuits import RX, RY, RZ, Circuit, H, I, X
 from zquantum.core.estimation import (
     allocate_shots_proportionally,
     allocate_shots_uniformly,
@@ -20,7 +20,7 @@ from zquantum.core.estimation import (
 )
 from zquantum.core.interfaces.estimation import EstimationTask
 from zquantum.core.interfaces.mock_objects import MockQuantumBackend
-from zquantum.core.measurement import ExpectationValues
+from zquantum.core.measurement import ExpectationValues, Measurements
 from zquantum.core.openfermion._utils import change_operator_type
 from zquantum.core.symbolic_simulator import SymbolicSimulator
 
@@ -584,8 +584,33 @@ TEST_CASES_EIGENSTATES = [
                 circuit=Circuit([RY(np.pi / 4)(0)]),
                 number_of_shots=30,
             ),
+            # tests correlation
+            EstimationTask(
+                IsingOperator("[Z0] + [Z1]"),
+                circuit=Circuit([X(0), X(1)]),
+                number_of_shots=10,
+            ),
+            # tests negative correlation
+            EstimationTask(
+                IsingOperator("[Z0] + [Z1]"),
+                circuit=Circuit([X(1)]),
+                number_of_shots=10,
+            ),
         ],
-        [ExpectationValues(np.array([-1])), ExpectationValues(np.array([2]))],
+        [
+            ExpectationValues(np.array([-1]), [np.array([[1]])], [np.array([[0]])]),
+            ExpectationValues(np.array([2]), [np.array([[0]])], [np.array([[0]])]),
+            ExpectationValues(
+                np.array([-1, -1]),
+                [np.array([[1, 1], [1, 1]])],
+                [np.array([[0, 0], [0, 0]])],
+            ),
+            ExpectationValues(
+                np.array([1, -1]),
+                [np.array([[1, -1], [-1, 1]])],
+                [np.array([[0, 0], [0, 0]])],
+            ),
+        ],
     ),
 ]
 TEST_CASES_NONEIGENSTATES = [
@@ -603,11 +628,66 @@ TEST_CASES_NONEIGENSTATES = [
             ),
         ],
         [
-            ExpectationValues(np.array([0])),
-            ExpectationValues(np.array([-2 * (np.cos(np.pi / 8) ** 2 - 0.5) * 2])),
+            ExpectationValues(np.array([0]), [np.array([[1]])], [np.array([[0.001]])]),
+            ExpectationValues(
+                np.array([-2 * (np.cos(np.pi / 8) ** 2 - 0.5) * 2]),
+                [np.array([[4]])],
+                [np.array([[0.002]])],
+            ),
         ],
     ),
 ]
+""" When number_of_shots is high, the covariance will tend to zero. So we need extra
+test cases to ensure covariance is being caluclated correctly.
+
+Since we generate the data with MockBackendForTestingCovariancewhenNumberOfShotsIsLow
+the estimation tasks can be arbitrary. They just need a valid circuit, number of shots
+and have 2 terms in the IsingOperator."""
+TEST_CASES_NONEIGENSTATES_WITH_LOW_NUMBER_OF_SHOTS = [
+    (
+        4
+        * [
+            EstimationTask(
+                IsingOperator("[Z0] + [Z1]"),
+                circuit=Circuit([X(0), X(1)]),
+                number_of_shots=10,
+            ),
+        ],
+        [
+            ExpectationValues(
+                np.array([0]),
+                [np.array([[1, 0], [0, 1]])],
+                [np.array([[0, 0], [0, 0.5]])],
+            ),
+            ExpectationValues(
+                np.array([0]),
+                [np.array([[1, 0], [0, 1]])],
+                [np.array([[0.5, 0], [0, 0]])],
+            ),
+            ExpectationValues(
+                np.array([0]),
+                [np.array([[1, -1], [-1, 1]])],
+                [np.array([[0.5, -0.5], [-0.5, 0.5]])],
+            ),
+            ExpectationValues(
+                np.array([0]),
+                [np.array([[1, 1], [1, 1]])],
+                [np.array([[0.05, 0.05], [0.05, 0.05]])],
+            ),
+        ],
+    ),
+]
+
+
+# needs its own class otherwise issues arise with calling run_circuitset_and_measure.
+class MockBackendForTestingCovariancewhenNumberOfShotsIsLow:
+    def run_circuitset_and_measure(self, circuit, shots_per_circuit):
+        return [
+            Measurements([(0, 1), (0, 0)]),
+            Measurements([(1, 0), (0, 0)]),
+            Measurements([(1, 0), (0, 1)]),
+            Measurements([(1, 1), (0, 0)] * 10),
+        ]
 
 
 class TestBasicEstimationMethods:
@@ -649,7 +729,6 @@ class TestBasicEstimationMethods:
             expectation_values_list, target_expectations, estimation_tasks
         ):
             assert len(expectation_values.values) == len(task.operator.terms)
-            # TODO: add tests for correlations and covariances
             np.testing.assert_array_equal(expectation_values.values, target.values)
 
     @pytest.mark.parametrize(
@@ -666,7 +745,6 @@ class TestBasicEstimationMethods:
             expectation_values_list, target_expectations, estimation_tasks
         ):
             assert len(expectation_values.values) == len(task.operator.terms)
-            # TODO: add tests for correlations and covariances
             np.testing.assert_allclose(
                 expectation_values.values, target.values, atol=0.1
             )
@@ -685,9 +763,85 @@ class TestBasicEstimationMethods:
             expectation_values_list, target_expectations, estimation_tasks
         ):
             assert len(expectation_values.values) == len(task.operator.terms)
-            # TODO: add tests for correlations and covariances
             np.testing.assert_array_almost_equal(
                 expectation_values.values, target.values
+            )
+
+    @pytest.mark.parametrize(
+        "estimation_tasks,target_expectations", TEST_CASES_EIGENSTATES
+    )
+    def test_covariance_and_correlations_when_averaging_for_eigenstates(
+        self, simulator, estimation_tasks, target_expectations
+    ):
+        expectation_values_list = estimate_expectation_values_by_averaging(
+            simulator, estimation_tasks
+        )
+        for expectation_values, target, task in zip(
+            expectation_values_list, target_expectations, estimation_tasks
+        ):
+            for cov, corr, target_corr, target_cov in zip(
+                expectation_values.estimator_covariances,
+                expectation_values.correlations,
+                target.correlations,
+                target.estimator_covariances,
+            ):
+                assert len(corr) == len(task.operator.terms)
+                assert len(cov) == len(task.operator.terms)
+
+                np.testing.assert_array_almost_equal(corr, target_corr, decimal=2)
+                np.testing.assert_array_almost_equal(cov, target_cov, decimal=2)
+
+    @pytest.mark.parametrize(
+        "estimation_tasks,target_expectations",
+        TEST_CASES_NONEIGENSTATES,
+    )
+    def test_correlation_and_covariance_when_averaging_for_non_eigenstates(
+        self, simulator, estimation_tasks, target_expectations
+    ):
+
+        expectation_values_list = estimate_expectation_values_by_averaging(
+            simulator, estimation_tasks
+        )
+        for expectation_values, target, task in zip(
+            expectation_values_list, target_expectations, estimation_tasks
+        ):
+            for cov, corr, target_corr, target_cov in zip(
+                expectation_values.estimator_covariances,
+                expectation_values.correlations,
+                target.correlations,
+                target.estimator_covariances,
+            ):
+                assert len(corr) == len(task.operator.terms)
+                assert len(cov) == len(task.operator.terms)
+
+                np.testing.assert_array_almost_equal(corr, target_corr, decimal=1)
+                # All covariances should be close to 0 when number_of_shots is high.
+                np.testing.assert_array_almost_equal(target_cov, cov, decimal=2)
+
+    @pytest.mark.parametrize(
+        "mock_estimation_tasks, target_expectations",
+        TEST_CASES_NONEIGENSTATES_WITH_LOW_NUMBER_OF_SHOTS,
+    )
+    def test_covariance_when_averaging_for_non_eigenstates_and_number_of_shots_is_low(
+        self, mock_estimation_tasks, target_expectations
+    ):
+
+        expectation_values_list = estimate_expectation_values_by_averaging(
+            MockBackendForTestingCovariancewhenNumberOfShotsIsLow(),
+            mock_estimation_tasks,
+        )
+        for expectation_values, target in zip(
+            expectation_values_list, target_expectations
+        ):
+            np.testing.assert_array_almost_equal(
+                expectation_values.correlations,
+                target.correlations,
+                decimal=2,
+            )
+            np.testing.assert_array_almost_equal(
+                expectation_values.estimator_covariances,
+                target.estimator_covariances,
+                decimal=2,
             )
 
     def test_calculate_exact_expectation_values_fails_with_non_simulator(
@@ -696,3 +850,19 @@ class TestBasicEstimationMethods:
         backend = MockQuantumBackend()
         with pytest.raises(AttributeError):
             _ = calculate_exact_expectation_values(backend, estimation_tasks)
+
+    def test_no_measured_estimation_tasks_provided(simulator):
+        estimation_tasks = [
+            EstimationTask(IsingOperator("Z0"), Circuit([H(0)]), 0),
+        ]
+
+        target = [
+            ExpectationValues(np.array([0.0]), [np.array([[0.0]])], [np.array([0.0])])
+        ]
+
+        expectation_values_list = estimate_expectation_values_by_averaging(
+            simulator, estimation_tasks
+        )
+
+        assert len(expectation_values_list) == 1
+        assert expectation_values_list[0] == target[0]

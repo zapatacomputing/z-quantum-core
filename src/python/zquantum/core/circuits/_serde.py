@@ -1,6 +1,7 @@
 import json
+import re
 from functools import singledispatch
-from typing import Iterable, List, Mapping
+from typing import Dict, Iterable, List, Mapping, Union
 
 import sympy
 from zquantum.core.typing import DumpTarget, LoadSource
@@ -17,8 +18,23 @@ def serialize_expr(expr: sympy.Expr):
     return str(expr)
 
 
-def _make_symbols_map(symbol_names):
-    return {name: sympy.Symbol(name) for name in symbol_names}
+def _make_symbols_map(
+    symbol_names: Iterable[str],
+) -> Dict[str, Union[sympy.Symbol, Dict[int, sympy.Symbol]]]:
+    symbols_map: Dict[str, Union[sympy.Symbol, Dict[int, sympy.Symbol]]] = {}
+    for name in symbol_names:
+        # Check if the symbol name has brackets, such as "x[4]". Such symbol names will
+        # occur in circuits imported from Qiskit when the Qiskit circuit was
+        # parameterized using a Qiskit ParameterVector.
+        match = re.search(r"^(.*)\[([0-9]+)\]$", name)
+        if match:
+            symbols_map.setdefault(match.group(1), {})[
+                int(match.group(2))
+            ] = sympy.Symbol(name)
+        else:
+            symbols_map[name] = sympy.Symbol(name)
+
+    return symbols_map
 
 
 def deserialize_expr(expr_str, symbol_names):

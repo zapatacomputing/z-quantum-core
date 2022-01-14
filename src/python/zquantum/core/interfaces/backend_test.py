@@ -386,14 +386,14 @@ class QuantumSimulatorTests(QuantumBackendTests):
         assert wf_simulator.number_of_circuits_run == 1
         assert wf_simulator.number_of_jobs_run == 1
 
-    def test_get_distribution_wf_simulators(self, wf_simulator):
+    def test_get_measurement_outcome_distribution_wf_simulators(self, wf_simulator):
         # Given
         wf_simulator.number_of_circuits_run = 0
         wf_simulator.number_of_jobs_run = 0
         circuit = Circuit([H(0), CNOT(0, 1), CNOT(1, 2)])
 
         # When
-        distribution = wf_simulator.get_bitstring_distribution(circuit)
+        distribution = wf_simulator.get_measurement_outcome_distribution(circuit)
 
         # Then
         assert isinstance(distribution, MeasurementOutcomeDistribution)

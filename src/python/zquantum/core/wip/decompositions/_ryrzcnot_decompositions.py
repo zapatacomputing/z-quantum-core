@@ -1,7 +1,7 @@
 from typing import Iterable
 
 import numpy as np
-from zquantum.core.circuits._builtin_gates import GPHASE, RY, RZ
+from zquantum.core.circuits._builtin_gates import GPHASE, RY, RZ, CNOT
 from zquantum.core.circuits._gates import GateOperation
 from zquantum.core.decompositions._decomposition import DecompositionRule
 
@@ -140,8 +140,8 @@ class HtoRZRY(DecompositionRule[GateOperation]):
         indices = operation.qubit_indices[0]
 
         return [
-            RY(np.pi/2)(indices),
             GPHASE(np.pi/2)(indices),
+            RY(np.pi/2)(indices),
             RZ(np.pi)(indices),
         ]
 
@@ -175,4 +175,89 @@ class TtoRZRY(DecompositionRule[GateOperation]):
         return [
             RZ(np.pi / 4)(indices),
             GPHASE(np.pi / 8)(indices),
+        ]
+
+
+class CPHASEtoRZRYCNOT(DecompositionRule[GateOperation]):
+    """Decomposition of ZQuantum's CPHASE gate in the RZRYCNOT gateset."""
+
+    def predicate(self, operation: GateOperation) -> bool:
+        # Only decompose CZ to CNOT, RZ and RY
+        return operation.gate.name == "CPHASE"
+
+    def production(self, operation: GateOperation) -> Iterable[GateOperation]:
+        alpha = operation.params[0]
+        control_qubit = operation.qubit_indices[0]
+        target_qubit = operation.qubit_indices[1]
+
+        return [
+            RZ(-alpha / 2)(target_qubit),
+            CNOT(control_qubit, target_qubit),
+            RZ(-alpha / 2),
+            CNOT(control_qubit, target_qubit),
+            RZ(alpha),
+            GPHASE(alpha / 2),
+        ]
+
+
+class CZtoRZRYCNOT(DecompositionRule[GateOperation]):
+    """Decomposition of ZQuantum's CZ gate in the RZRYCNOT gateset."""
+
+    def predicate(self, operation: GateOperation) -> bool:
+        # Only decompose CZ to CNOT, RZ and RY
+        return operation.gate.name == "CZ"
+
+    def production(self, operation: GateOperation) -> Iterable[GateOperation]:
+        control_qubit = operation.qubit_indices[0]
+        target_qubit = operation.qubit_indices[1]
+
+        return [
+            GPHASE(np.pi/2)(target_qubit),
+            RY(np.pi/2)(target_qubit),
+            RZ(np.pi)(target_qubit),
+            CNOT(control_qubit, target_qubit),
+            GPHASE(np.pi/2)(target_qubit),
+            RY(np.pi/2)(target_qubit),
+            RZ(np.pi)(target_qubit),
+        ]
+
+
+class SWAPtoRZRYCNOT(DecompositionRule[GateOperation]):
+    """Decomposition of ZQuantum's SWAP gate in the RZRYCNOT gateset."""
+
+    def predicate(self, operation: GateOperation) -> bool:
+        # Only decompose SWAP to CNOT
+        return operation.gate.name == "SWAP"
+
+    def production(self, operation: GateOperation) -> Iterable[GateOperation]:
+        control_qubit = operation.qubit_indices[0]
+        target_qubit = operation.qubit_indices[1]
+
+        return [
+            CNOT(control_qubit, target_qubit),
+            CNOT(target_qubit, control_qubit),
+            CNOT(control_qubit, target_qubit),
+        ]
+
+
+class ISWAPtoRZRYCNOT(DecompositionRule[GateOperation]):
+    """Decomposition of ZQuantum's ISWAP gate in the RZRYCNOT gateset."""
+
+    def predicate(self, operation: GateOperation) -> bool:
+        # Only decompose ISWAP to CNOT
+        return operation.gate.name == "ISWAP"
+
+    def production(self, operation: GateOperation) -> Iterable[GateOperation]:
+        control_qubit = operation.qubit_indices[0]
+        target_qubit = operation.qubit_indices[1]
+
+        return [
+            CNOT(control_qubit, target_qubit),
+            CNOT(target_qubit, control_qubit),
+            CNOT(control_qubit, target_qubit),
+            RZ(-np.pi / 2)(control_qubit),
+            RZ(np.pi / 2)(target_qubit),
+            RY(-np.pi / 2)(target_qubit),
+            CNOT(control_qubit, target_qubit),
+            RY(-np.pi / 2)(target_qubit),
         ]

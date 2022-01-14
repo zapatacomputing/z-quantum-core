@@ -1,8 +1,8 @@
 import unittest
 
 import numpy as np
-from zquantum.core.circuits import GPHASE, PHASE, RX, RY, RZ, U3, I, X, Y, Z, H, S, T
-from zquantum.core.wip.decompositions._ryrzcnot_decompositions import PHASEtoRZRY, RXtoRZRY, U3toRZRY, ItoRZRY, XtoRZRY, YtoRZRY, ZtoRZRY, HtoRZRY, StoRZRY, TtoRZRY
+from zquantum.core.circuits import GPHASE, PHASE, RX, RY, RZ, U3, I, X, Y, Z, H, S, T, CNOT, CPHASE, CZ, SWAP, ISWAP
+from zquantum.core.wip.decompositions._ryrzcnot_decompositions import PHASEtoRZRY, RXtoRZRY, U3toRZRY, ItoRZRY, XtoRZRY, YtoRZRY, ZtoRZRY, HtoRZRY, StoRZRY, TtoRZRY, CPHASEtoRZRYCNOT, CZtoRZRYCNOT, SWAPtoRZRYCNOT, ISWAPtoRZRYCNOT
 
 
 class TestDecompositionPHASEIntoRYRZCNOT(unittest.TestCase):
@@ -149,8 +149,8 @@ class TestDecompositionHIntoRYRZCNOT(unittest.TestCase):
         self.decomp_rule = HtoRZRY()
         self.operation_to_decompose = H(2)
         self.targets = [
-            RY(np.pi/2)(2),
             GPHASE(np.pi/2)(2),
+            RY(np.pi/2)(2),
             RZ(np.pi)(2),
         ]
 
@@ -190,6 +190,98 @@ class TestDecompositionTIntoRYRZCNOT(unittest.TestCase):
         self.targets = [
             RZ(np.pi / 4)(2),
             GPHASE(np.pi / 8)(2),
+        ]
+
+    def test_predicate(self):
+        assert self.decomp_rule.predicate(self.operation_to_decompose)
+
+    def test_production(self):
+        prod = self.decomp_rule.production(self.operation_to_decompose)
+
+        for operation, target in zip(prod, self.targets):
+            self.assertEqual(operation, target)
+
+
+class TestDecompositionCPHASEIntoRYRZCNOT(unittest.TestCase):
+    def setUp(self) -> None:
+        self.decomp_rule = CPHASEtoRZRYCNOT()
+        self.operation_to_decompose = CPHASE(np.pi)(1, 2)
+        self.targets = [
+            RZ(-np.pi / 2)(2),
+            CNOT(1, 2),
+            RZ(-np.pi / 2),
+            CNOT(1, 2),
+            RZ(np.pi),
+            GPHASE(np.pi / 2),
+        ]
+
+    def test_predicate(self):
+        assert self.decomp_rule.predicate(self.operation_to_decompose)
+
+    def test_production(self):
+        prod = self.decomp_rule.production(self.operation_to_decompose)
+
+        for operation, target in zip(prod, self.targets):
+            self.assertEqual(operation, target)
+
+
+class TestDecompositionCZIntoRYRZCNOT(unittest.TestCase):
+    def setUp(self) -> None:
+        self.decomp_rule = CZtoRZRYCNOT()
+        self.operation_to_decompose = CZ(1, 2)
+        self.targets = [
+            GPHASE(np.pi/2)(2),
+            RY(np.pi/2)(2),
+            RZ(np.pi)(2),
+            CNOT(1, 2),
+            GPHASE(np.pi/2)(2),
+            RY(np.pi/2)(2),
+            RZ(np.pi)(2),
+        ]
+
+    def test_predicate(self):
+        assert self.decomp_rule.predicate(self.operation_to_decompose)
+
+    def test_production(self):
+        prod = self.decomp_rule.production(self.operation_to_decompose)
+
+        for operation, target in zip(prod, self.targets):
+            self.assertEqual(operation, target)
+
+
+class TestDecompositionSWAPIntoRYRZCNOT(unittest.TestCase):
+    def setUp(self) -> None:
+        self.decomp_rule = SWAPtoRZRYCNOT()
+        self.operation_to_decompose = SWAP(1, 2)
+        self.targets = [
+            CNOT(1, 2),
+            CNOT(2, 1),
+            CNOT(1, 2),
+        ]
+
+    def test_predicate(self):
+        assert self.decomp_rule.predicate(self.operation_to_decompose)
+
+    def test_production(self):
+        prod = self.decomp_rule.production(self.operation_to_decompose)
+
+        for operation, target in zip(prod, self.targets):
+            self.assertEqual(operation, target)
+
+
+class TestDecompositionISWAPIntoRYRZCNOT(unittest.TestCase):
+    def setUp(self) -> None:
+        self.decomp_rule = ISWAPtoRZRYCNOT()
+        self.operation_to_decompose = ISWAP(1, 2)
+        self.targets = [
+            CNOT(1, 2),
+            CNOT(2, 1),
+            CNOT(1, 2),
+            RZ(-np.pi / 2)(1),
+            RZ(np.pi / 2)(2),
+            RY(-np.pi / 2)(2),
+            CNOT(1, 2),
+            RY(-np.pi / 2)(2),
         ]
 
     def test_predicate(self):

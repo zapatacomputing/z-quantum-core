@@ -58,7 +58,7 @@ class BasisGateset(Protocol):
 
 class RZRYCNOT(BasisGateset):
     def __init__(self, decomposition_rules: Sequence[DecompositionRule]) -> None:
-        self.basis_gates = ("RZ", "RY", "CNOT")
+        self.basis_gates = ("GPHASE", "RZ", "RY", "CNOT")
         self.decomposition_rules = decomposition_rules
 
     def is_overcomplete(self) -> bool:

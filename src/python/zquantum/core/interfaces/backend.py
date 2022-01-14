@@ -235,7 +235,7 @@ class QuantumSimulator(QuantumBackend):
         expectation_values = expectation_values_to_real(expectation_values)
         return expectation_values
 
-    def get_bitstring_distribution(
+    def get_measurement_outcome_distribution(
         self, circuit: Circuit, n_samples: Optional[int] = None
     ) -> MeasurementOutcomeDistribution:
         """Calculates a bitstring distribution.

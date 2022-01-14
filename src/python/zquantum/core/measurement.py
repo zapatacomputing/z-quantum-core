@@ -18,6 +18,7 @@ from typing import (
 
 import numpy as np
 from openfermion.ops import IsingOperator
+from zquantum.core.serialization import ensure_open
 from zquantum.core.typing import AnyPath, LoadSource
 from zquantum.core.wavefunction import Wavefunction
 
@@ -57,11 +58,8 @@ def load_expectation_values(file: LoadSource) -> ExpectationValues:
         array (numpy.array): the array
     """
 
-    if isinstance(file, str):
-        with open(file, "r") as f:
-            data = json.load(f)
-    else:
-        data = json.load(file)
+    with ensure_open(file) as f:
+        data = json.load(f)
 
     return ExpectationValues.from_dict(data)
 
@@ -76,11 +74,8 @@ def load_wavefunction(file: LoadSource) -> Wavefunction:
         wavefunction (zquantum.core.Wavefunction): the wavefunction object
     """
 
-    if isinstance(file, str):
-        with open(file, "r") as f:
-            data = json.load(f)
-    else:
-        data = json.load(file)
+    with ensure_open(file) as f:
+        data = json.load(f)
 
     wavefunction = Wavefunction(convert_dict_to_array(data["amplitudes"]))
     return wavefunction
@@ -280,11 +275,8 @@ def load_parities(file: LoadSource) -> Parities:
         zquantum.core.measurement.Parities: the parities
     """
 
-    if isinstance(file, str):
-        with open(file, "r") as f:
-            data = json.load(f)
-    else:
-        data = json.load(file)
+    with ensure_open(file) as f:
+        data = json.load(f)
 
     return Parities.from_dict(data)
 
@@ -512,7 +504,8 @@ def get_expectation_value_from_frequencies(
         / num_measurements
     )
 
-    return expectation_values.sum()
+    # The item method converts a numpy float to a native Python float
+    return expectation_values.sum().item()
 
 
 def _check_sample_elimination(

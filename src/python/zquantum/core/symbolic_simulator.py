@@ -3,9 +3,8 @@ from typing import Any, Dict, Optional
 from sympy import Symbol
 from zquantum.core.circuits import Circuit, Operation
 from zquantum.core.circuits.layouts import CircuitConnectivity
-from zquantum.core.interfaces.backend import QuantumSimulator
+from zquantum.core.interfaces.backend import QuantumSimulator, StateVector
 from zquantum.core.measurement import Measurements, sample_from_wavefunction
-from zquantum.core.wavefunction import Wavefunction
 
 
 class SymbolicSimulator(QuantumSimulator):
@@ -49,14 +48,14 @@ class SymbolicSimulator(QuantumSimulator):
         return Measurements(bitstrings)
 
     def _get_wavefunction_from_native_circuit(
-        self, circuit: Circuit, initial_state
-    ) -> Wavefunction:
+        self, circuit: Circuit, initial_state: StateVector
+    ) -> StateVector:
         state = initial_state
 
         for operation in circuit.operations:
             state = operation.apply(state)
 
-        return Wavefunction(state)
+        return state
 
     def is_natively_supported(self, operation: Operation) -> bool:
         return True

@@ -35,9 +35,9 @@ class RXtoRZRY(DecompositionRule[GateOperation]):
         indices = operation.qubit_indices[0]
 
         return [
-            RZ(-np.pi/2)(indices),
+            RZ(-np.pi / 2)(indices),
             RY(theta)(indices),
-            RZ(np.pi/2)(indices),
+            RZ(np.pi / 2)(indices),
         ]
 
 
@@ -74,8 +74,6 @@ class ItoRZRY(DecompositionRule[GateOperation]):
 
         return [
             RZ(0)(indices),
-            RY(0)(indices),
-            RZ(0)(indices),
         ]
 
 
@@ -90,10 +88,10 @@ class XtoRZRY(DecompositionRule[GateOperation]):
         indices = operation.qubit_indices[0]
 
         return [
-            GPHASE(np.pi/2)(indices),
-            RZ(-np.pi/2)(indices),
+            RZ(-np.pi / 2)(indices),
             RY(np.pi)(indices),
-            RZ(np.pi/2)(indices),
+            RZ(np.pi / 2)(indices),
+            GPHASE(np.pi / 2)(indices),
         ]
 
 
@@ -108,8 +106,8 @@ class YtoRZRY(DecompositionRule[GateOperation]):
         indices = operation.qubit_indices[0]
 
         return [
-            GPHASE(np.pi/2)(indices),
             RY(np.pi)(indices),
+            GPHASE(np.pi / 2)(indices),
         ]
 
 
@@ -124,8 +122,8 @@ class ZtoRZRY(DecompositionRule[GateOperation]):
         indices = operation.qubit_indices[0]
 
         return [
-            GPHASE(np.pi/2)(indices),
             RZ(np.pi)(indices),
+            GPHASE(np.pi / 2)(indices),
         ]
 
 
@@ -140,9 +138,9 @@ class HtoRZRY(DecompositionRule[GateOperation]):
         indices = operation.qubit_indices[0]
 
         return [
-            GPHASE(np.pi/2)(indices),
-            RY(np.pi/2)(indices),
+            RY(np.pi / 2)(indices),
             RZ(np.pi)(indices),
+            GPHASE(np.pi / 2)(indices),
         ]
 
 
@@ -212,13 +210,13 @@ class CZtoRZRYCNOT(DecompositionRule[GateOperation]):
         target_qubit = operation.qubit_indices[1]
 
         return [
-            GPHASE(np.pi/2)(target_qubit),
-            RY(np.pi/2)(target_qubit),
+            RY(np.pi / 2)(target_qubit),
             RZ(np.pi)(target_qubit),
+            GPHASE(np.pi / 2)(target_qubit),
             CNOT(control_qubit, target_qubit),
-            GPHASE(np.pi/2)(target_qubit),
-            RY(np.pi/2)(target_qubit),
+            RY(np.pi / 2)(target_qubit),
             RZ(np.pi)(target_qubit),
+            GPHASE(np.pi / 2)(target_qubit),
         ]
 
 

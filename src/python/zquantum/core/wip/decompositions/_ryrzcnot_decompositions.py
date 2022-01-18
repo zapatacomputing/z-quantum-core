@@ -49,8 +49,8 @@ class U3toRZRY(DecompositionRule[GateOperation]):
         return operation.gate.name == "U3"
 
     def production(self, operation: GateOperation) -> Iterable[GateOperation]:
-        phi = operation.params[0]
-        theta = operation.params[1]
+        theta = operation.params[0]
+        phi = operation.params[1]
         lambda_ = operation.params[2]
         indices = operation.qubit_indices[0]
 
@@ -189,12 +189,12 @@ class CPHASEtoRZRYCNOT(DecompositionRule[GateOperation]):
         target_qubit = operation.qubit_indices[1]
 
         return [
+            RZ(alpha / 2)(target_qubit),
+            CNOT(0, 1),
+            RZ(alpha / 2)(control_qubit),
             RZ(-alpha / 2)(target_qubit),
-            CNOT(control_qubit, target_qubit),
-            RZ(-alpha / 2),
-            CNOT(control_qubit, target_qubit),
-            RZ(alpha),
-            GPHASE(alpha / 2),
+            CNOT(0, 1),
+            GPHASE(alpha / 4)(target_qubit),
         ]
 
 
@@ -250,12 +250,13 @@ class ISWAPtoRZRYCNOT(DecompositionRule[GateOperation]):
         target_qubit = operation.qubit_indices[1]
 
         return [
-            CNOT(control_qubit, target_qubit),
-            CNOT(target_qubit, control_qubit),
-            CNOT(control_qubit, target_qubit),
-            RZ(-np.pi / 2)(control_qubit),
+            RZ(np.pi / 2)(control_qubit),
             RZ(np.pi / 2)(target_qubit),
-            RY(-np.pi / 2)(target_qubit),
-            CNOT(control_qubit, target_qubit),
-            RY(-np.pi / 2)(target_qubit),
+            RY(np.pi / 2)(control_qubit),
+            RZ(np.pi)(control_qubit),
+            CNOT(0, 1),
+            CNOT(1, 0),
+            RY(np.pi / 2)(target_qubit),
+            RZ(np.pi)(target_qubit),
+            GPHASE(-np.pi / 2)(target_qubit),
         ]

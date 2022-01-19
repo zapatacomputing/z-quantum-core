@@ -1,11 +1,16 @@
 """Types commonly encountered in zquantum repositories."""
 from abc import abstractmethod
 from os import PathLike
-from typing import Any, Callable, Dict, Union
+from typing import Any, Callable, Dict, List, Union
 
 from typing_extensions import Protocol
 
-from .history.recorder import ArtifactRecorder, SimpleRecorder
+from .history.recorder import (
+    ArtifactRecorder,
+    HistoryEntry,
+    HistoryEntryWithArtifacts,
+    SimpleRecorder,
+)
 
 
 class Readable(Protocol):
@@ -33,6 +38,7 @@ DumpTarget = Union[Writeable, AnyPath]
 Specs = Union[str, Dict]
 
 AnyRecorder = Union[SimpleRecorder, ArtifactRecorder]
+AnyHistory = Union[List[HistoryEntry], List[HistoryEntryWithArtifacts]]
 RecorderFactory = Callable[[Callable], AnyRecorder]
 
 

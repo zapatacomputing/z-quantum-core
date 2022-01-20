@@ -1,6 +1,7 @@
 import os
-
 import setuptools
+import site
+import sys
 
 dev_requires = [
     "pytest>=3.7.1",

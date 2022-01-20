@@ -21,6 +21,7 @@ extras_require = {
 # Workaound for https://github.com/pypa/pip/issues/7953
 site.ENABLE_USER_SITE = "--user" in sys.argv[1:]
 
+
 def _this_path():
     return os.path.abspath(os.path.dirname(__file__))
 

@@ -37,9 +37,9 @@ from typing import Callable, Iterable, Optional
 
 from zquantum.core.history.save_conditions import SaveCondition, always
 from zquantum.core.interfaces.cost_function import (
-    CostFunction,
     CallableWithGradient,
     CallableWithGradientStoringArtifacts,
+    CostFunction,
 )
 
 FunctionAugmentation = Callable[[Callable], Callable]

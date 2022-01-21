@@ -10,7 +10,7 @@ dev_requires = [
     "flake8>=3.7.9",
     "black>=19.3b0",
     "pre_commit>=2.10.1",
-    "mypy==0.812",
+    "mypy~=0.910",
     "isort>=5.8",
 ]
 

@@ -25,6 +25,7 @@ module = [
     'openfermion.*',
     'scipy.*',
     'sympy.*',
+    'sympy',
     'lea',
     'rapidjson',
     'pkg_resources',

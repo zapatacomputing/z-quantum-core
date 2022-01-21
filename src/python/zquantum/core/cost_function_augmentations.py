@@ -36,7 +36,11 @@ import logging
 from typing import Callable, Iterable, Optional
 
 from zquantum.core.history.save_conditions import SaveCondition, always
-from zquantum.core.interfaces.cost_function import CostFunction
+from zquantum.core.interfaces.cost_function import (
+    CallableWithGradient,
+    CallableWithGradientStoringArtifacts,
+    CostFunction,
+)
 
 FunctionAugmentation = Callable[[Callable], Callable]
 
@@ -157,7 +161,8 @@ def augment_cost_function(
                 cost_function.gradient, gradient_augmentations, {}
             )
         }
-        if hasattr(cost_function, "gradient")
+        if isinstance(cost_function, CallableWithGradient)
+        or isinstance(cost_function, CallableWithGradientStoringArtifacts)
         else {}
     )
 

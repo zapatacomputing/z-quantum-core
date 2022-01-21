@@ -9,3 +9,6 @@ coverage:
 		--cov-report term-missing \
 		&& echo Code coverage Passed the $(MIN_COVERAGE)% mark!
 
+mypy-default: clean
+	@echo scanning files with mypy: Please be patient....
+	@mypy src

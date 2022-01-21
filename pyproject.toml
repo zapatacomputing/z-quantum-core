@@ -20,6 +20,19 @@ explicit_package_bases = true
 # by setting MYPYPATH env variable.
 mypy_path = "src:src/python"
 
+[[tool.mypy.overrides]]
+module = [
+    'openfermion.*',
+    'scipy.*',
+    'sympy.*',
+    'lea',
+    'rapidjson',
+    'pkg_resources',
+    'networkx',
+    'overrides'
+]
+ignore_missing_imports = true
+
 [tool.coverage.run]
 # main.py should be checked separately in an integration test.
 omit = ["*/main.py", "*/__init__.py"]

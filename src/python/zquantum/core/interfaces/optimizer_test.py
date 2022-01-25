@@ -115,7 +115,7 @@ class OptimizerTests(object):
         # therefore we can compare two histories to see if they agree.
         cost_function = recorder(sum_x_squared)
 
-        result = optimizer.minimize(cost_function, np.array([-1, 1]), keep_history=True)
+        result = optimizer.minimize(cost_function, np.array([-1]), keep_history=True)
 
         for result_history_entry, cost_function_history_entry in zip(
             result.history, cost_function.history

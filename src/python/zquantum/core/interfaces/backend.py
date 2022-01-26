@@ -235,7 +235,7 @@ class QuantumSimulator(QuantumBackend):
         expectation_values = expectation_values_to_real(expectation_values)
         return expectation_values
 
-    def get_bitstring_distribution(
+    def get_measurement_outcome_distribution(
         self, circuit: Circuit, n_samples: Optional[int] = None
     ) -> MeasurementOutcomeDistribution:
         """Calculates a bitstring distribution.
@@ -255,3 +255,25 @@ class QuantumSimulator(QuantumBackend):
             # Get the expectation values
             measurements = self.run_circuit_and_measure(circuit, n_samples)
             return measurements.get_distribution()
+
+    def get_bitstring_distribution(
+        self, circuit: Circuit, n_samples: Optional[int]
+    ) -> BitstringDistribution:
+        """Calculates a bitstring distribution.
+
+        This function is a wrapper around `get_measurement_outcome_distribution`
+        needed for backward-compatibility.
+
+        Args:
+            circuit: quantum circuit to be executed.
+
+        Returns:
+            Probability distribution of getting specific bistrings.
+
+        """
+        # Get the expectation values
+        return BitstringDistribution(
+            self.get_measurement_outcome_distribution(
+                circuit, n_samples
+            ).distribution_dict
+        )

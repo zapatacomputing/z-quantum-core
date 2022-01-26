@@ -2,7 +2,8 @@
 # process.
 #
 # Don't extend this workflow. If any more steps are needed please extend the
-# "publish-release" action in "z_quantum_actions". Allows reusing between repos.
+# "publish-release" action in "z_quantum_actions". This allows allows reusing
+# the scripts between repos.
 name: publish-release
 
 on:
@@ -10,12 +11,16 @@ on:
     branches:
       - main
 
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
 jobs:
   run-action:
     runs-on: ubuntu-latest
 
     steps:
-      # Needed to get access to publish-release action definition
+      # Needed to have access to the subtree where we have action definitions + to get
+      # git tags.
       - name: Check out the released repo
         uses: actions/checkout@v2
         with:
@@ -23,5 +28,4 @@ jobs:
           # version.
           fetch-depth: 0
 
-      - name: Run publish release action
-        uses: ./subtrees/z_quantum_actions/actions/publish-release
+      - uses: ./subtrees/z_quantum_actions/actions/publish-release

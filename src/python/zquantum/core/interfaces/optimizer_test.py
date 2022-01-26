@@ -120,7 +120,6 @@ class OptimizerTests(object):
         for result_history_entry, cost_function_history_entry in zip(
             result.history, cost_function.history
         ):
-            breakpoint()
             assert (
                 result_history_entry.call_number
                 == cost_function_history_entry.call_number

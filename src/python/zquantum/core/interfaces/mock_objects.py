@@ -52,6 +52,7 @@ class MockOptimizer(Optimizer):
         return optimization_result(
             opt_value=cost_function(new_parameters),
             opt_params=new_parameters,
+            nit=1,
             nfev=1,
             **construct_history_info(cost_function, keep_history),
         )

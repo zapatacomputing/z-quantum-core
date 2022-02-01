@@ -1,5 +1,5 @@
 from math import log2
-from typing import Any, Dict, List, Set, Union
+from typing import Any, Dict, List, Sequence, Set, Union
 from warnings import warn
 
 import numpy as np
@@ -208,7 +208,7 @@ def flip_wavefunction(wavefunction: Wavefunction):
     return Wavefunction(flip_amplitudes(wavefunction.amplitudes))
 
 
-def flip_amplitudes(amplitudes: np.ndarray) -> np.ndarray:
+def flip_amplitudes(amplitudes: Union[Sequence[complex], np.ndarray]) -> np.ndarray:
     number_of_states = len(amplitudes)
     ordering = [
         _flip_bits(n, number_of_states.bit_length() - 1)

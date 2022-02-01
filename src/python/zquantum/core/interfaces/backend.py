@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from numbers import Complex
 from typing import Any, List, Optional, Sequence, Union
 
 import numpy as np
@@ -19,7 +18,7 @@ from ..openfermion import change_operator_type, get_expectation_value
 
 # Note that in particular Wavefunction is a StateVector. However, for performance
 # reasons QuantumSimulator uses numpy arrays internally.
-StateVector = Union[Sequence[Complex], np.ndarray]
+StateVector = Union[Sequence[complex], np.ndarray]
 
 
 class QuantumBackend(ABC):

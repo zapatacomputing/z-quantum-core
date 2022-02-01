@@ -9,8 +9,17 @@ requires = ["setuptools", "wheel",  "setuptools_scm>=6.0", "pygit2"]
 profile = "black"
 
 [tool.mypy]
-ignore_missing_imports = true
+# Without this we would have to add an empty __init__.py file for every package.
 namespace_packages = true
+# Without this mypy complains about the same module being imported under different
+# names. Note that this also requires setting `mypy_path`.
+explicit_package_bases = true
+# We usually keep our source code under `src/<namespace>/<library>/...` or
+# `src/python/<namespace>/<library>...`. This option tells mypy to look under that
+# directory path. If your repo has a different layout you can add the appropriate paths
+# by setting MYPYPATH env variable.
+mypy_path = "src:src/python"
+exclude = ['examples/*',]
 
 [tool.coverage.run]
 # main.py should be checked separately in an integration test.
@@ -28,7 +37,3 @@ exclude_lines = [
 
 [tool.pytest.ini_options]
 log_level="INFO"
-markers = [
-   "unit: Unit Tests",
-   "integration: Integration Tests",
-]

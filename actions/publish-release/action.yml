@@ -1,57 +1,35 @@
-# This workflow is meant to be run on each push to the base branch. It allows executing
-# the "publish release" action.
-#
-# Don't extend this workflow. If any more steps are needed please add them to the
-# action instead. This allows reusing it between repos.
-name: Publish release
+name: publish-release
 
 description: Infers current project version, pushes a tag with a new version, and creates an entry on GitHub Releases
 
-# Note: this action assumes that the repo was already cloned
-
-inputs:
-  new-version:
-    description: Optional override for the release version. If not provided, will be inferred from current version.
-    required: false
-
+# Note: this action assumes that the repo was already cloned and contains version tags.
+# This can be set using `fetch-depth: 0` option in the actions/checkout.
 
 outputs:
   release-version:
     description: Version that the release ended up running for.
-    value: ${{ steps.infer-release-version.outputs.inferred_version }}
+    value: ${{steps.get-next-version.outputs.next_version}}
 
 runs:
   using: composite
   steps:
-    - name: Infer release version
-      id: infer-release-version
+    # We need this to be able to run `python setup.py --version`
+    - name: Install build system deps
       shell: bash
-      run: |
-        NEW_VERSION="${{ inputs.new_version }}"
-        if [ -n "$NEW_VERSION" ]; then
-          INFERRED_VERSION="$NEW_VERSION"
-          echo "using $INFERRED_VERSION provided as action input"
-        else
-          PKG_VERSION=$(python3 setup.py --version)
+      run: make build-system-deps
 
-          MAJOR=$(echo $PKG_VERSION | sed -r 's/^([0-9]+)\.([0-9]+)\.([0-9]+)([-\.].+)?$/\1/')
-          MINOR=$(echo $PKG_VERSION | sed -r 's/^([0-9]+)\.([0-9]+)\.([0-9]+)([-\.].+)?$/\2/')
-          PATCH=$(echo $PKG_VERSION | sed -r 's/^([0-9]+)\.([0-9]+)\.([0-9]+)([-\.].+)?$/\3/')
-          DEV=$(echo $PKG_VERSION | sed -r 's/^([0-9]+)\.([0-9]+)\.([0-9]+)([-\.].+)?$/\4/')
-          echo "read version: $MAJOR.$MINOR.$PATCH$DEV"
-
-          INFERRED_VERSION="$MAJOR.$(expr $MINOR + 1).0"
-          echo "inferred version: $INFERRED_VERSION"
-        fi
-        # special github syntax for setting step outputs
-        # see https://docs.github.com/en/actions/reference/workflow-commands-for-github-actions#setting-an-output-parameter
-        echo "::set-output name=inferred_version::$INFERRED_VERSION"
+    - name: Get next version
+      id: get-next-version
+      shell: bash
+      # Inputs: none
+      # Outputs: `next_version` - a bumped semver string of form "major.minor.patch"
+      run: python3 subtrees/z_quantum_actions/bin/get_next_version.py
 
     - name: Push new version tag
       id: push-new-version-tag
       shell: bash
       run: |
-        TAG="v${{steps.infer-release-version.outputs.inferred_version}}"
+        TAG="v${{steps.get-next-version.outputs.next_version}}"
         git tag "$TAG"
         git push --tags
         echo "::set-output name=tag::$TAG"
@@ -65,4 +43,3 @@ runs:
           -H "Accept: application/vnd.github.v3+json" \
           https://api.github.com/repos/${{ github.repository }}/releases \
           -d '{"tag_name":"${{ steps.push-new-version-tag.outputs.tag }}"}'
-

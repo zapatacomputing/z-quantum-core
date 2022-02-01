@@ -19,6 +19,7 @@ explicit_package_bases = true
 # directory path. If your repo has a different layout you can add the appropriate paths
 # by setting MYPYPATH env variable.
 mypy_path = "src:src/python"
+exclude = ['examples/*',]
 
 [tool.coverage.run]
 # main.py should be checked separately in an integration test.

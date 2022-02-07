@@ -256,7 +256,7 @@ class QuantumSimulator(QuantumBackend):
             return measurements.get_distribution()
 
     def get_bitstring_distribution(
-        self, circuit: Circuit, n_samples: Optional[int]
+        self, circuit: Circuit, n_samples: Optional[int] = None
     ) -> BitstringDistribution:
         """Calculates a bitstring distribution.
 

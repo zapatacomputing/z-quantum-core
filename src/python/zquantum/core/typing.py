@@ -1,9 +1,9 @@
 """Types commonly encountered in zquantum repositories."""
 from abc import abstractmethod
 from os import PathLike
-from typing import Any, Callable, Dict, List, Union, runtime_checkable
+from typing import Any, Callable, Dict, List, Union
 
-from typing_extensions import Protocol
+from typing_extensions import Protocol, runtime_checkable
 
 from .history.recorder import (
     ArtifactRecorder,

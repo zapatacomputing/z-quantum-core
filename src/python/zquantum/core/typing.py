@@ -3,7 +3,7 @@ from abc import abstractmethod
 from os import PathLike
 from typing import Any, Callable, Dict, List, Union
 
-from typing_extensions import Protocol
+from typing_extensions import Protocol, runtime_checkable
 
 from .history.recorder import (
     ArtifactRecorder,
@@ -13,6 +13,7 @@ from .history.recorder import (
 )
 
 
+@runtime_checkable
 class Readable(Protocol):
     def read(self, size: int = 0) -> str:
         pass
@@ -21,6 +22,7 @@ class Readable(Protocol):
         pass
 
 
+@runtime_checkable
 class Writeable(Protocol):
     def write(self, content: str):
         pass

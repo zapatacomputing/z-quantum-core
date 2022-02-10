@@ -25,7 +25,7 @@ class Optimizer(ABC):
 
     def minimize(
         self,
-        cost_function: Union[CallableWithGradient, Callable],
+        cost_function: CostFunction,
         initial_params: np.ndarray,
         keep_history: bool = False,
     ) -> OptimizeResult:
@@ -45,7 +45,7 @@ class Optimizer(ABC):
     @abstractmethod
     def _minimize(
         self,
-        cost_function: Union[CallableWithGradient, Callable],
+        cost_function: CostFunction,
         initial_params: np.ndarray,
         keep_history: bool = False,
     ) -> OptimizeResult:

@@ -39,7 +39,7 @@ class HistoryEntryWithArtifacts(NamedTuple):
     """A history entry enhanced with artifacts."""
 
     call_number: int
-    params: Any
+    parameters: Any
     value: Any
     artifacts: Dict[str, Any]
 
@@ -48,7 +48,7 @@ class HistoryEntry(NamedTuple):
     """A history entry storing call number, parameters and target function value."""
 
     call_number: int
-    params: Any
+    parameters: Any
     value: Any
 
 
@@ -92,19 +92,19 @@ class SimpleRecorder(Generic[S, T]):
         self.history: List[HistoryEntry] = []
         self.call_number = 0
 
-    def __call__(self, params: S) -> T:
+    def __call__(self, parameters: S) -> T:
         """Call the underlying target function, possibly saving call to the history.
 
         Args:
-            params: argument to be passed to the target function.
+            parameters: argument to be passed to the target function.
 
         Returns:
             The value returned by the target function.
         """
-        return_value = self.target(params)
-        if self.predicate(return_value, params, self.call_number):
+        return_value = self.target(parameters)
+        if self.predicate(return_value, parameters, self.call_number):
             self.history.append(
-                HistoryEntry(self.call_number, copy.copy(params), return_value)
+                HistoryEntry(self.call_number, copy.copy(parameters), return_value)
             )
         self.call_number += 1
         return return_value
@@ -148,14 +148,17 @@ class ArtifactRecorder(Generic[S, T]):
         self.history: List[HistoryEntryWithArtifacts] = []
         self.call_number = 0
 
-    def __call__(self, params: S) -> T:
+    def __call__(self, parameters: S) -> T:
         artifacts = ArtifactCollection()
-        return_value = self.target(params, store_artifact=store_artifact(artifacts))
+        return_value = self.target(parameters, store_artifact=store_artifact(artifacts))
 
-        if self.predicate(return_value, params, self.call_number) or artifacts.forced:
+        if (
+            self.predicate(return_value, parameters, self.call_number)
+            or artifacts.forced
+        ):
             self.history.append(
                 HistoryEntryWithArtifacts(
-                    self.call_number, copy.copy(params), return_value, artifacts
+                    self.call_number, copy.copy(parameters), return_value, artifacts
                 )
             )
         self.call_number += 1

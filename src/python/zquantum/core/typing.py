@@ -14,7 +14,7 @@ from .history.recorder import (
 
 
 class Readable(Protocol):
-    def read(self) -> str:
+    def read(self, size: int = 0) -> str:
         pass
 
     def writable(self) -> bool:

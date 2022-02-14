@@ -8,18 +8,27 @@ runs:
   using: "composite"
   steps:
 
-    # Runs a set of commands using the runners shell
-    - name: Run test coverage
+    # Load a specific version of Python
+    - name: Setup python
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python }}
+        architecture: x64
+
+    - name: Install deps
       shell: bash
-      run: |
-        make github_actions
-        make coverage
+      run: make github_actions
       env:
         SSH_AUTH_SOCK: /tmp/ssh_agent.sock
 
+    - name: Run test coverage
+      shell: bash
+      run: make coverage
+
     - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v1
+      uses: codecov/codecov-action@v2
       env:
         CODECOV_TOKEN: ${{ inputs.codecov_secret }}
       with:
+        files: ./.coverage,./coverage.xml
         fail_ci_if_error: trueyml

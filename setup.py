@@ -1,21 +1,18 @@
 import os
+import site
+import sys
+import warnings
 
 import setuptools
 
-dev_requires = [
-    "pytest>=3.7.1",
-    "pytest-cov>=2.5.1",
-    "tox>=3.2.1",
-    "flake8>=3.7.9",
-    "black>=19.3b0",
-    "pre_commit>=2.10.1",
-    "mypy==0.812",
-    "isort>=5.8",
-]
+try:
+    from subtrees.z_quantum_actions.setup_extras import extras
+except ImportError:
+    warnings.warn("Unable to import extras")
+    extras = {}
 
-extras_require = {
-    "develop": dev_requires,
-}
+# Workaound for https://github.com/pypa/pip/issues/7953
+site.ENABLE_USER_SITE = "--user" in sys.argv[1:]
 
 
 def _this_path():
@@ -56,6 +53,9 @@ setuptools.setup(
         "overrides~=3.1",
         "python-rapidjson",
     ],
-    extras_require=extras_require,
+    extras_require=extras,
     setup_requires=["setuptools_scm~=6.0"],
+    # Without this, users of this library would get mypy errors. See also:
+    # https://github.com/python/mypy/issues/7508#issuecomment-531965557
+    zip_safe=False,
 )

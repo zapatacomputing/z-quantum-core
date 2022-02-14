@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, Callable, Dict, List, Union
+from typing import Any, Callable, Dict, List, Union, cast
 
 import numpy as np
 import scipy
@@ -8,7 +8,7 @@ from zquantum.core.history.recorder import recorder as _recorder
 from zquantum.core.interfaces.cost_function import CostFunction
 from zquantum.core.interfaces.functions import CallableWithGradient
 
-from ..typing import RecorderFactory
+from ..typing import AnyHistory, AnyRecorder, RecorderFactory
 
 
 class Optimizer(ABC):
@@ -25,7 +25,7 @@ class Optimizer(ABC):
 
     def minimize(
         self,
-        cost_function: Union[CallableWithGradient, Callable],
+        cost_function: CostFunction,
         initial_params: np.ndarray,
         keep_history: bool = False,
     ) -> OptimizeResult:
@@ -45,7 +45,7 @@ class Optimizer(ABC):
     @abstractmethod
     def _minimize(
         self,
-        cost_function: Union[CallableWithGradient, Callable],
+        cost_function: CostFunction,
         initial_params: np.ndarray,
         keep_history: bool = False,
     ) -> OptimizeResult:
@@ -98,10 +98,10 @@ def optimization_result(
 
 
 def construct_history_info(
-    cost_function: CostFunction, keep_history: bool
-) -> Dict[str, List]:
-    histories = {
-        "history": cost_function.history if keep_history else [],
+    cost_function: AnyRecorder, keep_history: bool
+) -> Dict[str, AnyHistory]:
+    histories: Dict[str, AnyHistory] = {
+        "history": cost_function.history if keep_history else cast(AnyHistory, []),
     }
 
     if keep_history and hasattr(cost_function, "gradient"):
@@ -110,7 +110,7 @@ def construct_history_info(
 
 
 def extend_histories(
-    cost_function: CostFunction, histories: Dict[str, List]
+    cost_function: AnyRecorder, histories: Dict[str, List]
 ) -> Dict[str, List]:
     new_histories = construct_history_info(cost_function, True)
     updated_histories = {"history": histories["history"] + new_histories["history"]}

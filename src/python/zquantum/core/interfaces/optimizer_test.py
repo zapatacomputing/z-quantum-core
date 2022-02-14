@@ -192,8 +192,8 @@ Usage:
 
 
 def _validate_nested_optimizer_records_history_if_keep_history_is_true(
-    optimizer: Union[Optimizer, NestedOptimizer],
-    cost_function_factory: Union[CostFunction, Callable[..., CostFunction]],
+    optimizer: NestedOptimizer,
+    cost_function_factory: Callable[..., CostFunction],
     initial_params: np.ndarray,
 ):
     result = optimizer.minimize(
@@ -203,8 +203,8 @@ def _validate_nested_optimizer_records_history_if_keep_history_is_true(
 
 
 def _validate_nested_optimizer_records_gradient_history_if_keep_history_is_true(
-    optimizer: Union[Optimizer, NestedOptimizer],
-    cost_function_factory: Union[CostFunction, Callable[..., CostFunction]],
+    optimizer: NestedOptimizer,
+    cost_function_factory: Callable[..., CostFunction],
     initial_params: np.ndarray,
 ):
     def cost_function_with_gradients_factory(*args, **kwargs):
@@ -220,8 +220,8 @@ def _validate_nested_optimizer_records_gradient_history_if_keep_history_is_true(
 
 
 def _validate_nested_optimizer_does_not_record_history_if_keep_history_is_false(
-    optimizer: Union[Optimizer, NestedOptimizer],
-    cost_function_factory: Union[CostFunction, Callable[..., CostFunction]],
+    optimizer: NestedOptimizer,
+    cost_function_factory: Callable[..., CostFunction],
     initial_params: np.ndarray,
 ):
     result = optimizer.minimize(
@@ -231,8 +231,8 @@ def _validate_nested_optimizer_does_not_record_history_if_keep_history_is_false(
 
 
 def _validate_nested_optimizer_does_not_record_history_by_default(
-    optimizer: Union[Optimizer, NestedOptimizer],
-    cost_function_factory: Union[CostFunction, Callable[..., CostFunction]],
+    optimizer: NestedOptimizer,
+    cost_function_factory: Callable[..., CostFunction],
     initial_params: np.ndarray,
 ):
 
@@ -241,8 +241,8 @@ def _validate_nested_optimizer_does_not_record_history_by_default(
 
 
 def _validate_nested_optimizer_returns_all_the_mandatory_fields_in_results(
-    optimizer: Union[Optimizer, NestedOptimizer],
-    cost_function_factory: Union[CostFunction, Callable[..., CostFunction]],
+    optimizer: NestedOptimizer,
+    cost_function_factory: Callable[..., CostFunction],
     initial_params: np.ndarray,
 ):
     result = optimizer.minimize(cost_function_factory, initial_params)

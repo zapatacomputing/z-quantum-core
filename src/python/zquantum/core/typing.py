@@ -1,5 +1,4 @@
 """Types commonly encountered in zquantum repositories."""
-from abc import abstractmethod
 from os import PathLike
 from typing import Any, Callable, Dict, List, Union
 

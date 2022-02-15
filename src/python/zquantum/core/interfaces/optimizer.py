@@ -1,9 +1,15 @@
 from abc import ABC, abstractmethod
-from typing import Any, Callable, Dict, List, Union, cast
+from typing import Callable, Dict, List, Union, cast
 
 import numpy as np
 import scipy
 from scipy.optimize import OptimizeResult
+from zquantum.core.history.recorder import (
+    ArtifactRecorder,
+    ArtifactRecorderWithGradient,
+    SimpleRecorder,
+    SimpleRecorderWithGradient,
+)
 from zquantum.core.history.recorder import recorder as _recorder
 from zquantum.core.interfaces.cost_function import CostFunction
 from zquantum.core.interfaces.functions import CallableWithGradient
@@ -98,14 +104,21 @@ def optimization_result(
 
 
 def construct_history_info(
-    cost_function: AnyRecorder, keep_history: bool
+    cost_function: CostFunction, keep_history: bool
 ) -> Dict[str, AnyHistory]:
-    histories: Dict[str, AnyHistory] = {
-        "history": cost_function.history if keep_history else cast(AnyHistory, []),
-    }
-
-    if keep_history and hasattr(cost_function, "gradient"):
-        histories["gradient_history"] = cost_function.gradient.history
+    histories: Dict[str, AnyHistory] = {}
+    if keep_history:
+        # TODO: When we upgraded to 3.8 use get_args on AnyRecorder instead
+        if isinstance(cost_function, ArtifactRecorder):
+            histories["history"] = cost_function.history
+        if isinstance(cost_function, SimpleRecorder):
+            histories["history"] = cost_function.history
+        if isinstance(cost_function, ArtifactRecorderWithGradient):
+            histories["gradient_history"] = cost_function.gradient.history
+        if isinstance(cost_function, SimpleRecorderWithGradient):
+            histories["gradient_history"] = cost_function.gradient.history
+    else:
+        histories["history"] = cast(AnyHistory, [])
     return histories
 
 

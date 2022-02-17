@@ -1,14 +1,30 @@
 """Data structures for ZQuantum gates."""
 import math
 from dataclasses import dataclass, replace
-from typing import Callable, Dict, Iterable, Sequence, Tuple, Union
+from platform import python_version
 
 import numpy as np
 import sympy
-from typing_extensions import Protocol, runtime_checkable
 
 from ._operations import Parameter, get_free_symbols, sub_symbols
 from ._unitary_tools import _lift_matrix_numpy, _lift_matrix_sympy
+
+# workaround for inheritance issues with Protocol and dataclass
+if python_version() == "3.9.7":
+    from ..wip.typing_copies.typing_copy import (
+        Callable,
+        Dict,
+        Iterable,
+        Protocol,
+        Sequence,
+        Tuple,
+        Union,
+        runtime_checkable,
+    )
+else:
+    from typing import Callable, Dict, Iterable, Sequence, Tuple, Union
+
+    from typing_extensions import Protocol, runtime_checkable
 
 
 @runtime_checkable

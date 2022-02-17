@@ -2,6 +2,7 @@ import os
 import site
 import sys
 import warnings
+from platform import python_version
 
 import setuptools
 
@@ -10,6 +11,14 @@ try:
 except ImportError:
     warnings.warn("Unable to import extras")
     extras = {}
+
+if python_version() == "3.7.9":
+    warnings.warn(
+        "Python 3.9.7 may result in errors due to a known bug with"
+        "dataclass and Protocol. https://github.com/python/typing/issues/883\n"
+        "Using 3.9.6 or 3.10.0 will alleviate this risk."
+    )
+
 
 # Workaound for https://github.com/pypa/pip/issues/7953
 site.ENABLE_USER_SITE = "--user" in sys.argv[1:]

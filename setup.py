@@ -44,7 +44,7 @@ setuptools.setup(
         "Programming Language :: Python :: 3.7",
         "Operating System :: OS Independent",
     ],
-    # Avoid bug in Protocol in python 3.9.7
+    # Avoid bug in Protocol in python 3.9.7. Note that higher and lower versions of Python are fine.
     python_version="!=3.9.7",
     install_requires=[
         "networkx==2.4",

@@ -1,11 +1,12 @@
 """Data structures for ZQuantum gates."""
 import math
 from dataclasses import dataclass, replace
-from typing import Callable, Dict, Iterable, Sequence, Tuple, Union
+from typing import Callable, Dict, Iterable, Tuple, Union
 
 import numpy as np
 import sympy
 from typing_extensions import Protocol, runtime_checkable
+from zquantum.core.typing import ParameterizedVector
 
 from ._operations import Parameter, get_free_symbols, sub_symbols
 from ._unitary_tools import _lift_matrix_numpy, _lift_matrix_sympy
@@ -123,7 +124,7 @@ class GateOperation:
             else _lift_matrix_numpy(self.gate.matrix, self.qubit_indices, num_qubits)
         )
 
-    def apply(self, wavefunction: Sequence[Parameter]) -> Sequence[Parameter]:
+    def apply(self, wavefunction: ParameterizedVector) -> ParameterizedVector:
         num_qubits = np.log2(len(wavefunction))
         if 2 ** num_qubits != len(wavefunction):
             raise ValueError(

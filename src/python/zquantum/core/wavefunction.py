@@ -4,6 +4,7 @@ from warnings import warn
 
 import numpy as np
 from sympy import Matrix, Symbol
+from zquantum.core.typing import ParameterizedVector
 
 
 def _is_number(possible_number):
@@ -45,9 +46,7 @@ class Wavefunction:
             can either be a NumPy ndarray or a SymPy Matrix
     """
 
-    def __init__(
-        self, amplitude_vector: Union[np.ndarray, Matrix, List[complex]]
-    ) -> None:
+    def __init__(self, amplitude_vector: ParameterizedVector) -> None:
         if bin(len(amplitude_vector)).count("1") != 1:
             raise ValueError(
                 "Provided wavefunction does not have a size of a power of 2."

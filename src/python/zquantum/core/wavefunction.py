@@ -58,7 +58,7 @@ class Wavefunction:
         except TypeError:
             self._amplitude_vector = Matrix(amplitude_vector)
 
-        self._check_sanity(self._amplitude_vector)
+        self._check_normalization(self._amplitude_vector)
 
     @property
     def amplitudes(self) -> Union[np.ndarray, Matrix]:
@@ -76,7 +76,7 @@ class Wavefunction:
         return getattr(self._amplitude_vector, "free_symbols", set())
 
     @staticmethod
-    def _check_sanity(arr: Union[Matrix, np.ndarray]):
+    def _check_normalization(arr: Union[Matrix, np.ndarray]):
         def _calculate_probability_of_ground_entries(arr: Matrix) -> np.float64:
             numbers = np.array(
                 [elem for elem in arr if _is_number(elem)], dtype=np.complex128
@@ -112,7 +112,7 @@ class Wavefunction:
         self._amplitude_vector[idx] = val
 
         try:
-            self._check_sanity(self._amplitude_vector)
+            self._check_normalization(self._amplitude_vector)
         except ValueError:
             self._amplitude_vector[idx] = old_val
 

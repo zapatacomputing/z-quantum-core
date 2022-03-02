@@ -124,15 +124,15 @@ class GateOperation:
             else _lift_matrix_numpy(self.gate.matrix, self.qubit_indices, num_qubits)
         )
 
-    def apply(self, wavefunction: ParameterizedVector) -> ParameterizedVector:
-        num_qubits = np.log2(len(wavefunction))
-        if 2 ** num_qubits != len(wavefunction):
+    def apply(self, amplitude_vector: ParameterizedVector) -> ParameterizedVector:
+        num_qubits = np.log2(len(amplitude_vector))
+        if 2 ** num_qubits != len(amplitude_vector):
             raise ValueError(
                 "GateOperation can only be applied to multi-qubit state vector but "
-                f"vector of length {len(wavefunction)} was provided."
+                f"vector of length {len(amplitude_vector)} was provided."
             )
 
-        return self.lifted_matrix(int(num_qubits)) @ wavefunction
+        return self.lifted_matrix(int(num_qubits)) @ amplitude_vector
 
     @property
     def free_symbols(self) -> Iterable[sympy.Symbol]:

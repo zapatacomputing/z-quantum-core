@@ -37,7 +37,7 @@ class Operation(Protocol):
         """
 
     @abstractmethod
-    def apply(self: T, wavefunction: ParameterizedVector) -> ParameterizedVector:
+    def apply(self: T, amplitude_vector: ParameterizedVector) -> ParameterizedVector:
         """Apply this operation to given wavefunction.
 
         Operations that cannot be applied deterministically should raise

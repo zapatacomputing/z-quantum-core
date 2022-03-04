@@ -4,6 +4,7 @@ from warnings import warn
 
 import numpy as np
 from sympy import Matrix, Symbol
+from zquantum.core.typing import ParameterizedVector
 
 
 def _is_number(possible_number):
@@ -45,9 +46,7 @@ class Wavefunction:
             can either be a NumPy ndarray or a SymPy Matrix
     """
 
-    def __init__(
-        self, amplitude_vector: Union[np.ndarray, Matrix, List[complex]]
-    ) -> None:
+    def __init__(self, amplitude_vector: ParameterizedVector) -> None:
         if bin(len(amplitude_vector)).count("1") != 1:
             raise ValueError(
                 "Provided wavefunction does not have a size of a power of 2."
@@ -58,7 +57,7 @@ class Wavefunction:
         except TypeError:
             self._amplitude_vector = Matrix(amplitude_vector)
 
-        self._check_sanity(self._amplitude_vector)
+        self._check_normalization(self._amplitude_vector)
 
     @property
     def amplitudes(self) -> Union[np.ndarray, Matrix]:
@@ -76,7 +75,7 @@ class Wavefunction:
         return getattr(self._amplitude_vector, "free_symbols", set())
 
     @staticmethod
-    def _check_sanity(arr: Union[Matrix, np.ndarray]):
+    def _check_normalization(arr: Union[Matrix, np.ndarray]):
         def _calculate_probability_of_ground_entries(arr: Matrix) -> np.float64:
             numbers = np.array(
                 [elem for elem in arr if _is_number(elem)], dtype=np.complex128
@@ -112,7 +111,7 @@ class Wavefunction:
         self._amplitude_vector[idx] = val
 
         try:
-            self._check_sanity(self._amplitude_vector)
+            self._check_normalization(self._amplitude_vector)
         except ValueError:
             self._amplitude_vector[idx] = old_val
 

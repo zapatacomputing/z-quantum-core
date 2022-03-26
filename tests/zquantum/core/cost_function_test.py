@@ -3,7 +3,6 @@ from unittest import mock
 
 import numpy as np
 import pytest
-from openfermion import QubitOperator
 from sympy import Symbol
 from zquantum.core.cost_function import (
     AnsatzBasedCostFunction,
@@ -24,6 +23,7 @@ from zquantum.core.estimation import (
 from zquantum.core.gradients import finite_differences_gradient
 from zquantum.core.interfaces.mock_objects import MockAnsatz
 from zquantum.core.measurement import ExpectationValues
+from zquantum.core.openfermion import QubitOperator
 from zquantum.core.symbolic_simulator import SymbolicSimulator
 from zquantum.core.utils import create_symbols_map
 

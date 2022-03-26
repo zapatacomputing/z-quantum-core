@@ -2,14 +2,6 @@ import math
 
 import numpy as np
 import pytest
-from openfermion import (
-    FermionOperator,
-    InteractionRDM,
-    QubitOperator,
-    eigenspectrum,
-    get_interaction_operator,
-    jordan_wigner,
-)
 from zquantum.core.hamiltonian import (
     compute_group_variances,
     estimate_nmeas_for_frames,
@@ -20,6 +12,14 @@ from zquantum.core.hamiltonian import (
     reorder_fermionic_modes,
 )
 from zquantum.core.measurement import ExpectationValues
+from zquantum.core.openfermion import (
+    FermionOperator,
+    InteractionRDM,
+    QubitOperator,
+    eigenspectrum,
+    get_interaction_operator,
+    jordan_wigner,
+)
 
 h2_hamiltonian = QubitOperator(
     """-0.0420789769629383 [] +

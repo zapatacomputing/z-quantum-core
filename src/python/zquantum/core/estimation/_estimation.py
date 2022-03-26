@@ -2,7 +2,7 @@ from typing import Dict, List, Optional, Tuple, cast
 
 import numpy as np
 import sympy
-from openfermion import IsingOperator, QubitOperator
+from zquantum.core.openfermion import IsingOperator, QubitOperator
 
 from ..circuits import RX, RY, Circuit
 from ..hamiltonian import estimate_nmeas_for_frames, group_comeasureable_terms_greedy

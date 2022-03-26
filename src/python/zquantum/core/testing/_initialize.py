@@ -1,7 +1,7 @@
 import random
 
 import numpy as np
-from openfermion.ops import IsingOperator, QubitOperator
+from zquantum.core.openfermion.ops import IsingOperator, QubitOperator
 from zquantum.core.wavefunction import Wavefunction
 
 

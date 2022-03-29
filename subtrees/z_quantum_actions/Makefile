@@ -9,7 +9,9 @@ default:
 	@grep -E '^\w+(\-default)?:' $(TOP_DIR)/$(firstword $(MAKEFILE_LIST)) \
 	       | sed -r 's/-default//g; /default/d ; s/(.*)/\t make \1/g ; s/:.*$$//g'
 
-PYTHON := $(shell which python3)
+
+export VENV := venv
+PYTHON := $(shell PATH="venv/bin:${PATH}" python3 -c 'import sys; print(sys.executable)')
 REPO := $(shell git config --get remote.origin.url)
 PYTHON_MOD := $(shell find src -maxdepth 3 -mindepth 3 -type d | sed '/.*cache/d; s/src\/python\/// ; s/\//./')
 
@@ -37,38 +39,40 @@ clean-default:
 	@echo Finished cleaning out pythonic cruft...
 
 install-default: clean
-	$(PYTHON) -m pip install --upgrade pip==21.2.4
-	$(PYTHON) -m pip install .
+	$(PYTHON) -m pip install --upgrade pip && \
+		$(PYTHON) -m pip install .
 
 # Renamed to develop to distinguish from dev branch
 develop-default: clean
 	$(PYTHON) -m pip install -e .[develop]
 
-github_actions-default: clean
-	$(PYTHON) -m pip install --user -e .[develop]
+github_actions-default:
+	python3 -m venv ${VENV} && \
+		${VENV}/bin/python3 -m pip install --upgrade pip && \
+		${VENV}/bin/python3 -m pip install -e '.[develop]'
 
 flake8-default: clean
-	@flake8 --ignore=E203,E266,F401,W503 --max-line-length=88
+	$(PYTHON) -m flake8 --ignore=E203,E266,F401,W503 --max-line-length=88 src tests
 
 mypy-default: clean
 	@echo scanning files with mypy: Please be patient....
-	@mypy --ignore-missing-imports --namespace-packages src
+	$(PYTHON) -m mypy src tests
 
 black-default: clean
-	@black --check src tests
+	$(PYTHON) -m black --check src tests
 
 isort-default: clean
-	@isort --check --profile black src tests
+	$(PYTHON) -m isort --check src tests
 
 test-default:
-	@pytest -m "not integration" tests
+	$(PYTHON) -m pytest tests
 
 coverage-default:
-	pytest -m "not integration" \
+	$(PYTHON) -m pytest \
 		--cov=src \
 		--cov-fail-under=$(MIN_COVERAGE) tests \
 		--no-cov-on-fail \
-		--cov-report term-missing \
+		--cov-report xml \
 		&& echo Code coverage Passed the $(MIN_COVERAGE)% mark!
 
 

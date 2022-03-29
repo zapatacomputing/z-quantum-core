@@ -106,9 +106,9 @@ def test_imag_wavefunction_io():
 
 
 def test_sample_from_wavefunction():
-    wavefunction = create_random_wavefunction(4)
+    wavefunction = create_random_wavefunction(4, seed=RNDSEED)
 
-    samples = sample_from_wavefunction(wavefunction, 10000)
+    samples = sample_from_wavefunction(wavefunction, 10000, seed=RNDSEED)
     sampled_dict = Counter(samples)
 
     sampled_probabilities = []

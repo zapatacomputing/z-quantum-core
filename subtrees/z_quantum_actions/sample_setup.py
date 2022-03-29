@@ -9,10 +9,8 @@ from setuptools import find_namespace_packages, setup
 try:
     from subtrees.z_quantum_actions.setup_extras import extras
 except ImportError:
-    print("Unable to import extras")
-    extras = {}
-else:
-    print("Imported subtrees/z_quantum_actions/setup_extras.extras")
+    print("Unable to import extras", file=sys.stderr)
+    extras = {"develop": []}
 
 # Workaound for https://github.com/pypa/pip/issues/7953
 site.ENABLE_USER_SITE = "--user" in sys.argv[1:]
@@ -29,6 +27,7 @@ setup(
     description="Monitoring Orquestra workflows.",
     package_dir={"": "src/python"},
     packages=find_namespace_packages(include=["orquestra.*"], where="src/python"),
+    include_package_data=True,
     license="LICENSE",
     install_requires=[
         "pydantic",
@@ -36,4 +35,7 @@ setup(
         orquestra_sdk_dep,
     ],
     extras_require=extras,
+    # Without this, users of this library would get mypy errors. See also:
+    # https://github.com/python/mypy/issues/7508#issuecomment-531965557
+    zip_safe=False,
 )

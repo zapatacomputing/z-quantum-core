@@ -1,6 +1,6 @@
 import random
 from collections import defaultdict
-from typing import Callable, Dict, List, Optional
+from typing import Callable, Dict, List, Optional, cast
 
 import numpy as np
 import sympy
@@ -11,7 +11,7 @@ from zquantum.core.interfaces.cost_function import CostFunction
 from ..circuits import RX, Circuit
 from ..measurement import Measurements
 from ..symbolic_simulator import SymbolicSimulator
-from ..typing import RecorderFactory
+from ..typing import AnyRecorder, RecorderFactory
 from ..utils import create_symbols_map
 from .ansatz import Ansatz
 from .ansatz_utils import ansatz_property
@@ -52,6 +52,7 @@ class MockOptimizer(Optimizer):
         return optimization_result(
             opt_value=cost_function(new_parameters),
             opt_params=new_parameters,
+            nit=1,
             nfev=1,
             **construct_history_info(cost_function, keep_history),
         )
@@ -111,7 +112,9 @@ class MockNestedOptimizer(NestedOptimizer):
             nfev += opt_result.nfev
             current_params = opt_result.opt_params
             if keep_history:
-                histories = extend_histories(cost_function, histories)
+                histories = extend_histories(
+                    cast(AnyRecorder, cost_function), histories
+                )
         return optimization_result(
             opt_value=opt_result.opt_value,
             opt_params=current_params,

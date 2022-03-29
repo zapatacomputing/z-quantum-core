@@ -1,33 +1,43 @@
+# This workflow runs automatic code style checks.
+
+# We need a workflow name to be able to schedule it from Github UI
 name: style
 
-# Trigger on push
 on:
+  # Triggers the workflow on push to main/dev
   push:
     branches:
       - dev
       - main
+  # Triggers the workflow on any PR
   pull_request:
-    branches:
-      - dev
-      - main
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
 jobs:
-  build:
+  # The job ID has to match repo settings for PR required checks
+  style:
     runs-on: ubuntu-latest
+
+    # Run jobs for a couple of Python versions.
+    strategy:
+      matrix:
+        python: [3.7, "3.10"]
+
+    name: Python ${{ matrix.python }}
 
     steps:
       - uses: actions/checkout@v2
 
       # ------------------------------------------------------------------------
-      # Only use ssh when a second private repo needs to be installed....
-      # The current repo MUST have a secrets.SSH_PRIVATE_KEY defined in github.
+      # Loads private SSH key to the SSH agent. Allows to install dependencies 
+      # from private git repos, but requires setting `secrets.SSH_PRIVATE_KEY`
+      # in repo settings.
       # ------------------------------------------------------------------------
       # - uses: ./subtrees/z_quantum_actions/actions/ssh_setup
       #   with:
       #     ssh_key: ${{ secrets.SSH_PRIVATE_KEY }}
 
-      # Pull in the style includes
+      # Installs project, checks codestyle
       - uses: ./subtrees/z_quantum_actions/actions/style

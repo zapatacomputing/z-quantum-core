@@ -2,7 +2,7 @@
 import operator
 from functools import reduce, singledispatch
 from itertools import chain
-from typing import Iterable, List, Tuple, Union
+from typing import Iterable, List, Optional, Tuple, Union
 
 import numpy as np
 import sympy
@@ -62,7 +62,7 @@ def time_evolution_for_term(
     base_changes = []
     base_reversals = []
     cnot_gates = []
-    central_gate = None
+    central_gate: Optional[circuits.GateOperation] = None
     term_types = [component[1] for component in term_components]
     qubit_indices = [component[0] for component in term_components]
     coefficient = list(term.terms.values())[0]
@@ -91,7 +91,8 @@ def time_evolution_for_term(
     for gate in cnot_gates:
         circuit += gate
 
-    circuit += central_gate
+    if central_gate is not None:
+        circuit += central_gate
 
     for gate in reversed(cnot_gates):
         circuit += gate

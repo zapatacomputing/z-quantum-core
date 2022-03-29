@@ -210,12 +210,11 @@ def flip_wavefunction(wavefunction: Wavefunction):
 
 def flip_amplitudes(amplitudes: np.ndarray) -> np.ndarray:
     number_of_states = len(amplitudes)
-    ordering = [
-        _flip_bits(n, number_of_states.bit_length() - 1)
-        for n in range(number_of_states)
-    ]
+    num_bits = number_of_states.bit_length() - 1
+    ordering = (
+        np.arange(2 ** num_bits)
+        .reshape(num_bits * [2])
+        .transpose(*reversed(range(num_bits)))
+        .reshape(2 ** num_bits)
+    )
     return np.array([amplitudes[i] for i in ordering])
-
-
-def _flip_bits(n, num_bits):
-    return int(bin(n)[2:].zfill(num_bits)[::-1], 2)

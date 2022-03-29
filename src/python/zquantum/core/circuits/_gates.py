@@ -352,9 +352,12 @@ class CustomGateMatrixFactory:
         return self.gate_definition.params_ordering
 
     def __call__(self, *gate_params):
-        return self.matrix.subs(
-            {symbol: arg for symbol, arg in zip(self.params_ordering, gate_params)}
-        )
+        if isinstance(self.matrix, sympy.Matrix):
+            return self.matrix.subs(
+                {symbol: arg for symbol, arg in zip(self.params_ordering, gate_params)}
+            )
+        else:
+            return self.matrix
 
     def __eq__(self, other):
         if type(self) != type(other):

@@ -19,6 +19,10 @@ explicit_package_bases = true
 # directory path. If your repo has a different layout you can add the appropriate paths
 # by setting MYPYPATH env variable.
 mypy_path = "src:src/python"
+exclude = [
+    "^src/python/zquantum/core/openfermion/$",
+    "^tests/zquantum/core/openfermion_tests/$"
+]
 
 [[tool.mypy.overrides]]
 module = [

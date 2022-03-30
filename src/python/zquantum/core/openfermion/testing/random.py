@@ -20,7 +20,7 @@ from zquantum.core.openfermion import ops
 from zquantum.core.openfermion.testing.testing_utils import random_interaction_operator
 
 if TYPE_CHECKING:
-    import openfermion
+    import zquantum.core.openfermion as openfermion
 
 
 def random_interaction_operator_term(

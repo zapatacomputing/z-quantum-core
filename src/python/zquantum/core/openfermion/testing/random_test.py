@@ -16,8 +16,8 @@
 import random
 
 import numpy as np
-import openfermion
 import pytest
+from zquantum.core.openfermion import is_hermitian
 from zquantum.core.openfermion.testing import random_interaction_operator_term
 
 
@@ -33,7 +33,7 @@ from zquantum.core.openfermion.testing import random_interaction_operator_term
 def test_random_interaction_operator_term(order, real, seed):
     op = random_interaction_operator_term(order, real, seed)
 
-    assert openfermion.is_hermitian(op)
+    assert is_hermitian(op)
 
     assert op.constant == 0
     assert op.one_body_tensor.shape == (order,) * 2

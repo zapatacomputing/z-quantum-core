@@ -17,7 +17,6 @@
 import os
 import unittest
 
-import nbformat
 import numpy
 
 
@@ -36,27 +35,6 @@ class ExamplesTest(unittest.TestCase):
         self.assertEqual(trial_val, 600)
 
         self.assertTrue(os.path.isdir(self.testing_folder))
-
-    def test_can_run_examples_jupyter_notebooks(self):  # pragma: no cover
-        """No coverage on this test because it is not run.
-        The test is kept as an example.
-        """
-        for filename in os.listdir(self.testing_folder):
-            if not filename.endswith(".ipynb"):
-                continue
-
-            path = os.path.join(self.testing_folder, filename)
-            notebook = nbformat.read(path, nbformat.NO_CONVERT)
-            state = {}
-
-            for cell in notebook.cells:
-                if cell.cell_type == "code" and not is_matplotlib_cell(cell):
-                    try:
-                        exec(strip_magics_and_shows(cell.source), state)
-                    # coverage: ignore
-                    except:
-                        print("Failed to run {}.".format(path))
-                        raise
 
 
 def is_matplotlib_cell(cell):  # pragma: no cover

@@ -22,7 +22,6 @@ mypy_path = "src:src/python"
 
 [[tool.mypy.overrides]]
 module = [
-    'openfermion.*',
     'scipy.*',
     'sympy.*',
     'lea',

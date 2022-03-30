@@ -101,8 +101,15 @@ class TestApplyGateToQubits:
 
         assert compare_unitary(should_unitary, is_unitary, tol=1e-10)
 
-    def test_apply_gate_to_qubits_wrong_num_params(self):
+    def test_apply_gate_to_qubits_wrong_num_params(self, base_circuit):
         params = np.ones(3).reshape(-1, 1)
-        n_qubits = 2
+        n_qubits = (2, 3)
         with pytest.raises(AssertionError):
-            _ = create_layer_of_gates(n_qubits, RY, params)
+            _ = apply_gate_to_qubits(base_circuit, n_qubits, RY, params)
+
+    def test_apply_gate_to_qubits_raises_warning_with_duplicates(self, base_circuit):
+        params = np.ones(2).reshape(-1, 1)
+        n_qubits = (2, 2, 3)
+
+        with pytest.warns(UserWarning):
+            _ = apply_gate_to_qubits(base_circuit, n_qubits, RY, params)

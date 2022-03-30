@@ -1,4 +1,5 @@
-from typing import Iterable, List, Optional, Set, Union, cast
+from typing import Collection, Optional, Union, cast
+from warnings import warn
 
 import numpy as np
 
@@ -32,7 +33,7 @@ def create_layer_of_gates(
 
 def apply_gate_to_qubits(
     circuit: Circuit,
-    qubit_indices: Iterable[int],
+    qubit_indices: Collection[int],
     gate_factory: Union[GatePrototype, Gate],
     parameters: Optional[np.ndarray] = None,
 ) -> Circuit:
@@ -49,6 +50,9 @@ def apply_gate_to_qubits(
         circuit with the gate added to the specified qubits
     """
     unique_qubit_idx = set(qubit_indices)
+
+    if len(unique_qubit_idx) != len(qubit_indices):
+        warn("Duplicate qubits were passed! Duplicates will be ignored.")
 
     if parameters is not None:
         assert len(parameters) == len(unique_qubit_idx)

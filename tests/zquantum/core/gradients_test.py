@@ -5,7 +5,7 @@ from zquantum.core.gradients import finite_differences_gradient
 
 
 def sum_x_squared(parameters: np.ndarray) -> float:
-    return (parameters ** 2).sum()
+    return (parameters**2).sum()
 
 
 @pytest.mark.parametrize(

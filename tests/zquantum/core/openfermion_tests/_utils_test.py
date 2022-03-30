@@ -54,8 +54,8 @@ class TestQubitOperator(unittest.TestCase):
     def test_qubitop_matrix_converion(self):
         # Given
         m = 4
-        n = 2 ** m
-        TOL = 10 ** -15
+        n = 2**m
+        TOL = 10**-15
         random.seed(RNDSEED)
         A = np.array([[random.uniform(-1, 1) for x in range(n)] for y in range(n)])
 

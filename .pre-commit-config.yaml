@@ -13,12 +13,12 @@ repos:
       - id: isort
         args: ["--profile", "black", "--filter-files", "--check"]
 
-  - repo: https://github.com/ambv/black
-    rev: 20.8b1
+  - repo: https://github.com/psf/black
+    rev: 22.3.0
     hooks:
       - id: black
         args: ["--check"]
-        language_version: python3.7
+        language_version: python3.8
 
   - repo: https://gitlab.com/pycqa/flake8
     rev: 3.9.0

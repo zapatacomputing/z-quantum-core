@@ -59,7 +59,7 @@ class MockOptimizer(Optimizer):
 
 
 def mock_cost_function(parameters: np.ndarray):
-    return np.sum(parameters ** 2)
+    return np.sum(parameters**2)
 
 
 class MockNestedOptimizer(NestedOptimizer):

@@ -6,7 +6,7 @@ from zquantum.core.interfaces.optimizer import construct_history_info
 
 
 def sum_x_squared(x):
-    return sum(x ** 2.0)
+    return sum(x**2.0)
 
 
 class TestConstructHistoryInfo:

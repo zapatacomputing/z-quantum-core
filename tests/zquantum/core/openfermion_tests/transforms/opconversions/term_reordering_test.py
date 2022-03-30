@@ -137,7 +137,7 @@ class TestNormalOrdering(unittest.TestCase):
             n_orbitals = len(two_body_tensor)
             ones = numpy.ones((n_orbitals,) * 2)
             triu = numpy.triu(ones, 1)
-            shape = (n_orbitals ** 2, 1)
+            shape = (n_orbitals**2, 1)
             mask = (
                 triu.reshape(shape) * ones.reshape(shape[::-1])
                 + ones.reshape(shape) * triu.reshape(shape[::-1])

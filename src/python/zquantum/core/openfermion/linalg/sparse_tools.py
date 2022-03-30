@@ -108,14 +108,14 @@ def jordan_wigner_sparse(fermion_operator, n_qubits=None):
         ]
 
     # Construct the Scipy sparse matrix.
-    n_hilbert = 2 ** n_qubits
+    n_hilbert = 2**n_qubits
     values_list = [[]]
     row_list = [[]]
     column_list = [[]]
     for term in fermion_operator.terms:
         coefficient = fermion_operator.terms[term]
         sparse_matrix = coefficient * scipy.sparse.identity(
-            2 ** n_qubits, dtype=complex, format="csc"
+            2**n_qubits, dtype=complex, format="csc"
         )
         for ladder_operator in term:
             sparse_matrix = (
@@ -156,7 +156,7 @@ def qubit_operator_sparse(qubit_operator, n_qubits=None):
         raise ValueError("Invalid number of qubits specified.")
 
     # Construct the Scipy sparse matrix.
-    n_hilbert = 2 ** n_qubits
+    n_hilbert = 2**n_qubits
     values_list = [[]]
     row_list = [[]]
     column_list = [[]]
@@ -172,7 +172,7 @@ def qubit_operator_sparse(qubit_operator, n_qubits=None):
             if pauli_operator[0] > tensor_factor:
                 identity_qubits = pauli_operator[0] - tensor_factor
                 identity = scipy.sparse.identity(
-                    2 ** identity_qubits, dtype=complex, format="csc"
+                    2**identity_qubits, dtype=complex, format="csc"
                 )
                 sparse_operators += [identity]
 
@@ -184,7 +184,7 @@ def qubit_operator_sparse(qubit_operator, n_qubits=None):
         if tensor_factor < n_qubits or not qubit_term:
             identity_qubits = n_qubits - tensor_factor
             identity = scipy.sparse.identity(
-                2 ** identity_qubits, dtype=complex, format="csc"
+                2**identity_qubits, dtype=complex, format="csc"
             )
             sparse_operators += [identity]
 
@@ -218,7 +218,7 @@ def jw_configuration_state(occupied_orbitals, n_qubits):
         basis_vector(sparse): The basis state as a sparse matrix
     """
     one_index = sum(2 ** (n_qubits - 1 - i) for i in occupied_orbitals)
-    basis_vector = numpy.zeros(2 ** n_qubits, dtype=float)
+    basis_vector = numpy.zeros(2**n_qubits, dtype=float)
     basis_vector[one_index] = 1
     return basis_vector
 
@@ -247,7 +247,7 @@ def jw_number_indices(n_electrons, n_qubits):
             in a Jordan-Wigner encoding.
     """
     occupations = itertools.combinations(range(n_qubits), n_electrons)
-    indices = [sum([2 ** n for n in occupation]) for occupation in occupations]
+    indices = [sum([2**n for n in occupation]) for occupation in occupations]
     return indices
 
 
@@ -308,7 +308,7 @@ def jw_get_ground_state_at_particle_number(sparse_operator, particle_number):
 
     # Expand the state
     state = eigvecs[:, 0]
-    expanded_state = numpy.zeros(2 ** n_qubits, dtype=complex)
+    expanded_state = numpy.zeros(2**n_qubits, dtype=complex)
     expanded_state[jw_number_indices(particle_number, n_qubits)] = state
 
     return eigvals[0], expanded_state

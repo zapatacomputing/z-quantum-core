@@ -178,7 +178,7 @@ def benchmark_linear_qubit_operator(n_qubits, n_terms, processes=None):
     end = time.time()
     runtime_operator = end - start
 
-    vec = numpy.random.rand(2 ** n_qubits)
+    vec = numpy.random.rand(2**n_qubits)
     # Performs matrix multiplication.
     start = time.time()
     _ = linear_operator * vec

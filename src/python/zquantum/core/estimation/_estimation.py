@@ -59,7 +59,9 @@ def perform_context_selection(
         (
             context_selection_circuit,
             frame_operator,
-        ) = get_context_selection_circuit_for_group(estimation_task.operator)
+        ) = get_context_selection_circuit_for_group(
+            cast(QubitOperator, estimation_task.operator)
+        )
         frame_circuit = estimation_task.circuit + context_selection_circuit
         new_estimation_task = EstimationTask(
             frame_operator, frame_circuit, estimation_task.number_of_shots
@@ -104,7 +106,7 @@ def group_greedily(
     output_estimation_tasks = []
     for estimation_task in estimation_tasks:
         groups = group_comeasureable_terms_greedy(
-            estimation_task.operator, sort_terms=sort_terms
+            cast(QubitOperator, estimation_task.operator), sort_terms=sort_terms
         )
         for group in groups:
             group_estimation_task = EstimationTask(
@@ -153,7 +155,10 @@ def allocate_shots_proportionally(
     if total_n_shots <= 0:
         raise ValueError("total_n_shots must be positive.")
 
-    frame_operators = [estimation_task.operator for estimation_task in estimation_tasks]
+    frame_operators = [
+        cast(QubitOperator, estimation_task.operator)
+        for estimation_task in estimation_tasks
+    ]
 
     _, _, relative_measurements_per_frame = estimate_nmeas_for_frames(
         frame_operators, prior_expectation_values

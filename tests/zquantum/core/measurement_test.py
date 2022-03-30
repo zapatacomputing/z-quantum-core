@@ -5,7 +5,6 @@ from collections import Counter
 
 import numpy as np
 import pytest
-from openfermion.ops import IsingOperator
 from zquantum.core.distribution import MeasurementOutcomeDistribution
 from zquantum.core.measurement import (
     ExpectationValues,
@@ -28,6 +27,7 @@ from zquantum.core.measurement import (
     save_parities,
     save_wavefunction,
 )
+from zquantum.core.openfermion.ops import IsingOperator
 from zquantum.core.testing import create_random_wavefunction
 from zquantum.core.utils import (
     RNDSEED,

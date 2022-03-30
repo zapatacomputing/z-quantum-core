@@ -17,7 +17,7 @@ from typing import (
 )
 
 import numpy as np
-from openfermion.ops import IsingOperator
+from zquantum.core.openfermion.ops import IsingOperator
 from zquantum.core.serialization import ensure_open
 from zquantum.core.typing import AnyPath, LoadSource
 from zquantum.core.wavefunction import Wavefunction

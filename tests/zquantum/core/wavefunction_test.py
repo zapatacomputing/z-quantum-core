@@ -60,7 +60,7 @@ class TestInitSystemInZeroState:
         wavefunction = Wavefunction.zero_state(n_qubits=n_qubits)
 
         # Check length
-        assert len(wavefunction) == 2 ** n_qubits
+        assert len(wavefunction) == 2**n_qubits
 
         # Check internal property
         assert wavefunction.n_qubits == n_qubits

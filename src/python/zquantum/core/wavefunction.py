@@ -139,7 +139,7 @@ class Wavefunction:
         if n_qubits <= 0:
             raise ValueError(f"Invalid number of qubits in system. Got {n_qubits}.")
 
-        np_arr = np.zeros(2 ** n_qubits, dtype=np.complex128)
+        np_arr = np.zeros(2**n_qubits, dtype=np.complex128)
         np_arr[0] = 1.0
         return Wavefunction(np_arr)
 
@@ -174,7 +174,7 @@ class Wavefunction:
                 counter += 1
 
             amplitude = 1 / np.sqrt(counter)
-            wf = np.zeros(2 ** n_qubits, dtype=np.complex128)
+            wf = np.zeros(2**n_qubits, dtype=np.complex128)
             wf[indices] = amplitude
 
             return Wavefunction(wf)

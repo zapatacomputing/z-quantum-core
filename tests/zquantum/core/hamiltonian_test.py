@@ -432,8 +432,8 @@ def test_compute_group_variances_without_ref(groups, expecval):
     for g in groups:
         ham += g
     ham_coeff = np.array(list(ham.terms.values()))
-    pauli_var = 1.0 - expecval.values ** 2
-    ref_ham_variance = np.sum(ham_coeff ** 2 * pauli_var)
+    pauli_var = 1.0 - expecval.values**2
+    ref_ham_variance = np.sum(ham_coeff**2 * pauli_var)
     assert math.isclose(
         test_ham_variance, ref_ham_variance
     )  # this is true as long as the groups do not overlap

@@ -31,9 +31,9 @@ class TestInitializations:
                 BitstringDistribution({"00": 0.25, "10": 0.5, "01": 0.0, "11": 0.25}),
             ),
             (
-                np.ones(2 ** 5) / 2 ** 5,
+                np.ones(2**5) / 2**5,
                 BitstringDistribution(
-                    {tup: 1 / 2 ** 5 for tup in product([0, 1], repeat=5)}
+                    {tup: 1 / 2**5 for tup in product([0, 1], repeat=5)}
                 ),
             ),
         ],

@@ -130,7 +130,7 @@ def get_decomposition_function(
 
 def _calculate_variance_upper_bound(group: QubitOperator) -> float:
     coefficients = np.array(list(group.terms.values()))
-    return np.sum(coefficients ** 2)
+    return np.sum(coefficients**2)
 
 
 def _remove_constant_term_from_group(group: QubitOperator) -> QubitOperator:
@@ -172,7 +172,7 @@ def compute_group_variances(
         ).all():
             raise ValueError("Expectation values should have values between -1 and 1.")
 
-        pauli_variances = 1.0 - real_expecval.values ** 2
+        pauli_variances = 1.0 - real_expecval.values**2
         frame_variances = []
         for i, group in enumerate(groups):
             coeffs = np.array(list(group.terms.values()))
@@ -180,7 +180,7 @@ def compute_group_variances(
             pauli_variances_for_group = pauli_variances[
                 offset : offset + group_sizes[i]
             ]
-            frame_variances.append(np.sum(coeffs ** 2 * pauli_variances_for_group))
+            frame_variances.append(np.sum(coeffs**2 * pauli_variances_for_group))
 
     return np.array(frame_variances)
 

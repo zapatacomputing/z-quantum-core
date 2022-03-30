@@ -623,7 +623,7 @@ def get_ordered_list_of_bitstrings(num_qubits: int) -> List[str]:
         The ordered bitstring representations of the integers
     """
     bitstrings = []
-    for i in range(2 ** num_qubits):
+    for i in range(2**num_qubits):
         bitstring = "{0:b}".format(i)
         while len(bitstring) < num_qubits:
             bitstring = "0" + bitstring

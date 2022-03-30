@@ -316,7 +316,7 @@ def get_expectation_values_from_parities(parities: Parities) -> ExpectationValue
             precision = 1.0 / np.sqrt(N)
 
         values.append(value)
-        estimator_covariances.append(np.array([[precision ** 2.0]]))
+        estimator_covariances.append(np.array([[precision**2.0]]))
 
     return ExpectationValues(
         values=np.array(values), estimator_covariances=estimator_covariances

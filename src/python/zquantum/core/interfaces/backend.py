@@ -195,7 +195,7 @@ class QuantumSimulator(QuantumBackend):
         """
         state: StateVector
         if initial_state is None:
-            state = np.zeros(2 ** circuit.n_qubits)
+            state = np.zeros(2**circuit.n_qubits)
             state[0] = 1
         else:
             state = initial_state

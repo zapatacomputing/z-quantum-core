@@ -100,15 +100,15 @@ def get_qubitop_from_matrix(operator: List[List]) -> QubitOperator:
 
         # Compute the trace
         tr = 0.0
-        for j in range(0, 2 ** n):  # loop over the columns
+        for j in range(0, 2**n):  # loop over the columns
             tr = tr + operator[j][f(j)] * nz(j)
 
-        return tr / 2 ** n
+        return tr / 2**n
 
     # Expand the operator in Pauli basis
-    coeffs = list(np.zeros(4 ** n))
-    labels = list(np.zeros(4 ** n))
-    for i in range(0, 4 ** n):  # loop over all 2n-bit strings
+    coeffs = list(np.zeros(4**n))
+    labels = list(np.zeros(4**n))
+    for i in range(0, 4**n):  # loop over all 2n-bit strings
         current_string = dec2bin(i, 2 * n)  # see util.py
         current_label = decode(current_string)
         coeffs[i] = trace_product(current_label)

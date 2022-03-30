@@ -47,8 +47,8 @@ class TestQubitOperator(unittest.TestCase):
 
         # Given
         m = 4
-        n = 2 ** m
-        TOL = 10 ** -15
+        n = 2**m
+        TOL = 10**-15
         random.seed(RNDSEED)
         A = np.array([[random.uniform(-1, 1) for x in range(n)] for y in range(n)])
 

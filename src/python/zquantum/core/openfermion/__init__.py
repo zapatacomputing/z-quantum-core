@@ -59,7 +59,16 @@ from zquantum.core.openfermion.linalg import (
     qubit_operator_sparse,
 )
 
-from zquantum.core.openfermion.measurements import get_interaction_rdm
+from zquantum.core.openfermion.measurements import (
+    constraint_matrix,
+    linearize_term,
+    unlinearize_term,
+    operator_to_vector,
+    vector_to_operator,
+    get_interaction_rdm,
+    two_body_fermion_constraints,
+)
+
 from zquantum.core.openfermion.ops import (
     FermionOperator,
     InteractionOperator,

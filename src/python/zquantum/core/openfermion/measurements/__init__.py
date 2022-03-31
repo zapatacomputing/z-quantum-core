@@ -13,5 +13,12 @@
 #   See the License for the specific language governing permissions and
 #   limitations under the License.
 
-
+from .equality_constraint_projection import (
+    constraint_matrix,
+    linearize_term,
+    operator_to_vector,
+    unlinearize_term,
+    vector_to_operator,
+)
 from .get_interaction_rdm import get_interaction_rdm
+from .rdm_equality_constraints import two_body_fermion_constraints

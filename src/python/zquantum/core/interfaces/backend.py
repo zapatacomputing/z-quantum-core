@@ -2,8 +2,8 @@ from abc import ABC, abstractmethod
 from typing import Any, List, Optional, Sequence, Union
 
 import numpy as np
-from openfermion import IsingOperator, QubitOperator, SymbolicOperator
 from zquantum.core.bitstring_distribution import BitstringDistribution
+from zquantum.core.openfermion import IsingOperator, QubitOperator, SymbolicOperator
 from zquantum.core.wavefunction import Wavefunction
 
 from ..circuits import Circuit, GateOperation, Operation

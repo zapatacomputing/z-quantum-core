@@ -2,7 +2,11 @@ import copy
 from typing import Callable, Dict, List, Optional, Tuple
 
 import numpy as np
-from openfermion.ops import InteractionOperator, InteractionRDM, QubitOperator
+from zquantum.core.openfermion.ops import (
+    InteractionOperator,
+    InteractionRDM,
+    QubitOperator,
+)
 
 from .measurement import ExpectationValues, expectation_values_to_real
 

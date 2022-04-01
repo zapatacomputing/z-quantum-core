@@ -7,12 +7,10 @@ if TYPE_CHECKING:
 
 def total_variation_distance(
     target_distribution: "MeasurementOutcomeDistribution",
-    measured_distribution: "MeasurementOutcomeDistribution",
-    distance_measure_parameters: Dict,
+    measured_distribution: "MeasurementOutcomeDistribution"
 ) -> float:
-    """Compute the value of the clipped negative log likelihood between a target
-     distribution and a measured distribution.
-    See Equation (4) in https://advances.sciencemag.org/content/5/10/eaaw9918?rss=1
+    """Compute the total variation distance between two distributions,
+    potentially a target distribution and a measured distribution.
 
     Args:
         target_distribution: The target probability distribution.
@@ -22,16 +20,17 @@ def total_variation_distance(
         The value of the the total variation distance
     """
 
-    epsilon = distance_measure_parameters.get("epsilon", 1e-9)
-    value = 0.0
-    target_keys = target_distribution.distribution_dict.keys()
-    measured_keys = measured_distribution.distribution_dict.keys()
-    all_keys = set(target_keys).union(measured_keys)
+    value = 0.0 #The starting value is 0
+    target_keys = target_distribution.distribution_dict.keys() #Get all bitstrings of first distribution
+    measured_keys = measured_distribution.distribution_dict.keys() #Get all  bitstrings of second distribution
+    all_keys = set(target_keys).union(measured_keys) #Combine all bitstrings together
 
     for bitstring in all_keys:
+        #Get the probability of each bitstring for each distribution (if missing, it is 0)
         target_bitstring_value = target_distribution.distribution_dict.get(bitstring,0)
         measured_bitstring_value = measured_distribution.distribution_dict.get(bitstring,0)
 
+        #The absolute value of the difference of all probabilities is the total variation distance
         value += abs(target_bitstring_value - measured_bitstring_value)
 
     return value

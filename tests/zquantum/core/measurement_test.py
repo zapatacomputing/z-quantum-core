@@ -119,7 +119,7 @@ def test_sample_from_wavefunction():
         measurement = convert_bitstrings_to_tuples([bitstring])[0]
         sampled_probabilities.append(sampled_dict[measurement] / 10000)
 
-    probabilities = wavefunction.probabilities()
+    probabilities = wavefunction.get_probabilities()
     for sampled_prob, exact_prob in zip(sampled_probabilities, probabilities):
         assert np.allclose(sampled_prob, exact_prob, atol=0.01)
 

@@ -568,6 +568,7 @@ class Measurements:
             self.bitstrings = []
         else:
             self.bitstrings = bitstrings
+        self.final_qubit_mapings=[]
 
     @classmethod
     def from_counts(cls, counts: Dict[str, int]):

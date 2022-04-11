@@ -5,7 +5,7 @@ if TYPE_CHECKING:
     from zquantum.core.distribution import MeasurementOutcomeDistribution
 
 
-def total_variation_distance(
+def compute_total_variation_distance(
     target_distribution: "MeasurementOutcomeDistribution",
     measured_distribution: "MeasurementOutcomeDistribution"
 ) -> float:

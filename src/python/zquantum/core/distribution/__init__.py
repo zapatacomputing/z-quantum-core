@@ -19,3 +19,4 @@ from ._measurement_outcome_distribution import (
 from .clipped_negative_log_likelihood import compute_clipped_negative_log_likelihood
 from .jensen_shannon_divergence import compute_jensen_shannon_divergence
 from .mmd import compute_mmd, compute_multi_rbf_kernel, compute_rbf_kernel
+from .total_variation_distance import compute_total_variation_distance

@@ -20,17 +20,25 @@ def compute_total_variation_distance(
         The value of the the total variation distance
     """
 
-    value = 0.0 #The starting value is 0
-    target_keys = target_distribution.distribution_dict.keys() #Get all bitstrings of first distribution
-    measured_keys = measured_distribution.distribution_dict.keys() #Get all  bitstrings of second distribution
-    all_keys = set(target_keys).union(measured_keys) #Combine all bitstrings together
+    #The starting value is 0
+    value = 0.0 
+    #Get all bitstrings of first distribution
+    target_keys = target_distribution.distribution_dict.keys() 
+    #Get all  bitstrings of second distribution
+    measured_keys = measured_distribution.distribution_dict.keys() 
+    #Combine all bitstrings together
+    all_keys = set(target_keys).union(measured_keys) 
 
     for bitstring in all_keys:
         #Get the probability of each bitstring for each distribution (if missing, it is 0)
-        target_bitstring_value = target_distribution.distribution_dict.get(bitstring,0)
-        measured_bitstring_value = measured_distribution.distribution_dict.get(bitstring,0)
+        target_bitstring_value = target_distribution.distribution_dict.get(
+            bitstring,0
+        )
+        measured_bitstring_value = measured_distribution.distribution_dict.get(
+            bitstring,0
+        )
 
-        #The absolute value of the difference of all probabilities is the total variation distance
+        #Sum of abs of all probability differences
         value += abs(target_bitstring_value - measured_bitstring_value)
 
     return value

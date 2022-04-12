@@ -18,8 +18,8 @@ from zquantum.core.serialization import (
 )
 from zquantum.core.trackers import MeasurementTrackingBackend
 from zquantum.core.typing import Specs
-from zquantum.core.utils import create_object, load_list
-
+from zquantum.core.utils import create_object, load_list, load_noise_model
+from zquantum.core.circuits.layouts import load_circuit_connectivity
 
 def optimize_parametrized_circuit_for_ground_state_of_operator(
     optimizer_specs: Specs,
@@ -206,6 +206,11 @@ def optimize_ansatz_based_cost_function(
 
     if isinstance(backend_specs, str):
         backend_specs = json.loads(backend_specs)
+    if "noise_model" in kwargs:
+        backend_specs["noise_model"] = load_noise_model(kwargs.pop("noise_model"))
+    if "device_connectivity" in kwargs:
+        backend_specs["device_connectivity"] = load_circuit_connectivity(kwargs.pop("device_connectivity"))
+    
     backend = create_object(backend_specs)
     if backend_specs.get("track_measurements"):
         backend = MeasurementTrackingBackend(

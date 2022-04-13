@@ -184,7 +184,7 @@ def test_total_variation_distance_is_computed_correctly():
 def test_moment_based_distance_is_computed_correctly():
     target_distr = MeasurementOutcomeDistribution({"000": 0.5, "111": 0.5})
     measured_dist = MeasurementOutcomeDistribution({"000": 0.5, "111": 0.5})
-    moment_based_distance = moment_based_distance(
+    moment_based_distance = compute_moment_based_distance(
         target_distr, measured_dist
     )
 

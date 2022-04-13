@@ -8,6 +8,8 @@ from zquantum.core.distribution import (
     compute_jensen_shannon_divergence,
     compute_mmd,
     evaluate_distribution_distance,
+    compute_total_variation_distance,
+    compute_moment_based_distance
 )
 
 
@@ -169,3 +171,21 @@ def test_jensen_shannon_divergence_is_computed_correctly():
     )
 
     assert jensen_shannon_divergence == 0.9485599924429406
+
+def test_total_variation_distance_is_computed_correctly():
+    target_distr = MeasurementOutcomeDistribution({"000": 0.5, "111": 0.5})
+    measured_dist = MeasurementOutcomeDistribution({"000": 0.4, "111": 0.6})
+    total_variation_distance = compute_total_variation_distance(
+        target_distr, measured_dist
+    )
+
+    assert total_variation_distance == 0.2
+
+def test_moment_based_distance_is_computed_correctly():
+    target_distr = MeasurementOutcomeDistribution({"000": 0.5, "111": 0.5})
+    measured_dist = MeasurementOutcomeDistribution({"000": 0.5, "111": 0.5})
+    moment_based_distance = moment_based_distance(
+        target_distr, measured_dist
+    )
+
+    assert momement_based_distance == 0.0

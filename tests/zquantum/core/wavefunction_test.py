@@ -200,10 +200,10 @@ class TestRepresentations:
     def test_amplitudes_and_probs_output_type(self, wf: Wavefunction):
         if len(wf.free_symbols) > 0:
             assert wf.amplitudes.dtype == object
-            assert wf.probabilities().dtype == object
+            assert wf.get_probabilities().dtype == object
         else:
             assert wf.amplitudes.dtype == np.complex128
-            assert wf.probabilities().dtype == np.float64
+            assert wf.get_probabilities().dtype == np.float64
 
     @pytest.mark.parametrize(
         "wf_vec",
@@ -222,7 +222,7 @@ class TestRepresentations:
         for key in probs_dict.keys():
             assert len(key) == wf.n_qubits
 
-            assert wf.probabilities()[int(key, 2)] == probs_dict[key]
+            assert wf.get_probabilities()[int(key, 2)] == probs_dict[key]
 
 
 class TestGates:

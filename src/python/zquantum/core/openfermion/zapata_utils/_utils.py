@@ -3,7 +3,9 @@ import random
 from typing import Iterable, List, Optional
 
 import numpy as np
-from openfermion import (
+from zquantum.core.circuits import Circuit, X, Y, Z
+from zquantum.core.measurement import ExpectationValues
+from zquantum.core.openfermion import (
     FermionOperator,
     InteractionOperator,
     InteractionRDM,
@@ -11,20 +13,17 @@ from openfermion import (
     QubitOperator,
     count_qubits,
 )
-from openfermion import expectation as openfermion_expectation
-from openfermion import (
+from zquantum.core.openfermion import expectation as openfermion_expectation
+from zquantum.core.openfermion import (
     get_interaction_operator,
     get_sparse_operator,
     normal_ordered,
-    number_operator,
 )
-from openfermion.linalg import jw_get_ground_state_at_particle_number
-from openfermion.transforms import freeze_orbitals, get_fermion_operator
-
-from ..circuits import Circuit, X, Y, Z
-from ..measurement import ExpectationValues
-from ..utils import ValueEstimate, bin2dec, dec2bin
-from ..wavefunction import Wavefunction
+from zquantum.core.openfermion.hamiltonians.special_operators import number_operator
+from zquantum.core.openfermion.linalg import jw_get_ground_state_at_particle_number
+from zquantum.core.openfermion.transforms import freeze_orbitals, get_fermion_operator
+from zquantum.core.utils import ValueEstimate, bin2dec, dec2bin
+from zquantum.core.wavefunction import Wavefunction
 
 
 def get_qubitop_from_matrix(operator: List[List]) -> QubitOperator:
@@ -101,15 +100,15 @@ def get_qubitop_from_matrix(operator: List[List]) -> QubitOperator:
 
         # Compute the trace
         tr = 0.0
-        for j in range(0, 2 ** n):  # loop over the columns
+        for j in range(0, 2**n):  # loop over the columns
             tr = tr + operator[j][f(j)] * nz(j)
 
-        return tr / 2 ** n
+        return tr / 2**n
 
     # Expand the operator in Pauli basis
-    coeffs = list(np.zeros(4 ** n))
-    labels = list(np.zeros(4 ** n))
-    for i in range(0, 4 ** n):  # loop over all 2n-bit strings
+    coeffs = list(np.zeros(4**n))
+    labels = list(np.zeros(4**n))
+    for i in range(0, 4**n):  # loop over all 2n-bit strings
         current_string = dec2bin(i, 2 * n)  # see util.py
         current_label = decode(current_string)
         coeffs[i] = trace_product(current_label)
@@ -652,3 +651,31 @@ def remove_inactive_orbitals(
     frozen_interaction_op = get_interaction_operator(frozen_fermion_op)
 
     return frozen_interaction_op
+
+
+def hf_rdm(n_alpha: int, n_beta: int, n_orbitals: int) -> InteractionRDM:
+    """Construct the RDM corresponding to a Hartree-Fock state.
+
+    Args:
+        n_alpha (int): number of spin-up electrons
+        n_beta (int): number of spin-down electrons
+        n_orbitals (int): number of spatial orbitals (not spin orbitals)
+
+    Returns:
+        openfermion.ops.InteractionRDM: the reduced density matrix
+    """
+    # Determine occupancy of each spin orbital
+    occ = np.zeros(2 * n_orbitals)
+    occ[: (2 * n_alpha) : 2] = 1
+    occ[1 : (2 * n_beta + 1) : 2] = 1
+
+    one_body_tensor = np.diag(occ)
+
+    two_body_tensor = np.zeros([2 * n_orbitals for i in range(4)])
+    for i in range(2 * n_orbitals):
+        for j in range(2 * n_orbitals):
+            if i != j and occ[i] and occ[j]:
+                two_body_tensor[i, j, j, i] = 1
+                two_body_tensor[i, j, i, j] = -1
+
+    return InteractionRDM(one_body_tensor, two_body_tensor)

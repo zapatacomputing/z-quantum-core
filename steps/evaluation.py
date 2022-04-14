@@ -1,11 +1,6 @@
 import json
 from typing import Dict, List, Union, cast
 
-from openfermion import QubitOperator, SymbolicOperator
-from openfermion.linalg import (
-    jw_get_ground_state_at_particle_number as _jw_get_ground_state_at_particle_number,
-)
-from openfermion.linalg import qubit_operator_sparse
 from zquantum.core.circuits import Circuit, circuit_from_dict, load_circuit
 from zquantum.core.estimation import estimate_expectation_values_by_averaging
 from zquantum.core.interfaces.backend import QuantumBackend
@@ -16,7 +11,11 @@ from zquantum.core.measurement import (
     save_expectation_values,
     save_wavefunction,
 )
-from zquantum.core.openfermion import convert_dict_to_qubitop
+from zquantum.core.openfermion import (
+    QubitOperator,
+    SymbolicOperator,
+    convert_dict_to_qubitop,
+)
 from zquantum.core.openfermion import (
     evaluate_qubit_operator_list as _evaluate_qubit_operator_list,
 )
@@ -28,6 +27,10 @@ from zquantum.core.openfermion import (
     load_qubit_operator_set,
     save_interaction_rdm,
 )
+from zquantum.core.openfermion.linalg import (
+    jw_get_ground_state_at_particle_number as _jw_get_ground_state_at_particle_number,
+)
+from zquantum.core.openfermion.linalg import qubit_operator_sparse
 from zquantum.core.trackers import MeasurementTrackingBackend
 from zquantum.core.typing import Specs
 from zquantum.core.utils import ValueEstimate, create_object, save_value_estimate

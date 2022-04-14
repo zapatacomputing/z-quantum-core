@@ -23,7 +23,7 @@ def sum_of_squares(params):
     Returns:
         Sum of squares of numbers in params.
     """
-    return sum(x ** 2 for x in params)
+    return sum(x**2 for x in params)
 
 
 # The below implements function: f(x, y) = x ** 2  - x * y

@@ -3,14 +3,13 @@ from typing import List, Optional, Union
 
 import numpy as np
 import zquantum.core.circuits as new_circuits
-from openfermion import SymbolicOperator
 from zquantum.core.circuits import Circuit
 from zquantum.core.cost_function import (
     AnsatzBasedCostFunction,
     get_ground_state_cost_function,
 )
 from zquantum.core.estimation import estimate_expectation_values_by_averaging
-from zquantum.core.openfermion import load_qubit_operator
+from zquantum.core.openfermion import SymbolicOperator, load_qubit_operator
 from zquantum.core.serialization import (
     load_array,
     save_array,

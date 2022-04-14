@@ -2,6 +2,7 @@ import os
 import site
 import sys
 import warnings
+from platform import python_version
 
 import setuptools
 
@@ -43,15 +44,17 @@ setuptools.setup(
         "Programming Language :: Python :: 3.7",
         "Operating System :: OS Independent",
     ],
+    # Avoid bug in Protocol in python 3.9.7. Note that higher and lower versions of Python are fine.
+    python_version="!=3.9.7",
     install_requires=[
         "networkx==2.4",
         "numpy>=1.20",
         "scipy>=1.4.1",
-        "sympy>=1.5",
-        "openfermion~=1.0",
+        "sympy>=1.5,<=1.9",
         "lea>=3.2.0",
         "overrides~=3.1",
         "python-rapidjson",
+        "h5py>=2.8",
     ],
     extras_require=extras,
     setup_requires=["setuptools_scm~=6.0"],

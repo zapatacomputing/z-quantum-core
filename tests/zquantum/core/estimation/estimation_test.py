@@ -3,7 +3,6 @@ from functools import partial
 import numpy as np
 import pytest
 import sympy
-from openfermion import IsingOperator, QubitOperator, qubit_operator_sparse
 from zquantum.core.circuits import RX, RY, RZ, Circuit, H, I, X
 from zquantum.core.estimation import (
     allocate_shots_proportionally,
@@ -21,7 +20,12 @@ from zquantum.core.estimation import (
 from zquantum.core.interfaces.estimation import EstimationTask
 from zquantum.core.interfaces.mock_objects import MockQuantumBackend
 from zquantum.core.measurement import ExpectationValues, Measurements
-from zquantum.core.openfermion._utils import change_operator_type
+from zquantum.core.openfermion import (
+    IsingOperator,
+    QubitOperator,
+    qubit_operator_sparse,
+)
+from zquantum.core.openfermion.zapata_utils._utils import change_operator_type
 from zquantum.core.symbolic_simulator import SymbolicSimulator
 
 

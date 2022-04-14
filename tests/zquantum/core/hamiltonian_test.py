@@ -2,14 +2,6 @@ import math
 
 import numpy as np
 import pytest
-from openfermion import (
-    FermionOperator,
-    InteractionRDM,
-    QubitOperator,
-    eigenspectrum,
-    get_interaction_operator,
-    jordan_wigner,
-)
 from zquantum.core.hamiltonian import (
     compute_group_variances,
     estimate_nmeas_for_frames,
@@ -20,6 +12,14 @@ from zquantum.core.hamiltonian import (
     reorder_fermionic_modes,
 )
 from zquantum.core.measurement import ExpectationValues
+from zquantum.core.openfermion import (
+    FermionOperator,
+    InteractionRDM,
+    QubitOperator,
+    eigenspectrum,
+    get_interaction_operator,
+    jordan_wigner,
+)
 
 h2_hamiltonian = QubitOperator(
     """-0.0420789769629383 [] +
@@ -432,8 +432,8 @@ def test_compute_group_variances_without_ref(groups, expecval):
     for g in groups:
         ham += g
     ham_coeff = np.array(list(ham.terms.values()))
-    pauli_var = 1.0 - expecval.values ** 2
-    ref_ham_variance = np.sum(ham_coeff ** 2 * pauli_var)
+    pauli_var = 1.0 - expecval.values**2
+    ref_ham_variance = np.sum(ham_coeff**2 * pauli_var)
     assert math.isclose(
         test_ham_variance, ref_ham_variance
     )  # this is true as long as the groups do not overlap

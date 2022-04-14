@@ -2,7 +2,7 @@ import os
 import unittest
 
 import numpy as np
-from openfermion import (
+from zquantum.core.openfermion import (
     FermionOperator,
     InteractionRDM,
     IsingOperator,
@@ -10,8 +10,7 @@ from openfermion import (
     get_interaction_operator,
     hermitian_conjugated,
 )
-from zquantum.core.interfaces.mock_objects import MockAnsatz
-from zquantum.core.openfermion._io import (
+from zquantum.core.openfermion.zapata_utils._io import (
     convert_dict_to_interaction_op,
     convert_dict_to_interaction_rdm,
     convert_dict_to_isingop,
@@ -29,11 +28,10 @@ from zquantum.core.openfermion._io import (
     save_interaction_operator,
     save_interaction_rdm,
     save_ising_operator,
-    save_parameter_grid_evaluation,
     save_qubit_operator,
     save_qubit_operator_set,
 )
-from zquantum.core.utils import SCHEMA_VERSION, convert_dict_to_array, create_object
+from zquantum.core.utils import SCHEMA_VERSION, convert_dict_to_array
 
 
 class TestQubitOperator(unittest.TestCase):

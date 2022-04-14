@@ -2,8 +2,8 @@ from abc import ABC, abstractmethod
 from typing import Any, List, Optional, Sequence, Union
 
 import numpy as np
-from openfermion import IsingOperator, QubitOperator, SymbolicOperator
 from zquantum.core.bitstring_distribution import BitstringDistribution
+from zquantum.core.openfermion import IsingOperator, QubitOperator, SymbolicOperator
 from zquantum.core.wavefunction import Wavefunction
 
 from ..circuits import Circuit, GateOperation, Operation
@@ -195,7 +195,7 @@ class QuantumSimulator(QuantumBackend):
         """
         state: StateVector
         if initial_state is None:
-            state = np.zeros(2 ** circuit.n_qubits)
+            state = np.zeros(2**circuit.n_qubits)
             state[0] = 1
         else:
             state = initial_state
@@ -248,7 +248,7 @@ class QuantumSimulator(QuantumBackend):
         if n_samples is None:
             wavefunction = self.get_wavefunction(circuit)
             return create_bitstring_distribution_from_probability_distribution(
-                wavefunction.probabilities()
+                wavefunction.get_probabilities()
             )
         else:
             # Get the expectation values

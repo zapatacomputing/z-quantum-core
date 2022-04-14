@@ -2,8 +2,8 @@ from dataclasses import dataclass
 from typing import List, Optional
 
 import numpy as np
-from openfermion import SymbolicOperator
 from typing_extensions import Protocol
+from zquantum.core.openfermion import SymbolicOperator
 
 from ..circuits import Circuit
 from ..measurement import ExpectationValues

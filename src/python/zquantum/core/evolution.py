@@ -6,9 +6,9 @@ from typing import Iterable, List, Optional, Tuple, Union
 
 import numpy as np
 import sympy
-from openfermion import QubitOperator
 from zquantum.core import circuits
 from zquantum.core.circuits import CNOT, RX, RZ, H
+from zquantum.core.openfermion import QubitOperator
 
 
 def time_evolution(

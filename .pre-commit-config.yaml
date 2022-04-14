@@ -12,20 +12,24 @@ repos:
     hooks:
       - id: isort
         args: ["--profile", "black", "--filter-files", "--check"]
+        exclude: ^[src/python/zquantum/core/openfermion/|tests/zquantum/core/openfermion_tests/]
 
-  - repo: https://github.com/ambv/black
-    rev: 20.8b1
+  - repo: https://github.com/psf/black
+    rev: 22.3.0
     hooks:
       - id: black
         args: ["--check"]
-        language_version: python3.7
+        language_version: python3.8
+        exclude: ^[src/python/zquantum/core/openfermion/|tests/zquantum/core/openfermion_tests/]
 
   - repo: https://gitlab.com/pycqa/flake8
     rev: 3.9.0
     hooks:
       - id: flake8
+        exclude: ^[src/python/zquantum/core/openfermion/|tests/zquantum/core/openfermion_tests/]
 
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: v0.812
     hooks:
       - id: mypy
+        exclude: ^[src/python/zquantum/core/openfermion/|tests/zquantum/core/openfermion_tests/]

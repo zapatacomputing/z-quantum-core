@@ -17,7 +17,6 @@ from typing import (
 )
 
 import numpy as np
-from zquantum.core.openfermion.ops import IsingOperator
 from zquantum.core.serialization import ensure_open
 from zquantum.core.typing import AnyPath, LoadSource
 from zquantum.core.wavefunction import Wavefunction
@@ -324,7 +323,7 @@ def get_expectation_values_from_parities(parities: Parities) -> ExpectationValue
 
 
 def get_parities_from_measurements(
-    measurements: List[Tuple[int]], ising_operator: IsingOperator
+    measurements: List[Tuple[int]], ising_operator
 ) -> Parities:
     """Get expectation values from bitstrings.
 
@@ -337,6 +336,8 @@ def get_parities_from_measurements(
     """
 
     # check input format
+    from zquantum.core.openfermion.ops import IsingOperator
+
     if not isinstance(ising_operator, IsingOperator):
         raise TypeError("Input operator not openfermion.IsingOperator")
 
@@ -721,7 +722,7 @@ class Measurements:
         return MeasurementOutcomeDistribution(distribution)
 
     def get_expectation_values(
-        self, ising_operator: IsingOperator, use_bessel_correction: bool = False
+        self, ising_operator, use_bessel_correction: bool = False
     ) -> ExpectationValues:
         """Get the expectation values of an operator from the measurements.
 
@@ -739,6 +740,9 @@ class Measurements:
         # performed in the Z basis, so we need the operator to be Ising (containing only
         # Z terms). A general Qubit Operator could have X or Y terms which don’t get
         # directly measured.
+
+        from zquantum.core.openfermion.ops import IsingOperator
+
         if not isinstance(ising_operator, IsingOperator):
             raise TypeError("Input operator is not openfermion.IsingOperator")
 

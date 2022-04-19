@@ -53,7 +53,7 @@ EXAMPLE_OPTIMIZATION_RESULT = optimization_result(
 )
 
 EXPECTED_DESERIALIZED_RESULT = {
-    "schema": "zapata-v1-optimization_result",
+    "schema": "optimization_result",
     "opt_value": 0.5,
     "opt_params": convert_array_to_dict(np.array([0, 0.5, 2.5])),
     "nit": 3,

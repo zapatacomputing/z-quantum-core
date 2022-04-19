@@ -26,7 +26,6 @@ from zquantum.core.wavefunction import Wavefunction
 
 from .distribution import MeasurementOutcomeDistribution
 from .utils import (
-    SCHEMA_VERSION,
     convert_array_to_dict,
     convert_dict_to_array,
     convert_tuples_to_bitstrings,
@@ -44,7 +43,7 @@ def save_expectation_values(
         file (str or file-like object): the name of the file, or a file-like object
     """
     dictionary = expectation_values.to_dict()
-    dictionary["schema"] = SCHEMA_VERSION + "-expectation_values"
+    dictionary["schema"] = "expectation_values"
 
     with open(filename, "w") as f:
         f.write(json.dumps(dictionary, indent=2))
@@ -91,7 +90,7 @@ def save_wavefunction(wavefunction: Wavefunction, filename: AnyPath) -> None:
         filename (str): the name of the file
     """
 
-    data: Dict[str, Any] = {"schema": SCHEMA_VERSION + "-wavefunction"}
+    data: Dict[str, Any] = {"schema": "wavefunction"}
     data["amplitudes"] = convert_array_to_dict(wavefunction.amplitudes)
     with open(filename, "w") as f:
         f.write(json.dumps(data, indent=2))
@@ -134,7 +133,7 @@ class ExpectationValues:
         """Convert to a dictionary"""
 
         data: Dict[str, Any] = {
-            "schema": SCHEMA_VERSION + "-expectation_values",
+            "schema": "expectation_values",
             "frames": [],
         }  # what is "frames" for?
 
@@ -261,7 +260,7 @@ def save_parities(parities: Parities, filename: AnyPath) -> None:
         file (str or file-like object): the name of the file, or a file-like object
     """
     data = parities.to_dict()
-    data["schema"] = SCHEMA_VERSION + "-parities"
+    data["schema"] = "parities"
 
     with open(filename, "w") as f:
         f.write(json.dumps(data, indent=2))
@@ -673,7 +672,7 @@ class Measurements:
             filename (string): filename to save the data to
         """
         data = {
-            "schema": SCHEMA_VERSION + "-measurements",
+            "schema": "measurements",
             "counts": self.get_counts(),
             # This step is required if bistrings contain np.int8 instead of regular int.
             "bitstrings": [

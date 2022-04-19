@@ -27,7 +27,7 @@ TARGET_OPERATOR = QubitOperator("X0 X1 Z2 Y4", 1.5)
 #     )
 # )
 CIRCUIT_DICT = {
-    "schema": "zapata-v1-circuit-v2",
+    "schema": "circuit-v2",
     "n_qubits": 4,
     "operations": [
         {
@@ -108,7 +108,7 @@ class TestOptimizeParamterizedCircuit:
         with open(initial_parameters_path, "w") as f:
             json.dump(
                 {
-                    "schema": "zapata-v1-array",
+                    "schema": "array",
                     "array": {"real": [1.0, 1.0]},
                 },
                 f,
@@ -118,7 +118,7 @@ class TestOptimizeParamterizedCircuit:
         with open(fixed_parameters_path, "w") as f:
             json.dump(
                 {
-                    "schema": "zapata-v1-array",
+                    "schema": "array",
                     "array": {"real": [1.0]},
                 },
                 f,

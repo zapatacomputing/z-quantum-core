@@ -20,12 +20,7 @@ from .distribution import (
 )
 from .history.recorder import HistoryEntry, HistoryEntryWithArtifacts
 from .typing import AnyPath, DumpTarget, LoadSource
-from .utils import (
-    SCHEMA_VERSION,
-    ValueEstimate,
-    convert_array_to_dict,
-    convert_dict_to_array,
-)
+from .utils import ValueEstimate, convert_array_to_dict, convert_dict_to_array
 
 
 def has_numerical_values(dictionary):
@@ -42,7 +37,7 @@ def preprocess(tree):
     if isinstance(tree, dict):
         preprocessed = {k: preprocess(v) for k, v in tree.items()}
         if isinstance(tree, OptimizeResult):
-            preprocessed["schema"] = SCHEMA_VERSION + "-optimization_result"
+            preprocessed["schema"] = "optimization_result"
         return preprocessed
     elif isinstance(tree, tuple) and hasattr(tree, "_asdict"):
         return preprocess(tree._asdict())
@@ -80,8 +75,8 @@ class OrquestraDecoder(json.JSONDecoder):
     """Custom decoder for loading data dumped by ZapataEncoder."""
 
     SCHEMA_MAP = {
-        "zapata-v1-value_estimate": ValueEstimate.from_dict,
-        "zapata-v1-optimization_result": lambda obj: OptimizeResult(**obj),
+        "value_estimate": ValueEstimate.from_dict,
+        "optimization_result": lambda obj: OptimizeResult(**obj),
     }
 
     def __init__(self, *args, **kwargs):
@@ -112,7 +107,7 @@ class OrquestraDecoder(json.JSONDecoder):
 
 
 def save_optimization_results(optimization_results: dict, filename: AnyPath):
-    optimization_results["schema"] = SCHEMA_VERSION + "-optimization_result"
+    optimization_results["schema"] = "optimization_result"
     with open(filename, "wt") as target_file:
         json.dump(optimization_results, target_file, cls=OrquestraEncoder)
 
@@ -135,7 +130,7 @@ def ensure_open(path_like: Union[LoadSource, DumpTarget], mode="r", encoding="ut
         yield path_like
 
 
-ARRAY_SCHEMA = SCHEMA_VERSION + "-array"
+ARRAY_SCHEMA = "array"
 
 
 def save_array(array: np.ndarray, path_like: DumpTarget) -> None:

@@ -10,11 +10,10 @@ import sympy
 from zquantum.core.typing import DumpTarget, LoadSource
 
 from ..serialization import ensure_open
-from ..utils import SCHEMA_VERSION
 from . import _builtin_gates, _circuit, _gates
 
-CIRCUIT_SCHEMA = SCHEMA_VERSION + "-circuit-v2"
-CIRCUITSET_SCHEMA = SCHEMA_VERSION + "-circuitset-v2"
+CIRCUIT_SCHEMA = "circuit-v2"
+CIRCUITSET_SCHEMA = "circuitset-v2"
 
 
 def serialize_expr(expr: sympy.Expr):

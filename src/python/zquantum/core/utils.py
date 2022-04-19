@@ -18,7 +18,6 @@ import sympy
 
 from .typing import AnyPath, LoadSource, Specs
 
-SCHEMA_VERSION = "zapata-v1"
 RNDSEED = 12345
 
 
@@ -284,7 +283,7 @@ class ValueEstimate(float):
     def to_dict(self):
         """Convert to a dictionary"""
 
-        data = {"schema": SCHEMA_VERSION + "-value_estimate"}
+        data = {"schema": "value_estimate"}
         if type(self.value).__module__ == np.__name__:
             data["value"] = self.value.item()
         else:
@@ -336,7 +335,7 @@ def save_value_estimate(value_estimate: ValueEstimate, filename: AnyPath):
         file (str or file-like object): the name of the file, or a file-like object
     """
     dictionary = value_estimate.to_dict()
-    dictionary["schema"] = SCHEMA_VERSION + "-value_estimate"
+    dictionary["schema"] = "value_estimate"
 
     with open(filename, "w") as f:
         f.write(json.dumps(dictionary, indent=2))
@@ -370,7 +369,7 @@ def save_list(array: List, filename: AnyPath, artifact_name: str = ""):
         artifact_name (str): optional argument to specify the schema name
     """
     dictionary: Dict[str, Any] = {}
-    dictionary["schema"] = SCHEMA_VERSION + "-" + artifact_name + "-list"
+    dictionary["schema"] = artifact_name + "-list"
     dictionary["list"] = array
 
     with open(filename, "w") as f:
@@ -383,7 +382,7 @@ def save_generic_dict(dictionary: Dict, filename: AnyPath):
     Args:
         dictionary (dict): the dict containing the data
     """
-    dictionary_stored = {"schema": SCHEMA_VERSION + "-dict"}
+    dictionary_stored = {"schema": "dict"}
     dictionary_stored.update(dictionary)
 
     with open(filename, "w") as f:
@@ -524,9 +523,7 @@ def save_timing(walltime: float, filename: AnyPath) -> None:
     """
 
     with open(filename, "w") as f:
-        f.write(
-            json.dumps({"schema": SCHEMA_VERSION + "-timing", "walltime": walltime})
-        )
+        f.write(json.dumps({"schema": "timing", "walltime": walltime}))
 
 
 def save_nmeas_estimate(
@@ -541,7 +538,7 @@ def save_nmeas_estimate(
     """
 
     data: Dict[str, Any] = {}
-    data["schema"] = SCHEMA_VERSION + "-hamiltonian_analysis"
+    data["schema"] = "hamiltonian_analysis"
     data["K"] = nmeas
     data["nterms"] = nterms
     if frame_meas is not None:

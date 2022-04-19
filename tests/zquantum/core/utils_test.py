@@ -12,7 +12,6 @@ import sympy
 from scipy.stats import unitary_group
 from zquantum.core.utils import (
     RNDSEED,
-    SCHEMA_VERSION,
     ValueEstimate,
     bin2dec,
     compare_unitary,
@@ -189,7 +188,7 @@ class TestUtils:
         else:
             data = json.load("list.json")
         # Check that
-        assert data["schema"] == SCHEMA_VERSION + "-number-list"
+        assert data["schema"] == "number-list"
         remove_file_if_exists("list.json")
 
     def test_create_object(self):

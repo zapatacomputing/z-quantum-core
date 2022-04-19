@@ -11,9 +11,8 @@ import networkx as nx
 
 from .serialization import ensure_open
 from .typing import DumpTarget, LoadSource
-from .utils import SCHEMA_VERSION
 
-GRAPH_SCHEMA = SCHEMA_VERSION + "-graph"
+GRAPH_SCHEMA = "graph"
 
 
 def save_graph(graph: nx.Graph, filename: DumpTarget):

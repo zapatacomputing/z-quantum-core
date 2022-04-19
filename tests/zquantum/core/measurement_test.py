@@ -34,7 +34,6 @@ from zquantum.core.openfermion.ops import IsingOperator
 from zquantum.core.testing import create_random_wavefunction
 from zquantum.core.utils import (
     RNDSEED,
-    SCHEMA_VERSION,
     convert_bitstrings_to_tuples,
     convert_tuples_to_bitstrings,
     get_ordered_list_of_bitstrings,
@@ -347,7 +346,7 @@ class TestMeasurements:
     @pytest.fixture
     def measurements_data(self, counts, bitstrings):
         return {
-            "schema": SCHEMA_VERSION + "-measurements",
+            "schema": "measurements",
             "counts": counts,
             "bitstrings": bitstrings,
         }

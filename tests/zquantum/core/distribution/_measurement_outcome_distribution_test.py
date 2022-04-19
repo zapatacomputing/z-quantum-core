@@ -27,7 +27,6 @@ from zquantum.core.distribution._measurement_outcome_distribution import (
     save_measurement_outcome_distribution,
     save_measurement_outcome_distributions,
 )
-from zquantum.core.utils import SCHEMA_VERSION
 
 
 class TestVerifiersAndValidators:
@@ -331,7 +330,7 @@ class TestSavingDistributions:
 
         expected_dict = {
             "measurement_outcome_distribution": preprocessed_dict,
-            "schema": SCHEMA_VERSION + "-measurement-outcome-probability-distribution",
+            "schema": "measurement-outcome-probability-distribution",
         }
 
         save_measurement_outcome_distribution(
@@ -356,8 +355,7 @@ class TestSavingDistributions:
                 )
                 for distribution in distributions
             ],
-            "schema": SCHEMA_VERSION
-            + "-measurement-outcome-probability-distribution-set",
+            "schema": "measurement-outcome-probability-distribution-set",
         }
 
         save_measurement_outcome_distributions(

@@ -9,7 +9,6 @@ from .circuits import Circuit, to_dict
 from .distribution import MeasurementOutcomeDistribution
 from .interfaces.backend import QuantumBackend
 from .measurement import Measurements
-from .utils import SCHEMA_VERSION
 
 
 class MeasurementTrackingBackend(QuantumBackend):
@@ -149,7 +148,7 @@ class MeasurementTrackingBackend(QuantumBackend):
     def save_raw_data(self) -> None:
         with open(self.raw_data_file_name, "w+") as f:
             data = {
-                "schema": SCHEMA_VERSION + "-raw-data",
+                "schema": "raw-data",
                 "raw-data": self.raw_data,
             }
             f.write(json.dumps(data))

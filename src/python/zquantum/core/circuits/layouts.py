@@ -6,8 +6,6 @@ from typing import Dict, List, TextIO, Tuple
 
 import numpy as np
 
-from ..utils import SCHEMA_VERSION
-
 
 class CircuitLayers:
     """A class representing a pattern of circuit layers, consisting of lists,
@@ -41,7 +39,7 @@ def save_circuit_layers(circuit_layers: CircuitLayers, filename: str) -> None:
     """
 
     circuit_layers_dict = circuit_layers.to_dict()
-    circuit_layers_dict["schema"] = SCHEMA_VERSION + "-circuit_layers"
+    circuit_layers_dict["schema"] = "circuit_layers"
     with open(filename, "w") as f:
         f.write(json.dumps(circuit_layers_dict))
 
@@ -72,7 +70,7 @@ def save_circuit_ordering(ordering, filename):
     """
 
     ordering = {"ordering": ordering}
-    ordering["schema"] = SCHEMA_VERSION + "-circuit_ordering"
+    ordering["schema"] = "circuit_ordering"
     with open(filename, "w") as f:
         f.write(json.dumps(ordering))
 
@@ -125,7 +123,7 @@ def save_circuit_connectivity(circuit_connectivity, filename):
     """
 
     circuit_connectivity = circuit_connectivity.to_dict()
-    circuit_connectivity["schema"] = SCHEMA_VERSION + "-circuit_connectivity"
+    circuit_connectivity["schema"] = "circuit_connectivity"
     with open(filename, "w") as f:
         f.write(json.dumps(circuit_connectivity))
 

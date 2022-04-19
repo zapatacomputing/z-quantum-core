@@ -180,15 +180,6 @@ class TestUtils:
         loaded_list = load_list("list.json")
         # Then
         assert initial_list == loaded_list
-        # And
-        # After manually loading json
-        if isinstance("list.json", str):
-            with open("list.json", "r") as f:
-                data = json.load(f)
-        else:
-            data = json.load("list.json")
-        # Check that
-        assert data["schema"] == "number-list"
         remove_file_if_exists("list.json")
 
     def test_create_object(self):
@@ -289,7 +280,6 @@ class TestUtils:
                         "module_name": "zquantum.core.testing.mocks",
                         "function_name": "mock_create_noise_model",
                         "data": {"testing": "data"},
-                        "schema": "THIS IS FOR TESTING ONLY",
                     }
                 )
             )
@@ -349,7 +339,6 @@ class TestUtils:
         with open("timing.json") as f:
             timing = json.load(f)
         assert timing["walltime"] == walltime
-        assert "schema" in timing
         remove_file_if_exists("timing.json")
 
     def test_save_nmeas_estimate(self):

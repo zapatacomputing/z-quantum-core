@@ -12,8 +12,6 @@ import networkx as nx
 from .serialization import ensure_open
 from .typing import DumpTarget, LoadSource
 
-GRAPH_SCHEMA = "graph"
-
 
 def save_graph(graph: nx.Graph, filename: DumpTarget):
     """Saves a NetworkX graph object to JSON file.
@@ -25,7 +23,6 @@ def save_graph(graph: nx.Graph, filename: DumpTarget):
     with ensure_open(filename, "w") as f:
         graph_dict = {
             **nx.readwrite.json_graph.node_link_data(graph),
-            "schema": GRAPH_SCHEMA,
         }
         json.dump(graph_dict, f, indent=2)
 

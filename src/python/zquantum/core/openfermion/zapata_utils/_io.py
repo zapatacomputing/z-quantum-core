@@ -21,7 +21,7 @@ def convert_interaction_op_to_dict(op: InteractionOperator) -> Dict[str, Any]:
         dictionary: the dictionary representation
     """
 
-    dictionary: Dict[str, Any] = {"schema": "interaction_op"}
+    dictionary: Dict[str, Any] = {}
     dictionary["constant"] = convert_array_to_dict(np.array(op.constant))
     dictionary["one_body_tensor"] = convert_array_to_dict(np.array(op.one_body_tensor))
     dictionary["two_body_tensor"] = convert_array_to_dict(np.array(op.two_body_tensor))
@@ -98,7 +98,7 @@ def convert_qubitop_to_dict(op: QubitOperator) -> Dict[str, Any]:
         dictionary: the dictionary representation
     """
 
-    dictionary: Dict[str, Any] = {"schema": "qubit_op"}
+    dictionary: Dict[str, Any] = {}
     dictionary["terms"] = []
     for term in op.terms:
         term_dict: Dict[str, Any] = {
@@ -172,7 +172,6 @@ def save_qubit_operator_set(
         file: the name of the file
     """
     dictionary: Dict[str, Any] = {}
-    dictionary["schema"] = "circuit_set"
     dictionary["qubit_operators"] = []
     for qubit_operator in qubit_operator_set:
         dictionary["qubit_operators"].append(convert_qubitop_to_dict(qubit_operator))
@@ -233,7 +232,6 @@ def convert_isingop_to_dict(op: IsingOperator) -> dict:
     """
 
     dictionary = convert_qubitop_to_dict(op)
-    dictionary["schema"] = "ising_op"
     return dictionary
 
 
@@ -289,11 +287,9 @@ def save_parameter_grid_evaluation(parameter_grid_evaluation, filename):
         file (str or file-like object): the name of the file, or a file-like object
     """
     full_dict = {}
-    full_dict["schema"] = "parameter_grid_evaluation"
 
     for evaluation in parameter_grid_evaluation:
         value = evaluation["value"].to_dict()
-        value["schema"] = "value_estimate"
         evaluation["value"] = value
     full_dict["values_set"] = parameter_grid_evaluation
 
@@ -309,7 +305,7 @@ def convert_interaction_rdm_to_dict(op):
         dictionary (dict): the dictionary representation
     """
 
-    dictionary = {"schema": "interaction_rdm"}
+    dictionary = {}
     dictionary["one_body_tensor"] = convert_array_to_dict(np.array(op.one_body_tensor))
     dictionary["two_body_tensor"] = convert_array_to_dict(np.array(op.two_body_tensor))
 

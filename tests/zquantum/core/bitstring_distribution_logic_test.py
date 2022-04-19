@@ -204,10 +204,7 @@ class TestSavingDistributions:
             distribution.distribution_dict
         )
 
-        expected_dict = {
-            "measurement_outcome_distribution": preprocessed_dict,
-            "schema": "measurement-outcome-probability-distribution",
-        }
+        expected_dict = {"measurement_outcome_distribution": preprocessed_dict}
 
         save_measurement_outcome_distribution(
             distribution, "/some/path/to/distribution.json"
@@ -229,7 +226,6 @@ class TestSavingDistributions:
                 )
                 for distribution in distributions
             ],
-            "schema": "measurement-outcome-probability-distribution-set",
         }
 
         save_measurement_outcome_distributions(

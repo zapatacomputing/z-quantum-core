@@ -245,7 +245,6 @@ def save_measurement_outcome_distribution(
     )
 
     dictionary["measurement_outcome_distribution"] = preprocessed_distribution_dict
-    dictionary["schema"] = "measurement-outcome-probability-distribution"
     with open(filename, "w") as f:
         f.write(json.dumps(dictionary, indent=2))
 
@@ -261,7 +260,6 @@ def save_measurement_outcome_distributions(
        file (str): the name of the file
     """
     dictionary: Dict[str, Any] = {}
-    dictionary["schema"] = "measurement-outcome-probability-distribution-set"
     dictionary["measurement_outcome_distribution"] = []
 
     for distribution in measurement_outcome_distribution:

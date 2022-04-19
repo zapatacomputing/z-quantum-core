@@ -108,7 +108,6 @@ class TestOptimizeParamterizedCircuit:
         with open(initial_parameters_path, "w") as f:
             json.dump(
                 {
-                    "schema": "array",
                     "array": {"real": [1.0, 1.0]},
                 },
                 f,
@@ -118,7 +117,6 @@ class TestOptimizeParamterizedCircuit:
         with open(fixed_parameters_path, "w") as f:
             json.dump(
                 {
-                    "schema": "array",
                     "array": {"real": [1.0]},
                 },
                 f,

@@ -164,7 +164,6 @@ class TestQubitOperator(unittest.TestCase):
     def test_convert_interaction_rdm_to_dict(self):
         rdm_dict = convert_interaction_rdm_to_dict(self.interaction_rdm)
 
-        self.assertEqual(rdm_dict["schema"], "interaction_rdm")
         self.assertTrue(
             np.allclose(
                 convert_dict_to_array(rdm_dict["one_body_tensor"]),

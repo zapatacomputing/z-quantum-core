@@ -51,7 +51,6 @@ setuptools.setup(
         "numpy>=1.20",
         "scipy>=1.4.1",
         "sympy>=1.5,<=1.9",
-        "lea>=3.2.0",
         "overrides~=3.1",
         "python-rapidjson",
         "h5py>=2.8",

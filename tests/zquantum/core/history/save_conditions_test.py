@@ -1,3 +1,6 @@
+################################################################################
+# © Copyright 2021 Zapata Computing Inc.
+################################################################################
 """Test cases for save conditions."""
 import pytest
 from zquantum.core.history.save_conditions import always, every_nth

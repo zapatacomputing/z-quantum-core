@@ -1,3 +1,6 @@
+################################################################################
+# © Copyright 2021 Zapata Computing Inc.
+################################################################################
 """Test cases for _builtin_gates_module."""
 import pytest
 from zquantum.core.circuits import _builtin_gates

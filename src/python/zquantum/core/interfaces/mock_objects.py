@@ -1,3 +1,6 @@
+################################################################################
+# © Copyright 2020-2022 Zapata Computing Inc.
+################################################################################
 import random
 from collections import defaultdict
 from typing import Callable, Dict, List, Optional, cast

@@ -1,3 +1,6 @@
+################################################################################
+# © Copyright 2021 Zapata Computing Inc.
+################################################################################
 """Definition of predefined gate matrices and related utility functions."""
 import numpy as np
 import sympy

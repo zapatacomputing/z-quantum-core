@@ -1,3 +1,6 @@
+################################################################################
+# © Copyright 2020-2022 Zapata Computing Inc.
+################################################################################
 #   Copyright 2017 The OpenFermion Developers
 #   Modifications copyright 2022 Zapata Computing, Inc. for compatibility reasons.
 #

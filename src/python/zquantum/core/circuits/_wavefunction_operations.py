@@ -1,3 +1,6 @@
+################################################################################
+# © Copyright 2021-2022 Zapata Computing Inc.
+################################################################################
 from dataclasses import dataclass
 from functools import singledispatch
 from numbers import Complex

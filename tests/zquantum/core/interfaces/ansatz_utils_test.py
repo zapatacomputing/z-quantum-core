@@ -1,3 +1,6 @@
+################################################################################
+# © Copyright 2021 Zapata Computing Inc.
+################################################################################
 """Test cases for ansatz-related utilities."""
 import unittest
 from unittest import mock

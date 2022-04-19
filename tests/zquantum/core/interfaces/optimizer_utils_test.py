@@ -1,3 +1,6 @@
+################################################################################
+# © Copyright 2021-2022 Zapata Computing Inc.
+################################################################################
 import numpy as np
 from zquantum.core.gradients import finite_differences_gradient
 from zquantum.core.history.recorder import recorder

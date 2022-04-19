@@ -1,3 +1,6 @@
+################################################################################
+# © Copyright 2021-2022 Zapata Computing Inc.
+################################################################################
 from typing import Dict, List, Optional, Tuple, cast
 
 import numpy as np

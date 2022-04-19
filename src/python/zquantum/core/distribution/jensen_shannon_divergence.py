@@ -1,3 +1,6 @@
+################################################################################
+# © Copyright 2021 Zapata Computing Inc.
+################################################################################
 from typing import TYPE_CHECKING, Dict
 
 from .clipped_negative_log_likelihood import compute_clipped_negative_log_likelihood

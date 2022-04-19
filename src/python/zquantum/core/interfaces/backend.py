@@ -1,3 +1,6 @@
+################################################################################
+# © Copyright 2020-2022 Zapata Computing Inc.
+################################################################################
 from abc import ABC, abstractmethod
 from typing import Any, List, Optional, Sequence, Union
 

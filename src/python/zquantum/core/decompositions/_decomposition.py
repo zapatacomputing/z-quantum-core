@@ -1,3 +1,6 @@
+################################################################################
+# © Copyright 2021 Zapata Computing Inc.
+################################################################################
 from abc import abstractmethod
 from typing import Iterable, Sequence, TypeVar
 

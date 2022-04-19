@@ -1,3 +1,6 @@
+################################################################################
+# © Copyright 2021 Zapata Computing Inc.
+################################################################################
 import numpy as np
 import pytest
 from zquantum.core.circuits import CNOT, RX, RY, Circuit, MultiPhaseOperation, Operation

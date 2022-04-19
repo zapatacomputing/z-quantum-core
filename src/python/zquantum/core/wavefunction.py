@@ -1,3 +1,6 @@
+################################################################################
+# © Copyright 2021-2022 Zapata Computing Inc.
+################################################################################
 from math import log2
 from typing import Any, Dict, List, Sequence, Set, Union
 from warnings import warn

@@ -1,3 +1,6 @@
+################################################################################
+# © Copyright 2021-2022 Zapata Computing Inc.
+################################################################################
 from zquantum.core.gradients import finite_differences_gradient
 from zquantum.core.interfaces.functions import (
     function_with_gradient,

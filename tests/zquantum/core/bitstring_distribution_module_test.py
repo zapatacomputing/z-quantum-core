@@ -1,3 +1,6 @@
+################################################################################
+# © Copyright 2021 Zapata Computing Inc.
+################################################################################
 import zquantum.core.bitstring_distribution as old_distribution_module
 import zquantum.core.distribution as new_distribution_module
 

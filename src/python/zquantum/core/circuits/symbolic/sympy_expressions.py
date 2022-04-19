@@ -1,3 +1,6 @@
+################################################################################
+# © Copyright 2021-2022 Zapata Computing Inc.
+################################################################################
 """Utilities for converting sympy expressions to our native Expression format."""
 import operator
 from functools import singledispatch

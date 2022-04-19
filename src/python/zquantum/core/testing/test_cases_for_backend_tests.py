@@ -1,3 +1,6 @@
+################################################################################
+# © Copyright 2021 Zapata Computing Inc.
+################################################################################
 """Test cases have been generated using the code in
 `core.testing.generate_cases_for_backend.py`.
 """

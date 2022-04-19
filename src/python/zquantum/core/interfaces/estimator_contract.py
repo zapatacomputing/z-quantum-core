@@ -1,3 +1,6 @@
+################################################################################
+# © Copyright 2021-2022 Zapata Computing Inc.
+################################################################################
 """Test case prototypes of instances of the EstimateExpectationValues protocol
 that can be used in other projects.
 

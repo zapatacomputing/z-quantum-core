@@ -1,3 +1,6 @@
+################################################################################
+# © Copyright 2021 Zapata Computing Inc.
+################################################################################
 """Optimizer tests that are runnable by pytest, contrary to
 `zquantum.core.estimator.optimizer_test` bundled with the library.
 """

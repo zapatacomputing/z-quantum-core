@@ -1,3 +1,6 @@
+################################################################################
+# © Copyright 2021-2022 Zapata Computing Inc.
+################################################################################
 from typing import Collection, Optional, Union, cast
 from warnings import warn
 

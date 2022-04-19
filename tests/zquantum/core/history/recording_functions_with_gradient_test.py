@@ -1,3 +1,6 @@
+################################################################################
+# © Copyright 2021 Zapata Computing Inc.
+################################################################################
 """Test cases for recording functions with gradients."""
 import numpy as np
 import pytest

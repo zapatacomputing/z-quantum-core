@@ -10,7 +10,6 @@ from functools import partial
 from types import FunctionType
 from typing import Any, Dict, Iterable, List, Optional, Tuple
 
-import lea
 import numpy as np
 import sympy
 
@@ -104,16 +103,6 @@ def bin2dec(x: List[int]) -> int:
     return dec
 
 
-# The functions PAULI_X, PAULI_Y, PAULI_Z and IDENTITY below are used for
-# generating the generators of the Pauli group, which include Pauli X, Y, Z
-# operators as well as identity operator
-
-pauli_x = np.array([[0.0, 1.0], [1.0, 0.0]])
-pauli_y = np.array([[0.0, -1.0j], [1.0j, 0.0]])
-pauli_z = np.array([[1.0, 0.0], [0.0, -1.0]])
-identity = np.array([[1.0, 0.0], [0.0, 1.0]])
-
-
 def is_identity(u: np.ndarray, tol=1e-15) -> bool:
     """Test if a matrix is identity.
 
@@ -173,7 +162,7 @@ def compare_unitary(u1: np.ndarray, u2: np.ndarray, tol: float = 1e-15) -> bool:
 
 
 def sample_from_probability_distribution(
-    probability_distribution: dict, n_samples: int
+    probability_distribution: Dict[Any, float], n_samples: int
 ) -> collections.Counter:
     """
     Samples events from a discrete probability distribution
@@ -189,9 +178,13 @@ def sample_from_probability_distribution(
         and values are how many times those things appeared in the sampling
     """
     if isinstance(probability_distribution, dict):
-        prob_pmf = lea.pmf(probability_distribution)
         sampled_dict: collections.Counter = collections.Counter(
-            prob_pmf.random(n_samples)
+            np.random.choice(
+                list(probability_distribution.keys()),
+                n_samples,
+                replace=True,
+                p=list(probability_distribution.values()),
+            )
         )
         return sampled_dict
     else:

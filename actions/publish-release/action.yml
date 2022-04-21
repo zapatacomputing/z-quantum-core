@@ -1,0 +1,45 @@
+name: publish-release
+
+description: Infers current project version, pushes a tag with a new version, and creates an entry on GitHub Releases
+
+# Note: this action assumes that the repo was already cloned and contains version tags.
+# This can be set using `fetch-depth: 0` option in the actions/checkout.
+
+outputs:
+  release-version:
+    description: Version that the release ended up running for.
+    value: ${{steps.get-next-version.outputs.next_version}}
+
+runs:
+  using: composite
+  steps:
+    # We need this to be able to run `python setup.py --version`
+    - name: Install build system deps
+      shell: bash
+      run: make build-system-deps
+
+    - name: Get next version
+      id: get-next-version
+      shell: bash
+      # Inputs: none
+      # Outputs: `next_version` - a bumped semver string of form "major.minor.patch"
+      run: python3 subtrees/z_quantum_actions/bin/get_next_version.py
+
+    - name: Push new version tag
+      id: push-new-version-tag
+      shell: bash
+      run: |
+        TAG="v${{steps.get-next-version.outputs.next_version}}"
+        git tag "$TAG"
+        git push --tags
+        echo "::set-output name=tag::$TAG"
+
+    - name: Create entry on GH Releases
+      shell: bash
+      run: |
+        curl \
+          -X POST \
+          curl -H "Authorization: token ${{ github.token }}" \
+          -H "Accept: application/vnd.github.v3+json" \
+          https://api.github.com/repos/${{ github.repository }}/releases \
+          -d '{"tag_name":"${{ steps.push-new-version-tag.outputs.tag }}"}'

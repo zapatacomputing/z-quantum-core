@@ -1,4 +1,7 @@
 #! /usr/bin/env python3
+################################################################################
+# © Copyright 2022 Zapata Computing Inc.
+################################################################################
 
 # This script ia intended to be run from within a Github Action.
 # Reads current project version, bumps "minor", and sets the "next_version" output

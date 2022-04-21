@@ -25,22 +25,21 @@ runs:
       # Outputs: `next_version` - a bumped semver string of form "major.minor.patch"
       run: python3 subtrees/z_quantum_actions/bin/get_next_version.py
 
-     - name: Push new version tag
-       id: push-new-version-tag
-       shell: bash
-       run: |
-         TAG="v${{steps.get-next-version.outputs.next_version}}"
-         git tag "$TAG"
-         git push --tags
-         echo "::set-output name=tag::$TAG"
+    - name: Push new version tag
+      id: push-new-version-tag
+      shell: bash
+      run: |
+        TAG="v${{steps.get-next-version.outputs.next_version}}"
+        git tag "$TAG"
+        git push --tags
+        echo "::set-output name=tag::$TAG"
 
-     - name: Create entry on GH Releases
-       shell: bash
-       run: |
-         curl \
-           -X POST \
-           curl -H "Authorization: token ${{ github.token }}" \
-           -H "Accept: application/vnd.github.v3+json" \
-           https://api.github.com/repos/${{ github.repository }}/releases \
-           -d '{"tag_name":"${{ steps.push-new-version-tag.outputs.tag }}"}'
-
+    - name: Create entry on GH Releases
+      shell: bash
+      run: |
+        curl \
+          -X POST \
+          curl -H "Authorization: token ${{ github.token }}" \
+          -H "Accept: application/vnd.github.v3+json" \
+          https://api.github.com/repos/${{ github.repository }}/releases \
+          -d '{"tag_name":"${{ steps.push-new-version-tag.outputs.tag }}"}'

@@ -5,6 +5,7 @@ import re
 import subprocess
 
 import pytest
+
 from bin import get_next_version
 
 

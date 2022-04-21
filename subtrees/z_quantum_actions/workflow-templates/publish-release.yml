@@ -1,0 +1,33 @@
+# This workflow is to be triggered by push to main when running the release
+# process.
+#
+# Don't extend this workflow. If any more steps are needed please extend the
+# "publish-release" action in "z_quantum_actions". This allows allows reusing
+# the scripts between repos.
+name: publish-release
+
+on:
+  workflow_run:
+    workflows: ["TestCoverage"]
+    types:
+      - completed
+    branches: [main]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  run-action:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    steps:
+      # Needed to have access to the subtree where we have action definitions + to get
+      # git tags.
+      - name: Check out the released repo
+        uses: actions/checkout@v2
+        with:
+          # Fetch whole repo to get access to tags to read current package
+          # version.
+          fetch-depth: 0
+
+      - uses: ./subtrees/z_quantum_actions/actions/publish-release

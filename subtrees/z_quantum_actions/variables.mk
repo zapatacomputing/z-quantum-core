@@ -1,1 +1,0 @@
-MIN_COVERAGE := 75

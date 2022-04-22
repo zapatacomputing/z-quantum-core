@@ -1,3 +1,6 @@
+################################################################################
+# © Copyright 2021-2022 Zapata Computing Inc.
+################################################################################
 """Types commonly encountered in zquantum repositories."""
 from numbers import Number
 from os import PathLike

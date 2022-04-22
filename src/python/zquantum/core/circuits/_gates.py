@@ -1,3 +1,6 @@
+################################################################################
+# © Copyright 2021-2022 Zapata Computing Inc.
+################################################################################
 """Data structures for ZQuantum gates."""
 import math
 from dataclasses import dataclass, replace

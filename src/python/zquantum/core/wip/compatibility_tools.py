@@ -1,3 +1,6 @@
+################################################################################
+# © Copyright 2021 Zapata Computing Inc.
+################################################################################
 """Tools for building compatibility layers."""
 import warnings
 from typing import Callable, Optional

@@ -1,3 +1,6 @@
+################################################################################
+# © Copyright 2020-2022 Zapata Computing Inc.
+################################################################################
 """Examples of functions for which recorder works.
 
 Note that none of this use ValueEstimate as a return value. This is because

@@ -1,3 +1,6 @@
+################################################################################
+# © Copyright 2021 Zapata Computing Inc.
+################################################################################
 from typing import List
 
 from zquantum.core.estimation import calculate_exact_expectation_values

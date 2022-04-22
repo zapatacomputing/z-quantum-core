@@ -37,9 +37,9 @@ from typing import List
 
 import numpy as np
 import pytest
-from openfermion import QubitOperator
 from zquantum.core.interfaces.backend import QuantumSimulator
 from zquantum.core.interfaces.estimation import EstimationTask
+from zquantum.core.openfermion import QubitOperator
 from zquantum.core.wavefunction import Wavefunction
 
 from ..circuits import CNOT, Circuit, H, X, builtin_gate_by_name
@@ -362,7 +362,7 @@ class QuantumSimulatorTests(QuantumBackendTests):
 
         # Then
         assert isinstance(wavefunction, Wavefunction)
-        assert len(wavefunction.probabilities()) == 8
+        assert len(wavefunction.get_probabilities()) == 8
         assert wavefunction[0] == pytest.approx((1 / np.sqrt(2) + 0j), abs=1e-7)
         assert wavefunction[7] == pytest.approx((1 / np.sqrt(2) + 0j), abs=1e-7)
         assert wf_simulator.number_of_circuits_run == 1

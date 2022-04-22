@@ -14,12 +14,12 @@ Here is an example of how you would do that:
 """
 
 import numpy as np
-from openfermion import IsingOperator
 from zquantum.core.circuits import RX, RY, RZ, Circuit, H
 from zquantum.core.interfaces.estimation import (
     EstimateExpectationValues,
     EstimationTask,
 )
+from zquantum.core.openfermion import IsingOperator
 from zquantum.core.symbolic_simulator import SymbolicSimulator
 
 _backend = SymbolicSimulator(seed=1997)

@@ -3,7 +3,7 @@ from typing import Any, Callable, Iterable, List, Optional, Union
 
 import numpy as np
 import sympy
-from openfermion import SymbolicOperator
+from zquantum.core.openfermion import SymbolicOperator
 
 from .circuits import Circuit
 from .estimation import (

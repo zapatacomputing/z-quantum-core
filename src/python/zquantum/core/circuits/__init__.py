@@ -139,7 +139,11 @@ from ._gates import (
     GateOperation,
     MatrixFactoryGate,
 )
-from ._generators import add_ancilla_register, create_layer_of_gates
+from ._generators import (
+    add_ancilla_register,
+    apply_gate_to_qubits,
+    create_layer_of_gates,
+)
 from ._operations import Operation
 from ._serde import (
     circuit_from_dict,

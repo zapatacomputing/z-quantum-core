@@ -11,8 +11,8 @@ from zquantum.core.wavefunction import Wavefunction, flip_wavefunction
             np.array([1 / np.sqrt(2), 0, 1 / np.sqrt(2), 0]),
         ),
         (
-            np.array([0.5, 8 ** -0.5, 0, 0, 0, 8 ** -0.5, 0.5, 0.5]),
-            np.array([0.5, 0, 0, 0.5, 8 ** -0.5, 8 ** -0.5, 0, 0.5]),
+            np.array([0.5, 8**-0.5, 0, 0, 0, 8**-0.5, 0.5, 0.5]),
+            np.array([0.5, 0, 0, 0.5, 8**-0.5, 8**-0.5, 0, 0.5]),
         ),
     ],
 )

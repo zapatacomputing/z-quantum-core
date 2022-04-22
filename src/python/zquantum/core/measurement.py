@@ -17,7 +17,7 @@ from typing import (
 )
 
 import numpy as np
-from openfermion.ops import IsingOperator
+from zquantum.core.openfermion.ops import IsingOperator
 from zquantum.core.serialization import ensure_open
 from zquantum.core.typing import AnyPath, LoadSource
 from zquantum.core.wavefunction import Wavefunction
@@ -316,7 +316,7 @@ def get_expectation_values_from_parities(parities: Parities) -> ExpectationValue
             precision = 1.0 / np.sqrt(N)
 
         values.append(value)
-        estimator_covariances.append(np.array([[precision ** 2.0]]))
+        estimator_covariances.append(np.array([[precision**2.0]]))
 
     return ExpectationValues(
         values=np.array(values), estimator_covariances=estimator_covariances

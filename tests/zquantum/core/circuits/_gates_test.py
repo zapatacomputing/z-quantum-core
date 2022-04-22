@@ -162,7 +162,7 @@ class TestControlledGate:
         n = gate.matrix.shape[0]
         assert gate.matrix.shape[1] == n
         assert controlled_gate.matrix[0:-n, 0:-n] == sympy.eye(
-            2 ** controlled_gate.num_qubits - n
+            2**controlled_gate.num_qubits - n
         )
         assert controlled_gate.matrix[-n:, -n:] == gate.matrix
 
@@ -235,6 +235,6 @@ class TestGateOperation:
         assert op.free_symbols == gate.free_symbols
 
     def test_cannot_be_applied_to_vector_of_not_power_of_two_length(self, gate):
-        state_vector = np.array([0.1 for _ in range(2 ** gate.num_qubits + 1)])
+        state_vector = np.array([0.1 for _ in range(2**gate.num_qubits + 1)])
         with pytest.raises(ValueError):
             GateOperation(gate, tuple(range(gate.num_qubits))).apply(state_vector)

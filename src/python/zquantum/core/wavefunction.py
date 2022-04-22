@@ -75,23 +75,23 @@ class Wavefunction:
         return getattr(self._amplitude_vector, "free_symbols", set())
 
     @staticmethod
-    def _check_normalization(arr: Union[Matrix, np.ndarray]):
-        def _calculate_probability_of_ground_entries(arr: Matrix) -> np.float64:
-            numbers = np.array(
-                [elem for elem in arr if _is_number(elem)], dtype=np.complex128
-            )
-            return np.sum(np.abs(numbers) ** 2)
-
-        probs_of_ground_entries = _calculate_probability_of_ground_entries(arr)
+    def _check_normalization(arr: ParameterizedVector):
 
         if (
-            isinstance(arr, Matrix)
+            isinstance(arr, np.ndarray)
+            or isinstance(arr, Matrix)
             and not arr.free_symbols
-            or isinstance(arr, np.ndarray)
         ):
+            probs_of_ground_entries = np.sum(np.abs(arr) ** 2)
+
             if not np.isclose(probs_of_ground_entries, 1.0):
                 raise ValueError("Vector does not result in a unit probability.")
         else:
+            numbers = np.array(
+                [elem for elem in arr if _is_number(elem)], dtype=np.complex128
+            )
+            probs_of_ground_entries = np.sum(np.abs(numbers) ** 2)
+
             if probs_of_ground_entries > 1.0:
                 raise ValueError(
                     "Ground entries in vector already exceeding probability of 1.0!"
@@ -190,18 +190,15 @@ class Wavefunction:
         except ValueError:
             raise ValueError("Passed map results in a violation of probability unity.")
 
-    def probabilities(self) -> np.ndarray:
-        # return np.array(
-        #     [abs(elem) ** 2 for elem in self._amplitude_vector]
-        # )  # this is so slow!
-        return np.abs(self._amplitude_vector) ** 2
+    def get_probabilities(self) -> np.ndarray:
+        return np.abs(self.amplitudes) ** 2
 
     def get_outcome_probs(self) -> Dict[str, float]:
         values = [
             format(i, "0" + str(self.n_qubits) + "b")[::-1] for i in range(len(self))
         ]
 
-        probs = self.probabilities()
+        probs = self.get_probabilities()
 
         return dict(zip(values, probs))
 

@@ -34,12 +34,46 @@ runs:
         git push --tags
         echo "::set-output name=tag::$TAG"
 
+    # Use pip to build a PEP 517 wheel
+    - name: Build wheel
+      id: build-wheel
+      shell: bash
+      run: python3 -m pip wheel --isolated --no-deps -w dist .
+
+    # Upload all artifacts in dist
+    - name: Store wheel artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: Python Wheels
+        path: dist
+
     - name: Create entry on GH Releases
+      id: make-release
       shell: bash
       run: |
-        curl \
+        # When we make a release, we should check the response for the "upload_url"
+        API_RESPONSE=$(curl \
           -X POST \
-          curl -H "Authorization: token ${{ github.token }}" \
+          -H "Authorization: token ${{ github.token }}" \
           -H "Accept: application/vnd.github.v3+json" \
           https://api.github.com/repos/${{ github.repository }}/releases \
-          -d '{"tag_name":"${{ steps.push-new-version-tag.outputs.tag }}"}'
+          -d '{"tag_name":"${{ steps.push-new-version-tag.outputs.tag }}"}')
+        # The URL from github has some extras in curly brackets that we do not want:
+        # The URL always ends in assets, so we can use that to help check for the end
+        UPLOAD_URL=$(echo ${API_RESPONSE} | jq .upload_url | sed "s/\(.*assets\){.*}/\1/")
+        echo "::set-output name=upload_url::${UPLOAD_URL}"
+
+    - name: Upload wheel to release page
+      shell: bash
+      run: |
+        # We don't know the wheel name, so we can check for everything in the dist dir
+        # We may build multiple wheels from a single repo, so this works for that too.
+        for wheel in dist/*; do
+          curl \
+            -X POST \
+            -H "Authorization: token ${{ github.token }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            -H "Content-Type: $(file -b --mime-type $wheel)" \
+            -T "$wheel" \
+            "${{ steps.make-release.outputs.upload_url }}?name=$(basename $wheel)"
+        done

@@ -57,7 +57,7 @@ class Wavefunction:
         except TypeError:
             self._amplitude_vector = Matrix(amplitude_vector)
 
-        self._check_normalization(self._amplitude_vector)
+        # self._check_normalization(self._amplitude_vector)
 
     @property
     def amplitudes(self) -> Union[np.ndarray, Matrix]:
@@ -191,7 +191,10 @@ class Wavefunction:
             raise ValueError("Passed map results in a violation of probability unity.")
 
     def probabilities(self) -> np.ndarray:
-        return np.array([abs(elem) ** 2 for elem in self._amplitude_vector])
+        # return np.array(
+        #     [abs(elem) ** 2 for elem in self._amplitude_vector]
+        # )  # this is so slow!
+        return np.abs(self._amplitude_vector) ** 2
 
     def get_outcome_probs(self) -> Dict[str, float]:
         values = [
@@ -216,4 +219,7 @@ def flip_amplitudes(amplitudes: Union[Sequence[complex], np.ndarray]) -> np.ndar
         .transpose(*reversed(range(num_bits)))
         .reshape(2 ** num_bits)
     )
-    return np.array([amplitudes[i] for i in ordering])
+    if isinstance(amplitudes, np.ndarray):
+        return amplitudes[ordering]
+    else:
+        return np.array([amplitudes[i] for i in ordering])

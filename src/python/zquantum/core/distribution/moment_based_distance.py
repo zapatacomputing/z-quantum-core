@@ -10,7 +10,7 @@ def compute_moment_based_distance(
     measured_distribution: "MeasurementOutcomeDistribution",
     M: Optional[int] = 15
 ) -> float:
-    """Compute the total variation distance between two distributions,
+    """Compute the moment based distance between two distributions,
     potentially a target distribution and a measured distribution.
 
     Args:
@@ -19,11 +19,11 @@ def compute_moment_based_distance(
         M: The number of iterations to reach convergence
 
     Returns:
-        The value of the the total variation distance
+        The value of the moment based distance
     """
 
-    #The starting value is 0
-    value = 0.0 
+    #The starting distance is 0
+    distance = 0.0 
     #Get all bitstrings of first distribution
     target_keys = target_distribution.distribution_dict.keys() 
     #Get all  bitstrings of second distribution
@@ -52,6 +52,6 @@ def compute_moment_based_distance(
 
             s += abs(scaler*diff)
 
-        value += 1/math.factorial(m) * s
+        distance += 1/math.factorial(m) * s
 
-    return value
+    return distance

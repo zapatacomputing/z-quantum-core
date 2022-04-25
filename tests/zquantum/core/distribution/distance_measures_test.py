@@ -174,18 +174,40 @@ def test_jensen_shannon_divergence_is_computed_correctly():
 
 def test_total_variation_distance_is_computed_correctly():
     target_distr = MeasurementOutcomeDistribution({"000": 0.5, "111": 0.5})
-    measured_dist = MeasurementOutcomeDistribution({"000": 0.4, "111": 0.6})
+    measured_distr = MeasurementOutcomeDistribution({"000": 0.4, "111": 0.6})
     total_variation_distance = compute_total_variation_distance(
-        target_distr, measured_dist
+        target_distr, measured_distr
     )
 
     assert total_variation_distance == 0.2
 
 def test_moment_based_distance_is_computed_correctly():
     target_distr = MeasurementOutcomeDistribution({"000": 0.5, "111": 0.5})
-    measured_dist = MeasurementOutcomeDistribution({"000": 0.5, "111": 0.5})
-    moment_based_distance = compute_moment_based_distance(
-        target_distr, measured_dist
+    measured_distr = MeasurementOutcomeDistribution({"000": 0.5, "111": 0.5})
+    zero_moment_based_distance = compute_moment_based_distance(
+        target_distr, measured_distr
     )
 
-    assert momement_based_distance == 0.0
+    target_distr = MeasurementOutcomeDistribution(
+        {"000": 0.6, 
+         "001": 0.2,
+         "010": 0.1,
+         "011": 0.1})
+    measured_distr = MeasurementOutcomeDistribution(
+        {"010": 0.1, 
+         "011": 0.2,
+         "100": 0.7})
+
+    tvd = compute_total_variation_distance(
+        target_distr, measured_distr
+    )
+    mbd = compute_moment_based_distance(
+        target_distr, measured_distr, M=1
+    )
+
+    print('zero_momement_based_distance',zero_momement_based_distance)
+    print('tvd:',tvd)
+    print('mbd:',mbd)
+
+    assert zero_momement_based_distance == 0.0 \
+           and tvd == mbd

@@ -41,4 +41,4 @@ def compute_total_variation_distance(
         #Sum of abs of all probability differences
         value += abs(target_bitstring_value - measured_bitstring_value)
 
-    return value
+    return value/2

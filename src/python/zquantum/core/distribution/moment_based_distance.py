@@ -7,7 +7,8 @@ if TYPE_CHECKING:
 
 def compute_moment_based_distance(
     target_distribution: "MeasurementOutcomeDistribution",
-    measured_distribution: "MeasurementOutcomeDistribution"
+    measured_distribution: "MeasurementOutcomeDistribution",
+    M: Optional[int] = 15
 ) -> float:
     """Compute the total variation distance between two distributions,
     potentially a target distribution and a measured distribution.
@@ -15,6 +16,7 @@ def compute_moment_based_distance(
     Args:
         target_distribution: The target probability distribution.
         measured_distribution: The measured probability distribution.
+        M: The number of iterations to reach convergence
 
     Returns:
         The value of the the total variation distance
@@ -29,11 +31,11 @@ def compute_moment_based_distance(
     #Combine all bitstrings together
     all_keys = set(target_keys).union(measured_keys) 
 
-    #Gamma parameter (may need to be reversed)
-    gamma = int(max(all_keys),2) #max value measured
+    #Gamma parameter
+    gamma = 2**len(measured_keys[0])
 
     #Go sufficiently many iterations to get accuracy
-    for m in range(15):
+    for m in range(M):
         s = 0
         for bitstring in all_keys:
             x = int(bitstring,2)

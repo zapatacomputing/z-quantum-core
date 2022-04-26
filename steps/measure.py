@@ -113,7 +113,9 @@ def run_circuitset_and_measure(
         circuit_set, n_samples=n_samples_list
     )
     list_of_measurements = [measurement.bitstrings for measurement in measurements_set]
+    final_qubit_mappings =  [measurement.final_qubit_mapings for measurement in measurements_set]
     save_list(list_of_measurements, "measurements-set.json")
+    save_list(final_qubit_mappings, "final-qubit-mappings.json")
 
 
 def get_bitstring_distribution(

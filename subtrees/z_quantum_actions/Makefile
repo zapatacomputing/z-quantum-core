@@ -1,3 +1,6 @@
+################################################################################
+# © Copyright 2021-2022 Zapata Computing Inc.
+################################################################################
 TOP_DIR := $(realpath $(dir $(lastword $(MAKEFILE_LIST))))
 include $(TOP_DIR)/variables.mk
 
@@ -81,6 +84,9 @@ style-default: flake8 mypy black isort
 
 muster-default: style coverage
 	@echo This project passes muster!
+
+build-system-deps-default:
+	:
 
 # This is what converts the -default targets into base target names.
 # Do not remove!!!

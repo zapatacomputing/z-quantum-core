@@ -1,3 +1,6 @@
+################################################################################
+# © Copyright 2021 Zapata Computing Inc.
+################################################################################
 import pytest
 from zquantum.core.interfaces.backend_test import QuantumBackendTests
 from zquantum.core.interfaces.mock_objects import MockQuantumBackend

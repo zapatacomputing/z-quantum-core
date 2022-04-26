@@ -1,3 +1,6 @@
+################################################################################
+# © Copyright 2021-2022 Zapata Computing Inc.
+################################################################################
 from abc import abstractmethod
 from functools import singledispatch
 from numbers import Number

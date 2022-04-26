@@ -1,3 +1,6 @@
+################################################################################
+# © Copyright 2020-2022 Zapata Computing Inc.
+################################################################################
 """
 To enable tracking of measurement results, put the key-value pair
 "track_measurements" : True in `backend_specs`. The measurement data is

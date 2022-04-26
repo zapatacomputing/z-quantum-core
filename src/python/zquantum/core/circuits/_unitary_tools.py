@@ -1,3 +1,6 @@
+################################################################################
+# © Copyright 2021-2022 Zapata Computing Inc.
+################################################################################
 """Module containing utilities for handling unitary matrices."""
 from functools import reduce
 

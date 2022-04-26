@@ -1,3 +1,6 @@
+################################################################################
+# © Copyright 2020-2022 Zapata Computing Inc.
+################################################################################
 """Test case prototypes that can be used in other projects.
 
 Note that this file won't be executed on its own by pytest.
@@ -362,7 +365,7 @@ class QuantumSimulatorTests(QuantumBackendTests):
 
         # Then
         assert isinstance(wavefunction, Wavefunction)
-        assert len(wavefunction.probabilities()) == 8
+        assert len(wavefunction.get_probabilities()) == 8
         assert wavefunction[0] == pytest.approx((1 / np.sqrt(2) + 0j), abs=1e-7)
         assert wavefunction[7] == pytest.approx((1 / np.sqrt(2) + 0j), abs=1e-7)
         assert wf_simulator.number_of_circuits_run == 1

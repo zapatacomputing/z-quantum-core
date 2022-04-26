@@ -1,3 +1,6 @@
+################################################################################
+# © Copyright 2020-2022 Zapata Computing Inc.
+################################################################################
 """Functions for constructing circuits simulating evolution under given Hamiltonian."""
 import operator
 from functools import reduce, singledispatch

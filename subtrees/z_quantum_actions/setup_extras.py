@@ -1,3 +1,6 @@
+################################################################################
+# © Copyright 2021-2022 Zapata Computing Inc.
+################################################################################
 extras = {
     # Development extras needed in every project, because the stylechecks depend on it.
     # If you need more dev deps, extend this list in your own setup.py.

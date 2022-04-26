@@ -1,3 +1,6 @@
+################################################################################
+# © Copyright 2021 Zapata Computing Inc.
+################################################################################
 """Test cases for storing artifacts and recording functions that store them."""
 import numpy as np
 import pytest

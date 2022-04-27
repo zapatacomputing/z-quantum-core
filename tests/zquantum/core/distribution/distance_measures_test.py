@@ -212,5 +212,5 @@ def test_moment_based_distance_is_computed_correctly():
     print('tvd:',tvd)
     print('mbd:',mbd)
 
-    assert zero_momement_based_distance == 0.0 \
+    assert zero_moment_based_distance == 0.0 \
            and tvd == mbd

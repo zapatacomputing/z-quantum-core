@@ -1,3 +1,6 @@
+################################################################################
+# © Copyright 2020-2022 Zapata Computing Inc.
+################################################################################
 import random
 from collections import defaultdict
 from typing import Callable, Dict, List, Optional, cast
@@ -59,7 +62,7 @@ class MockOptimizer(Optimizer):
 
 
 def mock_cost_function(parameters: np.ndarray):
-    return np.sum(parameters ** 2)
+    return np.sum(parameters**2)
 
 
 class MockNestedOptimizer(NestedOptimizer):

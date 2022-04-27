@@ -1,3 +1,6 @@
+################################################################################
+# © Copyright 2021-2022 Zapata Computing Inc.
+################################################################################
 from math import sqrt
 
 import numpy as np
@@ -60,7 +63,7 @@ class TestInitSystemInZeroState:
         wavefunction = Wavefunction.zero_state(n_qubits=n_qubits)
 
         # Check length
-        assert len(wavefunction) == 2 ** n_qubits
+        assert len(wavefunction) == 2**n_qubits
 
         # Check internal property
         assert wavefunction.n_qubits == n_qubits
@@ -200,10 +203,10 @@ class TestRepresentations:
     def test_amplitudes_and_probs_output_type(self, wf: Wavefunction):
         if len(wf.free_symbols) > 0:
             assert wf.amplitudes.dtype == object
-            assert wf.probabilities().dtype == object
+            assert wf.get_probabilities().dtype == object
         else:
             assert wf.amplitudes.dtype == np.complex128
-            assert wf.probabilities().dtype == np.float64
+            assert wf.get_probabilities().dtype == np.float64
 
     @pytest.mark.parametrize(
         "wf_vec",
@@ -222,7 +225,7 @@ class TestRepresentations:
         for key in probs_dict.keys():
             assert len(key) == wf.n_qubits
 
-            assert wf.probabilities()[int(key, 2)] == probs_dict[key]
+            assert wf.get_probabilities()[int(key, 2)] == probs_dict[key]
 
 
 class TestGates:

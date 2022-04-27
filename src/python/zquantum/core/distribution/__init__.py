@@ -1,3 +1,6 @@
+################################################################################
+# © Copyright 2021 Zapata Computing Inc.
+################################################################################
 import math  # This is needed for tests to work because of monkey patching
 
 from ._measurement_outcome_distribution import (

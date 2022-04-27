@@ -1,3 +1,6 @@
+################################################################################
+# © Copyright 2021-2022 Zapata Computing Inc.
+################################################################################
 """Utilities for converting sympy expressions to our native Expression format."""
 import operator
 from functools import singledispatch
@@ -15,7 +18,7 @@ except ImportError:
     # workaround to be able to work with sympy numbers from both old and recent sympy
     # versions. See more at:
     # https://github.com/sympy/sympy/blob/70381f282f2d9d039da860e391fe51649df2779d/sympy/__init__.py#L57
-    sympy_numbers = sympy.numbers
+    sympy_numbers = sympy.numbers  # type: ignore
 
 
 from .expressions import ExpressionDialect, FunctionCall, Symbol, reduction

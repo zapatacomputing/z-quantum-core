@@ -1,3 +1,6 @@
+################################################################################
+# © Copyright 2020-2022 Zapata Computing Inc.
+################################################################################
 """Examples of functions for which recorder works.
 
 Note that none of this use ValueEstimate as a return value. This is because
@@ -23,7 +26,7 @@ def sum_of_squares(params):
     Returns:
         Sum of squares of numbers in params.
     """
-    return sum(x ** 2 for x in params)
+    return sum(x**2 for x in params)
 
 
 # The below implements function: f(x, y) = x ** 2  - x * y

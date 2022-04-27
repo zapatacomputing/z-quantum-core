@@ -1,10 +1,14 @@
+################################################################################
+# © Copyright 2021-2022 Zapata Computing Inc.
+################################################################################
 from dataclasses import dataclass
 from functools import singledispatch
 from numbers import Complex
-from typing import Iterable, List, Tuple, Union
+from typing import Iterable, Tuple
 
 import numpy as np
 import sympy
+from zquantum.core.typing import ParameterizedVector
 
 from ._operations import Parameter, get_free_symbols, sub_symbols
 
@@ -51,13 +55,11 @@ class MultiPhaseOperation:
     ) -> "MultiPhaseOperation":
         return MultiPhaseOperation(new_params)
 
-    def apply(
-        self, wavefunction: Union[np.ndarray, sympy.Matrix, List[complex]]
-    ) -> Union[np.ndarray, sympy.Matrix, List[complex]]:
-        if len(wavefunction) != len(self.params):
+    def apply(self, amplitude_vector: ParameterizedVector) -> ParameterizedVector:
+        if len(amplitude_vector) != len(self.params):
             raise ValueError(
                 f"MultiPhaseOperation with {len(self.params)} params cannot be "
-                f"applied to wavefunction of length {len(wavefunction)}."
+                f"applied to amplitude_vector of length {len(amplitude_vector)}."
             )
 
         try:
@@ -67,7 +69,7 @@ class MultiPhaseOperation:
                 "MultiPhaseOperation can only be applied only if all symbolic "
                 "parameters are bound to real numbers."
             ) from e
-        return np.multiply(np.asarray(wavefunction), exp_params)
+        return np.multiply(np.asarray(amplitude_vector), exp_params)
 
     @property
     def free_symbols(self) -> Iterable[sympy.Symbol]:

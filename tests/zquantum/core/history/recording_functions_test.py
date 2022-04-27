@@ -1,3 +1,6 @@
+################################################################################
+# © Copyright 2021 Zapata Computing Inc.
+################################################################################
 """Test cases for recording basic functions."""
 from unittest.mock import Mock, call
 

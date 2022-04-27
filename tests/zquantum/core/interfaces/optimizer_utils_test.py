@@ -1,3 +1,6 @@
+################################################################################
+# © Copyright 2021-2022 Zapata Computing Inc.
+################################################################################
 import numpy as np
 from zquantum.core.gradients import finite_differences_gradient
 from zquantum.core.history.recorder import recorder
@@ -6,7 +9,7 @@ from zquantum.core.interfaces.optimizer import construct_history_info
 
 
 def sum_x_squared(x):
-    return sum(x ** 2.0)
+    return sum(x**2.0)
 
 
 class TestConstructHistoryInfo:

@@ -1,3 +1,6 @@
+################################################################################
+# © Copyright 2021 Zapata Computing Inc.
+################################################################################
 """Utilities for converting symbolic expressions between different dialects."""
 
 from functools import reduce

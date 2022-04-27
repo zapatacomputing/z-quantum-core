@@ -1,3 +1,6 @@
+################################################################################
+# © Copyright 2021 Zapata Computing Inc.
+################################################################################
 import pytest
 from zquantum.core.history.example_functions import (
     Function2,

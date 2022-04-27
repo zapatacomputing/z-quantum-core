@@ -1,3 +1,6 @@
+################################################################################
+# © Copyright 2020-2022 Zapata Computing Inc.
+################################################################################
 """Functions for constructing circuits simulating evolution under given Hamiltonian."""
 import operator
 from functools import reduce, singledispatch
@@ -6,9 +9,9 @@ from typing import Iterable, List, Optional, Tuple, Union
 
 import numpy as np
 import sympy
-from openfermion import QubitOperator
 from zquantum.core import circuits
 from zquantum.core.circuits import CNOT, RX, RZ, H
+from zquantum.core.openfermion import QubitOperator
 
 
 def time_evolution(

@@ -1,3 +1,6 @@
+################################################################################
+# © Copyright 2021-2022 Zapata Computing Inc.
+################################################################################
 """Implementation of cost function augmentations.
 
 The "augmentation" is a function returning function. Augmentations can add side effects

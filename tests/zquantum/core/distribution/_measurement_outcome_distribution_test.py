@@ -1,3 +1,6 @@
+################################################################################
+# © Copyright 2021-2022 Zapata Computing Inc.
+################################################################################
 import json
 import math
 from io import StringIO
@@ -153,9 +156,9 @@ class TestInitializations:
                 ),
             ),
             (
-                np.ones(2 ** 5) / 2 ** 5,
+                np.ones(2**5) / 2**5,
                 MeasurementOutcomeDistribution(
-                    {tup: 1 / 2 ** 5 for tup in product([0, 1], repeat=5)}
+                    {tup: 1 / 2**5 for tup in product([0, 1], repeat=5)}
                 ),
             ),
         ],

@@ -1,13 +1,17 @@
+################################################################################
+# © Copyright 2020-2022 Zapata Computing Inc.
+################################################################################
 import time
 from typing import Union
 
-from openfermion import (
+from zquantum.core.openfermion import (
     SymbolicOperator,
     bravyi_kitaev,
     get_fermion_operator,
     jordan_wigner,
+    load_interaction_operator,
+    save_qubit_operator,
 )
-from zquantum.core.openfermion import load_interaction_operator, save_qubit_operator
 from zquantum.core.utils import save_timing
 
 

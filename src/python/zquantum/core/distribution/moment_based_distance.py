@@ -32,13 +32,14 @@ def compute_moment_based_distance(
     all_keys = set(target_keys).union(measured_keys) 
 
     #Gamma parameter
-    gamma = 2**len(measured_keys[0])
+    n_qubits = len(next(iter(all_keys)))
+    gamma = 2**n_qubits
 
     #Go sufficiently many iterations to get accuracy
     for m in range(M):
         s = 0
         for bitstring in all_keys:
-            x = int(bitstring,2)
+            x = int("".join([str(b) for b in bitstring]),2)
             scaler = (x/gamma)**m
 
             target_bitstring_value = target_distribution.distribution_dict.get(

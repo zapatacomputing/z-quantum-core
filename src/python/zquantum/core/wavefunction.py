@@ -1,9 +1,13 @@
+################################################################################
+# © Copyright 2021-2022 Zapata Computing Inc.
+################################################################################
 from math import log2
 from typing import Any, Dict, List, Sequence, Set, Union
 from warnings import warn
 
 import numpy as np
 from sympy import Matrix, Symbol
+from zquantum.core.typing import ParameterizedVector
 
 
 def _is_number(possible_number):
@@ -45,9 +49,7 @@ class Wavefunction:
             can either be a NumPy ndarray or a SymPy Matrix
     """
 
-    def __init__(
-        self, amplitude_vector: Union[np.ndarray, Matrix, List[complex]]
-    ) -> None:
+    def __init__(self, amplitude_vector: ParameterizedVector) -> None:
         if bin(len(amplitude_vector)).count("1") != 1:
             raise ValueError(
                 "Provided wavefunction does not have a size of a power of 2."
@@ -58,7 +60,7 @@ class Wavefunction:
         except TypeError:
             self._amplitude_vector = Matrix(amplitude_vector)
 
-        self._check_sanity(self._amplitude_vector)
+        self._check_normalization(self._amplitude_vector)
 
     @property
     def amplitudes(self) -> Union[np.ndarray, Matrix]:
@@ -76,23 +78,23 @@ class Wavefunction:
         return getattr(self._amplitude_vector, "free_symbols", set())
 
     @staticmethod
-    def _check_sanity(arr: Union[Matrix, np.ndarray]):
-        def _calculate_probability_of_ground_entries(arr: Matrix) -> np.float64:
-            numbers = np.array(
-                [elem for elem in arr if _is_number(elem)], dtype=np.complex128
-            )
-            return np.sum(np.abs(numbers) ** 2)
-
-        probs_of_ground_entries = _calculate_probability_of_ground_entries(arr)
+    def _check_normalization(arr: ParameterizedVector):
 
         if (
-            isinstance(arr, Matrix)
+            isinstance(arr, np.ndarray)
+            or isinstance(arr, Matrix)
             and not arr.free_symbols
-            or isinstance(arr, np.ndarray)
         ):
+            probs_of_ground_entries = np.sum(np.abs(arr) ** 2)
+
             if not np.isclose(probs_of_ground_entries, 1.0):
                 raise ValueError("Vector does not result in a unit probability.")
         else:
+            numbers = np.array(
+                [elem for elem in arr if _is_number(elem)], dtype=np.complex128
+            )
+            probs_of_ground_entries = np.sum(np.abs(numbers) ** 2)
+
             if probs_of_ground_entries > 1.0:
                 raise ValueError(
                     "Ground entries in vector already exceeding probability of 1.0!"
@@ -112,7 +114,7 @@ class Wavefunction:
         self._amplitude_vector[idx] = val
 
         try:
-            self._check_sanity(self._amplitude_vector)
+            self._check_normalization(self._amplitude_vector)
         except ValueError:
             self._amplitude_vector[idx] = old_val
 
@@ -140,7 +142,7 @@ class Wavefunction:
         if n_qubits <= 0:
             raise ValueError(f"Invalid number of qubits in system. Got {n_qubits}.")
 
-        np_arr = np.zeros(2 ** n_qubits, dtype=np.complex128)
+        np_arr = np.zeros(2**n_qubits, dtype=np.complex128)
         np_arr[0] = 1.0
         return Wavefunction(np_arr)
 
@@ -175,7 +177,7 @@ class Wavefunction:
                 counter += 1
 
             amplitude = 1 / np.sqrt(counter)
-            wf = np.zeros(2 ** n_qubits, dtype=np.complex128)
+            wf = np.zeros(2**n_qubits, dtype=np.complex128)
             wf[indices] = amplitude
 
             return Wavefunction(wf)
@@ -191,15 +193,15 @@ class Wavefunction:
         except ValueError:
             raise ValueError("Passed map results in a violation of probability unity.")
 
-    def probabilities(self) -> np.ndarray:
-        return np.array([abs(elem) ** 2 for elem in self._amplitude_vector])
+    def get_probabilities(self) -> np.ndarray:
+        return np.abs(self.amplitudes) ** 2
 
     def get_outcome_probs(self) -> Dict[str, float]:
         values = [
             format(i, "0" + str(self.n_qubits) + "b")[::-1] for i in range(len(self))
         ]
 
-        probs = self.probabilities()
+        probs = self.get_probabilities()
 
         return dict(zip(values, probs))
 

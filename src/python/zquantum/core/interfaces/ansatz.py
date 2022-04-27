@@ -1,3 +1,6 @@
+################################################################################
+# © Copyright 2020-2021 Zapata Computing Inc.
+################################################################################
 import warnings
 from abc import ABC
 from typing import Any, Callable, List, Optional, Sequence, Tuple

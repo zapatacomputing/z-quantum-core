@@ -1,15 +1,16 @@
+################################################################################
+# © Copyright 2021-2022 Zapata Computing Inc.
+################################################################################
 import os
 from math import isclose
 
 import numpy as np
 from numpy.linalg import eigvalsh
-from openfermion import (
+from zquantum.core.openfermion import (
     InteractionOperator,
     QubitOperator,
     get_ground_state,
     get_sparse_operator,
-)
-from zquantum.core.openfermion import (
     load_qubit_operator,
     load_qubit_operator_set,
     save_interaction_operator,

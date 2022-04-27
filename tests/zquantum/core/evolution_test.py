@@ -1,7 +1,9 @@
+################################################################################
+# © Copyright 2021-2022 Zapata Computing Inc.
+################################################################################
 import numpy as np
 import pytest
 import sympy
-from openfermion import QubitOperator
 from scipy.linalg import fractional_matrix_power
 from zquantum.core import circuits
 from zquantum.core.circuits import XX, YY, ZZ, Circuit
@@ -11,6 +13,7 @@ from zquantum.core.evolution import (
     time_evolution_derivatives,
     time_evolution_for_term,
 )
+from zquantum.core.openfermion import QubitOperator
 from zquantum.core.utils import compare_unitary
 
 OPENFERMION_TERM_TO_ZQUANTUM_GATE = {

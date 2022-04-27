@@ -1,14 +1,15 @@
+################################################################################
+# © Copyright 2021-2022 Zapata Computing Inc.
+################################################################################
 import json
 import os
 import random
 from functools import partial
 
 import numpy as np
-import pkg_resources
 import pytest
 import sympy
 from scipy.stats import unitary_group
-from zquantum.core.openfermion import load_interaction_operator
 from zquantum.core.utils import (
     RNDSEED,
     SCHEMA_VERSION,
@@ -23,7 +24,6 @@ from zquantum.core.utils import (
     dec2bin,
     get_func_from_specs,
     get_ordered_list_of_bitstrings,
-    hf_rdm,
     is_identity,
     is_unitary,
     load_list,
@@ -62,7 +62,7 @@ class TestUtils:
         assert np.allclose(arr, new_arr)
 
     def test_dec_bin_conversion(self):
-        integer = random.randint(1, 10 ** 9)
+        integer = random.randint(1, 10**9)
         integer2 = bin2dec(dec2bin(integer, 30))
         assert integer == integer2
 
@@ -443,42 +443,11 @@ def test_scale_and_discretize(values, total, expected_result):
     assert scale_and_discretize(values, total) == expected_result
 
 
-# Hamiltonians and energies from Psi4 H2 minimal basis
-# first one is RHF, second one is H2- doublet with ROHF
-@pytest.mark.parametrize(
-    "hamiltonian, ref_energy, nalpha",
-    [
-        (
-            load_interaction_operator(
-                pkg_resources.resource_filename(
-                    "zquantum.core.testing", "hamiltonian_H2_minimal_basis.json"
-                )
-            ),
-            -0.8543376267387818,
-            1,
-        ),
-        (
-            load_interaction_operator(
-                pkg_resources.resource_filename(
-                    "zquantum.core.testing",
-                    "hamiltonian_H2_minus_ROHF_minimal_basis.json",
-                )
-            ),
-            -0.6857403043904364,
-            2,
-        ),
-    ],
-)
-def test_hf_rdm_energy(hamiltonian, ref_energy, nalpha):
-    rdm = hf_rdm(nalpha, 1, 2)
-    assert np.isclose(ref_energy, rdm.expectation(hamiltonian))
-
-
 @pytest.mark.parametrize("num_qubits", [2, 3, 5, 10])
 def test_ordered_bitstring(num_qubits):
     bitstrings = get_ordered_list_of_bitstrings(num_qubits)
     expected_bitstrings = convert_tuples_to_bitstrings(
-        [dec2bin(integer, num_qubits) for integer in range(2 ** num_qubits)]
+        [dec2bin(integer, num_qubits) for integer in range(2**num_qubits)]
     )
     assert np.all(expected_bitstrings == bitstrings)
     assert np.all([len(bitstring) == num_qubits for bitstring in bitstrings])

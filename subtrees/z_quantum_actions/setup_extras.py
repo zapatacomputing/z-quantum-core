@@ -1,9 +1,12 @@
+################################################################################
+# © Copyright 2021-2022 Zapata Computing Inc.
+################################################################################
 extras = {
     # Development extras needed in every project, because the stylechecks depend on it.
     # If you need more dev deps, extend this list in your own setup.py.
     # Using "develop" instead of "dev" to distinguish from branch name.
     "develop": [
-        "black~=20.8b0",
+        "black~=22.3",
         "flake8~=3.9.0",
         "isort~=5.9.0",
         "mypy~=0.910",

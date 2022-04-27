@@ -1,3 +1,6 @@
+################################################################################
+# © Copyright 2021 Zapata Computing Inc.
+################################################################################
 ### The following code is derived from:
 ### https://github.com/GiggleLiu/QuantumCircuitBornMachine/blob/master/LICENSE
 ### The original resource is under MIT license, which is pasted below for convenience

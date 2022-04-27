@@ -1,8 +1,11 @@
+################################################################################
+# © Copyright 2021-2022 Zapata Computing Inc.
+################################################################################
 import json
 import os
 import shutil
 
-from openfermion import QubitOperator
+from zquantum.core.openfermion import QubitOperator
 
 from steps.optimize import optimize_parametrized_circuit_for_ground_state_of_operator
 

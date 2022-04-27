@@ -1,3 +1,6 @@
+################################################################################
+# © Copyright 2020-2022 Zapata Computing Inc.
+################################################################################
 """General-purpose utilities."""
 import collections
 import copy
@@ -10,10 +13,8 @@ from functools import partial
 from types import FunctionType
 from typing import Any, Dict, Iterable, List, Optional, Tuple
 
-import lea
 import numpy as np
 import sympy
-from openfermion import InteractionRDM, hermitian_conjugated
 
 from .typing import AnyPath, LoadSource, Specs
 
@@ -105,16 +106,6 @@ def bin2dec(x: List[int]) -> int:
     return dec
 
 
-# The functions PAULI_X, PAULI_Y, PAULI_Z and IDENTITY below are used for
-# generating the generators of the Pauli group, which include Pauli X, Y, Z
-# operators as well as identity operator
-
-pauli_x = np.array([[0.0, 1.0], [1.0, 0.0]])
-pauli_y = np.array([[0.0, -1.0j], [1.0j, 0.0]])
-pauli_z = np.array([[1.0, 0.0], [0.0, -1.0]])
-identity = np.array([[1.0, 0.0], [0.0, 1.0]])
-
-
 def is_identity(u: np.ndarray, tol=1e-15) -> bool:
     """Test if a matrix is identity.
 
@@ -146,7 +137,7 @@ def is_unitary(u: np.ndarray, tol=1e-15) -> bool:
     if dims[0] != dims[1]:
         raise Exception("Input matrix is not square.")
 
-    test_matrix = np.dot(hermitian_conjugated(np.array(u)), u)
+    test_matrix = np.dot(np.array(u).T.conj(), u)
     return is_identity(test_matrix, tol)
 
 
@@ -174,14 +165,14 @@ def compare_unitary(u1: np.ndarray, u2: np.ndarray, tol: float = 1e-15) -> bool:
 
 
 def sample_from_probability_distribution(
-    probability_distribution: dict, n_samples: int
+    probability_distribution: Dict[Any, float], n_samples: int
 ) -> collections.Counter:
     """
     Samples events from a discrete probability distribution
 
     Args:
         probabilty_distribution: The discrete probability distribution to be used
-        for sampling. This should be a dictionary
+        for sampling. This should be a dictionary of possible events to their likelihood
 
         n_samples (int): The number of samples desired
 
@@ -190,10 +181,18 @@ def sample_from_probability_distribution(
         and values are how many times those things appeared in the sampling
     """
     if isinstance(probability_distribution, dict):
-        prob_pmf = lea.pmf(probability_distribution)
-        sampled_dict: collections.Counter = collections.Counter(
-            prob_pmf.random(n_samples)
+        # Need to do this preprocessing to handle different types of dict keys
+        keys_as_array = np.empty(len(probability_distribution), dtype=object)
+        keys_as_array[:] = list(probability_distribution.keys())
+
+        result = np.random.choice(
+            keys_as_array,
+            n_samples,
+            replace=True,
+            p=list(probability_distribution.values()),
         )
+        sampled_dict: collections.Counter = collections.Counter(result)
+
         return sampled_dict
     else:
         raise RuntimeError(
@@ -607,34 +606,6 @@ def scale_and_discretize(values: Iterable[float], total: int) -> List[int]:
     return result
 
 
-def hf_rdm(n_alpha: int, n_beta: int, n_orbitals: int) -> InteractionRDM:
-    """Construct the RDM corresponding to a Hartree-Fock state.
-
-    Args:
-        n_alpha (int): number of spin-up electrons
-        n_beta (int): number of spin-down electrons
-        n_orbitals (int): number of spatial orbitals (not spin orbitals)
-
-    Returns:
-        openfermion.ops.InteractionRDM: the reduced density matrix
-    """
-    # Determine occupancy of each spin orbital
-    occ = np.zeros(2 * n_orbitals)
-    occ[: (2 * n_alpha) : 2] = 1
-    occ[1 : (2 * n_beta + 1) : 2] = 1
-
-    one_body_tensor = np.diag(occ)
-
-    two_body_tensor = np.zeros([2 * n_orbitals for i in range(4)])
-    for i in range(2 * n_orbitals):
-        for j in range(2 * n_orbitals):
-            if i != j and occ[i] and occ[j]:
-                two_body_tensor[i, j, j, i] = 1
-                two_body_tensor[i, j, i, j] = -1
-
-    return InteractionRDM(one_body_tensor, two_body_tensor)
-
-
 def load_from_specs(specs: Specs):
     if isinstance(specs, str):
         specs = json.loads(specs)
@@ -652,7 +623,7 @@ def get_ordered_list_of_bitstrings(num_qubits: int) -> List[str]:
         The ordered bitstring representations of the integers
     """
     bitstrings = []
-    for i in range(2 ** num_qubits):
+    for i in range(2**num_qubits):
         bitstring = "{0:b}".format(i)
         while len(bitstring) < num_qubits:
             bitstring = "0" + bitstring

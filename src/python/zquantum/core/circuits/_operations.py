@@ -1,12 +1,14 @@
+################################################################################
+# © Copyright 2021-2022 Zapata Computing Inc.
+################################################################################
 from abc import abstractmethod
 from functools import singledispatch
 from numbers import Number
-from typing import Dict, Iterable, Sequence, Tuple, TypeVar, Union
+from typing import Dict, Iterable, Tuple, TypeVar
 
 import sympy
 from typing_extensions import Protocol
-
-Parameter = Union[sympy.Symbol, Number]
+from zquantum.core.typing import Parameter, ParameterizedVector
 
 T = TypeVar("T", bound="Operation")
 
@@ -38,7 +40,7 @@ class Operation(Protocol):
         """
 
     @abstractmethod
-    def apply(self: T, wavefunction: Sequence[Parameter]) -> Sequence[Parameter]:
+    def apply(self: T, amplitude_vector: ParameterizedVector) -> ParameterizedVector:
         """Apply this operation to given wavefunction.
 
         Operations that cannot be applied deterministically should raise

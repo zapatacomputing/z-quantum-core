@@ -1,3 +1,6 @@
+################################################################################
+# © Copyright 2021-2022 Zapata Computing Inc.
+################################################################################
 """Module containing utilities for handling unitary matrices."""
 from functools import reduce
 
@@ -57,8 +60,8 @@ def _permutation_matrix(target_indices_order, zeros, bitstring_to_dense_vector):
     num_qubits = len(target_indices_order)
     if sorted(target_indices_order) != list(range(num_qubits)):
         raise ValueError("Not all qubits given in permutation.")
-    perm_matrix = zeros((2 ** num_qubits, 2 ** num_qubits))
-    for i in range(2 ** num_qubits):
+    perm_matrix = zeros((2**num_qubits, 2**num_qubits))
+    for i in range(2**num_qubits):
         input_state = _basis_bitstring(i, num_qubits)
         output_state = _permute(input_state, target_indices_order)
         perm_matrix[:, i] = bitstring_to_dense_vector(output_state)
@@ -125,7 +128,7 @@ def _lift_matrix(
     # add identities acting on qubits with indices outside of smallest-largest range.
     return reduce(
         kronecker_product,
-        [eye(2 ** smallest), inner_matrix, eye(2 ** (num_qubits - largest - 1))],
+        [eye(2**smallest), inner_matrix, eye(2 ** (num_qubits - largest - 1))],
     )
 
 

@@ -1,3 +1,6 @@
+################################################################################
+# © Copyright 2020-2021 Zapata Computing Inc.
+################################################################################
 """Save conditions possible to use with recorder."""
 from typing import Any
 

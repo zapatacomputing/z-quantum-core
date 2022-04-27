@@ -1,3 +1,6 @@
+################################################################################
+# © Copyright 2021-2022 Zapata Computing Inc.
+################################################################################
 import logging
 
 import numpy as np
@@ -37,7 +40,7 @@ class AugmentationWithNumber:
 
 
 def foo(x):
-    return x ** 2
+    return x**2
 
 
 class Foo:
@@ -46,7 +49,7 @@ class Foo:
         self.string = "test"
 
     def __call__(self, x):
-        return x ** 2
+        return x**2
 
 
 class FooGradient:
@@ -61,7 +64,7 @@ class FooWithGradient:
         self.gradient = FooGradient()
 
     def __call__(self, x):
-        return x ** 3
+        return x**3
 
 
 class ExampleSideEffect(ConditionalSideEffect):

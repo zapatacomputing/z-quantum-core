@@ -1,19 +1,20 @@
+################################################################################
+# © Copyright 2020-2022 Zapata Computing Inc.
+################################################################################
 from typing import List, Optional, Union
 
 import numpy as np
-from openfermion import (
-    FermionOperator,
-    InteractionOperator,
-    IsingOperator,
-    QubitOperator,
-    normal_ordered,
-)
-from openfermion.transforms import get_fermion_operator
 from zquantum.core.hamiltonian import (
     group_comeasureable_terms_greedy as _group_comeasurable_terms_greedy,
 )
 from zquantum.core.hamiltonian import (
     reorder_fermionic_modes as _reorder_fermionic_modes,
+)
+from zquantum.core.openfermion import (
+    FermionOperator,
+    InteractionOperator,
+    IsingOperator,
+    QubitOperator,
 )
 from zquantum.core.openfermion import get_diagonal_component as _get_diagonal_component
 from zquantum.core.openfermion import (
@@ -23,6 +24,7 @@ from zquantum.core.openfermion import (
     load_interaction_operator,
     load_qubit_operator,
     load_qubit_operator_set,
+    normal_ordered,
 )
 from zquantum.core.openfermion import (
     remove_inactive_orbitals as _remove_inactive_orbitals,
@@ -32,6 +34,7 @@ from zquantum.core.openfermion import (
     save_qubit_operator,
     save_qubit_operator_set,
 )
+from zquantum.core.openfermion.transforms import get_fermion_operator
 from zquantum.core.testing import create_random_qubitop as _create_random_qubitop
 
 

@@ -1,8 +1,13 @@
+################################################################################
+# © Copyright 2021-2022 Zapata Computing Inc.
+################################################################################
 """Types commonly encountered in zquantum repositories."""
-from abc import abstractmethod
+from numbers import Number
 from os import PathLike
-from typing import Any, Callable, Dict, List, Union
+from typing import Any, Callable, Dict, List, Sequence, Union
 
+import numpy as np
+import sympy
 from typing_extensions import Protocol, runtime_checkable
 
 from .history.recorder import (
@@ -42,6 +47,10 @@ Specs = Union[str, Dict]
 AnyRecorder = Union[SimpleRecorder, ArtifactRecorder]
 AnyHistory = Union[List[HistoryEntry], List[HistoryEntryWithArtifacts]]
 RecorderFactory = Callable[[Callable], AnyRecorder]
+
+
+Parameter = Union[sympy.Symbol, Number]
+ParameterizedVector = Union[Sequence[Parameter], np.ndarray]
 
 
 class SupportsLessThan(Protocol):

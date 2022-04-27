@@ -1,3 +1,6 @@
+################################################################################
+# © Copyright 2020-2021 Zapata Computing Inc.
+################################################################################
 """
 This file is needed for backward-compatibility, due to the changing of
 the bitstring_distribution module to simply distribution module. This change

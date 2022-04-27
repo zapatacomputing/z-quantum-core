@@ -1,3 +1,6 @@
+################################################################################
+# © Copyright 2020-2022 Zapata Computing Inc.
+################################################################################
 """Test case prototypes that can be used in other projects.
 
 Note that this file won't be executed on its own by pytest.
@@ -43,7 +46,7 @@ class OptimizerTests(object):
 
     @pytest.fixture
     def sum_x_squared(self):
-        return lambda x: sum(x ** 2.0)
+        return lambda x: sum(x**2.0)
 
     @pytest.fixture
     def rosenbrock_function(self):

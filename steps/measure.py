@@ -1,3 +1,6 @@
+################################################################################
+# © Copyright 2020-2022 Zapata Computing Inc.
+################################################################################
 """
 To enable tracking of measurement results, put the key-value pair
 "track_measurements" : True in `backend_specs`. The measurement data is
@@ -12,7 +15,6 @@ amount of data so the default behavior is not to save the bitstrings.
 import json
 from typing import Dict, List, Optional, Union
 
-import openfermion
 from zquantum.core import circuits
 from zquantum.core.circuits import layouts
 from zquantum.core.cost_function import sum_expectation_values
@@ -29,6 +31,7 @@ from zquantum.core.measurement import (
     save_expectation_values,
 )
 from zquantum.core.openfermion import (
+    SymbolicOperator,
     change_operator_type,
     load_interaction_rdm,
     load_qubit_operator,
@@ -148,7 +151,7 @@ def evaluate_ansatz_based_cost_function(
     backend_specs: Specs,
     cost_function_specs: Specs,
     ansatz_parameters: str,
-    target_operator: Union[str, openfermion.SymbolicOperator],
+    target_operator: Union[str, SymbolicOperator],
     estimation_method_specs: Optional[Specs] = None,
     estimation_preprocessors_specs: Optional[List[Specs]] = None,
     noise_model: Optional[str] = None,
@@ -336,7 +339,7 @@ def get_summed_expectation_values(
 ):
     if isinstance(operator, str):
         operator = load_qubit_operator(operator)
-        operator = change_operator_type(operator, openfermion.IsingOperator)
+        operator = change_operator_type(operator, IsingOperator)
     loaded_measurements: Measurements
     if isinstance(measurements, str):
         loaded_measurements = Measurements.load_from_file(measurements)

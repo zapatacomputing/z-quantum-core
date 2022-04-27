@@ -25,7 +25,7 @@ jobs:
       matrix:
         python: [3.7, "3.10"]
 
-    name: Python ${{ matrix.python }}
+    name: TestCoverage - Python ${{ matrix.python }}
 
     steps:
       - uses: actions/checkout@v2

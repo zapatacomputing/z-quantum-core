@@ -1,3 +1,6 @@
+################################################################################
+# © Copyright 2021 Zapata Computing Inc.
+################################################################################
 import pytest
 import sympy
 from zquantum.core import circuits

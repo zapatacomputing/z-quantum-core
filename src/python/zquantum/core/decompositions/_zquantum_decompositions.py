@@ -1,3 +1,6 @@
+################################################################################
+# © Copyright 2021-2022 Zapata Computing Inc.
+################################################################################
 from typing import Iterable, Sequence
 
 from zquantum.core.circuits._builtin_gates import RY, RZ

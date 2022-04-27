@@ -55,4 +55,4 @@ def compute_moment_based_distance(
 
         distance += 1/math.factorial(m) * s
 
-    return distance
+    return distance/2 #Divide by 2 necessary?

@@ -208,7 +208,7 @@ def test_moment_based_distance_is_computed_correctly():
         target_distr, measured_distr, M=1
     )
 
-    print('zero_momement_based_distance',zero_momement_based_distance)
+    print('zero_momement_based_distance',zero_moment_based_distance)
     print('tvd:',tvd)
     print('mbd:',mbd)
 

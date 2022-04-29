@@ -61,7 +61,7 @@ def apply_gate_to_qubits(
         assert len(parameters) == len(unique_qubit_idx)
         gate_factory = cast(GatePrototype, gate_factory)
         for qubit, parameter in zip(unique_qubit_idx, parameters):
-            circuit += gate_factory(*np.atleast1d(parameter))(qubit)
+            circuit += gate_factory(*np.atleast_1d(parameter))(qubit)
     else:
         gate_factory = cast(Gate, gate_factory)
         for qubit in unique_qubit_idx:

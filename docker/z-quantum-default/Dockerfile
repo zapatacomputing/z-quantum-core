@@ -29,12 +29,6 @@ RUN apt-get -y install \
                 liblapack-dev \
                 openssh-client
 
-
-#- # After March 2022, git changed its authentication.
-#- RUN git config --global url."git@github.com:".insteadOf git://github.com/
-
-# ZQuantum requires Python 3.8. By installing `python3-pip` we have also installed
-# Python 3.8. We need to set back the Python version to 3.8.
 RUN update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.8 1 && \
     update-alternatives --set python3 /usr/bin/python3.8
 
@@ -71,9 +65,9 @@ RUN true \
 
 # Install z-quantum-core's dependencies, but not the library itself.
 RUN true \
-   && echo git clone https://github.com/zapatacomputing/z-quantum-core.git \
-   && echo python3 -m pip install --no-cache-dir /tmp/z-quantum-core \
-   && echo python3 -m pip uninstall -y z-quantum-core \
+   && git clone https://github.com/zapatacomputing/z-quantum-core.git \
+   && python3 -m pip install --no-cache-dir /root/z-quantum-core \
+   && python3 -m pip uninstall -y z-quantum-core \
    && true
 
 # Misc libraries that we'd like to have already preinstalled.

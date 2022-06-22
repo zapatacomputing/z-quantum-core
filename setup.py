@@ -59,7 +59,6 @@ setuptools.setup(
         "h5py>=2.8",
     ],
     extras_require=extras,
-    setup_requires=["setuptools_scm~=6.0"],
     # Without this, users of this library would get mypy errors. See also:
     # https://github.com/python/mypy/issues/7508#issuecomment-531965557
     zip_safe=False,

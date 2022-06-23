@@ -493,7 +493,6 @@ class SymbolicOperator(metaclass=abc.ABCMeta):
             self.constant -= subtrahend
         else:
             raise TypeError("Cannot subtract invalid type from {}.".format(type(self)))
-        print("here")
         return self
 
     def __sub__(self, subtrahend):
